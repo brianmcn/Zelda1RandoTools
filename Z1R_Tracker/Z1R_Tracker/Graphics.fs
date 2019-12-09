@@ -25,6 +25,9 @@ let emptyZHelper =
 let fullZHelper =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperFull.png")
     new System.Drawing.Bitmap(imageStream)
+let overworldImage =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld.png")
+    new System.Drawing.Bitmap(imageStream)
 
 let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring = 
     let zh = fullZHelper
@@ -154,15 +157,14 @@ let owHeartsFull =
     |]
 
 let overworldMapBMPs =
-    let ze = emptyZHelper
+    let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8
-    let xoff,yoff = 1,160  // index into ZHelperEmpty
     for x = 0 to 15 do
         for y = 0 to 7 do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, ze.GetPixel(xoff + x*16*3 + px, yoff + y*16*3 + py))
+                    tile.SetPixel(px, py, m.GetPixel((x*16*3 + px)/3, (y*11*3 + py)/3))
             tiles.[x,y] <- tile
     tiles
 

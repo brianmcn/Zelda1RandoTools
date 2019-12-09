@@ -91,9 +91,19 @@ let makeAll() =
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapGrid, c, i, j)
+            // shading between map tiles
+            let OPA = 0.25
+            let bottomShade = new Canvas(Width=float(16*3), Height=float(3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            canvasAdd(c, bottomShade, 0., float(10*3))
+            let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            canvasAdd(c, rightShade, float(15*3), 0.)
+            // highlight mouse
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun _ -> c.Children.Add(rect) |> ignore)
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
+            // click shade
+            let shade = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=0.5)
+            c.MouseWheel.Add(fun x -> if x.Delta > 0 then if c.Children.Contains(shade) then c.Children.Remove(shade) else c.Children.Add(shade) |> ignore)
     canvasAdd(c, owMapGrid, 0., 120.)
     c
 
@@ -106,16 +116,10 @@ type MyWindow() as this =
         // full window
         this.Title <- "Zelda 1 Randomizer"
         this.Content <- content
-        //this.Width <- 1280.0 - 720.0
-        //this.Width <- float(makeAll().Width)
-        //this.Height <- 720.0
-        //this.Height <- float(makeAll().Height)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 1100.0
         this.Top <- 20.0
-
-//        this.MouseMove.Add(fun _ -> update())
 
 (*
         let timer = new System.Windows.Threading.DispatcherTimer()

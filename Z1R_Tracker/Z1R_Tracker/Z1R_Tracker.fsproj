@@ -58,6 +58,7 @@
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="ZHelperEmpty.png" />
     <EmbeddedResource Include="ZHelperFull.png" />
+    <EmbeddedResource Include="s_map_overworld.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
