@@ -59,6 +59,7 @@
     <EmbeddedResource Include="ZHelperEmpty.png" />
     <EmbeddedResource Include="ZHelperFull.png" />
     <EmbeddedResource Include="s_map_overworld.png" />
+    <EmbeddedResource Include="s_icon_overworld_strip39.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

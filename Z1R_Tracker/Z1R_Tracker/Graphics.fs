@@ -28,6 +28,9 @@ let fullZHelper =
 let overworldImage =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld.png")
     new System.Drawing.Bitmap(imageStream)
+let zhMapIcons =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_icon_overworld_strip39.png")
+    new System.Drawing.Bitmap(imageStream)
 
 let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring = 
     let zh = fullZHelper
@@ -59,6 +62,8 @@ let heart_container, power_bracelet, white_sword, ow_key_armos =
                 yield bmp
         |]
     BMPtoImage items.[0], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[3]
+
+let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword; heart_container |]
 
 let ow_key_white_sword = 
     let zh = fullZHelper
@@ -127,7 +132,7 @@ let owHeartsSkipped =
     [|
         for i = 0 to 3 do
             let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 649,52  // index into ZHelperFull
+            let xoff,yoff = 646,52  // index into ZHelperFull
             for px = 0 to 10*3-1 do
                 for py = 0 to 10*3-1 do
                     bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
@@ -168,3 +173,41 @@ let overworldMapBMPs =
             tiles.[x,y] <- tile
     tiles
 
+let owMapSquaresAlwaysEmpty = [|
+    "X.X...X.XX......"
+    ".X...X.XXX.X...."
+    "X........XXX..X."
+    "XXX..XX.XXXX..XX"
+    "XX.X........X..X"
+    "X.XXXX.XXXX.XX.."
+    "XX...X...X..X.X."
+    "..XX......X...XX"
+    |]
+
+let uniqueMapIcons =
+    let m = zhMapIcons 
+    [|
+        // levels 1-9, warps 1-4, sword 3, sword 2
+        for i in [yield![2..14]; yield![19..20]] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
+            yield BMPtoImage tile
+    |]
+
+let nonUniqueMapIconBMPs = 
+    let m = zhMapIcons 
+    [|
+        for i in [yield![24..26]; yield![28..32]; yield 34; yield 38] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
+                    if i=38 then
+                        if tile.GetPixel(px,py).ToArgb() = System.Drawing.Color.Black.ToArgb() then
+                            tile.SetPixel(px,py,System.Drawing.Color.DarkGray)
+                        else
+                            tile.SetPixel(px,py,System.Drawing.Color.Black)
+            yield tile
+    |]

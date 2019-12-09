@@ -5,9 +5,10 @@ open System.Windows.Media
 
 
 let canvasAdd(c:Canvas, item, left, top) =
-    c.Children.Add(item) |> ignore
-    Canvas.SetTop(item, top)
-    Canvas.SetLeft(item, left)
+    if item <> null then
+        c.Children.Add(item) |> ignore
+        Canvas.SetTop(item, top)
+        Canvas.SetLeft(item, left)
 let gridAdd(g:Grid, x, c, r) =
     g.Children.Add(x) |> ignore
     Grid.SetColumn(x, c)
@@ -19,6 +20,60 @@ let makeGrid(nc, nr, cw, rh) =
     for i = 0 to nr do
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
+
+type ItemState() =
+    let mutable state = -1
+    member this.Current() =
+        if state = -1 then
+            null
+        else
+            Graphics.allItems.[state]
+    member private this.Impl(forward) = 
+        if forward then 
+            state <- state + 1
+        else
+            state <- state - 1
+        if state < -1 then
+            state <- Graphics.allItems.Length-1
+        if state >= Graphics.allItems.Length then
+            state <- -1
+        if state <> -1 && Graphics.allItems.[state].Parent <> null then
+            if forward then this.Next() else this.Prev()
+        elif state = -1 then
+            null
+        else
+            Graphics.allItems.[state]
+    member this.Next() = this.Impl(true)
+    member this.Prev() = this.Impl(false)
+
+type MapState() =
+    let mutable state = -1
+    let U = Graphics.uniqueMapIcons.Length 
+    let NU = Graphics.nonUniqueMapIconBMPs.Length
+    member this.IsUnique = state >= 0 && state < U
+    member this.IsDungeon = state >= 0 && state < 9
+    member this.IsWarp = state >= 9 && state < 13
+    member this.Current() =
+        if state = -1 then
+            null
+        elif state < U then
+            Graphics.uniqueMapIcons.[state]
+        else
+            Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
+    member private this.Impl(forward) = 
+        if forward then 
+            state <- state + 1
+        else
+            state <- state - 1
+        if state < -1 then
+            state <- U+NU-1
+        if state >= U+NU then
+            state <- -1
+        if state >=0 && state < U && Graphics.uniqueMapIcons.[state].Parent <> null then
+            if forward then this.Next() else this.Prev()
+        else this.Current()
+    member this.Next() = this.Impl(true)
+    member this.Prev() = this.Impl(false)
 
 let H = 30
 let makeAll() =
@@ -33,55 +88,98 @@ let makeAll() =
 
     // triforce
     for i = 0 to 7 do
-        let image = Graphics.fullTriforces.[i]
-        gridAdd(mainTracker, image, i, 0)
+        let image = Graphics.emptyTriforces.[i]
+        let c = new Canvas(Width=30., Height=30.)
+        canvasAdd(c, image, 0., 0.)
+        c.MouseDown.Add(fun _ -> 
+            if c.Children.Contains(Graphics.emptyTriforces.[i]) then 
+                c.Children.Clear(); c.Children.Add(Graphics.fullTriforces.[i]) |> ignore else 
+                c.Children.Clear(); c.Children.Add(Graphics.emptyTriforces.[i]) |> ignore)
+        gridAdd(mainTracker, c, i, 0)
     // floor hearts
     for i = 0 to 7 do
-        let image = Graphics.fullHearts.[i]
-        gridAdd(mainTracker, image, i, 1)
+        let image = Graphics.emptyHearts.[i]
+        let c = new Canvas(Width=30., Height=30.)
+        canvasAdd(c, image, 0., 0.)
+        c.MouseDown.Add(fun _ -> 
+            if c.Children.Contains(Graphics.emptyHearts.[i]) then 
+                c.Children.Clear(); c.Children.Add(Graphics.fullHearts.[i]) |> ignore else 
+                c.Children.Clear(); c.Children.Add(Graphics.emptyHearts.[i]) |> ignore)
+        gridAdd(mainTracker, c, i, 1)
 
-    let boxItem(item) = 
-        let box = new Border()
-        box.BorderThickness <- new Thickness(3.0)
-        box.BorderBrush <- System.Windows.Media.Brushes.Gray 
+    let boxItem() = 
+        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+        let no = System.Windows.Media.Brushes.DarkRed
+        let yes = System.Windows.Media.Brushes.LimeGreen 
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
+        rect.StrokeThickness <- 3.0
+        c.Children.Add(rect) |> ignore
+        let is = new ItemState()
+        c.MouseLeftButtonDown.Add(fun _ ->
+            if obj.Equals(rect.Stroke, no) then
+                rect.Stroke <- yes
+            else
+                rect.Stroke <- no)
         // item
-        box.Child <- item
-        box
+        c.MouseWheel.Add(fun x -> 
+            c.Children.Remove(is.Current())
+            canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
+            )
+        c
     // items
-    let items = Array2D.zeroCreate 9 2
-    items.[0,0] <- Graphics.boomerang
-    items.[0,1] <- Graphics.bow
-    items.[1,0] <- Graphics.magic_boomerang
-    items.[2,0] <- Graphics.raft
-    items.[3,0] <- Graphics.ladder
-    items.[4,0] <- Graphics.recorder
-    items.[5,0] <- Graphics.wand
-    items.[6,0] <- Graphics.red_candle 
-    items.[7,0] <- Graphics.key
-    items.[7,1] <- Graphics.book
-    items.[8,0] <- Graphics.red_ring 
-    items.[8,1] <- Graphics.silver_arrow
     for i = 0 to 8 do
         for j = 0 to 1 do
             if j=0 || (i=0 || i=7 || i=8) then
-                gridAdd(mainTracker, boxItem(items.[i,j]), i, j+2)
+                gridAdd(mainTracker, boxItem(), i, j+2)
 
     let OFFSET = 400.
     // ow hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
-        let image = if i=0 then Graphics.owHeartsSkipped.[i] elif i=3 then Graphics.owHeartsEmpty.[i] else Graphics.owHeartsFull.[i]
-        gridAdd(owHeartGrid, image, i, 0)
+        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+        let image = Graphics.owHeartsEmpty.[i]
+        canvasAdd(c, image, 0., 0.)
+        c.MouseWheel.Add(fun x -> 
+            let cur = 
+                if c.Children.Contains(Graphics.owHeartsEmpty.[i]) then 0
+                elif c.Children.Contains(Graphics.owHeartsFull.[i]) then 1
+                else 2
+            c.Children.Clear()
+            let next = (cur + (if x.Delta<0 then 1 else -1) + 3) % 3
+            canvasAdd(c, (if next = 0 then Graphics.owHeartsEmpty.[i] elif next = 1 then Graphics.owHeartsFull.[i] else Graphics.owHeartsSkipped.[i]), 0., 0.)
+            )
+        gridAdd(owHeartGrid, c, i, 0)
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
     gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
     gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
-    gridAdd(owItemGrid, boxItem(Graphics.heart_container), 1, 0)
-    gridAdd(owItemGrid, boxItem(Graphics.power_bracelet), 1, 1)
-    gridAdd(owItemGrid, boxItem(Graphics.white_sword), 1, 2)
+    gridAdd(owItemGrid, boxItem(), 1, 0)
+    gridAdd(owItemGrid, boxItem(), 1, 1)
+    gridAdd(owItemGrid, boxItem(), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
+
+(*
+    // common animations
+    let da = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames()
+    da.Duration <- new Duration(System.TimeSpan.FromSeconds(1.0))
+    da.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(0.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.2)))) |> ignore
+    da.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.5)))) |> ignore
+    da.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(1.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.7)))) |> ignore
+    da.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(1.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(1.0)))) |> ignore
+    da.AutoReverse <- true
+    da.RepeatBehavior <- System.Windows.Media.Animation.RepeatBehavior.Forever
+    //let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
+    //            AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    let animateds = ResizeArray()
+    let removeAnimated(x) =
+        animateds.Remove(x) |> ignore
+    let addAnimated(x:UIElement) =
+        animateds.Add(x)
+        for x in animateds do
+            x.BeginAnimation(Image.OpacityProperty, da)
+*)
 
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
@@ -101,10 +199,42 @@ let makeAll() =
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun _ -> c.Children.Add(rect) |> ignore)
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
-            // click shade
-            let shade = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=0.5)
-            c.MouseWheel.Add(fun x -> if x.Delta > 0 then if c.Children.Contains(shade) then c.Children.Remove(shade) else c.Children.Add(shade) |> ignore)
+            // icon
+            let ms = new MapState()
+            if Graphics.owMapSquaresAlwaysEmpty.[j].Chars(i) = 'X' then
+                let icon = ms.Prev()
+                icon.Opacity <- 0.5
+                canvasAdd(c, icon, 0., 0.)
+            else
+                c.MouseWheel.Add(fun x -> 
+                    //for x in c.Children do
+                    //    removeAnimated(x)
+                    c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
+                    canvasAdd(c, image, 0., 0.)
+                    canvasAdd(c, bottomShade, 0., float(10*3))
+                    canvasAdd(c, rightShade, float(15*3), 0.)
+                    let icon = if x.Delta<0 then ms.Next() else ms.Prev()
+                    if icon <> null then 
+                        if ms.IsUnique then
+                            icon.Opacity <- 0.6
+                            //icon.BeginAnimation(Image.OpacityProperty, da)
+                            //addAnimated(icon)
+                        else
+                            icon.Opacity <- 0.5
+                    canvasAdd(c, icon, 0., 0.)
+                    if ms.IsDungeon then
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
+                        c.Children.Add(rect) |> ignore
+                    if ms.IsWarp then
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
+                        c.Children.Add(rect) |> ignore
+                )
     canvasAdd(c, owMapGrid, 0., 120.)
+
+//    for i = 0 to Graphics.uniqueMapIcons.Length-1 do
+//        canvasAdd(c, Graphics.uniqueMapIcons.[i], float(16*3*i), 120.)
+//    for i = 0 to Graphics.nonUniqueMapIconBMPs.Length-1 do
+//        canvasAdd(c, Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[i], float(16*3*i), 120.)
     c
 
 
