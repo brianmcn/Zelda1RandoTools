@@ -3,225 +3,106 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
-let BMPtoImage(bmp:System.Drawing.Bitmap) =
-    let ms = new System.IO.MemoryStream()
-    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp)
-    let bmimage = new System.Windows.Media.Imaging.BitmapImage()
-    bmimage.BeginInit()
-    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
-    bmimage.StreamSource <- ms
-    bmimage.EndInit()
-    bmimage
 
-let emptyZHelper =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperEmpty.png")
-    new System.Drawing.Bitmap(imageStream)
-let fullZHelper =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperFull.png")
-    new System.Drawing.Bitmap(imageStream)
+let canvasAdd(c:Canvas, item, left, top) =
+    c.Children.Add(item) |> ignore
+    Canvas.SetTop(item, top)
+    Canvas.SetLeft(item, left)
+let gridAdd(g:Grid, x, c, r) =
+    g.Children.Add(x) |> ignore
+    Grid.SetColumn(x, c)
+    Grid.SetRow(x, r)
+let makeGrid(nc, nr, cw, rh) =
+    let grid = new Grid()
+    for i = 0 to nc do
+        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
+    for i = 0 to nr do
+        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
+    grid
 
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring = 
-    let zh = fullZHelper
-    let items = 
-        [|
-        for i = 0 to 8 do
-            for j = 0 to 1 do
-                let bmp = new System.Drawing.Bitmap(7*3,7*3)
-                let xoff,yoff = 250+36*i, 61+36*j  // index into ZHelperFull
-                for px = 0 to 7*3-1 do
-                    for py = 0 to 7*3-1 do
-                        bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-                yield bmp
-        |]
-    items.[0], items.[1], items.[2], items.[4], items.[6], items.[8], items.[10], items.[12], items.[14], items.[15], items.[16], items.[17]
-
-let heart_container, power_bracelet, white_sword, armos = 
-    let zh = fullZHelper
-    let items = 
-        [|
-        for i = 0 to 2 do
-            for j = 0 to 1 do
-                let bmp = new System.Drawing.Bitmap(7*3,7*3)
-                let xoff,yoff = 574+36*i, 91+30*j  // index into ZHelperFull
-                for px = 0 to 7*3-1 do
-                    for py = 0 to 7*3-1 do
-                        bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-                yield bmp
-        |]
-    items.[0], items.[2], items.[4], items.[3]
-    
-let emptyTriforces = 
-    let zh = emptyZHelper
-    [|
-        for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,29  // index into ZHelperEmpty
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
-            yield bmp
-    |]
-let fullTriforces = 
-    let zh = fullZHelper
-    [|
-        for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,52  // index into ZHelperFull
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
-            yield bmp
-    |]
-let emptyHeart = 
-    let zh = emptyZHelper
-    let bmp = new System.Drawing.Bitmap(10*3,10*3)
-    let xoff,yoff = 1,59  // index into ZHelperEmpty
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
-            bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-    bmp
-let fullHeart = 
-    let zh = fullZHelper
-    let bmp = new System.Drawing.Bitmap(10*3,10*3)
-    let xoff,yoff = 1,82  // index into ZHelperFull
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
-            bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-    bmp
-let skippedHeart = 
-    let zh = fullZHelper
-    let bmp = new System.Drawing.Bitmap(10*3,10*3)
-    let xoff,yoff = 649,52  // index into ZHelperFull
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
-            bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-    bmp
-
-let makeOverworldMap() =
-    let ze = emptyZHelper
-    // 1 160 3
-    // 16x11(x3)
-    let overworldMap = new System.Drawing.Bitmap(16*16*3,8*11*3)
-    let xoff,yoff = 1,160  // index into ZHelperEmpty
-    for x = 0 to 15 do
-        for y = 0 to 7 do
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    overworldMap.SetPixel(x*16*3 + px, y*11*3 + py, ze.GetPixel(xoff + x*16*3 + px, yoff + y*16*3 + py))
-    overworldMap
-
-let H = emptyHeart.Height 
+let H = 30
 let makeAll() =
-    let ow = makeOverworldMap()
-    let all = new System.Drawing.Bitmap(ow.Width, H + H + H + H + ow.Height)
-    for i = 0 to all.Width-1 do
-        for j = 0 to all.Height-1 do
-            all.SetPixel(i, j, System.Drawing.Color.Black)
+    let c = new Canvas()
+    c.Height <- float(30*4 + 11*3*8)
+    c.Width <- float(16*16*3)
+
+    c.Background <- System.Windows.Media.Brushes.Black 
+
+    let mainTracker = makeGrid(9, 4, H, H)
+    canvasAdd(c, mainTracker, 0., 0.)
 
     // triforce
     for i = 0 to 7 do
-        let bmp = fullTriforces.[i]
-        for px = 0 to 10*3-1 do
-            for py = 0 to 10*3-1 do
-                all.SetPixel(i*10*3 + px, py, bmp.GetPixel(px, py))
+        let image = Graphics.fullTriforces.[i]
+        gridAdd(mainTracker, image, i, 0)
     // floor hearts
     for i = 0 to 7 do
-        let bmp = fullHeart
-        for px = 0 to 10*3-1 do
-            for py = 0 to 10*3-1 do
-                all.SetPixel(i*10*3 + px, H + py, bmp.GetPixel(px, py))
+        let image = Graphics.fullHearts.[i]
+        gridAdd(mainTracker, image, i, 1)
+
+    let boxItem(item) = 
+        let box = new Border()
+        box.BorderThickness <- new Thickness(3.0)
+        box.BorderBrush <- System.Windows.Media.Brushes.Gray 
+        // item
+        box.Child <- item
+        box
     // items
     let items = Array2D.zeroCreate 9 2
-    items.[0,0] <- boomerang
-    items.[0,1] <- bow
-    items.[1,0] <- magic_boomerang
-    items.[2,0] <- raft
-    items.[3,0] <- ladder
-    items.[4,0] <- recorder
-    items.[5,0] <- wand
-    items.[6,0] <- red_candle 
-    items.[7,0] <- key
-    items.[7,1] <- book
-    items.[8,0] <- red_ring 
-    items.[8,1] <- silver_arrow
+    items.[0,0] <- Graphics.boomerang
+    items.[0,1] <- Graphics.bow
+    items.[1,0] <- Graphics.magic_boomerang
+    items.[2,0] <- Graphics.raft
+    items.[3,0] <- Graphics.ladder
+    items.[4,0] <- Graphics.recorder
+    items.[5,0] <- Graphics.wand
+    items.[6,0] <- Graphics.red_candle 
+    items.[7,0] <- Graphics.key
+    items.[7,1] <- Graphics.book
+    items.[8,0] <- Graphics.red_ring 
+    items.[8,1] <- Graphics.silver_arrow
     for i = 0 to 8 do
         for j = 0 to 1 do
-            // box
             if j=0 || (i=0 || i=7 || i=8) then
-                for px = 0 to 10*3-1 do
-                    for py = 0 to 10*3-1 do
-                        if px<3 || py<3 then
-                            ()
-                        elif px<6 || px>26 || py<6 || py>26 then
-                            all.SetPixel(i*10*3 + px, j*H + H + H + py, System.Drawing.Color.Gray)
-            // item
-            if items.[i,j] <> null then
-                for px = 0 to 7*3-1 do
-                    for py = 0 to 7*3-1 do
-                        all.SetPixel(i*10*3 + px + 6, j*H + H + H + py + 6, items.[i,j].GetPixel(px,py))
+                gridAdd(mainTracker, boxItem(items.[i,j]), i, j+2)
 
-    let OFFSET = 400
+    let OFFSET = 400.
     // ow hearts
+    let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
-        let bmp = if i=0 then skippedHeart elif i=3 then emptyHeart else fullHeart
-        for px = 0 to 10*3-1 do
-            for py = 0 to 10*3-1 do
-                all.SetPixel(OFFSET+i*10*3 + px, py, bmp.GetPixel(px, py))
+        let image = if i=0 then Graphics.owHeartsSkipped.[i] elif i=3 then Graphics.owHeartsEmpty.[i] else Graphics.owHeartsFull.[i]
+        gridAdd(owHeartGrid, image, i, 0)
+    canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
-    for j = 0 to 2 do
-        // key
-        for px = 0 to 7*3-1 do
-            for py = 0 to 7*3-1 do
-                all.SetPixel(OFFSET + px + 6, j*H + H + py + 6, (if j=0 then ladder elif j=1 then armos else white_sword).GetPixel(px,py))
-        // box
-        for px = 0 to 10*3-1 do
-            for py = 0 to 10*3-1 do
-                if px<3 || py<3 then
-                    ()
-                elif px<6 || px>26 || py<6 || py>26 then
-                    all.SetPixel(OFFSET+40 + px, j*H + H + py, System.Drawing.Color.Gray)
-        // item
-        for px = 0 to 7*3-1 do
-            for py = 0 to 7*3-1 do
-                all.SetPixel(OFFSET+40 + px + 6, j*H + H + py + 6, (if j=0 then heart_container elif j=1 then power_bracelet else white_sword).GetPixel(px,py))
+    let owItemGrid = makeGrid(2, 3, 30, 30)
+    gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
+    gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
+    gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
+    gridAdd(owItemGrid, boxItem(Graphics.heart_container), 1, 0)
+    gridAdd(owItemGrid, boxItem(Graphics.power_bracelet), 1, 1)
+    gridAdd(owItemGrid, boxItem(Graphics.white_sword), 1, 2)
+    canvasAdd(c, owItemGrid, OFFSET, 30.)
 
-    for i = 0 to ow.Width-1 do
-        for j = 0 to ow.Height-1 do
-            all.SetPixel(i, H+H+H+H+j, ow.GetPixel(i,j))
-    all
+    // ow map
+    let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let image = Graphics.BMPtoImage(Graphics.overworldMapBMPs.[i,j])
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            canvasAdd(c, image, 0., 0.)
+            gridAdd(owMapGrid, c, i, j)
+            let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.White)
+            c.MouseEnter.Add(fun _ -> c.Children.Add(rect) |> ignore)
+            c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
+    canvasAdd(c, owMapGrid, 0., 120.)
+    c
 
-let highlightTile = 
-    new System.Drawing.Bitmap(16*3, 11*3)
-
-let average(pixel1:System.Drawing.Color, pixel2:System.Drawing.Color) =
-    System.Drawing.Color.FromArgb(  (int pixel1.R + int pixel2.R) / 2,
-                                    (int pixel1.G + int pixel2.G) / 2,
-                                    (int pixel1.B + int pixel2.B) / 2 )
 
 type MyWindow() as this = 
     inherit Window()
-    let i = new Image()
-    let content = i
-    let update() = 
-        let mouse = System.Windows.Input.Mouse.GetPosition(content)
-        if mouse.Y >= float(4*H) then
-            let tileX = int(mouse.X) / (16*3)
-            let tileY = (int(mouse.Y)-H-H-H-H) / (11*3)
-            printfn "%f %f     %d %d" mouse.X mouse.Y tileX tileY 
-            let bmp = makeAll()
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    let x = tileX*16*3 + px
-                    let y = H+H+H+H+tileY*11*3 + py
-                    bmp.SetPixel(x, y, average(bmp.GetPixel(x, y), highlightTile.GetPixel(px,py)))
-            i.Source <- BMPtoImage(bmp)
-
+    let all = makeAll()
+    let content = all
     do
-        let all = makeAll()
-        i.Source <- BMPtoImage(all)
-        i.Height <- float all.Height 
-        i.Width <- float all.Width 
-
         // full window
         this.Title <- "Zelda 1 Randomizer"
         this.Content <- content
@@ -234,7 +115,7 @@ type MyWindow() as this =
         this.Left <- 1100.0
         this.Top <- 20.0
 
-        this.MouseMove.Add(fun _ -> update())
+//        this.MouseMove.Add(fun _ -> update())
 
 (*
         let timer = new System.Windows.Threading.DispatcherTimer()
