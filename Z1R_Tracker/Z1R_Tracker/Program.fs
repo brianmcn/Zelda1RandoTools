@@ -231,6 +231,8 @@ let makeAll() =
                 )
     canvasAdd(c, owMapGrid, 0., 120.)
 
+
+
 //    for i = 0 to Graphics.uniqueMapIcons.Length-1 do
 //        canvasAdd(c, Graphics.uniqueMapIcons.[i], float(16*3*i), 120.)
 //    for i = 0 to Graphics.nonUniqueMapIconBMPs.Length-1 do
@@ -238,25 +240,70 @@ let makeAll() =
     c
 
 
+open System.Runtime.InteropServices 
+module Winterop = 
+    [<DllImport("User32.dll")>]
+    extern bool RegisterHotKey(IntPtr hWnd,int id,uint32 fsModifiers,uint32 vk)
+
+    [<DllImport("User32.dll")>]
+    extern bool UnregisterHotKey(IntPtr hWnd,int id)
+
+    let HOTKEY_ID = 9000
+
 type MyWindow() as this = 
     inherit Window()
-    let all = makeAll()
-    let content = all
+    let mutable source = null
+    let canvas = makeAll()
+    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
+    let mutable startTime = DateTime.Now
+    let VK_F10 = 0x79
+    let MOD_NONE = 0u
+    let update() =
+        // update time
+        let ts = DateTime.Now - startTime
+        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
+        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
     do
         // full window
         this.Title <- "Zelda 1 Randomizer"
-        this.Content <- content
+        this.Content <- canvas
+        canvasAdd(canvas, hmsTimeTextBox, 600., 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 1100.0
         this.Top <- 20.0
-
-(*
         let timer = new System.Windows.Threading.DispatcherTimer()
-        timer.Interval <- TimeSpan.FromSeconds(0.5)  // TODO decide time
+        timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> update())
         timer.Start()
-*)
+    override this.OnSourceInitialized(e) =
+        base.OnSourceInitialized(e)
+        let helper = new System.Windows.Interop.WindowInteropHelper(this)
+        source <- System.Windows.Interop.HwndSource.FromHwnd(helper.Handle)
+        source.AddHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
+        this.RegisterHotKey()
+    override this.OnClosed(e) =
+        source.RemoveHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
+        source <- null
+        this.UnregisterHotKey()
+        base.OnClosed(e)
+    member this.RegisterHotKey() =
+        let helper = new System.Windows.Interop.WindowInteropHelper(this);
+        if(not(Winterop.RegisterHotKey(helper.Handle, Winterop.HOTKEY_ID, MOD_NONE, uint32 VK_F10))) then
+            // handle error
+            ()
+    member this.UnregisterHotKey() =
+        let helper = new System.Windows.Interop.WindowInteropHelper(this)
+        Winterop.UnregisterHotKey(helper.Handle, Winterop.HOTKEY_ID) |> ignore
+    member this.HwndHook(hwnd:IntPtr, msg:int, wParam:IntPtr, lParam:IntPtr, handled:byref<bool>) : IntPtr =
+        let WM_HOTKEY = 0x0312
+        if msg = WM_HOTKEY then
+            if wParam.ToInt32() = Winterop.HOTKEY_ID then
+                //let ctrl_bits = lParam.ToInt32() &&& 0xF  // see WM_HOTKEY docs
+                let key = lParam.ToInt32() >>> 16
+                if key = VK_F10 then
+                    startTime <- DateTime.Now
+        IntPtr.Zero
         
 
 [<STAThread>]
