@@ -3,6 +3,7 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
@@ -78,6 +79,8 @@ type MapState() =
 
 let mutable recordering = fun() -> ()
 let mutable haveRecorder = false
+let mutable haveLadder = false
+let mutable haveCoastItem = false
 let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let debug() =
@@ -127,7 +130,7 @@ let makeAll() =
                 c.Children.Clear(); c.Children.Add(Graphics.emptyHearts.[i]) |> ignore)
         gridAdd(mainTracker, c, i, 1)
 
-    let boxItem() = 
+    let boxItemImpl(isCoastItem) = 
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -141,29 +144,49 @@ let makeAll() =
                 if obj.Equals(is.Current(), Graphics.recorder) then
                     haveRecorder <- true
                     recordering()
+                if obj.Equals(is.Current(), Graphics.ladder) then
+                    haveLadder <- true
+                if isCoastItem then
+                    haveCoastItem <- true
             else
                 rect.Stroke <- no
                 if obj.Equals(is.Current(), Graphics.recorder) then
                     haveRecorder <- false
                     recordering()
+                if obj.Equals(is.Current(), Graphics.ladder) then
+                    haveLadder <- false
+                if isCoastItem then
+                    haveCoastItem <- false
         )
         // item
         c.MouseWheel.Add(fun x -> 
             if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
                 haveRecorder <- false
                 recordering()
+            if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
+                haveLadder <- false
             c.Children.Remove(is.Current())
             canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
                 haveRecorder <- true
                 recordering()
+            if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
+                haveLadder <- true
         )
         c
+    let boxItem() = 
+        boxItemImpl(false)
+
     // items
     for i = 0 to 8 do
         for j = 0 to 1 do
             if j=0 || (i=0 || i=7 || i=8) then
                 gridAdd(mainTracker, boxItem(), i, j+2)
+
+    let kitty = new Image()
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
+    kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+    canvasAdd(c, kitty, 285., 0.)
 
     let OFFSET = 400.
     // ow hearts
@@ -190,7 +213,7 @@ let makeAll() =
     gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
     gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
-    gridAdd(owItemGrid, boxItem(), 1, 0)
+    gridAdd(owItemGrid, boxItemImpl(true), 1, 0)
     gridAdd(owItemGrid, boxItem(), 1, 1)
     gridAdd(owItemGrid, boxItem(), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
@@ -340,14 +363,31 @@ let makeAll() =
                 else
                     d.Background <- no
             )
+    
+    let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
+    tb.FontSize <- 24.
+    tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
+    tb.Background <- System.Windows.Media.Brushes.Black 
+    tb.Text <- "Notes"
+    tb.AcceptsReturn <- true
+    canvasAdd(c, tb, 400., float(120+8*11*3)) 
+
+    let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0)))
+    cb.IsChecked <- System.Nullable.op_Implicit true
+    voice.Volume <- 30
+    cb.Checked.Add(fun _ -> voice.Volume <- 30)
+    cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
+    canvasAdd(c, cb, 600., 60.)
+
     c
 
 
 // TODO
 // lines? (ow connect)
-// free form text for seed flags
-// free form text for tracking
-// voice reminders
+// free form text for seed flags?
+// voice reminders:
+//  - when dungeon full clear
+// logo/kitty
 
 open System.Runtime.InteropServices 
 module Winterop = 
@@ -365,6 +405,7 @@ type MyWindow() as this =
     let canvas = makeAll()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable startTime = DateTime.Now
+    let mutable ladderTime = DateTime.Now
     let VK_F10 = 0x79
     let MOD_NONE = 0u
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
@@ -374,6 +415,12 @@ type MyWindow() as this =
         let ts = DateTime.Now - startTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+        // remind ladder
+        if (DateTime.Now - ladderTime).Minutes <> 0 then
+            if haveLadder then
+                if not haveCoastItem then
+                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                    ladderTime <- DateTime.Now
     do
         // full window
         this.Title <- "Zelda 1 Randomizer"
