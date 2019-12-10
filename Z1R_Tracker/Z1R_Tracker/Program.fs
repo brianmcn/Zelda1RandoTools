@@ -83,6 +83,12 @@ let mutable haveLadder = false
 let mutable haveCoastItem = false
 let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
+let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
+let updateDungeon(dungeonIndex, itemDiff) =
+    if dungeonIndex >= 0 && dungeonIndex < 8 then
+        dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
+        if dungeonRemains.[dungeonIndex] = 0 then
+            async { voice.Speak(sprintf "Dungeon %d is complete" (dungeonIndex+1)) } |> Async.Start
 let debug() =
     for j = 0 to 7 do
         for i = 0 to 15 do
@@ -111,11 +117,13 @@ let makeAll() =
                 c.Children.Clear()
                 c.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
                 triforces.[i] <- true
+                updateDungeon(i, -1)
                 recordering()
             else 
                 c.Children.Clear()
                 c.Children.Add(Graphics.emptyTriforces.[i]) |> ignore
                 triforces.[i] <- false
+                updateDungeon(i, +1)
                 recordering()
         )
         gridAdd(mainTracker, c, i, 0)
@@ -126,11 +134,17 @@ let makeAll() =
         canvasAdd(c, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
             if c.Children.Contains(Graphics.emptyHearts.[i]) then 
-                c.Children.Clear(); c.Children.Add(Graphics.fullHearts.[i]) |> ignore else 
-                c.Children.Clear(); c.Children.Add(Graphics.emptyHearts.[i]) |> ignore)
+                c.Children.Clear()
+                c.Children.Add(Graphics.fullHearts.[i]) |> ignore 
+                updateDungeon(i, -1)
+            else 
+                c.Children.Clear()
+                c.Children.Add(Graphics.emptyHearts.[i]) |> ignore
+                updateDungeon(i, +1)
+        )
         gridAdd(mainTracker, c, i, 1)
 
-    let boxItemImpl(isCoastItem) = 
+    let boxItemImpl(dungeonIndex, isCoastItem) = 
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -141,6 +155,7 @@ let makeAll() =
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
+                updateDungeon(dungeonIndex, -1)
                 if obj.Equals(is.Current(), Graphics.recorder) then
                     haveRecorder <- true
                     recordering()
@@ -150,6 +165,7 @@ let makeAll() =
                     haveCoastItem <- true
             else
                 rect.Stroke <- no
+                updateDungeon(dungeonIndex, +1)
                 if obj.Equals(is.Current(), Graphics.recorder) then
                     haveRecorder <- false
                     recordering()
@@ -174,14 +190,14 @@ let makeAll() =
                 haveLadder <- true
         )
         c
-    let boxItem() = 
-        boxItemImpl(false)
+    let boxItem(dungeonIndex) = 
+        boxItemImpl(dungeonIndex,false)
 
     // items
     for i = 0 to 8 do
         for j = 0 to 1 do
             if j=0 || (i=0 || i=7 || i=8) then
-                gridAdd(mainTracker, boxItem(), i, j+2)
+                gridAdd(mainTracker, boxItem(i), i, j+2)
 
     let kitty = new Image()
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
@@ -213,9 +229,9 @@ let makeAll() =
     gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
     gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
-    gridAdd(owItemGrid, boxItemImpl(true), 1, 0)
-    gridAdd(owItemGrid, boxItem(), 1, 1)
-    gridAdd(owItemGrid, boxItem(), 1, 2)
+    gridAdd(owItemGrid, boxItemImpl(-1,true), 1, 0)
+    gridAdd(owItemGrid, boxItem(-1), 1, 1)
+    gridAdd(owItemGrid, boxItem(-1), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
 
 (*
@@ -386,8 +402,7 @@ let makeAll() =
 // lines? (ow connect)
 // free form text for seed flags?
 // voice reminders:
-//  - when dungeon full clear
-// logo/kitty
+//  - what else?
 
 open System.Runtime.InteropServices 
 module Winterop = 
