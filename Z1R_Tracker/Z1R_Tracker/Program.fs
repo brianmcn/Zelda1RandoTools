@@ -50,6 +50,7 @@ type MapState() =
     let mutable state = -1
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
+    member this.State = state
     member this.IsUnique = state >= 0 && state < U
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
@@ -75,6 +76,17 @@ type MapState() =
     member this.Next() = this.Impl(true)
     member this.Prev() = this.Impl(false)
 
+let mutable recordering = fun() -> ()
+let mutable haveRecorder = false
+let triforces = Array.zeroCreate 8
+let owCurrentState = Array2D.create 16 8 -1
+let debug() =
+    for j = 0 to 7 do
+        for i = 0 to 15 do
+            printf "%3d " owCurrentState.[i,j]
+        printfn ""
+    printfn ""
+
 let H = 30
 let makeAll() =
     let c = new Canvas()
@@ -92,9 +104,17 @@ let makeAll() =
         let c = new Canvas(Width=30., Height=30.)
         canvasAdd(c, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
-            if c.Children.Contains(Graphics.emptyTriforces.[i]) then 
-                c.Children.Clear(); c.Children.Add(Graphics.fullTriforces.[i]) |> ignore else 
-                c.Children.Clear(); c.Children.Add(Graphics.emptyTriforces.[i]) |> ignore)
+            if not triforces.[i] then 
+                c.Children.Clear()
+                c.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
+                triforces.[i] <- true
+                recordering()
+            else 
+                c.Children.Clear()
+                c.Children.Add(Graphics.emptyTriforces.[i]) |> ignore
+                triforces.[i] <- false
+                recordering()
+        )
         gridAdd(mainTracker, c, i, 0)
     // floor hearts
     for i = 0 to 7 do
@@ -118,13 +138,26 @@ let makeAll() =
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
+                if obj.Equals(is.Current(), Graphics.recorder) then
+                    haveRecorder <- true
+                    recordering()
             else
-                rect.Stroke <- no)
+                rect.Stroke <- no
+                if obj.Equals(is.Current(), Graphics.recorder) then
+                    haveRecorder <- false
+                    recordering()
+        )
         // item
         c.MouseWheel.Add(fun x -> 
+            if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
+                haveRecorder <- false
+                recordering()
             c.Children.Remove(is.Current())
             canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
-            )
+            if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
+                haveRecorder <- true
+                recordering()
+        )
         c
     // items
     for i = 0 to 8 do
@@ -139,15 +172,17 @@ let makeAll() =
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
         let image = Graphics.owHeartsEmpty.[i]
         canvasAdd(c, image, 0., 0.)
-        c.MouseWheel.Add(fun x -> 
+        let f b =
             let cur = 
                 if c.Children.Contains(Graphics.owHeartsEmpty.[i]) then 0
                 elif c.Children.Contains(Graphics.owHeartsFull.[i]) then 1
                 else 2
             c.Children.Clear()
-            let next = (cur + (if x.Delta<0 then 1 else -1) + 3) % 3
+            let next = (cur + (if b then 1 else -1) + 3) % 3
             canvasAdd(c, (if next = 0 then Graphics.owHeartsEmpty.[i] elif next = 1 then Graphics.owHeartsFull.[i] else Graphics.owHeartsSkipped.[i]), 0., 0.)
-            )
+        c.MouseLeftButtonDown.Add(fun _ -> f true)
+        c.MouseRightButtonDown.Add(fun _ -> f false)
+        c.MouseWheel.Add(fun x -> f (x.Delta<0))
         gridAdd(owHeartGrid, c, i, 0)
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
@@ -203,17 +238,23 @@ let makeAll() =
             let ms = new MapState()
             if Graphics.owMapSquaresAlwaysEmpty.[j].Chars(i) = 'X' then
                 let icon = ms.Prev()
+                owCurrentState.[i,j] <- ms.State 
                 icon.Opacity <- 0.5
                 canvasAdd(c, icon, 0., 0.)
             else
-                c.MouseWheel.Add(fun x -> 
+                let f b =
                     //for x in c.Children do
                     //    removeAnimated(x)
+                    let mutable needRecordering = false
+                    if ms.IsDungeon then
+                        needRecordering <- true
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
                     canvasAdd(c, rightShade, float(15*3), 0.)
-                    let icon = if x.Delta<0 then ms.Next() else ms.Prev()
+                    let icon = if b then ms.Next() else ms.Prev()
+                    owCurrentState.[i,j] <- ms.State 
+                    //debug()
                     if icon <> null then 
                         if ms.IsUnique then
                             icon.Opacity <- 0.6
@@ -225,20 +266,32 @@ let makeAll() =
                     if ms.IsDungeon then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
                         c.Children.Add(rect) |> ignore
+                        needRecordering <- true
                     if ms.IsWarp then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
                         c.Children.Add(rect) |> ignore
-                )
+                    if needRecordering then
+                        recordering()
+                c.MouseLeftButtonDown.Add(fun _ -> f true)
+                c.MouseRightButtonDown.Add(fun _ -> f false)
+                c.MouseWheel.Add(fun x -> f (x.Delta<0))
     canvasAdd(c, owMapGrid, 0., 120.)
-
-
 
 //    for i = 0 to Graphics.uniqueMapIcons.Length-1 do
 //        canvasAdd(c, Graphics.uniqueMapIcons.[i], float(16*3*i), 120.)
 //    for i = 0 to Graphics.nonUniqueMapIconBMPs.Length-1 do
 //        canvasAdd(c, Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[i], float(16*3*i), 120.)
+
+//    connectivity lines?
+//    let r = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 1.)
+//    canvasAdd(c, r, float(16*3/2), 120.+float(11*3/2))
+
     c
 
+
+// TODO
+// lines (ow connect)
+// recordering (if have triforce and L location and recorder, highlight can warp there)
 
 open System.Runtime.InteropServices 
 module Winterop = 
@@ -258,6 +311,8 @@ type MyWindow() as this =
     let mutable startTime = DateTime.Now
     let VK_F10 = 0x79
     let MOD_NONE = 0u
+    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
+                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     let update() =
         // update time
         let ts = DateTime.Now - startTime
@@ -270,8 +325,22 @@ type MyWindow() as this =
         canvasAdd(canvas, hmsTimeTextBox, 600., 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 1100.0
-        this.Top <- 20.0
+        this.Left <- 0.0
+        this.Top <- 0.0
+        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
+        canvasAdd(canvas, recorderingCanvas, 0., 120.)
+        recordering <- (fun () ->
+            recorderingCanvas.Children.Clear()
+            if haveRecorder then
+                for i = 0 to 7 do
+                    if triforces.[i] then
+                        for x = 0 to 15 do
+                            for y = 0 to 7 do
+                                if owCurrentState.[x,y] = i then
+                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(13*3), Height=float(8*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 3.)
+                                    rect.BeginAnimation(UIElement.OpacityProperty, da)
+                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+3., float(y*11*3)+4.)
+        )
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> update())
