@@ -31,7 +31,13 @@ let overworldImage =
 let zhMapIcons =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_icon_overworld_strip39.png")
     new System.Drawing.Bitmap(imageStream)
-
+let zhDungeonIcons =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_cell_strip3.png")
+    new System.Drawing.Bitmap(imageStream)
+let zhDungeonNums =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
+    new System.Drawing.Bitmap(imageStream)
+    
 let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring = 
     let zh = fullZHelper
     let items = 
@@ -209,5 +215,48 @@ let nonUniqueMapIconBMPs =
                             tile.SetPixel(px,py,System.Drawing.Color.DarkGray)
                         else
                             tile.SetPixel(px,py,System.Drawing.Color.Black)
+            yield tile
+    |]
+
+let dungeonUnexploredRoomBMP =
+    let m = zhDungeonIcons
+    let tile = new System.Drawing.Bitmap(13*3, 9*3)
+    for px = 0 to 13*3-1 do
+        for py = 0 to 9*3-1 do
+            tile.SetPixel(px, py, m.GetPixel(px/3, py/3))
+    tile
+
+let dungeonExploredRoomBMP =
+    let m = zhDungeonIcons
+    let tile = new System.Drawing.Bitmap(13*3, 9*3)
+    for px = 0 to 13*3-1 do
+        for py = 0 to 9*3-1 do
+            tile.SetPixel(px, py, m.GetPixel(13+px/3, py/3))
+    tile
+
+let dungeonTriforceBMP =
+    let m = zhDungeonIcons
+    let tile = new System.Drawing.Bitmap(13*3, 9*3)
+    for px = 0 to 13*3-1 do
+        for py = 0 to 9*3-1 do
+            tile.SetPixel(px, py, System.Drawing.Color.Yellow)
+    tile
+
+let dungeonPrincessBMP =
+    let m = zhDungeonIcons
+    let tile = new System.Drawing.Bitmap(13*3, 9*3)
+    for px = 0 to 13*3-1 do
+        for py = 0 to 9*3-1 do
+            tile.SetPixel(px, py, System.Drawing.Color.Red)
+    tile
+
+let dungeonNumberBMPs = 
+    let m = zhDungeonNums
+    [|
+        for i = 0 to 8 do
+            let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
+            for px = 0 to 9*3-1 do
+                for py = 0 to 9*3-1 do
+                    tile.SetPixel(px+2*3, py, m.GetPixel((i*9*3+px)/3, py/3))
             yield tile
     |]

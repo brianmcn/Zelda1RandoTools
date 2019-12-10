@@ -90,7 +90,7 @@ let debug() =
 let H = 30
 let makeAll() =
     let c = new Canvas()
-    c.Height <- float(30*4 + 11*3*8)
+    c.Height <- float(30*4 + 11*3*8 + 27*8 + 12*7)
     c.Width <- float(16*16*3)
 
     c.Background <- System.Windows.Media.Brushes.Black 
@@ -286,12 +286,68 @@ let makeAll() =
 //    let r = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 1.)
 //    canvasAdd(c, r, float(16*3/2), 120.+float(11*3/2))
 
+    let dungeonCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))
+    canvasAdd(c, dungeonCanvas, 0., float(120+8*11*3))
+
+    // rooms
+    let roomCanvases = Array2D.zeroCreate 8 8 
+    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=explored empty
+    for i = 0 to 7 do
+        for j = 0 to 7 do
+            let c = new Canvas(Width=float(13*3), Height=float(9*3))
+            canvasAdd(dungeonCanvas, c, float(i*51), float(j*39))
+            let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
+            canvasAdd(c, image, 0., 0.)
+            roomCanvases.[i,j] <- c
+            roomStates.[i,j] <- 0
+            let f b =
+                roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + 13) % 13
+                c.Children.Clear()
+                let image =
+                    match roomStates.[i,j] with
+                    | 0  -> Graphics.dungeonUnexploredRoomBMP 
+                    | 10 -> Graphics.dungeonTriforceBMP 
+                    | 11 -> Graphics.dungeonPrincessBMP 
+                    | 12 -> Graphics.dungeonExploredRoomBMP 
+                    | n  -> Graphics.dungeonNumberBMPs.[n-1]
+                    |> Graphics.BMPtoImage 
+                canvasAdd(c, image, 0., 0.)
+            c.MouseLeftButtonDown.Add(fun _ -> f true)
+            c.MouseRightButtonDown.Add(fun _ -> f false)
+            c.MouseWheel.Add(fun x -> f (x.Delta<0))
+    // horizontal doors
+    let no = System.Windows.Media.Brushes.DarkRed
+    let yes = System.Windows.Media.Brushes.Lime
+    for i = 0 to 6 do
+        for j = 0 to 7 do
+            
+            let d = new Canvas(Height=12., Width=12., Background=no)
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(j*(27+12)+9))
+            d.MouseDown.Add(fun _ ->
+                if obj.Equals(d.Background, no) then
+                    d.Background <- yes
+                else
+                    d.Background <- no
+            )
+    // vertical doors
+    for i = 0 to 7 do
+        for j = 0 to 6 do
+            let d = new Canvas(Height=12., Width=12., Background = System.Windows.Media.Brushes.DarkRed)
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+15), float(j*(27+12)+27))
+            d.MouseDown.Add(fun _ ->
+                if obj.Equals(d.Background, no) then
+                    d.Background <- yes
+                else
+                    d.Background <- no
+            )
     c
 
 
 // TODO
-// lines (ow connect)
-// recordering (if have triforce and L location and recorder, highlight can warp there)
+// lines? (ow connect)
+// free form text for seed flags
+// free form text for tracking
+// voice reminders
 
 open System.Runtime.InteropServices 
 module Winterop = 
