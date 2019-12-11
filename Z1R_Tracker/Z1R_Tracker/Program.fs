@@ -84,11 +84,16 @@ let mutable haveCoastItem = false
 let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
+let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let updateDungeon(dungeonIndex, itemDiff) =
     if dungeonIndex >= 0 && dungeonIndex < 8 then
         dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
         if dungeonRemains.[dungeonIndex] = 0 then
             async { voice.Speak(sprintf "Dungeon %d is complete" (dungeonIndex+1)) } |> Async.Start
+            for j = 0 to 3 do
+                //mainTrackerCanvases.[dungeonIndex,j].Background <- System.Windows.Media.Brushes.Green 
+                // TODO dont love this, is it ok? also gets darker if un-complete and re-complete, hm
+                mainTrackerCanvases.[dungeonIndex,j].Children.Add(new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4)) |> ignore
 let debug() =
     for j = 0 to 7 do
         for i = 0 to 15 do
@@ -111,6 +116,7 @@ let makeAll() =
     for i = 0 to 7 do
         let image = Graphics.emptyTriforces.[i]
         let c = new Canvas(Width=30., Height=30.)
+        mainTrackerCanvases.[i,0] <- c
         canvasAdd(c, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
             if not triforces.[i] then 
@@ -131,6 +137,7 @@ let makeAll() =
     for i = 0 to 7 do
         let image = Graphics.emptyHearts.[i]
         let c = new Canvas(Width=30., Height=30.)
+        mainTrackerCanvases.[i,1] <- c
         canvasAdd(c, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
             if c.Children.Contains(Graphics.emptyHearts.[i]) then 
@@ -196,8 +203,12 @@ let makeAll() =
     // items
     for i = 0 to 8 do
         for j = 0 to 1 do
+            let mutable c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
             if j=0 || (i=0 || i=7 || i=8) then
-                gridAdd(mainTracker, boxItem(i), i, j+2)
+                c <- boxItem(i)
+                gridAdd(mainTracker, c, i, j+2)
+            if i < 8 then
+                mainTrackerCanvases.[i,j+2] <- c
 
     let kitty = new Image()
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
@@ -450,14 +461,23 @@ type MyWindow() as this =
         recordering <- (fun () ->
             recorderingCanvas.Children.Clear()
             if haveRecorder then
+                // highlight any triforce dungeons as recorder warp destinations
                 for i = 0 to 7 do
                     if triforces.[i] then
                         for x = 0 to 15 do
                             for y = 0 to 7 do
                                 if owCurrentState.[x,y] = i then
-                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(13*3), Height=float(8*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 3.)
+                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3), Height=float(9*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 5.)
                                     rect.BeginAnimation(UIElement.OpacityProperty, da)
-                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+3., float(y*11*3)+4.)
+                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+1., float(y*11*3)+3.)
+            // highlight 9 after get all triforce
+            if Array.forall id triforces then
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owCurrentState.[x,y] = 8 then
+                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                            rect.BeginAnimation(UIElement.OpacityProperty, da)
+                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
         )
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
