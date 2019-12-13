@@ -428,23 +428,18 @@ module Winterop =
 type MyWindowBase() as this = 
     inherit Window()
     let mutable source = null
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let mutable startTime = DateTime.Now
     let VK_F10 = 0x79
     let MOD_NONE = 0u
+    let mutable startTime = DateTime.Now
     do
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update())
         timer.Start()
-    member this.HmsTimeTextBox = hmsTimeTextBox
+    member this.StartTime = startTime
     abstract member Update : unit -> unit
-    default this.Update() =
-        // update time
-        let ts = DateTime.Now - startTime
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+    default this.Update() = ()
     override this.OnSourceInitialized(e) =
         base.OnSourceInitialized(e)
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
@@ -477,6 +472,7 @@ type MyWindowBase() as this =
 type MyWindow() as this = 
     inherit MyWindowBase()
     let canvas = makeAll()
+    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable ladderTime = DateTime.Now
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
@@ -484,7 +480,7 @@ type MyWindow() as this =
         // full window
         this.Title <- "Zelda 1 Randomizer"
         this.Content <- canvas
-        canvasAdd(canvas, this.HmsTimeTextBox, 600., 0.)
+        canvasAdd(canvas, hmsTimeTextBox, 600., 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 0.0
@@ -514,6 +510,10 @@ type MyWindow() as this =
         )
     override this.Update() =
         base.Update()
+        // update time
+        let ts = DateTime.Now - this.StartTime
+        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
+        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
         // remind ladder
         if (DateTime.Now - ladderTime).Minutes <> 0 then
             if haveLadder then
@@ -523,16 +523,66 @@ type MyWindow() as this =
 
 type TimerOnlyWindow() as this = 
     inherit MyWindowBase()
+    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let canvas = new Canvas(Width=180., Height=50., Background=System.Windows.Media.Brushes.Black)
     do
         // full window
         this.Title <- "Timer"
         this.Content <- canvas
-        canvasAdd(canvas, this.HmsTimeTextBox, 0., 0.)
+        canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 0.0
         this.Top <- 0.0
+    override this.Update() =
+        base.Update()
+        // update time
+        let ts = DateTime.Now - this.StartTime
+        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
+        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+
+type TerrariaTimerOnlyWindow() as this = 
+    inherit MyWindowBase()
+    let FONT = 24.
+    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
+    let dayTextBox = new TextBox(Text="day",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
+    let timeTextBox = new TextBox(Text="time",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
+    let canvas = new Canvas(Width=170.*FONT/35., Height=FONT*16./4., Background=System.Windows.Media.Brushes.Black)
+    do
+        // full window
+        this.Title <- "Timer"
+        this.Content <- canvas
+        canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
+        canvasAdd(canvas, dayTextBox, 0., FONT*5./4.)
+        canvasAdd(canvas, timeTextBox, 0., FONT*10./4.)
+        this.SizeToContent <- SizeToContent.WidthAndHeight 
+        this.WindowStartupLocation <- WindowStartupLocation.Manual
+        this.Left <- 0.0
+        this.Top <- 0.0
+        this.BorderBrush <- Brushes.LightGreen
+        this.BorderThickness <- Thickness(2.)
+    override this.Update() =
+        base.Update()
+        // update hms time
+        let mutable ts = DateTime.Now - this.StartTime
+        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
+        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+        // update terraria time
+        let mutable day = 1
+        while ts >= TimeSpan.FromMinutes(20.25) do
+            ts <- ts - TimeSpan.FromMinutes(24.)
+            day <- day + 1
+        let mutable ttime = ts + TimeSpan.FromMinutes(8.25)
+        if ttime >= TimeSpan.FromMinutes(24.) then
+            ttime <- ttime - TimeSpan.FromMinutes(24.)
+        let m,s = ttime.Minutes, ttime.Seconds
+        let m,am = if m < 12 then m,"am" else m-12,"pm"
+        let m = if m=0 then 12 else m
+        timeTextBox.Text <- sprintf "%02d:%02d%s" m s am
+        if ts < TimeSpan.FromMinutes(11.25) then   // 11.25 is 7:30pm, 20.25 is 4:30am
+            dayTextBox.Text <- sprintf "Day %d" day
+        else
+            dayTextBox.Text <- sprintf "Night %d" day
 
 [<STAThread>]
 [<EntryPoint>]
@@ -547,6 +597,8 @@ let main argv =
 #endif
         if argv.Length > 0 && argv.[0] = "timeronly" then
             app.Run(TimerOnlyWindow()) |> ignore
+        elif argv.Length > 0 && argv.[0] = "terraria" then
+            app.Run(TerrariaTimerOnlyWindow()) |> ignore
         else
             app.Run(MyWindow()) |> ignore
 #if DEBUG
