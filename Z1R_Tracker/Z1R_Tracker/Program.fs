@@ -425,64 +425,26 @@ module Winterop =
 
     let HOTKEY_ID = 9000
 
-type MyWindow() as this = 
+type MyWindowBase() as this = 
     inherit Window()
     let mutable source = null
-    let canvas = makeAll()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable startTime = DateTime.Now
-    let mutable ladderTime = DateTime.Now
     let VK_F10 = 0x79
     let MOD_NONE = 0u
-    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
-                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    let update() =
+    do
+        // full window
+        let timer = new System.Windows.Threading.DispatcherTimer()
+        timer.Interval <- TimeSpan.FromSeconds(1.0)
+        timer.Tick.Add(fun _ -> this.Update())
+        timer.Start()
+    member this.HmsTimeTextBox = hmsTimeTextBox
+    abstract member Update : unit -> unit
+    default this.Update() =
         // update time
         let ts = DateTime.Now - startTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-        // remind ladder
-        if (DateTime.Now - ladderTime).Minutes <> 0 then
-            if haveLadder then
-                if not haveCoastItem then
-                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
-                    ladderTime <- DateTime.Now
-    do
-        // full window
-        this.Title <- "Zelda 1 Randomizer"
-        this.Content <- canvas
-        canvasAdd(canvas, hmsTimeTextBox, 600., 0.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
-        this.Top <- 0.0
-        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
-        canvasAdd(canvas, recorderingCanvas, 0., 120.)
-        recordering <- (fun () ->
-            recorderingCanvas.Children.Clear()
-            if haveRecorder then
-                // highlight any triforce dungeons as recorder warp destinations
-                for i = 0 to 7 do
-                    if triforces.[i] then
-                        for x = 0 to 15 do
-                            for y = 0 to 7 do
-                                if owCurrentState.[x,y] = i then
-                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3), Height=float(9*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 5.)
-                                    rect.BeginAnimation(UIElement.OpacityProperty, da)
-                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+1., float(y*11*3)+3.)
-            // highlight 9 after get all triforce
-            if Array.forall id triforces then
-                for x = 0 to 15 do
-                    for y = 0 to 7 do
-                        if owCurrentState.[x,y] = 8 then
-                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                            rect.BeginAnimation(UIElement.OpacityProperty, da)
-                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-        )
-        let timer = new System.Windows.Threading.DispatcherTimer()
-        timer.Interval <- TimeSpan.FromSeconds(1.0)
-        timer.Tick.Add(fun _ -> update())
-        timer.Start()
     override this.OnSourceInitialized(e) =
         base.OnSourceInitialized(e)
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
@@ -511,7 +473,66 @@ type MyWindow() as this =
                 if key = VK_F10 then
                     startTime <- DateTime.Now
         IntPtr.Zero
-        
+
+type MyWindow() as this = 
+    inherit MyWindowBase()
+    let canvas = makeAll()
+    let mutable ladderTime = DateTime.Now
+    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
+                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    do
+        // full window
+        this.Title <- "Zelda 1 Randomizer"
+        this.Content <- canvas
+        canvasAdd(canvas, this.HmsTimeTextBox, 600., 0.)
+        this.SizeToContent <- SizeToContent.WidthAndHeight 
+        this.WindowStartupLocation <- WindowStartupLocation.Manual
+        this.Left <- 0.0
+        this.Top <- 0.0
+        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
+        canvasAdd(canvas, recorderingCanvas, 0., 120.)
+        recordering <- (fun () ->
+            recorderingCanvas.Children.Clear()
+            if haveRecorder then
+                // highlight any triforce dungeons as recorder warp destinations
+                for i = 0 to 7 do
+                    if triforces.[i] then
+                        for x = 0 to 15 do
+                            for y = 0 to 7 do
+                                if owCurrentState.[x,y] = i then
+                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3), Height=float(9*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 5.)
+                                    rect.BeginAnimation(UIElement.OpacityProperty, da)
+                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+1., float(y*11*3)+3.)
+            // highlight 9 after get all triforce
+            if Array.forall id triforces then
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owCurrentState.[x,y] = 8 then
+                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                            rect.BeginAnimation(UIElement.OpacityProperty, da)
+                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+        )
+    override this.Update() =
+        base.Update()
+        // remind ladder
+        if (DateTime.Now - ladderTime).Minutes <> 0 then
+            if haveLadder then
+                if not haveCoastItem then
+                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                    ladderTime <- DateTime.Now
+
+type TimerOnlyWindow() as this = 
+    inherit MyWindowBase()
+    let canvas = new Canvas(Width=180., Height=50., Background=System.Windows.Media.Brushes.Black)
+    do
+        // full window
+        this.Title <- "Timer"
+        this.Content <- canvas
+        canvasAdd(canvas, this.HmsTimeTextBox, 0., 0.)
+        this.SizeToContent <- SizeToContent.WidthAndHeight 
+        this.WindowStartupLocation <- WindowStartupLocation.Manual
+        this.Left <- 0.0
+        this.Top <- 0.0
 
 [<STAThread>]
 [<EntryPoint>]
@@ -524,7 +545,10 @@ let main argv =
 #else
     try
 #endif
-        app.Run(MyWindow()) |> ignore
+        if argv.Length > 0 && argv.[0] = "timeronly" then
+            app.Run(TimerOnlyWindow()) |> ignore
+        else
+            app.Run(MyWindow()) |> ignore
 #if DEBUG
 #else
     with e ->
