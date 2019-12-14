@@ -177,6 +177,8 @@ let makeAll() =
                     recordering()
                 if obj.Equals(is.Current(), Graphics.ladder) then
                     haveLadder <- true
+                if obj.Equals(is.Current(), Graphics.heart_container) then
+                    updateTotalHearts(1)
                 if isCoastItem then
                     haveCoastItem <- true
             else
@@ -187,6 +189,8 @@ let makeAll() =
                     recordering()
                 if obj.Equals(is.Current(), Graphics.ladder) then
                     haveLadder <- false
+                if obj.Equals(is.Current(), Graphics.heart_container) then
+                    updateTotalHearts(-1)
                 if isCoastItem then
                     haveCoastItem <- false
         )
@@ -197,6 +201,8 @@ let makeAll() =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
                 haveLadder <- false
+            if obj.Equals(is.Current(), Graphics.heart_container) && obj.Equals(rect.Stroke, yes) then
+                updateTotalHearts(-1)
             c.Children.Remove(is.Current())
             canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
@@ -204,6 +210,8 @@ let makeAll() =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
+            if obj.Equals(is.Current(), Graphics.heart_container) && obj.Equals(rect.Stroke, yes) then
+                updateTotalHearts(1)
         )
         c
     let boxItem(dungeonIndex) = 
@@ -356,6 +364,23 @@ let makeAll() =
     let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
     canvasAdd(c, dungeonCanvas, 0., float(120+8*11*3))
 
+    // quadrants
+    (*
+    let QW = dungeonCanvas.Width/2.
+    let QH = (dungeonCanvas.Height-float TH)/2.
+    let QBG = new SolidColorBrush(Color.FromRgb(0uy, 40uy, 50uy))
+    let topRight = new Canvas(Width=QW, Height=QH, Background=QBG)
+    canvasAdd(dungeonCanvas, topRight, topRight.Width, float TH)
+    let botLeft = new Canvas(Width=QW, Height=QH, Background=QBG)
+    canvasAdd(dungeonCanvas, botLeft, 0., float TH + QH)
+    *)
+    (*
+    let vert = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=QW, X2=QW, Y1=float TH, Y2=float TH+QH+QH)
+    canvasAdd(dungeonCanvas, vert, 0., 0.)
+    let hori = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=0., X2=QW+QW, Y1=float TH+QH, Y2=float TH+QH)
+    canvasAdd(dungeonCanvas, hori, 0., 0.)
+    *)
+
     let TEXT = "LEVEL-9 "
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
@@ -451,6 +476,7 @@ let makeAll() =
 // free form text for seed flags?
 // voice reminders:
 //  - what else?
+// TRIFORCE time splits ?
 
 open System.Runtime.InteropServices 
 module Winterop = 
