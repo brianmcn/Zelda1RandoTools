@@ -81,10 +81,16 @@ let mutable recordering = fun() -> ()
 let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
+let mutable playerHearts = 3  // start with 3
 let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
+let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
+let updateTotalHearts(x) = 
+    playerHearts <- playerHearts + x
+    //printfn "curent hearts = %d" playerHearts
+    currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" playerHearts
 let updateDungeon(dungeonIndex, itemDiff) =
     if dungeonIndex >= 0 && dungeonIndex < 8 then
         dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
@@ -103,8 +109,9 @@ let debug() =
 
 let H = 30
 let makeAll() =
+    let TH = 24 // text height
     let c = new Canvas()
-    c.Height <- float(30*4 + 11*3*8 + 27*8 + 12*7)
+    c.Height <- float(30*4 + 11*3*8 + TH + 27*8 + 12*7)
     c.Width <- float(16*16*3)
 
     c.Background <- System.Windows.Media.Brushes.Black 
@@ -143,10 +150,12 @@ let makeAll() =
             if c.Children.Contains(Graphics.emptyHearts.[i]) then 
                 c.Children.Clear()
                 c.Children.Add(Graphics.fullHearts.[i]) |> ignore 
+                updateTotalHearts(+1)
                 updateDungeon(i, -1)
             else 
                 c.Children.Clear()
                 c.Children.Add(Graphics.emptyHearts.[i]) |> ignore
+                updateTotalHearts(-1)
                 updateDungeon(i, +1)
         )
         gridAdd(mainTracker, c, i, 1)
@@ -229,7 +238,15 @@ let makeAll() =
                 else 2
             c.Children.Clear()
             let next = (cur + (if b then 1 else -1) + 3) % 3
-            canvasAdd(c, (if next = 0 then Graphics.owHeartsEmpty.[i] elif next = 1 then Graphics.owHeartsFull.[i] else Graphics.owHeartsSkipped.[i]), 0., 0.)
+            canvasAdd(c, (  if next = 0 then 
+                                updateTotalHearts(0-(if cur=1 then 1 else 0))
+                                Graphics.owHeartsEmpty.[i] 
+                            elif next = 1 then 
+                                updateTotalHearts(1-(if cur=1 then 1 else 0))
+                                Graphics.owHeartsFull.[i] 
+                            else 
+                                updateTotalHearts(0-(if cur=1 then 1 else 0))
+                                Graphics.owHeartsSkipped.[i]), 0., 0.)
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
@@ -336,16 +353,22 @@ let makeAll() =
 //    let r = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 1.)
 //    canvasAdd(c, r, float(16*3/2), 120.+float(11*3/2))
 
-    let dungeonCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))
+    let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
     canvasAdd(c, dungeonCanvas, 0., float(120+8*11*3))
 
+    let TEXT = "LEVEL-9 "
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
     let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=explored empty
     for i = 0 to 7 do
+        // LEVEL-9        
+        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
+                                Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+        canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+        // room map
         for j = 0 to 7 do
             let c = new Canvas(Width=float(13*3), Height=float(9*3))
-            canvasAdd(dungeonCanvas, c, float(i*51), float(j*39))
+            canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
             let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
             canvasAdd(c, image, 0., 0.)
             roomCanvases.[i,j] <- c
@@ -372,7 +395,7 @@ let makeAll() =
         for j = 0 to 7 do
             
             let d = new Canvas(Height=12., Width=12., Background=no)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(j*(27+12)+9))
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+9))
             d.MouseDown.Add(fun _ ->
                 if obj.Equals(d.Background, no) then
                     d.Background <- yes
@@ -383,7 +406,7 @@ let makeAll() =
     for i = 0 to 7 do
         for j = 0 to 6 do
             let d = new Canvas(Height=12., Width=12., Background = System.Windows.Media.Brushes.DarkRed)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+15), float(j*(27+12)+27))
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+15), float(TH+j*(27+12)+27))
             d.MouseDown.Add(fun _ ->
                 if obj.Equals(d.Background, no) then
                     d.Background <- yes
@@ -399,12 +422,14 @@ let makeAll() =
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 400., float(120+8*11*3)) 
 
-    let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0)))
+    let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit true
     voice.Volume <- 30
     cb.Checked.Add(fun _ -> voice.Volume <- 30)
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
     canvasAdd(c, cb, 600., 60.)
+
+    canvasAdd(c, currentHeartsTextBox, 600., 90.)
 
     c
 
@@ -515,7 +540,7 @@ type MyWindow() as this =
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
         // remind ladder
-        if (DateTime.Now - ladderTime).Minutes <> 0 then
+        if (DateTime.Now - ladderTime).Minutes > 1 then  // every 2 mins
             if haveLadder then
                 if not haveCoastItem then
                     async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
