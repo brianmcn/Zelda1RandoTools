@@ -306,8 +306,8 @@ let makeAll() =
             let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
             canvasAdd(c, rightShade, float(15*3), 0.)
             // highlight mouse
-            let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.White)
-            c.MouseEnter.Add(fun _ -> c.Children.Add(rect) |> ignore)
+            let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
+            c.MouseEnter.Add(fun _ -> canvasAdd(c, rect, 2., 2.))
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
             // icon
             let ms = new MapState()
@@ -339,12 +339,12 @@ let makeAll() =
                             icon.Opacity <- 0.5
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
-                        c.Children.Add(rect) |> ignore
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
+                        canvasAdd(c, rect, 2., 2.)
                         needRecordering <- true
                     if ms.IsWarp then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
-                        c.Children.Add(rect) |> ignore
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
+                        canvasAdd(c, rect, 2., 2.)
                     if needRecordering then
                         recordering()
                 c.MouseLeftButtonDown.Add(fun _ -> f true)
@@ -352,14 +352,56 @@ let makeAll() =
                 c.MouseWheel.Add(fun x -> f (x.Delta<0))
     canvasAdd(c, owMapGrid, 0., 120.)
 
-//    for i = 0 to Graphics.uniqueMapIcons.Length-1 do
-//        canvasAdd(c, Graphics.uniqueMapIcons.[i], float(16*3*i), 120.)
-//    for i = 0 to Graphics.nonUniqueMapIconBMPs.Length-1 do
-//        canvasAdd(c, Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[i], float(16*3*i), 120.)
-
-//    connectivity lines?
-//    let r = new System.Windows.Shapes.Rectangle(Width=float(16*3), Height=float(11*3), Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 1.)
-//    canvasAdd(c, r, float(16*3/2), 120.+float(11*3/2))
+    // map barriers
+    let makeLine(x1, x2, y1, y2) = new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.Red, StrokeThickness=3.)
+    canvasAdd(c, makeLine(0,4,2,2), 0., 120.)
+    canvasAdd(c, makeLine(2,2,1,3), 0., 120.)
+    canvasAdd(c, makeLine(4,4,0,1), 0., 120.)
+    canvasAdd(c, makeLine(4,7,1,1), 0., 120.)
+    canvasAdd(c, makeLine(8,10,1,1), 0., 120.)
+    canvasAdd(c, makeLine(10,10,0,1), 0., 120.)
+    canvasAdd(c, makeLine(11,11,0,1), 0., 120.)
+    canvasAdd(c, makeLine(12,12,0,1), 0., 120.)
+    canvasAdd(c, makeLine(14,14,0,1), 0., 120.)
+    canvasAdd(c, makeLine(15,15,0,1), 0., 120.)
+    canvasAdd(c, makeLine(14,16,2,2), 0., 120.)
+    canvasAdd(c, makeLine(6,7,2,2), 0., 120.)
+    canvasAdd(c, makeLine(8,12,2,2), 0., 120.)
+    canvasAdd(c, makeLine(4,5,3,3), 0., 120.)
+    canvasAdd(c, makeLine(7,8,3,3), 0., 120.)
+    canvasAdd(c, makeLine(9,10,3,3), 0., 120.)
+    canvasAdd(c, makeLine(12,13,3,3), 0., 120.)
+    canvasAdd(c, makeLine(2,4,4,4), 0., 120.)
+    canvasAdd(c, makeLine(5,8,4,4), 0., 120.)
+    canvasAdd(c, makeLine(14,15,4,4), 0., 120.)
+    canvasAdd(c, makeLine(1,2,5,5), 0., 120.)
+    canvasAdd(c, makeLine(7,8,5,5), 0., 120.)
+    canvasAdd(c, makeLine(10,11,5,5), 0., 120.)
+    canvasAdd(c, makeLine(12,13,5,5), 0., 120.)
+    canvasAdd(c, makeLine(14,15,5,5), 0., 120.)
+    canvasAdd(c, makeLine(6,8,6,6), 0., 120.)
+    canvasAdd(c, makeLine(14,15,6,6), 0., 120.)
+    canvasAdd(c, makeLine(0,1,7,7), 0., 120.)
+    canvasAdd(c, makeLine(4,5,7,7), 0., 120.)
+    canvasAdd(c, makeLine(9,11,7,7), 0., 120.)
+    canvasAdd(c, makeLine(12,15,7,7), 0., 120.)
+    canvasAdd(c, makeLine(1,1,5,6), 0., 120.)
+    canvasAdd(c, makeLine(2,2,4,5), 0., 120.)
+    canvasAdd(c, makeLine(3,3,2,3), 0., 120.)
+    canvasAdd(c, makeLine(3,3,4,5), 0., 120.)
+    canvasAdd(c, makeLine(4,4,3,5), 0., 120.)
+    canvasAdd(c, makeLine(5,5,3,5), 0., 120.)
+    canvasAdd(c, makeLine(5,5,7,8), 0., 120.)
+    canvasAdd(c, makeLine(6,6,2,3), 0., 120.)
+    canvasAdd(c, makeLine(6,6,4,5), 0., 120.)
+    canvasAdd(c, makeLine(7,7,3,4), 0., 120.)
+    canvasAdd(c, makeLine(9,9,3,5), 0., 120.)
+    canvasAdd(c, makeLine(10,10,3,4), 0., 120.)
+    canvasAdd(c, makeLine(12,12,3,5), 0., 120.)
+    canvasAdd(c, makeLine(13,13,3,4), 0., 120.)
+    canvasAdd(c, makeLine(14,14,3,4), 0., 120.)
+    canvasAdd(c, makeLine(15,15,2,3), 0., 120.)
+    canvasAdd(c, makeLine(15,15,4,6), 0., 120.)
 
     let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
     canvasAdd(c, dungeonCanvas, 0., float(120+8*11*3))
@@ -426,6 +468,9 @@ let makeAll() =
             //c.MouseLeftButtonDown.Add(fun _ -> f true)
             //c.MouseRightButtonDown.Add(fun _ -> f false)
             c.MouseWheel.Add(fun x -> f (x.Delta<0))
+            // initial values
+            if i=6 && (j=6 || j=7) then
+                f false
     // horizontal doors
     let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
     let no = System.Windows.Media.Brushes.DarkRed
@@ -434,35 +479,41 @@ let makeAll() =
         for j = 0 to 7 do
             let d = new Canvas(Height=12., Width=12., Background=unknown)
             canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
-            d.MouseLeftButtonDown.Add(fun _ ->
+            let left _ =        
                 if not(obj.Equals(d.Background, yes)) then
                     d.Background <- yes
                 else
                     d.Background <- unknown
-            )
-            d.MouseRightButtonDown.Add(fun _ ->
+            d.MouseLeftButtonDown.Add(left)
+            let right _ = 
                 if not(obj.Equals(d.Background, no)) then
                     d.Background <- no
                 else
                     d.Background <- unknown
-            )
+            d.MouseRightButtonDown.Add(right)
+            // initial values
+            if (i=5 || i=6) && j=7 then
+                right()
     // vertical doors
     for i = 0 to 7 do
         for j = 0 to 6 do
             let d = new Canvas(Height=12., Width=12., Background=unknown)
             canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
-            d.MouseLeftButtonDown.Add(fun _ ->
+            let left _ =
                 if not(obj.Equals(d.Background, yes)) then
                     d.Background <- yes
                 else
                     d.Background <- unknown
-            )
-            d.MouseRightButtonDown.Add(fun _ ->
+            d.MouseLeftButtonDown.Add(left)
+            let right _ = 
                 if not(obj.Equals(d.Background, no)) then
                     d.Background <- no
                 else
                     d.Background <- unknown
-            )
+            d.MouseRightButtonDown.Add(right)
+            // initial values
+            if i=6 && j=6 then
+                left()
     // notes    
     let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
     tb.FontSize <- 24.
