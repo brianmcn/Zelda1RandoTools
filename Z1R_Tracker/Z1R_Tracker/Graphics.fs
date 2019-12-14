@@ -252,11 +252,30 @@ let dungeonPrincessBMP =
 
 let dungeonNumberBMPs = 
     let m = zhDungeonNums
+    let x = System.Drawing.Color.FromArgb(255, 128, 128, 128)
+    let colors = 
+        [|
+            System.Drawing.Color.Pink 
+            System.Drawing.Color.Aqua
+            System.Drawing.Color.Orange 
+            System.Drawing.Color.FromArgb(0, 140, 0)
+            System.Drawing.Color.FromArgb(230, 0, 230) 
+            System.Drawing.Color.FromArgb(220, 220, 0)
+            System.Drawing.Color.Lime 
+            System.Drawing.Color.Brown 
+            System.Drawing.Color.Blue
+        |]
     [|
         for i = 0 to 8 do
             let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
             for px = 0 to 9*3-1 do
                 for py = 0 to 9*3-1 do
-                    tile.SetPixel(px+2*3, py, m.GetPixel((i*9*3+px)/3, py/3))
+                    let c = m.GetPixel((i*9*3+px)/3, py/3)
+                    let r = 
+                        if c.ToArgb() = x.ToArgb() then
+                            colors.[i]
+                        else
+                            c
+                    tile.SetPixel(px+2*3, py, r)
             yield tile
     |]

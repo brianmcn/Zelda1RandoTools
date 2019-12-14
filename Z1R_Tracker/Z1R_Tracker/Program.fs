@@ -389,31 +389,43 @@ let makeAll() =
             c.MouseRightButtonDown.Add(fun _ -> f false)
             c.MouseWheel.Add(fun x -> f (x.Delta<0))
     // horizontal doors
+    let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
     let no = System.Windows.Media.Brushes.DarkRed
     let yes = System.Windows.Media.Brushes.Lime
     for i = 0 to 6 do
         for j = 0 to 7 do
-            
-            let d = new Canvas(Height=12., Width=12., Background=no)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+9))
-            d.MouseDown.Add(fun _ ->
-                if obj.Equals(d.Background, no) then
+            let d = new Canvas(Height=12., Width=12., Background=unknown)
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
+            d.MouseLeftButtonDown.Add(fun _ ->
+                if not(obj.Equals(d.Background, yes)) then
                     d.Background <- yes
                 else
+                    d.Background <- unknown
+            )
+            d.MouseRightButtonDown.Add(fun _ ->
+                if not(obj.Equals(d.Background, no)) then
                     d.Background <- no
+                else
+                    d.Background <- unknown
             )
     // vertical doors
     for i = 0 to 7 do
         for j = 0 to 6 do
-            let d = new Canvas(Height=12., Width=12., Background = System.Windows.Media.Brushes.DarkRed)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+15), float(TH+j*(27+12)+27))
-            d.MouseDown.Add(fun _ ->
-                if obj.Equals(d.Background, no) then
+            let d = new Canvas(Height=12., Width=12., Background=unknown)
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
+            d.MouseLeftButtonDown.Add(fun _ ->
+                if not(obj.Equals(d.Background, yes)) then
                     d.Background <- yes
                 else
-                    d.Background <- no
+                    d.Background <- unknown
             )
-    
+            d.MouseRightButtonDown.Add(fun _ ->
+                if not(obj.Equals(d.Background, no)) then
+                    d.Background <- no
+                else
+                    d.Background <- unknown
+            )
+    // notes    
     let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
@@ -421,14 +433,14 @@ let makeAll() =
     tb.Text <- "Notes"
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 400., float(120+8*11*3)) 
-
+    // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit true
     voice.Volume <- 30
     cb.Checked.Add(fun _ -> voice.Volume <- 30)
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
     canvasAdd(c, cb, 600., 60.)
-
+    // current hearts
     canvasAdd(c, currentHeartsTextBox, 600., 90.)
 
     c
