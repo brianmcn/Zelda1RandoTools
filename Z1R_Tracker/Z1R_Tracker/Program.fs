@@ -385,6 +385,7 @@ let makeAll() =
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
     let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=explored empty
+    let usedTransports = Array.zeroCreate 10 // slot 0 unused
     for i = 0 to 7 do
         // LEVEL-9        
         let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
@@ -399,7 +400,18 @@ let makeAll() =
             roomCanvases.[i,j] <- c
             roomStates.[i,j] <- 0
             let f b =
+                // track transport being changed away from
+                if [1..9] |> List.contains roomStates.[i,j] then
+                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                // go to next state
                 roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + 13) % 13
+                // skip transport if already used both
+                while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 do
+                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + 13) % 13
+                // note any new transports
+                if [1..9] |> List.contains roomStates.[i,j] then
+                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
+                // update UI
                 c.Children.Clear()
                 let image =
                     match roomStates.[i,j] with
@@ -410,8 +422,9 @@ let makeAll() =
                     | n  -> Graphics.dungeonNumberBMPs.[n-1]
                     |> Graphics.BMPtoImage 
                 canvasAdd(c, image, 0., 0.)
-            c.MouseLeftButtonDown.Add(fun _ -> f true)
-            c.MouseRightButtonDown.Add(fun _ -> f false)
+            // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
+            //c.MouseLeftButtonDown.Add(fun _ -> f true)
+            //c.MouseRightButtonDown.Add(fun _ -> f false)
             c.MouseWheel.Add(fun x -> f (x.Delta<0))
     // horizontal doors
     let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
