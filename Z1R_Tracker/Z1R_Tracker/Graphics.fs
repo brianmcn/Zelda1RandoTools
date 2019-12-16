@@ -54,6 +54,7 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
     BMPtoImage items.[0], BMPtoImage items.[1], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[6], BMPtoImage items.[8], 
         BMPtoImage items.[10], BMPtoImage items.[12], BMPtoImage items.[14], BMPtoImage items.[15], BMPtoImage items.[16], BMPtoImage items.[17]
 
+let mutable heart_container_bmp = null
 let heart_container, power_bracelet, white_sword, ow_key_armos = 
     let zh = fullZHelper
     let items = 
@@ -67,9 +68,18 @@ let heart_container, power_bracelet, white_sword, ow_key_armos =
                         bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
                 yield bmp
         |]
+    heart_container_bmp <- items.[0]
     BMPtoImage items.[0], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[3]
+let copyHeartContainer() =
+    let bmp = new System.Drawing.Bitmap(7*3,7*3)
+    for i = 0 to 20 do
+        for j = 0 to 20 do
+            bmp.SetPixel(i, j, heart_container_bmp.GetPixel(i,j))
+    BMPtoImage bmp
 
 let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword; heart_container |]
+let allItemsWithHeartShuffle = 
+    [| yield! allItems; for i = 0 to 7 do yield copyHeartContainer() |]
 
 let ow_key_white_sword = 
     let zh = fullZHelper

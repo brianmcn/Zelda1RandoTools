@@ -22,28 +22,28 @@ let makeGrid(nc, nr, cw, rh) =
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
-type ItemState() =
+type ItemState(whichItems:Image[]) =
     let mutable state = -1
     member this.Current() =
         if state = -1 then
             null
         else
-            Graphics.allItems.[state]
+            whichItems.[state]
     member private this.Impl(forward) = 
         if forward then 
             state <- state + 1
         else
             state <- state - 1
         if state < -1 then
-            state <- Graphics.allItems.Length-1
-        if state >= Graphics.allItems.Length then
+            state <- whichItems.Length-1
+        if state >= whichItems.Length then
             state <- -1
-        if state <> -1 && Graphics.allItems.[state].Parent <> null then
+        if state <> -1 && whichItems.[state].Parent <> null then
             if forward then this.Next() else this.Prev()
         elif state = -1 then
             null
         else
-            Graphics.allItems.[state]
+            whichItems.[state]
     member this.Next() = this.Impl(true)
     member this.Prev() = this.Impl(false)
 
@@ -108,7 +108,13 @@ let debug() =
     printfn ""
 
 let H = 30
-let makeAll() =
+let makeAll(isHeartShuffle) =
+    let whichItems = 
+        if isHeartShuffle then
+            Graphics.allItemsWithHeartShuffle 
+        else
+            Graphics.allItems
+    
     let TH = 24 // text height
     let c = new Canvas()
     c.Height <- float(30*4 + 11*3*8 + TH + 27*8 + 12*7)
@@ -140,26 +146,7 @@ let makeAll() =
                 recordering()
         )
         gridAdd(mainTracker, c, i, 0)
-    // floor hearts
-    for i = 0 to 7 do
-        let image = Graphics.emptyHearts.[i]
-        let c = new Canvas(Width=30., Height=30.)
-        mainTrackerCanvases.[i,1] <- c
-        canvasAdd(c, image, 0., 0.)
-        c.MouseDown.Add(fun _ -> 
-            if c.Children.Contains(Graphics.emptyHearts.[i]) then 
-                c.Children.Clear()
-                c.Children.Add(Graphics.fullHearts.[i]) |> ignore 
-                updateTotalHearts(+1)
-                updateDungeon(i, -1)
-            else 
-                c.Children.Clear()
-                c.Children.Add(Graphics.emptyHearts.[i]) |> ignore
-                updateTotalHearts(-1)
-                updateDungeon(i, +1)
-        )
-        gridAdd(mainTracker, c, i, 1)
-
+    let hearts = whichItems.[14..]
     let boxItemImpl(dungeonIndex, isCoastItem) = 
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -167,7 +154,7 @@ let makeAll() =
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
         rect.StrokeThickness <- 3.0
         c.Children.Add(rect) |> ignore
-        let is = new ItemState()
+        let is = new ItemState(whichItems)
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
@@ -177,7 +164,7 @@ let makeAll() =
                     recordering()
                 if obj.Equals(is.Current(), Graphics.ladder) then
                     haveLadder <- true
-                if obj.Equals(is.Current(), Graphics.heart_container) then
+                if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
                     updateTotalHearts(1)
                 if isCoastItem then
                     haveCoastItem <- true
@@ -189,7 +176,7 @@ let makeAll() =
                     recordering()
                 if obj.Equals(is.Current(), Graphics.ladder) then
                     haveLadder <- false
-                if obj.Equals(is.Current(), Graphics.heart_container) then
+                if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
                     updateTotalHearts(-1)
                 if isCoastItem then
                     haveCoastItem <- false
@@ -201,7 +188,7 @@ let makeAll() =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
                 haveLadder <- false
-            if obj.Equals(is.Current(), Graphics.heart_container) && obj.Equals(rect.Stroke, yes) then
+            if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
             c.Children.Remove(is.Current())
             canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
@@ -210,12 +197,37 @@ let makeAll() =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
-            if obj.Equals(is.Current(), Graphics.heart_container) && obj.Equals(rect.Stroke, yes) then
+            if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
         )
         c
     let boxItem(dungeonIndex) = 
         boxItemImpl(dungeonIndex,false)
+    // floor hearts
+    if isHeartShuffle then
+        for i = 0 to 7 do
+            let mutable c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+            c <- boxItem(i)
+            gridAdd(mainTracker, c, i, 1)
+    else
+        for i = 0 to 7 do
+            let image = Graphics.emptyHearts.[i]
+            let c = new Canvas(Width=30., Height=30.)
+            mainTrackerCanvases.[i,1] <- c
+            canvasAdd(c, image, 0., 0.)
+            c.MouseDown.Add(fun _ -> 
+                if c.Children.Contains(Graphics.emptyHearts.[i]) then 
+                    c.Children.Clear()
+                    c.Children.Add(Graphics.fullHearts.[i]) |> ignore 
+                    updateTotalHearts(+1)
+                    updateDungeon(i, -1)
+                else 
+                    c.Children.Clear()
+                    c.Children.Add(Graphics.emptyHearts.[i]) |> ignore
+                    updateTotalHearts(-1)
+                    updateDungeon(i, +1)
+            )
+            gridAdd(mainTracker, c, i, 1)
 
     // items
     for i = 0 to 8 do
@@ -596,9 +608,9 @@ type MyWindowBase() as this =
                     startTime <- DateTime.Now
         IntPtr.Zero
 
-type MyWindow() as this = 
+type MyWindow(isHeartSuffle) as this = 
     inherit MyWindowBase()
-    let canvas = makeAll()
+    let canvas = makeAll(isHeartSuffle)
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable ladderTime = DateTime.Now
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
@@ -726,8 +738,10 @@ let main argv =
             app.Run(TimerOnlyWindow()) |> ignore
         elif argv.Length > 0 && argv.[0] = "terraria" then
             app.Run(TerrariaTimerOnlyWindow()) |> ignore
+        elif argv.Length > 0 && argv.[0] = "heartShuffle" then
+            app.Run(MyWindow(true)) |> ignore
         else
-            app.Run(MyWindow()) |> ignore
+            app.Run(MyWindow(false)) |> ignore
 #if DEBUG
 #else
     with e ->
