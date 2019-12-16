@@ -206,9 +206,8 @@ let makeAll(isHeartShuffle) =
     // floor hearts
     if isHeartShuffle then
         for i = 0 to 7 do
-            let mutable c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+            let c = boxItem(i)
             mainTrackerCanvases.[i,1] <- c
-            c <- boxItem(i)
             gridAdd(mainTracker, c, i, 1)
     else
         for i = 0 to 7 do
