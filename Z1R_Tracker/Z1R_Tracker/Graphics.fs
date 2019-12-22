@@ -215,7 +215,7 @@ let uniqueMapIcons =
 let nonUniqueMapIconBMPs = 
     let m = zhMapIcons 
     [|
-        for i in [yield![24..26]; yield![28..32]; yield 34; yield 38] do
+        for i in [yield![24..26]; yield![28..31]; yield 15; yield 32; yield 34; yield 38] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
@@ -243,6 +243,48 @@ let dungeonExploredRoomBMP =
         for py = 0 to 9*3-1 do
             tile.SetPixel(px, py, m.GetPixel(13+px/3, py/3))
     tile
+
+let dungeonVChuteBMP =
+    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
+    let c = tile.GetPixel(0,0)
+    for py = 0 to 9*3-1 do
+        tile.SetPixel(13, py, c)
+        tile.SetPixel(14, py, c)
+        tile.SetPixel(15, py, c)
+        tile.SetPixel(23, py, c)
+        tile.SetPixel(24, py, c)
+        tile.SetPixel(25, py, c)
+    tile    
+
+let dungeonHChuteBMP =
+    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
+    let c = tile.GetPixel(0,0)
+    for px = 0 to 13*3-1 do
+        tile.SetPixel(px,  9, c)
+        tile.SetPixel(px, 10, c)
+        tile.SetPixel(px, 11, c)
+        tile.SetPixel(px, 15, c)
+        tile.SetPixel(px, 16, c)
+        tile.SetPixel(px, 17, c)
+    tile    
+
+let dungeonTeeBMP =
+    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
+    let c = tile.GetPixel(0,0)
+    for py = 5*3 to 9*3-1 do
+        tile.SetPixel(15, py, c)
+        tile.SetPixel(16, py, c)
+        tile.SetPixel(17, py, c)
+        tile.SetPixel(21, py, c)
+        tile.SetPixel(22, py, c)
+        tile.SetPixel(23, py, c)
+    for px = 4*3 to 9*3-1 do
+        for py = 9 to 11 do
+            tile.SetPixel(px,  py, c)
+    for px in [12;13;14;24;25;26] do
+        for py = 12 to 17 do
+            tile.SetPixel(px,  py, c)
+    tile    
 
 let dungeonTriforceBMP =
     let m = zhDungeonIcons

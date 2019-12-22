@@ -438,7 +438,8 @@ let makeAll(isHeartShuffle) =
     let TEXT = "LEVEL-9 "
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
-    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=explored empty
+    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=vchute, 13=hchute, 14=tee, 15=explored empty
+    let ROOMS = 16 // how many types
     let usedTransports = Array.zeroCreate 10 // slot 0 unused
     for i = 0 to 7 do
         // LEVEL-9        
@@ -458,10 +459,10 @@ let makeAll(isHeartShuffle) =
                 if [1..9] |> List.contains roomStates.[i,j] then
                     usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
                 // go to next state
-                roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + 13) % 13
+                roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
                 // skip transport if already used both
                 while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 do
-                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + 13) % 13
+                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
                 // note any new transports
                 if [1..9] |> List.contains roomStates.[i,j] then
                     usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
@@ -472,7 +473,10 @@ let makeAll(isHeartShuffle) =
                     | 0  -> Graphics.dungeonUnexploredRoomBMP 
                     | 10 -> Graphics.dungeonTriforceBMP 
                     | 11 -> Graphics.dungeonPrincessBMP 
-                    | 12 -> Graphics.dungeonExploredRoomBMP 
+                    | 12 -> Graphics.dungeonVChuteBMP
+                    | 13 -> Graphics.dungeonHChuteBMP
+                    | 14 -> Graphics.dungeonTeeBMP
+                    | 15 -> Graphics.dungeonExploredRoomBMP 
                     | n  -> Graphics.dungeonNumberBMPs.[n-1]
                     |> Graphics.BMPtoImage 
                 canvasAdd(c, image, 0., 0.)
@@ -548,11 +552,11 @@ let makeAll(isHeartShuffle) =
 
 
 // TODO
-// lines? (ow connect)
 // free form text for seed flags?
 // voice reminders:
 //  - what else?
 // TRIFORCE time splits ?
+// ...2nd quest etc...
 
 open System.Runtime.InteropServices 
 module Winterop = 
