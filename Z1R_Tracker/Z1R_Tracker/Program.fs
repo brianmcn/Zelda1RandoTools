@@ -323,7 +323,7 @@ let makeAll(isHeartShuffle) =
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
             // icon
             let ms = new MapState()
-            if Graphics.owMapSquaresAlwaysEmpty.[j].Chars(i) = 'X' then
+            if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].Chars(i) = 'X' then
                 let icon = ms.Prev()
                 owCurrentState.[i,j] <- ms.State 
                 icon.Opacity <- 0.5

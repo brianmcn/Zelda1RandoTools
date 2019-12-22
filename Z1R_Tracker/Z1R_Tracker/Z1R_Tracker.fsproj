@@ -60,7 +60,7 @@
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="ZHelperEmpty.png" />
     <EmbeddedResource Include="ZHelperFull.png" />
-    <EmbeddedResource Include="s_map_overworld.png" />
+    <EmbeddedResource Include="s_map_overworld_strip8.png" />
     <EmbeddedResource Include="s_icon_overworld_strip39.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />

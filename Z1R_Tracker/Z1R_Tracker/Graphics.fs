@@ -26,7 +26,8 @@ let fullZHelper =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperFull.png")
     new System.Drawing.Bitmap(imageStream)
 let overworldImage =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld.png")
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld_strip8.png")
+    // 8 maps in here: 1st quest, 2nd quest, 1st quest with mixed secrets, 2nd quest with mixed secrets, and then horizontal-reflected versions of each of those
     new System.Drawing.Bitmap(imageStream)
 let zhMapIcons =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_icon_overworld_strip39.png")
@@ -189,7 +190,7 @@ let overworldMapBMPs =
             tiles.[x,y] <- tile
     tiles
 
-let owMapSquaresAlwaysEmpty = [|
+let owMapSquaresFirstQuestAlwaysEmpty = [|
     "X.X...X.XX......"
     ".X...X.XXX.X...."
     "X........XXX..X."
