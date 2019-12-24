@@ -178,7 +178,7 @@ let owHeartsFull =
             yield BMPtoImage bmp
     |]
 
-let overworldMapBMPs =
+let overworldMapBMPs(n) =
     let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8
     for x = 0 to 15 do
@@ -186,7 +186,7 @@ let overworldMapBMPs =
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((x*16*3 + px)/3, (y*11*3 + py)/3))
+                    tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
             tiles.[x,y] <- tile
     tiles
 
@@ -199,6 +199,17 @@ let owMapSquaresFirstQuestAlwaysEmpty = [|
     "X.XXXX.XXXX.XX.."
     "XX...X...X..X.X."
     "..XX......X...XX"
+    |]
+
+let owMapSquaresSecondQuestAlwaysEmpty = [|
+    ".....X..X..X...."
+    ".......X........"
+    ".X.....X..X.X.X."
+    ".XX..XX.XX.X..XX"
+    "XXXX...X....X..X"
+    "X.X.XX.X.XX.XX.."
+    ".XX..X.X.X.X.X.."
+    ".X.X......XX..XX"
     |]
 
 let uniqueMapIcons =

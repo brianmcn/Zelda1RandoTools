@@ -108,7 +108,12 @@ let debug() =
     printfn ""
 
 let H = 30
-let makeAll(isHeartShuffle) =
+let makeAll(isHeartShuffle,owMapNum) =
+    let owMapBMPs, owAlwaysEmpty =
+        match owMapNum with
+        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty
+        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty
+        | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
             Graphics.allItemsWithHeartShuffle 
@@ -307,7 +312,7 @@ let makeAll(isHeartShuffle) =
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage(Graphics.overworldMapBMPs.[i,j])
+            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapGrid, c, i, j)
@@ -323,7 +328,7 @@ let makeAll(isHeartShuffle) =
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
             // icon
             let ms = new MapState()
-            if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].Chars(i) = 'X' then
+            if owAlwaysEmpty.[j].Chars(i) = 'X' then
                 let icon = ms.Prev()
                 owCurrentState.[i,j] <- ms.State 
                 icon.Opacity <- 0.5
@@ -738,14 +743,17 @@ let main argv =
 #else
     try
 #endif
+        let mutable owMapNum = 0
+        if argv.Length > 1 then
+            owMapNum <- int argv.[1]
         if argv.Length > 0 && argv.[0] = "timeronly" then
             app.Run(TimerOnlyWindow()) |> ignore
         elif argv.Length > 0 && argv.[0] = "terraria" then
             app.Run(TerrariaTimerOnlyWindow()) |> ignore
         elif argv.Length > 0 && argv.[0] = "heartShuffle" then
-            app.Run(MyWindow(true)) |> ignore
+            app.Run(MyWindow(true,owMapNum)) |> ignore
         else
-            app.Run(MyWindow(false)) |> ignore
+            app.Run(MyWindow(false,owMapNum)) |> ignore
 #if DEBUG
 #else
     with e ->
