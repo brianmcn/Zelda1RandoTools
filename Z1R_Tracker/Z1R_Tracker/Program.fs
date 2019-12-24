@@ -113,6 +113,8 @@ let makeAll(isHeartShuffle,owMapNum) =
         match owMapNum with
         | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty
         | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty
+        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty
+        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -443,7 +445,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let TEXT = "LEVEL-9 "
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
-    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=tri, 11=heart, 12=vchute, 13=hchute, 14=tee, 15=explored empty
+    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
     let ROOMS = 16 // how many types
     let usedTransports = Array.zeroCreate 10 // slot 0 unused
     for i = 0 to 7 do
@@ -476,11 +478,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let image =
                     match roomStates.[i,j] with
                     | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                    | 10 -> Graphics.dungeonTriforceBMP 
-                    | 11 -> Graphics.dungeonPrincessBMP 
-                    | 12 -> Graphics.dungeonVChuteBMP
-                    | 13 -> Graphics.dungeonHChuteBMP
-                    | 14 -> Graphics.dungeonTeeBMP
+                    | 10 -> Graphics.dungeonVChuteBMP
+                    | 11 -> Graphics.dungeonHChuteBMP
+                    | 12 -> Graphics.dungeonTeeBMP
+                    | 13 -> Graphics.dungeonTriforceBMP 
+                    | 14 -> Graphics.dungeonPrincessBMP 
                     | 15 -> Graphics.dungeonExploredRoomBMP 
                     | n  -> Graphics.dungeonNumberBMPs.[n-1]
                     |> Graphics.BMPtoImage 

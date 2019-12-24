@@ -212,6 +212,17 @@ let owMapSquaresSecondQuestAlwaysEmpty = [|
     ".X.X......XX..XX"
     |]
 
+let owMapSquaresMixedQuestAlwaysEmpty = [|
+    for i = 0 to 7 do
+        let mutable s = ""
+        for j = 0 to 15 do
+            if owMapSquaresFirstQuestAlwaysEmpty.[i].[j] = 'X' && owMapSquaresSecondQuestAlwaysEmpty.[i].[j] = 'X' then
+                s <- s + "X"
+            else
+                s <- s + "."
+        yield s
+    |]
+
 let uniqueMapIcons =
     let m = zhMapIcons 
     [|
