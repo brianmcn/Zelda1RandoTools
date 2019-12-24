@@ -109,12 +109,17 @@ let debug() =
 
 let H = 30
 let makeAll(isHeartShuffle,owMapNum) =
-    let owMapBMPs, owAlwaysEmpty =
+    let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
+    let owMapBMPs, owAlwaysEmpty, isReflected =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty
-        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty
-        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty
-        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty
+        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false
+        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false
+        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false
+        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false
+        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true
+        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true
+        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true
+        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -372,7 +377,13 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, owMapGrid, 0., 120.)
 
     // map barriers
-    let makeLine(x1, x2, y1, y2) = new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.Red, StrokeThickness=3.)
+    let makeLineCore(x1, x2, y1, y2) = 
+        new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.Red, StrokeThickness=3.)
+    let makeLine(x1, x2, y1, y2) = 
+        if isReflected then
+            makeLineCore(16-x1, 16-x2, y1, y2)
+        else
+            makeLineCore(x1,x2,y1,y2)
     canvasAdd(c, makeLine(0,4,2,2), 0., 120.)
     canvasAdd(c, makeLine(2,2,1,3), 0., 120.)
     canvasAdd(c, makeLine(4,4,0,1), 0., 120.)
