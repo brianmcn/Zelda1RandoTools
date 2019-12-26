@@ -107,8 +107,22 @@ let debug() =
         printfn ""
     printfn ""
 
+type TimelineItem(c:Canvas, isDone:unit->bool) =
+    member this.Canvas = c
+    member this.IsHeart() = 
+        if Graphics.fullHearts |> Array.exists (fun x -> c.Children.Contains(x)) then
+            true
+        elif Graphics.owHeartsFull |> Array.exists (fun x -> c.Children.Contains(x)) then
+            true
+        elif Graphics.allItemsWithHeartShuffle.[14..] |> Array.exists (fun x -> c.Children.Contains(x)) then
+            true
+        else
+            false
+    member this.IsDone() = isDone()
+
 let H = 30
 let makeAll(isHeartShuffle,owMapNum) =
+    let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
     let owMapBMPs, owAlwaysEmpty, isReflected =
         match owMapNum with
@@ -129,7 +143,6 @@ let makeAll(isHeartShuffle,owMapNum) =
     
     let TH = 24 // text height
     let c = new Canvas()
-    c.Height <- float(30*4 + 11*3*8 + TH + 27*8 + 12*7)
     c.Width <- float(16*16*3)
 
     c.Background <- System.Windows.Media.Brushes.Black 
@@ -158,6 +171,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
         )
         gridAdd(mainTracker, c, i, 0)
+        timelineItems.Add(new TimelineItem(c, (fun()->triforces.[i])))
     let hearts = whichItems.[14..]
     let boxItemImpl(dungeonIndex, isCoastItem) = 
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
@@ -212,6 +226,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
         )
+        timelineItems.Add(new TimelineItem(c, (fun()->obj.Equals(rect.Stroke,yes))))
         c
     let boxItem(dungeonIndex) = 
         boxItemImpl(dungeonIndex,false)
@@ -240,6 +255,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     updateDungeon(i, +1)
             )
             gridAdd(mainTracker, c, i, 1)
+            timelineItems.Add(new TimelineItem(c, fun()->c.Children.Contains(Graphics.fullHearts.[i])))
 
     // items
     for i = 0 to 8 do
@@ -283,6 +299,7 @@ let makeAll(isHeartShuffle,owMapNum) =
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
         gridAdd(owHeartGrid, c, i, 0)
+        timelineItems.Add(new TimelineItem(c, fun()->c.Children.Contains(Graphics.owHeartsFull.[i])))
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
@@ -293,6 +310,28 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, boxItem(-1), 1, 1)
     gridAdd(owItemGrid, boxItem(-1), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
+    // brown sword, blue candle, magical sword
+    let owItemGrid = makeGrid(1, 3, 30, 30)
+    let basicBoxImpl(img) =
+        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+        let no = System.Windows.Media.Brushes.DarkRed
+        let yes = System.Windows.Media.Brushes.LimeGreen 
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
+        rect.StrokeThickness <- 3.0
+        c.Children.Add(rect) |> ignore
+        c.MouseLeftButtonDown.Add(fun _ ->
+            if obj.Equals(rect.Stroke, no) then
+                rect.Stroke <- yes
+            else
+                rect.Stroke <- no
+        )
+        canvasAdd(c, img, 4., 4.)
+        timelineItems.Add(new TimelineItem(c, fun()->obj.Equals(rect.Stroke,yes)))
+        c
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword), 0, 0)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 0, 2)
+    canvasAdd(c, owItemGrid, OFFSET+90., 30.)
 
 (*
     // common animations
@@ -433,8 +472,81 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, makeLine(15,15,2,3), 0., 120.)
     canvasAdd(c, makeLine(15,15,4,6), 0., 120.)
 
+    let THRU_MAP_H = float(120+8*11*3)
+
+    // timeline
+    let TLC = Brushes.SandyBrown   // timeline color
+    let timeline1Canvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
+    let tb1 = new TextBox(Text="0h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(timeline1Canvas, tb1, 0., 30.)
+    let tb2 = new TextBox(Text="1h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(timeline1Canvas, tb2, 748., 30.)
+    let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
+    canvasAdd(timeline1Canvas, line1, 0., 0.)
+    for i = 0 to 12 do
+        let d = if i%2=1 then 3 else 0
+        let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
+        canvasAdd(timeline1Canvas, line, 0., 0.)
+    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(12*3), Y2=float(14*3), Stroke=Brushes.White, StrokeThickness=3.)
+    canvasAdd(timeline1Canvas, curTime, 0., 0.)
+    let timeline2Canvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
+    let tb1 = new TextBox(Text="1h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(timeline2Canvas, tb1, 0., 30.)
+    let tb2 = new TextBox(Text="2h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(timeline2Canvas, tb2, 748., 30.)
+    let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
+    canvasAdd(timeline2Canvas, line1, 0., 0.)
+    for i = 0 to 12 do
+        let d = if i%2=1 then 3 else 0
+        let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
+        canvasAdd(timeline2Canvas, line, 0., 0.)
+    let top = ref true
+    let updateTimeline(minute) =
+        if minute < 1 || minute > 120 then
+            ()
+        else
+            let tlc,minute = 
+                if minute <= 60 then 
+                    timeline1Canvas, minute 
+                else 
+                    timeline2Canvas, minute-60
+            let items = ResizeArray()
+            let hearts = ResizeArray()
+            for x in timelineItems do
+                if x.IsDone() then
+                    if x.IsHeart() then
+                        hearts.Add(x)
+                    else
+                        items.Add(x)
+            for x in items do
+                timelineItems.Remove(x) |> ignore
+            for x in hearts do
+                timelineItems.Remove(x) |> ignore
+            // post items
+            for x in items do
+                let vb = new VisualBrush(Visual=x.Canvas, Opacity=0.7)
+                let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
+                canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
+                top := not !top
+            // post hearts
+            if hearts.Count > 0 then
+                let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
+                let rect = new System.Windows.Shapes.Rectangle(Height=9., Width=9., Fill=vb)
+                canvasAdd(tlc, rect, float(24+minute*12-3-1), 36.)
+            // post current time
+            curTime.X1 <- float(24+minute*12)
+            curTime.X2 <- float(24+minute*12)
+            timeline1Canvas.Children.Remove(curTime)  // have it be last
+            timeline2Canvas.Children.Remove(curTime)  // have it be last
+            canvasAdd(tlc, curTime, 0., 0.)
+    canvasAdd(c, timeline1Canvas, 0., THRU_MAP_H)
+    canvasAdd(c, timeline2Canvas, 0., THRU_MAP_H + timeline1Canvas.Height)
+
+    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + 3.
+
+    // Level 9 dungeon tracker
     let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
-    canvasAdd(c, dungeonCanvas, 0., float(120+8*11*3))
+    canvasAdd(c, dungeonCanvas, 0., THRU_TIMELINE_H)
 
     // quadrants
     (*
@@ -555,7 +667,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     tb.Background <- System.Windows.Media.Brushes.Black 
     tb.Text <- "Notes"
     tb.AcceptsReturn <- true
-    canvasAdd(c, tb, 400., float(120+8*11*3)) 
+    canvasAdd(c, tb, 400., THRU_TIMELINE_H) 
+
     // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit true
@@ -566,7 +679,9 @@ let makeAll(isHeartShuffle,owMapNum) =
     // current hearts
     canvasAdd(c, currentHeartsTextBox, 600., 90.)
 
-    c
+    //                items  ow map                               
+    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + 3 + int dungeonCanvas.Height)
+    c, updateTimeline
 
 
 // TODO
@@ -632,7 +747,7 @@ type MyWindowBase() as this =
 
 type MyWindow(isHeartSuffle) as this = 
     inherit MyWindowBase()
-    let canvas = makeAll(isHeartSuffle)
+    let canvas, updateTimeline = makeAll(isHeartSuffle)
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable ladderTime = DateTime.Now
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
@@ -681,6 +796,9 @@ type MyWindow(isHeartSuffle) as this =
                 if not haveCoastItem then
                     async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
                     ladderTime <- DateTime.Now
+        // update timeline
+        if ts.Seconds = 0 then
+            updateTimeline(int ts.TotalMinutes)
 
 type TimerOnlyWindow() as this = 
     inherit MyWindowBase()

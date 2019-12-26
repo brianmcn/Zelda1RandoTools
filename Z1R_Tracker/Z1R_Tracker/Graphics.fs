@@ -21,10 +21,22 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
 
 let emptyZHelper =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperEmpty.png")
-    new System.Drawing.Bitmap(imageStream)
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    for i = 0 to bmp.Width-1 do
+        for j = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(i,j)
+            if false then //c.R = 53uy && c.G = 53uy && c.B = 53uy then
+                bmp.SetPixel(i, j, System.Drawing.Color.Black)
+    bmp
 let fullZHelper =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperFull.png")
-    new System.Drawing.Bitmap(imageStream)
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    for i = 0 to bmp.Width-1 do
+        for j = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(i,j)
+            if c.R = 53uy && c.G = 53uy && c.B = 53uy then
+                bmp.SetPixel(i, j, System.Drawing.Color.Black)
+    bmp
 let overworldImage =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld_strip8.png")
     // 8 maps in here: 1st quest, 2nd quest, 1st quest with mixed secrets, 2nd quest with mixed secrets, and then horizontal-reflected versions of each of those
@@ -89,6 +101,39 @@ let ow_key_white_sword =
     for px = 0 to 7*3-1 do
         for py = 0 to 7*3-1 do
             bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
+    BMPtoImage bmp
+let brown_sword, magical_sword = 
+    let zh = fullZHelper
+    let bmp1 = new System.Drawing.Bitmap(7*3,7*3)
+    let bmp2 = new System.Drawing.Bitmap(7*3,7*3)
+    let xoff,yoff = 574+36*2, 91+30*0  // index into ZHelperFull
+    for px = 0 to 7*3-1 do
+        for py = 0 to 7*3-1 do
+            let c = zh.GetPixel(xoff + px, yoff + py)
+            let c1,c2 =
+                if c.R = 255uy && c.G = 255uy && c.B = 255uy then
+                    System.Drawing.Color.Brown, c
+                elif c.R = 128uy && c.G = 128uy && c.B = 255uy then
+                    System.Drawing.Color.LightGreen, System.Drawing.Color.Red 
+                else
+                    c,c
+            bmp1.SetPixel(px, py, c1)
+            bmp2.SetPixel(px, py, c2)
+    BMPtoImage bmp1, BMPtoImage bmp2
+let blue_candle = 
+    let zh = fullZHelper
+    let i,j = 6,0
+    let bmp = new System.Drawing.Bitmap(7*3,7*3)
+    let xoff,yoff = 250+36*i, 61+36*j  // index into ZHelperFull
+    for px = 0 to 7*3-1 do
+        for py = 0 to 7*3-1 do
+            let c = zh.GetPixel(xoff + px, yoff + py)
+            let c = 
+                if c.R = 255uy && c.G = 0uy && c.B = 0uy then
+                    System.Drawing.Color.FromArgb(64,64,255)
+                else
+                    c
+            bmp.SetPixel(px, py, c)
     BMPtoImage bmp
 
 let ow_key_ladder = 
@@ -177,6 +222,14 @@ let owHeartsFull =
                     bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
             yield BMPtoImage bmp
     |]
+let timelineHeart = 
+    let zh = fullZHelper
+    let bmp = new System.Drawing.Bitmap(9*3,9*3)
+    let xoff,yoff = 1,82  // index into ZHelperFull
+    for px = 3 to 10*3-1 do
+        for py = 3 to 10*3-1 do
+            bmp.SetPixel(px-3, py-3, zh.GetPixel(xoff + px, yoff + py))
+    BMPtoImage bmp
 
 let overworldMapBMPs(n) =
     let m = overworldImage
