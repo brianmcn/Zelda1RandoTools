@@ -51,6 +51,9 @@ type MapState() =
     let mutable state = -1
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
+    member this.SetStateToX() =   // sets to final state ('X' icon)
+        state <- U+NU-1
+        this.Current()
     member this.State = state
     member this.IsUnique = state >= 0 && state < U
     member this.IsDungeon = state >= 0 && state < 9
@@ -124,16 +127,16 @@ let H = 30
 let makeAll(isHeartShuffle,owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
-    let owMapBMPs, owAlwaysEmpty, isReflected =
+    let owMapBMPs, owAlwaysEmpty, isReflected, isMixed =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false
-        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false
-        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false
-        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false
-        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true
-        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true
-        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true
-        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true
+        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false, false
+        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false, false
+        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true
+        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true
+        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false
+        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false
+        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true
+        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -333,6 +336,23 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 0, 2)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
 
+    let b1t = "Remove\nMixed\nSecret"
+    let b2t = "Turn\nOff\nRemoval"
+    let removeMixedButton = new Button(Content=b1t,FontSize=14.0,Background=Brushes.Gray,Foreground=Brushes.Black,BorderThickness=Thickness(3.0))
+    let removalMode = ref false
+    let toggleRemoval() = 
+        if !removalMode then
+            removalMode := false
+            System.Windows.Input.Mouse.OverrideCursor <- System.Windows.Input.Cursors.Arrow
+            removeMixedButton.Content <- b1t
+        else
+            removalMode := true
+            System.Windows.Input.Mouse.OverrideCursor <- System.Windows.Input.Cursors.No 
+            removeMixedButton.Content <- b2t
+    removeMixedButton.Click.Add(fun _ -> toggleRemoval())
+    if isMixed then
+        canvasAdd(c, removeMixedButton, OFFSET+130., 10.)
+
 (*
     // common animations
     let da = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames()
@@ -356,6 +376,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     for i = 0 to 15 do
         for j = 0 to 7 do
             let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
@@ -380,7 +401,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 icon.Opacity <- 0.5
                 canvasAdd(c, icon, 0., 0.)
             else
-                let f b =
+                let f b setToX =
                     //for x in c.Children do
                     //    removeAnimated(x)
                     let mutable needRecordering = false
@@ -390,7 +411,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
                     canvasAdd(c, rightShade, float(15*3), 0.)
-                    let icon = if b then ms.Next() else ms.Prev()
+                    let icon = if setToX then ms.SetStateToX() else if b then ms.Next() else ms.Prev()
                     owCurrentState.[i,j] <- ms.State 
                     //debug()
                     if icon <> null then 
@@ -410,9 +431,27 @@ let makeAll(isHeartShuffle,owMapNum) =
                         canvasAdd(c, rect, 2., 2.)
                     if needRecordering then
                         recordering()
-                c.MouseLeftButtonDown.Add(fun _ -> f true)
-                c.MouseRightButtonDown.Add(fun _ -> f false)
-                c.MouseWheel.Add(fun x -> f (x.Delta<0))
+                owUpdateFunctions.[i,j] <- f
+                c.MouseLeftButtonDown.Add(fun _ -> 
+                    if !removalMode then
+                        toggleRemoval()
+                        if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].[i]='X' && Graphics.owMapSquaresSecondQuestAlwaysEmpty.[j].[i]<>'X' then
+                            // want first quest only
+                            for x = 0 to 15 do
+                                for y = 0 to 7 do
+                                    if Graphics.owMapSquaresFirstQuestOnlyIfMixed.[y].[x] = 'X' then
+                                        owUpdateFunctions.[x,y] true true
+                        if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].[i]<>'X' && Graphics.owMapSquaresSecondQuestAlwaysEmpty.[j].[i]='X' then
+                            // want second quest only
+                            for x = 0 to 15 do
+                                for y = 0 to 7 do
+                                    if Graphics.owMapSquaresSecondQuestOnlyIfMixed.[y].[x] = 'X' then
+                                        owUpdateFunctions.[x,y] true true
+                    else
+                        f true false
+                )
+                c.MouseRightButtonDown.Add(fun _ -> f false false)
+                c.MouseWheel.Add(fun x -> f (x.Delta<0) false)
     canvasAdd(c, owMapGrid, 0., 120.)
 
     // map barriers
@@ -524,9 +563,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 timelineItems.Remove(x) |> ignore
             // post items
             for x in items do
-                let vb = new VisualBrush(Visual=x.Canvas, Opacity=0.7)
+                let vb = new VisualBrush(Visual=x.Canvas, Opacity=0.5)
                 let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
                 canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
+                let line = new System.Windows.Shapes.Line(X1=0., X2=0., Y1=float(12*3), Y2=float(13*3), Stroke=Brushes.LightBlue, StrokeThickness=2.)
+                canvasAdd(tlc, line, float(24+minute*12-1), (if !top then 0. else 3.))
                 top := not !top
             // post hearts
             if hearts.Count > 0 then
