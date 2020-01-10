@@ -7,7 +7,7 @@ open System.Windows.Media
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
-    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp)
+    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
     let bmimage = new System.Windows.Media.Imaging.BitmapImage()
     bmimage.BeginInit()
     ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
@@ -36,6 +36,8 @@ let fullZHelper =
             let c = bmp.GetPixel(i,j)
             if c.R = 53uy && c.G = 53uy && c.B = 53uy then
                 bmp.SetPixel(i, j, System.Drawing.Color.Black)
+            if c.R = 27uy && c.G = 27uy && c.B = 53uy then
+                bmp.SetPixel(i, j, System.Drawing.Color.Black)
     bmp
 let overworldImage =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld_strip8.png")
@@ -62,6 +64,7 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 for px = 0 to 7*3-1 do
                     for py = 0 to 7*3-1 do
                         bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
+                bmp.MakeTransparent(System.Drawing.Color.Black)
                 yield bmp
         |]
     BMPtoImage items.[0], BMPtoImage items.[1], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[6], BMPtoImage items.[8], 
@@ -79,6 +82,7 @@ let heart_container, power_bracelet, white_sword, ow_key_armos =
                 for px = 0 to 7*3-1 do
                     for py = 0 to 7*3-1 do
                         bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
+                bmp.MakeTransparent(System.Drawing.Color.Black)
                 yield bmp
         |]
     heart_container_bmp <- items.[0]
@@ -119,6 +123,8 @@ let brown_sword, magical_sword =
                     c,c
             bmp1.SetPixel(px, py, c1)
             bmp2.SetPixel(px, py, c2)
+    bmp1.MakeTransparent(System.Drawing.Color.Black)
+    bmp2.MakeTransparent(System.Drawing.Color.Black)
     BMPtoImage bmp1, BMPtoImage bmp2
 let blue_candle = 
     let zh = fullZHelper
@@ -134,6 +140,7 @@ let blue_candle =
                 else
                     c
             bmp.SetPixel(px, py, c)
+    bmp.MakeTransparent(System.Drawing.Color.Black)
     BMPtoImage bmp
 
 let ow_key_ladder = 
@@ -154,6 +161,7 @@ let emptyTriforces =
             for px = 0 to 10*3-1 do
                 for py = 0 to 10*3-1 do
                     bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
+            bmp.MakeTransparent(System.Drawing.Color.Black)
             yield BMPtoImage bmp
     |]
 let fullTriforces = 
@@ -165,6 +173,7 @@ let fullTriforces =
             for px = 0 to 10*3-1 do
                 for py = 0 to 10*3-1 do
                     bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
+            bmp.MakeTransparent(System.Drawing.Color.Black)
             yield BMPtoImage bmp
     |]
 let emptyHearts = 

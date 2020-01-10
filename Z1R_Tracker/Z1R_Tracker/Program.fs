@@ -177,12 +177,14 @@ let makeAll(isHeartShuffle,owMapNum) =
         timelineItems.Add(new TimelineItem(c, (fun()->triforces.[i])))
     let hearts = whichItems.[14..]
     let boxItemImpl(dungeonIndex, isCoastItem) = 
-        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
         rect.StrokeThickness <- 3.0
         c.Children.Add(rect) |> ignore
+        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
+        c.Children.Add(innerc) |> ignore
         let is = new ItemState(whichItems)
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
@@ -219,8 +221,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 haveLadder <- false
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
-            c.Children.Remove(is.Current())
-            canvasAdd(c, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
+            innerc.Children.Remove(is.Current())
+            canvasAdd(innerc, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
                 haveRecorder <- true
                 recordering()
@@ -229,7 +231,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
         )
-        timelineItems.Add(new TimelineItem(c, (fun()->obj.Equals(rect.Stroke,yes))))
+        timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
         c
     let boxItem(dungeonIndex) = 
         boxItemImpl(dungeonIndex,false)
@@ -316,20 +318,22 @@ let makeAll(isHeartShuffle,owMapNum) =
     // brown sword, blue candle, magical sword
     let owItemGrid = makeGrid(1, 3, 30, 30)
     let basicBoxImpl(img) =
-        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
         rect.StrokeThickness <- 3.0
         c.Children.Add(rect) |> ignore
+        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
+        c.Children.Add(innerc) |> ignore
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
             else
                 rect.Stroke <- no
         )
-        canvasAdd(c, img, 4., 4.)
-        timelineItems.Add(new TimelineItem(c, fun()->obj.Equals(rect.Stroke,yes)))
+        canvasAdd(innerc, img, 4., 4.)
+        timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
         c
     gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword), 0, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle), 0, 1)
@@ -563,7 +567,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 timelineItems.Remove(x) |> ignore
             // post items
             for x in items do
-                let vb = new VisualBrush(Visual=x.Canvas, Opacity=0.5)
+                let vb = new VisualBrush(Visual=x.Canvas, Opacity=1.0)
                 let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
                 canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
                 let line = new System.Windows.Shapes.Line(X1=0., X2=0., Y1=float(12*3), Y2=float(13*3), Stroke=Brushes.LightBlue, StrokeThickness=2.)
