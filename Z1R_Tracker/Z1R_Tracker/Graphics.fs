@@ -136,7 +136,23 @@ let blue_candle =
             let c = zh.GetPixel(xoff + px, yoff + py)
             let c = 
                 if c.R = 255uy && c.G = 0uy && c.B = 0uy then
-                    System.Drawing.Color.FromArgb(64,64,255)
+                    System.Drawing.Color.FromArgb(96,96,255)
+                else
+                    c
+            bmp.SetPixel(px, py, c)
+    bmp.MakeTransparent(System.Drawing.Color.Black)
+    BMPtoImage bmp
+let blue_ring = 
+    let zh = fullZHelper
+    let i,j = 8,1
+    let bmp = new System.Drawing.Bitmap(7*3,7*3)
+    let xoff,yoff = 250+36*i, 61+36*j  // index into ZHelperFull
+    for px = 0 to 7*3-1 do
+        for py = 0 to 7*3-1 do
+            let c = zh.GetPixel(xoff + px, yoff + py)
+            let c = 
+                if c.R = 255uy && c.G = 0uy && c.B = 0uy then
+                    System.Drawing.Color.FromArgb(96,96,255)
                 else
                     c
             bmp.SetPixel(px, py, c)
@@ -258,7 +274,7 @@ let owMapSquaresFirstQuestAlwaysEmpty = [|
     "X........XXX..X."
     "XXX..XX.XXXX..XX"
     "XX.X........X..X"
-    "X.XXXX.XXXX.XX.."
+    "X.XXXX.XXXX.XX.X"
     "XX...X...X..X.X."
     "..XX......X...XX"
     |]
@@ -269,7 +285,7 @@ let owMapSquaresSecondQuestAlwaysEmpty = [|
     ".X.....X..X.X.X."
     ".XX..XX.XX.X..XX"
     "XXXX...X....X..X"
-    "X.X.XX.X.XX.XX.."
+    "X.X.XX.X.XX.XX.X"
     ".XX..X.X.X.X.X.."
     ".X.X......XX..XX"
     |]

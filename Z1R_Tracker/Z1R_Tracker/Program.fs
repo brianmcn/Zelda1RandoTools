@@ -85,15 +85,20 @@ let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
 let mutable playerHearts = 3  // start with 3
+let mutable owSpotsRemain = -1
 let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
+let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots remain: %d" owSpotsRemain)
 let updateTotalHearts(x) = 
     playerHearts <- playerHearts + x
     //printfn "curent hearts = %d" playerHearts
     currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" playerHearts
+let updateOWSpotsRemain(delta) = 
+    owSpotsRemain <- owSpotsRemain + delta
+    owRemainingScreensTextBox.Text <- sprintf "OW spots remain: %d" owSpotsRemain
 let updateDungeon(dungeonIndex, itemDiff) =
     if dungeonIndex >= 0 && dungeonIndex < 8 then
         dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
@@ -315,8 +320,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, boxItem(-1), 1, 1)
     gridAdd(owItemGrid, boxItem(-1), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
-    // brown sword, blue candle, magical sword
-    let owItemGrid = makeGrid(1, 3, 30, 30)
+    // brown sword, blue candle, blue ring, magical sword
+    let owItemGrid = makeGrid(2, 2, 30, 30)
     let basicBoxImpl(img) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -337,7 +342,8 @@ let makeAll(isHeartShuffle,owMapNum) =
         c
     gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword), 0, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 0, 2)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
 
     let b1t = "Remove\nMixed\nSecret"
@@ -381,6 +387,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
+    owSpotsRemain <- 16*8
     for i = 0 to 15 do
         for j = 0 to 7 do
             let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
@@ -402,6 +409,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             if owAlwaysEmpty.[j].Chars(i) = 'X' then
                 let icon = ms.Prev()
                 owCurrentState.[i,j] <- ms.State 
+                owSpotsRemain <- owSpotsRemain - 1
                 icon.Opacity <- 0.5
                 canvasAdd(c, icon, 0., 0.)
             else
@@ -409,6 +417,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     //for x in c.Children do
                     //    removeAnimated(x)
                     let mutable needRecordering = false
+                    let prevNull = ms.Current()=null
                     if ms.IsDungeon then
                         needRecordering <- true
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
@@ -433,6 +442,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                     if ms.IsWarp then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
                         canvasAdd(c, rect, 2., 2.)
+                    if not prevNull && ms.Current()=null then
+                        updateOWSpotsRemain(1)
+                    if prevNull && not(ms.Current()=null) then
+                        updateOWSpotsRemain(-1)
                     if needRecordering then
                         recordering()
                 owUpdateFunctions.[i,j] <- f
@@ -456,6 +469,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 )
                 c.MouseRightButtonDown.Add(fun _ -> f false false)
                 c.MouseWheel.Add(fun x -> f (x.Delta<0) false)
+    updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
 
     // map barriers
@@ -545,7 +559,7 @@ let makeAll(isHeartShuffle,owMapNum) =
         canvasAdd(timeline2Canvas, line, 0., 0.)
     let top = ref true
     let updateTimeline(minute) =
-        if minute < 1 || minute > 120 then
+        if minute < 0 || minute > 120 then
             ()
         else
             let tlc,minute = 
@@ -722,7 +736,9 @@ let makeAll(isHeartShuffle,owMapNum) =
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
     canvasAdd(c, cb, 600., 60.)
     // current hearts
-    canvasAdd(c, currentHeartsTextBox, 600., 90.)
+    canvasAdd(c, currentHeartsTextBox, 600., 80.)
+    // remaining OW spots
+    canvasAdd(c, owRemainingScreensTextBox, 600., 100.)
 
     //                items  ow map                               
     c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + 3 + int dungeonCanvas.Height)
@@ -756,11 +772,11 @@ type MyWindowBase() as this =
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
-        timer.Tick.Add(fun _ -> this.Update())
+        timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
     member this.StartTime = startTime
-    abstract member Update : unit -> unit
-    default this.Update() = ()
+    abstract member Update : bool -> unit
+    default this.Update(f10Press) = ()
     override this.OnSourceInitialized(e) =
         base.OnSourceInitialized(e)
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
@@ -829,8 +845,8 @@ type MyWindow(isHeartSuffle) as this =
                             rect.BeginAnimation(UIElement.OpacityProperty, da)
                             canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
         )
-    override this.Update() =
-        base.Update()
+    override this.Update(f10Press) =
+        base.Update(f10Press)
         // update time
         let ts = DateTime.Now - this.StartTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
@@ -842,7 +858,7 @@ type MyWindow(isHeartSuffle) as this =
                     async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
                     ladderTime <- DateTime.Now
         // update timeline
-        if ts.Seconds = 0 then
+        if f10Press || ts.Seconds = 0 then
             updateTimeline(int ts.TotalMinutes)
 
 type TimerOnlyWindow() as this = 
@@ -858,8 +874,8 @@ type TimerOnlyWindow() as this =
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 0.0
         this.Top <- 0.0
-    override this.Update() =
-        base.Update()
+    override this.Update(f10Press) =
+        base.Update(f10Press)
         // update time
         let ts = DateTime.Now - this.StartTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
@@ -885,8 +901,8 @@ type TerrariaTimerOnlyWindow() as this =
         this.Top <- 0.0
         this.BorderBrush <- Brushes.LightGreen
         this.BorderThickness <- Thickness(2.)
-    override this.Update() =
-        base.Update()
+    override this.Update(f10Press) =
+        base.Update(f10Press)
         // update hms time
         let mutable ts = DateTime.Now - this.StartTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
