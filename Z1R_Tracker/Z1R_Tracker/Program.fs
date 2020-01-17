@@ -90,6 +90,7 @@ let triforces = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots remain: %d" owSpotsRemain)
 let updateTotalHearts(x) = 
@@ -101,13 +102,15 @@ let updateOWSpotsRemain(delta) =
     owRemainingScreensTextBox.Text <- sprintf "OW spots remain: %d" owSpotsRemain
 let updateDungeon(dungeonIndex, itemDiff) =
     if dungeonIndex >= 0 && dungeonIndex < 8 then
+        let priorComplete = dungeonRemains.[dungeonIndex] = 0
         dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
-        if dungeonRemains.[dungeonIndex] = 0 then
+        if not priorComplete && dungeonRemains.[dungeonIndex] = 0 then
             async { voice.Speak(sprintf "Dungeon %d is complete" (dungeonIndex+1)) } |> Async.Start
             for j = 0 to 3 do
-                //mainTrackerCanvases.[dungeonIndex,j].Background <- System.Windows.Media.Brushes.Green 
-                // TODO dont love this, is it ok? also gets darker if un-complete and re-complete, hm
-                mainTrackerCanvases.[dungeonIndex,j].Children.Add(new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4)) |> ignore
+                mainTrackerCanvases.[dungeonIndex,j].Children.Add(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
+        elif priorComplete && not(dungeonRemains.[dungeonIndex] = 0) then
+            for j = 0 to 3 do
+                mainTrackerCanvases.[dungeonIndex,j].Children.Remove(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
 let debug() =
     for j = 0 to 7 do
         for i = 0 to 15 do
@@ -163,23 +166,25 @@ let makeAll(isHeartShuffle,owMapNum) =
         let image = Graphics.emptyTriforces.[i]
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,0] <- c
-        canvasAdd(c, image, 0., 0.)
+        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has triforce drawn on it, not the eventual shading of updateDungeon()
+        c.Children.Add(innerc) |> ignore
+        canvasAdd(innerc, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
             if not triforces.[i] then 
-                c.Children.Clear()
-                c.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
+                innerc.Children.Clear()
+                innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
                 triforces.[i] <- true
                 updateDungeon(i, -1)
                 recordering()
             else 
-                c.Children.Clear()
-                c.Children.Add(Graphics.emptyTriforces.[i]) |> ignore
+                innerc.Children.Clear()
+                innerc.Children.Add(Graphics.emptyTriforces.[i]) |> ignore
                 triforces.[i] <- false
                 updateDungeon(i, +1)
                 recordering()
         )
         gridAdd(mainTracker, c, i, 0)
-        timelineItems.Add(new TimelineItem(c, (fun()->triforces.[i])))
+        timelineItems.Add(new TimelineItem(innerc, (fun()->triforces.[i])))
     let hearts = whichItems.[14..]
     let boxItemImpl(dungeonIndex, isCoastItem) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
