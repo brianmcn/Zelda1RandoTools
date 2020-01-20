@@ -168,18 +168,23 @@ let ow_key_ladder =
             bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
     BMPtoImage bmp
     
-let emptyTriforces = 
+let emptyUnfoundTriforces, emptyFoundTriforces = 
     let zh = emptyZHelper
-    [|
+    let a = [|
         for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
+            let bmp1 = new System.Drawing.Bitmap(10*3,10*3)
+            let bmp2 = new System.Drawing.Bitmap(10*3,10*3)
             let xoff,yoff = 1,29  // index into ZHelperEmpty
             for px = 0 to 10*3-1 do
                 for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
-            bmp.MakeTransparent(System.Drawing.Color.Black)
-            yield BMPtoImage bmp
+                    let c = zh.GetPixel(xoff + i*10*3 + px, yoff + py)
+                    bmp1.SetPixel(px, py, c)
+                    bmp2.SetPixel(px, py, if c.ToArgb() = System.Drawing.Color.FromArgb(128,128,128).ToArgb() then System.Drawing.Color.White else c)
+            bmp1.MakeTransparent(System.Drawing.Color.Black)
+            bmp2.MakeTransparent(System.Drawing.Color.Black)
+            yield BMPtoImage bmp1, BMPtoImage bmp2
     |]
+    a |> Array.map fst, a |> Array.map snd
 let fullTriforces = 
     let zh = fullZHelper
     [|

@@ -86,7 +86,9 @@ let mutable haveLadder = false
 let mutable haveCoastItem = false
 let mutable playerHearts = 3  // start with 3
 let mutable owSpotsRemain = -1
-let triforces = Array.zeroCreate 8
+let triforces = Array.zeroCreate 8   // bools - do we have this triforce
+let foundDungeon = Array.zeroCreate 8   // bools - have we found this dungeon yet (based on overworld marks)
+let triforceInnerCanvases = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
@@ -162,11 +164,16 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, mainTracker, 0., 0.)
 
     // triforce
+    let updateEmptyTriforceDisplay(i) =
+        let innerc : Canvas = triforceInnerCanvases.[i]
+        innerc.Children.Clear()
+        innerc.Children.Add(if not foundDungeon.[i] then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
     for i = 0 to 7 do
-        let image = Graphics.emptyTriforces.[i]
+        let image = Graphics.emptyUnfoundTriforces.[i]
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,0] <- c
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has triforce drawn on it, not the eventual shading of updateDungeon()
+        triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         canvasAdd(innerc, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
@@ -177,8 +184,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 updateDungeon(i, -1)
                 recordering()
             else 
-                innerc.Children.Clear()
-                innerc.Children.Add(Graphics.emptyTriforces.[i]) |> ignore
+                updateEmptyTriforceDisplay(i)
                 triforces.[i] <- false
                 updateDungeon(i, +1)
                 recordering()
@@ -351,10 +357,12 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
 
+#if REMOVE_MIXED
+    // mixed overworld didnt work way I thought, this is probably not useful
     let b1t = "Remove\nMixed\nSecret"
     let b2t = "Turn\nOff\nRemoval"
-    let removeMixedButton = new Button(Content=b1t,FontSize=14.0,Background=Brushes.Gray,Foreground=Brushes.Black,BorderThickness=Thickness(3.0))
     let removalMode = ref false
+    let removeMixedButton = new Button(Content=b1t,FontSize=14.0,Background=Brushes.Gray,Foreground=Brushes.Black,BorderThickness=Thickness(3.0))
     let toggleRemoval() = 
         if !removalMode then
             removalMode := false
@@ -367,6 +375,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     removeMixedButton.Click.Add(fun _ -> toggleRemoval())
     if isMixed then
         canvasAdd(c, removeMixedButton, OFFSET+130., 10.)
+#endif
 
 (*
     // common animations
@@ -425,6 +434,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                     let prevNull = ms.Current()=null
                     if ms.IsDungeon then
                         needRecordering <- true
+                        if ms.State <=7 then
+                            foundDungeon.[ms.State] <- false
+                            if not triforces.[ms.State] then 
+                                updateEmptyTriforceDisplay(ms.State)
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
@@ -444,6 +457,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
                         canvasAdd(c, rect, 2., 2.)
                         needRecordering <- true
+                        if ms.State <=7 then
+                            foundDungeon.[ms.State] <- true
+                            if not triforces.[ms.State] then 
+                                updateEmptyTriforceDisplay(ms.State)
                     if ms.IsWarp then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
                         canvasAdd(c, rect, 2., 2.)
@@ -455,6 +472,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                         recordering()
                 owUpdateFunctions.[i,j] <- f
                 c.MouseLeftButtonDown.Add(fun _ -> 
+#if REMOVE_MIXED
                     if !removalMode then
                         toggleRemoval()
                         if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].[i]='X' && Graphics.owMapSquaresSecondQuestAlwaysEmpty.[j].[i]<>'X' then
@@ -470,6 +488,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                                     if Graphics.owMapSquaresSecondQuestOnlyIfMixed.[y].[x] = 'X' then
                                         owUpdateFunctions.[x,y] true true
                     else
+#endif
                         f true false
                 )
                 c.MouseRightButtonDown.Add(fun _ -> f false false)
