@@ -649,6 +649,53 @@ let makeAll(isHeartShuffle,owMapNum) =
     *)
 
     let TEXT = "LEVEL-9 "
+    // horizontal doors
+    let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
+    let no = System.Windows.Media.Brushes.DarkRed
+    let yes = System.Windows.Media.Brushes.Lime
+    let horizontalDoorCanvases = Array2D.zeroCreate 7 8
+    for i = 0 to 6 do
+        for j = 0 to 7 do
+            let d = new Canvas(Height=12., Width=12., Background=unknown)
+            horizontalDoorCanvases.[i,j] <- d
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
+            let left _ =        
+                if not(obj.Equals(d.Background, yes)) then
+                    d.Background <- yes
+                else
+                    d.Background <- unknown
+            d.MouseLeftButtonDown.Add(left)
+            let right _ = 
+                if not(obj.Equals(d.Background, no)) then
+                    d.Background <- no
+                else
+                    d.Background <- unknown
+            d.MouseRightButtonDown.Add(right)
+            // initial values
+            if (i=5 || i=6) && j=7 then
+                right()
+    // vertical doors
+    let verticalDoorCanvases = Array2D.zeroCreate 8 7
+    for i = 0 to 7 do
+        for j = 0 to 6 do
+            let d = new Canvas(Height=12., Width=12., Background=unknown)
+            verticalDoorCanvases.[i,j] <- d
+            canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
+            let left _ =
+                if not(obj.Equals(d.Background, yes)) then
+                    d.Background <- yes
+                else
+                    d.Background <- unknown
+            d.MouseLeftButtonDown.Add(left)
+            let right _ = 
+                if not(obj.Equals(d.Background, no)) then
+                    d.Background <- no
+                else
+                    d.Background <- unknown
+            d.MouseRightButtonDown.Add(right)
+            // initial values
+            if i=6 && j=6 then
+                left()
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
     let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
@@ -696,59 +743,28 @@ let makeAll(isHeartShuffle,owMapNum) =
             // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
             //c.MouseLeftButtonDown.Add(fun _ -> f true)
             //c.MouseRightButtonDown.Add(fun _ -> f false)
+            // shift click to mark not-on-map rooms (by "no"ing all the connections)
+            c.MouseLeftButtonDown.Add(fun _ -> 
+                if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                    if i > 0 then
+                        horizontalDoorCanvases.[i-1,j].Background <- no
+                    if i < 7 then
+                        horizontalDoorCanvases.[i,j].Background <- no
+                    if j > 0 then
+                        verticalDoorCanvases.[i,j-1].Background <- no
+                    if j < 7 then
+                        verticalDoorCanvases.[i,j].Background <- no
+            )
             c.MouseWheel.Add(fun x -> f (x.Delta<0))
             // initial values
             if i=6 && (j=6 || j=7) then
                 f false
-    // horizontal doors
-    let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
-    let no = System.Windows.Media.Brushes.DarkRed
-    let yes = System.Windows.Media.Brushes.Lime
-    for i = 0 to 6 do
-        for j = 0 to 7 do
-            let d = new Canvas(Height=12., Width=12., Background=unknown)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
-            let left _ =        
-                if not(obj.Equals(d.Background, yes)) then
-                    d.Background <- yes
-                else
-                    d.Background <- unknown
-            d.MouseLeftButtonDown.Add(left)
-            let right _ = 
-                if not(obj.Equals(d.Background, no)) then
-                    d.Background <- no
-                else
-                    d.Background <- unknown
-            d.MouseRightButtonDown.Add(right)
-            // initial values
-            if (i=5 || i=6) && j=7 then
-                right()
-    // vertical doors
-    for i = 0 to 7 do
-        for j = 0 to 6 do
-            let d = new Canvas(Height=12., Width=12., Background=unknown)
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
-            let left _ =
-                if not(obj.Equals(d.Background, yes)) then
-                    d.Background <- yes
-                else
-                    d.Background <- unknown
-            d.MouseLeftButtonDown.Add(left)
-            let right _ = 
-                if not(obj.Equals(d.Background, no)) then
-                    d.Background <- no
-                else
-                    d.Background <- unknown
-            d.MouseRightButtonDown.Add(right)
-            // initial values
-            if i=6 && j=6 then
-                left()
     // notes    
     let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
-    tb.Text <- "Notes"
+    tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 400., THRU_TIMELINE_H) 
 
