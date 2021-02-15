@@ -55,6 +55,7 @@ type MapState() =
         state <- U+NU-1
         this.Current()
     member this.State = state
+    member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
@@ -399,6 +400,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 *)
 
     // ow map
+    let X_OPACITY = 0.4
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     owSpotsRemain <- 16*8
@@ -424,7 +426,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let icon = ms.Prev()
                 owCurrentState.[i,j] <- ms.State 
                 owSpotsRemain <- owSpotsRemain - 1
-                icon.Opacity <- 0.5
+                icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
             else
                 let f b setToX =
@@ -450,6 +452,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                             icon.Opacity <- 0.6
                             //icon.BeginAnimation(Image.OpacityProperty, da)
                             //addAnimated(icon)
+                        elif ms.IsX then
+                            icon.Opacity <- X_OPACITY
                         else
                             icon.Opacity <- 0.5
                     canvasAdd(c, icon, 0., 0.)
@@ -614,8 +618,8 @@ let makeAll(isHeartShuffle,owMapNum) =
             // post hearts
             if hearts.Count > 0 then
                 let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
-                let rect = new System.Windows.Shapes.Rectangle(Height=9., Width=9., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-3-1), 36.)
+                let rect = new System.Windows.Shapes.Rectangle(Height=13., Width=13., Fill=vb)
+                canvasAdd(tlc, rect, float(24+minute*12-3-1-2), 36. - 2.)
             // post current time
             curTime.X1 <- float(24+minute*12)
             curTime.X2 <- float(24+minute*12)
@@ -671,9 +675,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 else
                     d.Background <- unknown
             d.MouseRightButtonDown.Add(right)
+            (*
             // initial values
             if (i=5 || i=6) && j=7 then
                 right()
+            *)
     // vertical doors
     let verticalDoorCanvases = Array2D.zeroCreate 8 7
     for i = 0 to 7 do
@@ -693,9 +699,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 else
                     d.Background <- unknown
             d.MouseRightButtonDown.Add(right)
+            (*
             // initial values
             if i=6 && j=6 then
                 left()
+            *)
     // rooms
     let roomCanvases = Array2D.zeroCreate 8 8 
     let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
@@ -756,9 +764,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                         verticalDoorCanvases.[i,j].Background <- no
             )
             c.MouseWheel.Add(fun x -> f (x.Delta<0))
+            (*
             // initial values
             if i=6 && (j=6 || j=7) then
                 f false
+            *)
     // notes    
     let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
     tb.FontSize <- 24.
