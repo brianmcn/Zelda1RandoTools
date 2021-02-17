@@ -330,9 +330,32 @@ let owMapSquaresSecondQuestOnlyIfMixed = [|
 
 let uniqueMapIcons =
     let m = zhMapIcons 
+    let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
     [|
-        // levels 1-9, warps 1-4, sword 3, sword 2
-        for i in [yield![2..14]; yield![19..20]] do
+        // levels 1-9
+        for i in [2..10] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
+                        let c = m.GetPixel((i*16*3 + px)/3, (py)/3)
+                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Yellow)
+                    else
+                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+            yield BMPtoImage tile
+        // warps 1-4
+        for i in [11..14] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
+                        let c = m.GetPixel(((i-9)*16*3 + px)/3, (py)/3)
+                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Aqua)
+                    else
+                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+            yield BMPtoImage tile
+        // sword 3, sword 2
+        for i in [19..20] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
