@@ -59,6 +59,7 @@ type MapState() =
     member this.IsUnique = state >= 0 && state < U
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
+    member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7
     member this.Current() =
         if state = -1 then
             null
@@ -448,14 +449,17 @@ let makeAll(isHeartShuffle,owMapNum) =
                     owCurrentState.[i,j] <- ms.State 
                     //debug()
                     if icon <> null then 
-                        if ms.IsUnique then
-                            icon.Opacity <- 0.6
-                            //icon.BeginAnimation(Image.OpacityProperty, da)
-                            //addAnimated(icon)
-                        elif ms.IsX then
-                            icon.Opacity <- X_OPACITY
+                        if ms.HasTransparency then
+                            icon.Opacity <- 0.9
                         else
-                            icon.Opacity <- 0.5
+                            if ms.IsUnique then
+                                icon.Opacity <- 0.6
+                                //icon.BeginAnimation(Image.OpacityProperty, da)
+                                //addAnimated(icon)
+                            elif ms.IsX then
+                                icon.Opacity <- X_OPACITY
+                            else
+                                icon.Opacity <- 0.5
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)

@@ -366,7 +366,20 @@ let uniqueMapIcons =
 let nonUniqueMapIconBMPs = 
     let m = zhMapIcons 
     [|
-        for i in [yield![24..26]; yield![28..31]; yield 15; yield 32; yield 34; yield 38] do
+        // 3-item shops
+        for i in [yield![24..26]; yield![28..31]] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    //tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
+                    if px/3 >= 4 && px/3 <= 10 && py/3 >= 1 && py/3 <= 9 then
+                        let c = m.GetPixel((i*16*3 + px + 12)/3, (py)/3)
+                        tile.SetPixel(px, py, c)
+                    else
+                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+            yield tile
+        // others
+        for i in [yield 15; yield 32; yield 34; yield 38] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
