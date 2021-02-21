@@ -358,6 +358,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring), 1, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
+    // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
+    canvasAdd(c, basicBoxImpl(Graphics.boom_book), OFFSET+90., 90.)
 
 #if REMOVE_MIXED
     // mixed overworld didnt work way I thought, this is probably not useful

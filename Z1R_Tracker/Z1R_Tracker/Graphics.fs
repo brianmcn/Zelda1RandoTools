@@ -53,7 +53,7 @@ let zhDungeonNums =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
     new System.Drawing.Bitmap(imageStream)
     
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring = 
+let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
     let zh = fullZHelper
     let items = 
         [|
@@ -68,7 +68,22 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 yield bmp
         |]
     BMPtoImage items.[0], BMPtoImage items.[1], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[6], BMPtoImage items.[8], 
-        BMPtoImage items.[10], BMPtoImage items.[12], BMPtoImage items.[14], BMPtoImage items.[15], BMPtoImage items.[16], BMPtoImage items.[17]
+        BMPtoImage items.[10], BMPtoImage items.[12], BMPtoImage items.[14], BMPtoImage items.[15], BMPtoImage items.[16], BMPtoImage items.[17],
+        (
+        let bmp = new System.Drawing.Bitmap(7*3,7*3)
+        // book
+        for px = 0 to 7*3-1 do
+            for py = 0 to 7*3-1 do
+                bmp.SetPixel(px, py, items.[14].GetPixel(px, py))
+        // add bomb drawing on it
+        for px = 8 to 13 do
+            for py = 13 to 18 do
+                bmp.SetPixel(px, py, System.Drawing.Color.Blue)
+        bmp.SetPixel(10, 12, System.Drawing.Color.White)
+        bmp.SetPixel(11, 11, System.Drawing.Color.White)
+        BMPtoImage bmp
+        )
+
 
 let mutable heart_container_bmp = null
 let heart_container, power_bracelet, white_sword, ow_key_armos = 
