@@ -635,152 +635,163 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + 3.
 
-    // Level 9 dungeon tracker
-    let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
-    canvasAdd(c, dungeonCanvas, 0., THRU_TIMELINE_H)
+    // Level trackers
+    let dungeonTabs = new TabControl()
+    dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
+    canvasAdd(c, dungeonTabs , 0., THRU_TIMELINE_H)
+    for level = 1 to 9 do
+        let levelTab = new TabItem(Background=System.Windows.Media.Brushes.Black)
+        levelTab.Header <- sprintf "  %d  " level
+        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
 
-    // quadrants
-    (*
-    let QW = dungeonCanvas.Width/2.
-    let QH = (dungeonCanvas.Height-float TH)/2.
-    let QBG = new SolidColorBrush(Color.FromRgb(0uy, 40uy, 50uy))
-    let topRight = new Canvas(Width=QW, Height=QH, Background=QBG)
-    canvasAdd(dungeonCanvas, topRight, topRight.Width, float TH)
-    let botLeft = new Canvas(Width=QW, Height=QH, Background=QBG)
-    canvasAdd(dungeonCanvas, botLeft, 0., float TH + QH)
-    *)
-    (*
-    let vert = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=QW, X2=QW, Y1=float TH, Y2=float TH+QH+QH)
-    canvasAdd(dungeonCanvas, vert, 0., 0.)
-    let hori = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=0., X2=QW+QW, Y1=float TH+QH, Y2=float TH+QH)
-    canvasAdd(dungeonCanvas, hori, 0., 0.)
-    *)
+        levelTab.Content <- dungeonCanvas 
+        dungeonTabs.Height <- dungeonCanvas.Height + 30.   // ok to set this 9 times
+        dungeonTabs.Items.Add(levelTab) |> ignore
 
-    let TEXT = "LEVEL-9 "
-    // horizontal doors
-    let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
-    let no = System.Windows.Media.Brushes.DarkRed
-    let yes = System.Windows.Media.Brushes.Lime
-    let horizontalDoorCanvases = Array2D.zeroCreate 7 8
-    for i = 0 to 6 do
-        for j = 0 to 7 do
-            let d = new Canvas(Height=12., Width=12., Background=unknown)
-            horizontalDoorCanvases.[i,j] <- d
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
-            let left _ =        
-                if not(obj.Equals(d.Background, yes)) then
-                    d.Background <- yes
-                else
-                    d.Background <- unknown
-            d.MouseLeftButtonDown.Add(left)
-            let right _ = 
-                if not(obj.Equals(d.Background, no)) then
-                    d.Background <- no
-                else
-                    d.Background <- unknown
-            d.MouseRightButtonDown.Add(right)
-            (*
-            // initial values
-            if (i=5 || i=6) && j=7 then
-                right()
-            *)
-    // vertical doors
-    let verticalDoorCanvases = Array2D.zeroCreate 8 7
-    for i = 0 to 7 do
-        for j = 0 to 6 do
-            let d = new Canvas(Height=12., Width=12., Background=unknown)
-            verticalDoorCanvases.[i,j] <- d
-            canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
-            let left _ =
-                if not(obj.Equals(d.Background, yes)) then
-                    d.Background <- yes
-                else
-                    d.Background <- unknown
-            d.MouseLeftButtonDown.Add(left)
-            let right _ = 
-                if not(obj.Equals(d.Background, no)) then
-                    d.Background <- no
-                else
-                    d.Background <- unknown
-            d.MouseRightButtonDown.Add(right)
-            (*
-            // initial values
-            if i=6 && j=6 then
-                left()
-            *)
-    // rooms
-    let roomCanvases = Array2D.zeroCreate 8 8 
-    let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
-    let ROOMS = 16 // how many types
-    let usedTransports = Array.zeroCreate 10 // slot 0 unused
-    for i = 0 to 7 do
-        // LEVEL-9        
-        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
-                                Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
-        canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
-        // room map
-        for j = 0 to 7 do
-            let c = new Canvas(Width=float(13*3), Height=float(9*3))
-            canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
-            let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
-            canvasAdd(c, image, 0., 0.)
-            roomCanvases.[i,j] <- c
-            roomStates.[i,j] <- 0
-            let f b =
-                // track transport being changed away from
-                if [1..9] |> List.contains roomStates.[i,j] then
-                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-                // go to next state
-                roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
-                // skip transport if already used both
-                while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 do
-                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
-                // note any new transports
-                if [1..9] |> List.contains roomStates.[i,j] then
-                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
-                // update UI
-                c.Children.Clear()
-                let image =
-                    match roomStates.[i,j] with
-                    | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                    | 10 -> Graphics.dungeonVChuteBMP
-                    | 11 -> Graphics.dungeonHChuteBMP
-                    | 12 -> Graphics.dungeonTeeBMP
-                    | 13 -> Graphics.dungeonTriforceBMP 
-                    | 14 -> Graphics.dungeonPrincessBMP 
-                    | 15 -> Graphics.dungeonExploredRoomBMP 
-                    | n  -> Graphics.dungeonNumberBMPs.[n-1]
-                    |> Graphics.BMPtoImage 
+        // quadrants
+        (*
+        let QW = dungeonCanvas.Width/2.
+        let QH = (dungeonCanvas.Height-float TH)/2.
+        let QBG = new SolidColorBrush(Color.FromRgb(0uy, 40uy, 50uy))
+        let topRight = new Canvas(Width=QW, Height=QH, Background=QBG)
+        canvasAdd(dungeonCanvas, topRight, topRight.Width, float TH)
+        let botLeft = new Canvas(Width=QW, Height=QH, Background=QBG)
+        canvasAdd(dungeonCanvas, botLeft, 0., float TH + QH)
+        *)
+        (*
+        let vert = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=QW, X2=QW, Y1=float TH, Y2=float TH+QH+QH)
+        canvasAdd(dungeonCanvas, vert, 0., 0.)
+        let hori = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=0., X2=QW+QW, Y1=float TH+QH, Y2=float TH+QH)
+        canvasAdd(dungeonCanvas, hori, 0., 0.)
+        *)
+
+        let TEXT = sprintf "LEVEL-%d " level
+        // horizontal doors
+        let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
+        let no = System.Windows.Media.Brushes.DarkRed
+        let yes = System.Windows.Media.Brushes.Lime
+        let horizontalDoorCanvases = Array2D.zeroCreate 7 8
+        for i = 0 to 6 do
+            for j = 0 to 7 do
+                let d = new Canvas(Height=12., Width=12., Background=unknown)
+                horizontalDoorCanvases.[i,j] <- d
+                canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
+                let left _ =        
+                    if not(obj.Equals(d.Background, yes)) then
+                        d.Background <- yes
+                    else
+                        d.Background <- unknown
+                d.MouseLeftButtonDown.Add(left)
+                let right _ = 
+                    if not(obj.Equals(d.Background, no)) then
+                        d.Background <- no
+                    else
+                        d.Background <- unknown
+                d.MouseRightButtonDown.Add(right)
+                (*
+                // initial values
+                if (i=5 || i=6) && j=7 then
+                    right()
+                *)
+        // vertical doors
+        let verticalDoorCanvases = Array2D.zeroCreate 8 7
+        for i = 0 to 7 do
+            for j = 0 to 6 do
+                let d = new Canvas(Height=12., Width=12., Background=unknown)
+                verticalDoorCanvases.[i,j] <- d
+                canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
+                let left _ =
+                    if not(obj.Equals(d.Background, yes)) then
+                        d.Background <- yes
+                    else
+                        d.Background <- unknown
+                d.MouseLeftButtonDown.Add(left)
+                let right _ = 
+                    if not(obj.Equals(d.Background, no)) then
+                        d.Background <- no
+                    else
+                        d.Background <- unknown
+                d.MouseRightButtonDown.Add(right)
+                (*
+                // initial values
+                if i=6 && j=6 then
+                    left()
+                *)
+        // rooms
+        let roomCanvases = Array2D.zeroCreate 8 8 
+        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
+        let ROOMS = 16 // how many types
+        let usedTransports = Array.zeroCreate 10 // slot 0 unused
+        for i = 0 to 7 do
+            // LEVEL-9        
+            let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
+                                    Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+            canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+            // room map
+            for j = 0 to 7 do
+                let c = new Canvas(Width=float(13*3), Height=float(9*3))
+                canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
+                let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
                 canvasAdd(c, image, 0., 0.)
-            // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
-            //c.MouseLeftButtonDown.Add(fun _ -> f true)
-            //c.MouseRightButtonDown.Add(fun _ -> f false)
-            // shift click to mark not-on-map rooms (by "no"ing all the connections)
-            c.MouseLeftButtonDown.Add(fun _ -> 
-                if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
-                    if i > 0 then
-                        horizontalDoorCanvases.[i-1,j].Background <- no
-                    if i < 7 then
-                        horizontalDoorCanvases.[i,j].Background <- no
-                    if j > 0 then
-                        verticalDoorCanvases.[i,j-1].Background <- no
-                    if j < 7 then
-                        verticalDoorCanvases.[i,j].Background <- no
-            )
-            c.MouseWheel.Add(fun x -> f (x.Delta<0))
-            (*
-            // initial values
-            if i=6 && (j=6 || j=7) then
-                f false
-            *)
+                roomCanvases.[i,j] <- c
+                roomStates.[i,j] <- 0
+                let f b =
+                    // track transport being changed away from
+                    if [1..9] |> List.contains roomStates.[i,j] then
+                        usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                    // go to next state
+                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
+                    // skip transport if already used both
+                    while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 do
+                        roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
+                    // note any new transports
+                    if [1..9] |> List.contains roomStates.[i,j] then
+                        usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
+                    // update UI
+                    c.Children.Clear()
+                    let image =
+                        match roomStates.[i,j] with
+                        | 0  -> Graphics.dungeonUnexploredRoomBMP 
+                        | 10 -> Graphics.dungeonVChuteBMP
+                        | 11 -> Graphics.dungeonHChuteBMP
+                        | 12 -> Graphics.dungeonTeeBMP
+                        | 13 -> Graphics.dungeonTriforceBMP 
+                        | 14 -> Graphics.dungeonPrincessBMP 
+                        | 15 -> Graphics.dungeonExploredRoomBMP 
+                        | n  -> Graphics.dungeonNumberBMPs.[n-1]
+                        |> Graphics.BMPtoImage 
+                    canvasAdd(c, image, 0., 0.)
+                // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
+                //c.MouseLeftButtonDown.Add(fun _ -> f true)
+                //c.MouseRightButtonDown.Add(fun _ -> f false)
+                // shift click to mark not-on-map rooms (by "no"ing all the connections)
+                c.MouseLeftButtonDown.Add(fun _ -> 
+                    if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                        if i > 0 then
+                            horizontalDoorCanvases.[i-1,j].Background <- no
+                        if i < 7 then
+                            horizontalDoorCanvases.[i,j].Background <- no
+                        if j > 0 then
+                            verticalDoorCanvases.[i,j-1].Background <- no
+                        if j < 7 then
+                            verticalDoorCanvases.[i,j].Background <- no
+                )
+                c.MouseWheel.Add(fun x -> f (x.Delta<0))
+                (*
+                // initial values
+                if i=6 && (j=6 || j=7) then
+                    f false
+                *)
+    dungeonTabs.SelectedIndex <- 8
+
     // notes    
-    let tb = new TextBox(Width=c.Width-400., Height=dungeonCanvas.Height)
+    let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(c, tb, 400., THRU_TIMELINE_H) 
+    canvasAdd(c, tb, 402., THRU_TIMELINE_H) 
 
     // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -795,7 +806,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, owRemainingScreensTextBox, 600., 100.)
 
     //                items  ow map                               
-    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + 3 + int dungeonCanvas.Height)
+    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + 3 + int dungeonTabs.Height)
     c, updateTimeline
 
 
