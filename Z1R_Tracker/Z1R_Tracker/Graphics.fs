@@ -288,6 +288,28 @@ let overworldMapBMPs(n) =
             tiles.[x,y] <- tile
     tiles
 
+let owMapSquaresFirstQuestWhistleable = [|
+    "................"
+    "................"
+    "................"
+    "................"
+    "..X............."
+    "................"
+    "................"
+    "................"
+    |]
+
+let owMapSquaresSecondQuestWhistleable = [|
+    "......X........."
+    "................"
+    ".........X.X...."
+    "X.........X.X..."
+    "................"
+    "........X......."
+    "X.............X."
+    "..X............."
+    |]
+
 let owMapSquaresFirstQuestAlwaysEmpty = [|
     "X.X...X.XX......"
     ".X...X.XXX.X...."
@@ -343,6 +365,7 @@ let owMapSquaresSecondQuestOnlyIfMixed = [|
         yield s
     |]
 
+let TRANS_BG = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Black)  // partially transparant gray background
 let uniqueMapIcons =
     let m = zhMapIcons 
     let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
@@ -356,7 +379,7 @@ let uniqueMapIcons =
                         let c = m.GetPixel((i*16*3 + px)/3, (py)/3)
                         tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Yellow)
                     else
-                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+                        tile.SetPixel(px, py, TRANS_BG)
             yield BMPtoImage tile
         // warps 1-4
         for i in [11..14] do
@@ -367,7 +390,7 @@ let uniqueMapIcons =
                         let c = m.GetPixel(((i-9)*16*3 + px)/3, (py)/3)
                         tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Aqua)
                     else
-                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+                        tile.SetPixel(px, py, TRANS_BG)
             yield BMPtoImage tile
         // sword 3, sword 2
         for i in [19..20] do
@@ -391,7 +414,7 @@ let nonUniqueMapIconBMPs =
                         let c = m.GetPixel((i*16*3 + px + 12)/3, (py)/3)
                         tile.SetPixel(px, py, c)
                     else
-                        tile.SetPixel(px, py, System.Drawing.Color.Transparent)
+                        tile.SetPixel(px, py, TRANS_BG)
             yield tile
         // others
         for i in [yield 15; yield 32; yield 34; yield 38] do

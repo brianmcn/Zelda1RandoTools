@@ -135,20 +135,25 @@ type TimelineItem(c:Canvas, isDone:unit->bool) =
             false
     member this.IsDone() = isDone()
 
+type OWQuest = 
+    | FIRST
+    | SECOND
+    | MIXED
+
 let H = 30
 let makeAll(isHeartShuffle,owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
-    let owMapBMPs, owAlwaysEmpty, isReflected, isMixed =
+    let owMapBMPs, owAlwaysEmpty, isReflected, isMixed, owQuest =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false, false
-        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false, false
-        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true
-        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true
-        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false
-        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false
-        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true
-        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true
+        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false, false, FIRST
+        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false, false, SECOND
+        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
+        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
+        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false, FIRST
+        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false, SECOND
+        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
+        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -183,6 +188,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 innerc.Children.Clear()
                 innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
                 triforces.[i] <- true
+                if triforces |> FSharp.Collections.Array.forall id then
+                    async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
                 updateDungeon(i, -1)
                 recordering()
             else 
@@ -432,6 +439,12 @@ let makeAll(isHeartShuffle,owMapNum) =
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
             else
+                let markWhistleable() =
+                    if (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||
+                       (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X') then
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue   , StrokeThickness=2.0)
+                        canvasAdd(c, rect, 1., 1.)
+                markWhistleable()
                 let f b setToX =
                     //for x in c.Children do
                     //    removeAnimated(x)
@@ -462,6 +475,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
+                    else
+                        markWhistleable()
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
