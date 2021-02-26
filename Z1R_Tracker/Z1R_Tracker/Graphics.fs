@@ -504,6 +504,17 @@ let dungeonPrincessBMP =
             tile.SetPixel(px, py, System.Drawing.Color.Red)
     tile
 
+let dungeonStartBMP =
+    let m = zhDungeonIcons
+    let tile = new System.Drawing.Bitmap(13*3, 9*3)
+    for px = 0 to 13*3-1 do
+        for py = 0 to 9*3-1 do
+            if px<3 || px>12*3-1 || py<3 || py>8*3-1 then
+                tile.SetPixel(px, py, System.Drawing.Color.LightGray)
+            else
+                tile.SetPixel(px, py, System.Drawing.Color.Green)
+    tile
+
 let dungeonNumberBMPs = 
     let m = zhDungeonNums
     let x = System.Drawing.Color.FromArgb(255, 128, 128, 128)

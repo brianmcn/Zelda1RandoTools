@@ -582,40 +582,39 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
-    let timeline1Canvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
-    let tb1 = new TextBox(Text="0h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(timeline1Canvas, tb1, 0., 30.)
-    let tb2 = new TextBox(Text="1h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(timeline1Canvas, tb2, 748., 30.)
-    let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
-    canvasAdd(timeline1Canvas, line1, 0., 0.)
-    for i = 0 to 12 do
-        let d = if i%2=1 then 3 else 0
-        let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
-        canvasAdd(timeline1Canvas, line, 0., 0.)
+
+    let makeTimeline(leftText, rightText) = 
+        let timelineCanvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
+        let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(timelineCanvas, tb1, 0., 30.)
+        let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(timelineCanvas, tb2, 748., 30.)
+        let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
+        canvasAdd(timelineCanvas, line1, 0., 0.)
+        for i = 0 to 12 do
+            let d = if i%2=1 then 3 else 0
+            let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
+            canvasAdd(timelineCanvas, line, 0., 0.)
+        timelineCanvas 
+    let timeline1Canvas = makeTimeline("0h","1h")
     let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(12*3), Y2=float(14*3), Stroke=Brushes.White, StrokeThickness=3.)
     canvasAdd(timeline1Canvas, curTime, 0., 0.)
-    let timeline2Canvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
-    let tb1 = new TextBox(Text="1h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(timeline2Canvas, tb1, 0., 30.)
-    let tb2 = new TextBox(Text="2h",FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(timeline2Canvas, tb2, 748., 30.)
-    let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
-    canvasAdd(timeline2Canvas, line1, 0., 0.)
-    for i = 0 to 12 do
-        let d = if i%2=1 then 3 else 0
-        let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
-        canvasAdd(timeline2Canvas, line, 0., 0.)
+
+    let timeline2Canvas = makeTimeline("1h","2h")
+    let timeline3Canvas = makeTimeline("2h","3h")
+
     let top = ref true
     let updateTimeline(minute) =
-        if minute < 0 || minute > 120 then
+        if minute < 0 || minute > 180 then
             ()
         else
             let tlc,minute = 
                 if minute <= 60 then 
                     timeline1Canvas, minute 
-                else 
+                elif minute <= 120 then
                     timeline2Canvas, minute-60
+                else 
+                    timeline3Canvas, minute-120
             let items = ResizeArray()
             let hearts = ResizeArray()
             for x in timelineItems do
@@ -646,11 +645,13 @@ let makeAll(isHeartShuffle,owMapNum) =
             curTime.X2 <- float(24+minute*12)
             timeline1Canvas.Children.Remove(curTime)  // have it be last
             timeline2Canvas.Children.Remove(curTime)  // have it be last
+            timeline3Canvas.Children.Remove(curTime)  // have it be last
             canvasAdd(tlc, curTime, 0., 0.)
     canvasAdd(c, timeline1Canvas, 0., THRU_MAP_H)
     canvasAdd(c, timeline2Canvas, 0., THRU_MAP_H + timeline1Canvas.Height)
+    canvasAdd(c, timeline3Canvas, 0., THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height)
 
-    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + 3.
+    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
 
     // Level trackers
     let dungeonTabs = new TabControl()
@@ -736,8 +737,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 *)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=explored empty
-        let ROOMS = 16 // how many types
+        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let ROOMS = 17 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
             // LEVEL-9        
@@ -774,7 +775,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                         | 12 -> Graphics.dungeonTeeBMP
                         | 13 -> Graphics.dungeonTriforceBMP 
                         | 14 -> Graphics.dungeonPrincessBMP 
-                        | 15 -> Graphics.dungeonExploredRoomBMP 
+                        | 15 -> Graphics.dungeonStartBMP 
+                        | 16 -> Graphics.dungeonExploredRoomBMP 
                         | n  -> Graphics.dungeonNumberBMPs.[n-1]
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
@@ -823,7 +825,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, owRemainingScreensTextBox, 600., 100.)
 
     //                items  ow map                               
-    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + 3 + int dungeonTabs.Height)
+    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
     c, updateTimeline
 
 
