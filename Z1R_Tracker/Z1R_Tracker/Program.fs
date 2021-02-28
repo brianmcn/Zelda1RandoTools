@@ -59,6 +59,8 @@ type MapState() =
     member this.IsUnique = state >= 0 && state < U
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
+    member this.IsSword3 = state=13
+    member this.IsSword2 = state=14
     member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7
     member this.Current() =
         if state = -1 then
@@ -86,10 +88,15 @@ let mutable recordering = fun() -> ()
 let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
+let mutable haveWhiteSwordItem = false
+let mutable havePowerBracelet = false // TODO
+let mutable haveMagicalSword = false
 let mutable playerHearts = 3  // start with 3
 let mutable owSpotsRemain = -1
 let triforces = Array.zeroCreate 8   // bools - do we have this triforce
 let foundDungeon = Array.zeroCreate 8   // bools - have we found this dungeon yet (based on overworld marks)
+let mutable foundWhiteSwordLocation = false
+let mutable foundMagicalSwordLocation = false
 let triforceInnerCanvases = Array.zeroCreate 8
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
@@ -97,10 +104,19 @@ let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots remain: %d" owSpotsRemain)
+let haveAnnouncedHearts = Array.zeroCreate 17
 let updateTotalHearts(x) = 
     playerHearts <- playerHearts + x
     //printfn "curent hearts = %d" playerHearts
     currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" playerHearts
+    if playerHearts >=4 && playerHearts <= 6 && not haveAnnouncedHearts.[playerHearts] then
+        haveAnnouncedHearts.[playerHearts] <- true
+        if not haveWhiteSwordItem && foundWhiteSwordLocation then
+            async { voice.Speak("Consider getting the white sword item") } |> Async.Start
+    if playerHearts >=10 && playerHearts <= 14 && not haveAnnouncedHearts.[playerHearts] then
+        haveAnnouncedHearts.[playerHearts] <- true
+        if not haveMagicalSword && foundMagicalSwordLocation then
+            async { voice.Speak("Consider the magical sword") } |> Async.Start
 let updateOWSpotsRemain(delta) = 
     owSpotsRemain <- owSpotsRemain + delta
     owRemainingScreensTextBox.Text <- sprintf "OW spots remain: %d" owSpotsRemain
@@ -201,7 +217,7 @@ let makeAll(isHeartShuffle,owMapNum) =
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new TimelineItem(innerc, (fun()->triforces.[i])))
     let hearts = whichItems.[14..]
-    let boxItemImpl(dungeonIndex, isCoastItem) = 
+    let boxItemImpl(dungeonIndex, isCoastItem, isWhiteSwordItem) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -215,27 +231,22 @@ let makeAll(isHeartShuffle,owMapNum) =
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
                 updateDungeon(dungeonIndex, -1)
-                if obj.Equals(is.Current(), Graphics.recorder) then
-                    haveRecorder <- true
-                    recordering()
-                if obj.Equals(is.Current(), Graphics.ladder) then
-                    haveLadder <- true
                 if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
                     updateTotalHearts(1)
-                if isCoastItem then
-                    haveCoastItem <- true
             else
                 rect.Stroke <- no
                 updateDungeon(dungeonIndex, +1)
-                if obj.Equals(is.Current(), Graphics.recorder) then
-                    haveRecorder <- false
-                    recordering()
-                if obj.Equals(is.Current(), Graphics.ladder) then
-                    haveLadder <- false
                 if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
                     updateTotalHearts(-1)
-                if isCoastItem then
-                    haveCoastItem <- false
+            if obj.Equals(is.Current(), Graphics.recorder) then
+                haveRecorder <- obj.Equals(rect.Stroke, yes)
+                recordering()
+            if obj.Equals(is.Current(), Graphics.ladder) then
+                haveLadder <- obj.Equals(rect.Stroke, yes)
+            if isCoastItem then
+                haveCoastItem <- obj.Equals(rect.Stroke, yes)
+            if isWhiteSwordItem then
+                haveWhiteSwordItem <- obj.Equals(rect.Stroke, yes)
         )
         // item
         c.MouseWheel.Add(fun x -> 
@@ -259,7 +270,7 @@ let makeAll(isHeartShuffle,owMapNum) =
         timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
         c
     let boxItem(dungeonIndex) = 
-        boxItemImpl(dungeonIndex,false)
+        boxItemImpl(dungeonIndex,false,false)
     // floor hearts
     if isHeartShuffle then
         for i = 0 to 7 do
@@ -336,13 +347,13 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
     gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
-    gridAdd(owItemGrid, boxItemImpl(-1,true), 1, 0)
-    gridAdd(owItemGrid, boxItem(-1), 1, 1)
-    gridAdd(owItemGrid, boxItem(-1), 1, 2)
+    gridAdd(owItemGrid, boxItemImpl(-1,true,false), 1, 0)
+    gridAdd(owItemGrid, boxItemImpl(-1,false,false), 1, 1)
+    gridAdd(owItemGrid, boxItemImpl(-1,false,true), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(2, 2, 30, 30)
-    let basicBoxImpl(img) =
+    let basicBoxImpl(img, changedFunc) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -356,17 +367,18 @@ let makeAll(isHeartShuffle,owMapNum) =
                 rect.Stroke <- yes
             else
                 rect.Stroke <- no
+            changedFunc(obj.Equals(rect.Stroke, yes))
         )
         canvasAdd(innerc, img, 4., 4.)
         timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
         c
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword), 0, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword  , (fun _ -> ())), 0, 0)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle  , (fun _ -> ())), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring    , (fun _ -> ())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b)), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
-    canvasAdd(c, basicBoxImpl(Graphics.boom_book), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+90., 90.)
 
 #if REMOVE_MIXED
     // mixed overworld didnt work way I thought, this is probably not useful
@@ -456,6 +468,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                             foundDungeon.[ms.State] <- false
                             if not triforces.[ms.State] then 
                                 updateEmptyTriforceDisplay(ms.State)
+                    if ms.IsSword3 then
+                        foundMagicalSwordLocation <- false
+                    if ms.IsSword2 then
+                        foundWhiteSwordLocation <- false
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
@@ -486,6 +502,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                             foundDungeon.[ms.State] <- true
                             if not triforces.[ms.State] then 
                                 updateEmptyTriforceDisplay(ms.State)
+                    if ms.IsSword3 then
+                        foundMagicalSwordLocation <- true
+                    if ms.IsSword2 then
+                        foundWhiteSwordLocation <- true
                     if ms.IsWarp then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
                         canvasAdd(c, rect, 2., 2.)
@@ -894,7 +914,7 @@ type MyWindow(isHeartSuffle) as this =
     inherit MyWindowBase()
     let canvas, updateTimeline = makeAll(isHeartSuffle)
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let mutable ladderTime = DateTime.Now
+    let mutable ladderTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime starts in past, so that can instantly work at startup for debug testing
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     do
