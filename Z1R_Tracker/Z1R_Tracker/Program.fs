@@ -4,6 +4,8 @@ open System.Windows.Controls
 open System.Windows.Media
 
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
+let mutable voiceRemindersForRecorder = true
+let mutable voiceRemindersForPowerBracelet = true
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
@@ -89,10 +91,14 @@ let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
 let mutable haveWhiteSwordItem = false
-let mutable havePowerBracelet = false // TODO
+let mutable havePowerBracelet = false
 let mutable haveMagicalSword = false
 let mutable playerHearts = 3  // start with 3
 let mutable owSpotsRemain = -1
+let mutable owWhistleSpotsRemain = 0
+let mutable owPreviouslyAnnouncedWhistleSpotsRemain = 0
+let mutable owPowerBraceletSpotsRemain = 0
+let mutable owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0
 let triforces = Array.zeroCreate 8   // bools - do we have this triforce
 let foundDungeon = Array.zeroCreate 8   // bools - have we found this dungeon yet (based on overworld marks)
 let mutable foundWhiteSwordLocation = false
@@ -157,6 +163,7 @@ type OWQuest =
     | MIXED
 
 let H = 30
+let RIGHT_COL = 560.
 let makeAll(isHeartShuffle,owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -243,6 +250,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- obj.Equals(rect.Stroke, yes)
+            if obj.Equals(is.Current(), Graphics.power_bracelet) then
+                havePowerBracelet <- obj.Equals(rect.Stroke, yes)
             if isCoastItem then
                 haveCoastItem <- obj.Equals(rect.Stroke, yes)
             if isWhiteSwordItem then
@@ -253,8 +262,10 @@ let makeAll(isHeartShuffle,owMapNum) =
             if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
                 haveRecorder <- false
                 recordering()
-            if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
+            if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- false
+            if obj.Equals(is.Current(), Graphics.power_bracelet) then
+                havePowerBracelet <- false
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
             innerc.Children.Remove(is.Current())
@@ -264,6 +275,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
+            if obj.Equals(is.Current(), Graphics.power_bracelet) && obj.Equals(rect.Stroke,yes) then
+                havePowerBracelet <- true
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
         )
@@ -353,11 +366,11 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(2, 2, 30, 30)
-    let basicBoxImpl(img, changedFunc) =
+    let veryBasicBoxImpl(img, startOn, isTimeline, changedFunc) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=if startOn then yes else no)
         rect.StrokeThickness <- 3.0
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -370,8 +383,11 @@ let makeAll(isHeartShuffle,owMapNum) =
             changedFunc(obj.Equals(rect.Stroke, yes))
         )
         canvasAdd(innerc, img, 4., 4.)
-        timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
+        if isTimeline then
+            timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
         c
+    let basicBoxImpl(img, changedFunc) =
+        veryBasicBoxImpl(img, false, true, changedFunc)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword  , (fun _ -> ())), 0, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle  , (fun _ -> ())), 0, 1)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring    , (fun _ -> ())), 1, 0)
@@ -451,12 +467,18 @@ let makeAll(isHeartShuffle,owMapNum) =
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
             else
+                let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||
+                                        (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
                 let markWhistleable() =
-                    if (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||
-                       (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X') then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue   , StrokeThickness=2.0)
+                    if isWhistleable then
+                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
                         canvasAdd(c, rect, 1., 1.)
+                        owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
                 markWhistleable()
+                let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||
+                                            (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
+                if isPowerBraceletable then
+                    owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                 let f b setToX =
                     //for x in c.Children do
                     //    removeAnimated(x)
@@ -472,6 +494,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                         foundMagicalSwordLocation <- false
                     if ms.IsSword2 then
                         foundWhiteSwordLocation <- false
+                    if isWhistleable && ms.State = -1 then
+                        owWhistleSpotsRemain <- owWhistleSpotsRemain - 1
+                    if isPowerBraceletable && ms.State = -1 then
+                        owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain - 1
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
@@ -492,7 +518,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                             else
                                 icon.Opacity <- 0.5
                     else
+                        // spot is unmarked, note for remain counts
                         markWhistleable()
+                        if isPowerBraceletable then
+                            owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
@@ -838,11 +867,16 @@ let makeAll(isHeartShuffle,owMapNum) =
     voice.Volume <- 30
     cb.Checked.Add(fun _ -> voice.Volume <- 30)
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
-    canvasAdd(c, cb, 600., 60.)
-    // current hearts
-    canvasAdd(c, currentHeartsTextBox, 600., 80.)
+    canvasAdd(c, cb, RIGHT_COL, 60.)
     // remaining OW spots
-    canvasAdd(c, owRemainingScreensTextBox, 600., 100.)
+    canvasAdd(c, owRemainingScreensTextBox, RIGHT_COL, 80.)
+    // current hearts
+    canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
+    // audio subcategories to toggle
+    let recorderAudioReminders = veryBasicBoxImpl(Graphics.recorder_audio_copy, true, false, fun b -> voiceRemindersForRecorder <- b)
+    canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
+    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_audio_copy, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
+    canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
 
     //                items  ow map                               
     c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
@@ -914,17 +948,19 @@ type MyWindow(isHeartSuffle) as this =
     inherit MyWindowBase()
     let canvas, updateTimeline = makeAll(isHeartSuffle)
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let mutable ladderTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime starts in past, so that can instantly work at startup for debug testing
+    let mutable ladderTime        = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime        starts in past, so that can instantly work at startup for debug testing
+    let mutable recorderTime      = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // recorderTime      starts in past, so that can instantly work at startup for debug testing
+    let mutable powerBraceletTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // powerBraceletTime starts in past, so that can instantly work at startup for debug testing
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     do
         // full window
         this.Title <- "Zelda 1 Randomizer"
         this.Content <- canvas
-        canvasAdd(canvas, hmsTimeTextBox, 600., 0.)
+        canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL, 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
+        this.Left <- 1140.0
         this.Top <- 0.0
         let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
         canvasAdd(canvas, recorderingCanvas, 0., 120.)
@@ -961,6 +997,20 @@ type MyWindow(isHeartSuffle) as this =
                 if not haveCoastItem then
                     async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
                     ladderTime <- DateTime.Now
+        // remind whistle spots
+        if (DateTime.Now - recorderTime).Minutes > 1 then  // every 2 mins
+            if haveRecorder && voiceRemindersForRecorder then
+                if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
+                    async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
+                recorderTime <- DateTime.Now
+                owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
+        // remind power bracelet spots
+        if (DateTime.Now - powerBraceletTime).Minutes > 1 then  // every 2 mins
+            if havePowerBracelet && voiceRemindersForPowerBracelet then
+                if owPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && owPowerBraceletSpotsRemain > 0 then
+                    async { voice.Speak(sprintf "There are %d power bracelet spots" owPowerBraceletSpotsRemain) } |> Async.Start
+                powerBraceletTime <- DateTime.Now
+                owPreviouslyAnnouncedPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain
         // update timeline
         if f10Press || ts.Seconds = 0 then
             updateTimeline(int ts.TotalMinutes)

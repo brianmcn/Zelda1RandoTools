@@ -53,7 +53,7 @@ let zhDungeonNums =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
     new System.Drawing.Bitmap(imageStream)
     
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
+let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book, recorder_audio_copy = 
     let zh = fullZHelper
     let items = 
         [|
@@ -82,11 +82,11 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
         bmp.SetPixel(10, 12, System.Drawing.Color.White)
         bmp.SetPixel(11, 11, System.Drawing.Color.White)
         BMPtoImage bmp
-        )
-
+        ),
+        BMPtoImage items.[8]
 
 let mutable heart_container_bmp = null
-let heart_container, power_bracelet, white_sword, ow_key_armos = 
+let heart_container, power_bracelet, white_sword, ow_key_armos, power_bracelet_audio_copy = 
     let zh = fullZHelper
     let items = 
         [|
@@ -101,7 +101,7 @@ let heart_container, power_bracelet, white_sword, ow_key_armos =
                 yield bmp
         |]
     heart_container_bmp <- items.[0]
-    BMPtoImage items.[0], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[3]
+    BMPtoImage items.[0], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[3], BMPtoImage items.[2]
 let copyHeartContainer() =
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
     for i = 0 to 20 do
@@ -287,6 +287,28 @@ let overworldMapBMPs(n) =
                     tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
             tiles.[x,y] <- tile
     tiles
+
+let owMapSquaresFirstQuestPowerBraceletable = [|
+    "................"
+    ".............X.."
+    "...X............"
+    "................"
+    ".........X......"
+    "................"
+    "................"
+    ".........X......"
+    |]
+
+let owMapSquaresSecondQuestPowerBraceletable = [|
+    ".........X......"
+    ".X.........X.X.."
+    "...X............"
+    "................"
+    ".........X......"
+    "................"
+    "................"
+    ".........X......"
+    |]
 
 let owMapSquaresFirstQuestWhistleable = [|
     "................"
