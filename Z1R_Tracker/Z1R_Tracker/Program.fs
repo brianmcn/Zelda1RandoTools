@@ -176,6 +176,8 @@ type OWQuest =
     | SECOND
     | MIXED
 
+let mutable notesTextBox = null : TextBox
+let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 560.
 let makeAll(isHeartShuffle,owMapNum) =
@@ -225,7 +227,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 innerc.Children.Clear()
                 innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
                 triforces.[i] <- true
-                if triforces |> FSharp.Collections.Array.forall id then
+                if (triforces |> FSharp.Collections.Array.forall id) && not haveMagicalSword then
                     async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
                 else
                     async { voice.Speak(sprintf "You now have %d triforces" (triforces |> FSharp.Collections.Array.filter id).Length) } |> Async.Start
@@ -410,7 +412,11 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b)), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
-    canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
+    // mark the dungeon wins on timeline via ganon/zelda boxes
+    canvasAdd(c, basicBoxImpl(Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl(Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+
 
 #if REMOVE_MIXED
     // mixed overworld didnt work way I thought, this is probably not useful
@@ -871,6 +877,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
+    notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
@@ -971,6 +978,7 @@ type MyWindow(isHeartSuffle) as this =
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     do
+        timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Zelda 1 Randomizer"
         this.Content <- canvas

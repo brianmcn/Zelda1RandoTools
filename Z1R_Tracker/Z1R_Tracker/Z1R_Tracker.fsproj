@@ -65,6 +65,7 @@
     <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />
     <EmbeddedResource Include="CroppedBrianKitty.png" />
+    <EmbeddedResource Include="ganonzelda.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
