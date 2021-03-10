@@ -324,6 +324,17 @@ let owMapZoneImages =
             imgs.[x,y] <- BMPtoImage tile
     imgs
 
+let owMapSquaresRaftable = [|
+    "................"
+    "................"
+    "...............X"
+    "................"
+    ".....X.........."
+    "................"
+    "................"
+    "................"
+    |]
+
 let owMapSquaresFirstQuestPowerBraceletable = [|
     "................"
     ".............X.."

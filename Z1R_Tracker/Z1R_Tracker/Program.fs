@@ -87,11 +87,13 @@ type MapState() =
     member this.Prev() = this.Impl(false)
 
 let mutable recordering = fun() -> ()
+let mutable refreshOW = fun() -> ()
 let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
 let mutable haveWhiteSwordItem = false
 let mutable havePowerBracelet = false
+let mutable haveRaft = false
 let mutable haveMagicalSword = false
 let mutable playerHearts = 3  // start with 3
 let mutable owSpotsRemain = -1
@@ -111,7 +113,7 @@ let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
-let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots remain: %d" owSpotsRemain)
+let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" owSpotsRemain))
 let haveAnnouncedHearts = Array.zeroCreate 17
 let updateTotalHearts(x) = 
     playerHearts <- playerHearts + x
@@ -129,7 +131,7 @@ let updateTotalHearts(x) =
         recordering() // make sword3 blink if gettable
 let updateOWSpotsRemain(delta) = 
     owSpotsRemain <- owSpotsRemain + delta
-    owRemainingScreensTextBox.Text <- sprintf "OW spots remain: %d" owSpotsRemain
+    (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" owSpotsRemain
 let updateDungeon(dungeonIndex, itemDiff) =
     if dungeonIndex >= 0 && dungeonIndex < 8 then
         let priorComplete = dungeonRemains.[dungeonIndex] = 0
@@ -270,11 +272,16 @@ let makeAll(isHeartShuffle,owMapNum) =
                     updateTotalHearts(-1)
             if obj.Equals(is.Current(), Graphics.recorder) then
                 haveRecorder <- obj.Equals(rect.Stroke, yes)
+                refreshOW()
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- obj.Equals(rect.Stroke, yes)
             if obj.Equals(is.Current(), Graphics.power_bracelet) then
                 havePowerBracelet <- obj.Equals(rect.Stroke, yes)
+                refreshOW()
+            if obj.Equals(is.Current(), Graphics.raft) then
+                haveRaft <- obj.Equals(rect.Stroke, yes)
+                refreshOW()
             if isCoastItem then
                 haveCoastItem <- obj.Equals(rect.Stroke, yes)
             if isWhiteSwordItem then
@@ -284,22 +291,32 @@ let makeAll(isHeartShuffle,owMapNum) =
         c.MouseWheel.Add(fun x -> 
             if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
                 haveRecorder <- false
+                refreshOW()
                 recordering()
-            if obj.Equals(is.Current(), Graphics.ladder) then
+            if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
                 haveLadder <- false
-            if obj.Equals(is.Current(), Graphics.power_bracelet) then
+            if obj.Equals(is.Current(), Graphics.power_bracelet) && havePowerBracelet then
                 havePowerBracelet <- false
+                refreshOW()
+            if obj.Equals(is.Current(), Graphics.raft) && haveRaft then
+                haveRaft <- false
+                refreshOW()
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
             innerc.Children.Remove(is.Current())
             canvasAdd(innerc, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
                 haveRecorder <- true
+                refreshOW()
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
             if obj.Equals(is.Current(), Graphics.power_bracelet) && obj.Equals(rect.Stroke,yes) then
                 havePowerBracelet <- true
+                refreshOW()
+            if obj.Equals(is.Current(), Graphics.raft) && obj.Equals(rect.Stroke,yes) then
+                haveRaft <- true
+                refreshOW()
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
         )
@@ -443,26 +460,14 @@ let makeAll(isHeartShuffle,owMapNum) =
         canvasAdd(c, removeMixedButton, OFFSET+130., 10.)
 #endif
 
-(*
-    // common animations
-    let da = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames()
-    da.Duration <- new Duration(System.TimeSpan.FromSeconds(1.0))
-    da.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(0.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.2)))) |> ignore
-    da.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(0.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.5)))) |> ignore
-    da.KeyFrames.Add(new System.Windows.Media.Animation.LinearDoubleKeyFrame(1.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(0.7)))) |> ignore
-    da.KeyFrames.Add(new System.Windows.Media.Animation.DiscreteDoubleKeyFrame(1.0, System.Windows.Media.Animation.KeyTime.FromTimeSpan(System.TimeSpan.FromSeconds(1.0)))) |> ignore
-    da.AutoReverse <- true
-    da.RepeatBehavior <- System.Windows.Media.Animation.RepeatBehavior.Forever
-    //let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
-    //            AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    let animateds = ResizeArray()
-    let removeAnimated(x) =
-        animateds.Remove(x) |> ignore
-    let addAnimated(x:UIElement) =
-        animateds.Add(x)
-        for x in animateds do
-            x.BeginAnimation(Image.OpacityProperty, da)
-*)
+    // ow map animation layer
+    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(1.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
+                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
+        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Lime)
+        rect.BeginAnimation(UIElement.OpacityProperty, da)
+        rect
+        )
 
     // ow map
     let X_OPACITY = 0.4
@@ -494,7 +499,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
             else
-                let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||
+                let isRaftable = (Graphics.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
+                let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
                                         (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
                 let markWhistleable() =
                     if isWhistleable then
@@ -502,13 +508,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                         canvasAdd(c, rect, 1., 1.)
                         owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
                 markWhistleable()
-                let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||
+                let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
                                             (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
                 if isPowerBraceletable then
                     owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
-                let f b setToX =
-                    //for x in c.Children do
-                    //    removeAnimated(x)
+                let f delta setToX =
                     let mutable needRecordering = false
                     let prevNull = ms.Current()=null
                     if ms.IsDungeon then
@@ -529,7 +533,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
                     canvasAdd(c, rightShade, float(15*3), 0.)
-                    let icon = if setToX then ms.SetStateToX() else if b then ms.Next() else ms.Prev()
+                    let icon = if setToX then ms.SetStateToX() else if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
                     //debug()
                     if icon <> null then 
@@ -538,8 +542,6 @@ let makeAll(isHeartShuffle,owMapNum) =
                         else
                             if ms.IsUnique then
                                 icon.Opacity <- 0.6
-                                //icon.BeginAnimation(Image.OpacityProperty, da)
-                                //addAnimated(icon)
                             elif ms.IsX then
                                 icon.Opacity <- X_OPACITY
                             else
@@ -567,6 +569,12 @@ let makeAll(isHeartShuffle,owMapNum) =
                     if ms.IsWarp then
                         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
                         canvasAdd(c, rect, 2., 2.)
+                    if ms.Current()=null then
+                        if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
+                            if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) then
+                                ()
+                            else
+                                canvasAdd(c, owRemainSpotHighlighters.[i,j], 0., 0.)
                     if not prevNull && ms.Current()=null then
                         updateOWSpotsRemain(1)
                     if prevNull && not(ms.Current()=null) then
@@ -592,12 +600,13 @@ let makeAll(isHeartShuffle,owMapNum) =
                                         owUpdateFunctions.[x,y] true true
                     else
 #endif
-                        f true false
+                        f 1 false
                 )
-                c.MouseRightButtonDown.Add(fun _ -> f false false)
-                c.MouseWheel.Add(fun x -> f (x.Delta<0) false)
+                c.MouseRightButtonDown.Add(fun _ -> f -1 false)
+                c.MouseWheel.Add(fun x -> f (if x.Delta<0 then 1 else -1) false)
     updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
+    refreshOW <- fun () -> owUpdateFunctions |> Array2D.iter (fun f -> f 0 false)
 
     // map barriers
     let makeLineCore(x1, x2, y1, y2) = 
@@ -903,7 +912,9 @@ let makeAll(isHeartShuffle,owMapNum) =
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
     canvasAdd(c, cb, RIGHT_COL, 60.)
     // remaining OW spots
-    canvasAdd(c, owRemainingScreensTextBox, RIGHT_COL, 80.)
+    canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 80.)
+    owRemainingScreensCheckBox.Checked.Add(fun _ -> refreshOW())
+    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> refreshOW())
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
@@ -1039,9 +1050,9 @@ type MyWindowBase() as this =
                     startTime <- DateTime.Now
         IntPtr.Zero
 
-type MyWindow(isHeartSuffle) as this = 
+type MyWindow(isHeartShuffle,owMapNum) as this = 
     inherit MyWindowBase()
-    let canvas, updateTimeline = makeAll(isHeartSuffle)
+    let canvas ,updateTimeline = makeAll(isHeartShuffle,owMapNum)
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable ladderTime        = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime        starts in past, so that can instantly work at startup for debug testing
     let mutable recorderTime      = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // recorderTime      starts in past, so that can instantly work at startup for debug testing
