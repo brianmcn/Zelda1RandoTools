@@ -38,6 +38,7 @@
     <DocumentationFile>bin\Release\Z1R_Tracker.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--standalone</OtherFlags>
+    <StartArguments>noHeartShuffle 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

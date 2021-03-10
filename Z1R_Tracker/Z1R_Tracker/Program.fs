@@ -595,12 +595,15 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // map barriers
     let makeLineCore(x1, x2, y1, y2) = 
-        new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.Red, StrokeThickness=3.)
+        let line = new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.White, StrokeThickness=3.)
+        line.IsHitTestVisible <- false // transparent to mouse
+        line
     let makeLine(x1, x2, y1, y2) = 
         if isReflected then
             makeLineCore(16-x1, 16-x2, y1, y2)
         else
             makeLineCore(x1,x2,y1,y2)
+(*
     canvasAdd(c, makeLine(0,4,2,2), 0., 120.)
     canvasAdd(c, makeLine(2,2,1,3), 0., 120.)
     canvasAdd(c, makeLine(4,4,0,1), 0., 120.)
@@ -649,6 +652,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, makeLine(14,14,3,4), 0., 120.)
     canvasAdd(c, makeLine(15,15,2,3), 0., 120.)
     canvasAdd(c, makeLine(15,15,4,6), 0., 120.)
+*)
 
     let THRU_MAP_H = float(120+8*11*3)
 
@@ -901,6 +905,67 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
     let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_audio_copy, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
+
+    // zone overlay
+    let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let image = Graphics.owMapZoneImages.[i,j]
+            image.Opacity <- 0.0
+            image.IsHitTestVisible <- false // transparent to mouse
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            canvasAdd(c, image, 0., 0.)
+            let i = if isReflected then 15-i else i
+            gridAdd(owMapZoneGrid, c, i, j)
+    canvasAdd(c, owMapZoneGrid, 0., 120.)
+
+    let owMapZoneBoundaries = ResizeArray()
+    let addLine(x1,x2,y1,y2) = 
+        let line = makeLine(x1,x2,y1,y2)
+        line.Opacity <- 0.0
+        owMapZoneBoundaries.Add(line)
+        canvasAdd(c, line, 0., 120.)
+    addLine(0,7,2,2)
+    addLine(7,11,1,1)
+    addLine(7,7,1,2)
+    addLine(10,10,0,1)
+    addLine(11,11,0,2)
+    addLine(8,14,2,2)
+    addLine(14,14,0,2)
+    addLine(6,6,2,3)
+    addLine(4,4,3,4)
+    addLine(2,2,4,5)
+    addLine(1,1,5,7)
+    addLine(0,1,7,7)
+    addLine(1,4,5,5)
+    addLine(2,4,4,4)
+    addLine(4,6,3,3)
+    addLine(4,7,6,6)
+    addLine(7,12,5,5)
+    addLine(9,10,4,4)
+    addLine(7,10,3,3)
+    addLine(7,7,2,3)
+    addLine(10,10,3,4)
+    addLine(9,9,4,7)
+    addLine(7,7,5,6)
+    addLine(4,4,5,6)
+    addLine(5,5,6,8)
+    addLine(6,6,6,8)
+    addLine(11,11,5,8)
+    addLine(9,15,7,7)
+    addLine(12,12,3,5)
+    addLine(13,13,2,3)
+    addLine(8,8,2,3)
+    addLine(12,14,3,3)
+    addLine(14,15,4,4)
+    addLine(15,15,4,7)
+    addLine(14,14,3,4)
+
+    let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit false
+    cb.Checked.Add(fun _ -> Graphics.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.3) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
+    cb.Unchecked.Add(fun _ -> Graphics.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map                               
     c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
