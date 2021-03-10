@@ -101,6 +101,7 @@ let mutable owPowerBraceletSpotsRemain = 0
 let mutable owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0
 let triforces = Array.zeroCreate 8   // bools - do we have this triforce
 let foundDungeon = Array.zeroCreate 8   // bools - have we found this dungeon yet (based on overworld marks)
+let completedDungeon = Array.zeroCreate 8   // bools - do we have all items (and triforce) from this dungeon
 let mutable previouslyAnnouncedFoundDungeonCount = 0
 let mutable foundWhiteSwordLocation = false
 let mutable foundMagicalSwordLocation = false
@@ -124,6 +125,8 @@ let updateTotalHearts(x) =
         haveAnnouncedHearts.[playerHearts] <- true
         if not haveMagicalSword && foundMagicalSwordLocation then
             async { voice.Speak("Consider the magical sword") } |> Async.Start
+    if not haveMagicalSword && foundMagicalSwordLocation then
+        recordering() // make sword3 blink if gettable
 let updateOWSpotsRemain(delta) = 
     owSpotsRemain <- owSpotsRemain + delta
     owRemainingScreensTextBox.Text <- sprintf "OW spots remain: %d" owSpotsRemain
@@ -132,6 +135,8 @@ let updateDungeon(dungeonIndex, itemDiff) =
         let priorComplete = dungeonRemains.[dungeonIndex] = 0
         dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
         if not priorComplete && dungeonRemains.[dungeonIndex] = 0 then
+            completedDungeon.[dungeonIndex] <- true
+            recordering()
             async { voice.Speak(sprintf "Dungeon %d is complete" (dungeonIndex+1)) } |> Async.Start
             for j = 0 to 3 do
                 mainTrackerCanvases.[dungeonIndex,j].Children.Add(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
@@ -409,7 +414,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword  , (fun _ -> ())), 0, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle  , (fun _ -> ())), 0, 1)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring    , (fun _ -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b)), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b; recordering())), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
     canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
@@ -556,6 +561,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                                 updateEmptyTriforceDisplay(ms.State)
                     if ms.IsSword3 then
                         foundMagicalSwordLocation <- true
+                        needRecordering <- true // may need to make it blink
                     if ms.IsSword2 then
                         foundWhiteSwordLocation <- true
                     if ms.IsWarp then
@@ -1052,20 +1058,32 @@ type MyWindow(isHeartSuffle) as this =
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 1140.0
         this.Top <- 0.0
-        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
+        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
         canvasAdd(canvas, recorderingCanvas, 0., 120.)
         recordering <- (fun () ->
             recorderingCanvas.Children.Clear()
-            if haveRecorder then
-                // highlight any triforce dungeons as recorder warp destinations
-                for i = 0 to 7 do
-                    if triforces.[i] then
-                        for x = 0 to 15 do
-                            for y = 0 to 7 do
-                                if owCurrentState.[x,y] = i then
-                                    let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3), Height=float(9*3), Stroke=System.Windows.Media.Brushes.White, StrokeThickness = 5.)
-                                    rect.BeginAnimation(UIElement.OpacityProperty, da)
-                                    canvasAdd(recorderingCanvas, rect, float(x*16*3)+1., float(y*11*3)+3.)
+            for i = 0 to 7 do // 8 dungeons
+                for x = 0 to 15 do      // 16 by
+                    for y = 0 to 7 do   // 8 overworld spots
+                        if owCurrentState.[x,y] = i then  // if spot marked as dungeon...
+                            if completedDungeon.[i] then
+                                // darken completed dungeons
+                                let rect = 
+                                    new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+                                canvasAdd(recorderingCanvas, rect, float(x*16*3)+2., float(y*11*3)+2.)
+                            if haveRecorder && triforces.[i] then
+                                // highlight any triforce dungeons as recorder warp destinations
+                                let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3)-4., Height=float(9*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 4.)
+                                canvasAdd(recorderingCanvas, rect, float(x*16*3)+5., float(y*11*3)+5.)
+            // highlight magical sword when it's a candidate to get
+            if not haveMagicalSword && playerHearts >=10 then
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owCurrentState.[x,y] = 13 then  // sword3 = 13
+                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                            rect.BeginAnimation(UIElement.OpacityProperty, da)
+                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             // highlight 9 after get all triforce
             if Array.forall id triforces then
                 for x = 0 to 15 do
