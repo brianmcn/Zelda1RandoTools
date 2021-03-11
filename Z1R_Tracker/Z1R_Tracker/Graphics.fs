@@ -435,10 +435,10 @@ let owMapSquaresSecondQuestOnlyIfMixed = [|
     |]
 
 let TRANS_BG = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Black)  // partially transparant gray background
-let uniqueMapIcons =
+let uniqueMapIcons, d1bmp, w1bmp =
     let m = zhMapIcons 
     let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
-    [|
+    let tiles = [|
         // levels 1-9
         for i in [2..10] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -449,7 +449,7 @@ let uniqueMapIcons =
                         tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Yellow)
                     else
                         tile.SetPixel(px, py, TRANS_BG)
-            yield BMPtoImage tile
+            yield tile
         // warps 1-4
         for i in [11..14] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -460,15 +460,16 @@ let uniqueMapIcons =
                         tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Aqua)
                     else
                         tile.SetPixel(px, py, TRANS_BG)
-            yield BMPtoImage tile
+            yield tile
         // sword 3, sword 2
         for i in [19..20] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
                     tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield BMPtoImage tile
+            yield tile
     |]
+    tiles |> Array.map BMPtoImage, tiles.[0], tiles.[9]
 
 let nonUniqueMapIconBMPs = 
     let m = zhMapIcons 

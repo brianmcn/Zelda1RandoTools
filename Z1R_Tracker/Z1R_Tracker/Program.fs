@@ -474,6 +474,23 @@ let makeAll(isHeartShuffle,owMapNum) =
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     owSpotsRemain <- 16*8
+    let drawDungeonHighlight(c,x,y) =
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
+        canvasAdd(c, rect, float(x*16*3)+2., float(y*11*3)+2.)
+    let drawWarpHighlight(c,x,y) =
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
+        canvasAdd(c, rect, float(x*16*3)+2., float(y*11*3)+2.)
+    let drawDarkenedCompletedDungeon(c,x,y) =
+        let rect = 
+            new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        canvasAdd(c, rect, float(x*16*3)+2., float(y*11*3)+2.)
+    let drawDungeonRecorderWarpHighlight(c,x,y) =
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3)-4., Height=float(9*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 4.)
+        canvasAdd(c, rect, float(x*16*3)+5., float(y*11*3)+5.)
+    let drawWhistleableHighlight(c,x,y) =
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
+        canvasAdd(c, rect, float(x*16*3)+1., float(y*11*3)+1.)
     for i = 0 to 15 do
         for j = 0 to 7 do
             let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
@@ -504,8 +521,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                                         (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
                 let markWhistleable() =
                     if isWhistleable then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
-                        canvasAdd(c, rect, 1., 1.)
+                        drawWhistleableHighlight(c,0,0)
                         owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
                 markWhistleable()
                 let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
@@ -553,8 +569,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                             owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
-                        canvasAdd(c, rect, 2., 2.)
+                        drawDungeonHighlight(c,0,0)
                         needRecordering <- true
                         if ms.State <=7 then
                             foundDungeon.[ms.State] <- true
@@ -567,8 +582,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     if ms.IsSword2 then
                         foundWhiteSwordLocation <- true
                     if ms.IsWarp then
-                        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
-                        canvasAdd(c, rect, 2., 2.)
+                        drawWarpHighlight(c,0,0)
                     if ms.Current()=null then
                         if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
                             if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) then
@@ -669,7 +683,69 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, makeLine(15,15,4,6), 0., 120.)
 *)
 
-    let THRU_MAP_H = float(120+8*11*3)
+    let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
+    canvasAdd(c, recorderingCanvas, 0., 120.)
+    recordering <- (fun () ->
+        recorderingCanvas.Children.Clear()
+        for i = 0 to 7 do // 8 dungeons
+            for x = 0 to 15 do      // 16 by
+                for y = 0 to 7 do   // 8 overworld spots
+                    if owCurrentState.[x,y] = i then  // if spot marked as dungeon...
+                        if completedDungeon.[i] then
+                            drawDarkenedCompletedDungeon(recorderingCanvas,x,y)
+                        if haveRecorder && triforces.[i] then
+                            // highlight any triforce dungeons as recorder warp destinations
+                            drawDungeonRecorderWarpHighlight(recorderingCanvas,x,y)
+        // highlight magical sword when it's a candidate to get
+        if not haveMagicalSword && playerHearts >=10 then
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    if owCurrentState.[x,y] = 13 then  // sword3 = 13
+                        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                        rect.BeginAnimation(UIElement.OpacityProperty, da)
+                        canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+        // highlight 9 after get all triforce
+        if Array.forall id triforces then
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    if owCurrentState.[x,y] = 8 then
+                        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                        rect.BeginAnimation(UIElement.OpacityProperty, da)
+                        canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+    )
+
+    // map legend
+    let LEFT_OFFSET = float(16/2*3)
+    let legendCanvas = new Canvas()
+    canvasAdd(c, legendCanvas, LEFT_OFFSET, 120. + float(8*11*3))
+
+    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 0., 0.)
+    drawDungeonHighlight(legendCanvas,0,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
+    canvasAdd(legendCanvas, tb, float(16*3), 0.)
+
+    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, float(16*3*3), 0.)
+    drawDungeonHighlight(legendCanvas,3,0)
+    drawDarkenedCompletedDungeon(legendCanvas,3,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
+    canvasAdd(legendCanvas, tb, float(16*4*3), 0.)
+
+    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, float(16*6*3), 0.)
+    drawDungeonHighlight(legendCanvas,6,0)
+    drawDungeonRecorderWarpHighlight(legendCanvas,6,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    canvasAdd(legendCanvas, tb, float(16*7*3), 0.)
+
+    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.w1bmp, float(16*9*3), 0.)
+    drawWarpHighlight(legendCanvas,9,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
+    canvasAdd(legendCanvas, tb, float(16*10*3), 0.)
+
+    drawWhistleableHighlight(legendCanvas,12,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nSpots")
+    canvasAdd(legendCanvas, tb, float(16*13*3), 0.)
+
+    let THRU_MAP_H = float(120+9*11*3)
 
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
@@ -688,7 +764,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             canvasAdd(timelineCanvas, line, 0., 0.)
         timelineCanvas 
     let timeline1Canvas = makeTimeline("0h","1h")
-    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(12*3), Y2=float(14*3), Stroke=Brushes.White, StrokeThickness=3.)
+    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(11*3), Y2=float(15*3), Stroke=Brushes.White, StrokeThickness=3.)
     canvasAdd(timeline1Canvas, curTime, 0., 0.)
 
     let timeline2Canvas = makeTimeline("1h","2h")
@@ -985,7 +1061,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map                               
-    c.Height <- float(30*4 + 11*3*8 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
+    c.Height <- float(30*4 + 11*3*9 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
     c, updateTimeline
 
 
@@ -1069,41 +1145,6 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 1140.0
         this.Top <- 0.0
-        let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
-        canvasAdd(canvas, recorderingCanvas, 0., 120.)
-        recordering <- (fun () ->
-            recorderingCanvas.Children.Clear()
-            for i = 0 to 7 do // 8 dungeons
-                for x = 0 to 15 do      // 16 by
-                    for y = 0 to 7 do   // 8 overworld spots
-                        if owCurrentState.[x,y] = i then  // if spot marked as dungeon...
-                            if completedDungeon.[i] then
-                                // darken completed dungeons
-                                let rect = 
-                                    new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
-                                canvasAdd(recorderingCanvas, rect, float(x*16*3)+2., float(y*11*3)+2.)
-                            if haveRecorder && triforces.[i] then
-                                // highlight any triforce dungeons as recorder warp destinations
-                                let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3)-4., Height=float(9*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 4.)
-                                canvasAdd(recorderingCanvas, rect, float(x*16*3)+5., float(y*11*3)+5.)
-            // highlight magical sword when it's a candidate to get
-            if not haveMagicalSword && playerHearts >=10 then
-                for x = 0 to 15 do
-                    for y = 0 to 7 do
-                        if owCurrentState.[x,y] = 13 then  // sword3 = 13
-                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                            rect.BeginAnimation(UIElement.OpacityProperty, da)
-                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-            // highlight 9 after get all triforce
-            if Array.forall id triforces then
-                for x = 0 to 15 do
-                    for y = 0 to 7 do
-                        if owCurrentState.[x,y] = 8 then
-                            let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                            rect.BeginAnimation(UIElement.OpacityProperty, da)
-                            canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-        )
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time
