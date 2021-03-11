@@ -276,6 +276,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- obj.Equals(rect.Stroke, yes)
+                refreshOW()
             if obj.Equals(is.Current(), Graphics.power_bracelet) then
                 havePowerBracelet <- obj.Equals(rect.Stroke, yes)
                 refreshOW()
@@ -517,6 +518,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 canvasAdd(c, icon, 0., 0.)
             else
                 let isRaftable = (Graphics.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
+                let isLadderable = (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
                 let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
                                         (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
                 let markWhistleable() =
@@ -585,7 +587,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                         drawWarpHighlight(c,0,0)
                     if ms.Current()=null then
                         if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
-                            if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) then
+                            if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) || (isLadderable && not haveLadder) then
                                 ()
                             else
                                 canvasAdd(c, owRemainSpotHighlighters.[i,j], 0., 0.)

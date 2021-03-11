@@ -357,6 +357,17 @@ let owMapSquaresSecondQuestPowerBraceletable = [|
     ".........X......"
     |]
 
+let owMapSquaresSecondQuestLadderable = [|
+    "................"
+    "........XX......"
+    "................"
+    "................"
+    "................"
+    "................"
+    "................"
+    "................"
+    |]
+
 let owMapSquaresFirstQuestWhistleable = [|
     "................"
     "................"
