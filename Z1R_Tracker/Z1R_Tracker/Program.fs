@@ -491,8 +491,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                 Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
         canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
     let drawDungeonRecorderWarpHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=float(14*3)-4., Height=float(9*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 4.)
-        canvasAdd(c, rect, x*float(16*3)+5., float(y*11*3)+5.)
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 3.)
+        canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
     let drawWhistleableHighlight(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
         canvasAdd(c, rect, x*float(16*3)+1., float(y*11*3)+1.)
@@ -730,9 +730,12 @@ let makeAll(isHeartShuffle,owMapNum) =
     )
 
     // map legend
-    let LEFT_OFFSET = float(16/2*3)
+    let LEFT_OFFSET = 78.0
     let legendCanvas = new Canvas()
     canvasAdd(c, legendCanvas, LEFT_OFFSET, 120. + float(8*11*3))
+
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
+    canvasAdd(c, tb, 0., 120. + float(8*11*3))
 
     canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
