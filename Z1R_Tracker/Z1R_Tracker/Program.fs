@@ -525,11 +525,9 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let isLadderable = (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
                 let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
                                         (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
-                let markWhistleable() =
-                    if isWhistleable then
-                        drawWhistleableHighlight(c,0.,0)
-                        owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
-                markWhistleable()
+                if isWhistleable then
+                    drawWhistleableHighlight(c,0.,0)
+                    owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
                 let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
                                             (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
                 if isPowerBraceletable then
@@ -537,25 +535,28 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let f delta setToX =
                     let mutable needRecordering = false
                     let prevNull = ms.Current()=null
-                    if ms.IsDungeon then
-                        needRecordering <- true
-                        if ms.State <=7 then
-                            foundDungeon.[ms.State] <- false
-                            if not triforces.[ms.State] then 
-                                updateEmptyTriforceDisplay(ms.State)
-                    if ms.IsSword3 then
-                        foundMagicalSwordLocation <- false
-                    if ms.IsSword2 then
-                        foundWhiteSwordLocation <- false
-                    if isWhistleable && ms.State = -1 then
-                        owWhistleSpotsRemain <- owWhistleSpotsRemain - 1
-                    if isPowerBraceletable && ms.State = -1 then
-                        owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain - 1
+                    if setToX || delta <> 0 then
+                        if ms.IsDungeon then
+                            needRecordering <- true
+                            if ms.State <=7 then
+                                foundDungeon.[ms.State] <- false
+                                if not triforces.[ms.State] then 
+                                    updateEmptyTriforceDisplay(ms.State)
+                        if ms.IsSword3 then
+                            foundMagicalSwordLocation <- false
+                            needRecordering <- true  // unblink
+                        if ms.IsSword2 then
+                            foundWhiteSwordLocation <- false
+                        if isWhistleable && ms.State = -1 then
+                            owWhistleSpotsRemain <- owWhistleSpotsRemain - 1
+                        if isPowerBraceletable && ms.State = -1 then
+                            owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain - 1
                     c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
                     canvasAdd(c, image, 0., 0.)
                     canvasAdd(c, bottomShade, 0., float(10*3))
                     canvasAdd(c, rightShade, float(15*3), 0.)
-                    let icon = if setToX then ms.SetStateToX() else if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
+                    let icon = if setToX then ms.SetStateToX() else 
+                                if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
                     //debug()
                     if icon <> null then 
@@ -570,8 +571,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                                 icon.Opacity <- 0.5
                     else
                         // spot is unmarked, note for remain counts
-                        markWhistleable()
-                        if isPowerBraceletable then
+                        if isWhistleable then
+                            drawWhistleableHighlight(c,0.,0)
+                            if delta <> 0 then
+                                owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
+                        if isPowerBraceletable && delta<>0 then
                             owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                     canvasAdd(c, icon, 0., 0.)
                     if ms.IsDungeon then
@@ -690,6 +694,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 *)
 
     let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
+    recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
     recordering <- (fun () ->
