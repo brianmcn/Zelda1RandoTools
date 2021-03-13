@@ -63,7 +63,7 @@ type MapState() =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
-    member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7
+    member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7   // dungeons, warps, swords, and shops
     member this.Current() =
         if state = -1 then
             null
@@ -88,6 +88,9 @@ type MapState() =
 
 let mutable recordering = fun() -> ()
 let mutable refreshOW = fun() -> ()
+let mutable refreshRouteDrawing = fun() -> ()
+let currentRecorderWarpDestinations = ResizeArray()
+let currentAnyRoadDestinations = ResizeArray()
 let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
@@ -108,6 +111,7 @@ let mutable previouslyAnnouncedFoundDungeonCount = 0
 let mutable foundWhiteSwordLocation = false
 let mutable foundMagicalSwordLocation = false
 let triforceInnerCanvases = Array.zeroCreate 8
+let owRouteworthySpots = Array2D.create 16 8 false
 let owCurrentState = Array2D.create 16 8 -1
 let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
@@ -243,11 +247,13 @@ let makeAll(isHeartShuffle,owMapNum) =
                 else
                     async { voice.Speak(sprintf "You now have %d triforces" (triforces |> FSharp.Collections.Array.filter id).Length) } |> Async.Start
                 updateDungeon(i, -1)
+                refreshOW()
                 recordering()
             else 
                 updateEmptyTriforceDisplay(i)
                 triforces.[i] <- false
                 updateDungeon(i, +1)
+                refreshOW()
                 recordering()
         )
         gridAdd(mainTracker, c, i, 0)
@@ -276,54 +282,50 @@ let makeAll(isHeartShuffle,owMapNum) =
                     updateTotalHearts(-1)
             if obj.Equals(is.Current(), Graphics.recorder) then
                 haveRecorder <- obj.Equals(rect.Stroke, yes)
-                refreshOW()
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- obj.Equals(rect.Stroke, yes)
-                refreshOW()
             if obj.Equals(is.Current(), Graphics.power_bracelet) then
                 havePowerBracelet <- obj.Equals(rect.Stroke, yes)
-                refreshOW()
             if obj.Equals(is.Current(), Graphics.raft) then
                 haveRaft <- obj.Equals(rect.Stroke, yes)
-                refreshOW()
             if isCoastItem then
                 haveCoastItem <- obj.Equals(rect.Stroke, yes)
             if isWhiteSwordItem then
                 haveWhiteSwordItem <- obj.Equals(rect.Stroke, yes)
+            // any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
+            refreshOW()  
+            refreshRouteDrawing()
         )
         // item
         c.MouseWheel.Add(fun x -> 
             if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
                 haveRecorder <- false
-                refreshOW()
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
                 haveLadder <- false
             if obj.Equals(is.Current(), Graphics.power_bracelet) && havePowerBracelet then
                 havePowerBracelet <- false
-                refreshOW()
             if obj.Equals(is.Current(), Graphics.raft) && haveRaft then
                 haveRaft <- false
-                refreshOW()
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
             innerc.Children.Remove(is.Current())
             canvasAdd(innerc, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
                 haveRecorder <- true
-                refreshOW()
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
             if obj.Equals(is.Current(), Graphics.power_bracelet) && obj.Equals(rect.Stroke,yes) then
                 havePowerBracelet <- true
-                refreshOW()
             if obj.Equals(is.Current(), Graphics.raft) && obj.Equals(rect.Stroke,yes) then
                 haveRaft <- true
-                refreshOW()
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
+            // any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
+            refreshOW()  
+            refreshRouteDrawing()
         )
         timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
         c
@@ -436,7 +438,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword  , (fun _ -> ())), 0, 0)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle  , (fun _ -> ())), 0, 1)
     gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring    , (fun _ -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b; recordering())), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b; refreshOW(); recordering())), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
     canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
@@ -466,7 +468,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 #endif
 
     // ow map animation layer
-    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(1.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
+    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
         let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Lime)
@@ -474,11 +476,52 @@ let makeAll(isHeartShuffle,owMapNum) =
         rect
         )
 
-    // ow map
+    // ow map opaque fixed bottom layer
     let X_OPACITY = 0.4
+    let owOpaqueMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+    owSpotsRemain <- 16*8
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            canvasAdd(c, image, 0., 0.)
+            gridAdd(owOpaqueMapGrid, c, i, j)
+            // shading between map tiles
+            let OPA = 0.25
+            let bottomShade = new Canvas(Width=float(16*3), Height=float(3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            canvasAdd(c, bottomShade, 0., float(10*3))
+            let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            canvasAdd(c, rightShade, float(15*3), 0.)
+            // permanent icons
+            let ms = new MapState()
+            if owAlwaysEmpty.[j].Chars(i) = 'X' then
+                let icon = ms.Prev()
+                owCurrentState.[i,j] <- ms.State 
+                owSpotsRemain <- owSpotsRemain - 1
+                icon.Opacity <- X_OPACITY
+                canvasAdd(c, icon, 0., 0.)
+    canvasAdd(c, owOpaqueMapGrid, 0., 120.)
+
+    // layer to place darkening icons - dynamic icons that are below route-drawing but above the fixed base layer
+    let owDarkeningMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owDarkeningMapGridCanvases = Array2D.zeroCreate 16 8
+    owDarkeningMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            gridAdd(owDarkeningMapGrid, c, i, j)
+            owDarkeningMapGridCanvases.[i,j] <- c
+    canvasAdd(c, owDarkeningMapGrid, 0., 120.)
+
+    // ow route drawing layer
+    let routeDrawingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
+    routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+    canvasAdd(c, routeDrawingCanvas, 0., 120.)
+
+    // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    owSpotsRemain <- 16*8
     let drawDungeonHighlight(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
         canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
@@ -498,28 +541,27 @@ let makeAll(isHeartShuffle,owMapNum) =
         canvasAdd(c, rect, x*float(16*3)+1., float(y*11*3)+1.)
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
-            canvasAdd(c, image, 0., 0.)
             gridAdd(owMapGrid, c, i, j)
-            // shading between map tiles
-            let OPA = 0.25
-            let bottomShade = new Canvas(Width=float(16*3), Height=float(3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
-            canvasAdd(c, bottomShade, 0., float(10*3))
-            let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
-            canvasAdd(c, rightShade, float(15*3), 0.)
-            // highlight mouse
+            // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
+            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            image.Opacity <- 0.0
+            canvasAdd(c, image, 0., 0.)
+            // highlight mouse, do mouse-sensitive stuff
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
-            c.MouseEnter.Add(fun _ -> currentlyMousedOWX <- i; currentlyMousedOWY <- j; canvasAdd(c, rect, 2., 2.))
-            c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore)
+            c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
+                                        // draw routes if desired
+                                        if true then // TODO - do i want this always on?
+                                            OverworldRouting.drawPaths(routeDrawingCanvas, owRouteworthySpots, ea.GetPosition(c), i, j)
+                                        // track current location for F5 purposes
+                                        currentlyMousedOWX <- i
+                                        currentlyMousedOWY <- j)
+            c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                      routeDrawingCanvas.Children.Clear())
             // icon
             let ms = new MapState()
             if owAlwaysEmpty.[j].Chars(i) = 'X' then
-                let icon = ms.Prev()
-                owCurrentState.[i,j] <- ms.State 
-                owSpotsRemain <- owSpotsRemain - 1
-                icon.Opacity <- X_OPACITY
-                canvasAdd(c, icon, 0., 0.)
+                () // already set up as permanent opaque layer, in code above
             else
                 let isRaftable = (Graphics.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
                 let isLadderable = (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
@@ -535,13 +577,16 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let f delta setToX =
                     let mutable needRecordering = false
                     let prevNull = ms.Current()=null
-                    if setToX || delta <> 0 then
+                    if setToX || delta <> 0 then  // we are changing this grid spot...
                         if ms.IsDungeon then
                             needRecordering <- true
                             if ms.State <=7 then
                                 foundDungeon.[ms.State] <- false
                                 if not triforces.[ms.State] then 
                                     updateEmptyTriforceDisplay(ms.State)
+                        if ms.IsWarp then
+                            needRecordering <- true // any roads update route drawing
+                            currentAnyRoadDestinations.Remove((i,j)) |> ignore
                         if ms.IsSword3 then
                             foundMagicalSwordLocation <- false
                             needRecordering <- true  // unblink
@@ -551,14 +596,24 @@ let makeAll(isHeartShuffle,owMapNum) =
                             owWhistleSpotsRemain <- owWhistleSpotsRemain - 1
                         if isPowerBraceletable && ms.State = -1 then
                             owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain - 1
-                    c.Children.Clear()  // cant remove-by-identity because of non-uniques; remake whole canvas
+                    owRouteworthySpots.[i,j] <- false  // this always gets recomputed below
+                    // cant remove-by-identity because of non-uniques; remake whole canvas
+                    owDarkeningMapGridCanvases.[i,j].Children.Clear()
+                    c.Children.Clear()
+                    // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
+                    let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+                    image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
-                    canvasAdd(c, bottomShade, 0., float(10*3))
-                    canvasAdd(c, rightShade, float(15*3), 0.)
+                    // figure out what new state we just interacted-to
                     let icon = if setToX then ms.SetStateToX() else 
                                 if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
-                    //debug()
+                    // be sure to draw in appropriate layer
+                    let canvasToDrawOn =
+                        if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
+                            c
+                        else
+                            owDarkeningMapGridCanvases.[i,j]
                     if icon <> null then 
                         if ms.HasTransparency then
                             icon.Opacity <- 0.9
@@ -572,33 +627,43 @@ let makeAll(isHeartShuffle,owMapNum) =
                     else
                         // spot is unmarked, note for remain counts
                         if isWhistleable then
-                            drawWhistleableHighlight(c,0.,0)
+                            drawWhistleableHighlight(canvasToDrawOn,0.,0)
                             if delta <> 0 then
                                 owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
                         if isPowerBraceletable && delta<>0 then
                             owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
-                    canvasAdd(c, icon, 0., 0.)
+                    canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
-                        drawDungeonHighlight(c,0.,0)
+                        drawDungeonHighlight(canvasToDrawOn,0.,0)
                         needRecordering <- true
                         if ms.State <=7 then
                             foundDungeon.[ms.State] <- true
                             foundDungeonAnnouncmentCheck()
                             if not triforces.[ms.State] then 
                                 updateEmptyTriforceDisplay(ms.State)
+                            if not completedDungeon.[ms.State] then 
+                                owRouteworthySpots.[i,j] <- true  // an uncompleted dungeon is routeworthy
+                        if ms.State = 8 && Array.forall id triforces then
+                            owRouteworthySpots.[i,j] <- true  // dungeon 9 is routeworthy if have all triforces
                     if ms.IsSword3 then
                         foundMagicalSwordLocation <- true
                         needRecordering <- true // may need to make it blink
+                        if not haveMagicalSword then
+                            owRouteworthySpots.[i,j] <- true  // needed mags is routeworthy
                     if ms.IsSword2 then
                         foundWhiteSwordLocation <- true
                     if ms.IsWarp then
-                        drawWarpHighlight(c,0.,0)
+                        drawWarpHighlight(canvasToDrawOn,0.,0)
+                        currentAnyRoadDestinations.Add((i,j))
+                        needRecordering <- true // any roads update route drawing
+                        owRouteworthySpots.[i,j] <- true  // an any road is routeworthy
                     if ms.Current()=null then
-                        if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
-                            if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) || (isLadderable && not haveLadder) then
-                                ()
-                            else
-                                canvasAdd(c, owRemainSpotHighlighters.[i,j], 0., 0.)
+                        if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) || (isLadderable && not haveLadder) then
+                            ()
+                        else
+                            owRouteworthySpots.[i,j] <- true  // an unexplored spot is routeworthy
+                            if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
+                                canvasAdd(canvasToDrawOn, owRemainSpotHighlighters.[i,j], 0., 0.)
                     if not prevNull && ms.Current()=null then
                         updateOWSpotsRemain(1)
                     if prevNull && not(ms.Current()=null) then
@@ -631,6 +696,13 @@ let makeAll(isHeartShuffle,owMapNum) =
     updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
     refreshOW <- fun () -> owUpdateFunctions |> Array2D.iter (fun f -> f 0 false)
+    refreshRouteDrawing <- fun () -> 
+        (
+        routeDrawingCanvas.Children.Clear()
+        OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
+        )
+
+    refreshOW()  // initialize owRouteworthySpots
 
     // map barriers
     let makeLineCore(x1, x2, y1, y2) = 
@@ -699,6 +771,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
     recordering <- (fun () ->
         recorderingCanvas.Children.Clear()
+        currentRecorderWarpDestinations.Clear()
         for i = 0 to 7 do // 8 dungeons
             for x = 0 to 15 do      // 16 by
                 for y = 0 to 7 do   // 8 overworld spots
@@ -708,6 +781,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                         if haveRecorder && triforces.[i] then
                             // highlight any triforce dungeons as recorder warp destinations
                             drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+                            currentRecorderWarpDestinations.Add((x,y))
+        refreshRouteDrawing()
         // highlight magical sword when it's a candidate to get
         if not haveMagicalSword && playerHearts >=10 then
             for x = 0 to 15 do
@@ -1133,6 +1208,10 @@ type MyWindowBase() as this =
         this.UnregisterHotKey()
         base.OnClosed(e)
     member this.RegisterHotKey() =
+#if DEBUG
+        // in debug mode, do not register hotkeys, as I need e.g. F10 to work to use the debugger!
+        ()
+#else
         let helper = new System.Windows.Interop.WindowInteropHelper(this);
         if(not(Winterop.RegisterHotKey(helper.Handle, Winterop.HOTKEY_ID, MOD_NONE, uint32 VK_F10))) then
             // handle error
@@ -1140,6 +1219,7 @@ type MyWindowBase() as this =
         if(not(Winterop.RegisterHotKey(helper.Handle, Winterop.HOTKEY_ID, MOD_NONE, uint32 VK_F5))) then
             // handle error
             ()
+#endif
     member this.UnregisterHotKey() =
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
         Winterop.UnregisterHotKey(helper.Handle, Winterop.HOTKEY_ID) |> ignore
