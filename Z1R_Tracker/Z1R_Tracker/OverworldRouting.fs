@@ -171,7 +171,6 @@ let populateStaticOverworldData(ladder, raft) =
     // 5,7 is an EW portion
     symmetricAdd(Vertex(5,7,WEST), Vertex(5,6,FULL), 2)
     symmetricAdd(Vertex(5,7,EAST), Vertex(6,7,FULL), 2)
-    symmetricAdd(Vertex(5,7,EAST), Vertex(5,6,FULL), 2)
     // 12,5 is a NS portion and 12,6 is an EW portion
     symmetricAdd(Vertex(11,5,FULL), Vertex(12,5,NORTH), 2)
     symmetricAdd(Vertex(11,5,FULL), Vertex(12,5,SOUTH), 2)
@@ -246,13 +245,34 @@ let generateScreenTypeList(a) =
         failwith "bad map data"   // but only works when raft=true, else no vertex for those spots as no edges go there
     d
 
-let convertToCanonicalVertex(x,y,st:System.Collections.Generic.Dictionary<_,_>) =
+type PortionDetail =
+    // on grid spots with two halves, we may need to inquire about
+    | STAIRS               // where the canonical stairs/cave to enter the thing is
+    | ANY_ROAD_ARRIVAL     // where we appear on the screen when exiting here from an any road
+    | TORNADO_ARRIVAL      // where we appear on the screen after exiting the warp tornado
+let convertToCanonicalVertex(x,y,st:System.Collections.Generic.Dictionary<_,_>,portionDetail) =
     let ok, t = st.TryGetValue((x,y))
     if ok then
         match t with
         | WHOLE -> Vertex(x,y,FULL)
-        | NS -> Vertex(x,y,SOUTH)  // the only NS screen with a destination has it in the south
-        | EW -> Vertex(x,y,EAST)   // TODO better accuracy
+        | NS -> Vertex(x,y,SOUTH)  // the only NS screen with a destination (2,7) has it all in the south
+        | EW -> 
+            Vertex(x,y, match x,y,portionDetail with
+                        |  3,2,TORNADO_ARRIVAL -> EAST
+                        |  3,2,_ -> WEST
+                        | 13,1,TORNADO_ARRIVAL -> EAST
+                        | 13,1,_ -> WEST
+                        | 13,6,_ -> WEST   // TODO check
+                        |  5,7,STAIRS -> WEST
+                        |  5,7,_ -> EAST   // TODO check
+                        | 12,6,STAIRS -> WEST
+                        | 12,6,_ -> EAST   // TODO check
+                        | 11,4,STAIRS -> EAST
+                        | 11,4,_ -> WEST
+                        |  2,6,STAIRS -> EAST
+                        |  2,6,_ -> WEST
+                        | _ -> EAST
+                    )
     else
         failwith "impossible st"
 let populateDynamic(ladder, raft, currentRecorderWarpDestinations,currentAnyRoads) =
@@ -262,12 +282,12 @@ let populateDynamic(ladder, raft, currentRecorderWarpDestinations,currentAnyRoad
     for v1,v2,_ in a do
         allVertex.Add(v1) |> ignore
         allVertex.Add(v2) |> ignore
-    let addExtra(srcs,dests,cost) =
+    let addExtra(srcs,dests,pd,cost) =
         for x,y in dests do
             for v in srcs do
-                a.Add(v, convertToCanonicalVertex(x,y,st), cost)
-    addExtra(allVertex, currentRecorderWarpDestinations, 7)
-    addExtra(currentAnyRoads |> Seq.map (fun (x,y) -> convertToCanonicalVertex(x,y,st)), currentAnyRoads, 4)
+                a.Add(v, convertToCanonicalVertex(x,y,st,pd), cost)
+    addExtra(allVertex, currentRecorderWarpDestinations, TORNADO_ARRIVAL, 7)
+    addExtra(currentAnyRoads |> Seq.map (fun (x,y) -> convertToCanonicalVertex(x,y,st,STAIRS)), currentAnyRoads, ANY_ROAD_ARRIVAL, 4)
     let d = makeAdjacencyDict(a)
     st, d
 let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray())
@@ -386,7 +406,6 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], mousePos:Syste
             elif cost <= 22 then new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
             elif cost <= 30 then new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
             else                 new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
-            
         let d = findAllBestPaths(adjacencyDict, v, goal)
         let visited = new System.Collections.Generic.HashSet<_>()
         let rec draw(g) = 
@@ -434,5 +453,5 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], mousePos:Syste
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if owRouteworthySpots.[i,j] then
-                    draw(convertToCanonicalVertex(i,j,screenTypes))
+                    draw(convertToCanonicalVertex(i,j,screenTypes,STAIRS))
 
