@@ -90,7 +90,7 @@ let mutable recordering = fun() -> ()
 let mutable refreshOW = fun() -> ()
 let mutable refreshRouteDrawing = fun() -> ()
 let currentRecorderWarpDestinations = ResizeArray()
-let currentAnyRoadDestinations = ResizeArray()
+let currentAnyRoadDestinations = new System.Collections.Generic.HashSet<_>()
 let mutable haveRecorder = false
 let mutable haveLadder = false
 let mutable haveCoastItem = false
@@ -293,7 +293,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 haveCoastItem <- obj.Equals(rect.Stroke, yes)
             if isWhiteSwordItem then
                 haveWhiteSwordItem <- obj.Equals(rect.Stroke, yes)
-            // any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
+            // almost any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
             refreshOW()  
             refreshRouteDrawing()
         )
@@ -323,9 +323,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                 haveRaft <- true
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(1)
-            // any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
-            refreshOW()  
-            refreshRouteDrawing()
+            if obj.Equals(rect.Stroke, yes) then
+                // almost any change to an obtained object might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
+                refreshOW()  
+                refreshRouteDrawing()
         )
         timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
         c
@@ -654,7 +655,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                         foundWhiteSwordLocation <- true
                     if ms.IsWarp then
                         drawWarpHighlight(canvasToDrawOn,0.,0)
-                        currentAnyRoadDestinations.Add((i,j))
+                        currentAnyRoadDestinations.Add((i,j)) |> ignore
                         needRecordering <- true // any roads update route drawing
                         owRouteworthySpots.[i,j] <- true  // an any road is routeworthy
                     if ms.Current()=null then
