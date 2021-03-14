@@ -445,7 +445,7 @@ let owMapSquaresSecondQuestOnlyIfMixed = [|
         yield s
     |]
 
-let TRANS_BG = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Black)  // partially transparant gray background
+let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
 let uniqueMapIcons, d1bmp, w1bmp =
     let m = zhMapIcons 
     let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)

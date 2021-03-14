@@ -147,6 +147,8 @@ let updateDungeon(dungeonIndex, itemDiff) =
             for j = 0 to 3 do
                 mainTrackerCanvases.[dungeonIndex,j].Children.Add(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
         elif priorComplete && not(dungeonRemains.[dungeonIndex] = 0) then
+            completedDungeon.[dungeonIndex] <- false
+            recordering()
             for j = 0 to 3 do
                 mainTrackerCanvases.[dungeonIndex,j].Children.Remove(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
 let foundDungeonAnnouncmentCheck() =
@@ -523,20 +525,51 @@ let makeAll(isHeartShuffle,owMapNum) =
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    let drawDungeonHighlight(c,x,y) =
+    let drawRectangleCornersHighlight(c,x,y,color) =
+(*
+        // when originally was full rectangle (which badly obscured routing paths)
         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
         canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
-    let drawWarpHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Aqua, StrokeThickness = 3.)
-        canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
-    let drawDarkenedCompletedDungeon(c,x,y) =
+*)
+        let L1,L2,R1,R2 = 0.0, 16.0, 28.0, 44.0
+        let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
+        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
+        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+    let drawDungeonHighlight(c,x,y) =
+        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Yellow)
+    let drawCompletedDungeonHighlight(c,x,y) =
+        // darkened rectangle corners
+        let yellow = System.Windows.Media.Brushes.Yellow.Color
+        let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
+        drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
+        // darken the number
         let rect = 
-            new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+            new System.Windows.Shapes.Rectangle(Width=15.0, Height=21.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                 Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, rect, x*float(16*3)+15.0, float(y*11*3)+6.0)
+    let drawWarpHighlight(c,x,y) =
+        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Aqua)
+    let drawDarkening(c,x,y) =
+        let rect = 
+            new System.Windows.Shapes.Rectangle(Width=float(16*3)-1.5, Height=float(11*3)-1.5, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        canvasAdd(c, rect, x*float(16*3), float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness = 3.)
-        canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
+        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
     let drawWhistleableHighlight(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
         canvasAdd(c, rect, x*float(16*3)+1., float(y*11*3)+1.)
@@ -612,6 +645,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
+                            drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)  // dungeons, warps, and shops get a darkened background in layer below routing
                             c
                         else
                             owDarkeningMapGridCanvases.[i,j]
@@ -778,7 +812,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 for y = 0 to 7 do   // 8 overworld spots
                     if owCurrentState.[x,y] = i then  // if spot marked as dungeon...
                         if completedDungeon.[i] then
-                            drawDarkenedCompletedDungeon(recorderingCanvas,float x,y)
+                            drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
                         if haveRecorder && triforces.[i] then
                             // highlight any triforce dungeons as recorder warp destinations
                             drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
@@ -820,7 +854,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 2.5*float(16*3), 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
-    drawDarkenedCompletedDungeon(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.5*float(16*3), 0.)
 
