@@ -471,11 +471,16 @@ let makeAll(isHeartShuffle,owMapNum) =
 #endif
 
     // ow map animation layer
-    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
-                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
+                                  AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    let slowerBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames(Duration=new Duration(System.TimeSpan.FromSeconds(4.0)), RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.0))) |> ignore
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.5, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.25))) |> ignore
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.5))) |> ignore
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(1.0))) |> ignore
     let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
         let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Lime)
-        rect.BeginAnimation(UIElement.OpacityProperty, da)
+        rect.BeginAnimation(UIElement.OpacityProperty, slowerBlinkAnimation)
         rect
         )
 
@@ -645,7 +650,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
-                            drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)  // dungeons, warps, and shops get a darkened background in layer below routing
+                            if not ms.IsDungeon || (ms.State < 8 && completedDungeon.[ms.State]) then
+                                drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)  // completed dungeons, warps, and shops get a darkened background in layer below routing
                             c
                         else
                             owDarkeningMapGridCanvases.[i,j]
@@ -730,7 +736,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 c.MouseWheel.Add(fun x -> f (if x.Delta<0 then 1 else -1) false)
     updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
-    refreshOW <- fun () -> owUpdateFunctions |> Array2D.iter (fun f -> f 0 false)
+    refreshOW <- fun () -> 
+        (
+            owUpdateFunctions |> Array2D.iter (fun f -> f 0 false)
+            owRouteworthySpots.[15,5] <- haveLadder && not haveCoastItem // gettable coast item is routeworthy // TODO handle mirror overworld 
+        )
     refreshRouteDrawing <- fun () -> 
         (
         routeDrawingCanvas.Children.Clear()
@@ -824,7 +834,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 for y = 0 to 7 do
                     if owCurrentState.[x,y] = 13 then  // sword3 = 13
                         let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                        rect.BeginAnimation(UIElement.OpacityProperty, da)
+                        rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                         canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
         // highlight 9 after get all triforce
         if Array.forall id triforces then
@@ -832,7 +842,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 for y = 0 to 7 do
                     if owCurrentState.[x,y] = 8 then
                         let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                        rect.BeginAnimation(UIElement.OpacityProperty, da)
+                        rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                         canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
         // place start icon in top layer
         if startIconX <> -1 then
