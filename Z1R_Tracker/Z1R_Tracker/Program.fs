@@ -162,7 +162,10 @@ let foundDungeonAnnouncmentCheck() =
             if curFound > previouslyAnnouncedFoundDungeonCount then
                 previouslyAnnouncedFoundDungeonCount <- curFound 
                 do! Async.SwitchToThreadPool()
-                voice.Speak(sprintf "You have located %d dungeons" curFound) 
+                if curFound = 1 then
+                    voice.Speak("You have located one dungeon") 
+                else
+                    voice.Speak(sprintf "You have located %d dungeons" curFound) 
         } |> Async.Start
 let debug() =
     for j = 0 to 7 do
@@ -247,7 +250,11 @@ let makeAll(isHeartShuffle,owMapNum) =
                 if (triforces |> FSharp.Collections.Array.forall id) && not haveMagicalSword then
                     async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
                 else
-                    async { voice.Speak(sprintf "You now have %d triforces" (triforces |> FSharp.Collections.Array.filter id).Length) } |> Async.Start
+                    let n = (triforces |> FSharp.Collections.Array.filter id).Length
+                    if n = 1 then
+                        async { voice.Speak("You now have one triforce") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
                 updateDungeon(i, -1)
                 refreshOW()
                 recordering()
@@ -1315,14 +1322,20 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
             if haveRecorder && voiceRemindersForRecorder then
                 if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
-                    async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
+                    if owWhistleSpotsRemain = 1 then
+                        async { voice.Speak("There is one recorder spot") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
                 recorderTime <- DateTime.Now
                 owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
         // remind power bracelet spots
         if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
             if havePowerBracelet && voiceRemindersForPowerBracelet then
                 if owPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && owPowerBraceletSpotsRemain > 0 then
-                    async { voice.Speak(sprintf "There are %d power bracelet spots" owPowerBraceletSpotsRemain) } |> Async.Start
+                    if owPowerBraceletSpotsRemain = 1 then
+                        async { voice.Speak("There is one power bracelet spot") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "There are %d power bracelet spots" owPowerBraceletSpotsRemain) } |> Async.Start
                 powerBraceletTime <- DateTime.Now
                 owPreviouslyAnnouncedPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain
         // update timeline
