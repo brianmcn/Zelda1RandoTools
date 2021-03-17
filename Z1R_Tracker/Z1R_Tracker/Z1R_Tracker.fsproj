@@ -58,6 +58,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Graphics.fs" />
+    <Compile Include="OverworldData.fs" />
+    <Compile Include="DungeonData.fs" />
     <Compile Include="OverworldRouting.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="ZHelperEmpty.png" />

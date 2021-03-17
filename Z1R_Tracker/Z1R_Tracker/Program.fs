@@ -205,14 +205,14 @@ let makeAll(isHeartShuffle,owMapNum) =
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
     let owMapBMPs, owAlwaysEmpty, isReflected, isMixed, owQuest =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), Graphics.owMapSquaresFirstQuestAlwaysEmpty , false, false, FIRST
-        | 1 -> Graphics.overworldMapBMPs(1), Graphics.owMapSquaresSecondQuestAlwaysEmpty, false, false, SECOND
-        | 2 -> Graphics.overworldMapBMPs(2), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
-        | 3 -> Graphics.overworldMapBMPs(3), Graphics.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
-        | 4 -> Graphics.overworldMapBMPs(4), Graphics.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false, FIRST
-        | 5 -> Graphics.overworldMapBMPs(5), Graphics.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false, SECOND
-        | 6 -> Graphics.overworldMapBMPs(6), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
-        | 7 -> Graphics.overworldMapBMPs(7), Graphics.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
+        | 0 -> Graphics.overworldMapBMPs(0), OverworldData.owMapSquaresFirstQuestAlwaysEmpty , false, false, FIRST
+        | 1 -> Graphics.overworldMapBMPs(1), OverworldData.owMapSquaresSecondQuestAlwaysEmpty, false, false, SECOND
+        | 2 -> Graphics.overworldMapBMPs(2), OverworldData.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
+        | 3 -> Graphics.overworldMapBMPs(3), OverworldData.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
+        | 4 -> Graphics.overworldMapBMPs(4), OverworldData.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false, FIRST
+        | 5 -> Graphics.overworldMapBMPs(5), OverworldData.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false, SECOND
+        | 6 -> Graphics.overworldMapBMPs(6), OverworldData.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
+        | 7 -> Graphics.overworldMapBMPs(7), OverworldData.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -609,15 +609,15 @@ let makeAll(isHeartShuffle,owMapNum) =
             if owAlwaysEmpty.[j].Chars(i) = 'X' then
                 () // already set up as permanent opaque layer, in code above
             else
-                let isRaftable = (Graphics.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
-                let isLadderable = (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
-                let isWhistleable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
-                                        (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
+                let isRaftable = (OverworldData.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
+                let isLadderable = (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
+                let isWhistleable = (owQuest<>SECOND && OverworldData.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
+                                        (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
                 if isWhistleable then
                     drawWhistleableHighlight(c,0.,0)
                     owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
-                let isPowerBraceletable = (owQuest<>SECOND && Graphics.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
-                                            (owQuest<>FIRST && Graphics.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
+                let isPowerBraceletable = (owQuest<>SECOND && OverworldData.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
+                                            (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
                 if isPowerBraceletable then
                     owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                 let f delta setToX =
@@ -971,6 +971,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
 
     // Level trackers
+    let fixedDungeonOutlines = ResizeArray()
+
     let dungeonTabs = new TabControl()
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
     canvasAdd(c, dungeonTabs , 0., THRU_TIMELINE_H)
@@ -982,23 +984,6 @@ let makeAll(isHeartShuffle,owMapNum) =
         levelTab.Content <- dungeonCanvas 
         dungeonTabs.Height <- dungeonCanvas.Height + 30.   // ok to set this 9 times
         dungeonTabs.Items.Add(levelTab) |> ignore
-
-        // quadrants
-        (*
-        let QW = dungeonCanvas.Width/2.
-        let QH = (dungeonCanvas.Height-float TH)/2.
-        let QBG = new SolidColorBrush(Color.FromRgb(0uy, 40uy, 50uy))
-        let topRight = new Canvas(Width=QW, Height=QH, Background=QBG)
-        canvasAdd(dungeonCanvas, topRight, topRight.Width, float TH)
-        let botLeft = new Canvas(Width=QW, Height=QH, Background=QBG)
-        canvasAdd(dungeonCanvas, botLeft, 0., float TH + QH)
-        *)
-        (*
-        let vert = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=QW, X2=QW, Y1=float TH, Y2=float TH+QH+QH)
-        canvasAdd(dungeonCanvas, vert, 0., 0.)
-        let hori = new System.Windows.Shapes.Line(Stroke=Brushes.White, StrokeThickness=1., X1=0., X2=QW+QW, Y1=float TH+QH, Y2=float TH+QH)
-        canvasAdd(dungeonCanvas, hori, 0., 0.)
-        *)
 
         let TEXT = sprintf "LEVEL-%d " level
         // horizontal doors
@@ -1118,7 +1103,30 @@ let makeAll(isHeartShuffle,owMapNum) =
                 if i=6 && (j=6 || j=7) then
                     f false
                 *)
+        let fqd = DungeonData.firstQuest.[level-1]
+        // fixed dungeon drawing outlines - vertical segments
+        for i = 0 to 6 do
+            for j = 0 to 7 do
+                if fqd.[j].Chars(i) <> fqd.[j].Chars(i+1) then
+                    let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)+39+12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+j*(27+12)-12/2), Y2=float(TH+j*(27+12)+27+12/2), 
+                                    Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
+                    canvasAdd(dungeonCanvas, s, 0., 0.)
+                    fixedDungeonOutlines.Add(s)
+        // fixed dungeon drawing outlines - horizontal segments
+        for i = 0 to 7 do
+            for j = 0 to 6 do
+                if fqd.[j].Chars(i) <> fqd.[j+1].Chars(i) then
+                    let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)-12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+(j+1)*(27+12)-12/2), Y2=float(TH+(j+1)*(27+12)-12/2), 
+                                    Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
+                    canvasAdd(dungeonCanvas, s, 0., 0.)
+                    fixedDungeonOutlines.Add(s)
     dungeonTabs.SelectedIndex <- 8
+
+    let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    fqcb.IsChecked <- System.Nullable.op_Implicit true
+    fqcb.Checked.Add(fun _ -> fixedDungeonOutlines |> Seq.iter (fun s -> s.Opacity <- 1.0))
+    fqcb.Unchecked.Add(fun _ -> fixedDungeonOutlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
+    canvasAdd(c, fqcb, 360., THRU_TIMELINE_H) 
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
@@ -1153,7 +1161,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.owMapZoneImages.[i,j]
+            let image = OverworldData.owMapZoneImages.[i,j]
             image.Opacity <- 0.0
             image.IsHitTestVisible <- false // transparent to mouse
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
@@ -1206,8 +1214,8 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> Graphics.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.3) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    cb.Unchecked.Add(fun _ -> Graphics.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    cb.Checked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.3) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
+    cb.Unchecked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map                               
