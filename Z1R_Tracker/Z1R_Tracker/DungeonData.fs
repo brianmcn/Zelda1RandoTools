@@ -109,3 +109,113 @@ let l9q1 =
     |]
 
 let firstQuest = [| l1q1; l2q1; l3q1; l4q1; l5q1; l6q1; l7q1; l8q1; l9q1 |]
+
+let l1q2 =
+    [|
+        "...XX..."
+        "...XX..."
+        "...X...."
+        "...XX..."
+        "...XX..."
+        "...X...."
+        "...XX..."
+        "...XX..."
+    |]
+
+let l2q2 =
+    [|
+        "...X...."
+        "..XXX..."
+        "..XXX..."
+        "..XXX..."
+        "..XXX..."
+        "..XXX..."
+        "..X.X..."
+        "..X.X..."
+    |]
+
+let l3q2 =
+    [|
+        "........"
+        ".....X.."
+        "X....X.."
+        "X....X.."
+        ".....X.."
+        ".....X.."
+        ".....XX."
+        ".....XX."
+    |]
+
+let l4q2 =
+    [|
+        "..XXX..."
+        "..XXXX.."
+        "..XXXX.."
+        "..XXXX.."
+        "..XXXX.."
+        "..XXXX.."
+        "..XXXX.."
+        "..XXX..."
+    |]
+
+let l5q2 =
+    [|
+        "..XXX..."
+        "..XXX..."
+        "....X..."
+        "...XX..."
+        "..XX...."
+        "..X....."
+        "..XXX..."
+        "..XXX..."
+    |]
+
+let l6q2 =
+    [|
+        "....XXX."
+        "...XX.X."
+        "...XX.X."
+        "...XX.X."
+        "..XXX..."
+        ".XXXX..."
+        "...XX..."
+        "....X..."
+    |]
+
+let l7q2 =
+    [|
+        "........"
+        "..XXXXX."
+        "..X...X."
+        "..XXX.X."
+        "..XXX.X."
+        "..XXX.X."
+        "......X."
+        "XXXXXXX."
+    |]
+
+let l8q2 =
+    [|
+        "XXXXXXXX"
+        "XX.....X"
+        "XX...X.X"
+        "XX...X.X"
+        "XX...X.X"
+        "XX...X.X"
+        "XXXXXX.X"
+        ".......X"
+    |]
+
+let l9q2 =
+    [|
+        "XX....XX"
+        "XXXXXXXX"
+        "..XXXX.."
+        ".XXXXXX."
+        "XXXXXXXX"
+        "XXXXXXXX"
+        ".XXXXXX."
+        "...XX..."
+    |]
+
+let secondQuest = [| l1q2; l2q2; l3q2; l4q2; l5q2; l6q2; l7q2; l8q2; l9q2 |]

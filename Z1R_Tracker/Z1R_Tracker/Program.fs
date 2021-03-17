@@ -971,7 +971,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
 
     // Level trackers
-    let fixedDungeonOutlines = ResizeArray()
+    let fixedDungeon1Outlines = ResizeArray()
+    let fixedDungeon2Outlines = ResizeArray()
 
     let dungeonTabs = new TabControl()
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
@@ -1103,30 +1104,37 @@ let makeAll(isHeartShuffle,owMapNum) =
                 if i=6 && (j=6 || j=7) then
                     f false
                 *)
-        let fqd = DungeonData.firstQuest.[level-1]
-        // fixed dungeon drawing outlines - vertical segments
-        for i = 0 to 6 do
-            for j = 0 to 7 do
-                if fqd.[j].Chars(i) <> fqd.[j].Chars(i+1) then
-                    let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)+39+12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+j*(27+12)-12/2), Y2=float(TH+j*(27+12)+27+12/2), 
-                                    Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
-                    canvasAdd(dungeonCanvas, s, 0., 0.)
-                    fixedDungeonOutlines.Add(s)
-        // fixed dungeon drawing outlines - horizontal segments
-        for i = 0 to 7 do
-            for j = 0 to 6 do
-                if fqd.[j].Chars(i) <> fqd.[j+1].Chars(i) then
-                    let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)-12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+(j+1)*(27+12)-12/2), Y2=float(TH+(j+1)*(27+12)-12/2), 
-                                    Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
-                    canvasAdd(dungeonCanvas, s, 0., 0.)
-                    fixedDungeonOutlines.Add(s)
+        for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
+            // fixed dungeon drawing outlines - vertical segments
+            for i = 0 to 6 do
+                for j = 0 to 7 do
+                    if quest.[j].Chars(i) <> quest.[j].Chars(i+1) then
+                        let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)+39+12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+j*(27+12)-12/2), Y2=float(TH+j*(27+12)+27+12/2), 
+                                        Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
+                        canvasAdd(dungeonCanvas, s, 0., 0.)
+                        outlines.Add(s)
+            // fixed dungeon drawing outlines - horizontal segments
+            for i = 0 to 7 do
+                for j = 0 to 6 do
+                    if quest.[j].Chars(i) <> quest.[j+1].Chars(i) then
+                        let s = new System.Windows.Shapes.Line(X1=float(i*(39+12)-12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+(j+1)*(27+12)-12/2), Y2=float(TH+(j+1)*(27+12)-12/2), 
+                                        Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
+                        canvasAdd(dungeonCanvas, s, 0., 0.)
+                        outlines.Add(s)
     dungeonTabs.SelectedIndex <- 8
 
     let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    fqcb.IsChecked <- System.Nullable.op_Implicit true
-    fqcb.Checked.Add(fun _ -> fixedDungeonOutlines |> Seq.iter (fun s -> s.Opacity <- 1.0))
-    fqcb.Unchecked.Add(fun _ -> fixedDungeonOutlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
-    canvasAdd(c, fqcb, 360., THRU_TIMELINE_H) 
+    let sqcb = new CheckBox(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+
+    fqcb.IsChecked <- System.Nullable.op_Implicit false
+    fqcb.Checked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); sqcb.IsChecked <- System.Nullable.op_Implicit false)
+    fqcb.Unchecked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
+    canvasAdd(c, fqcb, 310., THRU_TIMELINE_H) 
+
+    sqcb.IsChecked <- System.Nullable.op_Implicit false
+    sqcb.Checked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); fqcb.IsChecked <- System.Nullable.op_Implicit false)
+    sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
+    canvasAdd(c, sqcb, 360., THRU_TIMELINE_H) 
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
