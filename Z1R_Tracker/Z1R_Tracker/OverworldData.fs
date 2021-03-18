@@ -135,7 +135,7 @@ let owMapSquaresMixedQuestAlwaysEmpty = [|
         yield s
     |]
 
-let owMapSquaresFirstQuestOnlyIfMixed = [|
+let owMapSquaresSecondQuestOnly = [|
     for i = 0 to 7 do
         let mutable s = ""
         for j = 0 to 15 do
@@ -146,7 +146,7 @@ let owMapSquaresFirstQuestOnlyIfMixed = [|
         yield s
     |]
 
-let owMapSquaresSecondQuestOnlyIfMixed = [|
+let owMapSquaresFirstQuestOnly = [|
     for i = 0 to 7 do
         let mutable s = ""
         for j = 0 to 15 do

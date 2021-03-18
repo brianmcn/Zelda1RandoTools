@@ -64,6 +64,7 @@ type MapState() =
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
     member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7   // dungeons, warps, swords, and shops
+    member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
         if state = -1 then
             null
@@ -395,6 +396,53 @@ let makeAll(isHeartShuffle,owMapNum) =
             if i < 8 then
                 mainTrackerCanvases.[i,j+2] <- c
 
+    // in mixed quest, buttons to hide first/second quest
+    let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
+    let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
+    let thereAreMarks(questOnlyInterestingMarks:_[,]) =
+        let mutable r = false
+        for x = 0 to 15 do 
+            for y = 0 to 7 do
+                if questOnlyInterestingMarks.[x,y] then
+                    r <- true
+        r
+    let mutable hideFirstQuestFromMixed = fun b -> ()
+    let mutable hideSecondQuestFromMixed = fun b -> ()
+
+    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
+    ToolTipService.SetShowDuration(hideFirstQuestCheckBox, 12000)
+    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    hideSecondQuestCheckBox.ToolTip <- "Hide Second Quest\nIn a mixed quest overworld tracker, shade out the second-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or first quest.\nCan't be used if you've marked a second-quest-only spot as having something."
+    ToolTipService.SetShowDuration(hideSecondQuestCheckBox, 12000)
+
+    hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    hideFirstQuestCheckBox.Checked.Add(fun _ -> 
+        if thereAreMarks(firstQuestOnlyInterestingMarks) then
+            System.Media.SystemSounds.Asterisk.Play()
+            hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        else
+            hideFirstQuestFromMixed false
+        hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        )
+    hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
+    if isMixed then
+        canvasAdd(c, hideFirstQuestCheckBox, 35., 100.) 
+
+    hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    hideSecondQuestCheckBox.Checked.Add(fun _ -> 
+        if thereAreMarks(secondQuestOnlyInterestingMarks) then
+            System.Media.SystemSounds.Asterisk.Play()
+            hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        else
+            hideSecondQuestFromMixed false
+        hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        )
+    hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
+    if isMixed then
+        canvasAdd(c, hideSecondQuestCheckBox, 160., 100.) 
+
+    // WANT!
     let kitty = new Image()
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
     kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
@@ -460,18 +508,20 @@ let makeAll(isHeartShuffle,owMapNum) =
         if isTimeline then
             timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
         c
-    let basicBoxImpl(img, changedFunc) =
-        veryBasicBoxImpl(img, false, true, changedFunc)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.brown_sword  , (fun _ -> ())), 0, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_candle  , (fun _ -> ())), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.blue_ring    , (fun _ -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl(Graphics.magical_sword, (fun b -> haveMagicalSword <- b; refreshOW(); recordering())), 1, 1)
+    let basicBoxImpl(tts, img, changedFunc) =
+        let c = veryBasicBoxImpl(img, false, true, changedFunc)
+        c.ToolTip <- tts
+        c
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword  , (fun _ -> ())), 0, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> ())), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> ())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword, (fun b -> haveMagicalSword <- b; refreshOW(); recordering())), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
-    canvasAdd(c, basicBoxImpl(Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
+    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    canvasAdd(c, basicBoxImpl(Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl(Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
 
     // ow map animation layer
     let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
@@ -515,6 +565,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, owOpaqueMapGrid, 0., 120.)
 
     // layer to place darkening icons - dynamic icons that are below route-drawing but above the fixed base layer
+    // this layer is also used to draw map icons that get drawn below routing, such as potion shops
     let owDarkeningMapGrid = makeGrid(16, 8, 16*3, 11*3)
     let owDarkeningMapGridCanvases = Array2D.zeroCreate 16 8
     owDarkeningMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -524,6 +575,48 @@ let makeAll(isHeartShuffle,owMapNum) =
             gridAdd(owDarkeningMapGrid, c, i, j)
             owDarkeningMapGridCanvases.[i,j] <- c
     canvasAdd(c, owDarkeningMapGrid, 0., 120.)
+
+    // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
+    let owHidingMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
+    owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            gridAdd(owHidingMapGrid, c, i, j)
+            owHidingMapGridCanvases.[i,j] <- c
+    canvasAdd(c, owHidingMapGrid, 0., 120.)
+    let hide(x,y) =
+        let hideColor = Brushes.DarkSlateGray // Brushes.Black
+        let hideOpacity = 0.6 // 0.4
+        let rect = new System.Windows.Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 7., 0.)
+        let rect = new System.Windows.Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 19., 0.)
+        let rect = new System.Windows.Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 32., 0.)
+    hideSecondQuestFromMixed <- 
+        (fun unhide ->  // make mixed appear reduced to 1st quest
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    // TODO handle mirror
+                    if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
+                        if unhide then
+                            owHidingMapGridCanvases.[x,y].Children.Clear()
+                        else
+                            hide(x,y)
+        )
+    hideFirstQuestFromMixed <-
+        (fun unhide ->   // make mixed appear reduced to 2nd quest
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    // TODO handle mirror
+                    if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
+                        if unhide then
+                            owHidingMapGridCanvases.[x,y].Children.Clear()
+                        else
+                            hide(x,y)
+        )
 
     // ow route drawing layer
     let routeDrawingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
@@ -711,6 +804,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                         updateOWSpotsRemain(1)
                     if prevNull && not(ms.Current()=null) then
                         updateOWSpotsRemain(-1)
+                    if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then  // TODO handle mirror
+                        secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
+                    if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then  // TODO handle mirror
+                        firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                     if needRecordering then
                         recordering()
                 owUpdateFunctions.[i,j] <- f
@@ -1102,7 +1199,9 @@ let makeAll(isHeartShuffle,owMapNum) =
     dungeonTabs.SelectedIndex <- 8
 
     let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    fqcb.ToolTip <- "Show vanilla first quest dungeon outlines"
     let sqcb = new CheckBox(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    sqcb.ToolTip <- "Show vanilla second quest dungeon outlines"
 
     fqcb.IsChecked <- System.Nullable.op_Implicit false
     fqcb.Checked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); sqcb.IsChecked <- System.Nullable.op_Implicit false)
@@ -1139,8 +1238,10 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
     let recorderAudioReminders = veryBasicBoxImpl(Graphics.recorder_audio_copy, true, false, fun b -> voiceRemindersForRecorder <- b)
+    recorderAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining recorder spots"
     canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
     let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_audio_copy, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
+    powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
 
     // zone overlay
