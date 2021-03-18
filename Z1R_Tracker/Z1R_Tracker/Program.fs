@@ -203,6 +203,8 @@ let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 560.
+let TLH = (1+9+5+9)*3  // timeline height
+let TH = 24 // text height
 let makeAll(isHeartShuffle,owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -223,7 +225,6 @@ let makeAll(isHeartShuffle,owMapNum) =
         else
             Graphics.allItems
     
-    let TH = 24 // text height
     let c = new Canvas()
     c.Width <- float(16*16*3)
 
@@ -974,9 +975,8 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
-
     let makeTimeline(leftText, rightText) = 
-        let timelineCanvas = new Canvas(Height=float(1+9+5+9)*3., Width=owMapGrid.Width)
+        let timelineCanvas = new Canvas(Height=float TLH, Width=owMapGrid.Width)
         let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
         canvasAdd(timelineCanvas, tb1, 0., 30.)
         let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
@@ -1305,8 +1305,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     cb.Unchecked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     canvasAdd(c, cb, 285., 100.)
 
-    //                items  ow map                               
-    c.Height <- float(30*4 + 11*3*9 + int timeline1Canvas.Height + int timeline2Canvas.Height + int timeline3Canvas.Height + 3 + int dungeonTabs.Height)
+    //                items  ow map   timeline    dungeon tabs                
+    c.Height <- float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30)
     c, updateTimeline
 
 
@@ -1384,23 +1384,57 @@ type MyWindowBase() as this =
 
 type MyWindow(isHeartShuffle,owMapNum) as this = 
     inherit MyWindowBase()
-    let canvas ,updateTimeline = makeAll(isHeartShuffle,owMapNum)
+    let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     let mutable ladderTime        = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime        starts in past, so that can instantly work at startup for debug testing
     let mutable recorderTime      = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // recorderTime      starts in past, so that can instantly work at startup for debug testing
     let mutable powerBraceletTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // powerBraceletTime starts in past, so that can instantly work at startup for debug testing
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    //                 items  ow map   timeline    dungeon tabs                
+    let HEIGHT = float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30) 
+    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the 16?)
     do
         timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Zelda 1 Randomizer"
-        this.Content <- canvas
-        canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL, 0.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
+        this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 1140.0
         this.Top <- 0.0
+        this.Width <- WIDTH
+        this.Height <- HEIGHT
+        let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
+        let tb = new TextBox(Text="Choose overworld quest:")
+        stackPanel.Children.Add(tb) |> ignore
+        let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true)
+        owQuest.ItemsSource <- [|
+                "First Quest"
+                "Second Quest"
+                "Mixed - First Quest"
+                "Mixed - Second Quest"
+            |]
+        owQuest.SelectedIndex <- owMapNum % 4
+        stackPanel.Children.Add(owQuest) |> ignore
+        let cb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true))
+        cb.IsChecked <- Nullable<_>(isHeartShuffle)
+        stackPanel.Children.Add(cb) |> ignore
+        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
+        stackPanel.Children.Add(tb) |> ignore
+        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true))
+        stackPanel.Children.Add(startButton) |> ignore
+        let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        hstackPanel.Children.Add(stackPanel) |> ignore
+        this.Content <- hstackPanel
+        startButton.Click.Add(fun _ -> 
+                let c,u = makeAll(cb.IsChecked.Value,owQuest.SelectedIndex)
+                canvas <- c
+                updateTimeline <- u
+                canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL, 0.)
+                if canvas.Height <> HEIGHT then
+                    failwith "bad height data"
+                this.Content <- canvas
+            )
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time
