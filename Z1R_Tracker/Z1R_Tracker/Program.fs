@@ -473,27 +473,6 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, basicBoxImpl(Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
     canvasAdd(c, basicBoxImpl(Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
 
-
-#if REMOVE_MIXED
-    // mixed overworld didnt work way I thought, this is probably not useful
-    let b1t = "Remove\nMixed\nSecret"
-    let b2t = "Turn\nOff\nRemoval"
-    let removalMode = ref false
-    let removeMixedButton = new Button(Content=b1t,FontSize=14.0,Background=Brushes.Gray,Foreground=Brushes.Black,BorderThickness=Thickness(3.0))
-    let toggleRemoval() = 
-        if !removalMode then
-            removalMode := false
-            System.Windows.Input.Mouse.OverrideCursor <- System.Windows.Input.Cursors.Arrow
-            removeMixedButton.Content <- b1t
-        else
-            removalMode := true
-            System.Windows.Input.Mouse.OverrideCursor <- System.Windows.Input.Cursors.No 
-            removeMixedButton.Content <- b2t
-    removeMixedButton.Click.Add(fun _ -> toggleRemoval())
-    if isMixed then
-        canvasAdd(c, removeMixedButton, OFFSET+130., 10.)
-#endif
-
     // ow map animation layer
     let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
                                   AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
@@ -553,7 +532,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
-    let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
+    let owUpdateFunctions = Array2D.create 16 8 (fun _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
 (*
         // when originally was full rectangle (which badly obscured routing paths)
@@ -637,10 +616,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                                             (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
                 if isPowerBraceletable then
                     owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
-                let f delta setToX =
+                let f delta =
                     let mutable needRecordering = false
                     let prevNull = ms.Current()=null
-                    if setToX || delta <> 0 then  // we are changing this grid spot...
+                    if delta <> 0 then  // we are changing this grid spot...
                         if ms.IsDungeon then
                             needRecordering <- true
                             if ms.State <=7 then
@@ -668,8 +647,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
-                    let icon = if setToX then ms.SetStateToX() else 
-                                if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
+                    let icon = if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
@@ -737,32 +715,15 @@ let makeAll(isHeartShuffle,owMapNum) =
                         recordering()
                 owUpdateFunctions.[i,j] <- f
                 c.MouseLeftButtonDown.Add(fun _ -> 
-#if REMOVE_MIXED
-                    if !removalMode then
-                        toggleRemoval()
-                        if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].[i]='X' && Graphics.owMapSquaresSecondQuestAlwaysEmpty.[j].[i]<>'X' then
-                            // want first quest only
-                            for x = 0 to 15 do
-                                for y = 0 to 7 do
-                                    if Graphics.owMapSquaresFirstQuestOnlyIfMixed.[y].[x] = 'X' then
-                                        owUpdateFunctions.[x,y] true true
-                        if Graphics.owMapSquaresFirstQuestAlwaysEmpty.[j].[i]<>'X' && Graphics.owMapSquaresSecondQuestAlwaysEmpty.[j].[i]='X' then
-                            // want second quest only
-                            for x = 0 to 15 do
-                                for y = 0 to 7 do
-                                    if Graphics.owMapSquaresSecondQuestOnlyIfMixed.[y].[x] = 'X' then
-                                        owUpdateFunctions.[x,y] true true
-                    else
-#endif
-                        f 1 false
+                        f 1
                 )
-                c.MouseRightButtonDown.Add(fun _ -> f -1 false)
-                c.MouseWheel.Add(fun x -> f (if x.Delta<0 then 1 else -1) false)
+                c.MouseRightButtonDown.Add(fun _ -> f -1)
+                c.MouseWheel.Add(fun x -> f (if x.Delta<0 then 1 else -1))
     updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
     refreshOW <- fun () -> 
         (
-            owUpdateFunctions |> Array2D.iter (fun f -> f 0 false)
+            owUpdateFunctions |> Array2D.iter (fun f -> f 0)
             owRouteworthySpots.[15,5] <- haveLadder && not haveCoastItem // gettable coast item is routeworthy // TODO handle mirror overworld 
         )
     refreshRouteDrawing <- fun () -> 
