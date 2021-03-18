@@ -164,6 +164,8 @@ let foundDungeonAnnouncmentCheck() =
                 do! Async.SwitchToThreadPool()
                 if curFound = 1 then
                     voice.Speak("You have located one dungeon") 
+                elif curFound = 8 then
+                    voice.Speak("Congratulations, you have located all 8 dungeons") 
                 else
                     voice.Speak(sprintf "You have located %d dungeons" curFound) 
         } |> Async.Start
@@ -268,6 +270,15 @@ let makeAll(isHeartShuffle,owMapNum) =
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new TimelineItem(innerc, (fun()->triforces.[i])))
     let hearts = whichItems.[14..]
+    let remindShortly(f, text:string) =
+        let cxt = System.Threading.SynchronizationContext.Current 
+        async { 
+            do! Async.Sleep(30000)  // 30s
+            do! Async.SwitchToContext(cxt)
+            if f() then
+                do! Async.SwitchToThreadPool()
+                voice.Speak(text) 
+        } |> Async.Start
     let boxItemImpl(dungeonIndex, isCoastItem, isWhiteSwordItem) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -294,6 +305,9 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) then
                 haveLadder <- obj.Equals(rect.Stroke, yes)
+                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the ladder")
+            if obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke,yes) then
+                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the any key")
             if obj.Equals(is.Current(), Graphics.power_bracelet) then
                 havePowerBracelet <- obj.Equals(rect.Stroke, yes)
             if obj.Equals(is.Current(), Graphics.raft) then
@@ -326,6 +340,9 @@ let makeAll(isHeartShuffle,owMapNum) =
                 recordering()
             if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
                 haveLadder <- true
+                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the ladder")
+            if obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke,yes) then
+                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the any key")
             if obj.Equals(is.Current(), Graphics.power_bracelet) && obj.Equals(rect.Stroke,yes) then
                 havePowerBracelet <- true
             if obj.Equals(is.Current(), Graphics.raft) && obj.Equals(rect.Stroke,yes) then
@@ -978,7 +995,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
     canvasAdd(c, dungeonTabs , 0., THRU_TIMELINE_H)
     for level = 1 to 9 do
-        let levelTab = new TabItem(Background=System.Windows.Media.Brushes.Black)
+        let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
 
