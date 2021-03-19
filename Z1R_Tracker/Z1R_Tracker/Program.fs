@@ -190,11 +190,6 @@ type TimelineItem(c:Canvas, isDone:unit->bool) =
             false
     member this.IsDone() = isDone()
 
-type OWQuest = 
-    | FIRST
-    | SECOND
-    | MIXED
-
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable startIconX, startIconY = -1, -1
@@ -208,16 +203,16 @@ let TH = 24 // text height
 let makeAll(isHeartShuffle,owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
-    let owMapBMPs, owAlwaysEmpty, isReflected, isMixed, owQuest =
+    let owMapBMPs, isReflected, isMixed, owInstance =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), OverworldData.owMapSquaresFirstQuestAlwaysEmpty , false, false, FIRST
-        | 1 -> Graphics.overworldMapBMPs(1), OverworldData.owMapSquaresSecondQuestAlwaysEmpty, false, false, SECOND
-        | 2 -> Graphics.overworldMapBMPs(2), OverworldData.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
-        | 3 -> Graphics.overworldMapBMPs(3), OverworldData.owMapSquaresMixedQuestAlwaysEmpty , false, true, MIXED
-        | 4 -> Graphics.overworldMapBMPs(4), OverworldData.owMapSquaresFirstQuestAlwaysEmpty  |> Array.map stringReverse, true, false, FIRST
-        | 5 -> Graphics.overworldMapBMPs(5), OverworldData.owMapSquaresSecondQuestAlwaysEmpty |> Array.map stringReverse, true, false, SECOND
-        | 6 -> Graphics.overworldMapBMPs(6), OverworldData.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
-        | 7 -> Graphics.overworldMapBMPs(7), OverworldData.owMapSquaresMixedQuestAlwaysEmpty  |> Array.map stringReverse, true, true, MIXED
+        | 0 -> Graphics.overworldMapBMPs(0), false, false, new OverworldData.OverworldInstance(OverworldData.FIRST)
+        | 1 -> Graphics.overworldMapBMPs(1), false, false, new OverworldData.OverworldInstance(OverworldData.SECOND)
+        | 2 -> Graphics.overworldMapBMPs(2), false, true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
+        | 3 -> Graphics.overworldMapBMPs(3), false, true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
+        | 4 -> Graphics.overworldMapBMPs(4), true, false,  new OverworldData.OverworldInstance(OverworldData.FIRST)
+        | 5 -> Graphics.overworldMapBMPs(5), true, false,  new OverworldData.OverworldInstance(OverworldData.SECOND)
+        | 6 -> Graphics.overworldMapBMPs(6), true, true,   new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
+        | 7 -> Graphics.overworldMapBMPs(7), true, true,   new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
     let whichItems = 
         if isHeartShuffle then
@@ -557,7 +552,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             canvasAdd(c, rightShade, float(15*3), 0.)
             // permanent icons
             let ms = new MapState()
-            if owAlwaysEmpty.[j].Chars(i) = 'X' then
+            if owInstance.AlwaysEmpty(i,j) then  // TODO handle mirror
                 let icon = ms.Prev()
                 owCurrentState.[i,j] <- ms.State 
                 owSpotsRemain <- owSpotsRemain - 1
@@ -696,18 +691,16 @@ let makeAll(isHeartShuffle,owMapNum) =
                                       routeDrawingCanvas.Children.Clear())
             // icon
             let ms = new MapState()
-            if owAlwaysEmpty.[j].Chars(i) = 'X' then
+            if owInstance.AlwaysEmpty(i,j) then // TODO handle mirror
                 () // already set up as permanent opaque layer, in code above
             else
-                let isRaftable = (OverworldData.owMapSquaresRaftable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
-                let isLadderable = (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestLadderable.[j].Chars(i) = 'X')  // TODO? handle mirror overworld
-                let isWhistleable = (owQuest<>SECOND && OverworldData.owMapSquaresFirstQuestWhistleable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
-                                        (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestWhistleable.[j].Chars(i) = 'X')
+                let isRaftable = owInstance.Raftable(i,j) // TODO? handle mirror overworld
+                let isLadderable = owInstance.Ladderable(i,j) // TODO? handle mirror overworld
+                let isWhistleable = owInstance.Whistleable(i,j)  // TODO? handle mirror overworld
                 if isWhistleable then
                     drawWhistleableHighlight(c,0.,0)
                     owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
-                let isPowerBraceletable = (owQuest<>SECOND && OverworldData.owMapSquaresFirstQuestPowerBraceletable.[j].Chars(i) = 'X') ||  // TODO? handle mirror overworld
-                                            (owQuest<>FIRST && OverworldData.owMapSquaresSecondQuestPowerBraceletable.[j].Chars(i) = 'X')
+                let isPowerBraceletable = owInstance.PowerBraceletable(i,j) // TODO? handle mirror overworld
                 if isPowerBraceletable then
                     owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                 let f delta =
@@ -1392,8 +1385,8 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
     let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
                 AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     //                 items  ow map   timeline    dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30) 
-    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the 16?)
+    let HEIGHT = float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
+    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
         timeTextBox <- hmsTimeTextBox
         // full window
@@ -1431,8 +1424,6 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
                 canvas <- c
                 updateTimeline <- u
                 canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL, 0.)
-                if canvas.Height <> HEIGHT then
-                    failwith "bad height data"
                 this.Content <- canvas
             )
     override this.Update(f10Press) =
