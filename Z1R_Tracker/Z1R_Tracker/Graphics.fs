@@ -53,8 +53,15 @@ let zhDungeonNums =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
     new System.Drawing.Bitmap(imageStream)
     
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book, recorder_audio_copy = 
+let makeVBrect(image) =
+    // we need a point of indirection to swap the book and magical_shield icons, so a VisualBrush where we can poke the Visual works
+    let vb = new VisualBrush(Visual=image, Opacity=1.0)
+    let rect = new System.Windows.Shapes.Rectangle(Height=21., Width=21., Fill=vb)
+    rect
+// most of these need object identity for logic checks 
+let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book, recorder_audio_copy, magic_shield_image, book_image = 
     let zh = fullZHelper
+    let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
     let items = 
         [|
         for i = 0 to 8 do
@@ -67,8 +74,8 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 bmp.MakeTransparent(System.Drawing.Color.Black)
                 yield bmp
         |]
-    BMPtoImage items.[0], BMPtoImage items.[1], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[6], BMPtoImage items.[8], 
-        BMPtoImage items.[10], BMPtoImage items.[12], BMPtoImage items.[14], BMPtoImage items.[15], BMPtoImage items.[16], BMPtoImage items.[17],
+    makeObject items.[0], makeObject items.[1], makeObject items.[2], makeObject items.[4], makeObject items.[6], makeObject items.[8], 
+        makeObject items.[10], makeObject items.[12], makeObject items.[14], makeObject items.[15], makeObject items.[16], makeObject items.[17],
         (
         let bmp = new System.Drawing.Bitmap(7*3,7*3)
         // book
@@ -81,9 +88,9 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 bmp.SetPixel(px, py, System.Drawing.Color.Blue)
         bmp.SetPixel(10, 12, System.Drawing.Color.White)
         bmp.SetPixel(11, 11, System.Drawing.Color.White)
-        BMPtoImage bmp
+        makeObject bmp
         ),
-        BMPtoImage items.[8]
+        makeObject items.[8], BMPtoImage items.[7], BMPtoImage items.[14]
 
 let mutable heart_container_bmp = null
 let heart_container, power_bracelet, white_sword, ow_key_armos, power_bracelet_audio_copy = 
@@ -101,7 +108,7 @@ let heart_container, power_bracelet, white_sword, ow_key_armos, power_bracelet_a
                 yield bmp
         |]
     heart_container_bmp <- items.[0]
-    BMPtoImage items.[0], BMPtoImage items.[2], BMPtoImage items.[4], BMPtoImage items.[3], BMPtoImage items.[2]
+    makeVBrect(BMPtoImage items.[0]), makeVBrect(BMPtoImage items.[2]), makeVBrect(BMPtoImage items.[4]), BMPtoImage items.[3], BMPtoImage items.[2]
 let copyHeartContainer() =
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
     for i = 0 to 20 do
@@ -111,7 +118,7 @@ let copyHeartContainer() =
 
 let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword; heart_container |]
 let allItemsWithHeartShuffle = 
-    [| yield! allItems; for i = 0 to 7 do yield copyHeartContainer() |]
+    [| yield! allItems; for i = 0 to 7 do yield makeVBrect(copyHeartContainer()) |]
 
 let ow_key_white_sword = 
     let zh = fullZHelper

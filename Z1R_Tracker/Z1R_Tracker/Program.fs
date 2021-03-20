@@ -24,7 +24,7 @@ let makeGrid(nc, nr, cw, rh) =
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
-type ItemState(whichItems:Image[]) =
+type ItemState(whichItems:FrameworkElement[]) =
     let mutable state = -1
     member this.Current() =
         if state = -1 then
@@ -219,6 +219,14 @@ let makeAll(isHeartShuffle,owMapNum) =
             Graphics.allItemsWithHeartShuffle 
         else
             Graphics.allItems
+    let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
+    let isCurrentlyBook = ref true
+    let toggleBookMagicalShield() =
+        if !isCurrentlyBook then
+            bookOrMagicalShieldVB.Visual <- Graphics.magic_shield_image 
+        else
+            bookOrMagicalShieldVB.Visual <- Graphics.book_image
+        isCurrentlyBook := not !isCurrentlyBook
     
     let c = new Canvas()
     c.Width <- float(16*16*3)
@@ -285,7 +293,7 @@ let makeAll(isHeartShuffle,owMapNum) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        let is = new ItemState(whichItems)
+        let is = new ItemState(whichItems |> Array.map (fun x -> upcast x))
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
@@ -330,7 +338,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 haveRaft <- false
             if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
                 updateTotalHearts(-1)
-            innerc.Children.Remove(is.Current())
+            innerc.Children.Clear()
             canvasAdd(innerc, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
             if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
                 haveRecorder <- true
@@ -518,6 +526,14 @@ let makeAll(isHeartShuffle,owMapNum) =
     // mark the dungeon wins on timeline via ganon/zelda boxes
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
     canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+
+    // shield versus book icon (for boomstick flags/seeds)
+    let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    toggleBookShieldCheckBox.ToolTip <- "Shield item icon instead of book item icon"
+    toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    toggleBookShieldCheckBox.Checked.Add(fun _ -> toggleBookMagicalShield())
+    toggleBookShieldCheckBox.Unchecked.Add(fun _ -> toggleBookMagicalShield())
+    canvasAdd(c, toggleBookShieldCheckBox, OFFSET+150., 0.)
 
     // ow map animation layer
     let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
@@ -1423,7 +1439,7 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
                 let c,u = makeAll(cb.IsChecked.Value,owQuest.SelectedIndex)
                 canvas <- c
                 updateTimeline <- u
-                canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL, 0.)
+                canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL+40., 0.)
                 this.Content <- canvas
             )
     override this.Update(f10Press) =
