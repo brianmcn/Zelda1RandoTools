@@ -802,7 +802,6 @@ let makeAll(isHeartShuffle,owMapNum) =
                         drawWarpHighlight(canvasToDrawOn,0.,0)
                         currentAnyRoadDestinations.Add((i,j)) |> ignore
                         needRecordering <- true // any roads update route drawing
-                        owRouteworthySpots.[i,j] <- true  // an any road is routeworthy
                     if ms.Current()=null then
                         if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) || (isLadderable && not haveLadder) then
                             ()
