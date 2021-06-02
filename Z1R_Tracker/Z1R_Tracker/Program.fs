@@ -1251,6 +1251,25 @@ let makeAll(isHeartShuffle,owMapNum) =
     let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_audio_copy, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
     powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
+    // coordinate grid
+    let owCoordsGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owCoordsTBs = Array2D.zeroCreate 16 8
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1), Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
+                                    FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold)
+            tb.Opacity <- 0.0
+            tb.IsHitTestVisible <- false // transparent to mouse
+            owCoordsTBs.[i,j] <- tb
+            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            canvasAdd(c, tb, 2., 6.)
+            let i = if isReflected then 15-i else i
+            gridAdd(owCoordsGrid, c, i, j)
+    canvasAdd(c, owCoordsGrid, 0., 120.)
+    let showCoords = new TextBox(Text="Hover coords")
+    canvasAdd(c, showCoords, RIGHT_COL + 140., 90.)
+    showCoords.MouseEnter.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
+    showCoords.MouseLeave.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
 
     // zone overlay
     let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
