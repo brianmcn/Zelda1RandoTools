@@ -1264,7 +1264,7 @@ let makeAll(isHeartShuffle,owMapNum) =
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
             let i = if isReflected then 15-i else i
-            gridAdd(owCoordsGrid, c, i, j)
+            gridAdd(owCoordsGrid, c, i, j) 
     canvasAdd(c, owCoordsGrid, 0., 120.)
     let showCoords = new TextBox(Text="Hover coords")
     canvasAdd(c, showCoords, RIGHT_COL + 140., 90.)
