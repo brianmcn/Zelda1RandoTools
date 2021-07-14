@@ -49,10 +49,31 @@ type ItemState(whichItems:FrameworkElement[]) =
     member this.Next() = this.Impl(true)
     member this.Prev() = this.Impl(false)
 
+let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
+let mapStatePhrases = [|
+        "sword three"
+        "sword two"
+        "blue ring shop"
+        "meat shop"
+        "key shop"
+        "candle shop"
+        "book shop"
+        "bomb shop"
+        "arrow shop"
+        "take any"
+        "potion shop"
+        "money"
+        |]
+let wakePhrase = "tracker set"
+speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases)); gb))
 type MapState() =
     let mutable state = -1
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
+    member this.SetStateTo(phrase:string) =
+        let phrase = phrase.Substring(wakePhrase.Length+1)
+        state <- U+NU-1-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
+        this.Current()
     member this.SetStateToX() =   // sets to final state ('X' icon)
         state <- U+NU-1
         this.Current()
@@ -637,7 +658,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
-    let owUpdateFunctions = Array2D.create 16 8 (fun _ -> ())
+    let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
 (*
         // when originally was full rectangle (which badly obscured routing paths)
@@ -686,6 +707,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let drawWhistleableHighlight(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
         canvasAdd(c, rect, x*float(16*3)+1., float(y*11*3)+1.)
+    let mutable mostRecentMouseEnterTime = DateTime.Now 
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
@@ -700,9 +722,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                                         // draw routes if desired
                                         if true then // TODO - do i want this always on?
                                             OverworldRouting.drawPaths(routeDrawingCanvas, owRouteworthySpots, ea.GetPosition(c), i, j)
-                                        // track current location for F5 purposes
+                                        // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
-                                        currentlyMousedOWY <- j)
+                                        currentlyMousedOWY <- j
+                                        mostRecentMouseEnterTime <- DateTime.Now)
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                       routeDrawingCanvas.Children.Clear())
             // icon
@@ -719,7 +742,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 let isPowerBraceletable = owInstance.PowerBraceletable(i,j) // TODO? handle mirror overworld
                 if isPowerBraceletable then
                     owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
-                let f delta =
+                let updateGridSpot delta phrase =
                     let mutable needRecordering = false
                     let prevNull = ms.Current()=null
                     if delta <> 0 then  // we are changing this grid spot...
@@ -750,7 +773,8 @@ let makeAll(isHeartShuffle,owMapNum) =
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
-                    let icon = if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
+                    let icon = if delta = 777 then (if prevNull then ms.SetStateTo(phrase) else ms.Current()) else
+                                if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
@@ -819,17 +843,23 @@ let makeAll(isHeartShuffle,owMapNum) =
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                     if needRecordering then
                         recordering()
-                owUpdateFunctions.[i,j] <- f
+                owUpdateFunctions.[i,j] <- updateGridSpot 
                 c.MouseLeftButtonDown.Add(fun _ -> 
-                        f 1
+                        updateGridSpot 1 ""
                 )
-                c.MouseRightButtonDown.Add(fun _ -> f -1)
-                c.MouseWheel.Add(fun x -> f (if x.Delta<0 then 1 else -1))
+                c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
+                c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
+    speechRecognizer.SpeechRecognized.Add(fun r ->
+        if DateTime.Now - mostRecentMouseEnterTime < System.TimeSpan.FromSeconds(10.0) then
+            c.Dispatcher.Invoke(fun () -> 
+                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
+                )
+        )
     updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
     refreshOW <- fun () -> 
         (
-            owUpdateFunctions |> Array2D.iter (fun f -> f 0)
+            owUpdateFunctions |> Array2D.iter (fun f -> f 0 "")
             owRouteworthySpots.[15,5] <- haveLadder && not haveCoastItem // gettable coast item is routeworthy // TODO handle mirror overworld 
         )
     refreshRouteDrawing <- fun () -> 
@@ -1266,10 +1296,14 @@ let makeAll(isHeartShuffle,owMapNum) =
             let i = if isReflected then 15-i else i
             gridAdd(owCoordsGrid, c, i, j) 
     canvasAdd(c, owCoordsGrid, 0., 120.)
-    let showCoords = new TextBox(Text="Hover coords")
-    canvasAdd(c, showCoords, RIGHT_COL + 140., 90.)
-    showCoords.MouseEnter.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
-    showCoords.MouseLeave.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
+    let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let cb = new CheckBox(Content=showCoords)
+    cb.IsChecked <- System.Nullable.op_Implicit false
+    cb.Checked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
+    cb.Unchecked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
+    showCoords.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
+    showCoords.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
+    canvasAdd(c, cb, RIGHT_COL + 140., 100.)
 
     // zone overlay
     let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
@@ -1459,6 +1493,8 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
                 updateTimeline <- u
                 canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL+40., 0.)
                 this.Content <- canvas
+                speechRecognizer.SetInputToDefaultAudioDevice()
+                speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
             )
     override this.Update(f10Press) =
         base.Update(f10Press)
