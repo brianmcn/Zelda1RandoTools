@@ -143,7 +143,6 @@ let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., 
 let haveAnnouncedHearts = Array.zeroCreate 17
 let updateTotalHearts(x) = 
     playerHearts <- playerHearts + x
-    //printfn "curent hearts = %d" playerHearts
     currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" playerHearts
     if playerHearts >=4 && playerHearts <= 6 && not haveAnnouncedHearts.[playerHearts] then
         haveAnnouncedHearts.[playerHearts] <- true
