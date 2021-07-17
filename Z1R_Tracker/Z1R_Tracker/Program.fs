@@ -72,7 +72,12 @@ type MapState() =
     let NU = Graphics.nonUniqueMapIconBMPs.Length
     member this.SetStateTo(phrase:string) =
         let phrase = phrase.Substring(wakePhrase.Length+1)
-        state <- U+NU-1-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
+        let newState = U+NU-1-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
+        if newState >=0 && newState < U && Graphics.uniqueMapIcons.[newState].Parent <> null then
+            // unique, already placed on map, ignore command
+            ()
+        else
+            state <- newState
         this.Current()
     member this.SetStateToX() =   // sets to final state ('X' icon)
         state <- U+NU-1
@@ -121,7 +126,7 @@ let mutable havePowerBracelet = false
 let mutable haveRaft = false
 let mutable haveMagicalSword = false
 let mutable playerHearts = 3  // start with 3
-let mutable owSpotsRemain = -1
+let mutable owSpotsRemain = -1 
 let mutable owWhistleSpotsRemain = 0
 let mutable owPreviouslyAnnouncedWhistleSpotsRemain = 0
 let mutable owPowerBraceletSpotsRemain = 0
@@ -772,8 +777,10 @@ let makeAll(isHeartShuffle,owMapNum) =
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
-                    let icon = if delta = 777 then (if prevNull then ms.SetStateTo(phrase) else ms.Current()) else
-                                if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
+                    let icon =  if delta = 777 then 
+                                    (if prevNull then ms.SetStateTo(phrase) else ms.Current()) 
+                                else
+                                    if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
                     owCurrentState.[i,j] <- ms.State 
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
@@ -1628,7 +1635,7 @@ let main argv =
         printfn "crashed with exception"
         printfn "%s" (e.ToString())
         printfn "press enter to end"
-        System.Console.ReadLine() |> ignore
 #endif
-
+    System.Console.WriteLine("press a key to quit")
+    System.Console.ReadLine() |> ignore
     0
