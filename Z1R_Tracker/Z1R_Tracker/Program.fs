@@ -674,6 +674,7 @@ let makeAll(isHeartShuffle,owMapNum) =
 
     // ow map
     let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
 (*
@@ -862,15 +863,19 @@ let makeAll(isHeartShuffle,owMapNum) =
                     if needRecordering then
                         recordering()
                 owUpdateFunctions.[i,j] <- updateGridSpot 
+                owCanvases.[i,j] <- c
                 c.MouseLeftButtonDown.Add(fun _ -> 
                         updateGridSpot 1 ""
                 )
                 c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
-        if DateTime.Now - mostRecentMouseEnterTime < System.TimeSpan.FromSeconds(20.0) then
+        let timeDiff = DateTime.Now - mostRecentMouseEnterTime
+        if timeDiff < System.TimeSpan.FromSeconds(20.0) && timeDiff > System.TimeSpan.FromSeconds(1.0) then
             c.Dispatcher.Invoke(fun () -> 
-                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
+                    let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
+                    if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
+                        owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
                 )
         )
     updateOWSpotsRemain(0)
@@ -1513,6 +1518,20 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
                 this.Content <- canvas
                 speechRecognizer.SetInputToDefaultAudioDevice()
                 speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
+                    let ex = e.Exception
+                    printfn "An unhandled exception from UI thread:"
+                    printfn "%s" (ex.ToString())
+                    printfn "press Enter to end"
+                    System.Console.ReadLine() |> ignore
+                    )
+                System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
+                    let ex = e.ExceptionObject
+                    printfn "An unhandled exception from background thread:"
+                    printfn "%s" (ex.ToString())
+                    printfn "press Enter to end"
+                    System.Console.ReadLine() |> ignore
+                    )
             )
     override this.Update(f10Press) =
         base.Update(f10Press)
@@ -1646,8 +1665,7 @@ let main argv =
     with e ->
         printfn "crashed with exception"
         printfn "%s" (e.ToString())
-        printfn "press enter to end"
 #endif
-    System.Console.WriteLine("press a key to quit")
+    printfn "press enter to end"
     System.Console.ReadLine() |> ignore
     0
