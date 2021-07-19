@@ -51,6 +51,7 @@ type ItemState(whichItems:FrameworkElement[]) =
 
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 let mapStatePhrases = [|
+        "any road"
         "sword three"
         "sword two"
         "blue ring shop"
@@ -76,6 +77,17 @@ type MapState() =
         if newState >=0 && newState < U && Graphics.uniqueMapIcons.[newState].Parent <> null then
             // unique, already placed on map, ignore command
             ()
+        elif newState=12 then // any road
+            if Graphics.uniqueMapIcons.[9].Parent = null then
+                state <- 9
+            elif Graphics.uniqueMapIcons.[10].Parent = null then
+                state <- 10
+            elif Graphics.uniqueMapIcons.[11].Parent = null then
+                state <- 11
+            elif Graphics.uniqueMapIcons.[12].Parent = null then
+                state <- 12
+            else
+                () // all 4 any roads placed, do nothing
         else
             state <- newState
         this.Current()
@@ -856,7 +868,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
-        if DateTime.Now - mostRecentMouseEnterTime < System.TimeSpan.FromSeconds(10.0) then
+        if DateTime.Now - mostRecentMouseEnterTime < System.TimeSpan.FromSeconds(20.0) then
             c.Dispatcher.Invoke(fun () -> 
                 owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
                 )
