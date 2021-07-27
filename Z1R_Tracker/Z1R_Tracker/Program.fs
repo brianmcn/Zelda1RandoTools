@@ -1512,8 +1512,8 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
         hstackPanel.Children.Add(stackPanel) |> ignore
         this.Content <- hstackPanel
         startButton.Click.Add(fun _ -> 
-                let c,u = makeAll(cb.IsChecked.Value,owQuest.SelectedIndex)
-//                let c,u = WPFUI.makeAll(owQuest.SelectedIndex)  // new TrackerModel & WPFUI decoupled implementation, under construction
+//                let c,u = makeAll(cb.IsChecked.Value,owQuest.SelectedIndex)
+                let c,u = WPFUI.makeAll(owQuest.SelectedIndex)  // new TrackerModel & WPFUI decoupled implementation, under construction
                 canvas <- c
                 updateTimeline <- u
                 canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL+40., 0.)
@@ -1578,6 +1578,9 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
         if f5WasRecentlyPressed then
             startIconX <- currentlyMousedOWX
             startIconY <- currentlyMousedOWY
+            TrackerModel.startIconX <- WPFUI.currentlyMousedOWX
+            TrackerModel.startIconY <- WPFUI.currentlyMousedOWY
+            TrackerModel.forceUpdate()
             f5WasRecentlyPressed <- false
             recordering()
 

@@ -292,11 +292,6 @@ do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
 // TODO listen changes, e.g. found dungeons, found S2/S3, any roads, whislteable/powerbraceletable/remain, routeworthy, and of course just updating the UI to display the mark
 // Note UI responsible for triggering owMapMarksHaveChanged when scrolling any map marker - no its not, the choice domain will know of changes
-let initMap(owInstance:OverworldData.OverworldInstance) =
-    for i = 0 to 15 do
-        for j = 0 to 7 do
-            if owInstance.AlwaysEmpty(i,j) then  // TODO handle mirror
-                overworldMapMarks.[i,j].Prev()   // set to 'X'
 let NOTFOUND = (-1,-1)
 type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
@@ -318,7 +313,7 @@ let recomputeMapStateSummary() =
     let anyRoadLocations = Array.create 4 NOTFOUND
     let mutable sword3Location = NOTFOUND
     let mutable sword2Location = NOTFOUND
-    let mutable owSpotsRemain = 0 // TODO events for changes, UI displays number
+    let mutable owSpotsRemain = 0
     let owGettableLocations = ResizeArray()
     let owWhistleSpotsRemain = ResizeArray()
     let mutable owPowerBraceletSpotsRemain = 0
@@ -369,25 +364,39 @@ let recomputeMapStateSummary() =
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime <- System.DateTime.Now
+let initializeAll(instance:OverworldData.OverworldInstance) =
+    owInstance <- instance
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            if owInstance.AlwaysEmpty(i,j) then  // TODO handle mirror
+                overworldMapMarks.[i,j].Prev()   // set to 'X'
+    recomputeMapStateSummary()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 let recomputeWhatIsNeeded() =
+    let mutable changed = false
     if playerProgressLastChangedTime > playerComputedStateSummaryLastComputedTime ||
         dungeonsAndBoxesLastChangedTime > playerComputedStateSummaryLastComputedTime then
         recomputePlayerStateSummary()
+        changed <- true
     if playerComputedStateSummaryLastComputedTime > mapStateSummaryLastComputedTime ||
         mapLastChangedTime > mapStateSummaryLastComputedTime then
         recomputeMapStateSummary()
+        changed <- true
+    changed
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Other minor bits
     
 let mutable shieldBook = false // if true, boomstick seed - no eventing here, UI should synchronously swap shield/book icons
-let startIconX,startIconY = NOTFOUND  // UI can poke and display these
+let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these
 
 
-
+let forceUpdate() = 
+    // UI can force an update for a few bits that we don't model well yet
+    // TODO
+    mapLastChangedTime <- System.DateTime.Now
                 
 
 
@@ -420,7 +429,7 @@ type ITrackerEvents =
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
     abstract PowerBraceletableSpotsRemaining : int -> unit
-    abstract RoutingInfo : bool*bool*(int*int)[]*(int*int)[]*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
+    abstract RoutingInfo : bool*bool*seq<int*int>*seq<int*int>*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
     // dungeons
     abstract AnnounceCompletedDungeon : int -> unit
     abstract CompletedDungeons : bool[] -> unit     // for current shading
@@ -448,7 +457,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             ite.AnnounceConsiderSword3()
     // map
     ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain)
-    for d = 0 to 7 do
+    for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d] <> NOTFOUND then
             let x,y = mapStateSummary.DungeonLocations.[d]
             ite.DungeonLocation(d, x, y, dungeons.[d].PlayerHasTriforce(), dungeons.[d].IsComplete)
@@ -501,7 +510,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         remindedLadder <- true
     if not remindedAnyKey && playerComputedStateSummary.HaveAnyKey then
         ite.RemindShortly(ITEMS.KEY)
-        remindedLadder <- true
+        remindedAnyKey <- true
 
 
 

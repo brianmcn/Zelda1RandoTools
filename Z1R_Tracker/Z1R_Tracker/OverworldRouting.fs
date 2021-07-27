@@ -292,8 +292,8 @@ let populateDynamic(ladder, raft, currentRecorderWarpDestinations,currentAnyRoad
     st, d
 let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray())
 let mutable adjacencyDictSansWarps = new System.Collections.Generic.Dictionary<_,_>()
-let mutable recorderDests = ResizeArray()
-let mutable anyRoads = new System.Collections.Generic.HashSet<_>()
+let mutable recorderDests : seq<int*int> = upcast ResizeArray()
+let mutable anyRoads : seq<int*int> = upcast ResizeArray()
 let repopulate(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads) =
     recorderDests <- currentRecorderWarpDestinations
     anyRoads <- currentAnyRoads

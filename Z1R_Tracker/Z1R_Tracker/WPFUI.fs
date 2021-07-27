@@ -101,8 +101,7 @@ let makeAll(owMapNum) =
         | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
         | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
-    TrackerModel.recomputeMapStateSummary() // a bit of a kludge to init data
-    TrackerModel.owInstance <- owInstance
+    TrackerModel.initializeAll(owInstance)
     let whichItems = Graphics.allItemsWithHeartShuffle 
     let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
     let isCurrentlyBook = ref true
@@ -486,7 +485,7 @@ let makeAll(owMapNum) =
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
                                         // draw routes
-// TODO                                        OverworldRouting.drawPaths(routeDrawingCanvas, owRouteworthySpots, ea.GetPosition(c), i, j)
+                                        OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, ea.GetPosition(c), i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -542,11 +541,6 @@ let makeAll(owMapNum) =
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
                     if ms.IsWarp then
                         drawWarpHighlight(canvasToDrawOn,0.,0)
-(* TODO
-                            // unexplored but gettable spots highlight
-                            if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
-                                canvasAdd(canvasToDrawOn, owRemainSpotHighlighters.[i,j], 0., 0.)
-*)
                     if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
                         secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                     if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
@@ -569,51 +563,26 @@ let makeAll(owMapNum) =
                 )
         )
     canvasAdd(c, owMapGrid, 0., 120.)
-(* TODO
-    refreshRouteDrawing <- fun () -> 
-        (
-        routeDrawingCanvas.Children.Clear()
-        OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
-        )
-*)
 
     let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
-(* TODO
-    recordering <- (fun () ->
-        refreshRouteDrawing()
-        // highlight 9 after get all triforce
-        if Array.forall id triforces then
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if owCurrentState.[x,y] = 8 then
-                        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                        rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
-                        canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-        // place start icon in top layer
-        if startIconX <> -1 then
-            canvasAdd(recorderingCanvas, startIcon, 8.5+float(startIconX*16*3), float(startIconY*11*3))
-    )
-*)
-
 
 // TODO figure out where this should go
-    let timer = new System.Windows.Threading.DispatcherTimer()
-    timer.Interval <- TimeSpan.FromSeconds(1.0)
-    timer.Tick.Add(fun _ -> 
-// TODO buffer changes, right now e.g. scrolling past dungeons announces finding one        
-        TrackerModel.recomputeWhatIsNeeded()  
-// TODO found/not-found may need an update, only have event for found, hmm
-        //if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
-        //    updateEmptyTriforceDisplay(i)
+    let doUIUpdate() =
+        // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
+        for i = 0 to 7 do
+            if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
+                updateEmptyTriforceDisplay(i)
         recorderingCanvas.Children.Clear()
+        // place start icon in top layer
+        if TrackerModel.startIconX <> -1 then
+            canvasAdd(recorderingCanvas, startIcon, 8.5+float(TrackerModel.startIconX*16*3), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
             member _this.AnnounceConsiderSword2() = async { voice.Speak("Consider getting the white sword item") } |> Async.Start
             member _this.AnnounceConsiderSword3() = async { voice.Speak("Consider the magical sword") } |> Async.Start
-// TODO init wrong number            
             member _this.OverworldSpotsRemaining(n) = (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" n 
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
@@ -621,20 +590,31 @@ let makeAll(owMapNum) =
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
                     // highlight any triforce dungeons as recorder warp destinations
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+                // highlight 9 after get all triforce
+                if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
+                    let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
+                    canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = () // TODO is there anything to do?
             member _this.WhistleableLocation(x,y) =
                 drawWhistleableHighlight(recorderingCanvas,float x,y)
             member _this.Sword3(x,y) = 
                 if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-// TODO i keep restarting the animation every event update
                     rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.Sword2(x,y) = () // TODO anything?
 // TODO periodic announce
             member _this.PowerBraceletableSpotsRemaining(n) = () 
-// TODO            
-            member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = () 
+            member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
+                routeDrawingCanvas.Children.Clear()
+                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
+                // unexplored but gettable spots highlight
+                if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
+                    for x = 0 to 15 do
+                        for y = 0 to 7 do
+                            if owRouteworthySpots.[x,y] && TrackerModel.overworldMapMarks.[x,y].Current() = -1 then
+                                canvasAdd(recorderingCanvas, owRemainSpotHighlighters.[x,y], float(x*16*3), float(y*11*3))
             member _this.AnnounceCompletedDungeon(i) = async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
@@ -657,9 +637,37 @@ let makeAll(owMapNum) =
                     async { voice.Speak("You now have one triforce") } |> Async.Start
                 else
                     async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
-// TODO
-            member _this.RemindShortly(itemId) = () 
+            member _this.RemindShortly(itemId) = 
+                let f, g, text =
+                    if itemId = TrackerModel.ITEMS.KEY then
+                        (fun() -> TrackerModel.playerComputedStateSummary.HaveAnyKey), (fun() -> TrackerModel.remindedAnyKey <- false), "Don't forget that you have the any key"
+                    elif itemId = TrackerModel.ITEMS.LADDER then
+                        (fun() -> TrackerModel.playerComputedStateSummary.HaveLadder), (fun() -> TrackerModel.remindedLadder <- false), "Don't forget that you have the ladder"
+                    else
+                        failwith "bad reminder"
+                let cxt = System.Threading.SynchronizationContext.Current 
+                async { 
+                    do! Async.Sleep(6000)  // 60s
+                    do! Async.SwitchToContext(cxt)
+                    if f() then
+                        do! Async.SwitchToThreadPool()
+                        voice.Speak(text) 
+                    else
+                        g()
+                } |> Async.Start
             })
+    let timer = new System.Windows.Threading.DispatcherTimer()
+    timer.Interval <- TimeSpan.FromSeconds(1.0)
+    timer.Tick.Add(fun _ -> 
+        let threshold = TimeSpan.FromMilliseconds(500.0)
+        let hasUISettledDown = 
+            DateTime.Now - TrackerModel.playerProgressLastChangedTime > threshold &&
+            DateTime.Now - TrackerModel.dungeonsAndBoxesLastChangedTime > threshold &&
+            DateTime.Now - TrackerModel.mapLastChangedTime > threshold
+        if hasUISettledDown then
+            let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
+            if hasTheModelChanged then
+                doUIUpdate()
         )
     timer.Start()
 
@@ -965,8 +973,8 @@ let makeAll(owMapNum) =
     canvasAdd(c, cb, RIGHT_COL, 60.)
     // remaining OW spots
     canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 80.)
-// TODO    owRemainingScreensCheckBox.Checked.Add(fun _ -> refreshOW())
-// TODO    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> refreshOW())
+    owRemainingScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
+    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
