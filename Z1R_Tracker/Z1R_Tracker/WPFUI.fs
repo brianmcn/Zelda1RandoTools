@@ -1,4 +1,6 @@
-﻿open System
+﻿module WPFUI
+
+open System
 open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
@@ -6,49 +8,6 @@ open System.Windows.Media
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let mutable voiceRemindersForRecorder = true
 let mutable voiceRemindersForPowerBracelet = true
-
-let canvasAdd(c:Canvas, item, left, top) =
-    if item <> null then
-        c.Children.Add(item) |> ignore
-        Canvas.SetTop(item, top)
-        Canvas.SetLeft(item, left)
-let gridAdd(g:Grid, x, c, r) =
-    g.Children.Add(x) |> ignore
-    Grid.SetColumn(x, c)
-    Grid.SetRow(x, r)
-let makeGrid(nc, nr, cw, rh) =
-    let grid = new Grid()
-    for i = 0 to nc do
-        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
-    for i = 0 to nr do
-        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
-    grid
-
-type ItemState(whichItems:FrameworkElement[]) =
-    let mutable state = -1
-    member this.Current() =
-        if state = -1 then
-            null
-        else
-            whichItems.[state]
-    member private this.Impl(forward) = 
-        if forward then 
-            state <- state + 1
-        else
-            state <- state - 1
-        if state < -1 then
-            state <- whichItems.Length-1
-        if state >= whichItems.Length then
-            state <- -1
-        if state <> -1 && whichItems.[state].Parent <> null then
-            if forward then this.Next() else this.Prev()
-        elif state = -1 then
-            null
-        else
-            whichItems.[state]
-    member this.Next() = this.Impl(true)
-    member this.Prev() = this.Impl(false)
-
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 let mapStatePhrases = [|
         "any road"
@@ -67,33 +26,10 @@ let mapStatePhrases = [|
         |]
 let wakePhrase = "tracker set"
 speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases)); gb))
-type MapState() =
-    let mutable state = -1
+
+type MapStateProxy(state) =
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
-    member this.SetStateTo(phrase:string) =
-        let phrase = phrase.Substring(wakePhrase.Length+1)
-        let newState = U+NU-1-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
-        if newState >=0 && newState < U && Graphics.uniqueMapIcons.[newState].Parent <> null then
-            // unique, already placed on map, ignore command
-            ()
-        elif newState=12 then // any road
-            if Graphics.uniqueMapIcons.[9].Parent = null then
-                state <- 9
-            elif Graphics.uniqueMapIcons.[10].Parent = null then
-                state <- 10
-            elif Graphics.uniqueMapIcons.[11].Parent = null then
-                state <- 11
-            elif Graphics.uniqueMapIcons.[12].Parent = null then
-                state <- 12
-            else
-                () // all 4 any roads placed, do nothing
-        else
-            state <- newState
-        this.Current()
-    member this.SetStateToX() =   // sets to final state ('X' icon)
-        state <- U+NU-1
-        this.Current()
     member this.State = state
     member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
@@ -110,109 +46,29 @@ type MapState() =
             Graphics.uniqueMapIcons.[state]
         else
             Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
-    member private this.Impl(forward) = 
-        if forward then 
-            state <- state + 1
-        else
-            state <- state - 1
-        if state < -1 then
-            state <- U+NU-1
-        if state >= U+NU then
-            state <- -1
-        if state >=0 && state < U && Graphics.uniqueMapIcons.[state].Parent <> null then
-            if forward then this.Next() else this.Prev()
-        else this.Current()
-    member this.Next() = this.Impl(true)
-    member this.Prev() = this.Impl(false)
 
-let mutable recordering = fun() -> ()
-let mutable refreshOW = fun() -> ()
-let mutable refreshRouteDrawing = fun() -> ()
-let currentRecorderWarpDestinations = ResizeArray()
-let currentAnyRoadDestinations = new System.Collections.Generic.HashSet<_>()
-let mutable haveRecorder = false
-let mutable haveLadder = false
-let mutable haveCoastItem = false
-let mutable haveWhiteSwordItem = false
-let mutable havePowerBracelet = false
-let mutable haveRaft = false
-let mutable haveMagicalSword = false
-let mutable playerHearts = 3  // start with 3
-let mutable owSpotsRemain = -1 
-let mutable owWhistleSpotsRemain = 0
-let mutable owPreviouslyAnnouncedWhistleSpotsRemain = 0
-let mutable owPowerBraceletSpotsRemain = 0
-let mutable owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0
-let triforces = Array.zeroCreate 8   // bools - do we have this triforce
-let foundDungeon = Array.zeroCreate 8   // bools - have we found this dungeon yet (based on overworld marks)
-let completedDungeon = Array.zeroCreate 8   // bools - do we have all items (and triforce) from this dungeon
-let mutable previouslyAnnouncedFoundDungeonCount = 0
-let mutable foundWhiteSwordLocation = false
-let mutable foundMagicalSwordLocation = false
+let canvasAdd(c:Canvas, item, left, top) =
+    if item <> null then
+        c.Children.Add(item) |> ignore
+        Canvas.SetTop(item, top)
+        Canvas.SetLeft(item, left)
+let gridAdd(g:Grid, x, c, r) =
+    g.Children.Add(x) |> ignore
+    Grid.SetColumn(x, c)
+    Grid.SetRow(x, r)
+let makeGrid(nc, nr, cw, rh) =
+    let grid = new Grid()
+    for i = 0 to nc do
+        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
+    for i = 0 to nr do
+        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
+    grid
+
 let triforceInnerCanvases = Array.zeroCreate 8
-let owRouteworthySpots = Array2D.create 16 8 false
-let owCurrentState = Array2D.create 16 8 -1
-let dungeonRemains = [| 4; 3; 3; 3; 3; 3; 3; 4 |]
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black, Opacity=0.4))
-let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" playerHearts)
-let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" owSpotsRemain))
-let haveAnnouncedHearts = Array.zeroCreate 17
-let updateTotalHearts(x) = 
-    playerHearts <- playerHearts + x
-    currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" playerHearts
-    if playerHearts >=4 && playerHearts <= 6 && not haveAnnouncedHearts.[playerHearts] then
-        haveAnnouncedHearts.[playerHearts] <- true
-        if not haveWhiteSwordItem && foundWhiteSwordLocation then
-            async { voice.Speak("Consider getting the white sword item") } |> Async.Start
-    if playerHearts >=10 && playerHearts <= 14 && not haveAnnouncedHearts.[playerHearts] then
-        haveAnnouncedHearts.[playerHearts] <- true
-        if not haveMagicalSword && foundMagicalSwordLocation then
-            async { voice.Speak("Consider the magical sword") } |> Async.Start
-    if not haveMagicalSword && foundMagicalSwordLocation then
-        recordering() // make sword3 blink if gettable
-let updateOWSpotsRemain(delta) = 
-    owSpotsRemain <- owSpotsRemain + delta
-    (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" owSpotsRemain
-let updateDungeon(dungeonIndex, itemDiff) =
-    if dungeonIndex >= 0 && dungeonIndex < 8 then
-        let priorComplete = dungeonRemains.[dungeonIndex] = 0
-        dungeonRemains.[dungeonIndex] <- dungeonRemains.[dungeonIndex] + itemDiff
-        if not priorComplete && dungeonRemains.[dungeonIndex] = 0 then
-            completedDungeon.[dungeonIndex] <- true
-            recordering()
-            async { voice.Speak(sprintf "Dungeon %d is complete" (dungeonIndex+1)) } |> Async.Start
-            for j = 0 to 3 do
-                mainTrackerCanvases.[dungeonIndex,j].Children.Add(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
-        elif priorComplete && not(dungeonRemains.[dungeonIndex] = 0) then
-            completedDungeon.[dungeonIndex] <- false
-            recordering()
-            for j = 0 to 3 do
-                mainTrackerCanvases.[dungeonIndex,j].Children.Remove(mainTrackerCanvasShaders.[dungeonIndex,j]) |> ignore
-let foundDungeonAnnouncmentCheck() =
-    let curFound = (foundDungeon |> FSharp.Collections.Array.filter id).Length 
-    let cxt = System.Threading.SynchronizationContext.Current 
-    if curFound > previouslyAnnouncedFoundDungeonCount then
-        async { 
-            do! Async.Sleep(5000) // might just be scrolling by, see if still true 5s later
-            do! Async.SwitchToContext(cxt)
-            let curFound = (foundDungeon |> FSharp.Collections.Array.filter id).Length 
-            if curFound > previouslyAnnouncedFoundDungeonCount then
-                previouslyAnnouncedFoundDungeonCount <- curFound 
-                do! Async.SwitchToThreadPool()
-                if curFound = 1 then
-                    voice.Speak("You have located one dungeon") 
-                elif curFound = 8 then
-                    voice.Speak("Congratulations, you have located all 8 dungeons") // TODO should be 9
-                else
-                    voice.Speak(sprintf "You have located %d dungeons" curFound) 
-        } |> Async.Start
-let debug() =
-    for j = 0 to 7 do
-        for i = 0 to 15 do
-            printf "%3d " owCurrentState.[i,j]
-        printfn ""
-    printfn ""
+let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
 
 type TimelineItem(c:Canvas, isDone:unit->bool) =
     member this.Canvas = c
@@ -229,33 +85,25 @@ type TimelineItem(c:Canvas, isDone:unit->bool) =
 
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
-let mutable startIconX, startIconY = -1, -1
-
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 560.
 let TLH = (1+9+5+9)*3  // timeline height
 let TH = 24 // text height
-let makeAll(isHeartShuffle,owMapNum) =
+let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
-    let owMapBMPs, isReflected, isMixed, owInstance =
+    let owMapBMPs, isMixed, owInstance =
         match owMapNum with
-        | 0 -> Graphics.overworldMapBMPs(0), false, false, new OverworldData.OverworldInstance(OverworldData.FIRST)
-        | 1 -> Graphics.overworldMapBMPs(1), false, false, new OverworldData.OverworldInstance(OverworldData.SECOND)
-        | 2 -> Graphics.overworldMapBMPs(2), false, true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
-        | 3 -> Graphics.overworldMapBMPs(3), false, true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
-        | 4 -> Graphics.overworldMapBMPs(4), true, false,  new OverworldData.OverworldInstance(OverworldData.FIRST)
-        | 5 -> Graphics.overworldMapBMPs(5), true, false,  new OverworldData.OverworldInstance(OverworldData.SECOND)
-        | 6 -> Graphics.overworldMapBMPs(6), true, true,   new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
-        | 7 -> Graphics.overworldMapBMPs(7), true, true,   new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
+        | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.FIRST)
+        | 1 -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.SECOND)
+        | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
+        | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
-    let whichItems = 
-        if isHeartShuffle then
-            Graphics.allItemsWithHeartShuffle 
-        else
-            Graphics.allItems
+    TrackerModel.recomputeMapStateSummary() // a bit of a kludge to init data
+    TrackerModel.owInstance <- owInstance
+    let whichItems = Graphics.allItemsWithHeartShuffle 
     let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
     let isCurrentlyBook = ref true
     let toggleBookMagicalShield() =
@@ -277,7 +125,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let updateEmptyTriforceDisplay(i) =
         let innerc : Canvas = triforceInnerCanvases.[i]
         innerc.Children.Clear()
-        innerc.Children.Add(if not foundDungeon.[i] then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
+        innerc.Children.Add(if TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
     for i = 0 to 7 do
         let image = Graphics.emptyUnfoundTriforces.[i]
         let c = new Canvas(Width=30., Height=30.)
@@ -287,30 +135,15 @@ let makeAll(isHeartShuffle,owMapNum) =
         c.Children.Add(innerc) |> ignore
         canvasAdd(innerc, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
-            if not triforces.[i] then 
+            if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then 
                 innerc.Children.Clear()
                 innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
-                triforces.[i] <- true
-                if (triforces |> FSharp.Collections.Array.forall id) && not haveMagicalSword then
-                    async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
-                else
-                    let n = (triforces |> FSharp.Collections.Array.filter id).Length
-                    if n = 1 then
-                        async { voice.Speak("You now have one triforce") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
-                updateDungeon(i, -1)
-                refreshOW()
-                recordering()
             else 
                 updateEmptyTriforceDisplay(i)
-                triforces.[i] <- false
-                updateDungeon(i, +1)
-                refreshOW()
-                recordering()
+            TrackerModel.dungeons.[i].ToggleTriforce()
         )
         gridAdd(mainTracker, c, i, 0)
-        timelineItems.Add(new TimelineItem(innerc, (fun()->triforces.[i])))
+        timelineItems.Add(new TimelineItem(innerc, (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
     let hearts = whichItems.[14..]
     let remindShortly(f, text:string) =
         let cxt = System.Threading.SynchronizationContext.Current 
@@ -321,7 +154,7 @@ let makeAll(isHeartShuffle,owMapNum) =
                 do! Async.SwitchToThreadPool()
                 voice.Speak(text) 
         } |> Async.Start
-    let boxItemImpl(dungeonIndex, isCoastItem, isWhiteSwordItem) = 
+    let boxItemImpl(box:TrackerModel.Box) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -330,112 +163,38 @@ let makeAll(isHeartShuffle,owMapNum) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        let is = new ItemState(whichItems |> Array.map (fun x -> upcast x))
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
-                updateDungeon(dungeonIndex, -1)
-                if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
-                    updateTotalHearts(1)
             else
                 rect.Stroke <- no
-                updateDungeon(dungeonIndex, +1)
-                if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) then
-                    updateTotalHearts(-1)
-            if obj.Equals(is.Current(), Graphics.recorder) then
-                haveRecorder <- obj.Equals(rect.Stroke, yes)
-                recordering()
-            if obj.Equals(is.Current(), Graphics.ladder) then
-                haveLadder <- obj.Equals(rect.Stroke, yes)
-                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the ladder")
-            if obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke,yes) then
-                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the any key")
-            if obj.Equals(is.Current(), Graphics.power_bracelet) then
-                havePowerBracelet <- obj.Equals(rect.Stroke, yes)
-            if obj.Equals(is.Current(), Graphics.raft) then
-                haveRaft <- obj.Equals(rect.Stroke, yes)
-            if isCoastItem then
-                haveCoastItem <- obj.Equals(rect.Stroke, yes)
-            if isWhiteSwordItem then
-                haveWhiteSwordItem <- obj.Equals(rect.Stroke, yes)
-            // almost any change might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
-            refreshOW()  
-            refreshRouteDrawing()
+            box.TogglePlayerHas()
         )
         // item
         c.MouseWheel.Add(fun x -> 
-            if obj.Equals(is.Current(), Graphics.recorder) && haveRecorder then
-                haveRecorder <- false
-                recordering()
-            if obj.Equals(is.Current(), Graphics.ladder) && haveLadder then
-                haveLadder <- false
-            if obj.Equals(is.Current(), Graphics.power_bracelet) && havePowerBracelet then
-                havePowerBracelet <- false
-            if obj.Equals(is.Current(), Graphics.raft) && haveRaft then
-                haveRaft <- false
-            if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
-                updateTotalHearts(-1)
             innerc.Children.Clear()
-            canvasAdd(innerc, (if x.Delta<0 then is.Next() else is.Prev()), 4., 4.)
-            if obj.Equals(is.Current(), Graphics.recorder) && obj.Equals(rect.Stroke,yes) then
-                haveRecorder <- true
-                recordering()
-            if obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke,yes) then
-                haveLadder <- true
-                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.ladder) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the ladder")
-            if obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke,yes) then
-                remindShortly((fun() ->(obj.Equals(is.Current(), Graphics.key) && obj.Equals(rect.Stroke, yes))), "Don't forget that you have the any key")
-            if obj.Equals(is.Current(), Graphics.power_bracelet) && obj.Equals(rect.Stroke,yes) then
-                havePowerBracelet <- true
-            if obj.Equals(is.Current(), Graphics.raft) && obj.Equals(rect.Stroke,yes) then
-                haveRaft <- true
-            if hearts |> Array.exists(fun x -> obj.Equals(is.Current(), x)) && obj.Equals(rect.Stroke, yes) then
-                updateTotalHearts(1)
-            if obj.Equals(rect.Stroke, yes) then
-                // almost any change to an obtained object might affect completed-dungeons state, requiring overworld refresh for routeworthy-ness
-                refreshOW()  
-                refreshRouteDrawing()
+            if x.Delta<0 then
+                box.CellNext()
+            else
+                box.CellPrev()
+            let mutable i = box.CellCurrent()
+            // find unique heart FrameworkElement to display
+            while i>=14 && whichItems.[i].Parent<>null do
+                i <- i + 1
+            let fe = if i = -1 then null else whichItems.[i]
+            canvasAdd(innerc, fe, 4., 4.)
         )
         timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
         c
-    let boxItem(dungeonIndex) = 
-        boxItemImpl(dungeonIndex,false,false)
-    // floor hearts
-    if isHeartShuffle then
-        for i = 0 to 7 do
-            let c = boxItem(i)
-            mainTrackerCanvases.[i,1] <- c
-            gridAdd(mainTracker, c, i, 1)
-    else
-        for i = 0 to 7 do
-            let image = Graphics.emptyHearts.[i]
-            let c = new Canvas(Width=30., Height=30.)
-            mainTrackerCanvases.[i,1] <- c
-            canvasAdd(c, image, 0., 0.)
-            c.MouseDown.Add(fun _ -> 
-                if c.Children.Contains(Graphics.emptyHearts.[i]) then 
-                    c.Children.Clear()
-                    c.Children.Add(Graphics.fullHearts.[i]) |> ignore 
-                    updateTotalHearts(+1)
-                    updateDungeon(i, -1)
-                else 
-                    c.Children.Clear()
-                    c.Children.Add(Graphics.emptyHearts.[i]) |> ignore
-                    updateTotalHearts(-1)
-                    updateDungeon(i, +1)
-            )
-            gridAdd(mainTracker, c, i, 1)
-            timelineItems.Add(new TimelineItem(c, fun()->c.Children.Contains(Graphics.fullHearts.[i])))
-
     // items
     for i = 0 to 8 do
-        for j = 0 to 1 do
+        for j = 0 to 2 do
             let mutable c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-            if j=0 || (i=0 || i=7 || i=8) then
-                c <- boxItem(i)
-                gridAdd(mainTracker, c, i, j+2)
+            if j=0 || j=1 || (i=0 || i=7) then
+                c <- boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j])
+                gridAdd(mainTracker, c, i, j+1)
             if i < 8 then
-                mainTrackerCanvases.[i,j+2] <- c
+                mainTrackerCanvases.[i,j+1] <- c
 
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -504,14 +263,12 @@ let makeAll(isHeartShuffle,owMapNum) =
             c.Children.Clear()
             let next = (cur + (if b then 1 else -1) + 3) % 3
             canvasAdd(c, (  if next = 0 then 
-                                updateTotalHearts(0-(if cur=1 then 1 else 0))
                                 Graphics.owHeartsEmpty.[i] 
                             elif next = 1 then 
-                                updateTotalHearts(1-(if cur=1 then 1 else 0))
                                 Graphics.owHeartsFull.[i] 
                             else 
-                                updateTotalHearts(0-(if cur=1 then 1 else 0))
                                 Graphics.owHeartsSkipped.[i]), 0., 0.)
+            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i,next)
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
@@ -523,9 +280,9 @@ let makeAll(isHeartShuffle,owMapNum) =
     gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
     gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
-    gridAdd(owItemGrid, boxItemImpl(-1,true,false), 1, 0)
-    gridAdd(owItemGrid, boxItemImpl(-1,false,false), 1, 1)
-    gridAdd(owItemGrid, boxItemImpl(-1,false,true), 1, 2)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox), 1, 0)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox), 1, 1)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(2, 2, 30, 30)
@@ -553,16 +310,16 @@ let makeAll(isHeartShuffle,owMapNum) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword  , (fun _ -> ())), 0, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> ())), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword, (fun b -> haveMagicalSword <- b; refreshOW(); recordering())), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 0, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 1, 1)
     canvasAdd(c, owItemGrid, OFFSET+90., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
-    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> ())), OFFSET+120., 0.)
+    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> ())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -590,7 +347,6 @@ let makeAll(isHeartShuffle,owMapNum) =
     let X_OPACITY = 0.4
     let owOpaqueMapGrid = makeGrid(16, 8, 16*3, 11*3)
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    owSpotsRemain <- 16*8
     for i = 0 to 15 do
         for j = 0 to 7 do
             let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
@@ -604,11 +360,8 @@ let makeAll(isHeartShuffle,owMapNum) =
             let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
             canvasAdd(c, rightShade, float(15*3), 0.)
             // permanent icons
-            let ms = new MapState()
-            if owInstance.AlwaysEmpty(i,j) then  // TODO handle mirror
-                let icon = ms.Prev()
-                owCurrentState.[i,j] <- ms.State 
-                owSpotsRemain <- owSpotsRemain - 1
+            if owInstance.AlwaysEmpty(i,j) then
+                let icon = Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(c, owOpaqueMapGrid, 0., 120.)
@@ -677,11 +430,7 @@ let makeAll(isHeartShuffle,owMapNum) =
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
-(*
-        // when originally was full rectangle (which badly obscured routing paths)
-        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.Yellow, StrokeThickness = 3.)
-        canvasAdd(c, rect, x*float(16*3)+2., float(y*11*3)+2.)
-*)
+        // full rectangles badly obscure routing paths, so we just draw corners
         let L1,L2,R1,R2 = 0.0, 16.0, 28.0, 44.0
         let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
         let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
@@ -736,9 +485,8 @@ let makeAll(isHeartShuffle,owMapNum) =
             // highlight mouse, do mouse-sensitive stuff
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
-                                        // draw routes if desired
-                                        if true then // TODO - do i want this always on?
-                                            OverworldRouting.drawPaths(routeDrawingCanvas, owRouteworthySpots, ea.GetPosition(c), i, j)
+                                        // draw routes
+// TODO                                        OverworldRouting.drawPaths(routeDrawingCanvas, owRouteworthySpots, ea.GetPosition(c), i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -746,42 +494,10 @@ let makeAll(isHeartShuffle,owMapNum) =
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                       routeDrawingCanvas.Children.Clear())
             // icon
-            let ms = new MapState()
-            if owInstance.AlwaysEmpty(i,j) then // TODO handle mirror
+            if owInstance.AlwaysEmpty(i,j) then
                 () // already set up as permanent opaque layer, in code above
             else
-                let isRaftable = owInstance.Raftable(i,j) // TODO? handle mirror overworld
-                let isLadderable = owInstance.Ladderable(i,j) // TODO? handle mirror overworld
-                let isWhistleable = owInstance.Whistleable(i,j)  // TODO? handle mirror overworld
-                if isWhistleable then
-                    drawWhistleableHighlight(c,0.,0)
-                    owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
-                let isPowerBraceletable = owInstance.PowerBraceletable(i,j) // TODO? handle mirror overworld
-                if isPowerBraceletable then
-                    owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                 let updateGridSpot delta phrase =
-                    let mutable needRecordering = false
-                    let prevNull = ms.Current()=null
-                    if delta <> 0 then  // we are changing this grid spot...
-                        if ms.IsDungeon then
-                            needRecordering <- true
-                            if ms.State <=7 then
-                                foundDungeon.[ms.State] <- false
-                                if not triforces.[ms.State] then 
-                                    updateEmptyTriforceDisplay(ms.State)
-                        if ms.IsWarp then
-                            needRecordering <- true // any roads update route drawing
-                            currentAnyRoadDestinations.Remove((i,j)) |> ignore
-                        if ms.IsSword3 then
-                            foundMagicalSwordLocation <- false
-                            needRecordering <- true  // unblink
-                        if ms.IsSword2 then
-                            foundWhiteSwordLocation <- false
-                        if isWhistleable && ms.State = -1 then
-                            owWhistleSpotsRemain <- owWhistleSpotsRemain - 1
-                        if isPowerBraceletable && ms.State = -1 then
-                            owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain - 1
-                    owRouteworthySpots.[i,j] <- false  // this always gets recomputed below
                     // cant remove-by-identity because of non-uniques; remake whole canvas
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
@@ -790,15 +506,23 @@ let makeAll(isHeartShuffle,owMapNum) =
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
-                    let icon =  if delta = 777 then 
-                                    (if prevNull then ms.SetStateTo(phrase) else ms.Current()) 
-                                else
-                                    if delta = 1 then ms.Next() elif delta = -1 then ms.Prev() elif delta = 0 then ms.Current() else failwith "bad delta"
-                    owCurrentState.[i,j] <- ms.State 
+                    if delta = 777 then 
+// TODO                                    (if prevNull then ms.SetStateTo(phrase) else ms.Current()) 
+                                    ()
+                    else
+                                    if delta = 1 then
+                                        TrackerModel.overworldMapMarks.[i,j].Next()
+                                    elif delta = -1 then 
+                                        TrackerModel.overworldMapMarks.[i,j].Prev() 
+                                    elif delta = 0 then 
+                                        ()
+                                    else failwith "bad delta"
+                    let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                    let icon = ms.Current()
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
-                            if not ms.IsDungeon || (ms.State < 8 && completedDungeon.[ms.State]) then
+                            if not ms.IsDungeon || (ms.State < 8 && TrackerModel.dungeons.[ms.State].IsComplete) then
                                 drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)  // completed dungeons, warps, and shops get a darkened background in layer below routing
                             c
                         else
@@ -813,55 +537,20 @@ let makeAll(isHeartShuffle,owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
-                    else
-                        // spot is unmarked, note for remain counts
-                        if isWhistleable then
-                            drawWhistleableHighlight(canvasToDrawOn,0.,0)
-                            if delta <> 0 then
-                                owWhistleSpotsRemain <- owWhistleSpotsRemain + 1
-                        if isPowerBraceletable && delta<>0 then
-                            owPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain + 1
                     canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
-                        needRecordering <- true
-                        if ms.State <=7 then
-                            foundDungeon.[ms.State] <- true
-                            foundDungeonAnnouncmentCheck()
-                            if not triforces.[ms.State] then 
-                                updateEmptyTriforceDisplay(ms.State)
-                            if not completedDungeon.[ms.State] then 
-                                owRouteworthySpots.[i,j] <- true  // an uncompleted dungeon is routeworthy
-                        if ms.State = 8 && Array.forall id triforces then
-                            owRouteworthySpots.[i,j] <- true  // dungeon 9 is routeworthy if have all triforces
-                    if ms.IsSword3 then
-                        foundMagicalSwordLocation <- true
-                        needRecordering <- true // may need to make it blink
-                        if not haveMagicalSword then
-                            owRouteworthySpots.[i,j] <- true  // needed mags is routeworthy
-                    if ms.IsSword2 then
-                        foundWhiteSwordLocation <- true
                     if ms.IsWarp then
                         drawWarpHighlight(canvasToDrawOn,0.,0)
-                        currentAnyRoadDestinations.Add((i,j)) |> ignore
-                        needRecordering <- true // any roads update route drawing
-                    if ms.Current()=null then
-                        if (isWhistleable && not haveRecorder) || (isPowerBraceletable && not havePowerBracelet) || (isRaftable && not haveRaft) || (isLadderable && not haveLadder) then
-                            ()
-                        else
-                            owRouteworthySpots.[i,j] <- true  // an unexplored spot is routeworthy
+(* TODO
+                            // unexplored but gettable spots highlight
                             if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
                                 canvasAdd(canvasToDrawOn, owRemainSpotHighlighters.[i,j], 0., 0.)
-                    if not prevNull && ms.Current()=null then
-                        updateOWSpotsRemain(1)
-                    if prevNull && not(ms.Current()=null) then
-                        updateOWSpotsRemain(-1)
-                    if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then  // TODO handle mirror
+*)
+                    if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
                         secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                    if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then  // TODO handle mirror
+                    if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                    if needRecordering then
-                        recordering()
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
                 c.MouseLeftButtonDown.Add(fun _ -> 
@@ -879,108 +568,22 @@ let makeAll(isHeartShuffle,owMapNum) =
                             owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
                 )
         )
-    updateOWSpotsRemain(0)
     canvasAdd(c, owMapGrid, 0., 120.)
-    refreshOW <- fun () -> 
-        (
-            owUpdateFunctions |> Array2D.iter (fun f -> f 0 "")
-            owRouteworthySpots.[15,5] <- haveLadder && not haveCoastItem // gettable coast item is routeworthy // TODO handle mirror overworld 
-        )
+(* TODO
     refreshRouteDrawing <- fun () -> 
         (
         routeDrawingCanvas.Children.Clear()
         OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
         )
-
-    refreshOW()  // initialize owRouteworthySpots
-
-    // map barriers
-    let makeLineCore(x1, x2, y1, y2) = 
-        let line = new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.White, StrokeThickness=3.)
-        line.IsHitTestVisible <- false // transparent to mouse
-        line
-    let makeLine(x1, x2, y1, y2) = 
-        if isReflected then
-            makeLineCore(16-x1, 16-x2, y1, y2)
-        else
-            makeLineCore(x1,x2,y1,y2)
-(*
-    canvasAdd(c, makeLine(0,4,2,2), 0., 120.)
-    canvasAdd(c, makeLine(2,2,1,3), 0., 120.)
-    canvasAdd(c, makeLine(4,4,0,1), 0., 120.)
-    canvasAdd(c, makeLine(4,7,1,1), 0., 120.)
-    canvasAdd(c, makeLine(8,10,1,1), 0., 120.)
-    canvasAdd(c, makeLine(10,10,0,1), 0., 120.)
-    canvasAdd(c, makeLine(11,11,0,1), 0., 120.)
-    canvasAdd(c, makeLine(12,12,0,1), 0., 120.)
-    canvasAdd(c, makeLine(14,14,0,1), 0., 120.)
-    canvasAdd(c, makeLine(15,15,0,1), 0., 120.)
-    canvasAdd(c, makeLine(14,16,2,2), 0., 120.)
-    canvasAdd(c, makeLine(6,7,2,2), 0., 120.)
-    canvasAdd(c, makeLine(8,12,2,2), 0., 120.)
-    canvasAdd(c, makeLine(4,5,3,3), 0., 120.)
-    canvasAdd(c, makeLine(7,8,3,3), 0., 120.)
-    canvasAdd(c, makeLine(9,10,3,3), 0., 120.)
-    canvasAdd(c, makeLine(12,13,3,3), 0., 120.)
-    canvasAdd(c, makeLine(2,4,4,4), 0., 120.)
-    canvasAdd(c, makeLine(5,8,4,4), 0., 120.)
-    canvasAdd(c, makeLine(14,15,4,4), 0., 120.)
-    canvasAdd(c, makeLine(1,2,5,5), 0., 120.)
-    canvasAdd(c, makeLine(7,8,5,5), 0., 120.)
-    canvasAdd(c, makeLine(10,11,5,5), 0., 120.)
-    canvasAdd(c, makeLine(12,13,5,5), 0., 120.)
-    canvasAdd(c, makeLine(14,15,5,5), 0., 120.)
-    canvasAdd(c, makeLine(6,8,6,6), 0., 120.)
-    canvasAdd(c, makeLine(14,15,6,6), 0., 120.)
-    canvasAdd(c, makeLine(0,1,7,7), 0., 120.)
-    canvasAdd(c, makeLine(4,5,7,7), 0., 120.)
-    canvasAdd(c, makeLine(9,11,7,7), 0., 120.)
-    canvasAdd(c, makeLine(12,15,7,7), 0., 120.)
-    canvasAdd(c, makeLine(1,1,5,6), 0., 120.)
-    canvasAdd(c, makeLine(2,2,4,5), 0., 120.)
-    canvasAdd(c, makeLine(3,3,2,3), 0., 120.)
-    canvasAdd(c, makeLine(3,3,4,5), 0., 120.)
-    canvasAdd(c, makeLine(4,4,3,5), 0., 120.)
-    canvasAdd(c, makeLine(5,5,3,5), 0., 120.)
-    canvasAdd(c, makeLine(5,5,7,8), 0., 120.)
-    canvasAdd(c, makeLine(6,6,2,3), 0., 120.)
-    canvasAdd(c, makeLine(6,6,4,5), 0., 120.)
-    canvasAdd(c, makeLine(7,7,3,4), 0., 120.)
-    canvasAdd(c, makeLine(9,9,3,5), 0., 120.)
-    canvasAdd(c, makeLine(10,10,3,4), 0., 120.)
-    canvasAdd(c, makeLine(12,12,3,5), 0., 120.)
-    canvasAdd(c, makeLine(13,13,3,4), 0., 120.)
-    canvasAdd(c, makeLine(14,14,3,4), 0., 120.)
-    canvasAdd(c, makeLine(15,15,2,3), 0., 120.)
-    canvasAdd(c, makeLine(15,15,4,6), 0., 120.)
 *)
 
     let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
+(* TODO
     recordering <- (fun () ->
-        recorderingCanvas.Children.Clear()
-        currentRecorderWarpDestinations.Clear()
-        for i = 0 to 7 do // 8 dungeons
-            for x = 0 to 15 do      // 16 by
-                for y = 0 to 7 do   // 8 overworld spots
-                    if owCurrentState.[x,y] = i then  // if spot marked as dungeon...
-                        if completedDungeon.[i] then
-                            drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
-                        if haveRecorder && triforces.[i] then
-                            // highlight any triforce dungeons as recorder warp destinations
-                            drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
-                            currentRecorderWarpDestinations.Add((x,y))
         refreshRouteDrawing()
-        // highlight magical sword when it's a candidate to get
-        if not haveMagicalSword && playerHearts >=10 then
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if owCurrentState.[x,y] = 13 then  // sword3 = 13
-                        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                        rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
-                        canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
         // highlight 9 after get all triforce
         if Array.forall id triforces then
             for x = 0 to 15 do
@@ -993,6 +596,74 @@ let makeAll(isHeartShuffle,owMapNum) =
         if startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 8.5+float(startIconX*16*3), float(startIconY*11*3))
     )
+*)
+
+
+// TODO figure out where this should go
+    let timer = new System.Windows.Threading.DispatcherTimer()
+    timer.Interval <- TimeSpan.FromSeconds(1.0)
+    timer.Tick.Add(fun _ -> 
+// TODO buffer changes, right now e.g. scrolling past dungeons announces finding one        
+        TrackerModel.recomputeWhatIsNeeded()  
+// TODO found/not-found may need an update, only have event for found, hmm
+        //if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
+        //    updateEmptyTriforceDisplay(i)
+        recorderingCanvas.Children.Clear()
+        TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
+            member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
+            member _this.AnnounceConsiderSword2() = async { voice.Speak("Consider getting the white sword item") } |> Async.Start
+            member _this.AnnounceConsiderSword3() = async { voice.Speak("Consider the magical sword") } |> Async.Start
+// TODO init wrong number            
+            member _this.OverworldSpotsRemaining(n) = (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" n 
+            member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
+                if isCompleted then
+                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
+                if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
+                    // highlight any triforce dungeons as recorder warp destinations
+                    drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+            member _this.AnyRoadLocation(i,x,y) = () // TODO is there anything to do?
+            member _this.WhistleableLocation(x,y) =
+                drawWhistleableHighlight(recorderingCanvas,float x,y)
+            member _this.Sword3(x,y) = 
+                if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
+                    let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
+// TODO i keep restarting the animation every event update
+                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
+                    canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+            member _this.Sword2(x,y) = () // TODO anything?
+// TODO periodic announce
+            member _this.PowerBraceletableSpotsRemaining(n) = () 
+// TODO            
+            member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = () 
+            member _this.AnnounceCompletedDungeon(i) = async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
+            member _this.CompletedDungeons(a) =
+                for i = 0 to 7 do
+                    for j = 0 to 3 do
+                        mainTrackerCanvases.[i,j].Children.Remove(mainTrackerCanvasShaders.[i,j]) |> ignore
+                    if a.[i] then
+                        for j = 0 to 3 do
+                            mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
+            member _this.AnnounceFoundDungeonCount(n) = 
+                async {
+                    if n = 1 then
+                        voice.Speak("You have located one dungeon") 
+                    elif n = 9 then
+                        voice.Speak("Congratulations, you have located all 9 dungeons")
+                    else
+                        voice.Speak(sprintf "You have located %d dungeons" n) 
+                } |> Async.Start
+            member _this.AnnounceTriforceCount(n) = 
+                if n = 1 then
+                    async { voice.Speak("You now have one triforce") } |> Async.Start
+                else
+                    async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
+// TODO
+            member _this.RemindShortly(itemId) = () 
+            })
+        )
+    timer.Start()
+
+    
 
     // map legend
     let LEFT_OFFSET = 78.0
@@ -1294,8 +965,8 @@ let makeAll(isHeartShuffle,owMapNum) =
     canvasAdd(c, cb, RIGHT_COL, 60.)
     // remaining OW spots
     canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 80.)
-    owRemainingScreensCheckBox.Checked.Add(fun _ -> refreshOW())
-    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> refreshOW())
+// TODO    owRemainingScreensCheckBox.Checked.Add(fun _ -> refreshOW())
+// TODO    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> refreshOW())
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
@@ -1317,7 +988,6 @@ let makeAll(isHeartShuffle,owMapNum) =
             owCoordsTBs.[i,j] <- tb
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
-            let i = if isReflected then 15-i else i
             gridAdd(owCoordsGrid, c, i, j) 
     canvasAdd(c, owCoordsGrid, 0., 120.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
@@ -1338,11 +1008,14 @@ let makeAll(isHeartShuffle,owMapNum) =
             image.IsHitTestVisible <- false // transparent to mouse
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
-            let i = if isReflected then 15-i else i
             gridAdd(owMapZoneGrid, c, i, j)
     canvasAdd(c, owMapZoneGrid, 0., 120.)
 
     let owMapZoneBoundaries = ResizeArray()
+    let makeLine(x1, x2, y1, y2) = 
+        let line = new System.Windows.Shapes.Line(X1=float(x1*16*3), X2=float(x2*16*3), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=Brushes.White, StrokeThickness=3.)
+        line.IsHitTestVisible <- false // transparent to mouse
+        line
     let addLine(x1,x2,y1,y2) = 
         let line = makeLine(x1,x2,y1,y2)
         line.Opacity <- 0.0
@@ -1395,283 +1068,3 @@ let makeAll(isHeartShuffle,owMapNum) =
     c, updateTimeline
 
 
-// TODO
-// free form text for seed flags?
-// voice reminders:
-//  - what else?
-// TRIFORCE time splits ?
-// ...2nd quest etc...
-
-open System.Runtime.InteropServices 
-module Winterop = 
-    [<DllImport("User32.dll")>]
-    extern bool RegisterHotKey(IntPtr hWnd,int id,uint32 fsModifiers,uint32 vk)
-
-    [<DllImport("User32.dll")>]
-    extern bool UnregisterHotKey(IntPtr hWnd,int id)
-
-    let HOTKEY_ID = 9000
-
-type MyWindowBase() as this = 
-    inherit Window()
-    let mutable source = null
-    let VK_F5 = 0x74
-    let VK_F10 = 0x79
-    let MOD_NONE = 0u
-    let mutable startTime = DateTime.Now
-    do
-        // full window
-        let timer = new System.Windows.Threading.DispatcherTimer()
-        timer.Interval <- TimeSpan.FromSeconds(1.0)
-        timer.Tick.Add(fun _ -> this.Update(false))
-        timer.Start()
-    member this.StartTime = startTime
-    abstract member Update : bool -> unit
-    default this.Update(f10Press) = ()
-    override this.OnSourceInitialized(e) =
-        base.OnSourceInitialized(e)
-        let helper = new System.Windows.Interop.WindowInteropHelper(this)
-        source <- System.Windows.Interop.HwndSource.FromHwnd(helper.Handle)
-        source.AddHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
-        this.RegisterHotKey()
-    override this.OnClosed(e) =
-        source.RemoveHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
-        source <- null
-        this.UnregisterHotKey()
-        base.OnClosed(e)
-    member this.RegisterHotKey() =
-#if DEBUG
-        // in debug mode, do not register hotkeys, as I need e.g. F10 to work to use the debugger!
-        ()
-#else
-        let helper = new System.Windows.Interop.WindowInteropHelper(this);
-        if(not(Winterop.RegisterHotKey(helper.Handle, Winterop.HOTKEY_ID, MOD_NONE, uint32 VK_F10))) then
-            // handle error
-            ()
-        if(not(Winterop.RegisterHotKey(helper.Handle, Winterop.HOTKEY_ID, MOD_NONE, uint32 VK_F5))) then
-            // handle error
-            ()
-#endif
-    member this.UnregisterHotKey() =
-        let helper = new System.Windows.Interop.WindowInteropHelper(this)
-        Winterop.UnregisterHotKey(helper.Handle, Winterop.HOTKEY_ID) |> ignore
-    member this.HwndHook(hwnd:IntPtr, msg:int, wParam:IntPtr, lParam:IntPtr, handled:byref<bool>) : IntPtr =
-        let WM_HOTKEY = 0x0312
-        if msg = WM_HOTKEY then
-            if wParam.ToInt32() = Winterop.HOTKEY_ID then
-                //let ctrl_bits = lParam.ToInt32() &&& 0xF  // see WM_HOTKEY docs
-                let key = lParam.ToInt32() >>> 16
-                if key = VK_F10 then
-                    startTime <- DateTime.Now
-                if key = VK_F5 then
-                    f5WasRecentlyPressed <- true
-        IntPtr.Zero
-
-type MyWindow(isHeartShuffle,owMapNum) as this = 
-    inherit MyWindowBase()
-    let mutable canvas, updateTimeline = null, fun _ -> ()
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let mutable ladderTime        = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime        starts in past, so that can instantly work at startup for debug testing
-    let mutable recorderTime      = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // recorderTime      starts in past, so that can instantly work at startup for debug testing
-    let mutable powerBraceletTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // powerBraceletTime starts in past, so that can instantly work at startup for debug testing
-    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
-                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    //                 items  ow map   timeline    dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
-    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
-    do
-        timeTextBox <- hmsTimeTextBox
-        // full window
-        this.Title <- "Zelda 1 Randomizer"
-        this.SizeToContent <- SizeToContent.Manual
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 1140.0
-        this.Top <- 0.0
-        this.Width <- WIDTH
-        this.Height <- HEIGHT
-        let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
-        let tb = new TextBox(Text="Choose overworld quest:")
-        stackPanel.Children.Add(tb) |> ignore
-        let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true)
-        owQuest.ItemsSource <- [|
-                "First Quest"
-                "Second Quest"
-                "Mixed - First Quest"
-                "Mixed - Second Quest"
-            |]
-        owQuest.SelectedIndex <- owMapNum % 4
-        stackPanel.Children.Add(owQuest) |> ignore
-        let cb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true))
-        cb.IsChecked <- Nullable<_>(isHeartShuffle)
-        stackPanel.Children.Add(cb) |> ignore
-        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
-        stackPanel.Children.Add(tb) |> ignore
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true))
-        stackPanel.Children.Add(startButton) |> ignore
-        let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        hstackPanel.Children.Add(stackPanel) |> ignore
-        this.Content <- hstackPanel
-        startButton.Click.Add(fun _ -> 
-                let c,u = makeAll(cb.IsChecked.Value,owQuest.SelectedIndex)
-//                let c,u = WPFUI.makeAll(owQuest.SelectedIndex)  // new TrackerModel & WPFUI decoupled implementation, under construction
-                canvas <- c
-                updateTimeline <- u
-                canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL+40., 0.)
-                this.Content <- canvas
-                try
-                    speechRecognizer.SetInputToDefaultAudioDevice()
-                    speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
-                with ex ->
-                    printfn "An exception setting up speech, speech recognition will be non-functional:"
-                    printfn "%s" (ex.ToString())
-                System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
-                    let ex = e.Exception
-                    printfn "An unhandled exception from UI thread:"
-                    printfn "%s" (ex.ToString())
-                    printfn "press Enter to end"
-                    System.Console.ReadLine() |> ignore
-                    )
-                System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
-                    let ex = e.ExceptionObject
-                    printfn "An unhandled exception from background thread:"
-                    printfn "%s" (ex.ToString())
-                    printfn "press Enter to end"
-                    System.Console.ReadLine() |> ignore
-                    )
-            )
-    override this.Update(f10Press) =
-        base.Update(f10Press)
-        // update time
-        let ts = DateTime.Now - this.StartTime
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-        // remind ladder
-        if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
-            if haveLadder then
-                if not haveCoastItem then
-                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
-                    ladderTime <- DateTime.Now
-        // remind whistle spots
-        if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
-            if haveRecorder && voiceRemindersForRecorder then
-                if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
-                    if owWhistleSpotsRemain = 1 then
-                        async { voice.Speak("There is one recorder spot") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
-                recorderTime <- DateTime.Now
-                owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
-        // remind power bracelet spots
-        if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
-            if havePowerBracelet && voiceRemindersForPowerBracelet then
-                if owPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && owPowerBraceletSpotsRemain > 0 then
-                    if owPowerBraceletSpotsRemain = 1 then
-                        async { voice.Speak("There is one power bracelet spot") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "There are %d power bracelet spots" owPowerBraceletSpotsRemain) } |> Async.Start
-                powerBraceletTime <- DateTime.Now
-                owPreviouslyAnnouncedPowerBraceletSpotsRemain <- owPowerBraceletSpotsRemain
-        // update timeline
-        if f10Press || ts.Seconds = 0 then
-            updateTimeline(int ts.TotalMinutes)
-        // update start icon
-        if f5WasRecentlyPressed then
-            startIconX <- currentlyMousedOWX
-            startIconY <- currentlyMousedOWY
-            f5WasRecentlyPressed <- false
-            recordering()
-
-type TimerOnlyWindow() as this = 
-    inherit MyWindowBase()
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let canvas = new Canvas(Width=180., Height=50., Background=System.Windows.Media.Brushes.Black)
-    do
-        // full window
-        this.Title <- "Timer"
-        this.Content <- canvas
-        canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
-        this.Top <- 0.0
-    override this.Update(f10Press) =
-        base.Update(f10Press)
-        // update time
-        let ts = DateTime.Now - this.StartTime
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-
-type TerrariaTimerOnlyWindow() as this = 
-    inherit MyWindowBase()
-    let FONT = 24.
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let dayTextBox = new TextBox(Text="day",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let timeTextBox = new TextBox(Text="time",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let canvas = new Canvas(Width=170.*FONT/35., Height=FONT*16./4., Background=System.Windows.Media.Brushes.Black)
-    do
-        // full window
-        this.Title <- "Timer"
-        this.Content <- canvas
-        canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
-        canvasAdd(canvas, dayTextBox, 0., FONT*5./4.)
-        canvasAdd(canvas, timeTextBox, 0., FONT*10./4.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
-        this.Top <- 0.0
-        this.BorderBrush <- Brushes.LightGreen
-        this.BorderThickness <- Thickness(2.)
-    override this.Update(f10Press) =
-        base.Update(f10Press)
-        // update hms time
-        let mutable ts = DateTime.Now - this.StartTime
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-        // update terraria time
-        let mutable day = 1
-        while ts >= TimeSpan.FromMinutes(20.25) do
-            ts <- ts - TimeSpan.FromMinutes(24.)
-            day <- day + 1
-        let mutable ttime = ts + TimeSpan.FromMinutes(8.25)
-        if ttime >= TimeSpan.FromMinutes(24.) then
-            ttime <- ttime - TimeSpan.FromMinutes(24.)
-        let m,s = ttime.Minutes, ttime.Seconds
-        let m,am = if m < 12 then m,"am" else m-12,"pm"
-        let m = if m=0 then 12 else m
-        timeTextBox.Text <- sprintf "%02d:%02d%s" m s am
-        if ts < TimeSpan.FromMinutes(11.25) then   // 11.25 is 7:30pm, 20.25 is 4:30am
-            dayTextBox.Text <- sprintf "Day %d" day
-        else
-            dayTextBox.Text <- sprintf "Night %d" day
-
-[<STAThread>]
-[<EntryPoint>]
-let main argv = 
-    printfn "test %A" argv
-
-    let app = new Application()
-#if DEBUG
-    do
-#else
-    try
-#endif
-        let mutable owMapNum = 0
-        if argv.Length > 1 then
-            owMapNum <- int argv.[1]
-        if argv.Length > 0 && argv.[0] = "timeronly" then
-            app.Run(TimerOnlyWindow()) |> ignore
-        elif argv.Length > 0 && argv.[0] = "terraria" then
-            app.Run(TerrariaTimerOnlyWindow()) |> ignore
-        elif argv.Length > 0 && argv.[0] = "heartShuffle" then
-            app.Run(MyWindow(true,owMapNum)) |> ignore
-        else
-            app.Run(MyWindow(false,owMapNum)) |> ignore
-#if DEBUG
-#else
-    with e ->
-        printfn "crashed with exception"
-        printfn "%s" (e.ToString())
-#endif
-    printfn "press enter to end"
-    System.Console.ReadLine() |> ignore
-    0

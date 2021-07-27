@@ -61,6 +61,8 @@
     <Compile Include="OverworldData.fs" />
     <Compile Include="DungeonData.fs" />
     <Compile Include="OverworldRouting.fs" />
+    <Compile Include="TrackerModel.fs" />
+    <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="ZHelperEmpty.png" />
     <EmbeddedResource Include="ZHelperFull.png" />
