@@ -397,16 +397,9 @@ let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these
 
 let forceUpdate() = 
     // UI can force an update for a few bits that we don't model well yet
-    // TODO
+    // TODO ideally dont want this, feels like kludge?
     mapLastChangedTime <- System.DateTime.Now
                 
-
-
-// TODO consider right timeline model. need to wrap elements above into a class to capture changes. but also need to 'buffer' changes, as player may misclick, or 
-// e.g. scrolling is not 10 changes in a row, but one change-interaction to settle on new Cell contents...
-// in my prior UI, I just had timeline 'watch' all triforces, hearts, and BoxItems, sampling them once per minute, and posting UI for ones that got a true sample and then stopping watching those
-
-
 // TODO consider making burn-trees non-routeworthy until you have blue/red candle
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -423,7 +416,6 @@ type ITrackerEvents =
     abstract WhistleableLocation : int*int -> unit // x, y
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
-    abstract PowerBraceletableSpotsRemaining : int -> unit
     abstract RoutingInfo : bool*bool*seq<int*int>*seq<int*int>*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
     // dungeons
     abstract AnnounceCompletedDungeon : int -> unit
@@ -466,7 +458,6 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.Sword3(mapStateSummary.Sword3Location)
     if mapStateSummary.Sword2Location <> NOTFOUND then
         ite.Sword2(mapStateSummary.Sword2Location)
-    ite.PowerBraceletableSpotsRemaining(mapStateSummary.OwPowerBraceletSpotsRemain)
     let recorderDests = [|
         if playerComputedStateSummary.HaveRecorder then
             for d = 0 to 7 do

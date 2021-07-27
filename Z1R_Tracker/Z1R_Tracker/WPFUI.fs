@@ -616,7 +616,7 @@ let makeAll(owMapNum) =
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
                     rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-            member _this.AnyRoadLocation(i,x,y) = () // TODO is there anything to do?
+            member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) =
                 drawWhistleableHighlight(recorderingCanvas,float x,y)
             member _this.Sword3(x,y) = 
@@ -624,9 +624,7 @@ let makeAll(owMapNum) =
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
                     rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-            member _this.Sword2(x,y) = () // TODO anything to do?
-// TODO periodic announce
-            member _this.PowerBraceletableSpotsRemaining(n) = () 
+            member _this.Sword2(x,y) = ()
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 routeDrawingCanvas.Children.Clear()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
@@ -679,10 +677,12 @@ let makeAll(owMapNum) =
                         g()
                 } |> Async.Start
             })
+    let threshold = TimeSpan.FromMilliseconds(500.0)
+    let mutable ladderTime, recorderTime, powerBraceletTime = DateTime.Now, DateTime.Now, DateTime.Now
+    let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0, 0
     let timer = new System.Windows.Threading.DispatcherTimer()
     timer.Interval <- TimeSpan.FromSeconds(1.0)
     timer.Tick.Add(fun _ -> 
-        let threshold = TimeSpan.FromMilliseconds(500.0)
         let hasUISettledDown = 
             DateTime.Now - TrackerModel.playerProgressLastChangedTime > threshold &&
             DateTime.Now - TrackerModel.dungeonsAndBoxesLastChangedTime > threshold &&
@@ -691,10 +691,35 @@ let makeAll(owMapNum) =
             let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
             if hasTheModelChanged then
                 doUIUpdate()
+        // remind ladder
+        if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
+            if TrackerModel.playerComputedStateSummary.HaveLadder then
+                if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
+                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                    ladderTime <- DateTime.Now
+        // remind whistle spots
+        if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
+            if TrackerModel.playerComputedStateSummary.HaveRecorder && voiceRemindersForRecorder then
+                let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
+                if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
+                    if owWhistleSpotsRemain = 1 then
+                        async { voice.Speak("There is one recorder spot") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
+                recorderTime <- DateTime.Now
+                owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
+        // remind power bracelet spots
+        if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
+            if TrackerModel.playerComputedStateSummary.HavePowerBracelet && voiceRemindersForPowerBracelet then
+                if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
+                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
+                        async { voice.Speak("There is one power bracelet spot") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain) } |> Async.Start
+                powerBraceletTime <- DateTime.Now
+                owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
         )
     timer.Start()
-
-    
 
     // map legend
     let LEFT_OFFSET = 78.0
@@ -1096,6 +1121,7 @@ let makeAll(owMapNum) =
 
     //                items  ow map   timeline    dungeon tabs                
     c.Height <- float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30)
+    TrackerModel.forceUpdate()
     c, updateTimeline
 
 
