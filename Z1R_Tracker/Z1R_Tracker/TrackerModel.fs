@@ -247,7 +247,7 @@ let allBoxes = [|
 //////////////////////////////////////////////////////////////////////////////////////////
 // Player computed state summary
 
-type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts) = 
+type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts) = 
     // computed from Boxes and other bits
     member _this.HaveRecorder = haveRecorder
     member _this.HaveLadder = haveLadder
@@ -256,11 +256,12 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWhiteSwordItem = haveWhiteSwordItem
     member _this.HavePowerBracelet = havePowerBracelet
     member _this.HaveRaft = haveRaft
+    member _this.HaveCandle = haveCandle
     member _this.PlayerHearts = playerHearts // TODO can't handle money-or-life rooms losing heart, or flags that start with more hearts
-let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3)
+let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,false,3)
 let mutable playerComputedStateSummaryLastComputedTime = System.DateTime.Now
 let recomputePlayerStateSummary() =
-    let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
+    let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts = false,false,false,false,false,false,false,false,3
     for b in allBoxes do
         if b.PlayerHas() then
             if b.CellCurrent() = ITEMS.RECORDER then
@@ -273,8 +274,12 @@ let recomputePlayerStateSummary() =
                 havePowerBracelet <- true
             elif b.CellCurrent() = ITEMS.RAFT then
                 haveRaft <- true
+            elif b.CellCurrent() = ITEMS.REDCANDLE then
+                haveCandle <- true
             elif b.CellCurrent() = ITEMS.HEARTCONTAINER then
                 playerHearts <- playerHearts + 1
+    if playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Value() then
+        haveCandle <- true
     if ladderBox.PlayerHas() then
         haveCoastItem <- true
     if sword2Box.PlayerHas() then
@@ -282,7 +287,7 @@ let recomputePlayerStateSummary() =
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
             playerHearts <- playerHearts + 1
-    playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts)
+    playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts)
     playerComputedStateSummaryLastComputedTime <- System.DateTime.Now
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -351,7 +356,8 @@ let recomputeMapStateSummary() =
                     if (owInstance.Whistleable(i,j) && not playerComputedStateSummary.HaveRecorder) ||
                         (owInstance.PowerBraceletable(i,j) && not playerComputedStateSummary.HavePowerBracelet) ||
                         (owInstance.Ladderable(i,j) && not playerComputedStateSummary.HaveLadder) ||
-                        (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) then
+                        (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) ||
+                        (owInstance.Burnable(i,j) && not playerComputedStateSummary.HaveCandle) then
                         ()
                     else
                         owRouteworthySpots.[i,j] <- true
@@ -400,8 +406,6 @@ let forceUpdate() =
     // TODO ideally dont want this, feels like kludge?
     mapLastChangedTime <- System.DateTime.Now
                 
-// TODO consider making burn-trees non-routeworthy until you have blue/red candle
-
 //////////////////////////////////////////////////////////////////////////////////////////
 
 type ITrackerEvents =

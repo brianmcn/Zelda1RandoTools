@@ -54,6 +54,28 @@ module PrivateInternals =
         "................"
         |]
 
+    let owMapSquaresFirstQuestBurnable = [|
+            "................"
+            "................"
+            "........X......."
+            "................"
+            "......XXX..X.X.."
+            ".X....X....X...."
+            "..XX....X.XX.X.."
+            "........X......."
+        |]
+
+    let owMapSquaresSecondQuestBurnable = [|
+            "................"
+            "................"
+            "........X......."
+            "................"
+            "......X.X..X.X.."
+            ".X.X..X....X...."
+            "...X....X.X.X..."
+            "........X......."
+        |]
+
     let owMapSquaresFirstQuestPowerBraceletable = [|
         "................"
         ".............X.."
@@ -192,5 +214,11 @@ type OverworldInstance(quest) =  // TODO figure out where mirror overworld layer
         | SECOND ->       PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X'
         | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
         | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
+    member this.Burnable(x,y) =
+        match quest with
+        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X'
+        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X'
+        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
+        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
 
 
