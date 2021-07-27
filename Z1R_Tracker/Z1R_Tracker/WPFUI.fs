@@ -26,6 +26,25 @@ let mapStatePhrases = [|
         |]
 let wakePhrase = "tracker set"
 speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases)); gb))
+let convertSpokenPhraseToMapCell(phrase:string) =
+    let phrase = phrase.Substring(wakePhrase.Length+1)
+    let newState = TrackerModel.mapSquareChoiceDomain.MaxKey-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
+    if newState = 12 then // any road
+        if   TrackerModel.mapSquareChoiceDomain.NumUses( 9) < TrackerModel.mapSquareChoiceDomain.MaxUses( 9) then
+            Some 9
+        elif TrackerModel.mapSquareChoiceDomain.NumUses(10) < TrackerModel.mapSquareChoiceDomain.MaxUses(10) then
+            Some 10
+        elif TrackerModel.mapSquareChoiceDomain.NumUses(11) < TrackerModel.mapSquareChoiceDomain.MaxUses(11) then
+            Some 11
+        elif TrackerModel.mapSquareChoiceDomain.NumUses(12) < TrackerModel.mapSquareChoiceDomain.MaxUses(12) then
+            Some 12
+        else
+            None
+    else
+        if TrackerModel.mapSquareChoiceDomain.NumUses(newState) < TrackerModel.mapSquareChoiceDomain.MaxUses(newState) then
+            Some newState
+        else
+            None
 
 type MapStateProxy(state) =
     let U = Graphics.uniqueMapIcons.Length 
@@ -400,7 +419,6 @@ let makeAll(owMapNum) =
         (fun unhide ->  // make mixed appear reduced to 1st quest
             for x = 0 to 15 do
                 for y = 0 to 7 do
-                    // TODO handle mirror
                     if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
                         if unhide then
                             owHidingMapGridCanvases.[x,y].Children.Clear()
@@ -411,7 +429,6 @@ let makeAll(owMapNum) =
         (fun unhide ->   // make mixed appear reduced to 2nd quest
             for x = 0 to 15 do
                 for y = 0 to 7 do
-                    // TODO handle mirror
                     if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
                         if unhide then
                             owHidingMapGridCanvases.[x,y].Children.Clear()
@@ -506,16 +523,18 @@ let makeAll(owMapNum) =
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
                     if delta = 777 then 
-// TODO                                    (if prevNull then ms.SetStateTo(phrase) else ms.Current()) 
-                                    ()
+                        if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                            match convertSpokenPhraseToMapCell(phrase) with
+                            | Some newState -> TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
+                            | None -> ()
                     else
-                                    if delta = 1 then
-                                        TrackerModel.overworldMapMarks.[i,j].Next()
-                                    elif delta = -1 then 
-                                        TrackerModel.overworldMapMarks.[i,j].Prev() 
-                                    elif delta = 0 then 
-                                        ()
-                                    else failwith "bad delta"
+                        if delta = 1 then
+                            TrackerModel.overworldMapMarks.[i,j].Next()
+                        elif delta = -1 then 
+                            TrackerModel.overworldMapMarks.[i,j].Prev() 
+                        elif delta = 0 then 
+                            ()
+                        else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let icon = ms.Current()
                     // be sure to draw in appropriate layer
@@ -553,14 +572,16 @@ let makeAll(owMapNum) =
                 c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
-        let timeDiff = DateTime.Now - mostRecentMouseEnterTime
-        if timeDiff < System.TimeSpan.FromSeconds(20.0) && timeDiff > System.TimeSpan.FromSeconds(1.0) then
-            c.Dispatcher.Invoke(fun () -> 
-                    if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
-                        let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
-                        if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
-                            owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
-                )
+        //printfn "conf: %f" r.Result.Confidence
+        if r.Result.Confidence > 0.94f then  // empirical tests suggest this confidence threshold is good to avoid false positives
+            let timeDiff = DateTime.Now - mostRecentMouseEnterTime
+            if timeDiff < System.TimeSpan.FromSeconds(20.0) && timeDiff > System.TimeSpan.FromSeconds(1.0) then
+                c.Dispatcher.Invoke(fun () -> 
+                        if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
+                            let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
+                            if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
+                                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
+                    )
         )
     canvasAdd(c, owMapGrid, 0., 120.)
 
@@ -569,7 +590,7 @@ let makeAll(owMapNum) =
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
 
-// TODO figure out where this should go
+// TODO figure out where this code should go
     let doUIUpdate() =
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
         for i = 0 to 7 do
@@ -587,8 +608,8 @@ let makeAll(owMapNum) =
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
                     drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
+                // highlight any triforce dungeons as recorder warp destinations
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
-                    // highlight any triforce dungeons as recorder warp destinations
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
                 // highlight 9 after get all triforce
                 if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
@@ -603,7 +624,7 @@ let makeAll(owMapNum) =
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
                     rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
-            member _this.Sword2(x,y) = () // TODO anything?
+            member _this.Sword2(x,y) = () // TODO anything to do?
 // TODO periodic announce
             member _this.PowerBraceletableSpotsRemaining(n) = () 
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
@@ -637,6 +658,8 @@ let makeAll(owMapNum) =
                     async { voice.Speak("You now have one triforce") } |> Async.Start
                 else
                     async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
+                if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
+                    async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
             member _this.RemindShortly(itemId) = 
                 let f, g, text =
                     if itemId = TrackerModel.ITEMS.KEY then

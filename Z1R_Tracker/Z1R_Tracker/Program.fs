@@ -1519,8 +1519,10 @@ type MyWindow(isHeartShuffle,owMapNum) as this =
                 canvasAdd(canvas, hmsTimeTextBox, RIGHT_COL+40., 0.)
                 this.Content <- canvas
                 try
-                    speechRecognizer.SetInputToDefaultAudioDevice()
-                    speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+//                    speechRecognizer.SetInputToDefaultAudioDevice()
+//                    speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                    WPFUI.speechRecognizer.SetInputToDefaultAudioDevice()
+                    WPFUI.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
                 with ex ->
                     printfn "An exception setting up speech, speech recognition will be non-functional:"
                     printfn "%s" (ex.ToString())

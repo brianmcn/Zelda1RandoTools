@@ -45,6 +45,7 @@ type ChoiceDomain(name:string,maxUsesArray:int[]) =
         else
             this.PrevFreeKey(key-1)
     member _this.NumUses(key) = uses.[key]
+    member _this.MaxUses(key) = maxUsesArray.[key]
         
 type Cell(cd:ChoiceDomain) =
     // a location that can hold one item, e.g. armos box that can hold red candle or white sword or whatnot, or
@@ -64,7 +65,13 @@ type Cell(cd:ChoiceDomain) =
         state <- cd.PrevFreeKey(state)
         if state <> -1 then
             cd.AddUse(state)
-    // TODO member this.TrySet
+    member this.TrySet(newState) =
+        if newState < -1 || newState > cd.MaxKey then
+            failwith "TrySet out of range"
+        try
+            cd.AddUse(newState)
+            state <- newState
+        with _ -> ()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,8 +220,6 @@ type Dungeon(id,numBoxes) =
     member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
     member _this.Boxes = boxes
     member _this.IsComplete = playerHasTriforce && boxes |> Array.forall (fun b -> b.PlayerHas())
-    // UI wants to know dungeons completed/uncompleted to grey/ungrey them, and announce
-    // UI wants to know triforces as gotten
 
 let dungeons = [|
     new Dungeon(0, 3)
@@ -252,7 +257,6 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HavePowerBracelet = havePowerBracelet
     member _this.HaveRaft = haveRaft
     member _this.PlayerHearts = playerHearts // TODO can't handle money-or-life rooms losing heart, or flags that start with more hearts
-        // TODO events for changes, UI wants to display, and announce white/magical sword reminders
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3)
 let mutable playerComputedStateSummaryLastComputedTime = System.DateTime.Now
 let recomputePlayerStateSummary() =
@@ -290,8 +294,6 @@ let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDo
 let mutable mapLastChangedTime = System.DateTime.Now
 do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
-// TODO listen changes, e.g. found dungeons, found S2/S3, any roads, whislteable/powerbraceletable/remain, routeworthy, and of course just updating the UI to display the mark
-// Note UI responsible for triggering owMapMarksHaveChanged when scrolling any map marker - no its not, the choice domain will know of changes
 let NOTFOUND = (-1,-1)
 type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
@@ -368,7 +370,7 @@ let initializeAll(instance:OverworldData.OverworldInstance) =
     owInstance <- instance
     for i = 0 to 15 do
         for j = 0 to 7 do
-            if owInstance.AlwaysEmpty(i,j) then  // TODO handle mirror
+            if owInstance.AlwaysEmpty(i,j) then
                 overworldMapMarks.[i,j].Prev()   // set to 'X'
     recomputeMapStateSummary()
 
@@ -404,15 +406,8 @@ let forceUpdate() =
 // e.g. scrolling is not 10 changes in a row, but one change-interaction to settle on new Cell contents...
 // in my prior UI, I just had timeline 'watch' all triforces, hearts, and BoxItems, sampling them once per minute, and posting UI for ones that got a true sample and then stopping watching those
 
-// TODO code all the complicated game-track logic, e.g. haveLadder, haveMagicalSword, powerBraceletSpotsRemain, ... based on basic change events, which translate into
-// potential macro UI events to publish (e.g. announcements and suggestions, like 'you completed N dungeons' or 'consider getting magical sword')
 
-// TODO code all route-drawing info, which basically tracks data and changes to
-// haveLadder 
-// haveRaft 
-// currentRecorderWarpDestinations 
-// currentAnyRoadDestinations 
-// owRouteworthySpots     // TODO consider making burn-trees non-routeworthy until you have blue/red candle
+// TODO consider making burn-trees non-routeworthy until you have blue/red candle
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -434,7 +429,7 @@ type ITrackerEvents =
     abstract AnnounceCompletedDungeon : int -> unit
     abstract CompletedDungeons : bool[] -> unit     // for current shading
     abstract AnnounceFoundDungeonCount : int -> unit
-    abstract AnnounceTriforceCount : int -> unit    // TODO if 8, consider magical sword if not have
+    abstract AnnounceTriforceCount : int -> unit
     // items
     abstract RemindShortly : int -> unit
 
