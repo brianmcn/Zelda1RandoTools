@@ -13,6 +13,7 @@ let mapStatePhrases = [|
         "any road"
         "sword three"
         "sword two"
+        "hint shop"
         "blue ring shop"
         "meat shop"
         "key shop"
@@ -56,7 +57,7 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
-    member this.HasTransparency = state >= 0 && state < 13 || state >= U && state < U+7   // dungeons, warps, swords, and shops
+    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+8   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
         if state = -1 then
@@ -668,7 +669,7 @@ let makeAll(owMapNum) =
                         failwith "bad reminder"
                 let cxt = System.Threading.SynchronizationContext.Current 
                 async { 
-                    do! Async.Sleep(6000)  // 60s
+                    do! Async.Sleep(60000)  // 60s
                     do! Async.SwitchToContext(cxt)
                     if f() then
                         do! Async.SwitchToThreadPool()
