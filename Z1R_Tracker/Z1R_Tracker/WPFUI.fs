@@ -340,7 +340,9 @@ let makeAll(owMapNum) =
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
     canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
     // mark whether player currently has bombs, for overworld routing
-    canvasAdd(c, basicBoxImpl("Player currently has bombs", Graphics.bomb, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle())), OFFSET+160., 30.)
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
+    bombIcon.ToolTip <- "Player currently has bombs"
+    canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -630,8 +632,14 @@ let makeAll(owMapNum) =
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.Sword2(x,y) = ()
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
+                // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
+                let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
+                let i,j = int(pos.X / (16.*3.)), int(pos.Y / (11.*3.))
+                if i>=0 && i<16 && j>=0 && j<8 then
+                    OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), System.Windows.Point(0.,0.), i, j)
                 // unexplored but gettable spots highlight
                 if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
                     for x = 0 to 15 do
