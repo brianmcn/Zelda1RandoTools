@@ -331,9 +331,9 @@ let drawLine(c,v1,v2,color) =
 /////////////////////////////////////////////
 
 // generic code
-type PriorityQueue() =
+type PriorityQueue<'T when 'T : comparison>() =
     let mutable pq = Set.empty 
-    member this.Enqueue(pri,v) = 
+    member this.Enqueue(pri,v:'T) = 
         pq <- pq.Add(pri,v)
     member this.Dequeue() =
         let r = pq.MinimumElement 
@@ -346,7 +346,7 @@ let findAllBestPaths(adjacencyCostDict:System.Collections.Generic.IDictionary<Ve
     // uses breadth-first cost search to find in minimal cost order
     // returns Dictionary<node,(bestCostToGetHere,[allBestPredecessorNodes])>
     let visited = new System.Collections.Generic.Dictionary<_,_>()
-    let q = new PriorityQueue()
+    let q = PriorityQueue()
     let mutable bestCost = System.Int32.MaxValue 
     let results = ResizeArray()
     q.Enqueue(0, (f, None))   // costSoFar, nodeToTry, predecessor
@@ -386,7 +386,7 @@ let findAllBestPaths(adjacencyCostDict:System.Collections.Generic.IDictionary<Ve
 
 /////////////////////////////////////////////
 
-let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], mousePos:System.Windows.Point, i, j) = 
+let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
@@ -449,9 +449,37 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], mousePos:Syste
         // draw routes to everywhere
         //for v in adjacencyDict.Keys do
         //    draw(v)
+        let pq = PriorityQueue()
         // draw routes only to routeworthy (accessible and interesting) spots
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if owRouteworthySpots.[i,j] then
-                    draw(convertToCanonicalVertex(i,j,screenTypes,STAIRS))
+                    let goal = convertToCanonicalVertex(i,j,screenTypes,STAIRS)
+                    draw(goal)
+                    // track costs to each unmarked spot
+                    if owUnmarked.[i,j] then
+                        let ok, r = d.TryGetValue(goal)
+                        if ok then
+                            let (cost,_preds) = r
+                            pq.Enqueue((if ok then cost else 99999), (i,j))
+        // highlight cheapest N unmarked
+        let N = 8
+        let toHighlight = ResizeArray()
+        let rec iterate(N,recentCost) =
+            if not pq.IsEmpty then
+                let nextCost,(i,j) = pq.Dequeue()
+                if N > 0 || nextCost = recentCost then
+                    toHighlight.Add(i,j)
+                    iterate(N-1,nextCost)
+        if not pq.IsEmpty then
+            let recentCost,(i,j) = pq.Dequeue()
+            toHighlight.Add(i,j)
+            iterate(N-1,recentCost)
+        for (i,j) in toHighlight do
+            let rect = new System.Windows.Shapes.Rectangle(Width=16.*3.,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
+            canvasAdd(routeDrawingCanvas, rect, float(i*16*3), float(j*11*3))
+
+
+
+
 

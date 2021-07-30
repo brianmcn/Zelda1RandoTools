@@ -54,6 +54,28 @@ module PrivateInternals =
         "................"
         |]
 
+    let owMapSquaresFirstQuestBombable = [|
+        ".X.X.X.X.....X.."
+        "X.XXX.X.......X."
+        "......XX....XX.."
+        "...X............"
+        "................"
+        "................"
+        ".......X........"
+        ".X....X....XXX.."
+        |]
+
+    let owMapSquaresSecondQuestBombable = [|
+        "XXXX...X.....X.."
+        "X.XXXXX.XX....X."
+        "......X......X.."
+        "...X............"
+        "................"
+        "................"
+        "................"
+        "......X.....XX.."
+        |]
+
     let owMapSquaresFirstQuestBurnable = [|
             "................"
             "................"
@@ -220,5 +242,11 @@ type OverworldInstance(quest) =  // TODO figure out where mirror overworld layer
         | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X'
         | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
         | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
+    member this.Bombable(x,y) =
+        match quest with
+        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X'
+        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X'
+        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
+        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
 
 

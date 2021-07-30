@@ -339,6 +339,8 @@ let makeAll(owMapNum) =
     // mark the dungeon wins on timeline via ganon/zelda boxes
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
     canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+    // mark whether player currently has bombs, for overworld routing
+    canvasAdd(c, basicBoxImpl("Player currently has bombs", Graphics.bomb, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle())), OFFSET+160., 30.)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -503,7 +505,8 @@ let makeAll(owMapNum) =
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
                                         // draw routes
-                                        OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, ea.GetPosition(c), i, j)
+                                        OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                                                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j

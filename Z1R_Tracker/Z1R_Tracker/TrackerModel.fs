@@ -181,6 +181,7 @@ type PlayerProgressAndTakeAnyHearts() =
     let playerHasMagicalSword  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasDefeatedGanon = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasRescuedZelda  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
+    let playerHasBombs         = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     member _this.GetTakeAnyHeart(i) = takeAnyHearts.[i]
     member _this.SetTakeAnyHeart(i,v) = takeAnyHearts.[i] <- v; playerProgressLastChangedTime <- System.DateTime.Now
     member _this.PlayerHasBoomBook      = playerHasBoomBook
@@ -190,6 +191,7 @@ type PlayerProgressAndTakeAnyHearts() =
     member _this.PlayerHasMagicalSword  = playerHasMagicalSword  
     member _this.PlayerHasDefeatedGanon = playerHasDefeatedGanon 
     member _this.PlayerHasRescuedZelda  = playerHasRescuedZelda  
+    member _this.PlayerHasBombs         = playerHasBombs
 let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -358,6 +360,7 @@ let recomputeMapStateSummary() =
                         (owInstance.PowerBraceletable(i,j) && not playerComputedStateSummary.HavePowerBracelet) ||
                         (owInstance.Ladderable(i,j) && not playerComputedStateSummary.HaveLadder) ||
                         (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) ||
+                        (owInstance.Bombable(i,j) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())) ||
                         (owInstance.Burnable(i,j) && not playerComputedStateSummary.HaveCandle) then
                         ()
                     else

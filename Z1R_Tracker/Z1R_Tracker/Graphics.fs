@@ -483,7 +483,7 @@ let dungeonNumberBMPs =
             yield tile
     |]
 
-let ganon,zelda = 
+let ganon,zelda,bomb = 
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ganonzelda.png")
     let GZ = new System.Drawing.Bitmap(imageStream)
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
@@ -498,4 +498,10 @@ let ganon,zelda =
             bmp.SetPixel(px, py, GZ.GetPixel(px/3 + 7, py/3))
     bmp.MakeTransparent(System.Drawing.Color.Black)
     let z = BMPtoImage bmp
-    g, z
+    let bmp = new System.Drawing.Bitmap(7*3,7*3)
+    for px = 0 to 7*3-1 do
+        for py = 0 to 7*3-1 do
+            bmp.SetPixel(px, py, GZ.GetPixel(px/3 + 14, py/3))
+    bmp.MakeTransparent(System.Drawing.Color.Black)
+    let b = BMPtoImage bmp
+    g, z, b
