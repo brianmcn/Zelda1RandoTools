@@ -127,10 +127,11 @@ let makeAll(owMapNum) =
     let isCurrentlyBook = ref true
     let toggleBookMagicalShield() =
         if !isCurrentlyBook then
-            bookOrMagicalShieldVB.Visual <- Graphics.magic_shield_image 
+            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.magic_shield_bmp
         else
-            bookOrMagicalShieldVB.Visual <- Graphics.book_image
+            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.book_bmp
         isCurrentlyBook := not !isCurrentlyBook
+        TrackerModel.forceUpdate()
     
     let c = new Canvas()
     c.Width <- float(16*16*3)
@@ -304,7 +305,7 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
-    let owItemGrid = makeGrid(2, 2, 30, 30)
+    let owItemGrid = makeGrid(3, 2, 30, 30)
     let veryBasicBoxImpl(img, startOn, isTimeline, changedFunc) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -329,12 +330,13 @@ let makeAll(owMapNum) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 0, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 1, 1)
-    canvasAdd(c, owItemGrid, OFFSET+90., 30.)
-    // boomstick book, to mark when purchase in boomstick seed (normal book would still be used to mark finding shield in dungeon)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.BMPtoImage Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.BMPtoImage Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle())), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 1, 1)
+    canvasAdd(c, owItemGrid, OFFSET+60., 30.)
+    // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
     canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
@@ -596,13 +598,104 @@ let makeAll(owMapNum) =
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
 
-// TODO figure out where this code should go
+    let THRU_MAIN_MAP_H = float(120 + 8*11*3)
+    // item progress
+    let itemProgressCanvas = new Canvas(Width=float(16*16*3), Height=30.)
+    itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+    canvasAdd(c, itemProgressCanvas, 0., THRU_MAIN_MAP_H)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
+    canvasAdd(c, tb, 120., THRU_MAIN_MAP_H + 6.)
+
+    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAIN_MAP_H + 30.
+
     let doUIUpdate() =
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
         for i = 0 to 7 do
             if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
                 updateEmptyTriforceDisplay(i)
         recorderingCanvas.Children.Clear()
+        // TODO event for redraw item progress? does any of this event interface make sense? hmmm
+        itemProgressCanvas.Children.Clear()
+        let mutable x, y = 200., 3.
+        let DX = 30.
+        match TrackerModel.playerComputedStateSummary.SwordLevel with
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.greyed_out_sword_bmp, x, y)
+        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.brown_sword_bmp, x, y)
+        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.white_sword_bmp, x, y)
+        | 3 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.magical_sword_bmp, x, y)
+        | _ -> failwith "bad SwordLevel"
+        x <- x + DX
+        match TrackerModel.playerComputedStateSummary.CandleLevel with
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.red_candle_bmp), x, y)
+        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.blue_candle_bmp, x, y)
+        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.red_candle_bmp, x, y)
+        | _ -> failwith "bad CandleLevel"
+        x <- x + DX
+        match TrackerModel.playerComputedStateSummary.RingLevel with
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.red_ring_bmp), x, y)
+        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.blue_ring_bmp, x, y)
+        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.red_ring_bmp, x, y)
+        | _ -> failwith "bad RingLevel"
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveBow then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.bow_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.bow_bmp), x, y)
+        x <- x + DX
+        match TrackerModel.playerComputedStateSummary.ArrowLevel with
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.silver_arrow_bmp), x, y)
+        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.wood_arrow_bmp, x, y)
+        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.silver_arrow_bmp, x, y)
+        | _ -> failwith "bad ArrowLevel"
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveWand then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.wand_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.wand_bmp), x, y)
+        x <- x + DX
+        if !isCurrentlyBook then
+            // book seed
+            if TrackerModel.playerComputedStateSummary.HaveBookOrShield then
+                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.book_bmp, x, y)
+            else
+                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.book_bmp), x, y)
+        else
+            // boomstick seed
+            if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value() then
+                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.boom_book_bmp, x, y)
+            else
+                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.boom_book_bmp), x, y)
+        x <- x + DX
+        match TrackerModel.playerComputedStateSummary.BoomerangLevel with
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.magic_boomerang_bmp), x, y)
+        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.boomerang_bmp, x, y)
+        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.magic_boomerang_bmp, x, y)
+        | _ -> failwith "bad BoomerangLevel"
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveLadder then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.ladder_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.ladder_bmp), x, y)
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveRecorder then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.recorder_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.recorder_bmp), x, y)
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.power_bracelet_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.power_bracelet_bmp), x, y)
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveRaft then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.raft_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.raft_bmp), x, y)
+        x <- x + DX
+        if TrackerModel.playerComputedStateSummary.HaveAnyKey then
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.key_bmp, x, y)
+        else
+            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp), x, y)
         // place start icon in top layer
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 8.5+float(TrackerModel.startIconX*16*3), float(TrackerModel.startIconY*11*3))
@@ -636,7 +729,7 @@ let makeAll(owMapNum) =
                 routeDrawingCanvas.Children.Clear()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
-                let i,j = int(pos.X / (16.*3.)), int(pos.Y / (11.*3.))
+                let i,j = int(Math.Floor(pos.X / (16.*3.))), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
                     OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                                 TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), System.Windows.Point(0.,0.), i, j)
@@ -733,13 +826,15 @@ let makeAll(owMapNum) =
         )
     timer.Start()
 
+
+
     // map legend
     let LEFT_OFFSET = 78.0
     let legendCanvas = new Canvas()
-    canvasAdd(c, legendCanvas, LEFT_OFFSET, 120. + float(8*11*3))
+    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
-    canvasAdd(c, tb, 0., 120. + float(8*11*3))
+    canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
     canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
@@ -772,7 +867,7 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
     canvasAdd(legendCanvas, tb, 13.5*float(16*3), 0.)
 
-    let THRU_MAP_H = float(120+9*11*3)
+    let THRU_MAP_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + float(11*3)
 
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
@@ -1038,10 +1133,10 @@ let makeAll(owMapNum) =
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
-    let recorderAudioReminders = veryBasicBoxImpl(Graphics.recorder_audio_copy, true, false, fun b -> voiceRemindersForRecorder <- b)
+    let recorderAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.recorder_bmp, true, false, fun b -> voiceRemindersForRecorder <- b)
     recorderAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining recorder spots"
     canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
-    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_audio_copy, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
+    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.power_bracelet_bmp, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
     powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
     // coordinate grid
@@ -1131,8 +1226,8 @@ let makeAll(owMapNum) =
     cb.Unchecked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     canvasAdd(c, cb, 285., 100.)
 
-    //                items  ow map   timeline    dungeon tabs                
-    c.Height <- float(30*4 + 11*3*9 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30)
+    //                items  ow map  prog  timeline    dungeon tabs                
+    c.Height <- float(30*4 + 11*3*9 + 30 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30)
     TrackerModel.forceUpdate()
     c, updateTimeline
 

@@ -19,6 +19,17 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i.Width <- float bmp.Width 
     i
 
+let greyscale(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(7*3,7*3)
+    for px = 0 to 7*3-1 do
+        for py = 0 to 7*3-1 do
+            let c = bmp.GetPixel(px,py)
+            let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
+            let avg = if avg = 0 then 0 else avg + 20    // never too dark
+            let c = System.Drawing.Color.FromArgb(avg, avg, avg)
+            r.SetPixel(px, py, c)
+    r
+
 let emptyZHelper =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperEmpty.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
@@ -52,16 +63,9 @@ let zhDungeonIcons =
 let zhDungeonNums =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
     new System.Drawing.Bitmap(imageStream)
-    
-let makeVBrect(image) =
-    // we need a point of indirection to swap the book and magical_shield icons, so a VisualBrush where we can poke the Visual works
-    let vb = new VisualBrush(Visual=image, Opacity=1.0)
-    let rect = new System.Windows.Shapes.Rectangle(Height=21., Width=21., Fill=vb)
-    rect
-// most of these need object identity for logic checks 
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book, recorder_audio_copy, magic_shield_image, book_image = 
+
+let boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder_bmp, wand_bmp, red_candle_bmp, book_bmp, key_bmp, silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, boom_book_bmp, magic_shield_bmp = 
     let zh = fullZHelper
-    let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
     let items = 
         [|
         for i = 0 to 8 do
@@ -74,8 +78,25 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 bmp.MakeTransparent(System.Drawing.Color.Black)
                 yield bmp
         |]
-    makeObject items.[0], makeObject items.[1], makeObject items.[2], makeObject items.[4], makeObject items.[6], makeObject items.[8], 
-        makeObject items.[10], makeObject items.[12], makeObject items.[14], makeObject items.[15], makeObject items.[16], makeObject items.[17],
+    let bluer_silver_arrow, wood_arrow =
+        let bmp1 = new System.Drawing.Bitmap(7*3,7*3)
+        let bmp2 = new System.Drawing.Bitmap(7*3,7*3)
+        for px = 0 to 7*3-1 do
+            for py = 0 to 7*3-1 do
+                let c = items.[16].GetPixel(px, py)
+                if c.ToArgb() = System.Drawing.Color.White.ToArgb() then
+                    bmp1.SetPixel(px, py, System.Drawing.Color.White)
+                    bmp2.SetPixel(px, py, System.Drawing.Color.SandyBrown)
+                elif c.A=0uy then
+                    bmp1.SetPixel(px, py, c)
+                    bmp2.SetPixel(px, py, c)
+                else
+                    bmp1.SetPixel(px, py, System.Drawing.Color.DodgerBlue)
+                    bmp2.SetPixel(px, py, System.Drawing.Color.GreenYellow)
+        bmp1, bmp2
+    items.[0], items.[1], items.[2], items.[4], items.[6], items.[8], items.[10], items.[12], items.[14], items.[15], 
+        bluer_silver_arrow, wood_arrow,
+        items.[17],
         (
         let bmp = new System.Drawing.Bitmap(7*3,7*3)
         // book
@@ -88,12 +109,23 @@ let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, b
                 bmp.SetPixel(px, py, System.Drawing.Color.Blue)
         bmp.SetPixel(10, 12, System.Drawing.Color.White)
         bmp.SetPixel(11, 11, System.Drawing.Color.White)
-        makeObject bmp
+        bmp
         ),
-        makeObject items.[8], BMPtoImage items.[7], BMPtoImage items.[14]
+        items.[7]
+    
+let makeVBrect(image) =
+    // we need a point of indirection to swap the book and magical_shield icons, so a VisualBrush where we can poke the Visual works
+    let vb = new VisualBrush(Visual=image, Opacity=1.0)
+    let rect = new System.Windows.Shapes.Rectangle(Height=21., Width=21., Fill=vb)
+    rect
+let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
+// most of these need object identity for logic checks TODO hearts do, others? fix this
+// TODO just write my own graphics strip rather than pulling them from zhelper
+let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
+    makeObject boomerang_bmp, makeObject bow_bmp, makeObject magic_boomerang_bmp, makeObject raft_bmp, makeObject ladder_bmp, makeObject recorder_bmp, makeObject wand_bmp, 
+    makeObject red_candle_bmp, makeObject book_bmp, makeObject key_bmp, makeObject silver_arrow_bmp, makeObject red_ring_bmp, makeObject boom_book_bmp
 
-let mutable heart_container_bmp = null
-let heart_container, power_bracelet, white_sword, ow_key_armos, power_bracelet_audio_copy = 
+let heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp = 
     let zh = fullZHelper
     let items = 
         [|
@@ -107,8 +139,9 @@ let heart_container, power_bracelet, white_sword, ow_key_armos, power_bracelet_a
                 bmp.MakeTransparent(System.Drawing.Color.Black)
                 yield bmp
         |]
-    heart_container_bmp <- items.[0]
-    makeVBrect(BMPtoImage items.[0]), makeVBrect(BMPtoImage items.[2]), makeVBrect(BMPtoImage items.[4]), BMPtoImage items.[3], BMPtoImage items.[2]
+    items.[0], items.[2], items.[4], items.[3]
+let heart_container, power_bracelet, white_sword, ow_key_armos = 
+    makeObject heart_container_bmp, makeObject power_bracelet_bmp, makeObject white_sword_bmp, makeObject ow_key_armos_bmp
 let copyHeartContainer() =
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
     for i = 0 to 20 do
@@ -128,27 +161,30 @@ let ow_key_white_sword =
         for py = 0 to 7*3-1 do
             bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
     BMPtoImage bmp
-let brown_sword, magical_sword = 
+let brown_sword_bmp, magical_sword_bmp, greyed_out_sword_bmp = 
     let zh = fullZHelper
     let bmp1 = new System.Drawing.Bitmap(7*3,7*3)
     let bmp2 = new System.Drawing.Bitmap(7*3,7*3)
+    let bmp3 = new System.Drawing.Bitmap(7*3,7*3)
     let xoff,yoff = 574+36*2, 91+30*0  // index into ZHelperFull
     for px = 0 to 7*3-1 do
         for py = 0 to 7*3-1 do
             let c = zh.GetPixel(xoff + px, yoff + py)
-            let c1,c2 =
+            let c1,c2,c3 =
                 if c.R = 255uy && c.G = 255uy && c.B = 255uy then
-                    System.Drawing.Color.Brown, c
+                    System.Drawing.Color.Brown, c, System.Drawing.Color.DarkGray
                 elif c.R = 128uy && c.G = 128uy && c.B = 255uy then
-                    System.Drawing.Color.LightGreen, System.Drawing.Color.Red 
+                    System.Drawing.Color.LightGreen, System.Drawing.Color.Red, System.Drawing.Color.Gray 
                 else
-                    c,c
+                    c,c,c
             bmp1.SetPixel(px, py, c1)
             bmp2.SetPixel(px, py, c2)
+            bmp3.SetPixel(px, py, c3)
     bmp1.MakeTransparent(System.Drawing.Color.Black)
     bmp2.MakeTransparent(System.Drawing.Color.Black)
-    BMPtoImage bmp1, BMPtoImage bmp2
-let blue_candle = 
+    bmp3.MakeTransparent(System.Drawing.Color.Black)
+    bmp1, bmp2, bmp3
+let blue_candle_bmp = 
     let zh = fullZHelper
     let i,j = 6,0
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
@@ -163,8 +199,10 @@ let blue_candle =
                     c
             bmp.SetPixel(px, py, c)
     bmp.MakeTransparent(System.Drawing.Color.Black)
-    BMPtoImage bmp
-let blue_ring = 
+    bmp
+let blue_candle = 
+    BMPtoImage blue_candle_bmp
+let blue_ring_bmp = 
     let zh = fullZHelper
     let i,j = 8,1
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
@@ -179,7 +217,9 @@ let blue_ring =
                     c
             bmp.SetPixel(px, py, c)
     bmp.MakeTransparent(System.Drawing.Color.Black)
-    BMPtoImage bmp
+    bmp
+let blue_ring = 
+    BMPtoImage blue_ring_bmp
 
 let ow_key_ladder = 
     let zh = fullZHelper

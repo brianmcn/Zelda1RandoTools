@@ -176,6 +176,7 @@ type PlayerProgressAndTakeAnyHearts() =
     let takeAnyHearts = [| 0; 0; 0; 0 |]   // 0 = untaken (open heart on UI), 1 = taken heart (red heart on UI), 2 = taken potion/candle (X out empty heart on UI)
     let playerHasBoomBook      = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasWoodSword     = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
+    let playerHasWoodArrow     = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasBlueRing      = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasBlueCandle    = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasMagicalSword  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
@@ -186,6 +187,7 @@ type PlayerProgressAndTakeAnyHearts() =
     member _this.SetTakeAnyHeart(i,v) = takeAnyHearts.[i] <- v; playerProgressLastChangedTime <- System.DateTime.Now
     member _this.PlayerHasBoomBook      = playerHasBoomBook
     member _this.PlayerHasWoodSword     = playerHasWoodSword     
+    member _this.PlayerHasWoodArrow     = playerHasWoodArrow
     member _this.PlayerHasBlueRing      = playerHasBlueRing      
     member _this.PlayerHasBlueCandle    = playerHasBlueCandle    
     member _this.PlayerHasMagicalSword  = playerHasMagicalSword  
@@ -250,7 +252,8 @@ let allBoxes = [|
 //////////////////////////////////////////////////////////////////////////////////////////
 // Player computed state summary
 
-type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts) = 
+type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
+                                swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBook,boomerangLevel) = 
     // computed from Boxes and other bits
     member _this.HaveRecorder = haveRecorder
     member _this.HaveLadder = haveLadder
@@ -259,12 +262,20 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWhiteSwordItem = haveWhiteSwordItem
     member _this.HavePowerBracelet = havePowerBracelet
     member _this.HaveRaft = haveRaft
-    member _this.HaveCandle = haveCandle
     member _this.PlayerHearts = playerHearts // TODO can't handle money-or-life rooms losing heart, or flags that start with more hearts
-let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,false,3)
+    member _this.SwordLevel = swordLevel
+    member _this.CandleLevel = candleLevel
+    member _this.RingLevel = ringLevel
+    member _this.HaveBow = haveBow
+    member _this.ArrowLevel = arrowLevel
+    member _this.HaveWand = haveWand
+    member _this.HaveBookOrShield = haveBook
+    member _this.BoomerangLevel = boomerangLevel
+let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
 let mutable playerComputedStateSummaryLastComputedTime = System.DateTime.Now
 let recomputePlayerStateSummary() =
-    let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts = false,false,false,false,false,false,false,false,3
+    let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
+    let mutable swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel = 0,0,0,false,0,false,false,0
     for b in allBoxes do
         if b.PlayerHas() then
             if b.CellCurrent() = ITEMS.RECORDER then
@@ -278,11 +289,35 @@ let recomputePlayerStateSummary() =
             elif b.CellCurrent() = ITEMS.RAFT then
                 haveRaft <- true
             elif b.CellCurrent() = ITEMS.REDCANDLE then
-                haveCandle <- true
+                candleLevel <- 2
             elif b.CellCurrent() = ITEMS.HEARTCONTAINER then
                 playerHearts <- playerHearts + 1
+            elif b.CellCurrent() = ITEMS.BOOKSHIELD then
+                haveBookOrShield <- true
+            elif b.CellCurrent() = ITEMS.BOOMERANG then
+                boomerangLevel <- max boomerangLevel 1
+            elif b.CellCurrent() = ITEMS.BOW then
+                haveBow <- true
+            elif b.CellCurrent() = ITEMS.MAGICBOOMERANG then
+                boomerangLevel <- 2
+            elif b.CellCurrent() = ITEMS.REDRING then
+                ringLevel <- 2
+            elif b.CellCurrent() = ITEMS.SILVERARROW then
+                arrowLevel <- 2
+            elif b.CellCurrent() = ITEMS.WAND then
+                haveWand <- true
+            elif b.CellCurrent() = ITEMS.WHITESWORD then
+                swordLevel <- max swordLevel 2
     if playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Value() then
-        haveCandle <- true
+        candleLevel <- max candleLevel 1
+    if playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+        swordLevel <- 3
+    if playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Value() then
+        swordLevel <- max swordLevel 1
+    if playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Value() then
+        ringLevel <- max ringLevel 1
+    if playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Value() then
+        arrowLevel <- max arrowLevel 1
     if ladderBox.PlayerHas() then
         haveCoastItem <- true
     if sword2Box.PlayerHas() then
@@ -290,7 +325,8 @@ let recomputePlayerStateSummary() =
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
             playerHearts <- playerHearts + 1
-    playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,haveCandle,playerHearts)
+    playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
+                                                                swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
     playerComputedStateSummaryLastComputedTime <- System.DateTime.Now
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -361,7 +397,7 @@ let recomputeMapStateSummary() =
                         (owInstance.Ladderable(i,j) && not playerComputedStateSummary.HaveLadder) ||
                         (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) ||
                         (owInstance.Bombable(i,j) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())) ||
-                        (owInstance.Burnable(i,j) && not playerComputedStateSummary.HaveCandle) then
+                        (owInstance.Burnable(i,j) && playerComputedStateSummary.CandleLevel=0) then
                         ()
                     else
                         owRouteworthySpots.[i,j] <- true
