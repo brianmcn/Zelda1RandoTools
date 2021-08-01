@@ -18,7 +18,7 @@ module PrivateInternals =
         "WWWWWRSSSSSCCCCC"
         |]
 
-    let owMapZoneImages =
+    let owMapZoneBmps =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
         let colors = 
             dict [
@@ -40,7 +40,7 @@ module PrivateInternals =
                 for px = 0 to 16*3-1 do
                     for py = 0 to 11*3-1 do
                         tile.SetPixel(px, py, colors.Item(owMapZone.[y].[x]))
-                imgs.[x,y] <- Graphics.BMPtoImage tile
+                imgs.[x,y] <- tile
         imgs
 
     let owMapSquaresRaftable = [|
@@ -187,7 +187,7 @@ module PrivateInternals =
         |]
 // end PrivateInternals
 
-let owMapZoneImages = PrivateInternals.owMapZoneImages 
+let owMapZoneBmps = PrivateInternals.owMapZoneBmps
 
 let owMapSquaresSecondQuestOnly = [|
     for i = 0 to 7 do

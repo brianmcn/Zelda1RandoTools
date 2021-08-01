@@ -17,7 +17,7 @@ module Winterop =
     extern bool UnregisterHotKey(IntPtr hWnd,int id)
 
     let HOTKEY_ID = 9000
-
+    
 type MyWindowBase() as this = 
     inherit Window()
     let mutable source = null

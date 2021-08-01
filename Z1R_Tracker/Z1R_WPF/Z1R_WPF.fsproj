@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>6b605496-ea45-4694-90f5-a3953d338bec</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Z1R_Tracker</RootNamespace>
-    <AssemblyName>Z1R_Tracker</AssemblyName>
+    <ProjectGuid>{3064f941-92aa-4adf-a149-c97c920aeffd}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Z1R_WPF</RootNamespace>
+    <AssemblyName>Z1R_WPF</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>Z1R_Tracker</Name>
+    <Name>Z1R_WPF</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\Z1R_Tracker.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <StartArguments>heartShuffle 1</StartArguments>
   </PropertyGroup>
@@ -35,7 +35,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\Z1R_Tracker.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--standalone</OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
@@ -57,21 +57,47 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="OverworldData.fs" />
-    <Compile Include="DungeonData.fs" />
-    <Compile Include="OverworldRouting.fs" />
-    <Compile Include="TrackerModel.fs" />
+    <Compile Include="Graphics.fs" />
+    <Compile Include="OverworldRouteDrawing.fs" />
+    <Compile Include="WPFUI.fs" />
+    <Compile Include="Program.fs" />
+    <EmbeddedResource Include="ZHelperEmpty.png" />
+    <EmbeddedResource Include="ZHelperFull.png" />
+    <EmbeddedResource Include="s_map_overworld_strip8.png" />
+    <EmbeddedResource Include="s_icon_overworld_strip39.png" />
+    <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />
+    <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />
+    <EmbeddedResource Include="CroppedBrianKitty.png" />
+    <EmbeddedResource Include="ganonzelda.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Speech" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Presentation" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Z1R_Tracker\Z1R_Tracker.fsproj">
+      <Name>Z1R_Tracker</Name>
+      <Project>{6b605496-ea45-4694-90f5-a3953d338bec}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

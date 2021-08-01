@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_Tracker", "Z1R_Tracker\Z1R_Tracker.fsproj", "{6B605496-EA45-4694-90F5-A3953D338BEC}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_WPF", "Z1R_WPF\Z1R_WPF.fsproj", "{3064F941-92AA-4ADF-A149-C97C920AEFFD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +17,15 @@ Global
 		{6B605496-EA45-4694-90F5-A3953D338BEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B605496-EA45-4694-90F5-A3953D338BEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B605496-EA45-4694-90F5-A3953D338BEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CD226A73-A77B-44E6-8BEA-1161643453BF}
 	EndGlobalSection
 EndGlobal

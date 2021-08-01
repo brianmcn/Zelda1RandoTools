@@ -509,8 +509,8 @@ let makeAll(owMapNum) =
             let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
                                         // draw routes
-                                        OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                                                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
+                                        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                                                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -731,8 +731,8 @@ let makeAll(owMapNum) =
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / (16.*3.))), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
-                    OverworldRouting.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), System.Windows.Point(0.,0.), i, j)
+                    OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), System.Windows.Point(0.,0.), i, j)
                 // unexplored but gettable spots highlight
                 if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
                     for x = 0 to 15 do
@@ -1164,11 +1164,13 @@ let makeAll(owMapNum) =
 
     // zone overlay
     let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
+    let allOwMapZoneImages = ResizeArray()
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = OverworldData.owMapZoneImages.[i,j]
+            let image = Graphics.BMPtoImage OverworldData.owMapZoneBmps.[i,j]
             image.Opacity <- 0.0
             image.IsHitTestVisible <- false // transparent to mouse
+            allOwMapZoneImages.Add(image)
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapZoneGrid, c, i, j)
@@ -1222,8 +1224,8 @@ let makeAll(owMapNum) =
 
     let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.3) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    cb.Unchecked.Add(fun _ -> OverworldData.owMapZoneImages |> Array2D.map (fun i -> i.Opacity <- 0.0) |> ignore; owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
+    cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map  prog  timeline    dungeon tabs                
