@@ -69,6 +69,7 @@
     <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />
     <EmbeddedResource Include="CroppedBrianKitty.png" />
     <EmbeddedResource Include="ganonzelda.png" />
+    <EmbeddedResource Include="icons7x7.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -91,8 +92,6 @@
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Z1R_Tracker\Z1R_Tracker.fsproj">
       <Name>Z1R_Tracker</Name>
       <Project>{6b605496-ea45-4694-90f5-a3953d338bec}</Project>

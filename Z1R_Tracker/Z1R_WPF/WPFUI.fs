@@ -619,7 +619,7 @@ let makeAll(owMapNum) =
         let mutable x, y = 200., 3.
         let DX = 30.
         match TrackerModel.playerComputedStateSummary.SwordLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.greyed_out_sword_bmp, x, y)
+        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)
         | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.brown_sword_bmp, x, y)
         | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.white_sword_bmp, x, y)
         | 3 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.magical_sword_bmp, x, y)

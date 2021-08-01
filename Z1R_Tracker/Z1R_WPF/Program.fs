@@ -220,6 +220,26 @@ type TerrariaTimerOnlyWindow() as this =
         else
             dayTextBox.Text <- sprintf "Night %d" day
 
+
+
+open Graphics
+
+let writeBmpStrip() =
+    let bmps = [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
+                    silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 
+                    heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
+                    brown_sword_bmp; magical_sword_bmp; blue_candle_bmp; blue_ring_bmp;
+                    ganon_bmp; zelda_bmp; bomb_bmp |]
+    let strip = new System.Drawing.Bitmap(7*bmps.Length,7)
+    for i = 0 to bmps.Length-1 do
+        for x = 0 to 6 do
+            for y = 0 to 6 do
+                strip.SetPixel(i*7+x, y, bmps.[i].GetPixel(x*3+1, y*3+1))
+    strip.MakeTransparent(System.Drawing.Color.Black)
+    strip.Save("foo.png", System.Drawing.Imaging.ImageFormat.Png)        
+    // TODO grey sword, greyscale stuff?
+
+
 [<STAThread>]
 [<EntryPoint>]
 let main argv = 
@@ -248,6 +268,12 @@ let main argv =
         printfn "crashed with exception"
         printfn "%s" (e.ToString())
 #endif
+    
+
+
+    //writeBmpStrip()
+    
+    
     printfn "press enter to end"
     System.Console.ReadLine() |> ignore
     0
