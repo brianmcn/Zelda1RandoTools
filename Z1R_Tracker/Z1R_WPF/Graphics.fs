@@ -105,28 +105,11 @@ let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang;
 let allItemsWithHeartShuffle = 
     [| yield! allItems; for i = 0 to 7 do yield makeVBrect(copyHeartContainer()) |]
 
-let ow_key_white_sword = 
-    let zh = fullZHelper
-    let bmp = new System.Drawing.Bitmap(7*3,7*3)
-    let xoff,yoff = 574+36*2, 91+30*0  // index into ZHelperFull
-    for px = 0 to 7*3-1 do
-        for py = 0 to 7*3-1 do
-            bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-    BMPtoImage bmp
 let blue_candle = 
     BMPtoImage blue_candle_bmp
 let blue_ring = 
     BMPtoImage blue_ring_bmp
 
-let ow_key_ladder = 
-    let zh = fullZHelper
-    let bmp = new System.Drawing.Bitmap(7*3,7*3)
-    let xoff,yoff = 250+36*3, 61+36*0  // index into ZHelperFull
-    for px = 0 to 7*3-1 do
-        for py = 0 to 7*3-1 do
-            bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-    BMPtoImage bmp
-    
 let emptyUnfoundTriforces, emptyFoundTriforces = 
     let zh = emptyZHelper
     let a = [|
@@ -154,28 +137,6 @@ let fullTriforces =
                 for py = 0 to 10*3-1 do
                     bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
             bmp.MakeTransparent(System.Drawing.Color.Black)
-            yield BMPtoImage bmp
-    |]
-let emptyHearts = 
-    let zh = emptyZHelper
-    [|
-        for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,59  // index into ZHelperEmpty
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-            yield BMPtoImage bmp
-    |]
-let fullHearts = 
-    let zh = fullZHelper
-    [|
-        for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,82  // index into ZHelperFull
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
             yield BMPtoImage bmp
     |]
 let owHeartsSkipped = 

@@ -93,9 +93,7 @@ let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., 
 type TimelineItem(c:Canvas, isDone:unit->bool) =
     member this.Canvas = c
     member this.IsHeart() = 
-        if Graphics.fullHearts |> Array.exists (fun x -> c.Children.Contains(x)) then
-            true
-        elif Graphics.owHeartsFull |> Array.exists (fun x -> c.Children.Contains(x)) then
+        if Graphics.owHeartsFull |> Array.exists (fun x -> c.Children.Contains(x)) then
             true
         elif Graphics.allItemsWithHeartShuffle.[14..] |> Array.exists (fun x -> c.Children.Contains(x)) then
             true
@@ -297,9 +295,9 @@ let makeAll(owMapNum) =
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
-    gridAdd(owItemGrid, Graphics.ow_key_ladder, 0, 0)
+    gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
-    gridAdd(owItemGrid, Graphics.ow_key_white_sword, 0, 2)
+    gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.white_sword_bmp, 0, 2)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox), 1, 0)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox), 1, 1)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box), 1, 2)
