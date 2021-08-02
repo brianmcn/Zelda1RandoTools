@@ -70,6 +70,7 @@
     <EmbeddedResource Include="CroppedBrianKitty.png" />
     <EmbeddedResource Include="ganonzelda.png" />
     <EmbeddedResource Include="icons7x7.png" />
+    <EmbeddedResource Include="icons10x10.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

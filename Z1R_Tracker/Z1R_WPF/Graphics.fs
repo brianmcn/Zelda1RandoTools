@@ -20,6 +20,19 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
             yield r
     |]
 
+let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp = 
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons10x10.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let all = [|
+        for i = 0 to bmp.Width/10 - 1 do
+            let r = new System.Drawing.Bitmap(10*3,10*3)
+            for px = 0 to 10*3-1 do
+                for py = 0 to 10*3-1 do
+                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*10, py/3))
+            yield r
+        |]
+    all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
+
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
@@ -110,68 +123,8 @@ let blue_candle =
 let blue_ring = 
     BMPtoImage blue_ring_bmp
 
-let emptyUnfoundTriforces, emptyFoundTriforces = 
-    let zh = emptyZHelper
-    let a = [|
-        for i = 0 to 7 do
-            let bmp1 = new System.Drawing.Bitmap(10*3,10*3)
-            let bmp2 = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,29  // index into ZHelperEmpty
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    let c = zh.GetPixel(xoff + i*10*3 + px, yoff + py)
-                    bmp1.SetPixel(px, py, c)
-                    bmp2.SetPixel(px, py, if c.ToArgb() = System.Drawing.Color.FromArgb(128,128,128).ToArgb() then System.Drawing.Color.White else c)
-            bmp1.MakeTransparent(System.Drawing.Color.Black)
-            bmp2.MakeTransparent(System.Drawing.Color.Black)
-            yield BMPtoImage bmp1, BMPtoImage bmp2
-    |]
-    a |> Array.map fst, a |> Array.map snd
-let fullTriforces = 
-    let zh = fullZHelper
-    [|
-        for i = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,52  // index into ZHelperFull
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + i*10*3 + px, yoff + py))
-            bmp.MakeTransparent(System.Drawing.Color.Black)
-            yield BMPtoImage bmp
-    |]
-let owHeartsSkipped = 
-    let zh = fullZHelper
-    [|
-        for i = 0 to 3 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 646,52  // index into ZHelperFull
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-            yield BMPtoImage bmp
-    |]
-let owHeartsEmpty = 
-    let zh = emptyZHelper
-    [|
-        for i = 0 to 3 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,59  // index into ZHelperEmpty
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-            yield BMPtoImage bmp
-    |]
-let owHeartsFull = 
-    let zh = fullZHelper
-    [|
-        for i = 0 to 3 do
-            let bmp = new System.Drawing.Bitmap(10*3,10*3)
-            let xoff,yoff = 1,82  // index into ZHelperFull
-            for px = 0 to 10*3-1 do
-                for py = 0 to 10*3-1 do
-                    bmp.SetPixel(px, py, zh.GetPixel(xoff + px, yoff + py))
-            yield BMPtoImage bmp
-    |]
+let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
+let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 let timelineHeart = 
     let zh = fullZHelper
     let bmp = new System.Drawing.Bitmap(9*3,9*3)
