@@ -37,7 +37,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <OtherFlags>--standalone</OtherFlags>
+    <OtherFlags>
+    </OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
@@ -91,6 +92,8 @@
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Z1R_Tracker\Z1R_Tracker.fsproj">
       <Name>Z1R_Tracker</Name>
       <Project>{6b605496-ea45-4694-90f5-a3953d338bec}</Project>

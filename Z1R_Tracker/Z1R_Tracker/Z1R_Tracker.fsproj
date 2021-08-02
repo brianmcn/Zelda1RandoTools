@@ -37,7 +37,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\Z1R_Tracker.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <OtherFlags>--standalone</OtherFlags>
+    <OtherFlags>
+    </OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
