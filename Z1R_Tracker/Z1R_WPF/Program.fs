@@ -222,21 +222,6 @@ type TerrariaTimerOnlyWindow() as this =
 
 
 
-open Graphics
-
-let writeBmpStrip() =
-    let bmps = [| yield! emptyUnfoundTriforce_bmps; yield! emptyFoundTriforce_bmps; yield! fullTriforce_bmps;
-                    yield owHeartSkipped_bmp; yield owHeartEmpty_bmp; yield owHeartFull_bmp |]
-    let strip = new System.Drawing.Bitmap(10*bmps.Length,10)
-    for i = 0 to bmps.Length-1 do
-        for x = 0 to 9 do
-            for y = 0 to 9 do
-                strip.SetPixel(i*10+x, y, bmps.[i].GetPixel(x*3, y*3))
-    strip.MakeTransparent(System.Drawing.Color.Black)
-    strip.Save("foo.png", System.Drawing.Imaging.ImageFormat.Png)        
-    // TODO grey sword, greyscale stuff?
-
-
 [<STAThread>]
 [<EntryPoint>]
 let main argv = 
@@ -265,10 +250,6 @@ let main argv =
         printfn "crashed with exception"
         printfn "%s" (e.ToString())
 #endif
-    
-
-
-    writeBmpStrip()
     
     
     printfn "press enter to end"

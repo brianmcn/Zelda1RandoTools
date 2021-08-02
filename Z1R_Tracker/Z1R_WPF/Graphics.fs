@@ -33,6 +33,18 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
         |]
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
+let [| dungeonUnexploredRoomBMP; dungeonExploredRoomBMP; dungeonVChuteBMP; dungeonHChuteBMP; dungeonTeeBMP; dungeonTriforceBMP; dungeonPrincessBMP; dungeonStartBMP;
+        dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |] =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons13x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    [|  for i = 0 to bmp.Width/13 - 1 do
+            let r = new System.Drawing.Bitmap(13*3,9*3)
+            for px = 0 to 13*3-1 do
+                for py = 0 to 9*3-1 do
+                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, py/3))
+            yield r
+    |]
+
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
@@ -58,26 +70,6 @@ let greyscale(bmp:System.Drawing.Bitmap) =
             r.SetPixel(px, py, c)
     r
 
-let emptyZHelper =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperEmpty.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    for i = 0 to bmp.Width-1 do
-        for j = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(i,j)
-            if false then //c.R = 53uy && c.G = 53uy && c.B = 53uy then
-                bmp.SetPixel(i, j, System.Drawing.Color.Black)
-    bmp
-let fullZHelper =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("ZHelperFull.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    for i = 0 to bmp.Width-1 do
-        for j = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(i,j)
-            if c.R = 53uy && c.G = 53uy && c.B = 53uy then
-                bmp.SetPixel(i, j, System.Drawing.Color.Black)
-            if c.R = 27uy && c.G = 27uy && c.B = 53uy then
-                bmp.SetPixel(i, j, System.Drawing.Color.Black)
-    bmp
 let overworldImage =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld_strip8.png")
     // 8 maps in here: 1st quest, 2nd quest, 1st quest with mixed secrets, 2nd quest with mixed secrets, and then horizontal-reflected versions of each of those
@@ -100,13 +92,12 @@ let makeVBrect(image) =
     rect
 let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
 // most of these need object identity for logic checks TODO hearts do, others? fix this
-// TODO just write my own graphics strip rather than pulling them from zhelper
 let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
     makeObject boomerang_bmp, makeObject bow_bmp, makeObject magic_boomerang_bmp, makeObject raft_bmp, makeObject ladder_bmp, makeObject recorder_bmp, makeObject wand_bmp, 
     makeObject red_candle_bmp, makeObject book_bmp, makeObject key_bmp, makeObject silver_arrow_bmp, makeObject red_ring_bmp, makeObject boom_book_bmp
 
-let heart_container, power_bracelet, white_sword, ow_key_armos = 
-    makeObject heart_container_bmp, makeObject power_bracelet_bmp, makeObject white_sword_bmp, makeObject ow_key_armos_bmp
+let power_bracelet, white_sword, ow_key_armos = 
+    makeObject power_bracelet_bmp, makeObject white_sword_bmp, makeObject ow_key_armos_bmp
 let copyHeartContainer() =
     let bmp = new System.Drawing.Bitmap(7*3,7*3)
     for i = 0 to 20 do
@@ -114,9 +105,9 @@ let copyHeartContainer() =
             bmp.SetPixel(i, j, heart_container_bmp.GetPixel(i,j))
     BMPtoImage bmp
 
-let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword; heart_container |]
+let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword |]
 let allItemsWithHeartShuffle = 
-    [| yield! allItems; for i = 0 to 7 do yield makeVBrect(copyHeartContainer()) |]
+    [| yield! allItems; for i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
 
 let blue_candle = 
     BMPtoImage blue_candle_bmp
@@ -126,12 +117,10 @@ let blue_ring =
 let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 let timelineHeart = 
-    let zh = fullZHelper
     let bmp = new System.Drawing.Bitmap(9*3,9*3)
-    let xoff,yoff = 1,82  // index into ZHelperFull
-    for px = 3 to 10*3-1 do
-        for py = 3 to 10*3-1 do
-            bmp.SetPixel(px-3, py-3, zh.GetPixel(xoff + px, yoff + py))
+    for x = 1*3 to 10*3-1 do
+        for y = 1*3 to 10*3-1 do
+            bmp.SetPixel(x-3, y-3, owHeartFull_bmp.GetPixel(x,y))
     BMPtoImage bmp
 
 let overworldMapBMPs(n) =
@@ -219,120 +208,7 @@ let nonUniqueMapIconBMPs =
             yield tile
     |]
 
-let dungeonUnexploredRoomBMP =
-    let m = zhDungeonIcons
-    let tile = new System.Drawing.Bitmap(13*3, 9*3)
-    for px = 0 to 13*3-1 do
-        for py = 0 to 9*3-1 do
-            tile.SetPixel(px, py, m.GetPixel(px/3, py/3))
-    tile
-
-let dungeonExploredRoomBMP =
-    let m = zhDungeonIcons
-    let tile = new System.Drawing.Bitmap(13*3, 9*3)
-    for px = 0 to 13*3-1 do
-        for py = 0 to 9*3-1 do
-            tile.SetPixel(px, py, m.GetPixel(13+px/3, py/3))
-    tile
-
-let dungeonVChuteBMP =
-    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
-    let c = tile.GetPixel(0,0)
-    for py = 0 to 9*3-1 do
-        tile.SetPixel(13, py, c)
-        tile.SetPixel(14, py, c)
-        tile.SetPixel(15, py, c)
-        tile.SetPixel(23, py, c)
-        tile.SetPixel(24, py, c)
-        tile.SetPixel(25, py, c)
-    tile    
-
-let dungeonHChuteBMP =
-    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
-    let c = tile.GetPixel(0,0)
-    for px = 0 to 13*3-1 do
-        tile.SetPixel(px,  9, c)
-        tile.SetPixel(px, 10, c)
-        tile.SetPixel(px, 11, c)
-        tile.SetPixel(px, 15, c)
-        tile.SetPixel(px, 16, c)
-        tile.SetPixel(px, 17, c)
-    tile    
-
-let dungeonTeeBMP =
-    let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
-    let c = tile.GetPixel(0,0)
-    for py = 5*3 to 9*3-1 do
-        tile.SetPixel(15, py, c)
-        tile.SetPixel(16, py, c)
-        tile.SetPixel(17, py, c)
-        tile.SetPixel(21, py, c)
-        tile.SetPixel(22, py, c)
-        tile.SetPixel(23, py, c)
-    for px = 4*3 to 9*3-1 do
-        for py = 9 to 11 do
-            tile.SetPixel(px,  py, c)
-    for px in [12;13;14;24;25;26] do
-        for py = 12 to 17 do
-            tile.SetPixel(px,  py, c)
-    tile    
-
-let dungeonTriforceBMP =
-    let m = zhDungeonIcons
-    let tile = new System.Drawing.Bitmap(13*3, 9*3)
-    for px = 0 to 13*3-1 do
-        for py = 0 to 9*3-1 do
-            tile.SetPixel(px, py, System.Drawing.Color.Yellow)
-    tile
-
-let dungeonPrincessBMP =
-    let m = zhDungeonIcons
-    let tile = new System.Drawing.Bitmap(13*3, 9*3)
-    for px = 0 to 13*3-1 do
-        for py = 0 to 9*3-1 do
-            tile.SetPixel(px, py, System.Drawing.Color.Red)
-    tile
-
-let dungeonStartBMP =
-    let m = zhDungeonIcons
-    let tile = new System.Drawing.Bitmap(13*3, 9*3)
-    for px = 0 to 13*3-1 do
-        for py = 0 to 9*3-1 do
-            if px<3 || px>12*3-1 || py<3 || py>8*3-1 then
-                tile.SetPixel(px, py, System.Drawing.Color.LightGray)
-            else
-                tile.SetPixel(px, py, System.Drawing.Color.Green)
-    tile
-
-let dungeonNumberBMPs = 
-    let m = zhDungeonNums
-    let x = System.Drawing.Color.FromArgb(255, 128, 128, 128)
-    let colors = 
-        [|
-            System.Drawing.Color.Pink 
-            System.Drawing.Color.Aqua
-            System.Drawing.Color.Orange 
-            System.Drawing.Color.FromArgb(0, 140, 0)
-            System.Drawing.Color.FromArgb(230, 0, 230) 
-            System.Drawing.Color.FromArgb(220, 220, 0)
-            System.Drawing.Color.Lime 
-            System.Drawing.Color.Brown 
-            System.Drawing.Color.Blue
-        |]
-    [|
-        for i = 0 to 8 do
-            let tile = dungeonExploredRoomBMP.Clone() :?> System.Drawing.Bitmap 
-            for px = 0 to 9*3-1 do
-                for py = 0 to 9*3-1 do
-                    let c = m.GetPixel((i*9*3+px)/3, py/3)
-                    let r = 
-                        if c.ToArgb() = x.ToArgb() then
-                            colors.[i]
-                        else
-                            c
-                    tile.SetPixel(px+2*3, py, r)
-            yield tile
-    |]
+let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
 
 let ganon,zelda,bomb = 
     BMPtoImage ganon_bmp, BMPtoImage zelda_bmp, BMPtoImage bomb_bmp

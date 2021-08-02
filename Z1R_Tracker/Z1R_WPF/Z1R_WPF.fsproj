@@ -61,16 +61,14 @@
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
-    <EmbeddedResource Include="ZHelperEmpty.png" />
-    <EmbeddedResource Include="ZHelperFull.png" />
     <EmbeddedResource Include="s_map_overworld_strip8.png" />
     <EmbeddedResource Include="s_icon_overworld_strip39.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />
     <EmbeddedResource Include="CroppedBrianKitty.png" />
-    <EmbeddedResource Include="ganonzelda.png" />
     <EmbeddedResource Include="icons7x7.png" />
     <EmbeddedResource Include="icons10x10.png" />
+    <EmbeddedResource Include="icons13x9.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
