@@ -162,7 +162,6 @@ let makeAll(owMapNum) =
         )
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new TimelineItem(innerc, (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
-    let hearts = whichItems.[14..]
     let remindShortly(f, text:string) =
         let cxt = System.Threading.SynchronizationContext.Current 
         async { 
@@ -176,8 +175,7 @@ let makeAll(owMapNum) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no)
-        rect.StrokeThickness <- 3.0
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no, StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
@@ -267,12 +265,11 @@ let makeAll(owMapNum) =
     canvasAdd(c, kitty, 285., 0.)
 
     let OFFSET = 400.
-    // ow hearts
+    // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
         let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-        let image = Graphics.owHeartsEmpty.[i]
-        canvasAdd(c, image, 0., 0.)
+        canvasAdd(c, Graphics.owHeartsEmpty.[i], 0., 0.)
         let f b =
             let cur = 
                 if c.Children.Contains(Graphics.owHeartsEmpty.[i]) then 0
@@ -308,8 +305,7 @@ let makeAll(owMapNum) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=if startOn then yes else no)
-        rect.StrokeThickness <- 3.0
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=(if startOn then yes else no), StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
@@ -330,8 +326,8 @@ let makeAll(owMapNum) =
         c
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.BMPtoImage Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.BMPtoImage Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle())), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.BMPtoImage Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.BMPtoImage Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
     gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 2, 1)
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
@@ -478,16 +474,14 @@ let makeAll(owMapNum) =
         let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
         drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
         // darken the number
-        let rect = 
-            new System.Windows.Shapes.Rectangle(Width=15.0, Height=21.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        let rect = new System.Windows.Shapes.Rectangle(Width=15.0, Height=21.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
         canvasAdd(c, rect, x*float(16*3)+15.0, float(y*11*3)+6.0)
     let drawWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Aqua)
     let drawDarkening(c,x,y) =
-        let rect = 
-            new System.Windows.Shapes.Rectangle(Width=float(16*3)-1.5, Height=float(11*3)-1.5, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        let rect = new System.Windows.Shapes.Rectangle(Width=float(16*3)-1.5, Height=float(11*3)-1.5, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
         canvasAdd(c, rect, x*float(16*3), float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
@@ -533,14 +527,13 @@ let makeAll(owMapNum) =
                             match convertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
                             | None -> ()
-                    else
-                        if delta = 1 then
-                            TrackerModel.overworldMapMarks.[i,j].Next()
-                        elif delta = -1 then 
-                            TrackerModel.overworldMapMarks.[i,j].Prev() 
-                        elif delta = 0 then 
-                            ()
-                        else failwith "bad delta"
+                    elif delta = 1 then
+                        TrackerModel.overworldMapMarks.[i,j].Next()
+                    elif delta = -1 then 
+                        TrackerModel.overworldMapMarks.[i,j].Prev() 
+                    elif delta = 0 then 
+                        ()
+                    else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let icon = ms.Current()
                     // be sure to draw in appropriate layer
@@ -572,9 +565,7 @@ let makeAll(owMapNum) =
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
-                c.MouseLeftButtonDown.Add(fun _ -> 
-                        updateGridSpot 1 ""
-                )
+                c.MouseLeftButtonDown.Add(fun _ -> updateGridSpot 1 "")
                 c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
@@ -978,11 +969,6 @@ let makeAll(owMapNum) =
                     else
                         d.Background <- unknown
                 d.MouseRightButtonDown.Add(right)
-                (*
-                // initial values
-                if (i=5 || i=6) && j=7 then
-                    right()
-                *)
         // vertical doors
         let verticalDoorCanvases = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
@@ -1002,11 +988,6 @@ let makeAll(owMapNum) =
                     else
                         d.Background <- unknown
                 d.MouseRightButtonDown.Add(right)
-                (*
-                // initial values
-                if i=6 && j=6 then
-                    left()
-                *)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
@@ -1068,11 +1049,6 @@ let makeAll(owMapNum) =
                             verticalDoorCanvases.[i,j].Background <- no
                 )
                 c.MouseWheel.Add(fun x -> f (x.Delta<0))
-                (*
-                // initial values
-                if i=6 && (j=6 || j=7) then
-                    f false
-                *)
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
             // fixed dungeon drawing outlines - vertical segments
             for i = 0 to 6 do

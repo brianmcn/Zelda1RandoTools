@@ -109,11 +109,6 @@ let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang;
 let allItemsWithHeartShuffle = 
     [| yield! allItems; for i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
 
-let blue_candle = 
-    BMPtoImage blue_candle_bmp
-let blue_ring = 
-    BMPtoImage blue_ring_bmp
-
 let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 let timelineHeart = 
