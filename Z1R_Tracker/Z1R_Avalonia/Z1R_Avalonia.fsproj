@@ -12,8 +12,17 @@
     </AvaloniaResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\Z1R_WPF\CroppedBrianKitty.png" Link="CroppedBrianKitty.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons10x10.png" Link="icons10x10.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons13x9.png" Link="icons13x9.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons7x7.png" Link="icons7x7.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\s_btn_tr_dungeon_cell_strip3.png" Link="s_btn_tr_dungeon_cell_strip3.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\s_btn_tr_dungeon_num_strip18.png" Link="s_btn_tr_dungeon_num_strip18.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\s_icon_overworld_strip39.png" Link="s_icon_overworld_strip39.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\s_map_overworld_strip8.png" Link="s_map_overworld_strip8.png" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

@@ -73,15 +73,10 @@ type MyWindowBase() as this =
                     f5WasRecentlyPressed <- true
         IntPtr.Zero
 
-type MyWindow(isHeartShuffle,owMapNum) as this = 
+type MyWindow(owMapNum) as this = 
     inherit MyWindowBase()
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let mutable ladderTime        = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // ladderTime        starts in past, so that can instantly work at startup for debug testing
-    let mutable recorderTime      = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // recorderTime      starts in past, so that can instantly work at startup for debug testing
-    let mutable powerBraceletTime = DateTime.Now.Subtract(TimeSpan.FromMinutes(10.0)) // powerBraceletTime starts in past, so that can instantly work at startup for debug testing
-    let da = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(1.0), To=System.Nullable(0.0), Duration=new Duration(System.TimeSpan.FromSeconds(0.5)), 
-                AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
     //                 items  ow map  prog  timeline                     dungeon tabs                
     let HEIGHT = float(30*4 + 11*3*9 + 30 + 3*WPFUI.TLH + 3 + WPFUI.TH + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
@@ -240,10 +235,8 @@ let main argv =
             app.Run(TimerOnlyWindow()) |> ignore
         elif argv.Length > 0 && argv.[0] = "terraria" then
             app.Run(TerrariaTimerOnlyWindow()) |> ignore
-        elif argv.Length > 0 && argv.[0] = "heartShuffle" then
-            app.Run(MyWindow(true,owMapNum)) |> ignore
         else
-            app.Run(MyWindow(false,owMapNum)) |> ignore
+            app.Run(MyWindow(owMapNum)) |> ignore
 #if DEBUG
 #else
     with e ->
