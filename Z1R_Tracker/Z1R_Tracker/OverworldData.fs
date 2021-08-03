@@ -6,43 +6,18 @@ type OWQuest =
     | MIXED_FIRST
     | MIXED_SECOND
 
+let owMapZone = [|
+    "MMMMMMMMMMLHHHCC"
+    "MMMMMMMRRRRHHHCC"
+    "GGGGGGLRDDDDDCCC"
+    "GGGGLLLLLLDDFFCC"
+    "GGLLLLLLLDDDFFFC"
+    "GWWWLLLSSLLFFFFC"
+    "GWWWWRSSSLLFFFFC"
+    "WWWWWRSSSSSCCCCC"
+    |]
+
 module PrivateInternals =
-    let owMapZone = [|
-        "MMMMMMMMMMLHHHCC"
-        "MMMMMMMRRRRHHHCC"
-        "GGGGGGLRDDDDDCCC"
-        "GGGGLLLLLLDDFFCC"
-        "GGLLLLLLLDDDFFFC"
-        "GWWWLLLSSLLFFFFC"
-        "GWWWWRSSSLLFFFFC"
-        "WWWWWRSSSSSCCCCC"
-        |]
-
-    let owMapZoneBmps =
-        let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
-        let colors = 
-            dict [
-                'M', avg(System.Drawing.Color.Pink, System.Drawing.Color.Crimson)
-                'L', System.Drawing.Color.BlueViolet 
-                'R', System.Drawing.Color.LightSeaGreen 
-                'H', System.Drawing.Color.Gray
-                'C', System.Drawing.Color.LightBlue 
-                'G', avg(System.Drawing.Color.LightSteelBlue, System.Drawing.Color.SteelBlue)
-                'D', System.Drawing.Color.Orange 
-                'F', System.Drawing.Color.LightGreen 
-                'S', System.Drawing.Color.DarkGray 
-                'W', System.Drawing.Color.Brown
-            ]
-        let imgs = Array2D.zeroCreate 16 8
-        for x = 0 to 15 do
-            for y = 0 to 7 do
-                let tile = new System.Drawing.Bitmap(16*3,11*3)
-                for px = 0 to 16*3-1 do
-                    for py = 0 to 11*3-1 do
-                        tile.SetPixel(px, py, colors.Item(owMapZone.[y].[x]))
-                imgs.[x,y] <- tile
-        imgs
-
     let owMapSquaresRaftable = [|
         "................"
         "................"
@@ -186,8 +161,6 @@ module PrivateInternals =
             yield s
         |]
 // end PrivateInternals
-
-let owMapZoneBmps = PrivateInternals.owMapZoneBmps
 
 let owMapSquaresSecondQuestOnly = [|
     for i = 0 to 7 do

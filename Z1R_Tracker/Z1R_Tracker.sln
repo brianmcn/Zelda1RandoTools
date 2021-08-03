@@ -7,6 +7,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_Tracker", "Z1R_Tracker\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_WPF", "Z1R_WPF\Z1R_WPF.fsproj", "{3064F941-92AA-4ADF-A149-C97C920AEFFD}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_Avalonia", "Z1R_Avalonia\Z1R_Avalonia.fsproj", "{A03F2FDA-D300-4742-A576-B315C6985BB8}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Z1R_Tracker_NETCoreApp31", "Z1R_Tracker_NETCoreApp31\Z1R_Tracker_NETCoreApp31.fsproj", "{B31A886D-BA85-490E-9152-5BDC793A2327}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3064F941-92AA-4ADF-A149-C97C920AEFFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A03F2FDA-D300-4742-A576-B315C6985BB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A03F2FDA-D300-4742-A576-B315C6985BB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A03F2FDA-D300-4742-A576-B315C6985BB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A03F2FDA-D300-4742-A576-B315C6985BB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B31A886D-BA85-490E-9152-5BDC793A2327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B31A886D-BA85-490E-9152-5BDC793A2327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B31A886D-BA85-490E-9152-5BDC793A2327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B31A886D-BA85-490E-9152-5BDC793A2327}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

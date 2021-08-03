@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+   </PropertyGroup>
+  <ItemGroup>
+    <AvailableItemName Include="AvaloniaResource" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Z1R_Tracker_NETCoreApp31\Z1R_Tracker_NETCoreApp31.fsproj" />
+  </ItemGroup>
+</Project>

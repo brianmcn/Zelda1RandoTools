@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Z1R_Tracker\OverworldData.fs" />
+    <Compile Include="..\Z1R_Tracker\DungeonData.fs" />
+    <Compile Include="..\Z1R_Tracker\OverworldRouting.fs" />
+    <Compile Include="..\Z1R_Tracker\TrackerModel.fs" />
+  </ItemGroup>
+
+</Project>
