@@ -91,7 +91,7 @@ let makeVBrect(image) =
     let rect = new System.Windows.Shapes.Rectangle(Height=21., Width=21., Fill=vb)
     rect
 let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
-// most of these need object identity for logic checks TODO hearts do, others? fix this
+// most of these need object identity for logic checks TODO hearts do, others? fix this - see what did in avalonia impl.
 let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
     makeObject boomerang_bmp, makeObject bow_bmp, makeObject magic_boomerang_bmp, makeObject raft_bmp, makeObject ladder_bmp, makeObject recorder_bmp, makeObject wand_bmp, 
     makeObject red_candle_bmp, makeObject book_bmp, makeObject key_bmp, makeObject silver_arrow_bmp, makeObject red_ring_bmp, makeObject boom_book_bmp
