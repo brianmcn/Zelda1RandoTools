@@ -85,30 +85,6 @@ let zhDungeonNums =
     new System.Drawing.Bitmap(imageStream)
 
 
-let makeVBrect(image) =
-    // we need a point of indirection to swap the book and magical_shield icons, so a VisualBrush where we can poke the Visual works
-    let vb = new VisualBrush(Visual=image, Opacity=1.0)
-    let rect = new Avalonia.Controls.Shapes.Rectangle(Height=21., Width=21., Fill=vb)
-    rect
-let makeObject(bmp) = makeVBrect(BMPtoImage bmp)
-// most of these need object identity for logic checks TODO hearts do, others? fix this
-let boomerang, bow, magic_boomerang, raft, ladder, recorder, wand, red_candle, book, key, silver_arrow, red_ring, boom_book = 
-    makeObject boomerang_bmp, makeObject bow_bmp, makeObject magic_boomerang_bmp, makeObject raft_bmp, makeObject ladder_bmp, makeObject recorder_bmp, makeObject wand_bmp, 
-    makeObject red_candle_bmp, makeObject book_bmp, makeObject key_bmp, makeObject silver_arrow_bmp, makeObject red_ring_bmp, makeObject boom_book_bmp
-
-let power_bracelet, white_sword, ow_key_armos = 
-    makeObject power_bracelet_bmp, makeObject white_sword_bmp, makeObject ow_key_armos_bmp
-let copyHeartContainer() =
-    let bmp = new System.Drawing.Bitmap(7*3,7*3)
-    for i = 0 to 20 do
-        for j = 0 to 20 do
-            bmp.SetPixel(i, j, heart_container_bmp.GetPixel(i,j))
-    BMPtoImage bmp
-
-let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword |]
-let allItemsWithHeartShuffle = 
-    [| yield! allItems; for i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
-
 let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 let timelineHeart = 

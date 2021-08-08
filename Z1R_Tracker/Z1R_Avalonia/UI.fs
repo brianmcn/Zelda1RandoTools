@@ -48,15 +48,9 @@ let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canv
 let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
 
-type TimelineItem(c:Canvas, isDone:unit->bool) =
+type TimelineItem(c:Canvas, isHeart, isDone:unit->bool) =
     member this.Canvas = c
-    member this.IsHeart() = 
-        if Graphics.owHeartsFull |> Array.exists (fun x -> c.Children.Contains(x)) then
-            true
-        elif Graphics.allItemsWithHeartShuffle.[14..] |> Array.exists (fun x -> c.Children.Contains(x)) then
-            true
-        else
-            false
+    member this.IsHeart() = isHeart()
     member this.IsDone() = isDone()
 
 let mutable f5WasRecentlyPressed = false
@@ -78,16 +72,13 @@ let makeAll(owMapNum) =
         | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
     TrackerModel.initializeAll(owInstance)
-    let whichItems = Graphics.allItemsWithHeartShuffle 
-    let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
     let isCurrentlyBook = ref true
+    let redrawBoxes = ResizeArray()
     let toggleBookMagicalShield() =
-        if !isCurrentlyBook then
-            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.magic_shield_bmp
-        else
-            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.book_bmp
         isCurrentlyBook := not !isCurrentlyBook
         TrackerModel.forceUpdate()
+        for f in redrawBoxes do
+            f()
     
     let c = new Canvas()
     c.Width <- float(16*16*3)
@@ -119,7 +110,7 @@ let makeAll(owMapNum) =
             TrackerModel.dungeons.[i].ToggleTriforce()
         )
         gridAdd(mainTracker, c, i, 0)
-        timelineItems.Add(new TimelineItem(innerc, (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
+        timelineItems.Add(new TimelineItem(innerc, (fun()->false), (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
     let boxItemImpl(box:TrackerModel.Box) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
@@ -135,21 +126,35 @@ let makeAll(owMapNum) =
                 rect.Stroke <- no
             box.TogglePlayerHas()
         ))
+        let redraw() =
+            innerc.Children.Clear()
+            match box.CellCurrent() with
+            | -1 -> ()
+            |  0 -> canvasAdd(innerc, Graphics.BMPtoImage (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp), 4., 4.)
+            |  1 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.boomerang_bmp, 4., 4.)
+            |  2 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.bow_bmp, 4., 4.)
+            |  3 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.power_bracelet_bmp, 4., 4.)
+            |  4 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.ladder_bmp, 4., 4.)
+            |  5 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.magic_boomerang_bmp, 4., 4.)
+            |  6 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.key_bmp, 4., 4.)
+            |  7 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.raft_bmp, 4., 4.)
+            |  8 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.recorder_bmp, 4., 4.)
+            |  9 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.red_candle_bmp, 4., 4.)
+            | 10 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.red_ring_bmp, 4., 4.)
+            | 11 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.silver_arrow_bmp, 4., 4.)
+            | 12 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.wand_bmp, 4., 4.)
+            | 13 -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)
+            |  _ -> canvasAdd(innerc, Graphics.BMPtoImage Graphics.heart_container_bmp, 4., 4.)
         // item
         c.PointerWheelChanged.Add(fun x -> 
-            innerc.Children.Clear()
             if x.Delta.Y<0. then
                 box.CellNext()
             else
                 box.CellPrev()
-            let mutable i = box.CellCurrent()
-            // find unique heart FrameworkElement to display
-            while i>=14 && whichItems.[i].Parent<>null do
-                i <- i + 1
-            let fe = if i = -1 then null else whichItems.[i]
-            canvasAdd(innerc, fe, 4., 4.)
+            redraw()
         )
-        timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
+        redrawBoxes.Add(fun() -> redraw())
+        timelineItems.Add(new TimelineItem(innerc, (fun()->box.CellCurrent()>13), (fun()->obj.Equals(rect.Stroke,yes))))
         c
     // items
     for i = 0 to 8 do
@@ -234,12 +239,12 @@ let makeAll(owMapNum) =
         c.PointerPressed.Add(fun ea -> f(ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed))
         c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
         gridAdd(owHeartGrid, c, i, 0)
-        timelineItems.Add(new TimelineItem(c, fun()->c.Children.Contains(Graphics.owHeartsFull.[i])))
+        timelineItems.Add(new TimelineItem(c, (fun()->true), fun()->c.Children.Contains(Graphics.owHeartsFull.[i])))
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
-    gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
+    gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ow_key_armos_bmp, 0, 1)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.white_sword_bmp, 0, 2)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox), 1, 0)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox), 1, 1)
@@ -264,7 +269,7 @@ let makeAll(owMapNum) =
         ))
         canvasAdd(innerc, img, 4., 4.)
         if isTimeline then
-            timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
+            timelineItems.Add(new TimelineItem(innerc, (fun()->false), fun()->obj.Equals(rect.Stroke,yes)))
         c
     let basicBoxImpl(tts, img, changedFunc) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc)
@@ -277,7 +282,7 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 2, 1)
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
+    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.BMPtoImage Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
     canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); (* TODO if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text *))), OFFSET+120., 90.)
