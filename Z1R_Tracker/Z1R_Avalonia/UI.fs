@@ -440,6 +440,7 @@ let makeAll(owMapNum) =
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let mutable pointerEnteredButNotDrawnRoutingYet = false  // PointerEnter does not correctly report mouse position, but PointerMoved does
             gridAdd(owMapGrid, c, i, j)
             // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
             let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
@@ -448,14 +449,20 @@ let makeAll(owMapNum) =
             // highlight mouse, do mouse-sensitive stuff
             let rect = new Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=Brushes.White)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
-                                        // draw routes
-                                        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                                                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
+                                        pointerEnteredButNotDrawnRoutingYet <- true
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
                                         mostRecentMouseEnterTime <- DateTime.Now)
+            c.PointerMoved.Add(fun ea ->
+                if pointerEnteredButNotDrawnRoutingYet then
+                    // draw routes
+                    let pos = ea.GetPosition(c)
+                    OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), pos, i, j)
+                    pointerEnteredButNotDrawnRoutingYet <- false)
             c.PointerLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                        pointerEnteredButNotDrawnRoutingYet <- false
                                         routeDrawingCanvas.Children.Clear())
             // icon
             if owInstance.AlwaysEmpty(i,j) then
@@ -513,6 +520,10 @@ let makeAll(owMapNum) =
                                                     updateGridSpot -1 "")
                 c.PointerWheelChanged.Add(fun x -> updateGridSpot (if x.Delta.Y<0. then 1 else -1) "")
     canvasAdd(c, owMapGrid, 0., 120.)
+
+    let mutable mapMostRecentMousePos = Point(-1., -1.)
+    owMapGrid.PointerLeave.Add(fun _ -> mapMostRecentMousePos <- Point(-1., -1.))
+    owMapGrid.PointerMoved.Add(fun ea -> mapMostRecentMousePos <- ea.GetPosition(owMapGrid))
 
     let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -649,7 +660,7 @@ let makeAll(owMapNum) =
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
-                let pos = Input.MouseDevice().GetPosition(routeDrawingCanvas)
+                let pos = mapMostRecentMousePos
                 let i,j = int(Math.Floor(pos.X / (16.*3.))), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
                     OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
