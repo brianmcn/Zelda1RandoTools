@@ -20,10 +20,12 @@ type MyWindow(owMapNum) as this =
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     //                 items  ow map  prog  timeline                     dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 30)// TODO + 3*WPFUI.TLH + 3 + WPFUI.TH + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
+    let HEIGHT = float(30*4 + 11*3*9 + 30 + 3*UI.TLH + 3 + UI.TH) // TODO + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
-        // TODO WPFUI.timeTextBox <- hmsTimeTextBox
+        UI.timeTextBox <- hmsTimeTextBox
+        this.Width <- WIDTH + 30. // TODO fudging it
+        this.Height <- HEIGHT
         let timer = new Avalonia.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update(false))
@@ -61,7 +63,12 @@ type MyWindow(owMapNum) as this =
         this.Content <- hstackPanel
         startButton.Click.Add(fun _ ->
                 printfn "you pressed start after selecting %d" owQuest.SelectedIndex
-                // TODO stuff
+                this.Background <- Brushes.Black
+                let c,u = UI.makeAll(owQuest.SelectedIndex)
+                canvas <- c
+                updateTimeline <- u
+                UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+40., 0.)
+                this.Content <- canvas
             )
     member this.Update(f10Press) =
         // update time
