@@ -32,11 +32,13 @@ type MyWindow(owMapNum) as this =
         timer.Start()
         this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F5"), Command=new MyCommand(fun x -> 
                 printfn "F5 was pressed"
-                // TODO TrackerModel.startIconX <- WPFUI.currentlyMousedOWX
-                // TODO TrackerModel.startIconY <- WPFUI.currentlyMousedOWY
+                TrackerModel.startIconX <- UI.currentlyMousedOWX
+                TrackerModel.startIconY <- UI.currentlyMousedOWY
                 TrackerModel.forceUpdate()
                 )))
         this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F10"), Command=new MyCommand(fun x -> 
+                printfn "F10 was pressed"
+                startTime <- DateTime.Now
                 this.Update(true)
                 )))
 
@@ -77,7 +79,6 @@ type MyWindow(owMapNum) as this =
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
         // update timeline
         if f10Press || ts.Seconds = 0 then
-            printfn "F10 was pressed"
             updateTimeline(int ts.TotalMinutes)
 
 type App() =
