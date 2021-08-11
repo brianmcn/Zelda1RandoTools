@@ -1097,10 +1097,13 @@ let makeAll(owMapNum) =
     addLine(15,15,4,7)
     addLine(14,14,3,4)
 
-    let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let showZones = new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let cb = new CheckBox(Content=showZones)
     cb.IsChecked <- System.Nullable.op_Implicit false
     cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
     cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    showZones.PointerEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
+    showZones.PointerLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     cb.RenderTransform <- ScaleTransform(0.85,0.85)
     canvasAdd(c, cb, 285., 96.)
 
