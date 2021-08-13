@@ -1225,6 +1225,8 @@ let makeAll(owMapNum) =
     cb.IsChecked <- System.Nullable.op_Implicit false
     cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
     cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
+    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map  prog  timeline    dungeon tabs                
