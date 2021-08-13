@@ -5,6 +5,8 @@ open System.Windows.Media
 
 open OverworldRouting
 
+let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
         c.Children.Add(item) |> ignore
@@ -12,7 +14,7 @@ let canvasAdd(c:Canvas, item, left, top) =
         Canvas.SetLeft(item, left)
 
 let coords(Vertex(x,y,p)) =
-    let cx = float(x*16*3+8*3)
+    let cx = float(x*int OMTW+8*3)
     let cy = float(y*11*3+5*3)
     match p with
     | FULL -> cx,cy
@@ -38,7 +40,7 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
             match st with
             | WHOLE -> Vertex(i,j,FULL)
             | NS -> Vertex(i,j,if mousePos.Y>float(11*3/2) then SOUTH else NORTH)
-            | EW -> Vertex(i,j,if mousePos.X>float(16*3/2) then EAST else WEST)
+            | EW -> Vertex(i,j,if mousePos.X>float(int OMTW/2) then EAST else WEST)
         let goal = Vertex(-1,-1,FULL) // non-existent goal will map all reachable locations
         let color(cost) =
             // white path that is bright near the cursor, but opacity falls off quickly as you get more cost-distance away
@@ -118,8 +120,8 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
             toHighlight.Add(i,j)
             iterate(N-1,recentCost)
         for (i,j) in toHighlight do
-            let rect = new System.Windows.Shapes.Rectangle(Width=16.*3.,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
-            canvasAdd(routeDrawingCanvas, rect, float(i*16*3), float(j*11*3))
+            let rect = new System.Windows.Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
+            canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
 
 
 
