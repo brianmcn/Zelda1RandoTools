@@ -110,6 +110,12 @@ let RIGHT_COL = 560.
 let TLH = (1+9+5+9)*3  // timeline height
 let TH = 24 // text height
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let resizeMapTileImage(image:Image) =
+    image.Width <- OMTW
+    image.Height <- float(11*3)
+    image.Stretch <- Stretch.Fill
+    image.StretchDirection <- StretchDirection.Both
+    image
 let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -369,19 +375,19 @@ let makeAll(owMapNum) =
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let image = resizeMapTileImage(Graphics.BMPtoImage(owMapBMPs.[i,j]))
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owOpaqueMapGrid, c, i, j)
             // shading between map tiles
             let OPA = 0.25
-            let bottomShade = new Canvas(Width=OMTW, Height=float(3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            let bottomShade = new Canvas(Width=OMTW, Height=float(3), Background=Brushes.Black, Opacity=OPA)
             canvasAdd(c, bottomShade, 0., float(10*3))
-            let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=System.Windows.Media.Brushes.Black, Opacity=OPA)
+            let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=Brushes.Black, Opacity=OPA)
             canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
+                let icon = resizeMapTileImage <| Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(c, owOpaqueMapGrid, 0., 120.)
@@ -495,7 +501,7 @@ let makeAll(owMapNum) =
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owMapGrid, c, i, j)
             // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
             image.Opacity <- 0.0
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
@@ -519,7 +525,7 @@ let makeAll(owMapNum) =
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
                     // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
-                    let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+                    let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
@@ -555,7 +561,7 @@ let makeAll(owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
-                        icon.Width <- OMTW
+                        resizeMapTileImage icon |> ignore
                     canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
@@ -827,10 +833,7 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
-    let shrink(bmp) = 
-        let i = Graphics.BMPtoImage bmp
-        i.Width <- OMTW
-        i
+    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
     canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
