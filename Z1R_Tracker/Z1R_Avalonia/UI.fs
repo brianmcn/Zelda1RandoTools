@@ -300,18 +300,12 @@ let makeAll(owMapNum) =
     canvasAdd(c, toggleBookShieldCheckBox, OFFSET+150., 0.)
 
     // ow map animation layer
-    (* TODO
-    let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
-                                  AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    let slowerBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames(Duration=new Duration(System.TimeSpan.FromSeconds(4.0)), RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.0))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.5, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.25))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.5))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(1.0))) |> ignore
-    *)
+    // I can't figure out how to code Animations in Avalonia, so here's a simple kludge that uses DispatcherTime Interval Tick
+    let canvasesToSlowBlink = ResizeArray()
+    let canvasesToFastBlink = ResizeArray()
     let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
         let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Lime)
-// TODO        rect.BeginAnimation(UIElement.OpacityProperty, slowerBlinkAnimation)
+        canvasesToSlowBlink.Add(rect)
         rect
         )
 
@@ -650,7 +644,7 @@ let makeAll(owMapNum) =
                 // highlight 9 after get all triforce
                 if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Pink)
-// TODO                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
+                    canvasesToFastBlink.Add(rect)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) =
@@ -658,7 +652,7 @@ let makeAll(owMapNum) =
             member _this.Sword3(x,y) = 
                 if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Pink)
-// TODO                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
+                    canvasesToFastBlink.Add(rect)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.Sword2(x,y) = ()
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
@@ -702,6 +696,10 @@ let makeAll(owMapNum) =
             let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
             if hasTheModelChanged then
                 doUIUpdate()
+        for c in canvasesToSlowBlink do
+            c.Opacity <- if c.Opacity = 0.2 then 0.5 else 0.2
+        for c in canvasesToFastBlink do
+            c.Opacity <- if c.Opacity = 0.0 then 0.6 else 0.0
         )
     timer.Start()
 
