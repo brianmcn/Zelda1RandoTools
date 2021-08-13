@@ -76,7 +76,7 @@ type MyWindow(owMapNum) as this =
         // update time
         let ts = DateTime.Now - startTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+        hmsTimeTextBox.Text <- sprintf "%01d:%02d:%02d" h m s
         // update timeline
         if f10Press || ts.Seconds = 0 then
             updateTimeline(int ts.TotalMinutes)

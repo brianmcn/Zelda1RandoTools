@@ -541,7 +541,7 @@ let makeAll(owMapNum) =
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAIN_MAP_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 120., THRU_MAIN_MAP_H + 6.)
+    canvasAdd(c, tb, 100., THRU_MAIN_MAP_H + 6.)
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAIN_MAP_H + 30.
 
@@ -708,10 +708,11 @@ let makeAll(owMapNum) =
     // map legend
     let LEFT_OFFSET = 78.0
     let legendCanvas = new Canvas()
-    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
+
+    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
     canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
