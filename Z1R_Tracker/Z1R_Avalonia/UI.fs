@@ -432,9 +432,6 @@ let makeAll(owMapNum) =
         canvasAdd(c, rect, x*float(16*3), float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Lime)
-    let drawWhistleableHighlight(c,x,y) =
-        let rect = new Shapes.Rectangle(Width=float(16*3)-2., Height=float(11*3)-2., Stroke=Brushes.DeepSkyBlue, StrokeThickness=2.0)
-        canvasAdd(c, rect, x*float(16*3)+1., float(y*11*3)+1.)
     let mutable mostRecentMouseEnterTime = DateTime.Now 
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -647,8 +644,7 @@ let makeAll(owMapNum) =
                     canvasesToFastBlink.Add(rect)
                     canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = ()
-            member _this.WhistleableLocation(x,y) =
-                drawWhistleableHighlight(recorderingCanvas,float x,y)
+            member _this.WhistleableLocation(x,y) = ()
             member _this.Sword3(x,y) = 
                 if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
                     let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Pink)
@@ -733,10 +729,6 @@ let makeAll(owMapNum) =
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 8.5*float(16*3), 0.)
-
-    drawWhistleableHighlight(legendCanvas,10.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nSpots")
-    canvasAdd(legendCanvas, tb, 11.*float(16*3), 0.)
 
     let legendStartIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
     canvasAdd(legendCanvas, legendStartIcon, 12.5*float(16*3)+8.5, 0.)
