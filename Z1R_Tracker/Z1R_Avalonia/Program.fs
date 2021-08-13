@@ -101,9 +101,6 @@ let main argv =
     let message = "from F#" // Call the function
     printfn "Hello world %s" message
 
-    TrackerModel.initializeAll(new OverworldData.OverworldInstance(OverworldData.FIRST))
-    printfn "%b" (TrackerModel.PlayerProgressAndTakeAnyHearts().PlayerHasBlueRing.Value())
-
     // Avalonia configuration, don't remove; also used by visual designer.
     let builder = Avalonia.AppBuilder.Configure<App>()
     let builder = Avalonia.AppBuilderDesktopExtensions.UsePlatformDetect(builder)
