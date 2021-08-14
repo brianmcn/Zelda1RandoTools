@@ -21,8 +21,9 @@ type MyWindow(owMapNum) as this =
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     //                 items  ow map  prog  timeline                     dungeon tabs                
     let HEIGHT = float(30*4 + 11*3*9 + 30 + 3*UI.TLH + 3 + UI.TH) // TODO + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
-    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
+    let WIDTH = 16.*OverworldRouteDrawing.OMTW + 16.  // ow map width (what is the final 16?)
     do
+        printfn "W,H = %d,%d" (int WIDTH) (int HEIGHT)
         UI.timeTextBox <- hmsTimeTextBox
         this.Width <- WIDTH + 30. // TODO fudging it
         this.Height <- HEIGHT
