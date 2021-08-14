@@ -6,7 +6,7 @@ open Avalonia.Media
 
 open OverworldRouting
 
-let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let OMTW = 40.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then

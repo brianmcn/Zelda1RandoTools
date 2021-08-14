@@ -58,7 +58,7 @@ let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
-let RIGHT_COL = 560.
+let RIGHT_COL = 440.
 let TLH = (1+9+5+9)*3  // timeline height
 let TH = 24 // text height
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
@@ -88,7 +88,7 @@ let makeAll(owMapNum) =
             f()
     
     let c = new Canvas()
-    c.Width <- float(16*16*3)
+    c.Width <- 16. * OMTW
 
     c.Background <- Brushes.Black 
 
@@ -217,13 +217,7 @@ let makeAll(owMapNum) =
     if isMixed then
         canvasAdd(c, hideSecondQuestCheckBox, 140., 90.) 
 
-    // WANT!
-    let kitty = new Image()
-    let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
-    kitty.Source <- new Avalonia.Media.Imaging.Bitmap(imageStream)
-    canvasAdd(c, kitty, 285., 0.)
-
-    let OFFSET = 400.
+    let OFFSET = 280.
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
@@ -535,14 +529,62 @@ let makeAll(owMapNum) =
     let startIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
 
     let THRU_MAIN_MAP_H = float(120 + 8*11*3)
+
+    // map legend
+    let LEFT_OFFSET = 78.0
+    let legendCanvas = new Canvas()
+    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
+
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
+    canvasAdd(c, tb, 0., THRU_MAIN_MAP_H)
+
+    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
+    drawDungeonHighlight(legendCanvas,0.,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
+    canvasAdd(legendCanvas, tb, OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
+    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,5.,0)
+    drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
+    drawWarpHighlight(legendCanvas,7.5,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
+    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
+
+    let legendStartIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
+    canvasAdd(legendCanvas, legendStartIcon, 10.*OMTW+8.5*OMTW/48., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
+    canvasAdd(legendCanvas, tb, 11.*OMTW, 0.)
+
+    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
+
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    canvasAdd(c, itemProgressCanvas, 0., THRU_MAIN_MAP_H)
+    canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 120., THRU_MAIN_MAP_H + 6.)
+    canvasAdd(c, tb, 30., THRU_MAP_AND_LEGEND_H + 6.)
 
-    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAIN_MAP_H + 30.
+    let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
+    printfn "H thru item prog = %d" (int THRU_MAP_H)
+
+    // WANT!
+    let kitty = new Image()
+    let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
+    kitty.Source <- new Avalonia.Media.Imaging.Bitmap(imageStream)
+    kitty.Width <- THRU_MAP_H - THRU_MAIN_MAP_H
+    kitty.Height <- THRU_MAP_H - THRU_MAIN_MAP_H
+    canvasAdd(c, kitty, 14.*OMTW, THRU_MAIN_MAP_H)
 
     let doUIUpdate() =
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
@@ -552,7 +594,7 @@ let makeAll(owMapNum) =
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
-        let mutable x, y = 200., 3.
+        let mutable x, y = 110., 3.
         let DX = 30.
         match TrackerModel.playerComputedStateSummary.SwordLevel with
         | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)
@@ -707,57 +749,20 @@ let makeAll(owMapNum) =
         )
     timer.Start()
 
-    // map legend
-    let LEFT_OFFSET = 78.0
-    let legendCanvas = new Canvas()
-    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
-
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
-    canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
-
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
-    drawDungeonHighlight(legendCanvas,0.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
-    canvasAdd(legendCanvas, tb, OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.5,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
-    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,5.,0)
-    drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
-
-    let legendStartIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
-    canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
-    canvasAdd(legendCanvas, tb, 13.5*OMTW, 0.)
-
-    let THRU_MAP_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + float(11*3)
-
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
+    let MW = (c.Width-48.)/60. // minute width
     let makeTimeline(leftText, rightText) = 
-        let timelineCanvas = new Canvas(Height=float TLH, Width=owMapGrid.Width)
+        let timelineCanvas = new Canvas(Height=float TLH, Width=c.Width)
         let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
         canvasAdd(timelineCanvas, tb1, 0., 30.)
         let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb2, 748., 30.)
-        let line1 = new Shapes.Line(StartPoint=Point(24.,float(13*3)), EndPoint=Point(744.,float(13*3)), Stroke=TLC, StrokeThickness=3.)
+        canvasAdd(timelineCanvas, tb2, c.Width-20., 30.)
+        let line1 = new Shapes.Line(StartPoint=Point(24.,float(13*3)), EndPoint=Point(c.Width-24.,float(13*3)), Stroke=TLC, StrokeThickness=3.)
         canvasAdd(timelineCanvas, line1, 0., 0.)
         for i = 0 to 12 do
             let d = if i%2=1 then 3 else 0
-            let line = new Shapes.Line(StartPoint=Point(float(24+i*60),float(11*3+d)), EndPoint=Point(float(24+i*60),float(15*3-d)), Stroke=TLC, StrokeThickness=3.)
+            let line = new Shapes.Line(StartPoint=Point(24.+float(i)*MW*5.,float(11*3+d)), EndPoint=Point(24.+float(i)*MW*5.,float(15*3-d)), Stroke=TLC, StrokeThickness=3.)
             canvasAdd(timelineCanvas, line, 0., 0.)
         timelineCanvas 
     let timeline1Canvas = makeTimeline("0h","1h")
@@ -795,18 +800,18 @@ let makeAll(owMapNum) =
             for x in items do
                 let vb = new VisualBrush(Visual=x.Canvas, Opacity=1.0)
                 let rect = new Shapes.Rectangle(Height=30., Width=30., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
+                canvasAdd(tlc, rect, 24.+float(minute)*MW-15.-1., 3.+(if !top then 0. else 42.))
                 let line = new Shapes.Line(StartPoint=Point(0.,float(12*3)), EndPoint=Point(0.,float(13*3)), Stroke=Brushes.LightBlue, StrokeThickness=2.)
-                canvasAdd(tlc, line, float(24+minute*12-1), (if !top then 0. else 3.))
+                canvasAdd(tlc, line, 24.+float(minute)*MW-1., (if !top then 0. else 3.))
                 top := not !top
             // post hearts
             if hearts.Count > 0 then
                 let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
                 let rect = new Shapes.Rectangle(Height=13., Width=13., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-3-1-2), 36. - 2.)
+                canvasAdd(tlc, rect, 24.+float(minute)*MW-3.-1.-2., 36. - 2.)
             // post current time
-            curTime.StartPoint <- Point(float(24+minute*12), curTime.StartPoint.Y)
-            curTime.EndPoint <- Point(float(24+minute*12), curTime.EndPoint.Y)
+            curTime.StartPoint <- Point(24.+float(minute)*MW, curTime.StartPoint.Y)
+            curTime.EndPoint <- Point(24.+float(minute)*MW, curTime.EndPoint.Y)
             timeline1Canvas.Children.Remove(curTime) |> ignore // have it be last
             timeline2Canvas.Children.Remove(curTime) |> ignore // have it be last
             timeline3Canvas.Children.Remove(curTime) |> ignore // have it be last
@@ -1096,15 +1101,15 @@ let makeAll(owMapNum) =
     addLine(15,15,4,7)
     addLine(14,14,3,4)
 
-    let showZones = new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let showZones = new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showZones)
     cb.IsChecked <- System.Nullable.op_Implicit false
     cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
     cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
     showZones.PointerEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
     showZones.PointerLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
-    cb.RenderTransform <- ScaleTransform(0.85,0.85)
-    canvasAdd(c, cb, 285., 96.)
+    canvasAdd(c, cb, RIGHT_COL + 140., 66.)
+
 
     //                items  ow map  prog  timeline    dungeon tabs                
     c.Height <- float(30*4 + 11*3*9 + 30 + 3*TLH + 3 + TH) // TODO + 27*8 + 12*7 + 30)
