@@ -444,7 +444,7 @@ let makeAll(owMapNum) =
             image.Opacity <- 0.0
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
-            let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White)
+            let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White, StrokeThickness = 2.)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
                                         // track current location for F5 & speech recognition purposes
