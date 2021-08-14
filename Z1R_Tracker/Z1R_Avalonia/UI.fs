@@ -6,7 +6,7 @@ open Avalonia.Controls
 open Avalonia.Media
 
 type MapStateProxy(state) =
-    let U = Graphics.uniqueMapIcons.Length 
+    let U = Graphics.uniqueMapIconBMPs.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
     member this.State = state
     member this.IsX = state = U+NU-1
@@ -21,9 +21,9 @@ type MapStateProxy(state) =
         if state = -1 then
             null
         elif state < U then
-            Graphics.uniqueMapIcons.[state]
+            Graphics.uniqueMapIconBMPs.[state]
         else
-            Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
+            Graphics.nonUniqueMapIconBMPs.[state-U]
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
@@ -68,6 +68,13 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
+let trimNumeralBmpToImage(iconBMP:System.Drawing.Bitmap) =
+    let trimmedBMP = new System.Drawing.Bitmap(int OMTW, iconBMP.Height)
+    let offset = int((48.-OMTW)/2.)
+    for x = 0 to int OMTW-1 do
+        for y = 0 to iconBMP.Height-1 do
+            trimmedBMP.SetPixel(x,y,iconBMP.GetPixel(x+offset,y))
+    Graphics.BMPtoImage trimmedBMP
 let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -422,9 +429,9 @@ let makeAll(owMapNum) =
         let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
         drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
         // darken the number
-        let rect = new Shapes.Rectangle(Width=16.0*OMTW/48., Height=21.0, Stroke=Brushes.Black, StrokeThickness = 3.,
+        let rect = new Shapes.Rectangle(Width=20.0*OMTW/48., Height=22.0, Stroke=Brushes.Black, StrokeThickness = 3.,
                                                         Fill=Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*OMTW+15.0*OMTW/48., float(y*11*3)+6.0)
+        canvasAdd(c, rect, x*OMTW+12.0*OMTW/48., float(y*11*3)+5.0)
     let drawWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Aqua)
     let drawDarkening(c,x,y) =
@@ -481,7 +488,7 @@ let makeAll(owMapNum) =
                         ()
                     else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let icon = ms.Current()
+                    let iconBMP = ms.Current()
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
@@ -490,7 +497,12 @@ let makeAll(owMapNum) =
                             c
                         else
                             owDarkeningMapGridCanvases.[i,j]
-                    if icon <> null then 
+                    if iconBMP <> null then 
+                        let icon =
+                            if ms.IsDungeon || ms.IsWarp then
+                                trimNumeralBmpToImage(iconBMP)
+                            else
+                                resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.HasTransparency then
                             icon.Opacity <- 0.9
                         else
@@ -500,8 +512,7 @@ let makeAll(owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
-                        resizeMapTileImage icon |> ignore
-                    canvasAdd(canvasToDrawOn, icon, 0., 0.)
+                        canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
                     if ms.IsWarp then
@@ -538,25 +549,24 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_H)
 
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 2.5*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[9], 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
