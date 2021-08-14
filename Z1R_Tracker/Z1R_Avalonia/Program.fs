@@ -27,6 +27,8 @@ type MyWindow(owMapNum) as this =
         UI.timeTextBox <- hmsTimeTextBox
         this.Width <- WIDTH + 30. // TODO fudging it
         this.Height <- HEIGHT
+        // TODO ideally this should be a free font included in the assembly
+        this.FontFamily <- FontFamily("Segoe UI")
         let timer = new Avalonia.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update(false))
@@ -77,7 +79,7 @@ type MyWindow(owMapNum) as this =
         // update time
         let ts = DateTime.Now - startTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%01d:%02d:%02d" h m s
+        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
         // update timeline
         if f10Press || ts.Seconds = 0 then
             updateTimeline(int ts.TotalMinutes)
