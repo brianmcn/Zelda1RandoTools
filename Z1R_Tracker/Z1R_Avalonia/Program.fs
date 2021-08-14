@@ -19,9 +19,9 @@ type MyWindow(owMapNum) as this =
     let mutable startTime = DateTime.Now
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    //                 items  ow map  prog  timeline                     dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 30 + 3*UI.TLH + 3 + UI.TH) // TODO + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
-    let WIDTH = 16.*OverworldRouteDrawing.OMTW + 16.  // ow map width (what is the final 16?)
+    //                 items  ow map  prog  timeline       dungeon tabs                
+    let HEIGHT = float(30*4 + 11*3*9 + 30 + 2*UI.TLH + 3 + UI.TH + UI.TH + 27*8 + 12*7 + 30)
+    let WIDTH = 16.*OverworldRouteDrawing.OMTW
     do
         printfn "W,H = %d,%d" (int WIDTH) (int HEIGHT)
         UI.timeTextBox <- hmsTimeTextBox
