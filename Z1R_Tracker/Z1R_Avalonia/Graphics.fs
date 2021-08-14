@@ -107,7 +107,7 @@ let overworldMapBMPs(n) =
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
-let uniqueMapIcons, d1bmp, w1bmp =
+let uniqueMapIconBMPs =
     let m = zhMapIcons 
     let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
     let tiles = [|
@@ -141,7 +141,7 @@ let uniqueMapIcons, d1bmp, w1bmp =
                     tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
             yield tile
     |]
-    tiles |> Array.map BMPtoImage, tiles.[0], tiles.[9]
+    tiles
 
 let nonUniqueMapIconBMPs = 
     let m = zhMapIcons 

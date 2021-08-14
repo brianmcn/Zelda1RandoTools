@@ -6,7 +6,7 @@ open Avalonia.Controls
 open Avalonia.Media
 
 type MapStateProxy(state) =
-    let U = Graphics.uniqueMapIcons.Length 
+    let U = Graphics.uniqueMapIconBMPs.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
     member this.State = state
     member this.IsX = state = U+NU-1
@@ -21,9 +21,9 @@ type MapStateProxy(state) =
         if state = -1 then
             null
         elif state < U then
-            Graphics.uniqueMapIcons.[state]
+            Graphics.uniqueMapIconBMPs.[state]
         else
-            Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
+            Graphics.nonUniqueMapIconBMPs.[state-U]
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
@@ -68,6 +68,13 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
+let trimNumeralBmpToImage(iconBMP:System.Drawing.Bitmap) =
+    let trimmedBMP = new System.Drawing.Bitmap(int OMTW, iconBMP.Height)
+    let offset = int((48.-OMTW)/2.)
+    for x = 0 to int OMTW-1 do
+        for y = 0 to iconBMP.Height-1 do
+            trimmedBMP.SetPixel(x,y,iconBMP.GetPixel(x+offset,y))
+    Graphics.BMPtoImage trimmedBMP
 let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -286,7 +293,7 @@ let makeAll(owMapNum) =
     canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.BMPtoImage Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); (* TODO if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text *))), OFFSET+120., 90.)
+    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
     ToolTip.SetTip(bombIcon, "Player currently has bombs")
@@ -422,9 +429,9 @@ let makeAll(owMapNum) =
         let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
         drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
         // darken the number
-        let rect = new Shapes.Rectangle(Width=16.0*OMTW/48., Height=21.0, Stroke=Brushes.Black, StrokeThickness = 3.,
+        let rect = new Shapes.Rectangle(Width=20.0*OMTW/48., Height=22.0, Stroke=Brushes.Black, StrokeThickness = 3.,
                                                         Fill=Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*OMTW+15.0*OMTW/48., float(y*11*3)+6.0)
+        canvasAdd(c, rect, x*OMTW+12.0*OMTW/48., float(y*11*3)+5.0)
     let drawWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Aqua)
     let drawDarkening(c,x,y) =
@@ -481,7 +488,7 @@ let makeAll(owMapNum) =
                         ()
                     else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let icon = ms.Current()
+                    let iconBMP = ms.Current()
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
@@ -490,7 +497,12 @@ let makeAll(owMapNum) =
                             c
                         else
                             owDarkeningMapGridCanvases.[i,j]
-                    if icon <> null then 
+                    if iconBMP <> null then 
+                        let icon =
+                            if ms.IsDungeon || ms.IsWarp then
+                                trimNumeralBmpToImage(iconBMP)
+                            else
+                                resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.HasTransparency then
                             icon.Opacity <- 0.9
                         else
@@ -500,8 +512,7 @@ let makeAll(owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
-                        resizeMapTileImage icon |> ignore
-                    canvasAdd(canvasToDrawOn, icon, 0., 0.)
+                        canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
                     if ms.IsWarp then
@@ -538,25 +549,24 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_H)
 
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 2.5*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[9], 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
@@ -770,7 +780,6 @@ let makeAll(owMapNum) =
     canvasAdd(timeline1Canvas, curTime, 0., 0.)
 
     let timeline2Canvas = makeTimeline("1h","2h")
-    let timeline3Canvas = makeTimeline("2h","3h")
 
     let top = ref true
     let updateTimeline(minute) =
@@ -780,10 +789,8 @@ let makeAll(owMapNum) =
             let tlc,minute = 
                 if minute <= 60 then 
                     timeline1Canvas, minute 
-                elif minute <= 120 then
+                else
                     timeline2Canvas, minute-60
-                else 
-                    timeline3Canvas, minute-120
             let items = ResizeArray()
             let hearts = ResizeArray()
             for x in timelineItems do
@@ -814,15 +821,12 @@ let makeAll(owMapNum) =
             curTime.EndPoint <- Point(24.+float(minute)*MW, curTime.EndPoint.Y)
             timeline1Canvas.Children.Remove(curTime) |> ignore // have it be last
             timeline2Canvas.Children.Remove(curTime) |> ignore // have it be last
-            timeline3Canvas.Children.Remove(curTime) |> ignore // have it be last
             canvasAdd(tlc, curTime, 0., 0.)
     canvasAdd(c, timeline1Canvas, 0., THRU_MAP_H)
     canvasAdd(c, timeline2Canvas, 0., THRU_MAP_H + timeline1Canvas.Height)
-    canvasAdd(c, timeline3Canvas, 0., THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height)
 
-    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
+    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + 3.
 
-(* TODO 
     // Level trackers
     let fixedDungeon1Outlines = ResizeArray()
     let fixedDungeon2Outlines = ResizeArray()
@@ -830,14 +834,20 @@ let makeAll(owMapNum) =
     let dungeonTabs = new TabControl()
     dungeonTabs.Background <- Brushes.Black 
     canvasAdd(c, dungeonTabs , 0., THRU_TIMELINE_H)
+    let tabItems = ResizeArray()
     for level = 1 to 9 do
-        let levelTab = new TabItem(Background=Brushes.SlateGray)
+        let levelTab = new TabItem(Background=Brushes.SlateGray, Foreground=Brushes.Black, Height=float(TH))
+        levelTab.FontSize <- 16.
+        levelTab.FontWeight <- FontWeight.Bold
+        levelTab.VerticalContentAlignment <- Layout.VerticalAlignment.Center
+        levelTab.Margin <- Thickness(1., 0.)
+        levelTab.Padding <- Thickness(0.)
         levelTab.Header <- sprintf "  %d  " level
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
 
         levelTab.Content <- dungeonCanvas 
         dungeonTabs.Height <- dungeonCanvas.Height + 30.   // ok to set this 9 times
-        dungeonTabs.Items.Add(levelTab) |> ignore
+        tabItems.Add(levelTab)
 
         let TEXT = sprintf "LEVEL-%d " level
         // horizontal doors
@@ -855,13 +865,14 @@ let makeAll(owMapNum) =
                         d.Background <- yes
                     else
                         d.Background <- unknown
-                d.MouseLeftButtonDown.Add(left)
                 let right _ = 
                     if not(obj.Equals(d.Background, no)) then
                         d.Background <- no
                     else
                         d.Background <- unknown
-                d.MouseRightButtonDown.Add(right)
+                d.PointerPressed.Add(fun ea -> 
+                    if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (left())
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // vertical doors
         let verticalDoorCanvases = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
@@ -874,13 +885,14 @@ let makeAll(owMapNum) =
                         d.Background <- yes
                     else
                         d.Background <- unknown
-                d.MouseLeftButtonDown.Add(left)
                 let right _ = 
                     if not(obj.Equals(d.Background, no)) then
                         d.Background <- no
                     else
                         d.Background <- unknown
-                d.MouseRightButtonDown.Add(right)
+                d.PointerPressed.Add(fun ea -> 
+                    if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (left())
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
@@ -888,8 +900,8 @@ let makeAll(owMapNum) =
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
             // LEVEL-9        
-            let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
-                                    Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+            let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-12), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
+                                    Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeight.Bold)
             canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
             // room map
             for j = 0 to 7 do
@@ -930,8 +942,8 @@ let makeAll(owMapNum) =
                 //c.MouseLeftButtonDown.Add(fun _ -> f true)
                 //c.MouseRightButtonDown.Add(fun _ -> f false)
                 // shift click to mark not-on-map rooms (by "no"ing all the connections)
-                c.MouseLeftButtonDown.Add(fun _ -> 
-                    if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
+                    if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
                         if i > 0 then
                             horizontalDoorCanvases.[i-1,j].Background <- no
                         if i < 7 then
@@ -940,14 +952,14 @@ let makeAll(owMapNum) =
                             verticalDoorCanvases.[i,j-1].Background <- no
                         if j < 7 then
                             verticalDoorCanvases.[i,j].Background <- no
-                )
-                c.MouseWheel.Add(fun x -> f (x.Delta<0))
+                    ))
+                c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
             // fixed dungeon drawing outlines - vertical segments
             for i = 0 to 6 do
                 for j = 0 to 7 do
                     if quest.[j].Chars(i) <> quest.[j].Chars(i+1) then
-                        let s = new Shapes.Line(X1=float(i*(39+12)+39+12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+j*(27+12)-12/2), Y2=float(TH+j*(27+12)+27+12/2), 
+                        let s = new Shapes.Line(StartPoint=Point(float(i*(39+12)+39+12/2), float(TH+j*(27+12)-12/2)), EndPoint=Point(float(i*(39+12)+39+12/2), float(TH+j*(27+12)+27+12/2)), 
                                         Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
                         canvasAdd(dungeonCanvas, s, 0., 0.)
                         outlines.Add(s)
@@ -955,16 +967,24 @@ let makeAll(owMapNum) =
             for i = 0 to 7 do
                 for j = 0 to 6 do
                     if quest.[j].Chars(i) <> quest.[j+1].Chars(i) then
-                        let s = new Shapes.Line(X1=float(i*(39+12)-12/2), X2=float(i*(39+12)+39+12/2), Y1=float(TH+(j+1)*(27+12)-12/2), Y2=float(TH+(j+1)*(27+12)-12/2), 
+                        let s = new Shapes.Line(StartPoint=Point(float(i*(39+12)-12/2), float(TH+(j+1)*(27+12)-12/2)), EndPoint=Point(float(i*(39+12)+39+12/2), float(TH+(j+1)*(27+12)-12/2)), 
                                         Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
                         canvasAdd(dungeonCanvas, s, 0., 0.)
                         outlines.Add(s)
+    dungeonTabs.Items <- tabItems
+    dungeonTabs.SelectionChanged.Add(fun _ ->
+        for i = 0 to 8 do
+            if dungeonTabs.SelectedIndex = i then
+                tabItems.[i].Background <- Brushes.DarkSlateGray
+            else
+                tabItems.[i].Background <- Brushes.SlateGray
+        )
     dungeonTabs.SelectedIndex <- 8
 
     let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    fqcb.ToolTip <- "Show vanilla first quest dungeon outlines"
+    ToolTip.SetTip(fqcb, "Show vanilla first quest dungeon outlines")
     let sqcb = new CheckBox(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    sqcb.ToolTip <- "Show vanilla second quest dungeon outlines"
+    ToolTip.SetTip(sqcb, "Show vanilla second quest dungeon outlines")
 
     fqcb.IsChecked <- System.Nullable.op_Implicit false
     fqcb.Checked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); sqcb.IsChecked <- System.Nullable.op_Implicit false)
@@ -982,11 +1002,11 @@ let makeAll(owMapNum) =
     tb.FontSize <- 24.
     tb.Foreground <- Brushes.LimeGreen 
     tb.Background <- Brushes.Black 
+    tb.CaretBrush <- Brushes.LimeGreen 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 402., THRU_TIMELINE_H) 
 
-*)
     // remaining OW spots
     canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 60.)
     owRemainingScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
@@ -1112,7 +1132,7 @@ let makeAll(owMapNum) =
 
 
     //                items  ow map  prog  timeline    dungeon tabs                
-    c.Height <- float(30*4 + 11*3*9 + 30 + 3*TLH + 3 + TH) // TODO + 27*8 + 12*7 + 30)
+    c.Height <- float(30*4 + 11*3*9 + 30 + 2*TLH + 3 + TH + TH + 27*8 + 12*7 + 30)
     TrackerModel.forceUpdate()
     c, updateTimeline
 
