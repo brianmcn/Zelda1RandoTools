@@ -61,6 +61,13 @@ let H = 30
 let RIGHT_COL = 560.
 let TLH = (1+9+5+9)*3  // timeline height
 let TH = 24 // text height
+let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let resizeMapTileImage(image:Image) =
+    image.Width <- OMTW
+    image.Height <- float(11*3)
+    image.Stretch <- Stretch.Fill
+    image.StretchDirection <- StretchDirection.Both
+    image
 let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
@@ -304,65 +311,65 @@ let makeAll(owMapNum) =
     let canvasesToSlowBlink = ResizeArray()
     let canvasesToFastBlink = ResizeArray()
     let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
-        let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Lime)
+        let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Lime)
         canvasesToSlowBlink.Add(rect)
         rect
         )
 
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.4
-    let owOpaqueMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owOpaqueMapGrid, c, i, j)
             // shading between map tiles
             let OPA = 0.25
-            let bottomShade = new Canvas(Width=float(16*3), Height=float(3), Background=Brushes.Black, Opacity=OPA)
+            let bottomShade = new Canvas(Width=OMTW, Height=float(3), Background=Brushes.Black, Opacity=OPA)
             canvasAdd(c, bottomShade, 0., float(10*3))
             let rightShade  = new Canvas(Width=float(3), Height=float(11*3), Background=Brushes.Black, Opacity=OPA)
-            canvasAdd(c, rightShade, float(15*3), 0.)
+            canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
+                let icon = resizeMapTileImage <| Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(c, owOpaqueMapGrid, 0., 120.)
 
     // layer to place darkening icons - dynamic icons that are below route-drawing but above the fixed base layer
     // this layer is also used to draw map icons that get drawn below routing, such as potion shops
-    let owDarkeningMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owDarkeningMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owDarkeningMapGridCanvases = Array2D.zeroCreate 16 8
     owDarkeningMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owDarkeningMapGrid, c, i, j)
             owDarkeningMapGridCanvases.[i,j] <- c
     canvasAdd(c, owDarkeningMapGrid, 0., 120.)
 
     // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
-    let owHidingMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
     owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owHidingMapGrid, c, i, j)
             owHidingMapGridCanvases.[i,j] <- c
     canvasAdd(c, owHidingMapGrid, 0., 120.)
     let hide(x,y) =
         let hideColor = Brushes.DarkSlateGray // Brushes.Black
         let hideOpacity = 0.6 // 0.4
-        let rect = new Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 7., 0.)
-        let rect = new Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 19., 0.)
-        let rect = new Shapes.Rectangle(Width=7.0, Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 32., 0.)
+        let rect = new Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 7.*OMTW/48., 0.)
+        let rect = new Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 19.*OMTW/48., 0.)
+        let rect = new Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 32.*OMTW/48., 0.)
     hideSecondQuestFromMixed <- 
         (fun unhide ->  // make mixed appear reduced to 1st quest
             for x = 0 to 15 do
@@ -385,34 +392,34 @@ let makeAll(owMapNum) =
         )
 
     // ow route drawing layer
-    let routeDrawingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))
+    let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, routeDrawingCanvas, 0., 120.)
 
     // ow map
-    let owMapGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
         // full rectangles badly obscure routing paths, so we just draw corners
-        let L1,L2,R1,R2 = 0.0, 16.0, 28.0, 44.0
+        let L1,L2,R1,R2 = 0.0, (OMTW-4.)/2.-6., (OMTW-4.)/2.+6., OMTW-4.
         let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
         let s = new Shapes.Line(StartPoint=Point(L1,T1+1.5), EndPoint=Point(L2,T1+1.5), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(L1+1.5,T1), EndPoint=Point(L1+1.5,T2), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(L1,B2-1.5), EndPoint=Point(L2,B2-1.5), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(L1+1.5,B1), EndPoint=Point(L1+1.5,B2), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(R1,T1+1.5), EndPoint=Point(R2,T1+1.5), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(R2-1.5,T1), EndPoint=Point(R2-1.5,T2), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(R1,B2-1.5), EndPoint=Point(R2,B2-1.5), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(R2-1.5,B1), EndPoint=Point(R2-1.5,B2), Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*float(16*3)+2., float(y*11*3)+2.)
+        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
     let drawDungeonHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Yellow)
     let drawCompletedDungeonHighlight(c,x,y) =
@@ -421,29 +428,29 @@ let makeAll(owMapNum) =
         let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
         drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
         // darken the number
-        let rect = new Shapes.Rectangle(Width=15.0, Height=21.0, Stroke=Brushes.Black, StrokeThickness = 3.,
+        let rect = new Shapes.Rectangle(Width=16.0*OMTW/48., Height=21.0, Stroke=Brushes.Black, StrokeThickness = 3.,
                                                         Fill=Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*float(16*3)+15.0, float(y*11*3)+6.0)
+        canvasAdd(c, rect, x*OMTW+15.0*OMTW/48., float(y*11*3)+6.0)
     let drawWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Aqua)
     let drawDarkening(c,x,y) =
-        let rect = new Shapes.Rectangle(Width=float(16*3)-1.5, Height=float(11*3)-1.5, Stroke=Brushes.Black, StrokeThickness = 3.,
+        let rect = new Shapes.Rectangle(Width=OMTW-1.5, Height=float(11*3)-1.5, Stroke=Brushes.Black, StrokeThickness = 3.,
                                                         Fill=Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*float(16*3), float(y*11*3))
+        canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Lime)
     let mutable mostRecentMouseEnterTime = DateTime.Now 
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             let mutable pointerEnteredButNotDrawnRoutingYet = false  // PointerEnter does not correctly report mouse position, but PointerMoved does
             gridAdd(owMapGrid, c, i, j)
             // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
             image.Opacity <- 0.0
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
-            let rect = new Shapes.Rectangle(Width=float(16*3)-4., Height=float(11*3)-4., Stroke=Brushes.White)
+            let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
                                         // track current location for F5 & speech recognition purposes
@@ -469,7 +476,7 @@ let makeAll(owMapNum) =
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
                     // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
-                    let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+                    let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     if delta = 1 then
@@ -499,6 +506,7 @@ let makeAll(owMapNum) =
                                 icon.Opacity <- X_OPACITY
                             else
                                 icon.Opacity <- 0.5
+                        resizeMapTileImage icon |> ignore
                     canvasAdd(canvasToDrawOn, icon, 0., 0.)
                     if ms.IsDungeon then
                         drawDungeonHighlight(canvasToDrawOn,0.,0)
@@ -521,14 +529,14 @@ let makeAll(owMapNum) =
     owMapGrid.PointerLeave.Add(fun _ -> mapMostRecentMousePos <- Point(-1., -1.))
     owMapGrid.PointerMoved.Add(fun ea -> mapMostRecentMousePos <- ea.GetPosition(owMapGrid))
 
-    let recorderingCanvas = new Canvas(Width=float(16*16*3), Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
+    let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, recorderingCanvas, 0., 120.)
     let startIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
 
     let THRU_MAIN_MAP_H = float(120 + 8*11*3)
     // item progress
-    let itemProgressCanvas = new Canvas(Width=float(16*16*3), Height=30.)
+    let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAIN_MAP_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
@@ -626,7 +634,7 @@ let makeAll(owMapNum) =
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp), x, y)
         // place start icon in top layer
         if TrackerModel.startIconX <> -1 then
-            canvasAdd(recorderingCanvas, startIcon, 8.5+float(TrackerModel.startIconX*16*3), float(TrackerModel.startIconY*11*3))
+            canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+float(TrackerModel.startIconX*16*3), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
             member _this.AnnounceConsiderSword2() = ()
@@ -640,23 +648,23 @@ let makeAll(owMapNum) =
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
                 // highlight 9 after get all triforce
                 if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
-                    let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Pink)
+                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Pink)
                     canvasesToFastBlink.Add(rect)
-                    canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Sword3(x,y) = 
                 if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
-                    let rect = new Canvas(Width=float(16*3), Height=float(11*3), Background=Brushes.Pink)
+                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Pink)
                     canvasesToFastBlink.Add(rect)
-                    canvasAdd(recorderingCanvas, rect, float(x*16*3), float(y*11*3))
+                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
             member _this.Sword2(x,y) = ()
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
                 let pos = mapMostRecentMousePos
-                let i,j = int(Math.Floor(pos.X / (16.*3.))), int(Math.Floor(pos.Y / (11.*3.)))
+                let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
                     OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                                     TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), i, j)
@@ -665,7 +673,7 @@ let makeAll(owMapNum) =
                     for x = 0 to 15 do
                         for y = 0 to 7 do
                             if owRouteworthySpots.[x,y] && TrackerModel.overworldMapMarks.[x,y].Current() = -1 then
-                                canvasAdd(recorderingCanvas, owRemainSpotHighlighters.[x,y], float(x*16*3), float(y*11*3))
+                                canvasAdd(recorderingCanvas, owRemainSpotHighlighters.[x,y], OMTW*float(x), float(y*11*3))
             member _this.AnnounceCompletedDungeon(i) = ()
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
@@ -707,32 +715,33 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
 
-    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 0., 0.)
+    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
-    canvasAdd(legendCanvas, tb, float(16*3), 0.)
+    canvasAdd(legendCanvas, tb, OMTW, 0.)
 
-    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 2.5*float(16*3), 0.)
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
-    canvasAdd(legendCanvas, tb, 3.5*float(16*3), 0.)
+    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
-    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.d1bmp, 5.*float(16*3), 0.)
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 6.*float(16*3), 0.)
+    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
-    canvasAdd(legendCanvas, Graphics.BMPtoImage Graphics.w1bmp, 7.5*float(16*3), 0.)
+    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 8.5*float(16*3), 0.)
+    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
 
     let legendStartIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
-    canvasAdd(legendCanvas, legendStartIcon, 12.5*float(16*3)+8.5, 0.)
+    canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
-    canvasAdd(legendCanvas, tb, 13.5*float(16*3), 0.)
+    canvasAdd(legendCanvas, tb, 13.5*OMTW, 0.)
 
     let THRU_MAP_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + float(11*3)
 
@@ -980,7 +989,7 @@ let makeAll(owMapNum) =
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 90.)
     // coordinate grid
-    let owCoordsGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owCoordsGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCoordsTBs = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -989,7 +998,7 @@ let makeAll(owMapNum) =
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
             owCoordsTBs.[i,j] <- tb
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
             gridAdd(owCoordsGrid, c, i, j) 
     canvasAdd(c, owCoordsGrid, 0., 120.)
@@ -1021,14 +1030,14 @@ let makeAll(owMapNum) =
         let imgs = Array2D.zeroCreate 16 8
         for x = 0 to 15 do
             for y = 0 to 7 do
-                let tile = new System.Drawing.Bitmap(16*3,11*3)
-                for px = 0 to 16*3-1 do
+                let tile = new System.Drawing.Bitmap(int OMTW,11*3)
+                for px = 0 to int OMTW-1 do
                     for py = 0 to 11*3-1 do
                         tile.SetPixel(px, py, colors.Item(OverworldData.owMapZone.[y].[x]))
                 imgs.[x,y] <- tile
         imgs
 
-    let owMapZoneGrid = makeGrid(16, 8, 16*3, 11*3)
+    let owMapZoneGrid = makeGrid(16, 8, int OMTW, 11*3)
     let allOwMapZoneImages = ResizeArray()
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -1036,14 +1045,14 @@ let makeAll(owMapNum) =
             image.Opacity <- 0.0
             image.IsHitTestVisible <- false // transparent to mouse
             allOwMapZoneImages.Add(image)
-            let c = new Canvas(Width=float(16*3), Height=float(11*3))
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapZoneGrid, c, i, j)
     canvasAdd(c, owMapZoneGrid, 0., 120.)
 
     let owMapZoneBoundaries = ResizeArray()
     let makeLine(x1, x2, y1, y2) = 
-        let line = new Shapes.Line(StartPoint=Point(float(x1*16*3),float(y1*11*3)), EndPoint=Point(float(x2*16*3),float(y2*11*3)), Stroke=Brushes.White, StrokeThickness=3.)
+        let line = new Shapes.Line(StartPoint=Point(OMTW*float(x1),float(y1*11*3)), EndPoint=Point(OMTW*float(x2),float(y2*11*3)), Stroke=Brushes.White, StrokeThickness=3.)
         line.IsHitTestVisible <- false // transparent to mouse
         line
     let addLine(x1,x2,y1,y2) = 
