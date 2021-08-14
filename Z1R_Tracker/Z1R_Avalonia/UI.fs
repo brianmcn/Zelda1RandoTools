@@ -872,7 +872,7 @@ let makeAll(owMapNum) =
                         d.Background <- unknown
                 d.PointerPressed.Add(fun ea -> 
                     if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (left())
-                    elif ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (right()))
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // vertical doors
         let verticalDoorCanvases = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
@@ -892,7 +892,7 @@ let makeAll(owMapNum) =
                         d.Background <- unknown
                 d.PointerPressed.Add(fun ea -> 
                     if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (left())
-                    elif ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (right()))
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
