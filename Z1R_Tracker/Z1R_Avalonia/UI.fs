@@ -686,7 +686,7 @@ let makeAll(owMapNum) =
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp), x, y)
         // place start icon in top layer
         if TrackerModel.startIconX <> -1 then
-            canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+float(TrackerModel.startIconX*16*3), float(TrackerModel.startIconY*11*3))
+            canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
             member _this.AnnounceConsiderSword2() = ()
