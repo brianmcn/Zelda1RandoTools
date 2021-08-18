@@ -869,7 +869,8 @@ let makeAll(owMapNum) =
         // horizontal doors
         let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
         let no = Brushes.DarkRed
-        let yes = Brushes.Lime
+        let yes = Brushes.Green
+        let empty = Brushes.Black
         let horizontalDoorCanvases = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -912,6 +913,7 @@ let makeAll(owMapNum) =
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let roomCleared = Array2D.zeroCreate 8 8 // boolean
         let ROOMS = 17 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
@@ -927,6 +929,39 @@ let makeAll(owMapNum) =
                 canvasAdd(c, image, 0., 0.)
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
+                roomCleared.[i,j] <- false
+                let updateUI () =
+                    // update UI
+                    c.Children.Clear()
+                    let image =
+                        if roomCleared.[i,j] then
+                            match roomStates.[i,j] with
+                            | -1 -> Graphics.dungeonEmptyRoomBMP
+                            | 0  -> Graphics.dungeonUnexploredRoomBMP // shouldn't happen
+                            | 10 -> Graphics.dungeonClearedVChuteBMP
+                            | 11 -> Graphics.dungeonClearedHChuteBMP
+                            | 12 -> Graphics.dungeonClearedTeeBMP
+                            | 13 -> Graphics.dungeonClearedTriforceBMP 
+                            | 14 -> Graphics.dungeonClearedPrincessBMP 
+                            | 15 -> Graphics.dungeonClearedStartBMP 
+                            | 16 -> Graphics.dungeonClearedRoomBMP 
+                            | n  -> Graphics.dungeonClearedNumberBMPs.[n-1]
+                            |> Graphics.BMPtoImage
+                        else
+                            match roomStates.[i,j] with
+                            | -1 -> Graphics.dungeonEmptyRoomBMP
+                            | 0  -> Graphics.dungeonUnexploredRoomBMP 
+                            | 10 -> Graphics.dungeonVChuteBMP
+                            | 11 -> Graphics.dungeonHChuteBMP
+                            | 12 -> Graphics.dungeonTeeBMP
+                            | 13 -> Graphics.dungeonTriforceBMP 
+                            | 14 -> Graphics.dungeonPrincessBMP 
+                            | 15 -> Graphics.dungeonStartBMP 
+                            | 16 -> Graphics.dungeonExploredRoomBMP 
+                            | n  -> Graphics.dungeonNumberBMPs.[n-1]
+                            |> Graphics.BMPtoImage
+                    canvasAdd(c, image, 0., 0.)
+
                 let f b =
                     // track transport being changed away from
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -939,35 +974,34 @@ let makeAll(owMapNum) =
                     // note any new transports
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
-                    // update UI
-                    c.Children.Clear()
-                    let image =
-                        match roomStates.[i,j] with
-                        | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                        | 10 -> Graphics.dungeonVChuteBMP
-                        | 11 -> Graphics.dungeonHChuteBMP
-                        | 12 -> Graphics.dungeonTeeBMP
-                        | 13 -> Graphics.dungeonTriforceBMP 
-                        | 14 -> Graphics.dungeonPrincessBMP 
-                        | 15 -> Graphics.dungeonStartBMP 
-                        | 16 -> Graphics.dungeonExploredRoomBMP 
-                        | n  -> Graphics.dungeonNumberBMPs.[n-1]
-                        |> Graphics.BMPtoImage 
-                    canvasAdd(c, image, 0., 0.)
+                    updateUI ()
                 // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
                 //c.MouseLeftButtonDown.Add(fun _ -> f true)
                 //c.MouseRightButtonDown.Add(fun _ -> f false)
-                // shift click to mark not-on-map rooms (by "no"ing all the connections)
                 c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
                     if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
+                        // shift click to mark not-on-map rooms
+                        // don't break transport count
+                        if [1..9] |> List.contains roomStates.[i,j] then
+                            usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+
+                        let makeEmpty = roomStates.[i,j] <> -1
+                        roomStates.[i,j] <- if makeEmpty then -1 else 0
+                        let door = if makeEmpty then empty else unknown :> ISolidColorBrush
                         if i > 0 then
-                            horizontalDoorCanvases.[i-1,j].Background <- no
+                            horizontalDoorCanvases.[i-1,j].Background <- door
                         if i < 7 then
-                            horizontalDoorCanvases.[i,j].Background <- no
+                            horizontalDoorCanvases.[i,j].Background <- door
                         if j > 0 then
-                            verticalDoorCanvases.[i,j-1].Background <- no
+                            verticalDoorCanvases.[i,j-1].Background <- door
                         if j < 7 then
-                            verticalDoorCanvases.[i,j].Background <- no
+                            verticalDoorCanvases.[i,j].Background <- door
+                    else
+                        // click to mark cleared room
+                        roomCleared.[i,j] <- not roomCleared.[i,j]
+                        if roomStates.[i,j] = 0 then
+                            roomStates.[i,j] <- 16
+                    updateUI ()
                     ))
                 c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do

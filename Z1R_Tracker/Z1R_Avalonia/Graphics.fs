@@ -37,7 +37,9 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
 let [| dungeonUnexploredRoomBMP; dungeonExploredRoomBMP; dungeonVChuteBMP; dungeonHChuteBMP; dungeonTeeBMP; dungeonTriforceBMP; dungeonPrincessBMP; dungeonStartBMP;
-        dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |] =
+        dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp;
+        dungeonEmptyRoomBMP; dungeonClearedRoomBMP; dungeonClearedVChuteBMP; dungeonClearedHChuteBMP; dungeonClearedTeeBMP; dungeonClearedTriforceBMP; dungeonClearedPrincessBMP; dungeonClearedStartBMP;
+        dn1cbmp; dn2cbmp; dn3cbmp; dn4cbmp; dn5cbmp; dn6cbmp; dn7cbmp; dn8cbmp; dn9cbmp |] =
     let imageStream = GetResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/13 - 1 do
@@ -180,3 +182,4 @@ let nonUniqueMapIconBMPs =
     |]
 
 let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
+let dungeonClearedNumberBMPs = [| dn1cbmp; dn2cbmp; dn3cbmp; dn4cbmp; dn5cbmp; dn6cbmp; dn7cbmp; dn8cbmp; dn9cbmp |]
