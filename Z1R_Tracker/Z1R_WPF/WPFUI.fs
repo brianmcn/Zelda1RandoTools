@@ -449,6 +449,26 @@ let makeAll(owMapNum) =
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, routeDrawingCanvas, 0., 120.)
 
+    // single ow tile magnified overlay
+    let ENLARGE = 16.
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
+    let dungeonTabsOverlayContent = new StackPanel(Orientation=Orientation.Vertical)
+    dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
+    let overlayText = new TextBox(Text="You are moused here:", IsReadOnly=true, FontSize=36., Background=Brushes.Black, Foreground=Brushes.Lime, BorderThickness=Thickness(0.))
+    let overlayTiles = Array2D.zeroCreate 16 8
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
+            for x = 0 to bmp.Width-1 do
+                for y = 0 to bmp.Height-1 do
+                    let c = owMapBMPs.[i,j].GetPixel(int(float x*3./ENLARGE), int(float y*3./ENLARGE))
+                    let c = 
+                        if (x+1) % int ENLARGE = 0 || (y+1) % int ENLARGE = 0 then
+                            System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                        else
+                            c
+                    bmp.SetPixel(x,y,c)
+            overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -510,11 +530,15 @@ let makeAll(owMapNum) =
                                         // draw routes
                                         OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                                                         TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
+                                        // show enlarged version of current room
+                                        dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
+                                        dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
                                         mostRecentMouseEnterTime <- DateTime.Now)
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                      dungeonTabsOverlayContent.Children.Clear()
                                       routeDrawingCanvas.Children.Clear())
             // icon
             if owInstance.AlwaysEmpty(i,j) then
@@ -945,7 +969,7 @@ let makeAll(owMapNum) =
 
     let dungeonTabs = new TabControl()
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
-    canvasAdd(c, dungeonTabs , 0., THRU_TIMELINE_H)
+    canvasAdd(c, dungeonTabs, 0., THRU_TIMELINE_H)
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
@@ -1075,6 +1099,9 @@ let makeAll(owMapNum) =
                                         Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
                         canvasAdd(dungeonCanvas, s, 0., 0.)
                         outlines.Add(s)
+        let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0.,
+                                                Fill=Brushes.Black, Opacity=0.3, IsHitTestVisible=false)
+        canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
     dungeonTabs.SelectedIndex <- 8
 
     let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -1091,6 +1118,8 @@ let makeAll(owMapNum) =
     sqcb.Checked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); fqcb.IsChecked <- System.Nullable.op_Implicit false)
     sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
     canvasAdd(c, sqcb, 360., THRU_TIMELINE_H) 
+
+    canvasAdd(c, dungeonTabsOverlay, 0., THRU_TIMELINE_H)
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
