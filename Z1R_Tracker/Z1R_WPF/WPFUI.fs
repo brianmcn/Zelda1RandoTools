@@ -981,9 +981,10 @@ let makeAll(owMapNum) =
 
         let TEXT = sprintf "LEVEL-%d " level
         // horizontal doors
-        let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
+        let unknown = new SolidColorBrush(Color.FromRgb(40uy, 40uy, 50uy)) 
         let no = System.Windows.Media.Brushes.DarkRed
-        let yes = System.Windows.Media.Brushes.Lime
+        let yes = new System.Windows.Media.SolidColorBrush(Color.FromRgb(0uy,180uy,0uy))
+        let blackedOut = new SolidColorBrush(Color.FromRgb(15uy, 15uy, 25uy)) 
         let horizontalDoorCanvases = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -1024,6 +1025,7 @@ let makeAll(owMapNum) =
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let roomCompleted = Array2D.zeroCreate 8 8 
         let ROOMS = 17 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
@@ -1035,10 +1037,26 @@ let makeAll(owMapNum) =
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
                 canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
-                let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
+                let image = Graphics.BMPtoImage (fst Graphics.cdungeonUnexploredRoomBMP)
                 canvasAdd(c, image, 0., 0.)
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
+                let redraw() =
+                    c.Children.Clear()
+                    let image =
+                        match roomStates.[i,j] with
+                        | 0  -> Graphics.cdungeonUnexploredRoomBMP 
+                        | 10 -> Graphics.cdungeonVChuteBMP
+                        | 11 -> Graphics.cdungeonHChuteBMP
+                        | 12 -> Graphics.cdungeonTeeBMP
+                        | 13 -> Graphics.cdungeonTriforceBMP 
+                        | 14 -> Graphics.cdungeonPrincessBMP 
+                        | 15 -> Graphics.cdungeonStartBMP 
+                        | 16 -> Graphics.cdungeonExploredRoomBMP 
+                        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+                        |> (fun (c,u) -> if roomCompleted.[i,j] || roomStates.[i,j] = 0 then c else u)
+                        |> Graphics.BMPtoImage 
+                    canvasAdd(c, image, 0., 0.)
                 let f b =
                     // track transport being changed away from
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -1051,35 +1069,33 @@ let makeAll(owMapNum) =
                     // note any new transports
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
-                    // update UI
-                    c.Children.Clear()
-                    let image =
-                        match roomStates.[i,j] with
-                        | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                        | 10 -> Graphics.dungeonVChuteBMP
-                        | 11 -> Graphics.dungeonHChuteBMP
-                        | 12 -> Graphics.dungeonTeeBMP
-                        | 13 -> Graphics.dungeonTriforceBMP 
-                        | 14 -> Graphics.dungeonPrincessBMP 
-                        | 15 -> Graphics.dungeonStartBMP 
-                        | 16 -> Graphics.dungeonExploredRoomBMP 
-                        | n  -> Graphics.dungeonNumberBMPs.[n-1]
-                        |> Graphics.BMPtoImage 
-                    canvasAdd(c, image, 0., 0.)
-                // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
-                //c.MouseLeftButtonDown.Add(fun _ -> f true)
-                //c.MouseRightButtonDown.Add(fun _ -> f false)
-                // shift click to mark not-on-map rooms (by "no"ing all the connections)
+                    redraw()
+                // TODO consider hitbox (accidentally click room when trying to target doors with mouse)
                 c.MouseLeftButtonDown.Add(fun _ -> 
+                    if roomStates.[i,j] <> 0 then
+                        roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                    else
+                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                        roomStates.[i,j] <- 16
+                        roomCompleted.[i,j] <- true
+                    redraw()
+                    // shift click to mark not-on-map rooms (by "no"ing all the connections)
                     if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
                         if i > 0 then
-                            horizontalDoorCanvases.[i-1,j].Background <- no
+                            horizontalDoorCanvases.[i-1,j].Background <- blackedOut
                         if i < 7 then
-                            horizontalDoorCanvases.[i,j].Background <- no
+                            horizontalDoorCanvases.[i,j].Background <- blackedOut
                         if j > 0 then
-                            verticalDoorCanvases.[i,j-1].Background <- no
+                            verticalDoorCanvases.[i,j-1].Background <- blackedOut
                         if j < 7 then
-                            verticalDoorCanvases.[i,j].Background <- no
+                            verticalDoorCanvases.[i,j].Background <- blackedOut
+                        // don't break transport count
+                        if [1..9] |> List.contains roomStates.[i,j] then
+                            usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                        roomStates.[i,j] <- 0
+                        // black out the room (not reflected anywhere in backing room state)
+                        c.Children.Clear()
+                        canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
                 )
                 c.MouseWheel.Add(fun x -> f (x.Delta<0))
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
@@ -1099,8 +1115,8 @@ let makeAll(owMapNum) =
                                         Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false, Opacity=0.0)
                         canvasAdd(dungeonCanvas, s, 0., 0.)
                         outlines.Add(s)
-        let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0.,
-                                                Fill=Brushes.Black, Opacity=0.3, IsHitTestVisible=false)
+        // "sunglasses"
+        let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
     dungeonTabs.SelectedIndex <- 8
 
