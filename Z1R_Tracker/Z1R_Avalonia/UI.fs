@@ -949,7 +949,7 @@ let makeAll(owMapNum) =
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
                 canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
-                let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
+                let image = Graphics.BMPtoImage (fst Graphics.cdungeonUnexploredRoomBMP)
                 canvasAdd(c, image, 0., 0.)
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
@@ -958,32 +958,18 @@ let makeAll(owMapNum) =
                     // update UI
                     c.Children.Clear()
                     let image =
-                        if roomCleared.[i,j] then
-                            match roomStates.[i,j] with
-                            | -1 -> Graphics.dungeonEmptyRoomBMP
-                            | 0  -> Graphics.dungeonUnexploredRoomBMP // shouldn't happen
-                            | 10 -> Graphics.dungeonClearedVChuteBMP
-                            | 11 -> Graphics.dungeonClearedHChuteBMP
-                            | 12 -> Graphics.dungeonClearedTeeBMP
-                            | 13 -> Graphics.dungeonClearedTriforceBMP 
-                            | 14 -> Graphics.dungeonClearedPrincessBMP 
-                            | 15 -> Graphics.dungeonClearedStartBMP 
-                            | 16 -> Graphics.dungeonClearedRoomBMP 
-                            | n  -> Graphics.dungeonClearedNumberBMPs.[n-1]
-                            |> Graphics.BMPtoImage
-                        else
-                            match roomStates.[i,j] with
-                            | -1 -> Graphics.dungeonEmptyRoomBMP
-                            | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                            | 10 -> Graphics.dungeonVChuteBMP
-                            | 11 -> Graphics.dungeonHChuteBMP
-                            | 12 -> Graphics.dungeonTeeBMP
-                            | 13 -> Graphics.dungeonTriforceBMP 
-                            | 14 -> Graphics.dungeonPrincessBMP 
-                            | 15 -> Graphics.dungeonStartBMP 
-                            | 16 -> Graphics.dungeonExploredRoomBMP 
-                            | n  -> Graphics.dungeonNumberBMPs.[n-1]
-                            |> Graphics.BMPtoImage
+                        match roomStates.[i,j] with
+                        | 0  -> Graphics.cdungeonUnexploredRoomBMP
+                        | 10 -> Graphics.cdungeonVChuteBMP
+                        | 11 -> Graphics.cdungeonHChuteBMP
+                        | 12 -> Graphics.cdungeonTeeBMP
+                        | 13 -> Graphics.cdungeonTriforceBMP 
+                        | 14 -> Graphics.cdungeonPrincessBMP 
+                        | 15 -> Graphics.cdungeonStartBMP 
+                        | 16 -> Graphics.cdungeonExploredRoomBMP 
+                        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+                        |> (fun (u,c) -> if roomCleared.[i,j] then c else u)
+                        |> Graphics.BMPtoImage
                     canvasAdd(c, image, 0., 0.)
 
                 let f b =
@@ -1009,8 +995,10 @@ let makeAll(owMapNum) =
                         if [1..9] |> List.contains roomStates.[i,j] then
                             usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
 
-                        let makeEmpty = roomStates.[i,j] <> -1
-                        roomStates.[i,j] <- if makeEmpty then -1 else 0
+                        // (unexplored,cleared) means "empty"
+                        let makeEmpty = not (roomStates.[i,j] = 0 && roomCleared.[i,j])
+                        roomStates.[i,j] <- 0
+                        roomCleared.[i,j] <- makeEmpty
                         let door = if makeEmpty then empty else unknown :> ISolidColorBrush
                         if i > 0 then
                             horizontalDoorCanvases.[i-1,j].Background <- door
