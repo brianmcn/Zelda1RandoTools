@@ -65,13 +65,20 @@ type MyWindow(owMapNum) as this =
         hstackPanel.Children.Add(stackPanel) |> ignore
         this.Content <- hstackPanel
         startButton.Click.Add(fun _ ->
-                printfn "you pressed start after selecting %d" owQuest.SelectedIndex
-                this.Background <- Brushes.Black
-                let c,u = UI.makeAll(owQuest.SelectedIndex)
-                canvas <- c
-                updateTimeline <- u
-                UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+40., 0.)
-                this.Content <- canvas
+                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true)
+                stackPanel.Children.Add(tb) |> ignore
+                let ctxt = System.Threading.SynchronizationContext.Current
+                Async.Start (async {
+                    do! Async.Sleep(10) // get off UI thread so UI will update
+                    do! Async.SwitchToContext ctxt
+                    printfn "you pressed start after selecting %d" owQuest.SelectedIndex
+                    this.Background <- Brushes.Black
+                    let c,u = UI.makeAll(owQuest.SelectedIndex)
+                    canvas <- c
+                    updateTimeline <- u
+                    UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+40., 0.)
+                    this.Content <- canvas
+                })
             )
     member this.Update(f10Press) =
         // update time

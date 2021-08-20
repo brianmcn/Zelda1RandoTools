@@ -116,7 +116,7 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
-let makeAll(owMapNum) =
+let makeAll(owMapNum, audioInitiallyOn) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
     let owMapBMPs, isMixed, owInstance =
@@ -533,12 +533,14 @@ let makeAll(owMapNum) =
                                         // show enlarged version of current room
                                         dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
                                         dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
+                                        dungeonTabsOverlay.Opacity <- 1.0
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
                                         mostRecentMouseEnterTime <- DateTime.Now)
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                       dungeonTabsOverlayContent.Children.Clear()
+                                      dungeonTabsOverlay.Opacity <- 0.
                                       routeDrawingCanvas.Children.Clear())
             // icon
             if owInstance.AlwaysEmpty(i,j) then
@@ -967,7 +969,7 @@ let makeAll(owMapNum) =
     let fixedDungeon1Outlines = ResizeArray()
     let fixedDungeon2Outlines = ResizeArray()
 
-    let dungeonTabs = new TabControl()
+    let dungeonTabs = new TabControl(FontSize=12.)
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
     canvasAdd(c, dungeonTabs, 0., THRU_TIMELINE_H)
     for level = 1 to 9 do
@@ -1149,7 +1151,7 @@ let makeAll(owMapNum) =
 
     // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit true
+    cb.IsChecked <- System.Nullable.op_Implicit audioInitiallyOn
     voice.Volume <- 30
     cb.Checked.Add(fun _ -> voice.Volume <- 30)
     cb.Unchecked.Add(fun _ -> voice.Volume <- 0)

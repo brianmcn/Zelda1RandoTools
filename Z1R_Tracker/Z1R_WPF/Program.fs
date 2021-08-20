@@ -73,7 +73,7 @@ type MyWindowBase() as this =
                     f5WasRecentlyPressed <- true
         IntPtr.Zero
 
-type MyWindow(owMapNum) as this = 
+type MyWindow() as this = 
     inherit MyWindowBase()
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
@@ -90,8 +90,12 @@ type MyWindow(owMapNum) as this =
         this.Top <- -10.0
         this.Width <- WIDTH
         this.Height <- HEIGHT
+        this.FontSize <- 18.
+
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
-        let tb = new TextBox(Text="Choose overworld quest:")
+        let spacing = Thickness(0., 10., 0., 0.)
+
+        let tb = new TextBox(Text="Choose overworld quest:", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true)
         owQuest.ItemsSource <- [|
@@ -100,41 +104,73 @@ type MyWindow(owMapNum) as this =
                 "Mixed - First Quest"
                 "Mixed - Second Quest"
             |]
-        owQuest.SelectedIndex <- owMapNum % 4
+        owQuest.SelectedIndex <- 2
         stackPanel.Children.Add(owQuest) |> ignore
-        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
+        
+        let tb = new TextBox(Text="Speech settings (hover each for details):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true))
+        let audioInitiallyOn = ref true
+        let audiocb = new CheckBox(Content=new TextBox(Text="Speech Synthesis",IsReadOnly=true))
+        audiocb.ToolTip <- "Whether various reminders get 'spoken at you' periodically\nCan be toggled later with 'Audio Reminders' checkbox in main UI"
+        audiocb.IsChecked <- System.Nullable.op_Implicit true
+        audiocb.Checked.Add(fun _ ->   audioInitiallyOn := true)
+        audiocb.Unchecked.Add(fun _ -> audioInitiallyOn := false) 
+        stackPanel.Children.Add(audiocb) |> ignore
+
+        let speechOn = ref true
+        let speechcb = new CheckBox(Content=new TextBox(Text="Speech Recognition",IsReadOnly=true))
+        speechcb.ToolTip <- "Whether to use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
+        speechcb.IsChecked <- System.Nullable.op_Implicit true
+        speechcb.Checked.Add(fun _ ->   speechOn := true)
+        speechcb.Unchecked.Add(fun _ -> speechOn := false) 
+        stackPanel.Children.Add(speechcb) |> ignore
+
+        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing)
+        stackPanel.Children.Add(tb) |> ignore
+
+        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true), Margin=spacing)
         stackPanel.Children.Add(startButton) |> ignore
+        
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         hstackPanel.Children.Add(stackPanel) |> ignore
         this.Content <- hstackPanel
+        
         startButton.Click.Add(fun _ -> 
-                let c,u = WPFUI.makeAll(owQuest.SelectedIndex)
-                canvas <- c
-                updateTimeline <- u
-                WPFUI.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
-                this.Content <- canvas
-                try
-                    WPFUI.speechRecognizer.SetInputToDefaultAudioDevice()
-                    WPFUI.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
-                with ex ->
-                    printfn "An exception setting up speech, speech recognition will be non-functional:"
-                    printfn "%s" (ex.ToString())
-                System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
-                    let ex = e.Exception
-                    printfn "An unhandled exception from UI thread:"
-                    printfn "%s" (ex.ToString())
-                    printfn "press Enter to end"
-                    System.Console.ReadLine() |> ignore
-                    )
-                System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
-                    let ex = e.ExceptionObject
-                    printfn "An unhandled exception from background thread:"
-                    printfn "%s" (ex.ToString())
-                    printfn "press Enter to end"
-                    System.Console.ReadLine() |> ignore
-                    )
+                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing)
+                stackPanel.Children.Add(tb) |> ignore
+                let ctxt = System.Threading.SynchronizationContext.Current
+                Async.Start (async {
+                    do! Async.SwitchToContext ctxt
+                    let c,u = WPFUI.makeAll(owQuest.SelectedIndex, !audioInitiallyOn)
+                    canvas <- c
+                    updateTimeline <- u
+                    WPFUI.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
+                    this.Content <- canvas
+                    if !speechOn then
+                        printfn "Initializing microphone for speech recognition..."
+                        try
+                            WPFUI.speechRecognizer.SetInputToDefaultAudioDevice()
+                            WPFUI.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                        with ex ->
+                            printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
+                            printfn "%s" (ex.ToString())
+                    else
+                        printfn "Speech recongition is disabled"
+                    System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
+                        let ex = e.Exception
+                        printfn "An unhandled exception from UI thread:"
+                        printfn "%s" (ex.ToString())
+                        printfn "press Enter to end"
+                        System.Console.ReadLine() |> ignore
+                        )
+                    System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
+                        let ex = e.ExceptionObject
+                        printfn "An unhandled exception from background thread:"
+                        printfn "%s" (ex.ToString())
+                        printfn "press Enter to end"
+                        System.Console.ReadLine() |> ignore
+                        )
+                })
             )
     override this.Update(f10Press) =
         base.Update(f10Press)
@@ -220,7 +256,7 @@ type TerrariaTimerOnlyWindow() as this =
 [<STAThread>]
 [<EntryPoint>]
 let main argv = 
-    printfn "test %A" argv
+    printfn "Starting Z-Tracker..."
 
     let app = new Application()
 #if DEBUG
@@ -228,15 +264,12 @@ let main argv =
 #else
     try
 #endif
-        let mutable owMapNum = 0
-        if argv.Length > 1 then
-            owMapNum <- int argv.[1]
         if argv.Length > 0 && argv.[0] = "timeronly" then
             app.Run(TimerOnlyWindow()) |> ignore
         elif argv.Length > 0 && argv.[0] = "terraria" then
             app.Run(TerrariaTimerOnlyWindow()) |> ignore
         else
-            app.Run(MyWindow(owMapNum)) |> ignore
+            app.Run(MyWindow()) |> ignore
 #if DEBUG
 #else
     with e ->
