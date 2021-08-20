@@ -401,6 +401,26 @@ let makeAll(owMapNum) =
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, routeDrawingCanvas, 0., 120.)
 
+    // single ow tile magnified overlay
+    let ENLARGE = 24. // make it this x bigger
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
+    let dungeonTabsOverlayContent = new StackPanel(Orientation=Layout.Orientation.Vertical)
+    dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
+    //let overlayText = new TextBox(Text="You are moused here:", IsReadOnly=true, FontSize=36., Background=Brushes.Black, Foreground=Brushes.Lime, BorderThickness=Thickness(0.))
+    let overlayTiles = Array2D.zeroCreate 16 8
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
+            for x = 0 to bmp.Width-1 do
+                for y = 0 to bmp.Height-1 do
+                    let c = owMapBMPs.[i,j].GetPixel(int(float x*3./ENLARGE), int(float y*3./ENLARGE))
+                    let c = 
+                        if (x+1) % int ENLARGE = 0 || (y+1) % int ENLARGE = 0 then
+                            System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                        else
+                            c
+                    bmp.SetPixel(x,y,c)
+            overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -458,6 +478,9 @@ let makeAll(owMapNum) =
             let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
+                                        // show enlarged version of current room
+                                        //dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
+                                        dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -470,6 +493,7 @@ let makeAll(owMapNum) =
                                                     TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), pos, i, j)
                     pointerEnteredButNotDrawnRoutingYet <- false)
             c.PointerLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                        dungeonTabsOverlayContent.Children.Clear()
                                         pointerEnteredButNotDrawnRoutingYet <- false
                                         routeDrawingCanvas.Children.Clear())
             // icon
@@ -1011,6 +1035,8 @@ let makeAll(owMapNum) =
     sqcb.Checked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); fqcb.IsChecked <- System.Nullable.op_Implicit false)
     sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
     canvasAdd(c, sqcb, 360., THRU_TIMELINE_H) 
+
+    canvasAdd(c, dungeonTabsOverlay, 0., THRU_TIMELINE_H)
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
