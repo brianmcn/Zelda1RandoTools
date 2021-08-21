@@ -57,6 +57,7 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
+    member this.IsThreeItemShop = state >=16 && state <=22
     member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+8   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
@@ -568,7 +569,32 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         ()
                     else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let icon = ms.Current()
+                    let icon = 
+                        if ms.IsThreeItemShop && TrackerModel.overworldMapExtraData.[i,j] <> 0 then
+                            let item1 = ms.State - 16  // 0-based
+                            let item2 = TrackerModel.overworldMapExtraData.[i,j] - 1   // 0-based
+                            // cons up a two-item shop image
+                            let tile = new System.Drawing.Bitmap(16*3,11*3)
+                            for px = 0 to 16*3-1 do
+                                for py = 0 to 11*3-1 do
+                                    // two-icon area
+                                    if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
+                                        tile.SetPixel(px, py, Graphics.itemBackgroundColor)
+                                    else
+                                        tile.SetPixel(px, py, Graphics.TRANS_BG)
+                                    // icon 1
+                                    if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
+                                        let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
+                                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                                            tile.SetPixel(px, py, c)
+                                    // icon 2
+                                    if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
+                                        let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
+                                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                                            tile.SetPixel(px, py, c)
+                            Graphics.BMPtoImage tile
+                        else
+                            ms.Current()
                     // be sure to draw in appropriate layer
                     let canvasToDrawOn =
                         if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
@@ -599,8 +625,36 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
-                c.MouseLeftButtonDown.Add(fun _ -> updateGridSpot 1 "")
-                c.MouseRightButtonDown.Add(fun _ -> updateGridSpot -1 "")
+                c.MouseLeftButtonDown.Add(fun _ -> 
+                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                    if msp.State = -1 then
+                        // left click empty tile changes to 'X'
+                        updateGridSpot -1 ""
+                    else
+                        // left click a shop cycles up the second item
+                        if msp.IsThreeItemShop then
+                            // next item
+                            let e = (TrackerModel.overworldMapExtraData.[i,j] + 1) % 8
+                            // skip past duplicates
+                            let item1 = msp.State - 15  // 1-based
+                            let e = if e = item1 then (e + 1) % 8 else e
+                            TrackerModel.overworldMapExtraData.[i,j] <- e
+                            // redraw
+                            updateGridSpot 0 ""
+                    )
+                c.MouseRightButtonDown.Add(fun _ -> 
+                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                    // right click a shop cycles down the second item
+                    if msp.IsThreeItemShop then
+                        // next item
+                        let e = (TrackerModel.overworldMapExtraData.[i,j] - 1 + 8) % 8
+                        // skip past duplicates
+                        let item1 = msp.State - 15  // 1-based
+                        let e = if e = item1 then (e - 1 + 8) % 8 else e
+                        TrackerModel.overworldMapExtraData.[i,j] <- e
+                        // redraw
+                        updateGridSpot 0 ""
+                    )
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
         //printfn "conf: %f" r.Result.Confidence

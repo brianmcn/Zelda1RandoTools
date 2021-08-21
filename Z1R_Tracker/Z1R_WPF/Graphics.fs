@@ -183,6 +183,10 @@ let uniqueMapIcons, d1bmp, w1bmp =
     |]
     tiles |> Array.map BMPtoImage, tiles.[0], tiles.[9]
 
+let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
+let itemsBMP = 
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons3x7.png")
+    new System.Drawing.Bitmap(imageStream)
 let nonUniqueMapIconBMPs = 
     let m = zhMapIcons 
     [|
@@ -194,16 +198,20 @@ let nonUniqueMapIconBMPs =
                     tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
             yield tile
         // 3-item shops
-        for i in [yield![24..26]; yield![28..31]] do
+        for i = 0 to 6 do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    //tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-                    if px/3 >= 4 && px/3 <= 10 && py/3 >= 1 && py/3 <= 9 then
-                        let c = m.GetPixel((i*16*3 + px + 12)/3, (py)/3)
-                        tile.SetPixel(px, py, c)
+                    // one-icon area
+                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 1 && py/3 <= 9 then
+                        tile.SetPixel(px, py, itemBackgroundColor)
                     else
                         tile.SetPixel(px, py, TRANS_BG)
+                    // icon
+                    if px/3 >= 6 && px/3 <= 8 && py/3 >= 2 && py/3 <= 8 then
+                        let c = itemsBMP.GetPixel(i*3 + px/3-6, py/3-2)
+                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                            tile.SetPixel(px, py, c)
             yield tile
         // others
         for i in [yield 15; yield 32; yield 34; yield 38] do

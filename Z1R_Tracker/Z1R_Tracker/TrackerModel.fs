@@ -335,6 +335,7 @@ let recomputePlayerStateSummary() =
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
 let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
+let overworldMapExtraData = Array2D.create 16 8 0   // extra data, currently only used by 3-item shops to store the second item, where 0 is none and 1-7 are those items
 let mutable mapLastChangedTime = System.DateTime.Now
 do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
