@@ -14,13 +14,13 @@ let mapStatePhrases = [|
         "sword three"
         "sword two"
         "hint shop"
+        "arrow shop"
+        "bomb shop"
+        "book shop"
+        "candle shop"
         "blue ring shop"
         "meat shop"
         "key shop"
-        "candle shop"
-        "book shop"
-        "bomb shop"
-        "arrow shop"
         "take any"
         "potion shop"
         "money"
@@ -557,9 +557,18 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     canvasAdd(c, image, 0., 0.)
                     // figure out what new state we just interacted-to
                     if delta = 777 then 
-                        if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                        let curState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if curState = -1 then
+                            // if unmarked, use voice to set new state
                             match convertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
+                            | None -> ()
+                        elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.overworldMapExtraData.[i,j]=0 then
+                            // if item shop with only one item marked, use voice to set other item
+                            match convertSpokenPhraseToMapCell(phrase) with
+                            | Some newState -> 
+                                if newState >= 16 && newState <= 22 then
+                                    TrackerModel.overworldMapExtraData.[i,j] <- newState - 15
                             | None -> ()
                     elif delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
@@ -665,7 +674,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                             let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
                             if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
-                                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text 
+                                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
                     )
         )
     canvasAdd(c, owMapGrid, 0., 120.)
