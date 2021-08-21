@@ -1100,6 +1100,24 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
                 )
                 c.MouseWheel.Add(fun x -> f (x.Delta<0))
+                // drag and drop to quickly 'paint' rooms
+                c.MouseMove.Add(fun ea ->
+                    if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
+                        DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
+                    elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
+                        DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
+                    )
+                c.DragOver.Add(fun ea ->
+                    if roomStates.[i,j] = 0 then
+                        if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
+                            roomStates.[i,j] <- 16
+                            roomCompleted.[i,j] <- true
+                        else
+                            roomStates.[i,j] <- 16
+                            roomCompleted.[i,j] <- false
+                        redraw()
+                    )
+                c.AllowDrop <- true
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
             // fixed dungeon drawing outlines - vertical segments
             for i = 0 to 6 do
@@ -1278,12 +1296,44 @@ let makeAll(owMapNum, audioInitiallyOn) =
     addLine(15,15,4,7)
     addLine(14,14,3,4)
 
+    let zoneNames = ResizeArray()
+    let addZoneName(name, x, y) =
+        let tb = new TextBox(Text=name,FontSize=16.,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(2.),IsReadOnly=true)
+        canvasAdd(c, tb, 0. + x*OMTW, 120.+y*11.*3.)
+        tb.Opacity <- 0.
+        tb.TextAlignment <- TextAlignment.Center
+        tb.FontWeight <- FontWeights.Bold
+        tb.IsHitTestVisible <- false
+        zoneNames.Add(tb)
+    addZoneName("DEATH\nMOUNTAIN", 3.0, 0.3)
+    addZoneName("GRAVE", 1.8, 2.5)
+    addZoneName("DEAD\nWOODS", 1.8, 6.0)
+    addZoneName("LAKE 1", 10.0, 0.1)
+    addZoneName("LAKE 2", 5.0, 4.0)
+    addZoneName("LAKE 3", 9.5, 5.5)
+    addZoneName("RIVER 1", 8.3, 1.1)
+    addZoneName("RIV\nER2", 5.1, 6.2)
+    addZoneName("START", 7.3, 6.2)
+    addZoneName("DESERT", 10.3, 3.1)
+    addZoneName("FOREST", 12.3, 5.1)
+    addZoneName("LOST\nHILLS", 12.3, 0.3)
+    addZoneName("COAST", 14.3, 2.6)
+
+    let changeZoneOpacity(show) =
+        if show then
+            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3)
+            owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
+            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.6)
+        else
+            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0)
+            owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
+            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.0)
     let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
-    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    cb.Checked.Add(fun _ -> changeZoneOpacity true)
+    cb.Unchecked.Add(fun _ -> changeZoneOpacity false)
+    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity true)
+    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity false)
     canvasAdd(c, cb, 285., 100.)
 
     //                items  ow map  prog  timeline    dungeon tabs                

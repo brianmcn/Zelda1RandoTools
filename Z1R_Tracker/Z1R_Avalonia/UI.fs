@@ -994,6 +994,32 @@ let makeAll(owMapNum) =
                             verticalDoorCanvases.[i,j].Background <- no
                     ))
                 c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
+                (*
+                // drag and drop to quickly 'paint' rooms
+                //let startAsPlainTask (work : Async<unit>) = Threading.Tasks.Task.Factory.StartNew(fun () -> work |> Async.RunSynchronously)
+                c.PointerPressed.Add(fun ea ->
+                    if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then
+                        let o = new Avalonia.Input.DataObject()
+                        o.Set(Avalonia.Input.DataFormats.Text,"L")
+                        Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.Link) |> ignore
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then
+                        let o = new Avalonia.Input.DataObject()
+                        o.Set(Avalonia.Input.DataFormats.Text,"R")
+                        Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.Link) |> ignore
+                    )
+                c.AddHandler<_>(Avalonia.Input.DragDrop.DropEvent, new EventHandler<_>(fun o ea -> ()))
+                c.AddHandler<_>(Avalonia.Input.DragDrop.DragOverEvent, new EventHandler<_>(fun o ea ->
+                    if roomStates.[i,j] = 0 then
+                        if ea.Data.GetText() = "L" then
+                            roomStates.[i,j] <- 16
+                            //roomCompleted.[i,j] <- true
+                        else
+                            roomStates.[i,j] <- 16
+                            //roomCompleted.[i,j] <- false
+                        // redraw() TODOs
+                    ))
+                Avalonia.Input.DragDrop.SetAllowDrop(c, true)
+                *)
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
             // fixed dungeon drawing outlines - vertical segments
             for i = 0 to 6 do
