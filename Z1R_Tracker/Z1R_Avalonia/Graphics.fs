@@ -36,17 +36,20 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
         |]
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
-let [| dungeonUnexploredRoomBMP; dungeonExploredRoomBMP; dungeonVChuteBMP; dungeonHChuteBMP; dungeonTeeBMP; dungeonTriforceBMP; dungeonPrincessBMP; dungeonStartBMP;
-        dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |] =
+let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
+        cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
     let imageStream = GetResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/13 - 1 do
-            let r = new System.Drawing.Bitmap(13*3,9*3)
+            let cr = new System.Drawing.Bitmap(13*3,9*3)
+            let ur = new System.Drawing.Bitmap(13*3,9*3)
             for px = 0 to 13*3-1 do
                 for py = 0 to 9*3-1 do
-                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, py/3))
-            yield r
+                    ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,    py/3))
+                    cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,  9+py/3))
+            yield (ur,cr)
     |]
+let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |]
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
@@ -179,4 +182,5 @@ let nonUniqueMapIconBMPs =
             yield tile
     |]
 
-let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
+//let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
+//let dungeonClearedNumberBMPs = [| dn1cbmp; dn2cbmp; dn3cbmp; dn4cbmp; dn5cbmp; dn6cbmp; dn7cbmp; dn8cbmp; dn9cbmp |]
