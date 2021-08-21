@@ -55,9 +55,9 @@ let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVChuteBMP; cd
             let ur = new System.Drawing.Bitmap(13*3,9*3)
             for px = 0 to 13*3-1 do
                 for py = 0 to 9*3-1 do
-                    cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,  9+py/3))
-                    ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, 18+py/3))
-            yield (cr,ur)
+                    ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,   py/3))
+                    cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, 9+py/3))
+            yield (ur,cr)
     |]
 let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |]
 

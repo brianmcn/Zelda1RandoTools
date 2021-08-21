@@ -1056,7 +1056,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         | 15 -> Graphics.cdungeonStartBMP 
                         | 16 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
-                        |> (fun (c,u) -> if roomCompleted.[i,j] || roomStates.[i,j] = 0 then c else u)
+                        |> (fun (u,c) -> if roomCompleted.[i,j] || roomStates.[i,j] = 0 then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
                 let f b =

@@ -987,9 +987,6 @@ let makeAll(owMapNum) =
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                     updateUI ()
-                // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
-                //c.MouseLeftButtonDown.Add(fun _ -> f true)
-                //c.MouseRightButtonDown.Add(fun _ -> f false)
                 c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
                     if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
                         // shift click to mark not-on-map rooms
@@ -1018,7 +1015,6 @@ let makeAll(owMapNum) =
                     updateUI ()
                     ))
                 c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
-                (*
                 // drag and drop to quickly 'paint' rooms
                 //let startAsPlainTask (work : Async<unit>) = Threading.Tasks.Task.Factory.StartNew(fun () -> work |> Async.RunSynchronously)
                 c.PointerPressed.Add(fun ea ->
@@ -1036,14 +1032,13 @@ let makeAll(owMapNum) =
                     if roomStates.[i,j] = 0 then
                         if ea.Data.GetText() = "L" then
                             roomStates.[i,j] <- 16
-                            //roomCompleted.[i,j] <- true
+                            roomCleared.[i,j] <- true
                         else
                             roomStates.[i,j] <- 16
-                            //roomCompleted.[i,j] <- false
-                        // redraw() TODOs
+                            roomCleared.[i,j] <- false
+                        updateUI()
                     ))
                 Avalonia.Input.DragDrop.SetAllowDrop(c, true)
-                *)
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
             // fixed dungeon drawing outlines - vertical segments
             for i = 0 to 6 do
@@ -1213,13 +1208,45 @@ let makeAll(owMapNum) =
     addLine(15,15,4,7)
     addLine(14,14,3,4)
 
+    let zoneNames = ResizeArray()
+    let addZoneName(name, x, y) =
+        let tb = new TextBox(Text=name,FontSize=12.,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(2.),IsReadOnly=true)
+        canvasAdd(c, tb, 0. + x*OMTW, 120.+y*11.*3.)
+        tb.Opacity <- 0.
+        tb.TextAlignment <- TextAlignment.Center
+        tb.FontWeight <- FontWeight.Bold
+        tb.IsHitTestVisible <- false
+        zoneNames.Add(tb)
+    addZoneName("DEATH\nMOUNTAIN", 3.0, 0.3)
+    addZoneName("GRAVE", 1.8, 2.5)
+    addZoneName("DEAD\nWOODS", 1.8, 6.0)
+    addZoneName("LAKE 1", 10.0, 0.1)
+    addZoneName("LAKE 2", 5.0, 4.0)
+    addZoneName("LAKE 3", 9.5, 5.5)
+    addZoneName("RIVER 1", 8.3, 1.1)
+    addZoneName("RIV\nER2", 5.1, 6.2)
+    addZoneName("START", 7.3, 6.2)
+    addZoneName("DESERT", 10.3, 3.1)
+    addZoneName("FOREST", 12.3, 5.1)
+    addZoneName("LOST\nHILLS", 12.3, 0.3)
+    addZoneName("COAST", 14.3, 2.6)
+
+    let changeZoneOpacity(show) =
+        if show then
+            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3)
+            owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
+            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.6)
+        else
+            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0)
+            owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
+            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.0)
     let showZones = new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showZones)
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    cb.Unchecked.Add(fun _ -> allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
-    showZones.PointerEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9))
-    showZones.PointerLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0); owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0))
+    cb.Checked.Add(fun _ -> changeZoneOpacity true)
+    cb.Unchecked.Add(fun _ -> changeZoneOpacity false)
+    showZones.PointerEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity true)
+    showZones.PointerLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity false)
     canvasAdd(c, cb, RIGHT_COL + 140., 66.)
 
 
