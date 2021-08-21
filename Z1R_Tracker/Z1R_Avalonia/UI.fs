@@ -475,12 +475,13 @@ let makeAll(owMapNum) =
             image.Opacity <- 0.0
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
-            let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White)
+            let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White, StrokeThickness = 2.)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
                                         // show enlarged version of current room
                                         //dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
                                         dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
+                                        dungeonTabsOverlay.IsVisible <- true
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -494,6 +495,7 @@ let makeAll(owMapNum) =
                     pointerEnteredButNotDrawnRoutingYet <- false)
             c.PointerLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                         dungeonTabsOverlayContent.Children.Clear()
+                                        dungeonTabsOverlay.IsVisible <- false
                                         pointerEnteredButNotDrawnRoutingYet <- false
                                         routeDrawingCanvas.Children.Clear())
             // icon
@@ -893,7 +895,8 @@ let makeAll(owMapNum) =
         // horizontal doors
         let unknown = new SolidColorBrush(Color.FromRgb(55uy, 55uy, 55uy)) 
         let no = Brushes.DarkRed
-        let yes = Brushes.Lime
+        let yes = Brushes.Green
+        let empty = Brushes.Black
         let horizontalDoorCanvases = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -936,6 +939,7 @@ let makeAll(owMapNum) =
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let roomCleared = Array2D.zeroCreate 8 8 // boolean
         let ROOMS = 17 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
@@ -947,10 +951,29 @@ let makeAll(owMapNum) =
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
                 canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
-                let image = Graphics.BMPtoImage Graphics.dungeonUnexploredRoomBMP 
+                let image = Graphics.BMPtoImage (fst Graphics.cdungeonUnexploredRoomBMP)
                 canvasAdd(c, image, 0., 0.)
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
+                roomCleared.[i,j] <- false
+                let updateUI () =
+                    // update UI
+                    c.Children.Clear()
+                    let image =
+                        match roomStates.[i,j] with
+                        | 0  -> Graphics.cdungeonUnexploredRoomBMP
+                        | 10 -> Graphics.cdungeonVChuteBMP
+                        | 11 -> Graphics.cdungeonHChuteBMP
+                        | 12 -> Graphics.cdungeonTeeBMP
+                        | 13 -> Graphics.cdungeonTriforceBMP 
+                        | 14 -> Graphics.cdungeonPrincessBMP 
+                        | 15 -> Graphics.cdungeonStartBMP 
+                        | 16 -> Graphics.cdungeonExploredRoomBMP 
+                        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+                        |> (fun (u,c) -> if roomCleared.[i,j] then c else u)
+                        |> Graphics.BMPtoImage
+                    canvasAdd(c, image, 0., 0.)
+
                 let f b =
                     // track transport being changed away from
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -963,35 +986,36 @@ let makeAll(owMapNum) =
                     // note any new transports
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
-                    // update UI
-                    c.Children.Clear()
-                    let image =
-                        match roomStates.[i,j] with
-                        | 0  -> Graphics.dungeonUnexploredRoomBMP 
-                        | 10 -> Graphics.dungeonVChuteBMP
-                        | 11 -> Graphics.dungeonHChuteBMP
-                        | 12 -> Graphics.dungeonTeeBMP
-                        | 13 -> Graphics.dungeonTriforceBMP 
-                        | 14 -> Graphics.dungeonPrincessBMP 
-                        | 15 -> Graphics.dungeonStartBMP 
-                        | 16 -> Graphics.dungeonExploredRoomBMP 
-                        | n  -> Graphics.dungeonNumberBMPs.[n-1]
-                        |> Graphics.BMPtoImage 
-                    canvasAdd(c, image, 0., 0.)
+                    updateUI ()
                 // not allowing mouse clicks makes less likely to accidentally click room when trying to target doors with mouse
                 //c.MouseLeftButtonDown.Add(fun _ -> f true)
                 //c.MouseRightButtonDown.Add(fun _ -> f false)
-                // shift click to mark not-on-map rooms (by "no"ing all the connections)
                 c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
                     if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
+                        // shift click to mark not-on-map rooms
+                        // don't break transport count
+                        if [1..9] |> List.contains roomStates.[i,j] then
+                            usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+
+                        // (unexplored,cleared) means "empty"
+                        let makeEmpty = not (roomStates.[i,j] = 0 && roomCleared.[i,j])
+                        roomStates.[i,j] <- 0
+                        roomCleared.[i,j] <- makeEmpty
+                        let door = if makeEmpty then empty else unknown :> ISolidColorBrush
                         if i > 0 then
-                            horizontalDoorCanvases.[i-1,j].Background <- no
+                            horizontalDoorCanvases.[i-1,j].Background <- door
                         if i < 7 then
-                            horizontalDoorCanvases.[i,j].Background <- no
+                            horizontalDoorCanvases.[i,j].Background <- door
                         if j > 0 then
-                            verticalDoorCanvases.[i,j-1].Background <- no
+                            verticalDoorCanvases.[i,j-1].Background <- door
                         if j < 7 then
-                            verticalDoorCanvases.[i,j].Background <- no
+                            verticalDoorCanvases.[i,j].Background <- door
+                    else
+                        // click to mark cleared room
+                        roomCleared.[i,j] <- not roomCleared.[i,j]
+                        if roomStates.[i,j] = 0 then
+                            roomStates.[i,j] <- 16
+                    updateUI ()
                     ))
                 c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
                 (*
@@ -1086,7 +1110,7 @@ let makeAll(owMapNum) =
     let owCoordsTBs = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1), Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
+            let tb = new TextBox(Text=sprintf "%c%d" (char (int 'A' + j)) (i+1), Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeight.Bold)
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
