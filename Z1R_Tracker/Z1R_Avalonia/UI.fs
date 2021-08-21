@@ -481,6 +481,7 @@ let makeAll(owMapNum) =
                                         // show enlarged version of current room
                                         //dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
                                         dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
+                                        dungeonTabsOverlay.IsVisible <- true
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -494,6 +495,7 @@ let makeAll(owMapNum) =
                     pointerEnteredButNotDrawnRoutingYet <- false)
             c.PointerLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                         dungeonTabsOverlayContent.Children.Clear()
+                                        dungeonTabsOverlay.IsVisible <- false
                                         pointerEnteredButNotDrawnRoutingYet <- false
                                         routeDrawingCanvas.Children.Clear())
             // icon
