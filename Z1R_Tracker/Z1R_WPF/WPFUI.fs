@@ -9,6 +9,7 @@ let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let mutable voiceRemindersForRecorder = true
 let mutable voiceRemindersForPowerBracelet = true
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
+let wakePhrase = "tracker set"
 let mapStatePhrases = [|
         "any road"
         "sword three"
@@ -25,7 +26,6 @@ let mapStatePhrases = [|
         "potion shop"
         "money"
         |]
-let wakePhrase = "tracker set"
 speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases)); gb))
 let convertSpokenPhraseToMapCell(phrase:string) =
     let phrase = phrase.Substring(wakePhrase.Length+1)
@@ -50,6 +50,15 @@ let convertSpokenPhraseToMapCell(phrase:string) =
 type MapStateProxy(state) =
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
+    static member ARROW = 16
+    static member BOMB = 17
+    static member BOOK = 18
+    static member CANDLE = 19
+    static member BLUE_RING = 20
+    static member MEAT = 21
+    static member KEY = 22
+    static member IsItem(state) = state >=16 && state <=22
+    static member ToItem(state) = if MapStateProxy.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     member this.State = state
     member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
@@ -57,7 +66,7 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
-    member this.IsThreeItemShop = state >=16 && state <=22
+    member this.IsThreeItemShop = MapStateProxy.IsItem(state)
     member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+8   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
@@ -67,6 +76,21 @@ type MapStateProxy(state) =
             Graphics.uniqueMapIcons.[state]
         else
             Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
+
+let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j) =
+    match targetItemStateOption with
+    | Some(targetItemState) ->
+        let owTargetworthySpots = Array2D.zeroCreate 16 8
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
+                if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.overworldMapExtraData.[x,y] = MapStateProxy.ToItem(targetItemState)) then
+                    owTargetworthySpots.[x,y] <- true
+        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, owTargetworthySpots, 
+                                        Array2D.zeroCreate 16 8, point, i, j)
+    | None ->
+        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j)
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
@@ -138,6 +162,17 @@ let makeAll(owMapNum, audioInitiallyOn) =
             bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.book_bmp
         isCurrentlyBook := not !isCurrentlyBook
         TrackerModel.forceUpdate()
+
+    let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
+    let mutable routeTargetState = 0
+    let currentRouteTarget() =
+        if DateTime.Now - routeTargetLastClickedTime < TimeSpan.FromSeconds(10.) then
+            Some(routeTargetState)
+        else
+            None
+    let changeCurrentRouteTarget(newTargetState) =
+        routeTargetLastClickedTime <- DateTime.Now
+        routeTargetState <- newTargetState
     
     let c = new Canvas()
     c.Width <- float(16*16*3) // may change with OMTW and overall layout
@@ -309,7 +344,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(3, 2, 30, 30)
-    let veryBasicBoxImpl(img, startOn, isTimeline, changedFunc) =
+    let veryBasicBoxImpl(img, startOn, isTimeline, changedFunc, rightClick) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -324,27 +359,28 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 rect.Stroke <- no
             changedFunc(obj.Equals(rect.Stroke, yes))
         )
+        c.MouseRightButtonDown.Add(fun _ -> rightClick())
         canvasAdd(innerc, img, 4., 4.)
         if isTimeline then
             timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
         c
-    let basicBoxImpl(tts, img, changedFunc) =
-        let c = veryBasicBoxImpl(img, false, true, changedFunc)
+    let basicBoxImpl(tts, img, changedFunc, rightClick) =
+        let c = veryBasicBoxImpl(img, false, true, changedFunc, rightClick)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.BMPtoImage Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.BMPtoImage Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle())), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.BMPtoImage Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.BMPtoImage Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle())), 2, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.BMPtoImage Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.BMPtoImage Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.BMPtoImage Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.BMPtoImage Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ())), 2, 1)
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle())), OFFSET+120., 0.)
+    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOOK))), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), OFFSET+120., 90.)
+    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), OFFSET+120., 90.)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
     bombIcon.ToolTip <- "Player currently has bombs"
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
@@ -529,8 +565,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
             let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
                                         // draw routes
-                                        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                                                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), ea.GetPosition(c), i, j)
+                                        drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, ea.GetPosition(c), i, j)
                                         // show enlarged version of current room
                                         dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
                                         dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
@@ -567,8 +602,8 @@ let makeAll(owMapNum, audioInitiallyOn) =
                             // if item shop with only one item marked, use voice to set other item
                             match convertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
-                                if newState >= 16 && newState <= 22 then
-                                    TrackerModel.overworldMapExtraData.[i,j] <- newState - 15
+                                if MapStateProxy.IsItem(newState) then
+                                    TrackerModel.overworldMapExtraData.[i,j] <- MapStateProxy.ToItem(newState)
                             | None -> ()
                     elif delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
@@ -817,8 +852,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
-                    OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), System.Windows.Point(0.,0.), i, j)
+                    drawRoutesTo(currentRouteTarget(), routeDrawingCanvas,System.Windows.Point(0.,0.), i, j)
                 // unexplored but gettable spots highlight
                 if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
                     for x = 0 to 15 do
@@ -1244,10 +1278,10 @@ let makeAll(owMapNum, audioInitiallyOn) =
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
-    let recorderAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.recorder_bmp, true, false, fun b -> voiceRemindersForRecorder <- b)
+    let recorderAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.recorder_bmp, true, false, (fun b -> voiceRemindersForRecorder <- b), (fun () -> ()))
     recorderAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining recorder spots"
     canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
-    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.power_bracelet_bmp, true, false, fun b -> voiceRemindersForPowerBracelet <- b)
+    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.power_bracelet_bmp, true, false, (fun b -> voiceRemindersForPowerBracelet <- b), (fun () -> ()))
     powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
     // coordinate grid

@@ -1,0 +1,128 @@
+﻿
+
+Notes about overall UI & behavior
+
+
+DUNGEON ITEM AREA
+
+click to toggle having triforce
+scroll to change item in a dungeon
+click to toggle whether have that dungeon item (red box = no, green box = yes)
+
+Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
+
+
+OTHER ITEM AREA
+
+coast item, armos item, white sword item - just like dungeon item boxes
+4 take-any hearts - click or scroll to say you took a heart container (red heart) or chose another option (X)
+wood sword, blue ring, wood arrow, blue candle, magic sword - click these when you get them, so they appear on the Timeline (see below)
+bombs - click when you get bombs, to have map routing send you to bombable locations (see below)
+boomstick book - click when you get, to mark timeline, and click S/B to toggle whether Shield or Book is available as a dungeon item
+ganon/zelda - click when you kill ganon or rescue zelda, to mark the timeline; clicking zelda will also post your finish time as text in the NOTES section
+(timer, current hearts - just for display)
+OW spots left checkbox - highlight all remaining gettable overworld map tiles
+
+(WPF only)
+Audio reminders - toggle all speech synthesis on/off ; recorder/bracelet - toggle just reminders remaining overworld spots requiring those items
+
+
+OVERWORLD MAP
+
+HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and you Hide First Quest or Hide Second Quest if that's later helpful
+Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
+Show coords - click or hover to show a coordinate overlay
+16x8 Map Tiles - scroll to mark what is there:
+ - 1-9 dungeons
+ - 1-4 any roads (stair warps)
+ - S3/S2 magical sword/white sword item cave
+ - ??? hint shop
+ - (items) item shop
+ - heart/potion "take any one you want" cave
+ - potions potion shop
+ - ?rupee free money or gambling
+ - X nothing, or don't care
+Left clicking an unmarked map tile will mark it 'X'
+Left or right clicking an item shop will cycle through choices of a second item in the shop (max 2 items)
+Mouse-hover for routing from the current tile:
+ - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
+    - unmarked overworld spots
+    - uncompleted dungeons
+    - un-gotten coast item, white sword item, magical sword
+ - "routeworthiness" takes into account your current items (e.g. will not route to burnable tree if have no candle)
+ - routing takes into account your current items (e.g. will not cross river if have no ladder)
+ - routing understands any-road warps
+ - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
+ - routing assumes no screen-scrolling or other fancy walk glitches
+ - routing knows special map topology (e.g. Lost Hills)
+The 8-ish routeworthy spots nearest the mouse cursor will be highlighted yellowish.
+(WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
+
+"Item progress" bar lights up items as you get them or upgrade them, as kind of a quick summary of the player state
+
+
+TIMELINE
+
+The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
+Once per minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline, above or below the minute-marker,
+and if a heart was gained, a heart is posted directly on the timeline.  This makes it easy to see e.g. that you got the wood sword in the 12th minute.
+
+The timeline is non-interactive, it is just a display capturing progress-over-time.
+
+
+DUNGEON TRACKER
+
+There are 9 tabs for the 9 dungeons.
+
+Rooms can be scrolled to mark:
+ - stairway transports 1-9
+ - special room shapes (horizontal/vertical chute, tee)
+ - ad-hoc markers (red/yellow/green) the player can use as they see fit
+ - grey box (typical 'uncompleted room')
+Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
+If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  Same with right mouse button, but for uncompleted rooms.
+
+Doors between rooms have three states:
+ - dark grey is unknown (default)
+ - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
+ - red (right click) is "cannot go" (e.g. unbombable wall)
+
+FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+
+Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
+
+
+NOTES
+
+This area is for ad-hoc textual note-taking by the player (e.g. "2 gohma" to remind you to return to dungeon 2 when you have bow&arrow)
+
+
+SPEECH SYNTHESIS (WPF only)
+
+There are a variety of spoken reminders triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
+You can turn them off with the Audio reminders checkbox in the upper right.
+
+
+SPEECH RECOGNITION (WPF only)
+
+When hovering over a blank map tile, with a microphone equipped, you can speak e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
+
+The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
+
+let wakePhrase = "tracker set"
+let mapStatePhrases = [|
+        "any road"
+        "sword three"
+        "sword two"
+        "hint shop"
+        "arrow shop"
+        "bomb shop"
+        "book shop"
+        "candle shop"
+        "blue ring shop"
+        "meat shop"
+        "key shop"
+        "take any"
+        "potion shop"
+        "money"
+        |]
