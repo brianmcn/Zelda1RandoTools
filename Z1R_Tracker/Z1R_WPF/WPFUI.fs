@@ -103,9 +103,9 @@ let gridAdd(g:Grid, x, c, r) =
     Grid.SetRow(x, r)
 let makeGrid(nc, nr, cw, rh) =
     let grid = new Grid()
-    for i = 0 to nc do
+    for i = 0 to nc-1 do
         grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
-    for i = 0 to nr do
+    for i = 0 to nr-1 do
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
@@ -720,14 +720,73 @@ let makeAll(owMapNum, audioInitiallyOn) =
     let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
 
     let THRU_MAIN_MAP_H = float(120 + 8*11*3)
+
+    // map legend
+    let LEFT_OFFSET = 78.0
+    let legendCanvas = new Canvas()
+    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
+
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
+    canvasAdd(c, tb, 0., THRU_MAIN_MAP_H)
+
+    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
+    drawDungeonHighlight(legendCanvas,0.,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
+    canvasAdd(legendCanvas, tb, OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
+    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,5.,0)
+    drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
+
+    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
+    drawWarpHighlight(legendCanvas,7.5,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
+    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
+
+    drawWhistleableHighlight(legendCanvas,10.,0)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nSpots")
+    canvasAdd(legendCanvas, tb, 11.*OMTW, 0.)
+
+    let legendStartIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
+    canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
+    canvasAdd(legendCanvas, tb, 13.5*OMTW, 0.)
+
+    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
+
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    canvasAdd(c, itemProgressCanvas, 0., THRU_MAIN_MAP_H)
+    canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
     canvasAdd(c, tb, 120., THRU_MAIN_MAP_H + 6.)
 
-    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAIN_MAP_H + 30.
+    let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
+    let mutable row=0 
+    for a,b in OverworldData.hintMeanings do
+        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=a), 0, row)
+        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=b), 1, row)
+        row <- row + 1
+    let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
+    hintBorder.Child <- hintGrid
+    hintBorder.Opacity <- 0.
+    hintBorder.IsHitTestVisible <- false
+    canvasAdd(c, hintBorder, 30., 120.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Hint Decoder")
+    canvasAdd(c, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
+    tb.MouseEnter.Add(fun _ -> hintBorder.Opacity <- 1.0)
+    tb.MouseLeave.Add(fun _ -> hintBorder.Opacity <- 0.0)
+
+    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
     let doUIUpdate() =
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
@@ -946,50 +1005,6 @@ let makeAll(owMapNum, audioInitiallyOn) =
         )
     timer.Start()
 
-
-
-    // map legend
-    let LEFT_OFFSET = 78.0
-    let legendCanvas = new Canvas()
-    canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
-
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
-    canvasAdd(c, tb, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
-
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 0., 0.)
-    drawDungeonHighlight(legendCanvas,0.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
-    canvasAdd(legendCanvas, tb, OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 2.5*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.5,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
-    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.d1bmp, 5.*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,5.,0)
-    drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
-
-    canvasAdd(legendCanvas, shrink Graphics.w1bmp, 7.5*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
-
-    drawWhistleableHighlight(legendCanvas,10.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nSpots")
-    canvasAdd(legendCanvas, tb, 11.*OMTW, 0.)
-
-    let legendStartIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
-    canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
-    canvasAdd(legendCanvas, tb, 13.5*OMTW, 0.)
-
-    let THRU_MAP_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + float(11*3)
-
     // timeline
     let TLC = Brushes.SandyBrown   // timeline color
     let makeTimeline(leftText, rightText) = 
@@ -1056,11 +1071,11 @@ let makeAll(owMapNum, audioInitiallyOn) =
             timeline2Canvas.Children.Remove(curTime)  // have it be last
             timeline3Canvas.Children.Remove(curTime)  // have it be last
             canvasAdd(tlc, curTime, 0., 0.)
-    canvasAdd(c, timeline1Canvas, 0., THRU_MAP_H)
-    canvasAdd(c, timeline2Canvas, 0., THRU_MAP_H + timeline1Canvas.Height)
-    canvasAdd(c, timeline3Canvas, 0., THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height)
+    canvasAdd(c, timeline1Canvas, 0., THRU_MAP_AND_LEGEND_H)
+    canvasAdd(c, timeline2Canvas, 0., THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height)
+    canvasAdd(c, timeline3Canvas, 0., THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height + timeline2Canvas.Height)
 
-    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
+    let THRU_TIMELINE_H = THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
 
     // Level trackers
     let fixedDungeon1Outlines = ResizeArray()

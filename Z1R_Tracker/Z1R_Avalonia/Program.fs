@@ -108,9 +108,6 @@ type App() =
 
 [<EntryPoint>]
 let main argv =
-    let message = "from F#" // Call the function
-    printfn "Hello world %s" message
-
     // Avalonia configuration, don't remove; also used by visual designer.
     let builder = Avalonia.AppBuilder.Configure<App>()
     let builder = Avalonia.AppBuilderDesktopExtensions.UsePlatformDetect(builder)

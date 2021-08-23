@@ -3,9 +3,13 @@
 Notes about overall UI & behavior
 
 
+F5 - place 'start screen' icon at moused tile
+F10 - reset timer to 0
+
+
 DUNGEON ITEM AREA
 
-click to toggle having triforce
+click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
 scroll to change item in a dungeon
 click to toggle whether have that dungeon item (red box = no, green box = yes)
 
@@ -81,6 +85,7 @@ Rooms can be scrolled to mark:
  - grey box (typical 'uncompleted room')
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
 If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  Same with right mouse button, but for uncompleted rooms.
+Shift-clicking a room will black it out, as well as nearby doors, useful for e.g. Shapes 9 when you have the map, to immediately mark off the 'holes'.
 
 Doors between rooms have three states:
  - dark grey is unknown (default)

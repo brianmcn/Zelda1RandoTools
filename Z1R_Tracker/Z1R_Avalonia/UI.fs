@@ -37,9 +37,9 @@ let gridAdd(g:Grid, x, c, r) =
     Grid.SetRow(x, r)
 let makeGrid(nc, nr, cw, rh) =
     let grid = new Grid()
-    for i = 0 to nc do
+    for i = 0 to nc-1 do
         grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
-    for i = 0 to nr do
+    for i = 0 to nr-1 do
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
@@ -404,10 +404,9 @@ let makeAll(owMapNum) =
 
     // single ow tile magnified overlay
     let ENLARGE = 24. // make it this x bigger
-    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, IsVisible=false)
     let dungeonTabsOverlayContent = new StackPanel(Orientation=Layout.Orientation.Vertical)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
-    //let overlayText = new TextBox(Text="You are moused here:", IsReadOnly=true, FontSize=36., Background=Brushes.Black, Foreground=Brushes.Lime, BorderThickness=Thickness(0.))
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -480,7 +479,6 @@ let makeAll(owMapNum) =
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
                                         // show enlarged version of current room
-                                        //dungeonTabsOverlayContent.Children.Add(overlayText) |> ignore
                                         dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
                                         dungeonTabsOverlay.IsVisible <- true
                                         // track current location for F5 & speech recognition purposes
@@ -664,7 +662,23 @@ let makeAll(owMapNum) =
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 30., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(c, tb, 10., THRU_MAP_AND_LEGEND_H + 6.)
+    
+    let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
+    let mutable row=0 
+    for a,b in OverworldData.hintMeanings do
+        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=a), 0, row)
+        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=b), 1, row)
+        row <- row + 1
+    let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
+    hintBorder.Child <- hintGrid
+    hintBorder.Opacity <- 0.
+    hintBorder.IsHitTestVisible <- false
+    canvasAdd(c, hintBorder, 30., 120.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Hint Decoder")
+    canvasAdd(c, tb, 480., THRU_MAP_AND_LEGEND_H + 6.)
+    tb.PointerEnter.Add(fun _ -> hintBorder.Opacity <- 1.0)
+    tb.PointerLeave.Add(fun _ -> hintBorder.Opacity <- 0.0)
 
     let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
     printfn "H thru item prog = %d" (int THRU_MAP_H)
@@ -685,7 +699,7 @@ let makeAll(owMapNum) =
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
-        let mutable x, y = 110., 3.
+        let mutable x, y = 90., 3.
         let DX = 30.
         match TrackerModel.playerComputedStateSummary.SwordLevel with
         | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)

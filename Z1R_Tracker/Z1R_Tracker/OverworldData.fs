@@ -1,5 +1,19 @@
 ﻿module OverworldData
 
+let hintMeanings = [|
+    "Aquamentus Awaits", "Level 1"
+    "Dodongo Dwells", "Level 2"
+    "Manhandla Threatens", "Level 3"
+    "Gleeok Lurks", "Level 4"
+    "Digdogger Gazes", "Level 5"
+    "Gohma Creeps", "Level 6"
+    "Goriya Grumbles", "Level 7"
+    "Gleeok Returns", "Level 8"
+    "entrance to death", "Level 9"
+    "(npc) has (item) at", "White Sword item"
+    "Meet (npc) at", "Magical Sword"
+    |]
+
 type OWQuest = 
     | FIRST
     | SECOND
