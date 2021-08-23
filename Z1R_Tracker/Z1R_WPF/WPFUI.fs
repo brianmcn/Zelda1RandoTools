@@ -768,7 +768,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 120., THRU_MAIN_MAP_H + 6.)
+    canvasAdd(c, tb, 120., THRU_MAP_AND_LEGEND_H + 6.)
 
     let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
     let mutable row=0 
@@ -780,7 +780,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     hintBorder.Child <- hintGrid
     hintBorder.Opacity <- 0.
     hintBorder.IsHitTestVisible <- false
-    canvasAdd(c, hintBorder, 30., 120.)
+    canvasAdd(c, hintBorder, 430., 120.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Hint Decoder")
     canvasAdd(c, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
     tb.MouseEnter.Add(fun _ -> hintBorder.Opacity <- 1.0)
@@ -1071,11 +1071,11 @@ let makeAll(owMapNum, audioInitiallyOn) =
             timeline2Canvas.Children.Remove(curTime)  // have it be last
             timeline3Canvas.Children.Remove(curTime)  // have it be last
             canvasAdd(tlc, curTime, 0., 0.)
-    canvasAdd(c, timeline1Canvas, 0., THRU_MAP_AND_LEGEND_H)
-    canvasAdd(c, timeline2Canvas, 0., THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height)
-    canvasAdd(c, timeline3Canvas, 0., THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height + timeline2Canvas.Height)
+    canvasAdd(c, timeline1Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
+    canvasAdd(c, timeline2Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height)
+    canvasAdd(c, timeline3Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height + timeline2Canvas.Height)
 
-    let THRU_TIMELINE_H = THRU_MAP_AND_LEGEND_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
+    let THRU_TIMELINE_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
 
     // Level trackers
     let fixedDungeon1Outlines = ResizeArray()
