@@ -1,0 +1,32 @@
+﻿
+TODOs
+
+
+Just a place to dump feature ideas (small or big) or fixes/improvements
+
+
+(Don't forget to keep Notes.txt up-to-date as change features!)
+
+
+SMALL
+
+figure out README.md markup to link to Notes.txt feature summary, other summary info (screenshot?)
+add discussion of 'audience' (players, viewers, learners, maybe eventually racers) to Notes.txt or README.md
+add 'shield' to item shops
+right-click single dungeon room should go to 'uncompleted' state
+somehow get known Sword2 Item and Coast Item into the actual map display, which makes easier human-eye routing through/past them
+decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
+binary packaging for redistribution (can probably compile all resources into a single EXE)
+
+MEDIUM
+
+"shift a portion of dungeon marks one cell left" because you oopsed the initial column.  Easy concept, tough to implement robustly and perhaps tough to find good UI gesture to activate.
+"when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
+(possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
+crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative)
+consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
+
+BIG
+
+Keyboard focus, keyboard shortcuts for marking maps, etc
+auto-tracking (link to emulator)

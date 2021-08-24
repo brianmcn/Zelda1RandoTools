@@ -62,6 +62,8 @@ Mouse-hover for routing from the current tile:
 The 8-ish routeworthy spots nearest the mouse cursor will be highlighted yellowish.
 (WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
 
+Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' table.
+
 "Item progress" bar lights up items as you get them or upgrade them, as kind of a quick summary of the player state
 
 

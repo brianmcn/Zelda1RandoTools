@@ -58,6 +58,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <None Include="TODOs.txt" />
     <None Include="Notes.txt" />
     <Compile Include="OverworldData.fs" />
     <Compile Include="DungeonData.fs" />
