@@ -198,7 +198,7 @@ let nonUniqueMapIconBMPs =
                     tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
             yield tile
         // 3-item shops
-        for i = 0 to 6 do
+        for i = 0 to 7 do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
@@ -213,7 +213,7 @@ let nonUniqueMapIconBMPs =
                         if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                             tile.SetPixel(px, py, c)
             yield tile
-        // others
+        // others (take-any, potion shop, ?rupee, 'X')
         for i in [yield 15; yield 32; yield 34; yield 38] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do

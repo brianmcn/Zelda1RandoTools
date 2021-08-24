@@ -60,7 +60,7 @@ Mouse-hover for routing from the current tile:
  - routing assumes no screen-scrolling or other fancy walk glitches
  - routing knows special map topology (e.g. Lost Hills)
 The 8-ish routeworthy spots nearest the mouse cursor will be highlighted yellowish.
-(WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
+(WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
 
 Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' table.
 

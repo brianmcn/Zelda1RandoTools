@@ -136,6 +136,7 @@ let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
     999 // book shop
     999 // bomb shop
     999 // arrow shop
+    999 // shield shop
     999 // take any
     999 // potion shop
     999 // money

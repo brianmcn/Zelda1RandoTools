@@ -8,6 +8,17 @@ open Avalonia.Media
 type MapStateProxy(state) =
     let U = Graphics.uniqueMapIconBMPs.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
+    static member ARROW = 16
+    static member BOMB = 17
+    static member BOOK = 18
+    static member CANDLE = 19
+    static member BLUE_RING = 20
+    static member MEAT = 21
+    static member KEY = 22
+    static member SHIELD = 23
+    static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
+    static member IsItem(state) = state >=16 && state <=23
+    static member ToItem(state) = if MapStateProxy.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     member this.State = state
     member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
@@ -15,8 +26,8 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
-    member this.IsThreeItemShop = state >=16 && state <=22
-    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+8   // dungeons, warps, swords, and item-shops
+    member this.IsThreeItemShop = MapStateProxy.IsItem(state)
+    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+MapStateProxy.NUM_ITEMS+1   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
         if state = -1 then
@@ -578,6 +589,7 @@ let makeAll(owMapNum) =
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
                 c.PointerPressed.Add(fun ea -> 
+                    let MODULO = MapStateProxy.NUM_ITEMS+1
                     let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
                         if msp.State = -1 then
@@ -587,10 +599,10 @@ let makeAll(owMapNum) =
                             // left click a shop cycles up the second item
                             if msp.IsThreeItemShop then
                                 // next item
-                                let e = (TrackerModel.overworldMapExtraData.[i,j] + 1) % 8
+                                let e = (TrackerModel.overworldMapExtraData.[i,j] + 1) % MODULO
                                 // skip past duplicates
                                 let item1 = msp.State - 15  // 1-based
-                                let e = if e = item1 then (e + 1) % 8 else e
+                                let e = if e = item1 then (e + 1) % MODULO else e
                                 TrackerModel.overworldMapExtraData.[i,j] <- e
                                 // redraw
                                 updateGridSpot 0 ""
@@ -598,10 +610,10 @@ let makeAll(owMapNum) =
                         // right click a shop cycles down the second item
                         if msp.IsThreeItemShop then
                             // next item
-                            let e = (TrackerModel.overworldMapExtraData.[i,j] - 1 + 8) % 8
+                            let e = (TrackerModel.overworldMapExtraData.[i,j] - 1 + MODULO) % MODULO
                             // skip past duplicates
                             let item1 = msp.State - 15  // 1-based
-                            let e = if e = item1 then (e - 1 + 8) % 8 else e
+                            let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
                             TrackerModel.overworldMapExtraData.[i,j] <- e
                             // redraw
                             updateGridSpot 0 ""
