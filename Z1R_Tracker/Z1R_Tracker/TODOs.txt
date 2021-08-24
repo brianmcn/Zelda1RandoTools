@@ -10,11 +10,10 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-figure out README.md markup to link to Notes.txt feature summary, other summary info (screenshot?) https://guides.github.com/features/mastering-markdown/ 
-add discussion of 'audience' (players, viewers, learners, maybe eventually racers) to Notes.txt or README.md
 right-click single dungeon room should go to 'uncompleted' state
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
+second quest dungeons (4 rather than 8 has 3 items)
 
 MEDIUM
 
