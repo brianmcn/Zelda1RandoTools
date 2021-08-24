@@ -137,7 +137,7 @@ let makeAll(owMapNum) =
         )
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new TimelineItem((fun()->Graphics.fullTriforce_bmps.[i]), (fun()->false), (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
-    let boxItemImpl(box:TrackerModel.Box) = 
+    let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
         let yes = Brushes.LimeGreen 
@@ -145,13 +145,16 @@ let makeAll(owMapNum) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
-            if obj.Equals(rect.Stroke, no) then
-                rect.Stroke <- yes
-            else
-                rect.Stroke <- no
-            box.TogglePlayerHas()
-        ))
+        c.PointerPressed.Add(fun ea -> 
+            if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
+                if obj.Equals(rect.Stroke, no) then
+                    rect.Stroke <- yes
+                else
+                    rect.Stroke <- no
+                box.TogglePlayerHas()
+                if requiresForceUpdate then
+                    TrackerModel.forceUpdate()
+            )
         let boxCurrentBMP() =
             match box.CellCurrent() with
             | -1 -> null
@@ -182,7 +185,9 @@ let makeAll(owMapNum) =
             else
                 box.CellPrev()
             redraw()
-        )
+            if requiresForceUpdate then
+                TrackerModel.forceUpdate()
+            )
         redrawBoxes.Add(fun() -> redraw())
         timelineItems.Add(new TimelineItem((fun()->boxCurrentBMP()), (fun()->box.CellCurrent()>13), (fun()->obj.Equals(rect.Stroke,yes))))
         c
@@ -191,7 +196,7 @@ let makeAll(owMapNum) =
         for j = 0 to 2 do
             let mutable c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             if j=0 || j=1 || (i=0 || i=7) then
-                c <- boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j])
+                c <- boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j], false)
                 gridAdd(mainTracker, c, i, j+1)
             if i < 8 then
                 mainTrackerCanvases.[i,j+1] <- c
@@ -270,9 +275,9 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ow_key_armos_bmp, 0, 1)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.white_sword_bmp, 0, 2)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox), 1, 0)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox), 1, 1)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box), 1, 2)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), 1, 0)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), 1, 1)
+    gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), 1, 2)
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(3, 2, 30, 30)
@@ -817,7 +822,25 @@ let makeAll(owMapNum) =
                     let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Pink)
                     canvasesToFastBlink.Add(rect)
                     canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
-            member _this.Sword2(x,y) = ()
+            member _this.Sword2(x,y) =
+                if not(TrackerModel.sword2Box.PlayerHas()) && TrackerModel.sword2Box.CellCurrent() <> -1 then
+                    // display known-but-ungotten item on the map
+                    let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
+                    itemImage.Opacity <- 1.0
+                    itemImage.Width <- OMTW/2.
+                    let color = Brushes.Black
+                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
+                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW/2., float(y*11*3)+4.)
+            member _this.CoastItem() =
+                if not(TrackerModel.ladderBox.PlayerHas()) && TrackerModel.ladderBox.CellCurrent() <> -1 then
+                    // display known-but-ungotten item on the map
+                    let x,y = 15,5
+                    let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.ladderBox.CellCurrent()]
+                    itemImage.Opacity <- 1.0
+                    itemImage.Width <- OMTW/2.2
+                    let color = Brushes.Black
+                    let border = new Border(BorderThickness=Thickness(3.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
+                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW/2., float(y*11*3)+1.)
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()

@@ -36,6 +36,9 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
         |]
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
+let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
+let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for i = 0 to 8 do yield heart_container_bmp |]
+
 let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
         cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
     let imageStream = GetResourceStream("icons13x9.png")
@@ -136,12 +139,22 @@ let uniqueMapIconBMPs =
                     else
                         tile.SetPixel(px, py, TRANS_BG)
             yield tile
-        // sword 3, sword 2
-        for i in [19..20] do
+        // sword 3
+        for i in [19] do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
                     tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
+            yield tile
+        // sword 2
+        for i in [20] do
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px > 8*3 && py < 10*3 then  // leave blank spot to insert the actual white sword item for this seed
+                        tile.SetPixel(px, py, m.GetPixel(i*16, 0)) // System.Drawing.Color.Transparent)
+                    else
+                        tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
             yield tile
     |]
     tiles

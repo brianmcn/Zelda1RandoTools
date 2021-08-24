@@ -462,6 +462,7 @@ type ITrackerEvents =
     abstract WhistleableLocation : int*int -> unit // x, y
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
+    abstract CoastItem : unit -> unit
     abstract RoutingInfo : bool*bool*seq<int*int>*seq<int*int>*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
     // dungeons
     abstract AnnounceCompletedDungeon : int -> unit
@@ -504,6 +505,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.Sword3(mapStateSummary.Sword3Location)
     if mapStateSummary.Sword2Location <> NOTFOUND then
         ite.Sword2(mapStateSummary.Sword2Location)
+    ite.CoastItem()
     let recorderDests = [|
         if playerComputedStateSummary.HaveRecorder then
             for d = 0 to 7 do

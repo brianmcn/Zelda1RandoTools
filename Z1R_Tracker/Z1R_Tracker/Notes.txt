@@ -36,6 +36,7 @@ OVERWORLD MAP
 HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and you Hide First Quest or Hide Second Quest if that's later helpful
 Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Show coords - click or hover to show a coordinate overlay
+
 16x8 Map Tiles - scroll to mark what is there:
  - 1-9 dungeons
  - 1-4 any roads (stair warps)
@@ -48,6 +49,8 @@ Show coords - click or hover to show a coordinate overlay
  - X nothing, or don't care
 Left clicking an unmarked map tile will mark it 'X'
 Left or right clicking an item shop will cycle through choices of a second item in the shop (max 2 items)
+An unclaimed-but-known White Sword Item or Coast Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
+
 Mouse-hover for routing from the current tile:
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
     - unmarked overworld spots
