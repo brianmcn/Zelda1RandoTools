@@ -1044,85 +1044,14 @@ let makeAll(owMapNum, audioInitiallyOn) =
         )
     timer.Start()
 
-    // timeline
-    let TLC = Brushes.SandyBrown   // timeline color
-    let makeTimeline(leftText, rightText) = 
-        let timelineCanvas = new Canvas(Height=float TLH, Width=owMapGrid.Width)
-        let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb1, 0., 30.)
-        let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb2, 748., 30.)
-        let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
-        canvasAdd(timelineCanvas, line1, 0., 0.)
-        for i = 0 to 12 do
-            let d = if i%2=1 then 3 else 0
-            let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
-            canvasAdd(timelineCanvas, line, 0., 0.)
-        timelineCanvas 
-    let timeline1Canvas = makeTimeline("0h","1h")
-    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(11*3), Y2=float(15*3), Stroke=Brushes.White, StrokeThickness=3.)
-    canvasAdd(timeline1Canvas, curTime, 0., 0.)
-
-    let timeline2Canvas = makeTimeline("1h","2h")
-    let timeline3Canvas = makeTimeline("2h","3h")
-
-    let top = ref true
-    let updateTimeline(minute) =
-        if minute < 0 || minute > 180 then
-            ()
-        else
-            let tlc,minute = 
-                if minute <= 60 then 
-                    timeline1Canvas, minute 
-                elif minute <= 120 then
-                    timeline2Canvas, minute-60
-                else 
-                    timeline3Canvas, minute-120
-            let items = ResizeArray()
-            let hearts = ResizeArray()
-            for x in timelineItems do
-                if x.IsDone() then
-                    if x.IsHeart() then
-                        hearts.Add(x)
-                    else
-                        items.Add(x)
-            for x in items do
-                timelineItems.Remove(x) |> ignore
-            for x in hearts do
-                timelineItems.Remove(x) |> ignore
-            // post items
-            for x in items do
-                let vb = new VisualBrush(Visual=x.Canvas, Opacity=1.0)
-                let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
-                let line = new System.Windows.Shapes.Line(X1=0., X2=0., Y1=float(12*3), Y2=float(13*3), Stroke=Brushes.LightBlue, StrokeThickness=2.)
-                canvasAdd(tlc, line, float(24+minute*12-1), (if !top then 0. else 3.))
-                top := not !top
-            // post hearts
-            if hearts.Count > 0 then
-                let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
-                let rect = new System.Windows.Shapes.Rectangle(Height=13., Width=13., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-3-1-2), 36. - 2.)
-            // post current time
-            curTime.X1 <- float(24+minute*12)
-            curTime.X2 <- float(24+minute*12)
-            timeline1Canvas.Children.Remove(curTime)  // have it be last
-            timeline2Canvas.Children.Remove(curTime)  // have it be last
-            timeline3Canvas.Children.Remove(curTime)  // have it be last
-            canvasAdd(tlc, curTime, 0., 0.)
-    canvasAdd(c, timeline1Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H)
-    canvasAdd(c, timeline2Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height)
-    canvasAdd(c, timeline3Canvas, 0., THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height + timeline2Canvas.Height)
-
-    let THRU_TIMELINE_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
-
     // Level trackers
+    let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
     let fixedDungeon1Outlines = ResizeArray()
     let fixedDungeon2Outlines = ResizeArray()
 
     let dungeonTabs = new TabControl(FontSize=12.)
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
-    canvasAdd(c, dungeonTabs, 0., THRU_TIMELINE_H)
+    canvasAdd(c, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
@@ -1316,14 +1245,14 @@ let makeAll(owMapNum, audioInitiallyOn) =
     fqcb.IsChecked <- System.Nullable.op_Implicit false
     fqcb.Checked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); sqcb.IsChecked <- System.Nullable.op_Implicit false)
     fqcb.Unchecked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
-    canvasAdd(c, fqcb, 310., THRU_TIMELINE_H) 
+    canvasAdd(c, fqcb, 310., START_DUNGEON_AND_NOTES_AREA_H) 
 
     sqcb.IsChecked <- System.Nullable.op_Implicit false
     sqcb.Checked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); fqcb.IsChecked <- System.Nullable.op_Implicit false)
     sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
-    canvasAdd(c, sqcb, 360., THRU_TIMELINE_H) 
+    canvasAdd(c, sqcb, 360., START_DUNGEON_AND_NOTES_AREA_H) 
 
-    canvasAdd(c, dungeonTabsOverlay, 0., THRU_TIMELINE_H)
+    canvasAdd(c, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H)
 
     // notes    
     let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
@@ -1333,7 +1262,9 @@ let makeAll(owMapNum, audioInitiallyOn) =
     tb.Background <- System.Windows.Media.Brushes.Black 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(c, tb, 402., THRU_TIMELINE_H) 
+    canvasAdd(c, tb, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+
+    let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 27*8 + 12*7)
 
     // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -1504,8 +1435,81 @@ let makeAll(owMapNum, audioInitiallyOn) =
     cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity false)
     canvasAdd(c, cb, 285., 100.)
 
-    //                items  ow map  prog  timeline    dungeon tabs                
-    c.Height <- float(30*4 + 11*3*9 + 30 + 3*TLH + 3 + TH + 27*8 + 12*7 + 30)
+    // timeline
+    let TLC = Brushes.SandyBrown   // timeline color
+    let makeTimeline(leftText, rightText) = 
+        let timelineCanvas = new Canvas(Height=float TLH, Width=owMapGrid.Width)
+        let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(timelineCanvas, tb1, 0., 30.)
+        let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(timelineCanvas, tb2, 748., 30.)
+        let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
+        canvasAdd(timelineCanvas, line1, 0., 0.)
+        for i = 0 to 12 do
+            let d = if i%2=1 then 3 else 0
+            let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
+            canvasAdd(timelineCanvas, line, 0., 0.)
+        timelineCanvas 
+    let timeline1Canvas = makeTimeline("0h","1h")
+    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(11*3), Y2=float(15*3), Stroke=Brushes.White, StrokeThickness=3.)
+    canvasAdd(timeline1Canvas, curTime, 0., 0.)
+
+    let timeline2Canvas = makeTimeline("1h","2h")
+    let timeline3Canvas = makeTimeline("2h","3h")
+
+    let top = ref true
+    let updateTimeline(minute) =
+        if minute < 0 || minute > 180 then
+            ()
+        else
+            let tlc,minute = 
+                if minute <= 60 then 
+                    timeline1Canvas, minute 
+                elif minute <= 120 then
+                    timeline2Canvas, minute-60
+                else 
+                    timeline3Canvas, minute-120
+            let items = ResizeArray()
+            let hearts = ResizeArray()
+            for x in timelineItems do
+                if x.IsDone() then
+                    if x.IsHeart() then
+                        hearts.Add(x)
+                    else
+                        items.Add(x)
+            for x in items do
+                timelineItems.Remove(x) |> ignore
+            for x in hearts do
+                timelineItems.Remove(x) |> ignore
+            // post items
+            for x in items do
+                let vb = new VisualBrush(Visual=x.Canvas, Opacity=1.0)
+                let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
+                canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
+                let line = new System.Windows.Shapes.Line(X1=0., X2=0., Y1=float(12*3), Y2=float(13*3), Stroke=Brushes.LightBlue, StrokeThickness=2.)
+                canvasAdd(tlc, line, float(24+minute*12-1), (if !top then 0. else 3.))
+                top := not !top
+            // post hearts
+            if hearts.Count > 0 then
+                let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
+                let rect = new System.Windows.Shapes.Rectangle(Height=13., Width=13., Fill=vb)
+                canvasAdd(tlc, rect, float(24+minute*12-3-1-2), 36. - 2.)
+            // post current time
+            curTime.X1 <- float(24+minute*12)
+            curTime.X2 <- float(24+minute*12)
+            timeline1Canvas.Children.Remove(curTime)  // have it be last
+            timeline2Canvas.Children.Remove(curTime)  // have it be last
+            timeline3Canvas.Children.Remove(curTime)  // have it be last
+            canvasAdd(tlc, curTime, 0., 0.)
+    let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H + 30. // 30 for icon above first line
+    canvasAdd(c, timeline1Canvas, 0., START_TIMELINE_H)
+    canvasAdd(c, timeline2Canvas, 0., START_TIMELINE_H + timeline1Canvas.Height)
+    canvasAdd(c, timeline3Canvas, 0., START_TIMELINE_H + timeline1Canvas.Height + timeline2Canvas.Height)
+
+    let THRU_TIMELINE_H = START_TIMELINE_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
+
+    //                items  ow map  prog  dungeon tabs       timeline
+    c.Height <- float(30*4 + 11*3*9 + 30 + TH + 27*8 + 12*7 + 30 + 3*TLH + 3)
     TrackerModel.forceUpdate()
     c, updateTimeline
 

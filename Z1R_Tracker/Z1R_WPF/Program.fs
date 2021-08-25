@@ -77,8 +77,8 @@ type MyWindow() as this =
     inherit MyWindowBase()
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    //                 items  ow map  prog  timeline                     dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 30 + 3*WPFUI.TLH + 3 + WPFUI.TH + 27*8 + 12*7 + 30 + 40) // (what is the final 40?)
+    //                 items  ow map  prog  dungeon tabs             timeline   
+    let HEIGHT = float(30*4 + 11*3*9 + 30 + WPFUI.TH + 27*8 + 12*7 + 30 + 3*WPFUI.TLH + 3 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
         WPFUI.timeTextBox <- hmsTimeTextBox
