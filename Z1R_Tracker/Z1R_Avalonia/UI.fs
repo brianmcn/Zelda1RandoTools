@@ -423,7 +423,7 @@ let makeAll(owMapNum) =
     // nearby ow tiles magnified overlay
     let ENLARGE = 8. // make it this x bigger
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
-    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsVisible=false)
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsVisible=false, IsHitTestVisible=false)
     let dungeonTabsOverlayContent = new Canvas(Width=3.*16.*ENLARGE + 4.*BT, Height=3.*11.*ENLARGE + 4.*BT)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
     let overlayTiles = Array2D.zeroCreate 16 8
@@ -1055,9 +1055,9 @@ let makeAll(owMapNum) =
                     elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vmoat, 11=hmoat, 12=vchute, 13=hchute, 14=tee, 15=yellow, 16=red, 17=green, 18=explored empty
         let roomCleared = Array2D.zeroCreate 8 8 // boolean
-        let ROOMS = 17 // how many types
+        let ROOMS = 19 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
             // LEVEL-9        
@@ -1079,13 +1079,15 @@ let makeAll(owMapNum) =
                     let image =
                         match roomStates.[i,j] with
                         | 0  -> Graphics.cdungeonUnexploredRoomBMP
-                        | 10 -> Graphics.cdungeonVChuteBMP
-                        | 11 -> Graphics.cdungeonHChuteBMP
-                        | 12 -> Graphics.cdungeonTeeBMP
-                        | 13 -> Graphics.cdungeonTriforceBMP 
-                        | 14 -> Graphics.cdungeonPrincessBMP 
-                        | 15 -> Graphics.cdungeonStartBMP 
-                        | 16 -> Graphics.cdungeonExploredRoomBMP 
+                        | 10 -> Graphics.cdungeonVMoatBMP
+                        | 11 -> Graphics.cdungeonHMoatBMP
+                        | 12 -> Graphics.cdungeonVChuteBMP
+                        | 13 -> Graphics.cdungeonHChuteBMP
+                        | 14 -> Graphics.cdungeonTeeBMP
+                        | 15 -> Graphics.cdungeonTriforceBMP 
+                        | 16 -> Graphics.cdungeonPrincessBMP 
+                        | 17 -> Graphics.cdungeonStartBMP 
+                        | 18 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                         |> (fun (u,c) -> if roomCleared.[i,j] then c else u)
                         |> Graphics.BMPtoImage
@@ -1127,12 +1129,12 @@ let makeAll(owMapNum) =
                             // click to mark cleared room
                             roomCleared.[i,j] <- not roomCleared.[i,j]
                             if roomStates.[i,j] = 0 then
-                                roomStates.[i,j] <- 16
+                                roomStates.[i,j] <- ROOMS-1
                         updateUI ()
                     elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then
                         if roomStates.[i,j] = 0 then
                             // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCleared.[i,j] <- false
                             updateUI()
                     )
@@ -1153,10 +1155,10 @@ let makeAll(owMapNum) =
                 c.AddHandler<_>(Avalonia.Input.DragDrop.DragOverEvent, new EventHandler<_>(fun o ea ->
                     if roomStates.[i,j] = 0 then
                         if ea.Data.GetText() = "L" then
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCleared.[i,j] <- true
                         else
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCleared.[i,j] <- false
                         updateUI()
                     ))

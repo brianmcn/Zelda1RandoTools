@@ -498,7 +498,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     // nearby ow tiles magnified overlay
     let ENLARGE = 8.
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
-    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0.)
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
     let dungeonTabsOverlayContent = new Canvas(Width=3.*16.*ENLARGE + 4.*BT, Height=3.*11.*ENLARGE + 4.*BT)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
     let overlayTiles = Array2D.zeroCreate 16 8
@@ -1177,9 +1177,9 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 d.MouseRightButtonDown.Add(right)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vchute, 11=hchute, 12=tee, 13=tri, 14=heart, 15=start, 16=explored empty
+        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vmoat, 11=hmoat, 12=vchute, 13=hchute, 14=tee, 15=yellow, 16=red, 17=green, 18=explored empty
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let ROOMS = 17 // how many types
+        let ROOMS = 19 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
             // LEVEL-9        
@@ -1199,13 +1199,15 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     let image =
                         match roomStates.[i,j] with
                         | 0  -> Graphics.cdungeonUnexploredRoomBMP 
-                        | 10 -> Graphics.cdungeonVChuteBMP
-                        | 11 -> Graphics.cdungeonHChuteBMP
-                        | 12 -> Graphics.cdungeonTeeBMP
-                        | 13 -> Graphics.cdungeonTriforceBMP 
-                        | 14 -> Graphics.cdungeonPrincessBMP 
-                        | 15 -> Graphics.cdungeonStartBMP 
-                        | 16 -> Graphics.cdungeonExploredRoomBMP 
+                        | 10 -> Graphics.cdungeonVMoatBMP
+                        | 11 -> Graphics.cdungeonHMoatBMP
+                        | 12 -> Graphics.cdungeonVChuteBMP
+                        | 13 -> Graphics.cdungeonHChuteBMP
+                        | 14 -> Graphics.cdungeonTeeBMP
+                        | 15 -> Graphics.cdungeonTriforceBMP 
+                        | 16 -> Graphics.cdungeonPrincessBMP 
+                        | 17 -> Graphics.cdungeonStartBMP 
+                        | 18 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
@@ -1233,7 +1235,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                             roomCompleted.[i,j] <- not roomCompleted.[i,j]
                         else
                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCompleted.[i,j] <- true
                         redraw()
                         // shift click to mark not-on-map rooms (by "no"ing all the connections)
@@ -1261,7 +1263,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     else
                         if roomStates.[i,j] = 0 then
                             // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCompleted.[i,j] <- false
                             redraw()
                     )
@@ -1276,10 +1278,10 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 c.DragOver.Add(fun ea ->
                     if roomStates.[i,j] = 0 then
                         if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCompleted.[i,j] <- true
                         else
-                            roomStates.[i,j] <- 16
+                            roomStates.[i,j] <- ROOMS-1
                             roomCompleted.[i,j] <- false
                         redraw()
                     )

@@ -64,20 +64,7 @@ let unfoundL9,foundL9 =
                 f.SetPixel(px, py, System.Drawing.Color.Transparent)
     BMPtoImage u, BMPtoImage f
 
-let [| dungeonUnexploredRoomBMP; dungeonExploredRoomBMP; dungeonVChuteBMP; dungeonHChuteBMP; dungeonTeeBMP; dungeonTriforceBMP; dungeonPrincessBMP; dungeonStartBMP;
-        dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |] =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons13x9.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    [|  for i = 0 to bmp.Width/13 - 1 do
-            let r = new System.Drawing.Bitmap(13*3,9*3)
-            for px = 0 to 13*3-1 do
-                for py = 0 to 9*3-1 do
-                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, py/3))
-            yield r
-    |]
-let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
-
-let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
+let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
         cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
