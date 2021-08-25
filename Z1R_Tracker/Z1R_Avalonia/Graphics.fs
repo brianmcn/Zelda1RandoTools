@@ -8,6 +8,17 @@ let GetResourceStream(name) =
     let assets = Avalonia.AvaloniaLocator.Current.GetService(typeof<Avalonia.Platform.IAssetLoader>) :?> Avalonia.Platform.IAssetLoader
     assets.Open(new Uri("resm:Z1R_Avalonia." + name))
 
+let BMPtoImage(bmp:System.Drawing.Bitmap) =
+    let ms = new System.IO.MemoryStream()
+    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
+    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
+    let bmp = new Avalonia.Media.Imaging.Bitmap(ms)
+    let image = new Avalonia.Controls.Image()
+    image.Source <- bmp
+    image.Width <- bmp.Size.Width
+    image.Height <- bmp.Size.Height
+    image
+
 let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
         silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 
         heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
@@ -36,6 +47,25 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
         |]
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
+let unfoundL9,foundL9 =
+    let u = new System.Drawing.Bitmap(10*3,10*3)
+    let f = new System.Drawing.Bitmap(10*3,10*3)
+    let u8,f8 = emptyUnfoundTriforce_bmps.[7], emptyFoundTriforce_bmps.[7]
+    let uc,fc = u8.GetPixel(4*3, 7*3), f8.GetPixel(4*3, 7*3)
+    for px = 0 to 10*3-1 do
+        for py = 0 to 10*3-1 do
+            // copy just numeral 8
+            let c = u8.GetPixel(px, py)
+            u.SetPixel(px, py, if c.ToArgb()=uc.ToArgb() then c else System.Drawing.Color.Transparent)
+            let c = f8.GetPixel(px, py)
+            f.SetPixel(px, py, if c.ToArgb()=fc.ToArgb() then c else System.Drawing.Color.Transparent)
+            // change a couple 'pixel's to make it a 9
+            if px/3 = 4 && py/3 = 7 || px/3 = 6 && py/3 = 8 then
+                u.SetPixel(px, py, System.Drawing.Color.Transparent)
+                f.SetPixel(px, py, System.Drawing.Color.Transparent)
+    BMPtoImage u, BMPtoImage f
+    
+
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for i = 0 to 8 do yield heart_container_bmp |]
 
@@ -53,17 +83,6 @@ let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVChuteBMP; cd
             yield (ur,cr)
     |]
 let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |]
-
-let BMPtoImage(bmp:System.Drawing.Bitmap) =
-    let ms = new System.IO.MemoryStream()
-    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
-    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
-    let bmp = new Avalonia.Media.Imaging.Bitmap(ms)
-    let image = new Avalonia.Controls.Image()
-    image.Source <- bmp
-    image.Width <- bmp.Size.Width
-    image.Height <- bmp.Size.Height
-    image
 
 let greyscale(bmp:System.Drawing.Bitmap) =
     let r = new System.Drawing.Bitmap(7*3,7*3)

@@ -12,8 +12,7 @@ SMALL
 
 get rid of tens-of-hours-digit in time
 dungeon vertical/horizontal single moat rooms
-spech recognition: remove wait time after just moused, consider extra accuracy for second-shop item?
-draw 9 in grey/white despite fact no corresponding triforce (easy glance to see if found it)
+speech recognition: remove wait time after just moused, consider extra accuracy for second-shop item?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 second quest dungeons (4 rather than 1 has 3 items)

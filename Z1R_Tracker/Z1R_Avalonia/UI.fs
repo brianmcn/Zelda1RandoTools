@@ -137,6 +137,8 @@ let makeAll(owMapNum) =
         )
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new TimelineItem((fun()->Graphics.fullTriforce_bmps.[i]), (fun()->false), (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
+    let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
+    gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
@@ -725,6 +727,9 @@ let makeAll(owMapNum) =
         for i = 0 to 7 do
             if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
                 updateEmptyTriforceDisplay(i)
+        level9NumeralCanvas.Children.Clear()
+        let img = if TrackerModel.mapStateSummary.DungeonLocations.[8]=TrackerModel.NOTFOUND then Graphics.unfoundL9 else Graphics.foundL9
+        canvasAdd(level9NumeralCanvas, img, 0., 0.)
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
