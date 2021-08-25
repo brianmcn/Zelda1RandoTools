@@ -418,10 +418,11 @@ let makeAll(owMapNum) =
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, routeDrawingCanvas, 0., 120.)
 
-    // single ow tile magnified overlay
-    let ENLARGE = 24. // make it this x bigger
-    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, IsVisible=false)
-    let dungeonTabsOverlayContent = new StackPanel(Orientation=Layout.Orientation.Vertical)
+    // nearby ow tiles magnified overlay
+    let ENLARGE = 8. // make it this x bigger
+    let BT = 2.  // border thickness of the interior 3x3 grid of tiles
+    let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsVisible=false)
+    let dungeonTabsOverlayContent = new Canvas(Width=3.*16.*ENLARGE + 4.*BT, Height=3.*11.*ENLARGE + 4.*BT)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
@@ -494,8 +495,19 @@ let makeAll(owMapNum) =
             let rect = new Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=Brushes.White, StrokeThickness = 2.)
             c.PointerEnter.Add(fun ea ->canvasAdd(c, rect, 2., 2.)
                                         pointerEnteredButNotDrawnRoutingYet <- true
-                                        // show enlarged version of current room
-                                        dungeonTabsOverlayContent.Children.Add(overlayTiles.[i,j]) |> ignore
+                                        // show enlarged version of current & nearby rooms
+                                        dungeonTabsOverlayContent.Children.Clear()
+                                        // fill whole canvas black, so elements behind don't show through
+                                        canvasAdd(dungeonTabsOverlayContent, new Shapes.Rectangle(Width=dungeonTabsOverlayContent.Width, Height=dungeonTabsOverlayContent.Height, Fill=Brushes.Black), 0., 0.)
+                                        let xmin = min (max (i-1) 0) 13
+                                        let ymin = min (max (j-1) 0) 5
+                                        // draw a white highlight rectangle behind the tile where mouse is
+                                        let rect = new Shapes.Rectangle(Width=16.*ENLARGE + 2.*BT, Height=11.*ENLARGE + 2.*BT, Fill=Brushes.White)
+                                        canvasAdd(dungeonTabsOverlayContent, rect, float (i-xmin)*(16.*ENLARGE+BT), float (j-ymin)*(11.*ENLARGE+BT))
+                                        // draw the 3x3 tiles
+                                        for x = 0 to 2 do
+                                            for y = 0 to 2 do
+                                                canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], BT+float x*(16.*ENLARGE+BT), BT+float y*(11.*ENLARGE+BT))
                                         dungeonTabsOverlay.IsVisible <- true
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
