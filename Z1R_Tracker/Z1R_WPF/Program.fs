@@ -177,7 +177,7 @@ type MyWindow() as this =
         // update time
         let ts = DateTime.Now - this.StartTime
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
+        hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
         // update timeline
         if f10Press || ts.Seconds = 0 then
             updateTimeline(int ts.TotalMinutes)

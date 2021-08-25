@@ -85,7 +85,7 @@ There are 9 tabs for the 9 dungeons.
 
 Rooms can be scrolled to mark:
  - stairway transports 1-9
- - special room shapes (horizontal/vertical chute, tee)
+ - special room shapes (horizontal/vertical moat/chute, tee)
  - ad-hoc markers (red/yellow/green) the player can use as they see fit
  - grey box (typical 'uncompleted room')
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
