@@ -1192,7 +1192,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         | 15 -> Graphics.cdungeonStartBMP 
                         | 16 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
-                        |> (fun (u,c) -> if roomCompleted.[i,j] || roomStates.[i,j] = 0 then c else u)
+                        |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
                 let f b =
@@ -1208,33 +1208,48 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                     redraw()
-                // TODO consider hitbox (accidentally click room when trying to target doors with mouse)
-                c.MouseLeftButtonDown.Add(fun _ -> 
-                    if roomStates.[i,j] <> 0 then
-                        roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                let BUFFER = 2.
+                c.MouseLeftButtonDown.Add(fun ea -> 
+                    let pos = ea.GetPosition(c)
+                    if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
+                        () // do nothing, as I often accidentally click room when trying to target doors with mouse
                     else
-                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
-                        roomStates.[i,j] <- 16
-                        roomCompleted.[i,j] <- true
-                    redraw()
-                    // shift click to mark not-on-map rooms (by "no"ing all the connections)
-                    if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
-                        if i > 0 then
-                            horizontalDoorCanvases.[i-1,j].Background <- blackedOut
-                        if i < 7 then
-                            horizontalDoorCanvases.[i,j].Background <- blackedOut
-                        if j > 0 then
-                            verticalDoorCanvases.[i,j-1].Background <- blackedOut
-                        if j < 7 then
-                            verticalDoorCanvases.[i,j].Background <- blackedOut
-                        // don't break transport count
-                        if [1..9] |> List.contains roomStates.[i,j] then
-                            usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-                        roomStates.[i,j] <- 0
-                        // black out the room (not reflected anywhere in backing room state)
-                        c.Children.Clear()
-                        canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
-                )
+                        if roomStates.[i,j] <> 0 then
+                            roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                        else
+                            // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                            roomStates.[i,j] <- 16
+                            roomCompleted.[i,j] <- true
+                        redraw()
+                        // shift click to mark not-on-map rooms (by "no"ing all the connections)
+                        if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                            if i > 0 then
+                                horizontalDoorCanvases.[i-1,j].Background <- blackedOut
+                            if i < 7 then
+                                horizontalDoorCanvases.[i,j].Background <- blackedOut
+                            if j > 0 then
+                                verticalDoorCanvases.[i,j-1].Background <- blackedOut
+                            if j < 7 then
+                                verticalDoorCanvases.[i,j].Background <- blackedOut
+                            // don't break transport count
+                            if [1..9] |> List.contains roomStates.[i,j] then
+                                usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                            roomStates.[i,j] <- 0
+                            // black out the room (not reflected anywhere in backing room state)
+                            c.Children.Clear()
+                            canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
+                    )
+                c.MouseRightButtonDown.Add(fun ea -> 
+                    let pos = ea.GetPosition(c)
+                    if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
+                        () // do nothing, as I often accidentally click room when trying to target doors with mouse
+                    else
+                        if roomStates.[i,j] = 0 then
+                            // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
+                            roomStates.[i,j] <- 16
+                            roomCompleted.[i,j] <- false
+                            redraw()
+                    )
                 c.MouseWheel.Add(fun x -> f (x.Delta<0))
                 // drag and drop to quickly 'paint' rooms
                 c.MouseMove.Add(fun ea ->

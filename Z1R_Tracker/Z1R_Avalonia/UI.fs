@@ -1073,7 +1073,6 @@ let makeAll(owMapNum) =
                         |> (fun (u,c) -> if roomCleared.[i,j] then c else u)
                         |> Graphics.BMPtoImage
                     canvasAdd(c, image, 0., 0.)
-
                 let f b =
                     // track transport being changed away from
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -1087,33 +1086,39 @@ let makeAll(owMapNum) =
                     if [1..9] |> List.contains roomStates.[i,j] then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                     updateUI ()
-                c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
-                    if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
-                        // shift click to mark not-on-map rooms
-                        // don't break transport count
-                        if [1..9] |> List.contains roomStates.[i,j] then
-                            usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-
-                        // (unexplored,cleared) means "empty"
-                        let makeEmpty = not (roomStates.[i,j] = 0 && roomCleared.[i,j])
-                        roomStates.[i,j] <- 0
-                        roomCleared.[i,j] <- makeEmpty
-                        let door = if makeEmpty then empty else unknown :> ISolidColorBrush
-                        if i > 0 then
-                            horizontalDoorCanvases.[i-1,j].Background <- door
-                        if i < 7 then
-                            horizontalDoorCanvases.[i,j].Background <- door
-                        if j > 0 then
-                            verticalDoorCanvases.[i,j-1].Background <- door
-                        if j < 7 then
-                            verticalDoorCanvases.[i,j].Background <- door
-                    else
-                        // click to mark cleared room
-                        roomCleared.[i,j] <- not roomCleared.[i,j]
+                c.PointerPressed.Add(fun ea -> 
+                    if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then
+                        if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
+                            // shift click to mark not-on-map rooms
+                            // don't break transport count
+                            if [1..9] |> List.contains roomStates.[i,j] then
+                                usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                            // (unexplored,cleared) means "empty"
+                            let makeEmpty = not (roomStates.[i,j] = 0 && roomCleared.[i,j])
+                            roomStates.[i,j] <- 0
+                            roomCleared.[i,j] <- makeEmpty
+                            let door = if makeEmpty then empty else unknown :> ISolidColorBrush
+                            if i > 0 then
+                                horizontalDoorCanvases.[i-1,j].Background <- door
+                            if i < 7 then
+                                horizontalDoorCanvases.[i,j].Background <- door
+                            if j > 0 then
+                                verticalDoorCanvases.[i,j-1].Background <- door
+                            if j < 7 then
+                                verticalDoorCanvases.[i,j].Background <- door
+                        else
+                            // click to mark cleared room
+                            roomCleared.[i,j] <- not roomCleared.[i,j]
+                            if roomStates.[i,j] = 0 then
+                                roomStates.[i,j] <- 16
+                        updateUI ()
+                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then
                         if roomStates.[i,j] = 0 then
+                            // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
                             roomStates.[i,j] <- 16
-                    updateUI ()
-                    ))
+                            roomCleared.[i,j] <- false
+                            updateUI()
+                    )
                 c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
                 // drag and drop to quickly 'paint' rooms
                 //let startAsPlainTask (work : Async<unit>) = Threading.Tasks.Task.Factory.StartNew(fun () -> work |> Async.RunSynchronously)
