@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Graphics.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
+    <Compile Include="Timeline.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="s_map_overworld_strip8.png" />

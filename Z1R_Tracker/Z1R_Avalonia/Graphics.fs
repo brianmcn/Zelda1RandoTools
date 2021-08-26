@@ -112,12 +112,6 @@ let zhDungeonNums =
 
 let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
-let timelineHeart_bmp = 
-    let bmp = new System.Drawing.Bitmap(9*3,9*3)
-    for x = 1*3 to 10*3-1 do
-        for y = 1*3 to 10*3-1 do
-            bmp.SetPixel(x-3, y-3, owHeartFull_bmp.GetPixel(x,y))
-    bmp
 
 let overworldMapBMPs(n) =
     let m = overworldImage
@@ -221,6 +215,3 @@ let nonUniqueMapIconBMPs =
                             tile.SetPixel(px,py,System.Drawing.Color.Black)
             yield tile
     |]
-
-//let dungeonNumberBMPs = [| dn1bmp; dn2bmp; dn3bmp; dn4bmp; dn5bmp; dn6bmp; dn7bmp; dn8bmp; dn9bmp |]
-//let dungeonClearedNumberBMPs = [| dn1cbmp; dn2cbmp; dn3cbmp; dn4cbmp; dn5cbmp; dn6cbmp; dn7cbmp; dn8cbmp; dn9cbmp |]

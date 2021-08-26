@@ -23,10 +23,10 @@
     <EmbeddedResource Include="..\Z1R_WPF\s_map_overworld_strip8.png" Link="s_map_overworld_strip8.png" />
     <Compile Include="Graphics.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
+    <Compile Include="Timeline.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

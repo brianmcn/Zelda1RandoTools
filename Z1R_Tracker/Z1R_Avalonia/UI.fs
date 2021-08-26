@@ -60,18 +60,13 @@ let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canv
 let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
 
-type TimelineItem(displayBMP, isHeart, isDone:unit->bool) =
-    member this.DisplayBMP() = displayBMP()
-    member this.IsHeart() = isHeart()
-    member this.IsDone() = isDone()
-
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 440.
-let TLH = (1+9+5+9)*3  // timeline height
+let TCH = 123  // timeline height
 let TH = 24 // text height
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let resizeMapTileImage(image:Image) =
@@ -136,7 +131,7 @@ let makeAll(owMapNum) =
             TrackerModel.dungeons.[i].ToggleTriforce()
         )
         gridAdd(mainTracker, c, i, 0)
-        timelineItems.Add(new TimelineItem((fun()->Graphics.fullTriforce_bmps.[i]), (fun()->false), (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.dungeons.[i].PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
     let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
     gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
@@ -157,7 +152,7 @@ let makeAll(owMapNum) =
                 if requiresForceUpdate then
                     TrackerModel.forceUpdate()
             )
-        let boxCurrentBMP() =
+        let boxCurrentBMP(isForTimeline) =
             match box.CellCurrent() with
             | -1 -> null
             |  0 -> (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp)
@@ -174,10 +169,10 @@ let makeAll(owMapNum) =
             | 11 -> Graphics.silver_arrow_bmp
             | 12 -> Graphics.wand_bmp
             | 13 -> Graphics.white_sword_bmp
-            |  _ -> Graphics.heart_container_bmp
+            |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
         let redraw() =
             innerc.Children.Clear()
-            let bmp = boxCurrentBMP()
+            let bmp = boxCurrentBMP(false)
             if bmp <> null then
                 canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
         // item
@@ -191,7 +186,7 @@ let makeAll(owMapNum) =
                 TrackerModel.forceUpdate()
             )
         redrawBoxes.Add(fun() -> redraw())
-        timelineItems.Add(new TimelineItem((fun()->boxCurrentBMP()), (fun()->box.CellCurrent()>13), (fun()->obj.Equals(rect.Stroke,yes))))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
     for i = 0 to 8 do
@@ -270,7 +265,7 @@ let makeAll(owMapNum) =
         c.PointerPressed.Add(fun ea -> f(ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed))
         c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
         gridAdd(owHeartGrid, c, i, 0)
-        timelineItems.Add(new TimelineItem((fun()->null), (fun()->true), (fun()->TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1)))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
@@ -300,7 +295,7 @@ let makeAll(owMapNum) =
         ))
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
-            timelineItems.Add(new TimelineItem((fun()->bmp), (fun()->false), fun()->obj.Equals(rect.Stroke,yes)))
+            timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
         c
     let basicBoxImpl(tts, img, changedFunc) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc)
@@ -907,84 +902,13 @@ let makeAll(owMapNum) =
     timer.Start()
 
     // timeline
-    let TLC = Brushes.SandyBrown   // timeline color
-    let MW = (c.Width-48.)/60. // minute width
-    let makeTimeline(leftText, rightText) = 
-        let timelineCanvas = new Canvas(Height=float TLH, Width=c.Width)
-        let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb1, 0., 30.)
-        let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb2, c.Width-20., 30.)
-        let line1 = new Shapes.Line(StartPoint=Point(24.,float(13*3)), EndPoint=Point(c.Width-24.,float(13*3)), Stroke=TLC, StrokeThickness=3.)
-        canvasAdd(timelineCanvas, line1, 0., 0.)
-        for i = 0 to 12 do
-            let d = if i%2=1 then 3 else 0
-            let line = new Shapes.Line(StartPoint=Point(24.+float(i)*MW*5.,float(11*3+d)), EndPoint=Point(24.+float(i)*MW*5.,float(15*3-d)), Stroke=TLC, StrokeThickness=3.)
-            canvasAdd(timelineCanvas, line, 0., 0.)
-        timelineCanvas 
-    let timeline1Canvas = makeTimeline("0h","1h")
-    let curTime = new Shapes.Line(StartPoint=Point(float(24),float(11*3)), EndPoint=Point(float(24),float(15*3)), Stroke=Brushes.White, StrokeThickness=3.)
-    canvasAdd(timeline1Canvas, curTime, 0., 0.)
-
-    let timeline2Canvas = makeTimeline("1h","2h")
-
-    let top = ref true
+    let theTimeline = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., "0h", "1h", "2h")
     let updateTimeline(minute) =
-        if minute < 0 || minute > 180 then
-            ()
-        else
-            let tlc,minute = 
-                if minute <= 60 then 
-                    timeline1Canvas, minute 
-                else
-                    timeline2Canvas, minute-60
-            let items = ResizeArray()
-            let hearts = ResizeArray()
-            for x in timelineItems do
-                if x.IsDone() then
-                    if x.IsHeart() then
-                        hearts.Add(x)
-                    else
-                        items.Add(x)
-            for x in items do
-                timelineItems.Remove(x) |> ignore
-            for x in hearts do
-                timelineItems.Remove(x) |> ignore
-            // post items
-            for x in items do
-                let bmp = x.DisplayBMP()
-                let bmp =
-                    if bmp.Width = 21 then  // item bmps are 21x21, make a 30x30 with it in middle
-                        let newBMP = new System.Drawing.Bitmap(30,30)
-                        for i = 0 to 20 do
-                            for j = 0 to 20 do
-                                newBMP.SetPixel(i+4, j+4, bmp.GetPixel(i,j))
-                        newBMP
-                    else
-                        bmp
-                let img = Graphics.BMPtoImage(bmp)
-                img.Width <- 30.
-                img.Height <- 30.
-                canvasAdd(tlc, img, 24.+float(minute)*MW-15.-1., 3.+(if !top then 0. else 42.))
-                let line = new Shapes.Line(StartPoint=Point(0.,float(12*3)), EndPoint=Point(0.,float(13*3)), Stroke=Brushes.LightBlue, StrokeThickness=2.)
-                canvasAdd(tlc, line, 24.+float(minute)*MW-1., (if !top then 0. else 3.))
-                top := not !top
-            // post hearts
-            if hearts.Count > 0 then
-                let img = Graphics.BMPtoImage(Graphics.timelineHeart_bmp)
-                img.Width <- 13.
-                img.Height <- 13.
-                canvasAdd(tlc, img, 24.+float(minute)*MW-3.-1.-2., 36. - 2.)
-            // post current time
-            curTime.StartPoint <- Point(24.+float(minute)*MW, curTime.StartPoint.Y)
-            curTime.EndPoint <- Point(24.+float(minute)*MW, curTime.EndPoint.Y)
-            timeline1Canvas.Children.Remove(curTime) |> ignore // have it be last
-            timeline2Canvas.Children.Remove(curTime) |> ignore // have it be last
-            canvasAdd(tlc, curTime, 0., 0.)
-    canvasAdd(c, timeline1Canvas, 0., THRU_MAP_H)
-    canvasAdd(c, timeline2Canvas, 0., THRU_MAP_H + timeline1Canvas.Height)
+        if minute%2=0 then
+            theTimeline.Update(minute/2, timelineItems)
+    canvasAdd(c, theTimeline.Canvas, 5., THRU_MAP_H)
 
-    let THRU_TIMELINE_H = THRU_MAP_H + timeline1Canvas.Height + timeline2Canvas.Height + 3.
+    let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
 
     // Level trackers
     let fixedDungeon1Outlines = ResizeArray()
@@ -1374,8 +1298,9 @@ let makeAll(owMapNum) =
     canvasAdd(c, cb, RIGHT_COL + 140., 66.)
 
 
-    //                items  ow map  prog  timeline    dungeon tabs                
-    c.Height <- float(30*4 + 11*3*9 + 30 + 2*TLH + 3 + TH + TH + 27*8 + 12*7 + 30)
+    //                items  ow map  prog  timeline  dungeon tabs                
+    c.Height <- float(30*4 + 11*3*9 + 30 + TCH + 6 + TH + TH + 27*8 + 12*7 + 30)
+    
     TrackerModel.forceUpdate()
     c, updateTimeline
 

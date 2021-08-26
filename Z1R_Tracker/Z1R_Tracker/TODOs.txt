@@ -10,14 +10,12 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-speech recognition: remove wait time after just moused, consider extra accuracy for second-shop item?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 second quest dungeons (4 rather than 1 has 3 items)
 
 MEDIUM
 
-timeline possible redesigns: 1.5h per line, or maybe adaptive to fit UI.  also maybe not icons both above & below, but only above... other ways to better use space...
 "shift a portion of dungeon marks one cell left" because you oopsed the initial column.  Easy concept, tough to implement robustly and perhaps tough to find good UI gesture to activate.
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks

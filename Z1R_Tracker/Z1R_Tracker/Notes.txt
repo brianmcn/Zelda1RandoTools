@@ -73,8 +73,8 @@ Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' 
 TIMELINE
 
 The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
-Once per minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline, above or below the minute-marker,
-and if a heart was gained, a heart is posted directly on the timeline.  This makes it easy to see e.g. that you got the wood sword in the 12th minute.
+Every two minutes, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
+This makes it easy to see e.g. that you got the wood sword in the 12th minute.
 
 The timeline is non-interactive, it is just a display capturing progress-over-time.
 

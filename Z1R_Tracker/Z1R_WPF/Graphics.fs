@@ -133,12 +133,6 @@ let allItemsWithHeartShuffle =
 
 let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
-let timelineHeart = 
-    let bmp = new System.Drawing.Bitmap(9*3,9*3)
-    for x = 1*3 to 10*3-1 do
-        for y = 1*3 to 10*3-1 do
-            bmp.SetPixel(x-3, y-3, owHeartFull_bmp.GetPixel(x,y))
-    BMPtoImage bmp
 
 let overworldMapBMPs(n) =
     let m = overworldImage
@@ -242,6 +236,3 @@ let nonUniqueMapIconBMPs =
                             tile.SetPixel(px,py,System.Drawing.Color.Black)
             yield tile
     |]
-
-let ganon,zelda,bomb = 
-    BMPtoImage ganon_bmp, BMPtoImage zelda_bmp, BMPtoImage bomb_bmp

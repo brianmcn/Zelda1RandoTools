@@ -118,24 +118,13 @@ let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canv
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
 
-type TimelineItem(c:Canvas, isDone:unit->bool) =
-    member this.Canvas = c
-    member this.IsHeart() = 
-        if Graphics.owHeartsFull |> Array.exists (fun x -> c.Children.Contains(x)) then
-            true
-        elif Graphics.allItemsWithHeartShuffle.[14..] |> Array.exists (fun x -> c.Children.Contains(x)) then
-            true
-        else
-            false
-    member this.IsDone() = isDone()
-
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 560.
-let TLH = (1+9+5+9)*3  // timeline height
+let TCH = 123  // timeline height
 let TH = 24 // text height
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let resizeMapTileImage(image:Image) =
@@ -207,7 +196,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
             TrackerModel.dungeons.[i].ToggleTriforce()
         )
         gridAdd(mainTracker, c, i, 0)
-        timelineItems.Add(new TimelineItem(innerc, (fun()->TrackerModel.dungeons.[i].PlayerHasTriforce())))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.dungeons.[i].PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
     let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
     gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
     let remindShortly(f, text:string) =
@@ -227,6 +216,24 @@ let makeAll(owMapNum, audioInitiallyOn) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
+        let boxCurrentBMP(isForTimeline) =
+            match box.CellCurrent() with
+            | -1 -> null
+            |  0 -> (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp)
+            |  1 -> Graphics.boomerang_bmp
+            |  2 -> Graphics.bow_bmp
+            |  3 -> Graphics.power_bracelet_bmp
+            |  4 -> Graphics.ladder_bmp
+            |  5 -> Graphics.magic_boomerang_bmp
+            |  6 -> Graphics.key_bmp
+            |  7 -> Graphics.raft_bmp
+            |  8 -> Graphics.recorder_bmp
+            |  9 -> Graphics.red_candle_bmp
+            | 10 -> Graphics.red_ring_bmp
+            | 11 -> Graphics.silver_arrow_bmp
+            | 12 -> Graphics.wand_bmp
+            | 13 -> Graphics.white_sword_bmp
+            |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
         c.MouseLeftButtonDown.Add(fun _ ->
             if obj.Equals(rect.Stroke, no) then
                 rect.Stroke <- yes
@@ -252,7 +259,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
             if requiresForceUpdate then
                 TrackerModel.forceUpdate()
         )
-        timelineItems.Add(new TimelineItem(innerc, (fun()->obj.Equals(rect.Stroke,yes))))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
     for i = 0 to 8 do
@@ -340,7 +347,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
         gridAdd(owHeartGrid, c, i, 0)
-        timelineItems.Add(new TimelineItem(c, fun()->c.Children.Contains(Graphics.owHeartsFull.[i])))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
     canvasAdd(c, owHeartGrid, OFFSET, 0.)
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
@@ -353,7 +360,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid = makeGrid(3, 2, 30, 30)
-    let veryBasicBoxImpl(img, startOn, isTimeline, changedFunc, rightClick) =
+    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc, rightClick) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -369,27 +376,27 @@ let makeAll(owMapNum, audioInitiallyOn) =
             changedFunc(obj.Equals(rect.Stroke, yes))
         )
         c.MouseRightButtonDown.Add(fun _ -> rightClick())
-        canvasAdd(innerc, img, 4., 4.)
+        canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
-            timelineItems.Add(new TimelineItem(innerc, fun()->obj.Equals(rect.Stroke,yes)))
+            timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
         c
     let basicBoxImpl(tts, img, changedFunc, rightClick) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc, rightClick)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.BMPtoImage Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.BMPtoImage Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.BMPtoImage Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.BMPtoImage Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.BMPtoImage Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ())), 2, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ())), 2, 1)
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOOK))), OFFSET+120., 0.)
+    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOOK))), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), OFFSET+120., 90.)
+    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), OFFSET+90., 90.)
+    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), OFFSET+120., 90.)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
     bombIcon.ToolTip <- "Player currently has bombs"
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
@@ -723,8 +730,6 @@ let makeAll(owMapNum, audioInitiallyOn) =
     speechRecognizer.SpeechRecognized.Add(fun r ->
         //printfn "conf: %f" r.Result.Confidence
         if r.Result.Confidence > 0.94f then  // empirical tests suggest this confidence threshold is good to avoid false positives
-            let timeDiff = DateTime.Now - mostRecentMouseEnterTime
-            if timeDiff < System.TimeSpan.FromSeconds(20.0) && timeDiff > System.TimeSpan.FromSeconds(1.0) then
                 c.Dispatcher.Invoke(fun () -> 
                         if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                             let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
@@ -1264,7 +1269,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
-    let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 27*8 + 12*7)
+    let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
 
     // audio reminders    
     let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -1280,10 +1285,10 @@ let makeAll(owMapNum, audioInitiallyOn) =
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // audio subcategories to toggle
-    let recorderAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.recorder_bmp, true, false, (fun b -> voiceRemindersForRecorder <- b), (fun () -> ()))
+    let recorderAudioReminders = veryBasicBoxImpl(Graphics.recorder_bmp, true, false, (fun b -> voiceRemindersForRecorder <- b), (fun () -> ()))
     recorderAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining recorder spots"
     canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
-    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.BMPtoImage Graphics.power_bracelet_bmp, true, false, (fun b -> voiceRemindersForPowerBracelet <- b), (fun () -> ()))
+    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_bmp, true, false, (fun b -> voiceRemindersForPowerBracelet <- b), (fun () -> ()))
     powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
     canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
     // coordinate grid
@@ -1436,80 +1441,17 @@ let makeAll(owMapNum, audioInitiallyOn) =
     canvasAdd(c, cb, 285., 100.)
 
     // timeline
-    let TLC = Brushes.SandyBrown   // timeline color
-    let makeTimeline(leftText, rightText) = 
-        let timelineCanvas = new Canvas(Height=float TLH, Width=owMapGrid.Width)
-        let tb1 = new TextBox(Text=leftText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb1, 0., 30.)
-        let tb2 = new TextBox(Text=rightText,FontSize=14.0,Background=Brushes.Black,Foreground=TLC,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        canvasAdd(timelineCanvas, tb2, 748., 30.)
-        let line1 = new System.Windows.Shapes.Line(X1=24., X2=744., Y1=float(13*3), Y2=float(13*3), Stroke=TLC, StrokeThickness=3.)
-        canvasAdd(timelineCanvas, line1, 0., 0.)
-        for i = 0 to 12 do
-            let d = if i%2=1 then 3 else 0
-            let line = new System.Windows.Shapes.Line(X1=float(24+i*60), X2=float(24+i*60), Y1=float(11*3+d), Y2=float(15*3-d), Stroke=TLC, StrokeThickness=3.)
-            canvasAdd(timelineCanvas, line, 0., 0.)
-        timelineCanvas 
-    let timeline1Canvas = makeTimeline("0h","1h")
-    let curTime = new System.Windows.Shapes.Line(X1=float(24), X2=float(24), Y1=float(11*3), Y2=float(15*3), Stroke=Brushes.White, StrokeThickness=3.)
-    canvasAdd(timeline1Canvas, curTime, 0., 0.)
-
-    let timeline2Canvas = makeTimeline("1h","2h")
-    let timeline3Canvas = makeTimeline("2h","3h")
-
-    let top = ref true
+    let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
+    let theTimeline = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., "0h", "1h", "2h")
     let updateTimeline(minute) =
-        if minute < 0 || minute > 180 then
-            ()
-        else
-            let tlc,minute = 
-                if minute <= 60 then 
-                    timeline1Canvas, minute 
-                elif minute <= 120 then
-                    timeline2Canvas, minute-60
-                else 
-                    timeline3Canvas, minute-120
-            let items = ResizeArray()
-            let hearts = ResizeArray()
-            for x in timelineItems do
-                if x.IsDone() then
-                    if x.IsHeart() then
-                        hearts.Add(x)
-                    else
-                        items.Add(x)
-            for x in items do
-                timelineItems.Remove(x) |> ignore
-            for x in hearts do
-                timelineItems.Remove(x) |> ignore
-            // post items
-            for x in items do
-                let vb = new VisualBrush(Visual=x.Canvas, Opacity=1.0)
-                let rect = new System.Windows.Shapes.Rectangle(Height=30., Width=30., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-15-1), 3.+(if !top then 0. else 42.))
-                let line = new System.Windows.Shapes.Line(X1=0., X2=0., Y1=float(12*3), Y2=float(13*3), Stroke=Brushes.LightBlue, StrokeThickness=2.)
-                canvasAdd(tlc, line, float(24+minute*12-1), (if !top then 0. else 3.))
-                top := not !top
-            // post hearts
-            if hearts.Count > 0 then
-                let vb = new VisualBrush(Visual=Graphics.timelineHeart, Opacity=1.0)
-                let rect = new System.Windows.Shapes.Rectangle(Height=13., Width=13., Fill=vb)
-                canvasAdd(tlc, rect, float(24+minute*12-3-1-2), 36. - 2.)
-            // post current time
-            curTime.X1 <- float(24+minute*12)
-            curTime.X2 <- float(24+minute*12)
-            timeline1Canvas.Children.Remove(curTime)  // have it be last
-            timeline2Canvas.Children.Remove(curTime)  // have it be last
-            timeline3Canvas.Children.Remove(curTime)  // have it be last
-            canvasAdd(tlc, curTime, 0., 0.)
-    let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H + 30. // 30 for icon above first line
-    canvasAdd(c, timeline1Canvas, 0., START_TIMELINE_H)
-    canvasAdd(c, timeline2Canvas, 0., START_TIMELINE_H + timeline1Canvas.Height)
-    canvasAdd(c, timeline3Canvas, 0., START_TIMELINE_H + timeline1Canvas.Height + timeline2Canvas.Height)
+        if minute%2=0 then
+            theTimeline.Update(minute/2, timelineItems)
+    canvasAdd(c, theTimeline.Canvas, 24., START_TIMELINE_H)
+    let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
-    let THRU_TIMELINE_H = START_TIMELINE_H + timeline1Canvas.Height + timeline2Canvas.Height + timeline3Canvas.Height + 3.
+    //                items  ow map  prog  dungeon tabs                timeline
+    c.Height <- float(30*4 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
 
-    //                items  ow map  prog  dungeon tabs       timeline
-    c.Height <- float(30*4 + 11*3*9 + 30 + TH + 27*8 + 12*7 + 30 + 3*TLH + 3)
     TrackerModel.forceUpdate()
     c, updateTimeline
 
