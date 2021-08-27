@@ -13,6 +13,8 @@ SMALL
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 second quest dungeons (4 rather than 1 has 3 items)
+timeline scrollbar for extra time?
+the diagonal-half-rock-wall tiles show up as full tiles in magnified view (of one pixel), maybe different color to make easier to count bomb holes? ...
 
 MEDIUM
 
