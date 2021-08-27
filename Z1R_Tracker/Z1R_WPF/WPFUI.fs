@@ -512,15 +512,32 @@ let makeAll(owMapNum, audioInitiallyOn) =
     for i = 0 to 15 do
         for j = 0 to 7 do
             let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
-            for x = 0 to bmp.Width-1 do
-                for y = 0 to bmp.Height-1 do
-                    let c = owMapBMPs.[i,j].GetPixel(int(float x*3./ENLARGE), int(float y*3./ENLARGE))
-                    let c = 
-                        if (x+1) % int ENLARGE = 0 || (y+1) % int ENLARGE = 0 then
-                            System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
-                        else
-                            c
-                    bmp.SetPixel(x,y,c)
+            for x = 0 to 15 do
+                for y = 0 to 10 do
+                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                    for px = 0 to int ENLARGE - 1 do
+                        for py = 0 to int ENLARGE - 1 do
+                            let c = 
+                                // diagonal rocks
+                                if OverworldData.owNErock.[i,j].[x,y] then
+                                    if px+py > int ENLARGE - 1 then 
+                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                    else 
+                                        c
+                                elif OverworldData.owSErock.[i,j].[x,y] then
+                                    if px<py then 
+                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                    else 
+                                        c
+                                else 
+                                    c
+                            let c = 
+                                // edges of squares
+                                if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
+                                    System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                                else
+                                    c
+                            bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)

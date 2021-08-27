@@ -132,6 +132,7 @@ let mapStatePhrases = [|
         "blue ring shop"
         "meat shop"
         "key shop"
+        "shield shop"
         "take any"
         "potion shop"
         "money"
