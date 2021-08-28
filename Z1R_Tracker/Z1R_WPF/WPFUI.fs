@@ -1130,7 +1130,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=doublemoat, 11=chevy, 12=vmoat, 13=hmoat, 14=vchute, 15=hchute, 16=tee, 17=yellow, 18=red, 19=green, 20=explored empty
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let ROOMS = 19 // how many types
+        let ROOMS = 21 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         for i = 0 to 7 do
             // LEVEL-9        
