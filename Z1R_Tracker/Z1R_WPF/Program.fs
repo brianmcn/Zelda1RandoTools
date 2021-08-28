@@ -69,6 +69,7 @@ type MyWindowBase() as this =
                 let key = lParam.ToInt32() >>> 16
                 if key = VK_F10 then
                     startTime <- DateTime.Now
+                    this.Update(true)
                 if key = VK_F5 then
                     f5WasRecentlyPressed <- true
         IntPtr.Zero
@@ -76,6 +77,7 @@ type MyWindowBase() as this =
 type MyWindow() as this = 
     inherit MyWindowBase()
     let mutable canvas, updateTimeline = null, fun _ -> ()
+    let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
     //                 items  ow map  prog  dungeon tabs                      timeline   
     let HEIGHT = float(30*4 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
@@ -179,10 +181,12 @@ type MyWindow() as this =
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
         // update timeline
-        //if f10Press || int ts.TotalSeconds%5 = 0 then
-        //    updateTimeline(int ts.TotalSeconds/5)
-        if f10Press || ts.Seconds = 0 then
-            updateTimeline(int ts.TotalMinutes)
+        //if f10Press || (ts.TotalSeconds |> round |> int)%1 = 0 then
+        //    updateTimeline((ts.TotalSeconds |> round |> int)/1)
+        let curMinute = int ts.TotalMinutes
+        if f10Press || curMinute > lastUpdateMinute then
+            lastUpdateMinute <- curMinute
+            updateTimeline(curMinute)
         // update start icon
         if f5WasRecentlyPressed then
             TrackerModel.startIconX <- WPFUI.currentlyMousedOWX

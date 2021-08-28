@@ -13,16 +13,26 @@ SMALL
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 second quest dungeons (4 rather than 1 has 3 items)
-timeline scrollbar for extra time?
-the diagonal-half-rock-wall tiles show up as full tiles in magnified view (of one pixel), maybe different color to make easier to count bomb holes? ...
+ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
+add chevy and double-moat rooms to dungeons
 
 MEDIUM
 
 "shift a portion of dungeon marks one cell left" because you oopsed the initial column.  Easy concept, tough to implement robustly and perhaps tough to find good UI gesture to activate.
+  - idea, near FQ/SQ checkboxes, there's a GRAB thing
+  - clicking it changes cursor to hand (click again changes back)
+  - click a marked room will find all contiguous marked rooms (ignoring doors), and make big pink highlight over those rooms
+  - moving cursor moves pink highlight, snapping to grid (how to visualize what you originally grabbed? maybe they deep magenta?)
+  - click again completes the action (changes cursor back), which behaves as cut & paste
+     - it grabs all the pink rooms, and all adjacent doors to the pink rooms
+     - copies their state to temp
+     - sets their state to unknown
+     - then pastes the temp state back, adjusted however many rows/columns
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative)
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
+review other common flagsets from rando, what works, what could work, etc
 
 BIG
 

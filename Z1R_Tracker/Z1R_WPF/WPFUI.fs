@@ -1459,11 +1459,31 @@ let makeAll(owMapNum, audioInitiallyOn) =
 
     // timeline
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
-    let theTimeline = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., "0h", "1h", "2h")
+    let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 1, "0h", "30m", "1h")
+    let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 2, "0h", "1h", "2h")
+    let theTimeline3 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 3, "0h", "1.5h", "3h")
+    theTimeline1.Canvas.Opacity <- 1.
+    theTimeline2.Canvas.Opacity <- 0.
+    theTimeline3.Canvas.Opacity <- 0.
     let updateTimeline(minute) =
-        if minute%2=0 then
-            theTimeline.Update(minute/2, timelineItems)
-    canvasAdd(c, theTimeline.Canvas, 24., START_TIMELINE_H)
+        if minute <= 60 then
+            theTimeline1.Canvas.Opacity <- 1.
+            theTimeline2.Canvas.Opacity <- 0.
+            theTimeline3.Canvas.Opacity <- 0.
+            theTimeline1.Update(minute, timelineItems)
+        elif minute <= 120 then
+            theTimeline1.Canvas.Opacity <- 0.
+            theTimeline2.Canvas.Opacity <- 1.
+            theTimeline3.Canvas.Opacity <- 0.
+            theTimeline2.Update(minute, timelineItems)
+        else
+            theTimeline1.Canvas.Opacity <- 0.
+            theTimeline2.Canvas.Opacity <- 0.
+            theTimeline3.Canvas.Opacity <- 1.
+            theTimeline3.Update(minute, timelineItems)
+    canvasAdd(c, theTimeline1.Canvas, 24., START_TIMELINE_H)
+    canvasAdd(c, theTimeline2.Canvas, 24., START_TIMELINE_H)
+    canvasAdd(c, theTimeline3.Canvas, 24., START_TIMELINE_H)
     let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
     //                items  ow map  prog  dungeon tabs                timeline

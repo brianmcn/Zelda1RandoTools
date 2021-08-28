@@ -919,11 +919,31 @@ let makeAll(owMapNum) =
     timer.Start()
 
     // timeline
-    let theTimeline = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., "0h", "1h", "2h")
+    let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 1, "0h", "30m", "1h")
+    let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 2, "0h", "1h", "2h")
+    let theTimeline3 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 3, "0h", "1.5h", "3h")
+    theTimeline1.Canvas.Opacity <- 1.
+    theTimeline2.Canvas.Opacity <- 0.
+    theTimeline3.Canvas.Opacity <- 0.
     let updateTimeline(minute) =
-        if minute%2=0 then
-            theTimeline.Update(minute/2, timelineItems)
-    canvasAdd(c, theTimeline.Canvas, 5., THRU_MAP_H)
+        if minute <= 60 then
+            theTimeline1.Canvas.Opacity <- 1.
+            theTimeline2.Canvas.Opacity <- 0.
+            theTimeline3.Canvas.Opacity <- 0.
+            theTimeline1.Update(minute, timelineItems)
+        elif minute <= 120 then
+            theTimeline1.Canvas.Opacity <- 0.
+            theTimeline2.Canvas.Opacity <- 1.
+            theTimeline3.Canvas.Opacity <- 0.
+            theTimeline2.Update(minute, timelineItems)
+        else
+            theTimeline1.Canvas.Opacity <- 0.
+            theTimeline2.Canvas.Opacity <- 0.
+            theTimeline3.Canvas.Opacity <- 1.
+            theTimeline3.Update(minute, timelineItems)
+    canvasAdd(c, theTimeline1.Canvas, 5., THRU_MAP_H)
+    canvasAdd(c, theTimeline2.Canvas, 5., THRU_MAP_H)
+    canvasAdd(c, theTimeline3.Canvas, 5., THRU_MAP_H)
 
     let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
 
