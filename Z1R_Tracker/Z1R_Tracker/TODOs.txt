@@ -14,7 +14,6 @@ decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or nee
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 second quest dungeons (4 rather than 1 has 3 items)
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
-add chevy and double-moat rooms to dungeons
 
 MEDIUM
 

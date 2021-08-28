@@ -69,7 +69,8 @@ let unfoundL9,foundL9 =
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for i = 0 to 8 do yield heart_container_bmp |]
 
-let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
+let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonDoubleMoatBMP; cdungeonChevyBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; 
+        cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
         cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
     let imageStream = GetResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)

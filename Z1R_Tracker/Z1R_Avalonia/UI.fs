@@ -1016,7 +1016,7 @@ let makeAll(owMapNum) =
                     elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=vmoat, 11=hmoat, 12=vchute, 13=hchute, 14=tee, 15=yellow, 16=red, 17=green, 18=explored empty
+        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=doublemoat, 11=chevy, 12=vmoat, 13=hmoat, 14=vchute, 15=hchute, 16=tee, 17=yellow, 18=red, 19=green, 20=explored empty
         let roomCleared = Array2D.zeroCreate 8 8 // boolean
         let ROOMS = 19 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
@@ -1040,15 +1040,17 @@ let makeAll(owMapNum) =
                     let image =
                         match roomStates.[i,j] with
                         | 0  -> Graphics.cdungeonUnexploredRoomBMP
-                        | 10 -> Graphics.cdungeonVMoatBMP
-                        | 11 -> Graphics.cdungeonHMoatBMP
-                        | 12 -> Graphics.cdungeonVChuteBMP
-                        | 13 -> Graphics.cdungeonHChuteBMP
-                        | 14 -> Graphics.cdungeonTeeBMP
-                        | 15 -> Graphics.cdungeonTriforceBMP 
-                        | 16 -> Graphics.cdungeonPrincessBMP 
-                        | 17 -> Graphics.cdungeonStartBMP 
-                        | 18 -> Graphics.cdungeonExploredRoomBMP 
+                        | 10 -> Graphics.cdungeonDoubleMoatBMP
+                        | 11 -> Graphics.cdungeonChevyBMP
+                        | 12 -> Graphics.cdungeonVMoatBMP
+                        | 13 -> Graphics.cdungeonHMoatBMP
+                        | 14 -> Graphics.cdungeonVChuteBMP
+                        | 15 -> Graphics.cdungeonHChuteBMP
+                        | 16 -> Graphics.cdungeonTeeBMP
+                        | 17 -> Graphics.cdungeonTriforceBMP 
+                        | 18 -> Graphics.cdungeonPrincessBMP 
+                        | 19 -> Graphics.cdungeonStartBMP 
+                        | 20 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                         |> (fun (u,c) -> if roomCleared.[i,j] then c else u)
                         |> Graphics.BMPtoImage
