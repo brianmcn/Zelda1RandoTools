@@ -1066,29 +1066,40 @@ let makeAll(owMapNum, audioInitiallyOn) =
         )
     timer.Start()
 
-    // Level trackers
+    // Dungeon level trackers
     let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
     let fixedDungeon1Outlines = ResizeArray()
     let fixedDungeon2Outlines = ResizeArray()
 
+    let grabHelper = new Dungeon.GrabHelper()
+    let grabModeTextBlock = new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, Child=
+        new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=16., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
+                      Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
+        )
     let dungeonTabs = new TabControl(FontSize=12.)
     dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
     canvasAdd(c, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
-        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
+        let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
+        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
+        let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
+        let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
+        canvasAdd(contentCanvas, dungeonCanvas, 0., 0.)
+        canvasAdd(contentCanvas, dungeonSourceHighlightCanvas, 0., 0.)
+        canvasAdd(contentCanvas, dungeonHighlightCanvas, 0., 0.)
 
-        levelTab.Content <- dungeonCanvas 
+        levelTab.Content <- contentCanvas
         dungeonTabs.Height <- dungeonCanvas.Height + 30.   // ok to set this 9 times
         dungeonTabs.Items.Add(levelTab) |> ignore
 
         let TEXT = sprintf "LEVEL-%d " level
         // horizontal doors
-        let unknown = new SolidColorBrush(Color.FromRgb(40uy, 40uy, 50uy)) 
-        let no = System.Windows.Media.Brushes.DarkRed
-        let yes = new System.Windows.Media.SolidColorBrush(Color.FromRgb(0uy,180uy,0uy))
-        let blackedOut = new SolidColorBrush(Color.FromRgb(15uy, 15uy, 25uy)) 
+        let unknown = Dungeon.unknown
+        let no = Dungeon.no
+        let yes = Dungeon.yes
+        let blackedOut = Dungeon.blackedOut
         let horizontalDoorCanvases = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -1096,16 +1107,18 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 horizontalDoorCanvases.[i,j] <- d
                 canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
                 let left _ =        
-                    if not(obj.Equals(d.Background, yes)) then
-                        d.Background <- yes
-                    else
-                        d.Background <- unknown
+                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                        if not(obj.Equals(d.Background, yes)) then
+                            d.Background <- yes
+                        else
+                            d.Background <- unknown
                 d.MouseLeftButtonDown.Add(left)
                 let right _ = 
-                    if not(obj.Equals(d.Background, no)) then
-                        d.Background <- no
-                    else
-                        d.Background <- unknown
+                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                        if not(obj.Equals(d.Background, no)) then
+                            d.Background <- no
+                        else
+                            d.Background <- unknown
                 d.MouseRightButtonDown.Add(right)
         // vertical doors
         let verticalDoorCanvases = Array2D.zeroCreate 8 7
@@ -1115,16 +1128,18 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 verticalDoorCanvases.[i,j] <- d
                 canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
                 let left _ =
-                    if not(obj.Equals(d.Background, yes)) then
-                        d.Background <- yes
-                    else
-                        d.Background <- unknown
+                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                        if not(obj.Equals(d.Background, yes)) then
+                            d.Background <- yes
+                        else
+                            d.Background <- unknown
                 d.MouseLeftButtonDown.Add(left)
                 let right _ = 
-                    if not(obj.Equals(d.Background, no)) then
-                        d.Background <- no
-                    else
-                        d.Background <- unknown
+                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                        if not(obj.Equals(d.Background, no)) then
+                            d.Background <- no
+                        else
+                            d.Background <- unknown
                 d.MouseRightButtonDown.Add(right)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
@@ -1132,11 +1147,40 @@ let makeAll(owMapNum, audioInitiallyOn) =
         let roomCompleted = Array2D.zeroCreate 8 8 
         let ROOMS = 21 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
+        let roomRedrawFuncs = ResizeArray()
+        let redrawAllRooms() =
+            for f in roomRedrawFuncs do
+                f()
+        let mutable grabRedraw = fun () -> ()
         for i = 0 to 7 do
-            // LEVEL-9        
-            let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true,
-                                    Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
-            canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+            if i=7 then
+                let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=true,
+                                        Text="GRAB", BorderThickness=Thickness(0.))
+                canvasAdd(dungeonCanvas, tb, float(i*51)+1., 0.)
+                grabRedraw <- (fun () ->
+                    if grabHelper.IsGrabMode then
+                        tb.Foreground <- Brushes.White
+                        tb.Background <- Brushes.Red
+                        dungeonTabs.Cursor <- System.Windows.Input.Cursors.Hand
+                        grabModeTextBlock.Opacity <- 1.
+                    else
+                        grabHelper.Abort()
+                        dungeonHighlightCanvas.Children.Clear()
+                        dungeonSourceHighlightCanvas.Children.Clear()
+                        tb.Foreground <- Brushes.Gray
+                        tb.Background <- Brushes.Black
+                        dungeonTabs.Cursor <- null
+                        grabModeTextBlock.Opacity <- 0.
+                    )
+                tb.PreviewMouseLeftButtonDown.Add(fun _ ->
+                    grabHelper.ToggleGrabMode()
+                    grabRedraw()
+                    )
+            else
+                // LEVEL-9        
+                let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                        Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
             // room map
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
@@ -1165,6 +1209,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
+                roomRedrawFuncs.Add(fun () -> redraw())
                 let f b =
                     // track transport being changed away from
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -1179,54 +1224,108 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                     redraw()
                 let BUFFER = 2.
-                c.MouseLeftButtonDown.Add(fun ea -> 
-                    let pos = ea.GetPosition(c)
-                    if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
-                        () // do nothing, as I often accidentally click room when trying to target doors with mouse
-                    else
-                        if roomStates.[i,j] <> 0 then
-                            roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                let highlightImpl(canvas,contiguous:_[,], brush) =
+                    for x = 0 to 7 do
+                        for y = 0 to 7 do
+                            if contiguous.[x,y] then
+                                let r = new Shapes.Rectangle(Width=float(13*3 + 12), Height=float(9*3 + 12), Fill=brush, Opacity=0.4, IsHitTestVisible=false)  // TODO creating lots of garbage
+                                canvasAdd(canvas, r, float(x*51 - 6), float(TH+y*39 - 6))
+                let highlight(contiguous:_[,], brush) = highlightImpl(dungeonHighlightCanvas,contiguous,brush)
+                c.MouseEnter.Add(fun _ ->
+                    if grabHelper.IsGrabMode then
+                        if not grabHelper.HasGrab then
+                            if roomStates.[i,j] <> 0 then
+                                dungeonHighlightCanvas.Children.Clear() // clear old preview
+                                let contiguous = grabHelper.PreviewGrab(i,j,roomStates)
+                                highlight(contiguous, Brushes.Lime)
                         else
-                            // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
-                            roomStates.[i,j] <- ROOMS-1
-                            roomCompleted.[i,j] <- true
-                        redraw()
-                        // shift click to mark not-on-map rooms (by "no"ing all the connections)
-                        if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
-                            if i > 0 then
-                                horizontalDoorCanvases.[i-1,j].Background <- blackedOut
-                            if i < 7 then
-                                horizontalDoorCanvases.[i,j].Background <- blackedOut
-                            if j > 0 then
-                                verticalDoorCanvases.[i,j-1].Background <- blackedOut
-                            if j < 7 then
-                                verticalDoorCanvases.[i,j].Background <- blackedOut
-                            // don't break transport count
-                            if [1..9] |> List.contains roomStates.[i,j] then
-                                usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-                            roomStates.[i,j] <- 0
-                            // black out the room (not reflected anywhere in backing room state)
-                            c.Children.Clear()
-                            canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
+                            dungeonHighlightCanvas.Children.Clear() // clear old preview
+                            let ok,warn = grabHelper.PreviewDrop(i,j,roomStates)
+                            highlight(ok, Brushes.Lime)
+                            highlight(warn, Brushes.Yellow)
+                    )
+                c.MouseLeave.Add(fun _ ->
+                    if grabHelper.IsGrabMode then
+                        dungeonHighlightCanvas.Children.Clear() // clear old preview
+                    )
+                c.MouseLeftButtonDown.Add(fun ea -> 
+                    if grabHelper.IsGrabMode then
+                        if not grabHelper.HasGrab then
+                            if roomStates.[i,j] <> 0 then
+                                dungeonHighlightCanvas.Children.Clear() // clear preview
+                                let contiguous = grabHelper.StartGrab(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
+                                highlight(contiguous, Brushes.Lime)
+                        else
+                            let backupRoomStates = roomStates.Clone() :?> int[,]
+                            let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
+                            let backupHorizontalDoors = horizontalDoorCanvases |> Array2D.map (fun c -> c.Background)
+                            let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
+                            grabHelper.DoDrop(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                            redrawAllRooms()  // make updated changes visual
+                            let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
+                            cmb.Owner <- Window.GetWindow(c)
+                            cmb.ShowDialog() |> ignore
+                            grabRedraw()  // DoDrop completes the grab, neeed to update the visual
+                            if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
+                                // copy back from old state
+                                backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
+                                backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
+                                redrawAllRooms()  // make reverted changes visual
+                                horizontalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupHorizontalDoors.[x,y])
+                                verticalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupVerticalDoors.[x,y])
+                    else
+                        let pos = ea.GetPosition(c)
+                        if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
+                            () // do nothing, as I often accidentally click room when trying to target doors with mouse
+                        else
+                            if roomStates.[i,j] <> 0 then
+                                roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                            else
+                                // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                                roomStates.[i,j] <- ROOMS-1
+                                roomCompleted.[i,j] <- true
+                            redraw()
+                            // shift click to mark not-on-map rooms (by "blackedOut"ing all the connections)
+                            if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                                if i > 0 then
+                                    horizontalDoorCanvases.[i-1,j].Background <- blackedOut
+                                if i < 7 then
+                                    horizontalDoorCanvases.[i,j].Background <- blackedOut
+                                if j > 0 then
+                                    verticalDoorCanvases.[i,j-1].Background <- blackedOut
+                                if j < 7 then
+                                    verticalDoorCanvases.[i,j].Background <- blackedOut
+                                // don't break transport count
+                                if [1..9] |> List.contains roomStates.[i,j] then
+                                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
+                                roomStates.[i,j] <- 0
+                                // black out the room (not reflected anywhere in backing room state)
+                                c.Children.Clear()
+                                canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
                     )
                 c.MouseRightButtonDown.Add(fun ea -> 
-                    let pos = ea.GetPosition(c)
-                    if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
-                        () // do nothing, as I often accidentally click room when trying to target doors with mouse
-                    else
-                        if roomStates.[i,j] = 0 then
-                            // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
-                            roomStates.[i,j] <- ROOMS-1
-                            roomCompleted.[i,j] <- false
-                            redraw()
+                    if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
+                        let pos = ea.GetPosition(c)
+                        if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
+                            () // do nothing, as I often accidentally click room when trying to target doors with mouse
+                        else
+                            if roomStates.[i,j] = 0 then
+                                // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
+                                roomStates.[i,j] <- ROOMS-1
+                                roomCompleted.[i,j] <- false
+                                redraw()
                     )
-                c.MouseWheel.Add(fun x -> f (x.Delta<0))
+                c.MouseWheel.Add(fun x -> 
+                    if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
+                        f (x.Delta<0))
                 // drag and drop to quickly 'paint' rooms
                 c.MouseMove.Add(fun ea ->
-                    if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
-                        DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
-                    elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
-                        DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
+                    if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
+                        if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
+                            DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
+                        elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
+                            DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
                     )
                 c.DragOver.Add(fun ea ->
                     if roomStates.[i,j] = 0 then
@@ -1287,6 +1386,10 @@ let makeAll(owMapNum, audioInitiallyOn) =
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
     canvasAdd(c, tb, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+
+    grabModeTextBlock.Opacity <- 0.
+    grabModeTextBlock.Width <- tb.Width
+    canvasAdd(c, grabModeTextBlock, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
     let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
 

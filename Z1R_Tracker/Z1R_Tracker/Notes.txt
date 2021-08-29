@@ -51,6 +51,8 @@ Left clicking an unmarked map tile will mark it 'X'
 Left or right clicking an item shop will cycle through choices of a second item in the shop (max 2 items)
 An unclaimed-but-known White Sword Item or Coast Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
 
+Hovering an overworld map tile shows a magnified version of that tile and nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
+
 Mouse-hover for routing from the current tile:
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
     - unmarked overworld spots
@@ -85,7 +87,7 @@ There are 9 tabs for the 9 dungeons.
 
 Rooms can be scrolled to mark:
  - stairway transports 1-9
- - special room shapes (horizontal/vertical moat/chute, tee)
+ - special room shapes (moats, chutes, tee, chevy, etc)
  - ad-hoc markers (red/yellow/green) the player can use as they see fit
  - grey box (typical 'uncompleted room')
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
@@ -96,6 +98,9 @@ Doors between rooms have three states:
  - dark grey is unknown (default)
  - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
+
+Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner of the dungeon map to
+switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to fix an offset map.
 
 FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
 
