@@ -31,7 +31,7 @@ type GrabHelper() =
             let roomX,roomY = q.Dequeue()
             contiguous.[roomX,roomY] <- true
             let unvisited(x,y) = x>=0 && x<=7 && y>=0 && y<=7 && not contiguous.[x,y]
-            let attempt(x,y) = if unvisited(x,y) && roomStates.[x,y]<>0 then q.Enqueue(x,y)
+            let attempt(x,y) = if unvisited(x,y) && roomStates.[x,y]<>0 && roomStates.[x,y]<>10 then q.Enqueue(x,y)
             attempt(roomX-1,roomY)
             attempt(roomX+1,roomY)
             attempt(roomX,roomY-1)

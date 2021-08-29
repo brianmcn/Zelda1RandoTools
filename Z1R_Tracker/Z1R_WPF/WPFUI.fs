@@ -1143,9 +1143,9 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 d.MouseRightButtonDown.Add(right)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 0 = unexplored, 1-9 = transports, 10=doublemoat, 11=chevy, 12=vmoat, 13=hmoat, 14=vchute, 15=hchute, 16=tee, 17=yellow, 18=red, 19=green, 20=explored empty
+        let roomStates = Array2D.zeroCreate 8 8 // 1-9 = transports, see redraw() below for rest
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let ROOMS = 21 // how many types
+        let ROOMS = 22 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         let roomRedrawFuncs = ResizeArray()
         let redrawAllRooms() =
@@ -1194,17 +1194,18 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     let image =
                         match roomStates.[i,j] with
                         | 0  -> Graphics.cdungeonUnexploredRoomBMP 
-                        | 10 -> Graphics.cdungeonDoubleMoatBMP
-                        | 11 -> Graphics.cdungeonChevyBMP
-                        | 12 -> Graphics.cdungeonVMoatBMP
-                        | 13 -> Graphics.cdungeonHMoatBMP
-                        | 14 -> Graphics.cdungeonVChuteBMP
-                        | 15 -> Graphics.cdungeonHChuteBMP
-                        | 16 -> Graphics.cdungeonTeeBMP
-                        | 17 -> Graphics.cdungeonTriforceBMP 
-                        | 18 -> Graphics.cdungeonPrincessBMP 
-                        | 19 -> Graphics.cdungeonStartBMP 
-                        | 20 -> Graphics.cdungeonExploredRoomBMP 
+                        | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
+                        | 11 -> Graphics.cdungeonDoubleMoatBMP
+                        | 12 -> Graphics.cdungeonChevyBMP
+                        | 13 -> Graphics.cdungeonVMoatBMP
+                        | 14 -> Graphics.cdungeonHMoatBMP
+                        | 15 -> Graphics.cdungeonVChuteBMP
+                        | 16 -> Graphics.cdungeonHChuteBMP
+                        | 17 -> Graphics.cdungeonTeeBMP
+                        | 18 -> Graphics.cdungeonTriforceBMP 
+                        | 19 -> Graphics.cdungeonPrincessBMP 
+                        | 20 -> Graphics.cdungeonStartBMP 
+                        | 21 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
@@ -1216,8 +1217,8 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
                     // go to next state
                     roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
-                    // skip transport if already used both
-                    while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 do
+                    // skip transport if already used both; also skip state 10 (blackedOut)
+                    while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 || roomStates.[i,j]=10 do
                         roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
                     // note any new transports
                     if [1..9] |> List.contains roomStates.[i,j] then
@@ -1234,7 +1235,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 c.MouseEnter.Add(fun _ ->
                     if grabHelper.IsGrabMode then
                         if not grabHelper.HasGrab then
-                            if roomStates.[i,j] <> 0 then
+                            if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
                                 dungeonHighlightCanvas.Children.Clear() // clear old preview
                                 let contiguous = grabHelper.PreviewGrab(i,j,roomStates)
                                 highlight(contiguous, Brushes.Lime)
@@ -1251,7 +1252,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                 c.MouseLeftButtonDown.Add(fun ea -> 
                     if grabHelper.IsGrabMode then
                         if not grabHelper.HasGrab then
-                            if roomStates.[i,j] <> 0 then
+                            if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
                                 dungeonHighlightCanvas.Children.Clear() // clear preview
                                 let contiguous = grabHelper.StartGrab(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
                                 highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
@@ -1279,30 +1280,41 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
                             () // do nothing, as I often accidentally click room when trying to target doors with mouse
                         else
-                            if roomStates.[i,j] <> 0 then
-                                roomCompleted.[i,j] <- not roomCompleted.[i,j]
-                            else
-                                // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
-                                roomStates.[i,j] <- ROOMS-1
-                                roomCompleted.[i,j] <- true
-                            redraw()
-                            // shift click to mark not-on-map rooms (by "blackedOut"ing all the connections)
                             if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
-                                if i > 0 then
-                                    horizontalDoorCanvases.[i-1,j].Background <- blackedOut
-                                if i < 7 then
-                                    horizontalDoorCanvases.[i,j].Background <- blackedOut
-                                if j > 0 then
-                                    verticalDoorCanvases.[i,j-1].Background <- blackedOut
-                                if j < 7 then
-                                    verticalDoorCanvases.[i,j].Background <- blackedOut
-                                // don't break transport count
-                                if [1..9] |> List.contains roomStates.[i,j] then
-                                    usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-                                roomStates.[i,j] <- 0
-                                // black out the room (not reflected anywhere in backing room state)
-                                c.Children.Clear()
-                                canvasAdd(c, Graphics.BMPtoImage (snd Graphics.cdungeonUnexploredRoomBMP), 0., 0.)
+                                // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
+                                if roomStates.[i,j] = 0 then
+                                    if i > 0 then
+                                        horizontalDoorCanvases.[i-1,j].Background <- blackedOut
+                                    if i < 7 then
+                                        horizontalDoorCanvases.[i,j].Background <- blackedOut
+                                    if j > 0 then
+                                        verticalDoorCanvases.[i,j-1].Background <- blackedOut
+                                    if j < 7 then
+                                        verticalDoorCanvases.[i,j].Background <- blackedOut
+                                    roomStates.[i,j] <- 10
+                                    roomCompleted.[i,j] <- true
+                                    redraw()
+                                // shift click a blackedOut room to undo it back to unknown
+                                elif roomStates.[i,j] = 10 then
+                                    if i > 0 && obj.Equals(horizontalDoorCanvases.[i-1,j].Background,blackedOut) then
+                                        horizontalDoorCanvases.[i-1,j].Background <- unknown
+                                    if i < 7 && obj.Equals(horizontalDoorCanvases.[i,j].Background,blackedOut) then
+                                        horizontalDoorCanvases.[i,j].Background <- unknown
+                                    if j > 0 && obj.Equals(verticalDoorCanvases.[i,j-1].Background,blackedOut) then
+                                        verticalDoorCanvases.[i,j-1].Background <- unknown
+                                    if j < 7 && obj.Equals(verticalDoorCanvases.[i,j].Background,blackedOut) then
+                                        verticalDoorCanvases.[i,j].Background <- unknown
+                                    roomStates.[i,j] <- 0
+                                    roomCompleted.[i,j] <- false
+                                    redraw()
+                            else
+                                if roomStates.[i,j] <> 0 then
+                                    roomCompleted.[i,j] <- not roomCompleted.[i,j]
+                                else
+                                    // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                                    roomStates.[i,j] <- ROOMS-1
+                                    roomCompleted.[i,j] <- true
+                                redraw()
                     )
                 c.MouseRightButtonDown.Add(fun ea -> 
                     if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
