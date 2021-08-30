@@ -705,7 +705,30 @@ let makeAll(owMapNum) =
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 10., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(c, tb, 38., THRU_MAP_AND_LEGEND_H + 4.)
+
+    // Version
+    let vb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
+                            Text=sprintf "v%s" OverworldData.VersionString, IsReadOnly=true, IsHitTestVisible=false),
+                        BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
+    canvasAdd(c, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
+    vb.Click.Add(fun _ ->
+        let cmb = new CustomMessageBox.CustomMessageBox(OverworldData.AboutHeader, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+        async {
+            let task = cmb.ShowDialog((Application.Current.ApplicationLifetime :?> ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).MainWindow)
+            do! Async.AwaitTask task
+            if cmb.MessageBoxResult = "Go to website" then
+                let cmd = (sprintf "xdg-open %s" OverworldData.Website).Replace("\"", "\\\"")
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                    FileName = "/bin/sh",
+                    Arguments = sprintf "-c \"%s\"" cmd,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                    )) |> ignore
+        } |> Async.StartImmediate
+        )
     
     let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
     let mutable row=0 
@@ -718,8 +741,8 @@ let makeAll(owMapNum) =
     hintBorder.Opacity <- 0.
     hintBorder.IsHitTestVisible <- false
     canvasAdd(c, hintBorder, 30., 120.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Hint Decoder")
-    canvasAdd(c, tb, 480., THRU_MAP_AND_LEGEND_H + 6.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Decode Hint")
+    canvasAdd(c, tb, 496., THRU_MAP_AND_LEGEND_H + 4.)
     tb.PointerEnter.Add(fun _ -> hintBorder.Opacity <- 1.0)
     tb.PointerLeave.Add(fun _ -> hintBorder.Opacity <- 0.0)
 
@@ -732,7 +755,7 @@ let makeAll(owMapNum) =
     kitty.Source <- new Avalonia.Media.Imaging.Bitmap(imageStream)
     kitty.Width <- THRU_MAP_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAP_H - THRU_MAIN_MAP_H
-    canvasAdd(c, kitty, 14.*OMTW, THRU_MAIN_MAP_H)
+    canvasAdd(c, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let doUIUpdate() =
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
@@ -745,7 +768,7 @@ let makeAll(owMapNum) =
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
-        let mutable x, y = 90., 3.
+        let mutable x, y = 116., 3.
         let DX = 30.
         match TrackerModel.playerComputedStateSummary.SwordLevel with
         | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)
@@ -1153,7 +1176,7 @@ let makeAll(owMapNum) =
                                 let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
                                 grabHelper.DoDrop(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
                                 redrawAllRooms()  // make updated changes visual
-                                let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
+                                let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
                                 async {
                                     let task = cmb.ShowDialog((Application.Current.ApplicationLifetime :?> ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).MainWindow)
                                     do! Async.AwaitTask task

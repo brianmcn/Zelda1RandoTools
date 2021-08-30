@@ -1,5 +1,13 @@
 ﻿module OverworldData
 
+ // TODO move this elsewhere?
+let VersionString = "0.9"
+let Website = "https://github.com/brianmcn/Zelda1RandoTools"
+let AboutHeader = "About Z-Tracker"
+let AboutBody = sprintf "Z-Tracker v%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" VersionString Website
+
+
+
 let hintMeanings = [|
     "Aquamentus Awaits", "Level 1"
     "Dodongo Dwells", "Level 2"

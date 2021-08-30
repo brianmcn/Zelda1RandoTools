@@ -810,7 +810,20 @@ let makeAll(owMapNum, audioInitiallyOn) =
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
-    canvasAdd(c, tb, 120., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(c, tb, 120., THRU_MAP_AND_LEGEND_H + 4.)
+
+    // Version
+    let vb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
+                            Text=sprintf "v%s" OverworldData.VersionString, IsReadOnly=true, IsHitTestVisible=false),
+                        BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
+    canvasAdd(c, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
+    vb.Click.Add(fun _ ->
+        let cmb = new CustomMessageBox.CustomMessageBox(OverworldData.AboutHeader, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+        cmb.Owner <- Window.GetWindow(c)
+        cmb.ShowDialog() |> ignore
+        if cmb.MessageBoxResult = "Go to website" then
+            System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+        )
 
     let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
     let mutable row=0 
@@ -1264,7 +1277,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                             let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
                             grabHelper.DoDrop(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
                             redrawAllRooms()  // make updated changes visual
-                            let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
+                            let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
                             cmb.Owner <- Window.GetWindow(c)
                             cmb.ShowDialog() |> ignore
                             grabRedraw()  // DoDrop completes the grab, neeed to update the visual

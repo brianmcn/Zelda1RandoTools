@@ -12,8 +12,7 @@ SMALL
 
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
-some in-game pointer to website, authorship
-versioning
+versioning . . .
 second quest dungeons (4 rather than 1 has 3 items)
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
 right click item box to mark as 'skipped'? (pretend I have, but actually no)
