@@ -10,26 +10,90 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
+right click timer brings up copy/paste menu now, thats a bug.  maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks?
+hover text for candle/bomb should say affects routing
+'More Options...' label in the top corner of timeline, clicking changes the whole pane, and moving mouse away (for a few seconds?) goes back to timeline (want to preserve ability to mouse-hover timeline)
+ - need to have timeline labels have 'highest penalty' so never overwritten by items
+ - options currently would include: routing, magnifier, speech recognition, set of voice reminders.  future might have layout options, other stuff (whistle/recorder spots as boxes versus map dots?)
+ - options probably also on start screen, and say "can change later in 'More Options...' menu"
+ - option settings maybe go in tracker model? hm
+second quest dungeons option (L4 rather than L1 has 3 items) - could be toggled mid-game just by moving location of item box
+should 'OW spots left' have a show-on-hover?
+
+power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 binary packaging for redistribution (can probably compile all resources into a single EXE)
 versioning . . .
-second quest dungeons (4 rather than 1 has 3 items)
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
-right click item box to mark as 'skipped'? (pretend I have, but actually no)
-yellow door state?
+right click item box to mark as 'skipped'? (pretend I have, but actually no) or maybe shift-click? (or middle-click?)  (bomb & audio reminder boxes ought not have this state)
+yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 'go mode' reminder/announcement
-list of remaining box items?
+show list of remaining box items? if less than N left?
+something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
 MEDIUM
 
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
-crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative)
+crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
 review other common flagsets from rando, what works, what could work, etc
+ - currently assumes these rando flags:
+    - (routing, map legend) whistle to new dungeons & not recorder-to-unbeaten
+    - (display) not mirror overworld
+    - (reminders) change sword hearts
+    - (reminders/display) 3 starting hearts
+    - (reminders) level 9 requires 8 triforces
+ - works poorly with
+    - hide dungeon numbers
+    - book to understand old men? (how do you mark people to come back to talk to?)
+
+
 
 BIG
 
 layout options, e.g. maybe overworld map and dungeon/notes are two tabs, kinda like zhelper, for those who prefer a 4x3-ish layout, etc, hm
 Keyboard focus, keyboard shortcuts for marking maps, etc
 auto-tracking (link to emulator)
+
+
+
+
+
+
+
+comparisons to ZHelper
+
+ZHelper has lots of features this tracker lacks (save state, network coordination, support for more rando flagsets, ...) and consumes less screen real estate.
+
+That said, I think this tracker has a number of advantages in usability, both in design and feature set:
+
+ - All the items from a dungeon are in a single column.  No more accidentally marking 6's basement item in 5's slot, and then being confused later.
+
+ - More consistent use of color: as things are completed (overworld 'X' spot, completed dungeon/room), they get 'dimmer' coloration, to fade somewhat into the background.
+   As a result, the eye is drawn to the bright spots, which are where the remaining work is and where the player needs to focus.
+
+ - Less scrolling: when an item or dungeon location is found, it gets removed from the 'scroll wheel pool', which means that as the game progresses, you need fewer scrolls to find the remaining mark you need.
+
+ - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.
+
+ - Fewer clicks: mouse hovering can show the area zone overlay or helpful hints; fewer options for e.g. dungeon doors provide a simpler interface.
+
+ - Quick after-the-fact dungeon markup: if you play half a dungeon without mapping, and then decide you need to map it, drag gestures can quickly 'paint out' the already-explored portions.
+
+This tracker also has a number of attractive added features, including:
+
+ - ability to mark two items in a shop, rather than just one
+
+ - ability to correct mistakes in dungeon markup (e.g. when you put a bunch of rooms in the wrong column) by cut&pasting a segment
+
+ - a note-taking text area to type ad-hoc reminders to yourself (e.g. "2 gohma", or "L5 bomb upgrade 106")
+
+ - overworld routing guidance that can help steer newer players to remaining unexplored locations
+
+ - a timeline which displays the 'history' of when you got key items, to orient latecomer stream viewers, or to help you replay the seed in your head in the post-game recap analysis
+
+ - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld with no scrolling
+
+
+
