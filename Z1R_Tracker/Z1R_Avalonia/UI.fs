@@ -55,7 +55,9 @@ let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
-let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
+let owRemainingScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
+let owGettableScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
 
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
@@ -863,7 +865,9 @@ let makeAll(owMapNum) =
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
             member _this.AnnounceConsiderSword2() = ()
             member _this.AnnounceConsiderSword3() = ()
-            member _this.OverworldSpotsRemaining(n) = (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" n 
+            member _this.OverworldSpotsRemaining(remain,gettable) =
+                owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
+                owGettableScreensTextBox.Text <- sprintf "Show %d gettable" gettable
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
                     drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
@@ -911,7 +915,7 @@ let makeAll(owMapNum) =
                     OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                                     TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), i, j)
                 // unexplored but gettable spots highlight
-                if owRemainingScreensCheckBox.IsChecked.HasValue && owRemainingScreensCheckBox.IsChecked.Value then
+                if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
                     for x = 0 to 15 do
                         for y = 0 to 7 do
                             if owRouteworthySpots.[x,y] && TrackerModel.overworldMapMarks.[x,y].Current() = -1 then
@@ -1360,9 +1364,10 @@ let makeAll(owMapNum) =
     canvasAdd(c, grabModeTextBlock, 402., THRU_TIMELINE_H) 
 
     // remaining OW spots
-    canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 60.)
-    owRemainingScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
-    owRemainingScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
+    canvasAdd(c, owRemainingScreensTextBox, RIGHT_COL+30., 46.)
+    canvasAdd(c, owGettableScreensCheckBox, RIGHT_COL, 68.)
+    owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
+    owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 90.)
     // coordinate grid

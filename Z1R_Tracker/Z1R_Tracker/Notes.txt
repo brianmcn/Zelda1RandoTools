@@ -36,6 +36,7 @@ OVERWORLD MAP
 HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and you Hide First Quest or Hide Second Quest if that's later helpful
 Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Show coords - click or hover to show a coordinate overlay
+Show N gettable - click to animate all the overworld tiles you could uncover given your current item set
 
 16x8 Map Tiles - scroll to mark what is there:
  - 1-9 dungeons

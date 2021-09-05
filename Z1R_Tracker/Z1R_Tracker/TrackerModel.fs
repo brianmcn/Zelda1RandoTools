@@ -464,7 +464,7 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Loca
     member _this.OwRouteworthySpots = owRouteworthySpots
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
-let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,0,null,null,0,null,null,null)
+let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
 let mutable mapStateSummaryLastComputedTime = System.DateTime.Now
 let recomputeMapStateSummary() =
     let dungeonLocations = Array.create 9 NOTFOUND
@@ -566,7 +566,7 @@ type ITrackerEvents =
     abstract AnnounceConsiderSword2 : unit -> unit
     abstract AnnounceConsiderSword3 : unit -> unit
     // map
-    abstract OverworldSpotsRemaining : int -> unit
+    abstract OverworldSpotsRemaining : int * int -> unit  // total remaining, currently gettable
     abstract DungeonLocation : int*int*int*bool*bool -> unit   // number 0-7, x, y, hasTri, isCompleted --- to update triforce color (found), completed shading, recorderable/completed map icon
     abstract AnyRoadLocation : int*int*int -> unit // number 0-3, x, y
     abstract WhistleableLocation : int*int -> unit // x, y
@@ -600,7 +600,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         if not(playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && mapStateSummary.Sword3Location<>NOTFOUND then
             ite.AnnounceConsiderSword3()
     // map
-    ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain)
+    ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain, mapStateSummary.OwGettableLocations.Count)
     for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d] <> NOTFOUND then
             let x,y = mapStateSummary.DungeonLocations.[d]

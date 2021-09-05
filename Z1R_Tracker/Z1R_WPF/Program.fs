@@ -119,6 +119,7 @@ type MyWindow() as this =
         stackPanel.Children.Add(options) |> ignore
 
         let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing)
+        tb.TextAlignment <- TextAlignment.Center
         stackPanel.Children.Add(tb) |> ignore
 
         let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true), Margin=spacing)

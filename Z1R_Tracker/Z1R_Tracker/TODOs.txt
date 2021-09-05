@@ -11,7 +11,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 SMALL
 
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
-should 'OW spots left' have a show-on-hover? and it highlights 'gettable' but counts 'all remain', need better something
 
 always-bombable spots:  
  - with routing, i suppose my nearby-highlight could be yellowish for maybes and greenish for always?
