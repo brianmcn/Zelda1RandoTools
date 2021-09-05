@@ -371,7 +371,7 @@ let makeAll(owMapNum) =
         c
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 0, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
     gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ())), 2, 1)
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
@@ -382,7 +382,7 @@ let makeAll(owMapNum) =
     canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), OFFSET+120., 90.)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
-    bombIcon.ToolTip <- "Player currently has bombs"
+    bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
     // shield versus book icon (for boomstick flags/seeds)
@@ -396,11 +396,11 @@ let makeAll(owMapNum) =
     // ow map animation layer
     let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
                                   AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    let slowerBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames(Duration=new Duration(System.TimeSpan.FromSeconds(4.0)), RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.0))) |> ignore
+    let slowerBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames(Duration=new Duration(System.TimeSpan.FromSeconds(3.0)), RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.0))) |> ignore
     slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.5, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.25))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.5))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.2, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(1.0))) |> ignore
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.5))) |> ignore
+    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(1.0))) |> ignore
     let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
         let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=System.Windows.Media.Brushes.Lime)
         rect.BeginAnimation(UIElement.OpacityProperty, slowerBlinkAnimation)

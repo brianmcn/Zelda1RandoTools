@@ -19,7 +19,7 @@ type MyWindow(owMapNum) as this =
     let mutable startTime = DateTime.Now
     let mutable canvas, updateTimeline = null, fun _ -> ()
     let mutable lastUpdateMinute = 0
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
+    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                 items  ow map  prog  timeline     dungeon tabs                
     let HEIGHT = float(30*4 + 11*3*9 + 30 + UI.TCH + 6 + UI.TH + UI.TH + 27*8 + 12*7 + 30)
     let WIDTH = 16.*OverworldRouteDrawing.OMTW

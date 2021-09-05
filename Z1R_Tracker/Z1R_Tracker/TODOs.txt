@@ -10,27 +10,29 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-right click timer brings up copy/paste menu now, thats a bug.  maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks?
-hover text for candle/bomb should say affects routing
+timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
 second quest dungeons option (L4 rather than L1 has 3 items) - could be toggled mid-game just by moving location of item box
-should 'OW spots left' have a show-on-hover?
+should 'OW spots left' have a show-on-hover? and it highlights 'gettable' but counts 'all remain', need better something
 
 always-bombable spots:  
  - with routing, i suppose my nearby-highlight could be yellowish for maybes and greenish for always?
  - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?' or make the 'highlight pixel' a darker color?
 
-shift-click the start screen to place the lime circle
+
+shift-click the start screen to place the lime circle? 
+something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
+
 
 power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
-binary packaging for redistribution (can probably compile all resources into a single EXE)
+binary packaging for redistribution?
 versioning . . .
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
 right click item box to mark as 'skipped'? (pretend I have, but actually no) or maybe shift-click? (or middle-click?)  (bomb & audio reminder boxes ought not have this state)
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 'go mode' reminder/announcement
 show list of remaining box items? if less than N left?
-something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
+
 
 MEDIUM
 
@@ -58,6 +60,7 @@ review other common flagsets from rando, what works, what could work, etc
 
 Layout/size/stretch options were common requests for zhelper – can I scale?
 
+auto save/load tracker state (not just options)?
 
 BIG
 
