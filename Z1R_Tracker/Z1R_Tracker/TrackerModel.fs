@@ -2,6 +2,111 @@
 
 // model to track the state of the tracker independent of any UI/graphics layer
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Options
+
+open System.Text.Json
+open System.Text.Json.Serialization
+
+module Options =
+    type Bool(init) =
+        let mutable v = init
+        member this.Value with get() = v and set(x) = v <- x
+    module Overworld =
+        let mutable DrawRoutes = Bool(true)
+        let mutable HighlightNearby = Bool(true)
+        let mutable ShowMagnifier = Bool(true)
+    module VoiceReminders =
+        let mutable DungeonFeedback = Bool(true)
+        let mutable SwordHearts = Bool(true)
+        let mutable CoastItem = Bool(true)
+        let mutable RecorderPBSpots = Bool(true)
+        let mutable HaveKeyLadder = Bool(true)
+    let mutable ListenForSpeech = Bool(true)
+    let mutable IsSecondQuestDungeons = Bool(false)
+    let mutable IsMuted = false
+    let mutable Volume = 30
+
+    type ReadWrite() =
+        member val DrawRoutes = true with get,set
+        member val HighlightNearby = true with get,set
+        member val ShowMagnifier = true with get,set
+
+        member val DungeonFeedback = true with get,set
+        member val SwordHearts = true with get,set
+        member val CoastItem = true with get,set
+        member val RecorderPBSpots = true with get,set
+        member val HaveKeyLadder = true with get,set
+        
+        member val ListenForSpeech = true with get,set
+        member val IsSecondQuestDungeons = false with get,set
+
+        member val IsMuted = false with get, set
+        member val Volume = 30 with get, set
+
+    let mutable private cachedSettingJson = null
+
+    let private read(filename) =
+        try
+            cachedSettingJson <- System.IO.File.ReadAllText(filename)
+            let data = JsonSerializer.Deserialize<ReadWrite>(cachedSettingJson, new JsonSerializerOptions(AllowTrailingCommas=true))
+            Overworld.DrawRoutes.Value <- data.DrawRoutes
+            Overworld.HighlightNearby.Value <- data.HighlightNearby
+            Overworld.ShowMagnifier.Value <- data.ShowMagnifier
+
+            VoiceReminders.DungeonFeedback.Value <- data.DungeonFeedback
+            VoiceReminders.SwordHearts.Value <- data.SwordHearts
+            VoiceReminders.CoastItem.Value <- data.CoastItem
+            VoiceReminders.RecorderPBSpots.Value <- data.RecorderPBSpots
+            VoiceReminders.HaveKeyLadder.Value <- data.HaveKeyLadder
+
+            ListenForSpeech.Value <- data.ListenForSpeech
+            IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
+            IsMuted <- data.IsMuted
+            Volume <- max 0 (min 100 data.Volume)
+        with e ->
+            printfn "failed to read settings file '%s':" filename 
+            printfn "%s" (e.ToString())
+            printfn ""
+
+    let private write(filename) =
+        let data = ReadWrite()
+        data.DrawRoutes <- Overworld.DrawRoutes.Value
+        data.HighlightNearby <- Overworld.HighlightNearby.Value
+        data.ShowMagnifier <- Overworld.ShowMagnifier.Value
+
+        data.DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
+        data.SwordHearts <- VoiceReminders.SwordHearts.Value
+        data.CoastItem <- VoiceReminders.CoastItem.Value
+        data.RecorderPBSpots <- VoiceReminders.RecorderPBSpots.Value
+        data.HaveKeyLadder <- VoiceReminders.HaveKeyLadder.Value
+
+        data.ListenForSpeech <- ListenForSpeech.Value
+        data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.IsMuted <- IsMuted
+        data.Volume <- Volume
+
+        try
+            let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
+            if json <> cachedSettingJson then
+                cachedSettingJson <- json
+                System.IO.File.WriteAllText(filename, cachedSettingJson)
+        with e ->
+            printfn "failed to write settings file '%s':" filename
+            printfn "%s" (e.ToString())
+            printfn ""
+
+    let mutable private settingsFile = null
+    
+    let readSettings() =
+        if settingsFile = null then
+            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
+        read(settingsFile)
+    let writeSettings() =
+        if settingsFile = null then
+            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
+        write(settingsFile)
+
 ///////////////////////////////////////////////////////////////////////////
 
 // abstraction for a set of scrollable choices
@@ -217,6 +322,7 @@ type Box() =
         playerHas <- not playerHas
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
 
+let FinalBoxOf1Or4 = new Box()
 type Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false  // just ignore this for dungeon 9 (id=8)
     let boxes = Array.init numBoxes (fun _ -> new Box())
@@ -224,11 +330,15 @@ type Dungeon(id,numBoxes) =
         mapSquareChoiceDomain.NumUses(id) = 1
     member _this.PlayerHasTriforce() = playerHasTriforce
     member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
-    member _this.Boxes = boxes
-    member _this.IsComplete = playerHasTriforce && boxes |> Array.forall (fun b -> b.PlayerHas())
+    member _this.Boxes = 
+        if id=0 && not(Options.IsSecondQuestDungeons.Value) || id=3 && Options.IsSecondQuestDungeons.Value then
+            [| yield! boxes; yield FinalBoxOf1Or4 |]
+        else
+            boxes
+    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas())
 
 let dungeons = [|
-    new Dungeon(0, 3)
+    new Dungeon(0, 2)
     new Dungeon(1, 2)
     new Dungeon(2, 2)
     new Dungeon(3, 2)
@@ -546,106 +656,6 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.RemindShortly(ITEMS.KEY)
         remindedAnyKey <- true
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Options
-
-open System.Text.Json
-open System.Text.Json.Serialization
-
-module Options =
-    type Bool(init) =
-        let mutable v = init
-        member this.Value with get() = v and set(x) = v <- x
-    module Overworld =
-        let mutable DrawRoutes = Bool(true)
-        let mutable HighlightNearby = Bool(true)
-        let mutable ShowMagnifier = Bool(true)
-    module VoiceReminders =
-        let mutable DungeonFeedback = Bool(true)
-        let mutable SwordHearts = Bool(true)
-        let mutable CoastItem = Bool(true)
-        let mutable RecorderPBSpots = Bool(true)
-        let mutable HaveKeyLadder = Bool(true)
-    let mutable ListenForSpeech = Bool(true)
-    let mutable IsMuted = false
-    let mutable Volume = 30
-
-    type ReadWrite() =
-        member val DrawRoutes = true with get,set
-        member val HighlightNearby = true with get,set
-        member val ShowMagnifier = true with get,set
-
-        member val DungeonFeedback = true with get,set
-        member val SwordHearts = true with get,set
-        member val CoastItem = true with get,set
-        member val RecorderPBSpots = true with get,set
-        member val HaveKeyLadder = true with get,set
-        
-        member val ListenForSpeech = true with get,set
-
-        member val IsMuted = false with get, set
-        member val Volume = 30 with get, set
-
-    let mutable private cachedSettingJson = null
-
-    let private read(filename) =
-        try
-            cachedSettingJson <- System.IO.File.ReadAllText(filename)
-            let data = JsonSerializer.Deserialize<ReadWrite>(cachedSettingJson, new JsonSerializerOptions(AllowTrailingCommas=true))
-            Overworld.DrawRoutes.Value <- data.DrawRoutes
-            Overworld.HighlightNearby.Value <- data.HighlightNearby
-            Overworld.ShowMagnifier.Value <- data.ShowMagnifier
-
-            VoiceReminders.DungeonFeedback.Value <- data.DungeonFeedback
-            VoiceReminders.SwordHearts.Value <- data.SwordHearts
-            VoiceReminders.CoastItem.Value <- data.CoastItem
-            VoiceReminders.RecorderPBSpots.Value <- data.RecorderPBSpots
-            VoiceReminders.HaveKeyLadder.Value <- data.HaveKeyLadder
-
-            ListenForSpeech.Value <- data.ListenForSpeech
-            IsMuted <- data.IsMuted
-            Volume <- max 0 (min 100 data.Volume)
-        with e ->
-            printfn "failed to read settings file '%s':" filename 
-            printfn "%s" (e.ToString())
-            printfn ""
-
-    let private write(filename) =
-        let data = ReadWrite()
-        data.DrawRoutes <- Overworld.DrawRoutes.Value
-        data.HighlightNearby <- Overworld.HighlightNearby.Value
-        data.ShowMagnifier <- Overworld.ShowMagnifier.Value
-
-        data.DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
-        data.SwordHearts <- VoiceReminders.SwordHearts.Value
-        data.CoastItem <- VoiceReminders.CoastItem.Value
-        data.RecorderPBSpots <- VoiceReminders.RecorderPBSpots.Value
-        data.HaveKeyLadder <- VoiceReminders.HaveKeyLadder.Value
-
-        data.ListenForSpeech <- ListenForSpeech.Value
-        data.IsMuted <- IsMuted
-        data.Volume <- Volume
-
-        try
-            let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
-            if json <> cachedSettingJson then
-                cachedSettingJson <- json
-                System.IO.File.WriteAllText(filename, cachedSettingJson)
-        with e ->
-            printfn "failed to write settings file '%s':" filename
-            printfn "%s" (e.ToString())
-            printfn ""
-
-    let mutable private settingsFile = null
-    
-    let readSettings() =
-        if settingsFile = null then
-            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
-        read(settingsFile)
-    let writeSettings() =
-        if settingsFile = null then
-            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
-        write(settingsFile)
 
         
 

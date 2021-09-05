@@ -53,7 +53,7 @@ let makeGrid(nc, nr, cw, rh) =
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
-let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4))
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensCheckBox = new CheckBox(Content = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "OW spots left: %d" TrackerModel.mapStateSummary.OwSpotsRemain))
 
@@ -186,14 +186,23 @@ let makeAll(owMapNum) =
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
+    let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.FinalBoxOf1Or4, false)
     for i = 0 to 8 do
         for j = 0 to 2 do
-            let mutable c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-            if j=0 || j=1 || (i=0 || i=7) then
-                c <- boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j], false)
-                gridAdd(mainTracker, c, i, j+1)
+            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            gridAdd(mainTracker, c, i, j+1)
+            if j=0 || j=1 || i=7 then
+                canvasAdd(c, boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j], false), 0., 0.)
             if i < 8 then
                 mainTrackerCanvases.[i,j+1] <- c
+    let RedrawForSecondQuestDungeonToggle() =
+        mainTrackerCanvases.[0,3].Children.Remove(finalCanvasOf1Or4) |> ignore
+        mainTrackerCanvases.[3,3].Children.Remove(finalCanvasOf1Or4) |> ignore
+        if TrackerModel.Options.IsSecondQuestDungeons.Value then
+            canvasAdd(mainTrackerCanvases.[3,3], finalCanvasOf1Or4, 0., 0.)
+        else
+            canvasAdd(mainTrackerCanvases.[0,3], finalCanvasOf1Or4, 0., 0.)
+    RedrawForSecondQuestDungeonToggle()
 
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -764,6 +773,7 @@ let makeAll(owMapNum) =
         let img = if TrackerModel.mapStateSummary.DungeonLocations.[8]=TrackerModel.NOTFOUND then Graphics.unfoundL9 else Graphics.foundL9
         canvasAdd(level9NumeralCanvas, img, 0., 0.)
         recorderingCanvas.Children.Clear()
+        RedrawForSecondQuestDungeonToggle()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
         let mutable x, y = 116., 3.
