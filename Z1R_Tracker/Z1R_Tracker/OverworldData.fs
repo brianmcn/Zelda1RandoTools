@@ -172,6 +172,17 @@ module PrivateInternals =
         ".X.X......XX..XX"
         |]
 
+    let owMapSquaresMixedQuestSometimesEmpty = [|
+        "X.X..XX..X......"
+        ".X...X..XX.X...."
+        "XX.....X.X.XX..."
+        "X.........X....."
+        ".......X........"
+        "...X....X......."
+        "X.X....X...XXXX."
+        ".XX........X...."
+        |]
+
     let owMapSquaresMixedQuestAlwaysEmpty = [|
         for i = 0 to 7 do
             let mutable s = ""
@@ -243,6 +254,12 @@ type OverworldInstance(quest) =  // TODO figure out where mirror overworld layer
         | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X'
         | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
         | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
+    member this.SometimesEmpty(x,y) =
+        match quest with
+        | FIRST ->        false
+        | SECOND ->       false
+        | MIXED_FIRST ->  PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
+        | MIXED_SECOND -> PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
 
 // yellow brown rocks in the top half of '\'
 let overworldSouthEastRockTiles = [|

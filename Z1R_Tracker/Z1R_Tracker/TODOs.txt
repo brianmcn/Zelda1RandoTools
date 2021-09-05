@@ -13,8 +13,8 @@ SMALL
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
 
 always-bombable spots:  
- - with routing, i suppose my nearby-highlight could be yellowish for maybes and greenish for always?
- - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?' or make the 'highlight pixel' a darker color?
+ - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?'  - no it looks awful
+ - or make the 'highlight pixel' a darker color?
 
 
 shift-click the start screen to place the lime circle? 

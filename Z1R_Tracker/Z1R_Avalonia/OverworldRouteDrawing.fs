@@ -107,7 +107,7 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                             pq.Enqueue((if ok then cost else 99999), (i,j))
         if TrackerModel.Options.Overworld.HighlightNearby.Value then 
             // highlight cheapest N unmarked
-            let N = 8
+            let N = 12
             let toHighlight = ResizeArray()
             let rec iterate(N,recentCost) =
                 if not pq.IsEmpty then
@@ -120,7 +120,12 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                 toHighlight.Add(i,j)
                 iterate(N-1,recentCost)
             for (i,j) in toHighlight do
-                let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
+                let color,opacity = 
+                    if TrackerModel.owInstance.SometimesEmpty(i,j) then
+                        Brushes.Yellow, 0.35
+                    else
+                        Brushes.Lime, 0.3
+                let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=color,Opacity=opacity,IsHitTestVisible=false)
                 canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
 
 
