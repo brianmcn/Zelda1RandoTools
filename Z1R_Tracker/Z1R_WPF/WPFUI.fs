@@ -5,9 +5,8 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
-let voice = new System.Speech.Synthesis.SpeechSynthesizer()
-let mutable voiceRemindersForRecorder = true
-let mutable voiceRemindersForPowerBracelet = true
+let canvasAdd = Graphics.canvasAdd
+let voice = OptionsMenu.voice
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 let wakePhrase = "tracker set"
 let mapStatePhrases = [|
@@ -81,25 +80,20 @@ type MapStateProxy(state) =
             Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
 
 let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j) =
-    match targetItemStateOption with
-    | Some(targetItemState) ->
-        let owTargetworthySpots = Array2D.zeroCreate 16 8
-        for x = 0 to 15 do
-            for y = 0 to 7 do
-                let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.overworldMapExtraData.[x,y] = MapStateProxy.ToItem(targetItemState)) then
-                    owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, owTargetworthySpots, 
-                                        Array2D.zeroCreate 16 8, point, i, j)
-    | None ->
-        OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j)
+        match targetItemStateOption with
+        | Some(targetItemState) ->
+            let owTargetworthySpots = Array2D.zeroCreate 16 8
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
+                    if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.overworldMapExtraData.[x,y] = MapStateProxy.ToItem(targetItemState)) then
+                        owTargetworthySpots.[x,y] <- true
+            OverworldRouteDrawing.drawPaths(routeDrawingCanvas, owTargetworthySpots, 
+                                            Array2D.zeroCreate 16 8, point, i, j)
+        | None ->
+            OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j)
 
-let canvasAdd(c:Canvas, item, left, top) =
-    if item <> null then
-        c.Children.Add(item) |> ignore
-        Canvas.SetTop(item, top)
-        Canvas.SetLeft(item, left)
 let gridAdd(g:Grid, x, c, r) =
     g.Children.Add(x) |> ignore
     Grid.SetColumn(x, c)
@@ -133,7 +127,7 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
-let makeAll(owMapNum, audioInitiallyOn) =
+let makeAll(owMapNum) =
     let timelineItems = ResizeArray()
     let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
     let owMapBMPs, isMixed, owInstance =
@@ -199,15 +193,6 @@ let makeAll(owMapNum, audioInitiallyOn) =
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.dungeons.[i].PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
     let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
     gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
-    let remindShortly(f, text:string) =
-        let cxt = System.Threading.SynchronizationContext.Current 
-        async { 
-            do! Async.Sleep(60000)  // 60s
-            do! Async.SwitchToContext(cxt)
-            if f() then
-                do! Async.SwitchToThreadPool()
-                voice.Speak(text) 
-        } |> Async.Start
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -612,7 +597,8 @@ let makeAll(owMapNum, audioInitiallyOn) =
                                         for x = 0 to 2 do
                                             for y = 0 to 2 do
                                                 canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], BT+float x*(16.*ENLARGE+BT), BT+float y*(11.*ENLARGE+BT))
-                                        dungeonTabsOverlay.Opacity <- 1.0
+                                        if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
+                                            dungeonTabsOverlay.Opacity <- 1.0
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -745,14 +731,15 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     )
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
-        //printfn "conf: %f" r.Result.Confidence
-        if r.Result.Confidence > 0.94f then  // empirical tests suggest this confidence threshold is good to avoid false positives
-                c.Dispatcher.Invoke(fun () -> 
-                        if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
-                            let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
-                            if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
-                                owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
-                    )
+        if TrackerModel.Options.ListenForSpeech.Value then 
+            //printfn "conf: %f" r.Result.Confidence
+            if r.Result.Confidence > 0.94f then  // empirical tests suggest this confidence threshold is good to avoid false positives
+                    c.Dispatcher.Invoke(fun () -> 
+                            if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
+                                let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
+                                if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
+                                    owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
+                        )
         )
     canvasAdd(c, owMapGrid, 0., 120.)
 
@@ -939,8 +926,8 @@ let makeAll(owMapNum, audioInitiallyOn) =
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
-            member _this.AnnounceConsiderSword2() = async { voice.Speak("Consider getting the white sword item") } |> Async.Start
-            member _this.AnnounceConsiderSword3() = async { voice.Speak("Consider the magical sword") } |> Async.Start
+            member _this.AnnounceConsiderSword2() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider getting the white sword item") } |> Async.Start
+            member _this.AnnounceConsiderSword3() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider the magical sword") } |> Async.Start
             member _this.OverworldSpotsRemaining(n) = (owRemainingScreensCheckBox.Content :?> TextBox).Text <- sprintf "OW spots left: %d" n 
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
@@ -992,7 +979,7 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         for y = 0 to 7 do
                             if owRouteworthySpots.[x,y] && TrackerModel.overworldMapMarks.[x,y].Current() = -1 then
                                 canvasAdd(recorderingCanvas, owRemainSpotHighlighters.[x,y], OMTW*float(x), float(y*11*3))
-            member _this.AnnounceCompletedDungeon(i) = async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
+            member _this.AnnounceCompletedDungeon(i) = if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
                     for j = 0 to 3 do
@@ -1001,21 +988,23 @@ let makeAll(owMapNum, audioInitiallyOn) =
                         for j = 0 to 3 do
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
             member _this.AnnounceFoundDungeonCount(n) = 
-                async {
-                    if n = 1 then
-                        voice.Speak("You have located one dungeon") 
-                    elif n = 9 then
-                        voice.Speak("Congratulations, you have located all 9 dungeons")
-                    else
-                        voice.Speak(sprintf "You have located %d dungeons" n) 
-                } |> Async.Start
+                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
+                    async {
+                        if n = 1 then
+                            voice.Speak("You have located one dungeon") 
+                        elif n = 9 then
+                            voice.Speak("Congratulations, you have located all 9 dungeons")
+                        else
+                            voice.Speak(sprintf "You have located %d dungeons" n) 
+                    } |> Async.Start
             member _this.AnnounceTriforceCount(n) = 
-                if n = 1 then
-                    async { voice.Speak("You now have one triforce") } |> Async.Start
-                else
-                    async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
-                if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
-                    async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
+                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
+                    if n = 1 then
+                        async { voice.Speak("You now have one triforce") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
+                    if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
+                        async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
             member _this.RemindShortly(itemId) = 
                 let f, g, text =
                     if itemId = TrackerModel.ITEMS.KEY then
@@ -1029,8 +1018,9 @@ let makeAll(owMapNum, audioInitiallyOn) =
                     do! Async.Sleep(60000)  // 60s
                     do! Async.SwitchToContext(cxt)
                     if f() then
-                        do! Async.SwitchToThreadPool()
-                        voice.Speak(text) 
+                        if TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value then 
+                            do! Async.SwitchToThreadPool()
+                            voice.Speak(text) 
                     else
                         g()
                 } |> Async.Start
@@ -1053,27 +1043,30 @@ let makeAll(owMapNum, audioInitiallyOn) =
         if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HaveLadder then
                 if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
-                    async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                    if TrackerModel.Options.VoiceReminders.CoastItem.Value then 
+                        async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HaveRecorder && voiceRemindersForRecorder then
+            if TrackerModel.playerComputedStateSummary.HaveRecorder then
                 let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
                 if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
-                    if owWhistleSpotsRemain = 1 then
-                        async { voice.Speak("There is one recorder spot") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
+                    if TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value then 
+                        if owWhistleSpotsRemain = 1 then
+                            async { voice.Speak("There is one recorder spot") } |> Async.Start
+                        else
+                            async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
                 recorderTime <- DateTime.Now
                 owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
         // remind power bracelet spots
         if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HavePowerBracelet && voiceRemindersForPowerBracelet then
+            if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
                 if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
-                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
-                        async { voice.Speak("There is one power bracelet spot") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain) } |> Async.Start
+                    if TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value then 
+                        if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
+                            async { voice.Speak("There is one power bracelet spot") } |> Async.Start
+                        else
+                            async { voice.Speak(sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain) } |> Async.Start
                 powerBraceletTime <- DateTime.Now
                 owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
         )
@@ -1418,26 +1411,12 @@ let makeAll(owMapNum, audioInitiallyOn) =
 
     let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
 
-    // audio reminders    
-    let cb = new CheckBox(Content=new TextBox(Text="Audio reminders",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit audioInitiallyOn
-    voice.Volume <- 30
-    cb.Checked.Add(fun _ -> voice.Volume <- 30)
-    cb.Unchecked.Add(fun _ -> voice.Volume <- 0)
-    canvasAdd(c, cb, RIGHT_COL, 60.)
     // remaining OW spots
     canvasAdd(c, owRemainingScreensCheckBox, RIGHT_COL, 80.)
     owRemainingScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
     owRemainingScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
-    // audio subcategories to toggle
-    let recorderAudioReminders = veryBasicBoxImpl(Graphics.recorder_bmp, true, false, (fun b -> voiceRemindersForRecorder <- b), (fun () -> ()))
-    recorderAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining recorder spots"
-    canvasAdd(c, recorderAudioReminders, RIGHT_COL + 140., 60.)
-    let powerBraceletAudioReminders = veryBasicBoxImpl(Graphics.power_bracelet_bmp, true, false, (fun b -> voiceRemindersForPowerBracelet <- b), (fun () -> ()))
-    powerBraceletAudioReminders.ToolTip <- "Periodic voice reminders about the number of remaining power bracelet spots"
-    canvasAdd(c, powerBraceletAudioReminders, RIGHT_COL + 170., 60.)
     // coordinate grid
     let owCoordsGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCoordsTBs = Array2D.zeroCreate 16 8
@@ -1587,11 +1566,18 @@ let makeAll(owMapNum, audioInitiallyOn) =
     cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity false)
     canvasAdd(c, cb, 285., 100.)
 
-    // timeline
+    // timeline & options menu
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
-    let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 1, "0h", "30m", "1h")
-    let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 2, "0h", "1h", "2h")
-    let theTimeline3 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 3, "0h", "1.5h", "3h")
+
+    let moreOptionsLabel = new TextBox(Text="Options...", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Margin=Thickness(0.), Padding=Thickness(0.), BorderThickness=Thickness(0.), IsReadOnly=true, IsHitTestVisible=false)
+    let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
+    moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
+
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(c.Width, float TCH + 6., moreOptionsButton.DesiredSize.Height)
+
+    let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 1, "0h", "30m", "1h", moreOptionsButton.DesiredSize.Width-24.)
+    let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 2, "0h", "1h", "2h", moreOptionsButton.DesiredSize.Width-24.)
+    let theTimeline3 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 3, "0h", "1.5h", "3h", moreOptionsButton.DesiredSize.Width-24.)
     theTimeline1.Canvas.Opacity <- 1.
     theTimeline2.Canvas.Opacity <- 0.
     theTimeline3.Canvas.Opacity <- 0.
@@ -1614,6 +1600,26 @@ let makeAll(owMapNum, audioInitiallyOn) =
     canvasAdd(c, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(c, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(c, theTimeline3.Canvas, 24., START_TIMELINE_H)
+
+    canvasAdd(c, optionsCanvas, 0., START_TIMELINE_H)
+    canvasAdd(c, moreOptionsButton, 0., START_TIMELINE_H)
+    moreOptionsButton.Click.Add(fun _ -> 
+        if optionsCanvas.Opacity = 0. then
+            optionsCanvas.Opacity <- 1.
+            optionsCanvas.IsHitTestVisible <- true
+        else
+            optionsCanvas.Opacity <- 0.
+            optionsCanvas.IsHitTestVisible <- false
+        )
+    // auto-close logic
+    c.MouseMove.Add(fun ea ->
+        let pos = ea.GetPosition(optionsCanvas)
+        if optionsCanvas.IsHitTestVisible && (pos.Y < 0. || pos.Y > optionsCanvas.Height) then
+            optionsCanvas.Opacity <- 0.
+            optionsCanvas.IsHitTestVisible <- false
+            TrackerModel.Options.writeSettings()
+        )
+
     let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
     //                items  ow map  prog  dungeon tabs                timeline

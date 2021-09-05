@@ -3,10 +3,17 @@
 open System
 open System.Windows
 open Avalonia.Media
+open Avalonia.Controls
 
 let GetResourceStream(name) =
     let assets = Avalonia.AvaloniaLocator.Current.GetService(typeof<Avalonia.Platform.IAssetLoader>) :?> Avalonia.Platform.IAssetLoader
     assets.Open(new Uri("resm:Z1R_Avalonia." + name))
+
+let canvasAdd(c:Canvas, item, left, top) =
+    if item <> null then
+        c.Children.Add(item) |> ignore
+        Canvas.SetTop(item, top)
+        Canvas.SetLeft(item, left)
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()

@@ -12,13 +12,14 @@ SMALL
 
 right click timer brings up copy/paste menu now, thats a bug.  maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks?
 hover text for candle/bomb should say affects routing
-'More Options...' label in the top corner of timeline, clicking changes the whole pane, and moving mouse away (for a few seconds?) goes back to timeline (want to preserve ability to mouse-hover timeline)
- - need to have timeline labels have 'highest penalty' so never overwritten by items
- - options currently would include: routing, magnifier, speech recognition, set of voice reminders.  future might have layout options, other stuff (whistle/recorder spots as boxes versus map dots?)
- - options probably also on start screen, and say "can change later in 'More Options...' menu"
- - option settings maybe go in tracker model? hm
 second quest dungeons option (L4 rather than L1 has 3 items) - could be toggled mid-game just by moving location of item box
 should 'OW spots left' have a show-on-hover?
+
+always-bombable spots:  
+ - with routing, i suppose my nearby-highlight could be yellowish for maybes and greenish for always?
+ - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?' or make the 'highlight pixel' a darker color?
+
+shift-click the start screen to place the lime circle
 
 power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
@@ -33,8 +34,16 @@ something better than F5 for start icon? drag-drop maybe, explained on startup s
 
 MEDIUM
 
+General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
+white sword item gets projected onto S2 tile.
+
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
+ - Make notes textbox smaller, and have 8 reminder areas where you can scroll
+ - Sword – need better weapon; Bow – need bow; Recorder; ladder; Bomb; Key; Bait
+ - Can auto hook a voice reminder when you get the unblocker
+
+
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
 review other common flagsets from rando, what works, what could work, etc
@@ -46,8 +55,8 @@ review other common flagsets from rando, what works, what could work, etc
     - (reminders) level 9 requires 8 triforces
  - works poorly with
     - hide dungeon numbers
-    - book to understand old men? (how do you mark people to come back to talk to?)
 
+Layout/size/stretch options were common requests for zhelper – can I scale?
 
 
 BIG

@@ -81,6 +81,14 @@ This makes it easy to see e.g. that you got the wood sword in the 12th minute.
 The timeline is non-interactive, it is just a display capturing progress-over-time.
 
 
+OPTIONS
+
+Above the timeline, there is a button labeled "Options..."  
+Clicking this button causes the timeline pane to be replaced by the options menu.  A variety of features can be turned on and off here.
+The options pane automatically closes when the mouse leaves the area, revealing the timeline once again.
+Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
+
+
 DUNGEON TRACKER
 
 There are 9 tabs for the 9 dungeons.
@@ -121,6 +129,8 @@ You can turn them off with the Audio reminders checkbox in the upper right.
 SPEECH RECOGNITION (WPF only)
 
 When hovering over a blank map tile, with a microphone equipped, you can speak e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
+
+This option must be enabled when first starting the tracker on the start screen, it cannot be enabled later while the application is running.
 
 The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
 

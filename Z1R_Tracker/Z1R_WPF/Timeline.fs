@@ -4,12 +4,7 @@ open System.Windows.Media
 open System.Windows.Controls
 open System.Windows
 
-let canvasAdd(c:Canvas, item, left, top) =
-    if item <> null then
-        c.Children.Add(item) |> ignore
-        Canvas.SetTop(item, top)
-        Canvas.SetLeft(item, left)
-
+let canvasAdd = Graphics.canvasAdd
 type TimelineItem(f) =
     let mutable finishedMinute = 99999
     let mutable bmp = null
@@ -28,7 +23,7 @@ let TLC = Brushes.SandyBrown   // timeline color
 let ICON_SPACING = 6.
 let BIG_HASH = 15.
 let LINE_THICKNESS = 3.
-type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTick, leftText, midText, rightText) =
+type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTick, leftText, midText, rightText, topRowReserveWidth:float) =
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
@@ -52,6 +47,8 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         canvasAdd(timelineCanvas, line1, 0., 0.)
         canvasAdd(timelineCanvas, curTime, 0., 0.)
         // text labels
+        for x = 0 to int topRowReserveWidth do
+            iconAreaFilled.[x, 0] <- 99
         let tb = new TextBlock(Text=leftText,FontSize=12.,Foreground=TLC,Background=Brushes.Black)
         let mkft(t) = new FormattedText(t, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), tb.FontSize, tb.Foreground, new NumberSubstitution(), TextFormattingMode.Display)
         let ft = mkft(leftText)
@@ -61,7 +58,7 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         let xpos = 0. - ft.Width/2.
         canvasAdd(timelineCanvas, new TextBlock(Text=leftText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
         for x = 0 to int (xpos + ft.Width) do
-            iconAreaFilled.[x, numRows-1] <- true
+            iconAreaFilled.[x, numRows-1] <- 99
         let ft = mkft(midText)
         if ft.Height > iconSize then
             printfn "bad ft2"
@@ -69,7 +66,7 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         let xpos = lineWidth/2. - ft.Width/2.
         canvasAdd(timelineCanvas, new TextBlock(Text=midText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
         for x = int xpos to int (xpos + ft.Width) do
-            iconAreaFilled.[x, numRows-1] <- true
+            iconAreaFilled.[x, numRows-1] <- 99
         let ft = mkft(rightText)
         if ft.Height > iconSize then
             printfn "bad ft3"
@@ -77,7 +74,7 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         let xpos = lineWidth - ft.Width/2.
         canvasAdd(timelineCanvas, new TextBlock(Text=rightText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
         for x = int xpos to int lineWidth do
-            iconAreaFilled.[x, numRows-1] <- true
+            iconAreaFilled.[x, numRows-1] <- 99
     member this.Canvas = timelineCanvas
     member this.Update(minute, timelineItems:seq<TimelineItem>) =
         let tick = minute / minutesPerTick
@@ -110,13 +107,12 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
                     for row = numRows-1 downto 0 do
                         let mutable penalty = 0
                         for x=xmin to xmax do
-                            if iconAreaFilled.[x,row] then
-                                penalty <- penalty + 1
+                            penalty <- penalty + iconAreaFilled.[x,row]
                         if penalty < bestPenalty then
                             bestRow <- row
                             bestPenalty <- penalty
                     for x=xmin to xmax do
-                        iconAreaFilled.[x,bestRow] <- true
+                        iconAreaFilled.[x,bestRow] <- iconAreaFilled.[x,bestRow] + 1
                     rowBmps.Add(bestRow, bmp)
                 if rowBmps.Count > 0 then
                     // guideline

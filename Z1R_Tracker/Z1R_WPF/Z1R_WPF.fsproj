@@ -9,10 +9,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Z1R_WPF</RootNamespace>
     <AssemblyName>Z1R_WPF</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>Z1R_WPF</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,6 +64,7 @@
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="Timeline.fs" />
     <Compile Include="Dungeon.fs" />
+    <Compile Include="OptionsMenu.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="s_map_overworld_strip8.png" />
@@ -101,6 +103,11 @@
       <Project>{6b605496-ea45-4694-90f5-a3953d338bec}</Project>
       <Private>True</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

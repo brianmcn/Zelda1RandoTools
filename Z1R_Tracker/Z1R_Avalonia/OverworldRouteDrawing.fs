@@ -8,11 +8,7 @@ open OverworldRouting
 
 let OMTW = 40.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 
-let canvasAdd(c:Canvas, item, left, top) =
-    if item <> null then
-        c.Children.Add(item) |> ignore
-        Canvas.SetTop(item, top)
-        Canvas.SetLeft(item, left)
+let canvasAdd = Graphics.canvasAdd
 
 let coords(Vertex(x,y,p)) =
     let cx = float(x*int OMTW+8*3)
@@ -77,20 +73,21 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                                 xs |> Seq.exists (fun (v,c) -> v=g)
                             else
                                 false
-                        if isRecorderWarpDestination(g) && not canWalk then
-                            ()  // don't bother drawing lines to every recorder warp destination - is patently obvious and just clutters screen
-                        elif (isWarpDestination(p) || isWarpDestination(g)) && not canWalk then
-                            // non-walkable any road warps get a light dashed line
-                            let x1,y1 = coords(g)
-                            let x2,y2 = coords(p)
-                            let line = new Shapes.Line(StartPoint=Point(x1,y1), EndPoint=Point(x2,y2), Stroke=color(999), StrokeThickness=3., IsHitTestVisible=false)
-                            line.StrokeDashArray <- new Collections.AvaloniaList<float>()
-                            line.StrokeDashArray.Add(1.0)  // number of thicknesses on...
-                            line.StrokeDashArray.Add(1.0)  // number of thicknesses off...
-                            canvasAdd(routeDrawingCanvas, line, 0., 0.)
-                        else
-                            // normal walk is solid line with fading color based on cost
-                            drawLine(routeDrawingCanvas,g,p,color(cost))
+                        if TrackerModel.Options.Overworld.DrawRoutes.Value then 
+                            if isRecorderWarpDestination(g) && not canWalk then
+                                ()  // don't bother drawing lines to every recorder warp destination - is patently obvious and just clutters screen
+                            elif (isWarpDestination(p) || isWarpDestination(g)) && not canWalk then
+                                // non-walkable any road warps get a light dashed line
+                                let x1,y1 = coords(g)
+                                let x2,y2 = coords(p)
+                                let line = new Shapes.Line(StartPoint=Point(x1,y1), EndPoint=Point(x2,y2), Stroke=color(999), StrokeThickness=3., IsHitTestVisible=false)
+                                line.StrokeDashArray <- new Collections.AvaloniaList<float>()
+                                line.StrokeDashArray.Add(1.0)  // number of thicknesses on...
+                                line.StrokeDashArray.Add(1.0)  // number of thicknesses off...
+                                canvasAdd(routeDrawingCanvas, line, 0., 0.)
+                            else
+                                // normal walk is solid line with fading color based on cost
+                                drawLine(routeDrawingCanvas,g,p,color(cost))
                         draw(p)
         // draw routes to everywhere
         //for v in adjacencyDict.Keys do
@@ -108,22 +105,23 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                         if ok then
                             let (cost,_preds) = r
                             pq.Enqueue((if ok then cost else 99999), (i,j))
-        // highlight cheapest N unmarked
-        let N = 8
-        let toHighlight = ResizeArray()
-        let rec iterate(N,recentCost) =
+        if TrackerModel.Options.Overworld.HighlightNearby.Value then 
+            // highlight cheapest N unmarked
+            let N = 8
+            let toHighlight = ResizeArray()
+            let rec iterate(N,recentCost) =
+                if not pq.IsEmpty then
+                    let nextCost,(i,j) = pq.Dequeue()
+                    if N > 0 || nextCost = recentCost then
+                        toHighlight.Add(i,j)
+                        iterate(N-1,nextCost)
             if not pq.IsEmpty then
-                let nextCost,(i,j) = pq.Dequeue()
-                if N > 0 || nextCost = recentCost then
-                    toHighlight.Add(i,j)
-                    iterate(N-1,nextCost)
-        if not pq.IsEmpty then
-            let recentCost,(i,j) = pq.Dequeue()
-            toHighlight.Add(i,j)
-            iterate(N-1,recentCost)
-        for (i,j) in toHighlight do
-            let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
-            canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
+                let recentCost,(i,j) = pq.Dequeue()
+                toHighlight.Add(i,j)
+                iterate(N-1,recentCost)
+            for (i,j) in toHighlight do
+                let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=Brushes.Yellow,Opacity=0.35,IsHitTestVisible=false)
+                canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
 
 
 

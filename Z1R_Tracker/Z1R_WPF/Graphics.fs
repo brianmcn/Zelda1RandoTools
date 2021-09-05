@@ -5,6 +5,12 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let canvasAdd(c:Canvas, item, left, top) =
+    if item <> null then
+        c.Children.Add(item) |> ignore
+        Canvas.SetTop(item, top)
+        Canvas.SetLeft(item, left)
+
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info

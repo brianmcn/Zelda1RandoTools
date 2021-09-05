@@ -47,7 +47,7 @@ type MyWindow(owMapNum) as this =
                 )))
 
         // full window
-        this.Title <- "Zelda 1 Randomizer"
+        this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let tb = new TextBox(Text="Choose overworld quest:")
         stackPanel.Children.Add(tb) |> ignore
@@ -60,6 +60,15 @@ type MyWindow(owMapNum) as this =
             |]
         owQuest.SelectedIndex <- owMapNum % 4
         stackPanel.Children.Add(owQuest) |> ignore
+
+        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):")
+        stackPanel.Children.Add(tb) |> ignore
+        TrackerModel.Options.readSettings()
+        let options = OptionsMenu.makeOptionsCanvas(16.*OverworldRouteDrawing.OMTW, float(UI.TCH+6), 0.)
+        options.IsHitTestVisible <- true
+        options.Opacity <- 1.0
+        stackPanel.Children.Add(options) |> ignore
+
         let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
         stackPanel.Children.Add(tb) |> ignore
         let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false))
@@ -74,6 +83,7 @@ type MyWindow(owMapNum) as this =
                 Async.Start (async {
                     do! Async.Sleep(10) // get off UI thread so UI will update
                     do! Async.SwitchToContext ctxt
+                    TrackerModel.Options.writeSettings()
                     printfn "you pressed start after selecting %d" owQuest.SelectedIndex
                     this.Background <- Brushes.Black
                     let c,u = UI.makeAll(owQuest.SelectedIndex)

@@ -85,10 +85,10 @@ type MyWindow() as this =
     do
         WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
-        this.Title <- "Zelda 1 Randomizer"
+        this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 1140.0
+        this.Left <- System.Windows.SystemParameters.PrimaryScreenWidth - WIDTH
         this.Top <- 0.0
         this.Width <- WIDTH
         this.Height <- HEIGHT
@@ -109,23 +109,14 @@ type MyWindow() as this =
         owQuest.SelectedIndex <- 2
         stackPanel.Children.Add(owQuest) |> ignore
         
-        let tb = new TextBox(Text="Speech settings (hover each for details):", Margin=spacing)
+        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
-        let audioInitiallyOn = ref true
-        let audiocb = new CheckBox(Content=new TextBox(Text="Speech Synthesis",IsReadOnly=true))
-        audiocb.ToolTip <- "Whether various reminders get 'spoken at you' periodically\nCan be toggled later with 'Audio Reminders' checkbox in main UI"
-        audiocb.IsChecked <- System.Nullable.op_Implicit true
-        audiocb.Checked.Add(fun _ ->   audioInitiallyOn := true)
-        audiocb.Unchecked.Add(fun _ -> audioInitiallyOn := false) 
-        stackPanel.Children.Add(audiocb) |> ignore
-
-        let speechOn = ref true
-        let speechcb = new CheckBox(Content=new TextBox(Text="Speech Recognition",IsReadOnly=true))
-        speechcb.ToolTip <- "Whether to use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
-        speechcb.IsChecked <- System.Nullable.op_Implicit true
-        speechcb.Checked.Add(fun _ ->   speechOn := true)
-        speechcb.Unchecked.Add(fun _ -> speechOn := false) 
-        stackPanel.Children.Add(speechcb) |> ignore
+        TrackerModel.Options.readSettings()
+        WPFUI.voice.Volume <- TrackerModel.Options.Volume
+        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), float(WPFUI.TCH+6), 0.)
+        options.IsHitTestVisible <- true
+        options.Opacity <- 1.0
+        stackPanel.Children.Add(options) |> ignore
 
         let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
@@ -143,12 +134,8 @@ type MyWindow() as this =
                 let ctxt = System.Threading.SynchronizationContext.Current
                 Async.Start (async {
                     do! Async.SwitchToContext ctxt
-                    let c,u = WPFUI.makeAll(owQuest.SelectedIndex, !audioInitiallyOn)
-                    canvas <- c
-                    updateTimeline <- u
-                    WPFUI.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
-                    this.Content <- canvas
-                    if !speechOn then
+                    TrackerModel.Options.writeSettings()
+                    if TrackerModel.Options.ListenForSpeech.Value then
                         printfn "Initializing microphone for speech recognition..."
                         try
                             WPFUI.speechRecognizer.SetInputToDefaultAudioDevice()
@@ -156,8 +143,16 @@ type MyWindow() as this =
                         with ex ->
                             printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
                             printfn "%s" (ex.ToString())
+                            printfn ""
+                            OptionsMenu.microphoneFailedToInitialize <- true
                     else
-                        printfn "Speech recongition is disabled"
+                        printfn "Speech recognition will be disabled"
+                        OptionsMenu.microphoneFailedToInitialize <- true
+                    let c,u = WPFUI.makeAll(owQuest.SelectedIndex)
+                    canvas <- c
+                    updateTimeline <- u
+                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
+                    this.Content <- canvas
                     System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
                         let ex = e.Exception
                         printfn "An unhandled exception from UI thread:"
@@ -202,7 +197,7 @@ type TimerOnlyWindow() as this =
         // full window
         this.Title <- "Timer"
         this.Content <- canvas
-        WPFUI.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
+        Graphics.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 0.0
@@ -225,9 +220,9 @@ type TerrariaTimerOnlyWindow() as this =
         // full window
         this.Title <- "Timer"
         this.Content <- canvas
-        WPFUI.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
-        WPFUI.canvasAdd(canvas, dayTextBox, 0., FONT*5./4.)
-        WPFUI.canvasAdd(canvas, timeTextBox, 0., FONT*10./4.)
+        Graphics.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
+        Graphics.canvasAdd(canvas, dayTextBox, 0., FONT*5./4.)
+        Graphics.canvasAdd(canvas, timeTextBox, 0., FONT*10./4.)
         this.SizeToContent <- SizeToContent.WidthAndHeight 
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         this.Left <- 0.0

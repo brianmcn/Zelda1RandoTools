@@ -26,6 +26,7 @@
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="Timeline.fs" />
     <Compile Include="Dungeon.fs" />
+    <Compile Include="OptionsMenu.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
