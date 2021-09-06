@@ -27,4 +27,4 @@ work on this project.)
 You can get a sense of the features of the tracker by reading through [Notes.txt](/Z1R_Tracker/Z1R_Tracker/Notes.txt) and by looking at an
 old screenshot below:
 
-![old_screenshot](/images/old_screenshot.png)
+![old_screenshot](/images/old_screenshot2.png)

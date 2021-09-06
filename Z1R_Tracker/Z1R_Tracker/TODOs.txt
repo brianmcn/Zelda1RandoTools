@@ -31,6 +31,8 @@ ad-hoc counters? e.g. for door repair charges, or whatever else folks may want t
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 show list of remaining box items? if less than N left?
 
+select item box via voice?
+feedback for recent voice selections? (tone, log)
 
 MEDIUM
 
