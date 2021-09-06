@@ -14,9 +14,10 @@ DUNGEON ITEM AREA
 
 Click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
 Scroll to change item in a dungeon
-Left click to mark you have obtained that dungeon item, right click to mark intentionally skipped item. Display is: red box = don't have, green box = do have, purple box = skipped.  
-(The purpose of being able to mark items as 'skipped' is so that the various reminder systems will e.g. quit pestering you about the boomerang you left behind on the coast, while 
-still accurately capturing your true 'item progress' on the screen for viewers.)
+Left click to mark you have obtained that dungeon item, right click to mark intentionally skipped item. 
+Display is: red box = don't have, green box = do have, purple box = skipped.  
+(The purpose of being able to mark items as 'skipped' is so that the various reminder systems will e.g. quit pestering you about the 
+boomerang you left behind on the coast, while still accurately capturing your true 'item progress' on the screen for viewers.)
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 
@@ -28,14 +29,14 @@ coast item, armos item, white sword item - just like dungeon item boxes
 wood sword, blue ring, wood arrow, blue candle, magic sword - click these when you get them, so they appear on the Timeline (see below)
 bombs - click when you get bombs, to have map routing send you to bombable locations (see below)
 boomstick book - click when you get, to mark timeline, and click S/B to toggle whether Shield or Book is available as a dungeon item
-ganon/zelda - click when you kill ganon or rescue zelda, to mark the timeline; clicking zelda will also post your finish time as text in the NOTES section
+ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your time as text in the NOTES section
 (timer, current hearts - just for display)
 Show N gettable - click to animate all the remaining overworld tiles you could uncover given your current item set
 
 
 OVERWORLD MAP
 
-HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and you Hide First Quest or Hide Second Quest if that's later helpful
+HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
 Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Show coords - click or hover to show a coordinate overlay
 
@@ -51,9 +52,9 @@ Show coords - click or hover to show a coordinate overlay
  - "X" nothing, or don't care
 Left clicking an unmarked map tile will mark it 'X'
 Left or right clicking an item shop will cycle through choices of a second item in the shop (max of 2 items can be displayed on a tile)
-An unclaimed-but-known White Sword Item or Coast Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
+An unclaimed-but-known White-Sword- or Coast- Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
 
-Hovering an overworld map tile shows a magnified version of that tile and nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
+Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
 
 Mouse-hover for routing from the current tile:
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
@@ -66,12 +67,12 @@ Mouse-hover for routing from the current tile:
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
-The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if they are guaranteed to yield a location, or yellowish (in mixed quest) if they might be empty.
-(WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
+The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
+(WPF only) Right click arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI: routing sends you only to shops containing that item for the next 10s.
 
 Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' table.
 
-"Item progress" bar lights up items as you get them or upgrade them, as kind of a quick summary of the player state; this is for display purposes only (non-interactive).
+"Item progress" bar lights up items as you get them or upgrade them, as a quick summary of the player state; display purposes only (non-interactive).
 
 
 TIMELINE
@@ -86,7 +87,8 @@ The timeline is non-interactive, it is just a display capturing progress-over-ti
 OPTIONS MENU
 
 Above the timeline, there is a button labeled "Options..."  
-Clicking this button causes the timeline pane to be replaced by the options menu.  A variety of features can be turned on and off here; mouse-hover the text for a detailed description.
+Clicking this button causes the timeline pane to be replaced by the options menu.  
+A variety of features can be turned on and off here; mouse-hover the text for a detailed description.
 The options pane automatically closes when the mouse leaves the area, revealing the timeline once again.
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
@@ -98,12 +100,14 @@ There are 9 tabs for the 9 dungeons.
 Rooms can be scrolled to mark:
  - stairway transports 1-9
  - special room shapes (moats, chutes, tee, chevy, etc.)
- - ad-hoc color markers (red/yellow/green) the player can use as they see fit
+ - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
  - grey box (typical 'uncompleted room')
-Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
+Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten). 
+Thus uncompleted rooms stand out brighter.
 
-If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  Same with right mouse button, but for uncompleted rooms.  
-These features can be useful when you play part of a dungeon without mapping it, but then decide you need to map it--you can quickly 'paint' what you have done.
+If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
+Same with right mouse button, but for uncompleted rooms.  
+These features can be useful when you play part of a dungeon without mapping it, but then decide you need to map it--quickly 'paint' what you have done.
 
 Shift-clicking a room will black it out, as well as nearby doors; this is useful mostly for Shapes 9 when you have the map, to immediately mark off the 'holes'.
 
@@ -112,8 +116,9 @@ Doors between rooms have three states:
  - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
 
-Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner of the dungeon map to
-switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to fix an offset map.
+Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
+of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
+fix an offset map.
 
 FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
 

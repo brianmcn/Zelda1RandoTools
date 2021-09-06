@@ -7,8 +7,12 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 (Don't forget to keep Notes.txt up-to-date as change features!)
 
+(dungeon palette rom)
+
 
 SMALL
+
+start screen could use triforce 1/2/3 for 1.choose quest and 2.options and 3.start (and eventually 3. start OR load old data)
 
 (triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
 
@@ -31,7 +35,7 @@ ad-hoc counters? e.g. for door repair charges, or whatever else folks may want t
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 show list of remaining box items? if less than N left?
 
-select item box via voice?
+select item box via voice?  select dungeon room via voice?
 feedback for recent voice selections? (tone, log)
 
 MEDIUM
@@ -63,6 +67,8 @@ review other common flagsets from rando, what works, what could work, etc
 Layout/size/stretch options were common requests for zhelper – can I scale?
 
 auto save/load tracker state (not just options)?
+
+hotkeys (e.g. immediately mark S3)
 
 BIG
 
