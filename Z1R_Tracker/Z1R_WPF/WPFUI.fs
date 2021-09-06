@@ -197,8 +197,9 @@ let makeAll(owMapNum) =
     gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let no = System.Windows.Media.Brushes.DarkRed
-        let yes = System.Windows.Media.Brushes.LimeGreen 
+        let no = Brushes.DarkRed
+        let yes = Brushes.LimeGreen 
+        let skipped = Brushes.MediumPurple
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no, StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -222,11 +223,26 @@ let makeAll(owMapNum) =
             | 13 -> Graphics.white_sword_bmp
             |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
         c.MouseLeftButtonDown.Add(fun _ ->
-            if obj.Equals(rect.Stroke, no) then
-                rect.Stroke <- yes
-            else
-                rect.Stroke <- no
-            box.TogglePlayerHas()
+            box.SetPlayerHas(
+                if not(obj.Equals(rect.Stroke, yes)) then
+                    rect.Stroke <- yes
+                    TrackerModel.PlayerHas.YES
+                else
+                    rect.Stroke <- no
+                    TrackerModel.PlayerHas.NO
+                )
+            if requiresForceUpdate then
+                TrackerModel.forceUpdate()
+        )
+        c.MouseRightButtonDown.Add(fun _ ->
+            box.SetPlayerHas(
+                if not(obj.Equals(rect.Stroke, skipped)) then
+                    rect.Stroke <- skipped
+                    TrackerModel.PlayerHas.SKIPPED
+                else
+                    rect.Stroke <- no
+                    TrackerModel.PlayerHas.NO
+                )
             if requiresForceUpdate then
                 TrackerModel.forceUpdate()
         )
@@ -963,7 +979,7 @@ let makeAll(owMapNum) =
                     rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
                     canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
             member _this.Sword2(x,y) =
-                if not(TrackerModel.sword2Box.PlayerHas()) && TrackerModel.sword2Box.CellCurrent() <> -1 then
+                if (TrackerModel.sword2Box.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.sword2Box.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
                     let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
                     itemImage.Opacity <- 1.0
@@ -971,7 +987,7 @@ let makeAll(owMapNum) =
                     let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
                     canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW-24., float(y*11*3)+4.)
             member _this.CoastItem() =
-                if not(TrackerModel.ladderBox.PlayerHas()) && TrackerModel.ladderBox.CellCurrent() <> -1 then
+                if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
                     let x,y = 15,5
                     let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.ladderBox.CellCurrent()]

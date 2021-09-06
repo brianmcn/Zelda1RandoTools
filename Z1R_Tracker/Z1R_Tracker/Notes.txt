@@ -9,9 +9,11 @@ F10 - reset timer to 0
 
 DUNGEON ITEM AREA
 
-click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
-scroll to change item in a dungeon
-click to toggle whether have that dungeon item (red box = no, green box = yes)
+Click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
+Scroll to change item in a dungeon
+Left click to mark you have obtained that dungeon item, right click to mark intentionally skipped item. Display is: red box = don't have, green box = do have, purple box = skipped.  
+(The purpose of being able to mark items as 'skipped' is so that the various reminder systems will e.g. quit pestering you about the boomerang you left behind on the coast, while 
+still accurately capturing your true 'item progress' on the screen for viewers.)
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 

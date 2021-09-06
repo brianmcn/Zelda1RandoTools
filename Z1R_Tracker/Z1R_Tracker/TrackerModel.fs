@@ -306,10 +306,12 @@ let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 // Dungeons and Boxes
 
 let mutable dungeonsAndBoxesLastChangedTime = System.DateTime.Now
+[<RequireQualifiedAccess>]
+type PlayerHas = | YES | NO | SKIPPED
 type Box() =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
-    let mutable playerHas = false
+    let mutable playerHas = PlayerHas.NO
     member _this.PlayerHas() = playerHas
     member _this.CellPrev() = 
         cell.Prev()
@@ -318,8 +320,8 @@ type Box() =
         cell.Next()
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
     member _this.CellCurrent() = cell.Current()
-    member _this.TogglePlayerHas() = 
-        playerHas <- not playerHas
+    member _this.SetPlayerHas(v) = 
+        playerHas <- v
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
 
 let FinalBoxOf1Or4 = new Box()
@@ -335,7 +337,7 @@ type Dungeon(id,numBoxes) =
             [| yield! boxes; yield FinalBoxOf1Or4 |]
         else
             boxes
-    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas())
+    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
 
 let dungeons = [|
     new Dungeon(0, 2)
@@ -388,7 +390,7 @@ let recomputePlayerStateSummary() =
     let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
     let mutable swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel = 0,0,0,false,0,false,false,0
     for b in allBoxes do
-        if b.PlayerHas() then
+        if b.PlayerHas() = PlayerHas.YES then
             if b.CellCurrent() = ITEMS.RECORDER then
                 haveRecorder <- true
             elif b.CellCurrent() = ITEMS.LADDER then
@@ -429,9 +431,9 @@ let recomputePlayerStateSummary() =
         ringLevel <- max ringLevel 1
     if playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Value() then
         arrowLevel <- max arrowLevel 1
-    if ladderBox.PlayerHas() then
+    if ladderBox.PlayerHas() <> PlayerHas.NO then
         haveCoastItem <- true
-    if sword2Box.PlayerHas() then
+    if sword2Box.PlayerHas() <> PlayerHas.NO then
         haveWhiteSwordItem <- true
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then

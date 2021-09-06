@@ -26,7 +26,6 @@ decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or nee
 binary packaging for redistribution?
 versioning . . .
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
-right click item box to mark as 'skipped'? (pretend I have, but actually no) or maybe shift-click? (or middle-click?)  (bomb & audio reminder boxes ought not have this state)
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 'go mode' reminder/announcement
 show list of remaining box items? if less than N left?
