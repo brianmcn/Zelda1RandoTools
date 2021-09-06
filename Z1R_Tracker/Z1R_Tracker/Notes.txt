@@ -7,6 +7,9 @@ F5 - place 'start screen' icon at moused tile
 F10 - reset timer to 0
 
 
+(Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
+
+
 DUNGEON ITEM AREA
 
 Click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
@@ -27,10 +30,7 @@ bombs - click when you get bombs, to have map routing send you to bombable locat
 boomstick book - click when you get, to mark timeline, and click S/B to toggle whether Shield or Book is available as a dungeon item
 ganon/zelda - click when you kill ganon or rescue zelda, to mark the timeline; clicking zelda will also post your finish time as text in the NOTES section
 (timer, current hearts - just for display)
-OW spots left checkbox - highlight all remaining gettable overworld map tiles
-
-(WPF only)
-Audio reminders - toggle all speech synthesis on/off ; recorder/bracelet - toggle just reminders remaining overworld spots requiring those items
+Show N gettable - click to animate all the remaining overworld tiles you could uncover given your current item set
 
 
 OVERWORLD MAP
@@ -38,20 +38,19 @@ OVERWORLD MAP
 HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and you Hide First Quest or Hide Second Quest if that's later helpful
 Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Show coords - click or hover to show a coordinate overlay
-Show N gettable - click to animate all the overworld tiles you could uncover given your current item set
 
 16x8 Map Tiles - scroll to mark what is there:
- - 1-9 dungeons
- - 1-4 any roads (stair warps)
- - S3/S2 magical sword/white sword item cave
- - ??? hint shop
+ - "1-9" dungeons
+ - "1-4" any roads (stair warps)
+ - "S3/S2" magical sword/white sword item cave
+ - "???" hint shop, or white/magical sword hint
  - (items) item shop
- - heart/potion "take any one you want" cave
- - potions potion shop
- - ?rupee free money or gambling
- - X nothing, or don't care
+ - "heart/potion" cave to "take any one you want"
+ - "potions" potion shop
+ - "?rupee" free money, or gambling
+ - "X" nothing, or don't care
 Left clicking an unmarked map tile will mark it 'X'
-Left or right clicking an item shop will cycle through choices of a second item in the shop (max 2 items)
+Left or right clicking an item shop will cycle through choices of a second item in the shop (max of 2 items can be displayed on a tile)
 An unclaimed-but-known White Sword Item or Coast Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
 
 Hovering an overworld map tile shows a magnified version of that tile and nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
@@ -61,33 +60,33 @@ Mouse-hover for routing from the current tile:
     - unmarked overworld spots
     - uncompleted dungeons
     - un-gotten coast item, white sword item, magical sword
- - "routeworthiness" takes into account your current items (e.g. will not route to burnable tree if have no candle)
+ - "routeworthiness" takes into account your current items (e.g. will not route to burnable tree if you have no candle)
  - routing takes into account your current items (e.g. will not cross river if have no ladder)
  - routing understands any-road warps
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
- - routing assumes no screen-scrolling or other fancy walk glitches
+ - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
-The 12-ish routeworthy spots nearest the mouse cursor will be highlighted greenish if they are guaranteed to yield a location, or yellowish (in mixed quest) if they might be empty.
+The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if they are guaranteed to yield a location, or yellowish (in mixed quest) if they might be empty.
 (WPF only) Right clicking arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI will cause routing to only send you to shops containing that item for the next 10s.
 
 Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' table.
 
-"Item progress" bar lights up items as you get them or upgrade them, as kind of a quick summary of the player state
+"Item progress" bar lights up items as you get them or upgrade them, as kind of a quick summary of the player state; this is for display purposes only (non-interactive).
 
 
 TIMELINE
 
 The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
 Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
-This makes it easy to see e.g. that you got the wood sword in the 12th minute.
+This makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
 
 The timeline is non-interactive, it is just a display capturing progress-over-time.
 
 
-OPTIONS
+OPTIONS MENU
 
 Above the timeline, there is a button labeled "Options..."  
-Clicking this button causes the timeline pane to be replaced by the options menu.  A variety of features can be turned on and off here.
+Clicking this button causes the timeline pane to be replaced by the options menu.  A variety of features can be turned on and off here; mouse-hover the text for a detailed description.
 The options pane automatically closes when the mouse leaves the area, revealing the timeline once again.
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
@@ -98,12 +97,15 @@ There are 9 tabs for the 9 dungeons.
 
 Rooms can be scrolled to mark:
  - stairway transports 1-9
- - special room shapes (moats, chutes, tee, chevy, etc)
- - ad-hoc markers (red/yellow/green) the player can use as they see fit
+ - special room shapes (moats, chutes, tee, chevy, etc.)
+ - ad-hoc color markers (red/yellow/green) the player can use as they see fit
  - grey box (typical 'uncompleted room')
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (floor drop (if any) has been gotten). Thus uncompleted rooms stand out brighter.
-If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  Same with right mouse button, but for uncompleted rooms.
-Shift-clicking a room will black it out, as well as nearby doors, useful for e.g. Shapes 9 when you have the map, to immediately mark off the 'holes'.
+
+If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  Same with right mouse button, but for uncompleted rooms.  
+These features can be useful when you play part of a dungeon without mapping it, but then decide you need to map it--you can quickly 'paint' what you have done.
+
+Shift-clicking a room will black it out, as well as nearby doors; this is useful mostly for Shapes 9 when you have the map, to immediately mark off the 'holes'.
 
 Doors between rooms have three states:
  - dark grey is unknown (default)
@@ -120,20 +122,20 @@ Dungeon tracking has no semantic meaning to the tracker, and can be used by the 
 
 NOTES
 
-This area is for ad-hoc textual note-taking by the player (e.g. "2 gohma" to remind you to return to dungeon 2 when you have bow&arrow)
+This area is for ad-hoc textual note-taking by the player (e.g. "2 gohma" to remind you to return to dungeon 2 when you have bow&arrow).
 
 
 SPEECH SYNTHESIS (WPF only)
 
 There are a variety of spoken reminders triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
-You can turn them off with the Audio reminders checkbox in the upper right.
+You can toggle various categories of voice reminders in the Options menu.
 
 
 SPEECH RECOGNITION (WPF only)
 
-When hovering over a blank map tile, with a microphone equipped, you can speak e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
+When hovering over a blank map tile, with a microphone equipped, you can speak aloud e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
 
-This option must be enabled when first starting the tracker on the start screen, it cannot be enabled later while the application is running.
+This option must be enabled when first starting the tracker on the startup screen, it cannot be enabled later while the application is running.
 
 The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
 

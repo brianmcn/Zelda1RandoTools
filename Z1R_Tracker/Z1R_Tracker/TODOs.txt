@@ -10,6 +10,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
+(triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
+
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
 
 always-bombable spots:  
@@ -27,7 +29,6 @@ binary packaging for redistribution?
 versioning . . .
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
-'go mode' reminder/announcement
 show list of remaining box items? if less than N left?
 
 
