@@ -453,22 +453,43 @@ let makeAll(owMapNum) =
                     let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
                     for px = 0 to int ENLARGE - 1 do
                         for py = 0 to int ENLARGE - 1 do
+                            // diagonal rocks
                             let c = 
-                                // diagonal rocks
-                                if OverworldData.owNErock.[i,j].[x,y] then
+                                // The diagonal rock data is based on the first quest map. A few screens are different in 2nd/mixed quest.
+                                // So we apply a kludge to load the correct diagonal data.
+                                let i,j = 
+                                    if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
+                                        14,5
+                                    elif owMapNum=1 && i=11 && j=0 then // second quest has dead fairy here, borrow 2,4
+                                        2,4
+                                    elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
+                                        2,4
+                                    else
+                                        i,j
+                                if OverworldData.owNEupperRock.[i,j].[x,y] then
                                     if px+py > int ENLARGE - 1 then 
                                         owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
                                     else 
                                         c
-                                elif OverworldData.owSErock.[i,j].[x,y] then
-                                    if px<py then 
+                                elif OverworldData.owSEupperRock.[i,j].[x,y] then
+                                    if px < py then 
                                         owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                    else 
+                                        c
+                                elif OverworldData.owNElowerRock.[i,j].[x,y] then
+                                    if px+py < int ENLARGE - 1 then 
+                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
+                                    else 
+                                        c
+                                elif OverworldData.owSElowerRock.[i,j].[x,y] then
+                                    if px > py then 
+                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
                                     else 
                                         c
                                 else 
                                     c
+                            // edges of squares
                             let c = 
-                                // edges of squares
                                 if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
                                     System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
                                 else

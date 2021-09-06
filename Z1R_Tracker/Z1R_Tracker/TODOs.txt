@@ -45,6 +45,8 @@ white sword item gets projected onto S2 tile.
  - Sword – need better weapon; Bow – need bow; Recorder; ladder; Bomb; Key; Bait
  - Can auto hook a voice reminder when you get the unblocker
 
+maybe also auto-reminders of hint stuff? e.g. 'mags grave' didn't help me when I had no sword3 marked and 2/3 remaining grave spots were recorder-blocked (1/3 PB blocked), would be nice 
+for tracker to know this hint and when I get recorder tell me S3 may have been unblocked, hm...
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
