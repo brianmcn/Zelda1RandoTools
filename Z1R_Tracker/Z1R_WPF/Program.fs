@@ -94,12 +94,19 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         this.FontSize <- 18.
 
+        let dock(x) =
+            let d = new DockPanel(LastChildFill=false, HorizontalAlignment=HorizontalAlignment.Center)
+            d.Children.Add(x) |> ignore
+            d
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
-        let tb = new TextBox(Text="Choose overworld quest:", Margin=spacing)
+        let image1 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[0]
+        stackPanel.Children.Add(image1) |> ignore
+
+        let tb = new TextBox(Text="Choose overworld quest:", Margin=spacing, MaxWidth=WIDTH/2.)
         stackPanel.Children.Add(tb) |> ignore
-        let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true)
+        let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true, MaxWidth=WIDTH/2.)
         owQuest.ItemsSource <- [|
                 "First Quest"
                 "Second Quest"
@@ -108,8 +115,13 @@ type MyWindow() as this =
             |]
         owQuest.SelectedIndex <- 2
         stackPanel.Children.Add(owQuest) |> ignore
-        
-        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
+
+        stackPanel.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
+        let image2 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[1]
+        image2.Margin <- spacing
+        stackPanel.Children.Add(image2) |> ignore
+
+        let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
@@ -118,11 +130,15 @@ type MyWindow() as this =
         options.Opacity <- 1.0
         stackPanel.Children.Add(options) |> ignore
 
-        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing)
-        tb.TextAlignment <- TextAlignment.Center
+        stackPanel.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
+        let image3 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[2]
+        image3.Margin <- spacing
+        stackPanel.Children.Add(image3) |> ignore
+
+        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true), Margin=spacing)
+        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
         stackPanel.Children.Add(startButton) |> ignore
         
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
@@ -130,7 +146,7 @@ type MyWindow() as this =
         this.Content <- hstackPanel
         
         startButton.Click.Add(fun _ -> 
-                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing)
+                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
                 stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
                 Async.Start (async {

@@ -12,13 +12,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-make start button not so wide, also Loading UI..., choose quest
-
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
 
 (some folks mark specific boss tiles in dungeons)
-
-start screen could use triforce 1/2/3 for 1.choose quest and 2.options and 3.start (and eventually 3. start OR load old data)
 
 (triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
 
@@ -43,6 +39,8 @@ show list of remaining box items? if less than N left?
 
 select item box via voice?  select dungeon room via voice?
 feedback for recent voice selections? (tone, log)
+
+(start screen eventually have 3. start OR load old data)
 
 MEDIUM
 
@@ -71,7 +69,7 @@ review other common flagsets from rando, what works, what could work, etc
 
 Layout/size/stretch options were common requests for zhelper – can I scale?
 
-auto save/load tracker state (not just options)?
+auto save/load tracker state (not just options)? no, would be better for explicit UI action to save to a filename, and load from start screen, zhelper behavior is confusing to folks
 
 hotkeys (e.g. immediately mark S3)
 
@@ -102,7 +100,7 @@ That said, I think this tracker has a number of advantages in usability, both in
 
  - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.
 
- - Fewer clicks: mouse hovering can show the area zone overlay or helpful hints; fewer options for e.g. dungeon doors provide a simpler interface.
+ - Fewer clicks: mouse hovering can show the area zone overlay or helpful hints; fewer default options for e.g. dungeon doors provide a simpler interface.
 
  - Quick after-the-fact dungeon markup: if you play half a dungeon without mapping, and then decide you need to map it, drag gestures can quickly 'paint out' the already-explored portions.
 
