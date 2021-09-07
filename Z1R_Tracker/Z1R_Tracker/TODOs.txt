@@ -8,13 +8,17 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 (Don't forget to keep Notes.txt up-to-date as change features!)
 
 (dungeon palette rom)
+(test mirror overworld)
 
 
 SMALL
 
-(Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
+maybe also some 'freeform mark' you can place once anywhere on each dungeon canvas? or maybe a yellow oval you can toggle around a room? hm. (I guess it moves along with GRAB)
 
-(some folks mark specific boss tiles in dungeons)
+select dungeon number via voice?  select item box via voice?  select dungeon room via voice?
+feedback for recent voice selections? (tone, log)
+
+(Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
 
 (triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
 
@@ -37,15 +41,9 @@ ad-hoc counters? e.g. for door repair charges, or whatever else folks may want t
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 show list of remaining box items? if less than N left?
 
-select item box via voice?  select dungeon room via voice?
-feedback for recent voice selections? (tone, log)
-
 (start screen eventually have 3. start OR load old data)
 
 MEDIUM
-
-General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
-white sword item gets projected onto S2 tile.
 
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
@@ -56,8 +54,13 @@ white sword item gets projected onto S2 tile.
 maybe also auto-reminders of hint stuff? e.g. 'mags grave' didn't help me when I had no sword3 marked and 2/3 remaining grave spots were recorder-blocked (1/3 PB blocked), would be nice 
 for tracker to know this hint and when I get recorder tell me S3 may have been unblocked, hm...
 
+General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
+white sword item gets projected onto S2 tile.
+
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
+
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
+
 review other common flagsets from rando, what works, what could work, etc
  - currently assumes these rando flags:
     - (routing, map legend) whistle to new dungeons & not recorder-to-unbeaten

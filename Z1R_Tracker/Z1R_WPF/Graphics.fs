@@ -71,7 +71,7 @@ let unfoundL9,foundL9 =
     BMPtoImage u, BMPtoImage f
 
 let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonDoubleMoatBMP; cdungeonChevyBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; 
-        cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
+        cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonNeedRecorder; cdungeonNeedBow; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
         cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)

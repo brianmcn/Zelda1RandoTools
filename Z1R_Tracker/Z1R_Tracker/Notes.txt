@@ -101,6 +101,7 @@ There are 9 tabs for the 9 dungeons.
 Rooms can be scrolled to mark:
  - stairway transports 1-9
  - special room shapes (moats, chutes, tee, chevy, etc.)
+ - special markers for boss-needs-item rooms (digdogger+recorder; bow+arrow for gohma)
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
  - grey box (typical 'uncompleted room')
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten). 
