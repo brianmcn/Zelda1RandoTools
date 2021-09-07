@@ -107,7 +107,9 @@ Rooms can be scrolled to mark:
 Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten). 
 Thus uncompleted rooms stand out brighter.
 
-If you click and drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
+You can 'circle' a room by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
+
+If you click-and-drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
 These features can be useful when you play part of a dungeon without mapping it, but then decide you need to map it--quickly 'paint' what you have done.
 

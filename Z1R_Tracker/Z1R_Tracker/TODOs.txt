@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-maybe also some 'freeform mark' you can place once anywhere on each dungeon canvas? or maybe a yellow oval you can toggle around a room? hm. (I guess it moves along with GRAB)
-
 select dungeon number via voice?  select item box via voice?  select dungeon room via voice?
 feedback for recent voice selections? (tone, log)
 

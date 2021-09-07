@@ -1222,6 +1222,7 @@ let makeAll(owMapNum) =
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = Array2D.zeroCreate 8 8 // 1-9 = transports, see redraw() below for rest
+        let roomIsCircled = Array2D.zeroCreate 8 8
         let roomCompleted = Array2D.zeroCreate 8 8 
         let ROOMS = 24 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
@@ -1267,6 +1268,7 @@ let makeAll(owMapNum) =
                 canvasAdd(c, image, 0., 0.)
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
+                roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
                     let image =
@@ -1290,6 +1292,9 @@ let makeAll(owMapNum) =
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
+                    if roomIsCircled.[i,j] then
+                        let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3.)
+                        canvasAdd(c, ellipse, -6., -6.)
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let f b =
                     // track transport being changed away from
@@ -1334,15 +1339,16 @@ let makeAll(owMapNum) =
                         if not grabHelper.HasGrab then
                             if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
                                 dungeonHighlightCanvas.Children.Clear() // clear preview
-                                let contiguous = grabHelper.StartGrab(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
                                 highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
                                 highlight(contiguous, Brushes.Lime)
                         else
                             let backupRoomStates = roomStates.Clone() :?> int[,]
+                            let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
                             let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
                             let backupHorizontalDoors = horizontalDoorCanvases |> Array2D.map (fun c -> c.Background)
                             let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
-                            grabHelper.DoDrop(i,j,roomStates,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                            grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
                             redrawAllRooms()  // make updated changes visual
                             let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
                             cmb.Owner <- Window.GetWindow(c)
@@ -1351,6 +1357,7 @@ let makeAll(owMapNum) =
                             if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
                                 // copy back from old state
                                 backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
+                                backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
                                 backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
                                 redrawAllRooms()  // make reverted changes visual
                                 horizontalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupHorizontalDoors.[x,y])
@@ -1406,6 +1413,17 @@ let makeAll(owMapNum) =
                                 // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
                                 roomStates.[i,j] <- ROOMS-1
                                 roomCompleted.[i,j] <- false
+                                redraw()
+                    )
+                c.MouseDown.Add(fun ea -> 
+                    // middle click toggles roomIsCircled
+                    if ea.ChangedButton = Input.MouseButton.Middle && ea.ButtonState = Input.MouseButtonState.Pressed then
+                        if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
+                            let pos = ea.GetPosition(c)
+                            if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
+                                () // do nothing, as I often accidentally click room when trying to target doors with mouse
+                            else
+                                roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
                                 redraw()
                     )
                 c.MouseWheel.Add(fun x -> 

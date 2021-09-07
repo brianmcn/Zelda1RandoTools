@@ -14,6 +14,7 @@ type GrabHelper() =
     let mutable grabMouseX, grabMouseY = -1, -1
     let grabContiguousRooms = Array2D.zeroCreate 8 8
     let mutable roomStatesIfGrabWereACut = null
+    let mutable roomIsCircledIfGrabWereACut = null
     let mutable roomCompletedIfGrabWereACut = null
     let mutable horizontalDoorsIfGrabWereACut = null
     let mutable verticalDoorsIfGrabWereACut = null
@@ -38,13 +39,14 @@ type GrabHelper() =
             attempt(roomX,roomY+1)
         // return them
         contiguous
-    member this.StartGrab(mouseX, mouseY, roomStates:int[,], roomCompleted:bool[,], horizontalDoors:Canvas[,], verticalDoors:Canvas[,]) =
+    member this.StartGrab(mouseX, mouseY, roomStates:int[,], roomIsCircled:bool[,], roomCompleted:bool[,], horizontalDoors:Canvas[,], verticalDoors:Canvas[,]) =
         let contigous = this.PreviewGrab(mouseX, mouseY, roomStates)
         // save them
         grabMouseX <- mouseX
         grabMouseY <- mouseY
         contigous |> Array2D.iteri (fun x y v -> grabContiguousRooms.[x,y] <- v)
         roomStatesIfGrabWereACut <- Array2D.init 8 8 (fun x y -> if contigous.[x,y] then 0 else roomStates.[x,y])
+        roomIsCircledIfGrabWereACut <- Array2D.init 8 8 (fun x y -> if contigous.[x,y] then false else roomIsCircled.[x,y])
         roomCompletedIfGrabWereACut <- Array2D.init 8 8 (fun x y -> if contigous.[x,y] then false else roomCompleted.[x,y])
         horizontalDoorsIfGrabWereACut <- Array2D.init 7 8 (fun x y -> if contigous.[x,y] || contigous.[x+1,y] then unknown else horizontalDoors.[x,y].Background)
         verticalDoorsIfGrabWereACut <- Array2D.init 8 7 (fun x y -> if contigous.[x,y] || contigous.[x,y+1] then unknown else verticalDoors.[x,y].Background)
@@ -67,15 +69,17 @@ type GrabHelper() =
                             contiguousOk.[x,y] <- true
         contiguousOk, contiguousWarn
 
-    member this.DoDrop(mouseX, mouseY, roomStates:int[,], roomCompleted:bool[,], horizontalDoors:Canvas[,], verticalDoors:Canvas[,]) =  // mutates arrays
+    member this.DoDrop(mouseX, mouseY, roomStates:int[,], roomIsCircled:bool[,], roomCompleted:bool[,], horizontalDoors:Canvas[,], verticalDoors:Canvas[,]) =  // mutates arrays
         if not this.IsGrabMode || not this.HasGrab then
             failwith "bad"
         let dx,dy = mouseX-grabMouseX, mouseY-grabMouseY
         let oldRoomStates = roomStates.Clone() :?> int[,]
+        let oldRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
         let oldRoomCompleted = roomCompleted.Clone() :?> bool[,]
         let oldHorizontalDoors = horizontalDoors |> Array2D.map (fun c -> c.Background)
         let oldVerticalDoors = verticalDoors |> Array2D.map (fun c -> c.Background)
         roomStatesIfGrabWereACut |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
+        roomIsCircledIfGrabWereACut |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
         roomCompletedIfGrabWereACut |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
         horizontalDoorsIfGrabWereACut |> Array2D.iteri (fun x y v -> horizontalDoors.[x,y].Background <- v)
         verticalDoorsIfGrabWereACut |> Array2D.iteri (fun x y v -> verticalDoors.[x,y].Background <- v)
@@ -85,6 +89,7 @@ type GrabHelper() =
                 if i>=0 && i<=7 && j>=0 && j<=7 then
                     if grabContiguousRooms.[i,j] then
                         roomStates.[x,y] <- oldRoomStates.[i,j]
+                        roomIsCircled.[x,y] <- oldRoomIsCircled.[i,j]
                         roomCompleted.[x,y] <- oldRoomCompleted.[i,j]
                         let door(target:Canvas[,], x, y, source:Brush[,], i, j) =
                             if obj.Equals(source.[i,j],yes) || obj.Equals(source.[i,j],no) then
@@ -111,5 +116,7 @@ type GrabHelper() =
             for y = 0 to 7 do
                 grabContiguousRooms.[x,y] <- false
         roomStatesIfGrabWereACut <- null
+        roomIsCircledIfGrabWereACut <- null
+        roomCompletedIfGrabWereACut <- null
     member this.Log() =
         printfn "log"

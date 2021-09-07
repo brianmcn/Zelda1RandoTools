@@ -46,6 +46,11 @@ type MyWindow(owMapNum) as this =
                 this.Update(true)
                 )))
 
+        let dock(x) =
+            let d = new DockPanel(LastChildFill=false, HorizontalAlignment=HorizontalAlignment.Center)
+            d.Children.Add(x) |> ignore
+            d
+
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
@@ -61,7 +66,7 @@ type MyWindow(owMapNum) as this =
         owQuest.SelectedIndex <- owMapNum % 4
         stackPanel.Children.Add(owQuest) |> ignore
 
-        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):")
+        let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):")
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         let options = OptionsMenu.makeOptionsCanvas(16.*OverworldRouteDrawing.OMTW, float(UI.TCH+6), 0.)
@@ -69,7 +74,7 @@ type MyWindow(owMapNum) as this =
         options.Opacity <- 1.0
         stackPanel.Children.Add(options) |> ignore
 
-        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
+        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
         stackPanel.Children.Add(tb) |> ignore
         let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false))
         stackPanel.Children.Add(startButton) |> ignore
