@@ -358,6 +358,13 @@ let makeAll(owMapNum) =
         rect
         )
 
+    // overworld map grouping, as main point of support for mirroring
+    let mirrorOverworldFEs = ResizeArray<Visual>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
+    let mutable displayIsCurrentlyMirrored = false
+    let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
+    canvasAdd(c, overworldCanvas, 0., 120.)
+    mirrorOverworldFEs.Add(overworldCanvas)
+
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.4
     let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
@@ -379,7 +386,7 @@ let makeAll(owMapNum) =
                 let icon = resizeMapTileImage <| Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
-    canvasAdd(c, owOpaqueMapGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)
 
     // layer to place darkening icons - dynamic icons that are below route-drawing but above the fixed base layer
     // this layer is also used to draw map icons that get drawn below routing, such as potion shops
@@ -391,7 +398,7 @@ let makeAll(owMapNum) =
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owDarkeningMapGrid, c, i, j)
             owDarkeningMapGridCanvases.[i,j] <- c
-    canvasAdd(c, owDarkeningMapGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owDarkeningMapGrid, 0., 0.)
 
     // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
     let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
@@ -402,7 +409,7 @@ let makeAll(owMapNum) =
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owHidingMapGrid, c, i, j)
             owHidingMapGridCanvases.[i,j] <- c
-    canvasAdd(c, owHidingMapGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
     let hide(x,y) =
         let hideColor = Brushes.DarkSlateGray // Brushes.Black
         let hideOpacity = 0.6 // 0.4
@@ -436,13 +443,14 @@ let makeAll(owMapNum) =
     // ow route drawing layer
     let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    canvasAdd(c, routeDrawingCanvas, 0., 120.)
+    canvasAdd(overworldCanvas, routeDrawingCanvas, 0., 0.)
 
     // nearby ow tiles magnified overlay
     let ENLARGE = 8. // make it this x bigger
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsVisible=false, IsHitTestVisible=false)
     let dungeonTabsOverlayContent = new Canvas(Width=3.*16.*ENLARGE + 4.*BT, Height=3.*11.*ENLARGE + 4.*BT)
+    mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
@@ -530,7 +538,8 @@ let makeAll(owMapNum) =
         // darken the number
         let rect = new Shapes.Rectangle(Width=20.0*OMTW/48., Height=22.0, Stroke=Brushes.Black, StrokeThickness = 3.,
                                                         Fill=Brushes.Black, Opacity=0.4)
-        canvasAdd(c, rect, x*OMTW+12.0*OMTW/48., float(y*11*3)+5.0)
+        let diff = if displayIsCurrentlyMirrored then 16.0*OMTW/48. else 12.0*OMTW/48.
+        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+5.0)
     let drawWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Aqua)
     let drawDarkening(c,x,y) =
@@ -664,6 +673,8 @@ let makeAll(owMapNum) =
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
+                mirrorOverworldFEs.Add(c)
+                mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 c.PointerPressed.Add(fun ea -> 
                     let MODULO = MapStateProxy.NUM_ITEMS+1
                     let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
@@ -695,7 +706,7 @@ let makeAll(owMapNum) =
                             updateGridSpot 0 ""
                     )
                 c.PointerWheelChanged.Add(fun x -> updateGridSpot (if x.Delta.Y<0. then 1 else -1) "")
-    canvasAdd(c, owMapGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
 
     let mutable mapMostRecentMousePos = Point(-1., -1.)
     owMapGrid.PointerLeave.Add(fun _ -> mapMostRecentMousePos <- Point(-1., -1.))
@@ -703,7 +714,7 @@ let makeAll(owMapNum) =
 
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    canvasAdd(c, recorderingCanvas, 0., 120.)
+    canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     let startIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
 
     let THRU_MAIN_MAP_H = float(120 + 8*11*3)
@@ -803,6 +814,15 @@ let makeAll(owMapNum) =
     canvasAdd(c, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let doUIUpdate() =
+        if displayIsCurrentlyMirrored <> TrackerModel.Options.MirrorOverworld.Value then
+            // model changed, align the view
+            displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
+            if displayIsCurrentlyMirrored then
+                for fe in mirrorOverworldFEs do
+                    fe.RenderTransform <- new ScaleTransform(-1., 1.)
+            else
+                for fe in mirrorOverworldFEs do
+                    fe.RenderTransform <- null
         // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
         for i = 0 to 7 do
             if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
@@ -930,7 +950,8 @@ let makeAll(owMapNum) =
                     itemImage.Width <- OMTW/2.
                     let color = Brushes.Black
                     let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
-                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW/2., float(y*11*3)+4.)
+                    let diff = if displayIsCurrentlyMirrored then 0. else OMTW/2.
+                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+diff, float(y*11*3)+4.)
             member _this.CoastItem() =
                 if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
@@ -1413,13 +1434,14 @@ let makeAll(owMapNum) =
         for j = 0 to 7 do
             let tb = new TextBox(Text=sprintf "%c%d" (char (int 'A' + j)) (i+1), Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeight.Bold)
+            mirrorOverworldFEs.Add(tb)
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
             owCoordsTBs.[i,j] <- tb
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
             gridAdd(owCoordsGrid, c, i, j) 
-    canvasAdd(c, owCoordsGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owCoordsGrid, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showCoords)
     cb.IsChecked <- System.Nullable.op_Implicit false
@@ -1466,7 +1488,7 @@ let makeAll(owMapNum) =
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapZoneGrid, c, i, j)
-    canvasAdd(c, owMapZoneGrid, 0., 120.)
+    canvasAdd(overworldCanvas, owMapZoneGrid, 0., 0.)
 
     let owMapZoneBoundaries = ResizeArray()
     let makeLine(x1, x2, y1, y2) = 
@@ -1477,7 +1499,7 @@ let makeAll(owMapNum) =
         let line = makeLine(x1,x2,y1,y2)
         line.Opacity <- 0.0
         owMapZoneBoundaries.Add(line)
-        canvasAdd(c, line, 0., 120.)
+        canvasAdd(overworldCanvas, line, 0., 0.)
     addLine(0,7,2,2)
     addLine(7,11,1,1)
     addLine(7,7,1,2)
@@ -1517,7 +1539,8 @@ let makeAll(owMapNum) =
     let zoneNames = ResizeArray()
     let addZoneName(name, x, y) =
         let tb = new TextBox(Text=name,FontSize=12.,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(2.),IsReadOnly=true)
-        canvasAdd(c, tb, 0. + x*OMTW, 120.+y*11.*3.)
+        mirrorOverworldFEs.Add(tb)
+        canvasAdd(overworldCanvas, tb, x*OMTW, y*11.*3.)
         tb.Opacity <- 0.
         tb.TextAlignment <- TextAlignment.Center
         tb.FontWeight <- FontWeight.Bold

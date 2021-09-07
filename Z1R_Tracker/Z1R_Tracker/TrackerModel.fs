@@ -24,6 +24,7 @@ module Options =
         let mutable HaveKeyLadder = Bool(true)
     let mutable ListenForSpeech = Bool(true)
     let mutable IsSecondQuestDungeons = Bool(false)
+    let mutable MirrorOverworld = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
 
@@ -40,6 +41,7 @@ module Options =
         
         member val ListenForSpeech = true with get,set
         member val IsSecondQuestDungeons = false with get,set
+        member val MirrorOverworld = false with get,set
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
@@ -62,6 +64,7 @@ module Options =
 
             ListenForSpeech.Value <- data.ListenForSpeech
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
+            MirrorOverworld.Value <- data.MirrorOverworld
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
         with e ->
@@ -83,6 +86,7 @@ module Options =
 
         data.ListenForSpeech <- ListenForSpeech.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.MirrorOverworld <- MirrorOverworld.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
 

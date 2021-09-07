@@ -111,6 +111,12 @@ let makeOptionsCanvas(width, height, heightOffset) =
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; TrackerModel.forceUpdate())
     cb.ToolTip <- "Check this if dungeon 4, rather than dungeon 1, has 3 items"
     options3sp.Children.Add(cb) |> ignore
+    let cb = new CheckBox(Content=new TextBox(Text="Mirror overworld",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.MirrorOverworld.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- true; TrackerModel.forceUpdate())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- false; TrackerModel.forceUpdate())
+    cb.ToolTip <- "Flip the overworld map East<->West"
+    options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
     Graphics.canvasAdd(optionsCanvas, optionsAllsp, 0., 0.)

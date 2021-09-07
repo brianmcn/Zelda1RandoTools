@@ -88,7 +88,8 @@ OPTIONS MENU
 
 Above the timeline, there is a button labeled "Options..."  
 Clicking this button causes the timeline pane to be replaced by the options menu.  
-A variety of features can be turned on and off here; mouse-hover the text for a detailed description.
+A variety of tracker features can be turned on and off here; mouse-hover the text for a detailed description.
+Some randomizer flag settings are also featured here, notably 'Second quest dungeons' and 'Mirror overworld'.
 The options pane automatically closes when the mouse leaves the area, revealing the timeline once again.
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 

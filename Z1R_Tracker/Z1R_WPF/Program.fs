@@ -153,6 +153,8 @@ type MyWindow() as this =
                     canvas <- c
                     updateTimeline <- u
                     Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
+                    //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
+                    //canvas.RenderTransform <- trans
                     this.Content <- canvas
                     System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
                         let ex = e.Exception
