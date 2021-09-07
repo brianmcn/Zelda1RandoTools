@@ -8,10 +8,20 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 (Don't forget to keep Notes.txt up-to-date as change features!)
 
 (dungeon palette rom)
-(test mirror overworld)
+(test mirror overworld, test new dungeon marks)
 
 
 SMALL
+
+Hints:
+ - hint decoder should be a button, clicking brings up modal dialog to select hints
+ - hovering hint button displays the list, but below (over dungeon/notes) so as to not obscure map. if any hints to unknown locations are zones, those zones highlight?
+ - hovering any of 9 triforce numerals or associated boxes highlight map locations thusly:
+    - if exact location known, that row and column of ow map gets a white highlight
+    - if only hint area known, the zone boundaries for that area are displayed, and all unmarked tiles in that zone glow
+    - if nothing known, nothing happens
+ - hovering white sword (or itembox) or magic sword in upper right also displays its location similarly
+
 
 select dungeon number via voice?  select item box via voice?  select dungeon room via voice?
 feedback for recent voice selections? (tone, log)

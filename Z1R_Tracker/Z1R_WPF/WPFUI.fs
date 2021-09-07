@@ -1562,13 +1562,13 @@ let makeAll(owMapNum) =
         imgs
 
     let owMapZoneGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let allOwMapZoneImages = ResizeArray()
+    let allOwMapZoneImages = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
             let image = Graphics.BMPtoImage owMapZoneBmps.[i,j]
             image.Opacity <- 0.0
             image.IsHitTestVisible <- false // transparent to mouse
-            allOwMapZoneImages.Add(image)
+            allOwMapZoneImages.[i,j] <- image
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owMapZoneGrid, c, i, j)
@@ -1630,27 +1630,27 @@ let makeAll(owMapNum) =
         tb.FontWeight <- FontWeights.Bold
         tb.IsHitTestVisible <- false
         zoneNames.Add(tb)
-    addZoneName("DEATH\nMOUNTAIN", 3.0, 0.3)
-    addZoneName("GRAVE", 1.8, 2.5)
-    addZoneName("DEAD\nWOODS", 1.8, 6.0)
-    addZoneName("LAKE 1", 10.0, 0.1)
-    addZoneName("LAKE 2", 5.0, 4.0)
-    addZoneName("LAKE 3", 9.5, 5.5)
-    addZoneName("RIVER 1", 8.3, 1.1)
+    addZoneName("DEATH\nMOUNTAIN", 2.5, 0.3)
+    addZoneName("GRAVE", 1.5, 2.8)
+    addZoneName("DEAD\nWOODS", 1.4, 5.3)
+    addZoneName("LAKE 1", 10.2, 0.1)
+    addZoneName("LAKE 2", 5.5, 3.5)
+    addZoneName("LAKE 3", 9.4, 5.5)
+    addZoneName("RIVER 1", 7.3, 1.1)
     addZoneName("RIV\nER2", 5.1, 6.2)
     addZoneName("START", 7.3, 6.2)
     addZoneName("DESERT", 10.3, 3.1)
     addZoneName("FOREST", 12.3, 5.1)
-    addZoneName("LOST\nHILLS", 12.3, 0.3)
-    addZoneName("COAST", 14.3, 2.6)
+    addZoneName("LOST\nHILLS", 12.4, 0.3)
+    addZoneName("COAST", 14.3, 2.7)
 
     let changeZoneOpacity(show) =
         if show then
-            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.3)
+            allOwMapZoneImages |> Array2D.iteri (fun x y image -> (* if TrackerModel.overworldMapMarks.[x,y].Current() <> -1 then *) image.Opacity <- 0.3)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
             zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.6)
         else
-            allOwMapZoneImages |> Seq.iter (fun i -> i.Opacity <- 0.0)
+            allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
             zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.0)
     let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))

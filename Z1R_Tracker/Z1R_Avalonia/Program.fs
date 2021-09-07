@@ -50,13 +50,14 @@ type MyWindow(owMapNum) as this =
             let d = new DockPanel(LastChildFill=false, HorizontalAlignment=HorizontalAlignment.Center)
             d.Children.Add(x) |> ignore
             d
+        let spacing = Thickness(0., 10., 0., 0.)
 
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
-        let tb = new TextBox(Text="Choose overworld quest:")
+        let tb = new TextBox(Text="Choose overworld quest:", MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
-        let owQuest = new ComboBox()
+        let owQuest = new ComboBox(MaxWidth=300.)
         owQuest.Items <- [|
                 "First Quest"
                 "Second Quest"
@@ -66,7 +67,7 @@ type MyWindow(owMapNum) as this =
         owQuest.SelectedIndex <- owMapNum % 4
         stackPanel.Children.Add(owQuest) |> ignore
 
-        let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):")
+        let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         let options = OptionsMenu.makeOptionsCanvas(16.*OverworldRouteDrawing.OMTW, float(UI.TCH+6), 0.)
@@ -74,15 +75,15 @@ type MyWindow(owMapNum) as this =
         options.Opacity <- 1.0
         stackPanel.Children.Add(options) |> ignore
 
-        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true)
+        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false))
+        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false), MaxWidth=300.)
         stackPanel.Children.Add(startButton) |> ignore
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         hstackPanel.Children.Add(stackPanel) |> ignore
         this.Content <- hstackPanel
         startButton.Click.Add(fun _ ->
-                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true)
+                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, MaxWidth=300.)
                 stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
                 Async.Start (async {

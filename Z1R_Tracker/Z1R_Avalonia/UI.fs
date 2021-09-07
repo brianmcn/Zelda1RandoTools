@@ -1564,19 +1564,19 @@ let makeAll(owMapNum) =
         tb.FontWeight <- FontWeight.Bold
         tb.IsHitTestVisible <- false
         zoneNames.Add(tb)
-    addZoneName("DEATH\nMOUNTAIN", 3.0, 0.3)
-    addZoneName("GRAVE", 1.8, 2.5)
-    addZoneName("DEAD\nWOODS", 1.8, 6.0)
-    addZoneName("LAKE 1", 10.0, 0.1)
-    addZoneName("LAKE 2", 5.0, 4.0)
-    addZoneName("LAKE 3", 9.5, 5.5)
-    addZoneName("RIVER 1", 8.3, 1.1)
+    addZoneName("DEATH\nMOUNTAIN", 2.5, 0.3)
+    addZoneName("GRAVE", 1.5, 2.8)
+    addZoneName("DEAD\nWOODS", 1.4, 5.3)
+    addZoneName("LAKE 1", 10.2, 0.1)
+    addZoneName("LAKE 2", 5.5, 3.5)
+    addZoneName("LAKE 3", 9.4, 5.5)
+    addZoneName("RIVER 1", 7.3, 1.1)
     addZoneName("RIV\nER2", 5.1, 6.2)
     addZoneName("START", 7.3, 6.2)
     addZoneName("DESERT", 10.3, 3.1)
     addZoneName("FOREST", 12.3, 5.1)
-    addZoneName("LOST\nHILLS", 12.3, 0.3)
-    addZoneName("COAST", 14.3, 2.6)
+    addZoneName("LOST\nHILLS", 12.4, 0.3)
+    addZoneName("COAST", 14.3, 2.7)
 
     let changeZoneOpacity(show) =
         if show then
