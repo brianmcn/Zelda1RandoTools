@@ -12,7 +12,15 @@ F10 - reset timer to 0
 
 DUNGEON ITEM AREA
 
-Click to toggle having triforce (triforce numeral lights up white if location known on overworld map)
+Triforces:
+Click to toggle having triforce.  
+Triforce display suggests if dungeon has been located on overworld map: 
+ - dark numeral means un-found
+ - white numeral means location known
+ - highlighted background means have helpful location hint (see below)
+Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
+
+Items:
 Scroll to change item in a dungeon
 Left click to mark you have obtained that dungeon item, right click to mark intentionally skipped item. 
 Display is: red box = don't have, green box = do have, purple box = skipped.  
@@ -26,12 +34,14 @@ OTHER ITEM AREA
 
 coast item, armos item, white sword item - just like dungeon item boxes
 4 take-any hearts - click or scroll to say you took a heart container (red heart) or chose another option (X)
-wood sword, blue ring, wood arrow, blue candle, magic sword - click these when you get them, so they appear on the Timeline (see below)
+wood sword, blue ring, blue candle, wood arrow, magic sword - click these when you get them, so they appear on the Timeline (see below)
 bombs - click when you get bombs, to have map routing send you to bombable locations (see below)
 boomstick book - click when you get, to mark timeline, and click S/B to toggle whether Shield or Book is available as a dungeon item
 ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your time as text in the NOTES section
 (timer, current hearts - just for display)
 Show N gettable - click to animate all the remaining overworld tiles you could uncover given your current item set
+
+Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 
 
 OVERWORLD MAP
@@ -70,7 +80,10 @@ Mouse-hover for routing from the current tile:
 The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
 (WPF only) Right click arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI: routing sends you only to shops containing that item for the next 10s.
 
-Hovering the 'Hint decoder' in the bottom right pops up the 'Aquamentus Awaits' table.
+Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
+(Click button again to dismiss the table.)
+Each hinted-but not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
+shows the possible location for that dungeon or sword cave.
 
 "Item progress" bar lights up items as you get them or upgrade them, as a quick summary of the player state; display purposes only (non-interactive).
 

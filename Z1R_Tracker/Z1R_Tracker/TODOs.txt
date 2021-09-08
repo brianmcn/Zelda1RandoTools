@@ -8,7 +8,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 (Don't forget to keep Notes.txt up-to-date as change features!)
 
 (dungeon palette rom)
-(test mirror overworld, test new dungeon marks)
 
 
 SMALL
@@ -52,6 +51,15 @@ show list of remaining box items? if less than N left?
 (start screen eventually have 3. start OR load old data)
 
 MEDIUM
+
+I've been thinking I might want something along the lines of "highlight most recent map tile change" or "long duration mouse trail" or something.  
+Like I have found that, I might be mapping stuff, and then go mark an item box or whatever, and then be like, 'wait, where am I? where should the mouse be?'  
+Or I may find a dungeon, and select its dungeon map tab but forget to mark its location on the overworld, and then later be in the dungeon and be like 'where am I?'  
+So I wonder if there is some good heuristic I can apply that is like, based on your mouse movements over the past few minutes, 
+I think the most likely spot you are on the overworld is here (highlighted).
+I think the heuristic is something like, there is a YouAreHere (x,y) and marking a map tile pokes it, or hovering a map square for at least ten seconds pokes it.  
+Maybe?  An unfortunate interaction is that I sometimes move my mouse to an 'X'ed tile just to ensure that my speech doesn't accidentally mark the map 
+(speech only affects unmarked tiles), so that confounds it a little.
 
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks

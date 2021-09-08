@@ -54,7 +54,7 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
         |]
     all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
 
-let unfoundL9,foundL9 =
+let unfoundL9_bmp,foundL9_bmp =
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
     let u8,f8 = emptyUnfoundTriforce_bmps.[7], emptyFoundTriforce_bmps.[7]
@@ -70,7 +70,7 @@ let unfoundL9,foundL9 =
             if px/3 = 4 && py/3 = 7 || px/3 = 6 && py/3 = 8 then
                 u.SetPixel(px, py, System.Drawing.Color.Transparent)
                 f.SetPixel(px, py, System.Drawing.Color.Transparent)
-    BMPtoImage u, BMPtoImage f
+    u, f
     
 
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]

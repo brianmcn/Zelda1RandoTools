@@ -107,7 +107,7 @@ let makeGrid(nc, nr, cw, rh) =
     grid
 
 let triforceInnerCanvases = Array.zeroCreate 8
-let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 8 4
+let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
@@ -162,19 +162,28 @@ let makeAll(owMapNum) =
         routeTargetLastClickedTime <- DateTime.Now
         routeTargetState <- newTargetState
     
-    let c = new Canvas()
-    c.Width <- float(16*16*3) // may change with OMTW and overall layout
+    let mutable showLocator = fun(_l:int) -> ()
+    let mutable hideLocator = fun() -> ()
 
-    c.Background <- System.Windows.Media.Brushes.Black 
+    let c = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
 
     let mainTracker = makeGrid(9, 4, H, H)
     canvasAdd(c, mainTracker, 0., 0.)
 
+    let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
+    let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
     // triforce
-    let updateEmptyTriforceDisplay(i) =
+    let updateTriforceDisplay(i) =
         let innerc : Canvas = triforceInnerCanvases.[i]
         innerc.Children.Clear()
-        innerc.Children.Add(if TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
+        let found = TrackerModel.mapStateSummary.DungeonLocations.[i]<>TrackerModel.NOTFOUND 
+        if not(TrackerModel.dungeons.[i].IsComplete) &&  // dungeon could be complete without finding, in case of starting items and helpful hints
+                not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
+            innerc.Children.Add(makeHintHighlight(30.)) |> ignore
+        if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then 
+            innerc.Children.Add(if not(found) then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
+        else
+            innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
     for i = 0 to 7 do
         let image = Graphics.emptyUnfoundTriforces.[i]
         let c = new Canvas(Width=30., Height=30.)
@@ -184,17 +193,14 @@ let makeAll(owMapNum) =
         c.Children.Add(innerc) |> ignore
         canvasAdd(innerc, image, 0., 0.)
         c.MouseDown.Add(fun _ -> 
-            if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then 
-                innerc.Children.Clear()
-                innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
-            else 
-                updateEmptyTriforceDisplay(i)
             TrackerModel.dungeons.[i].ToggleTriforce()
+            updateTriforceDisplay(i)
         )
         gridAdd(mainTracker, c, i, 0)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.dungeons.[i].PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
     let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
     gridAdd(mainTracker, level9NumeralCanvas, 8, 0) 
+    mainTrackerCanvases.[8,0] <- level9NumeralCanvas
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
@@ -272,8 +278,7 @@ let makeAll(owMapNum) =
             gridAdd(mainTracker, c, i, j+1)
             if j=0 || j=1 || i=7 then
                 canvasAdd(c, boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j], false), 0., 0.)
-            if i < 8 then
-                mainTrackerCanvases.[i,j+1] <- c
+            mainTrackerCanvases.[i,j+1] <- c
     let RedrawForSecondQuestDungeonToggle() =
         mainTrackerCanvases.[0,3].Children.Remove(finalCanvasOf1Or4) |> ignore
         mainTrackerCanvases.[3,3].Children.Remove(finalCanvasOf1Or4) |> ignore
@@ -282,6 +287,11 @@ let makeAll(owMapNum) =
         else
             canvasAdd(mainTrackerCanvases.[0,3], finalCanvasOf1Or4, 0., 0.)
     RedrawForSecondQuestDungeonToggle()
+
+    for i = 0 to 8 do
+        for j = 0 to 0 do  // only hovering triforces will show it
+            mainTrackerCanvases.[i,j].MouseEnter.Add(fun _ -> showLocator(i))
+            mainTrackerCanvases.[i,j].MouseLeave.Add(fun _ -> hideLocator())
 
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -365,13 +375,26 @@ let makeAll(owMapNum) =
     let owItemGrid = makeGrid(2, 3, 30, 30)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
     gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
-    gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.white_sword_bmp, 0, 2)
+    let white_sword_image = Graphics.BMPtoImage Graphics.white_sword_bmp
+    let white_sword_canvas = new Canvas(Width=21., Height=21.)
+    let redrawWhiteSwordCanvas() =
+        white_sword_canvas.Children.Clear()
+        if not(TrackerModel.playerComputedStateSummary.HaveWhiteSwordItem) &&           // don't have it yet
+                TrackerModel.mapStateSummary.Sword2Location=TrackerModel.NOTFOUND &&    // have not found cave
+                TrackerModel.levelHints.[9]<>TrackerModel.HintZone.UNKNOWN then         // have a hint
+            white_sword_canvas.Children.Add(makeHintHighlight(21.)) |> ignore
+        white_sword_canvas.Children.Add(white_sword_image) |> ignore
+    redrawWhiteSwordCanvas()
+    gridAdd(owItemGrid, white_sword_canvas, 0, 2)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), 1, 0)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), 1, 1)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), 1, 2)
+    white_sword_canvas.MouseEnter.Add(fun _ -> showLocator(9))
+    white_sword_canvas.MouseLeave.Add(fun _ -> hideLocator())
+
     canvasAdd(c, owItemGrid, OFFSET, 30.)
     // brown sword, blue candle, blue ring, magical sword
-    let owItemGrid = makeGrid(3, 2, 30, 30)
+    let owItemGrid = makeGrid(3, 3, 30, 30)
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc, rightClick) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
@@ -397,16 +420,27 @@ let makeAll(owMapNum) =
         c.ToolTip <- tts
         c
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 0, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 2, 1)
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ())), 2, 1)
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ()))
+    let magsHintHighlight = makeHintHighlight(30.)
+    let redrawMagicalSwordCanvas() =
+        mags_box.Children.Remove(magsHintHighlight)
+        if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) &&   // dont have sword
+                TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
+                TrackerModel.levelHints.[10]<>TrackerModel.HintZone.UNKNOWN then               // have a hint
+            mags_box.Children.Insert(0, magsHintHighlight)
+    redrawMagicalSwordCanvas()
+    gridAdd(owItemGrid, mags_box, 0, 2)
+    mags_box.MouseEnter.Add(fun _ -> showLocator(10))
+    mags_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
     canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOOK))), OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    canvasAdd(c, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), OFFSET+90., 90.)
-    canvasAdd(c, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), OFFSET+120., 90.)
+    gridAdd(owItemGrid, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), 1, 2)
+    gridAdd(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), 2, 2)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
@@ -640,7 +674,9 @@ let makeAll(owMapNum) =
             let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
                                         // draw routes
-                                        drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, ea.GetPosition(c), i, j)
+                                        let mousePos = ea.GetPosition(c)
+                                        let mousePos = if displayIsCurrentlyMirrored then Point(OMTW - mousePos.X, mousePos.Y) else mousePos
+                                        drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j)
                                         // show enlarged version of current & nearby rooms
                                         dungeonTabsOverlayContent.Children.Clear()
                                         // fill whole canvas black, so elements behind don't show through
@@ -871,21 +907,60 @@ let makeAll(owMapNum) =
             System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
         )
 
-    let hintGrid = makeGrid(2,OverworldData.hintMeanings.Length,140,26)
+    let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,180,36)
     let mutable row=0 
     for a,b in OverworldData.hintMeanings do
-        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=a), 0, row)
-        gridAdd(hintGrid, new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text=b), 1, row)
+        let thisRow = row
+        gridAdd(hintGrid, new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(1.), Text=a), 0, row)
+        let tb = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(1.), Text=b)
+        let dp = new DockPanel(LastChildFill=true)
+        let bmp = 
+            if row < 8 then
+                Graphics.emptyFoundTriforce_bmps.[row]
+            elif row = 8 then
+                Graphics.foundL9_bmp
+            elif row = 9 then
+                Graphics.white_sword_bmp
+            else
+                Graphics.magical_sword_bmp
+        let image = Graphics.BMPtoImage bmp
+        image.Width <- 32.
+        image.Stretch <- Stretch.None
+        let b = new Border(Child=image, BorderThickness=Thickness(1.), BorderBrush=Brushes.LightGray, Background=Brushes.Black)
+        DockPanel.SetDock(b, Dock.Left)
+        dp.Children.Add(b) |> ignore
+        dp.Children.Add(tb) |> ignore
+        gridAdd(hintGrid, dp, 1, row)
+        let comboBox = new ComboBox(FontSize=16., IsEditable=false, IsReadOnly=true)
+        comboBox.ItemsSource <- [| for i = 0 to 10 do yield TrackerModel.HintZone.FromIndex(i).ToString() |]
+        comboBox.SelectedIndex <- 0
+        comboBox.SelectionChanged.Add(fun _ -> 
+            TrackerModel.levelHints.[thisRow] <- TrackerModel.HintZone.FromIndex(comboBox.SelectedIndex)
+            if comboBox.SelectedIndex = 0 then
+                b.Background <- Brushes.Black
+            else
+                b.Background <- hintHighlightBrush
+            TrackerModel.forceUpdate()
+            )
+        gridAdd(hintGrid, comboBox, 2, row)
         row <- row + 1
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
     hintBorder.Child <- hintGrid
     hintBorder.Opacity <- 0.
     hintBorder.IsHitTestVisible <- false
-    canvasAdd(c, hintBorder, 430., 120.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(1.), Text="Hint Decoder")
+    let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Hint Decoder"))
     canvasAdd(c, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
-    tb.MouseEnter.Add(fun _ -> hintBorder.Opacity <- 1.0)
-    tb.MouseLeave.Add(fun _ -> hintBorder.Opacity <- 0.0)
+    let mutable hintBorderWasClicked = false
+    tb.Click.Add(fun _ ->
+        if hintBorderWasClicked then
+            hintBorderWasClicked <- false
+            hintBorder.Opacity <- 0.0
+            hintBorder.IsHitTestVisible <- false
+        else
+            hintBorderWasClicked <- true
+            hintBorder.Opacity <- 1.0
+            hintBorder.IsHitTestVisible <- true
+        )
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
@@ -899,13 +974,19 @@ let makeAll(owMapNum) =
             else
                 for fe in mirrorOverworldFEs do
                     fe.RenderTransform <- null
-        // TODO found/not-found may need an update, only have event for found, hmm... for now just force redraw these on each update
+        // redraw triforce display (some may have located/unlocated/hinted)
         for i = 0 to 7 do
-            if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then
-                updateEmptyTriforceDisplay(i)
+            updateTriforceDisplay(i)
         level9NumeralCanvas.Children.Clear()
-        let img = if TrackerModel.mapStateSummary.DungeonLocations.[8]=TrackerModel.NOTFOUND then Graphics.unfoundL9 else Graphics.foundL9
+        let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
+        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
+        if not(l9found) && TrackerModel.levelHints.[8]<>TrackerModel.HintZone.UNKNOWN then
+            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
         canvasAdd(level9NumeralCanvas, img, 0., 0.)
+        // redraw white/magical swords (may have located/unlocated/hinted)
+        redrawWhiteSwordCanvas()
+        redrawMagicalSwordCanvas()
+
         recorderingCanvas.Children.Clear()
         RedrawForSecondQuestDungeonToggle()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
@@ -1621,7 +1702,7 @@ let makeAll(owMapNum) =
     addLine(14,14,3,4)
 
     let zoneNames = ResizeArray()
-    let addZoneName(name, x, y) =
+    let addZoneName(hz, name, x, y) =
         let tb = new TextBox(Text=name,FontSize=16.,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(2.),IsReadOnly=true)
         mirrorOverworldFEs.Add(tb)
         canvasAdd(overworldCanvas, tb, x*OMTW, y*11.*3.)
@@ -1629,37 +1710,90 @@ let makeAll(owMapNum) =
         tb.TextAlignment <- TextAlignment.Center
         tb.FontWeight <- FontWeights.Bold
         tb.IsHitTestVisible <- false
-        zoneNames.Add(tb)
-    addZoneName("DEATH\nMOUNTAIN", 2.5, 0.3)
-    addZoneName("GRAVE", 1.5, 2.8)
-    addZoneName("DEAD\nWOODS", 1.4, 5.3)
-    addZoneName("LAKE 1", 10.2, 0.1)
-    addZoneName("LAKE 2", 5.5, 3.5)
-    addZoneName("LAKE 3", 9.4, 5.5)
-    addZoneName("RIVER 1", 7.3, 1.1)
-    addZoneName("RIV\nER2", 5.1, 6.2)
-    addZoneName("START", 7.3, 6.2)
-    addZoneName("DESERT", 10.3, 3.1)
-    addZoneName("FOREST", 12.3, 5.1)
-    addZoneName("LOST\nHILLS", 12.4, 0.3)
-    addZoneName("COAST", 14.3, 2.7)
+        zoneNames.Add(hz,tb)
+    addZoneName(TrackerModel.HintZone.DEATH_MOUNTAIN, "DEATH\nMOUNTAIN", 2.5, 0.3)
+    addZoneName(TrackerModel.HintZone.GRAVE,          "GRAVE", 1.5, 2.8)
+    addZoneName(TrackerModel.HintZone.DEAD_WOODS,     "DEAD\nWOODS", 1.4, 5.3)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 1", 10.2, 0.1)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 2", 5.5, 3.5)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 3", 9.4, 5.5)
+    addZoneName(TrackerModel.HintZone.RIVER,          "RIVER 1", 7.3, 1.1)
+    addZoneName(TrackerModel.HintZone.RIVER,          "RIV\nER2", 5.1, 6.2)
+    addZoneName(TrackerModel.HintZone.NEAR_START,     "START", 7.3, 6.2)
+    addZoneName(TrackerModel.HintZone.DESERT,         "DESERT", 10.3, 3.1)
+    addZoneName(TrackerModel.HintZone.FOREST,         "FOREST", 12.3, 5.1)
+    addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
+    addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
-    let changeZoneOpacity(show) =
+    let changeZoneOpacity(hintZone,show) =
+        let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
         if show then
-            allOwMapZoneImages |> Array2D.iteri (fun x y image -> (* if TrackerModel.overworldMapMarks.[x,y].Current() <> -1 then *) image.Opacity <- 0.3)
+            if noZone then 
+                allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.3)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
-            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.6)
+            zoneNames |> Seq.iter (fun (hz,textbox) -> if noZone || hz=hintZone then textbox.Opacity <- 0.6)
         else
             allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
-            zoneNames |> Seq.iter (fun x -> x.Opacity <- 0.0)
-    let cb = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> changeZoneOpacity true)
-    cb.Unchecked.Add(fun _ -> changeZoneOpacity false)
-    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity true)
-    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then changeZoneOpacity false)
-    canvasAdd(c, cb, 285., 100.)
+            zoneNames |> Seq.iter (fun (hz,textbox) -> textbox.Opacity <- 0.0)
+    let zone_checkbox = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
+    zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
+    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
+    canvasAdd(c, zone_checkbox, 285., 100.)
+
+    let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
+    let owLocatorTilesRowColumn = Array2D.zeroCreate 16 8
+    let owLocatorTilesZone = Array2D.zeroCreate 16 8
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let rc = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), StrokeThickness=0., Fill=Brushes.White, Opacity=0., IsHitTestVisible=false)
+            let z  = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), StrokeThickness=0., Fill=Brushes.Lime,  Opacity=0., IsHitTestVisible=false)
+            owLocatorTilesRowColumn.[i,j] <- rc
+            owLocatorTilesZone.[i,j] <- z
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
+            gridAdd(owLocatorGrid, rc, i, j)
+            gridAdd(owLocatorGrid, z, i, j)
+    canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
+
+    showLocator <- (fun level ->
+        let loc = 
+            if level < 9 then
+                TrackerModel.mapStateSummary.DungeonLocations.[level]
+            elif level = 9 then
+                TrackerModel.mapStateSummary.Sword2Location
+            elif level = 10 then
+                TrackerModel.mapStateSummary.Sword3Location
+            else
+                failwith "bad showLocator(level)"
+        if loc <> TrackerModel.NOTFOUND then
+            // show exact location
+            let x,y = loc
+            for i = 0 to 15 do
+                owLocatorTilesRowColumn.[i,y].Opacity <- 0.4
+            for j = 0 to 7 do
+                owLocatorTilesRowColumn.[x,j].Opacity <- 0.4
+        else
+            let hinted_zone = TrackerModel.levelHints.[level]
+            if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                // have hint, so draw that zone...
+                if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        // ... and highlight all undiscovered tiles
+                        if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
+                            if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                                owLocatorTilesZone.[i,j].Opacity <- 0.4
+        )
+    hideLocator <- (fun () ->
+        if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                owLocatorTilesRowColumn.[i,j].Opacity <- 0.0
+                owLocatorTilesZone.[i,j].Opacity <- 0.0
+        )
 
     // timeline & options menu
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
@@ -1719,6 +1853,10 @@ let makeAll(owMapNum) =
 
     //                items  ow map  prog  dungeon tabs                timeline
     c.Height <- float(30*4 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
+
+
+    canvasAdd(c, hintBorder, 0., THRU_MAP_AND_LEGEND_H + 6.)  // ensure this is atop other elements
+
 
     TrackerModel.forceUpdate()
     c, updateTimeline

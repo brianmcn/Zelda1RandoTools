@@ -558,6 +558,60 @@ let recomputeWhatIsNeeded() =
 let mutable shieldBook = false // if true, boomstick seed - no eventing here, UI should synchronously swap shield/book icons
 let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these
 
+[<RequireQualifiedAccess>]
+type HintZone =
+    | UNKNOWN
+    | DEATH_MOUNTAIN
+    | LAKE
+    | LOST_HILLS
+    | RIVER
+    | GRAVE
+    | DESERT
+    | COAST
+    | DEAD_WOODS
+    | NEAR_START
+    | FOREST
+    member this.AsDataChar() =  // as per OverworldData.owMapZone
+        match this with
+        | UNKNOWN -> '_'
+        | DEATH_MOUNTAIN -> 'M'
+        | LAKE -> 'L'
+        | LOST_HILLS -> 'H'
+        | RIVER -> 'R'
+        | GRAVE -> 'G'
+        | DESERT -> 'D'
+        | COAST -> 'C'
+        | DEAD_WOODS -> 'W'
+        | NEAR_START -> 'S'
+        | FOREST -> 'F'
+    override this.ToString() =
+        match this with
+        | UNKNOWN -> "?????"
+        | DEATH_MOUNTAIN -> "Death Mountain"
+        | LAKE -> "Lake"
+        | LOST_HILLS -> "Lost Hills"
+        | RIVER -> "River"
+        | GRAVE -> "Grave"
+        | DESERT -> "Desert"
+        | COAST -> "Coast"
+        | DEAD_WOODS -> "Dead Woods"
+        | NEAR_START -> "Near Start"
+        | FOREST -> "Forest"
+    static member FromIndex(i) =
+        match i with
+        | 0 -> UNKNOWN
+        | 1 -> DEATH_MOUNTAIN
+        | 2 -> LAKE
+        | 3 -> LOST_HILLS
+        | 4 -> RIVER
+        | 5 -> GRAVE
+        | 6 -> DESERT
+        | 7 -> COAST
+        | 8 -> DEAD_WOODS
+        | 9 -> NEAR_START
+        | 10 -> FOREST
+        | _ -> failwith "bad HintZone index"
+let levelHints = Array.create 11 HintZone.UNKNOWN   // 0-8 is L1-9, 9 is WS, 10 is MS
 
 let forceUpdate() = 
     // UI can force an update for a few bits that we don't model well yet
