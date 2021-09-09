@@ -13,7 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 SMALL
 
 something is weird with door clicks, sometimes registering multiple clicks or something
-hover armos shows white-highlight of all static armos locations?
 hover bomb/candle/arrow/bluering shows white-highlight of all their shows? (maybe dont need right click routing feature?)
 highlight rectangles maybe ought not be 'full', so e.g. recorder blue-box not fade away into green highlight edge?
 hover recorder/PB/raft/redcandle in your inventory should white-highlight the remaining unmarked OW spots that use them

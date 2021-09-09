@@ -40,6 +40,17 @@ let owMapZone = [|
     |]
 
 module PrivateInternals =
+    let owMapSquaresArmos = [|
+        "................"
+        "............X..."
+        "....X..........."
+        "....X........X.."
+        "..............X."
+        "................"
+        "................"
+        "................"
+        |]
+
     let owMapSquaresRaftable = [|
         "................"
         "................"
@@ -228,6 +239,8 @@ type OverworldInstance(quest) =  // TODO figure out where mirror overworld layer
         match quest with
         | FIRST ->        false
         | _ ->            PrivateInternals.owMapSquaresSecondQuestLadderable.[y].Chars(x) = 'X'
+    member this.HasArmos(x,y) =
+        PrivateInternals.owMapSquaresArmos.[y].Chars(x) = 'X'
     member this.Raftable(x,y) =
         PrivateInternals.owMapSquaresRaftable.[y].Chars(x) = 'X'
     member this.Whistleable(x,y) =

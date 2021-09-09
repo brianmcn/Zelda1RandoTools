@@ -171,6 +171,7 @@ let makeAll(owMapNum) =
     
     let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone) -> ()
+    let mutable showLocatorInstanceFunc = fun(f:int*int->bool) -> ()
     let mutable showLocator = fun(_l:int) -> ()
     let mutable hideLocator = fun() -> ()
 
@@ -383,7 +384,10 @@ let makeAll(owMapNum) =
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
-    gridAdd(owItemGrid, Graphics.ow_key_armos, 0, 1)
+    let armos = Graphics.ow_key_armos
+    armos.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.HasArmos))
+    armos.MouseLeave.Add(fun _ -> hideLocator())
+    gridAdd(owItemGrid, armos, 0, 1)
     let white_sword_image = Graphics.BMPtoImage Graphics.white_sword_bmp
     let white_sword_canvas = new Canvas(Width=21., Height=21.)
     let redrawWhiteSwordCanvas() =
@@ -1796,6 +1800,12 @@ let makeAll(owMapNum) =
                     if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
                         if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
                             owLocatorTilesZone.[i,j].Opacity <- 0.4
+        )
+    showLocatorInstanceFunc <- (fun f ->
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                    owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
     showLocator <- (fun level ->
         let loc = 
