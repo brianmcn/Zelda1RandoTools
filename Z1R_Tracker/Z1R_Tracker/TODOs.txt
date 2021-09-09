@@ -9,15 +9,23 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 (dungeon palette rom)
 
-test PTT, 'level one', TAG reminders
-
 
 SMALL
+
+hint halo highlights are above area zone labels, fix Z order
+hover boomstick book should showLocator the book shop
+something is weird with door clicks, sometimes registering multiple clicks or something
+hover armos shows white-highlight of all static armos locations?
+hover bomb/candle/arrow/bluering shows white-highlight of all their shows? (maybe dont need right click routing feature?)
+highlight rectangles maybe ought not be 'full', so e.g. recorder blue-box not fade away into green highlight edge?
+hover recorder/PB/raft/redcandle in your inventory should white-highlight the remaining unmarked OW spots that use them
+
 
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
  - option to play a sound when voice makes a mark
  - maybe want a quick 'unmark' gesture, to undo accidents?
  - if ship PTT feature, need a gamepad button chooser binding thingy, even if e.g. ask them to go to gamepad-tester.com and then select a number 0-9
+     - and probably also want keyboard bind like left shift, if can figure out
 
 select item box via voice?  select dungeon room via voice?
 
@@ -33,10 +41,11 @@ always-bombable spots:
 shift-click the start screen to place the lime circle? 
 something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
-announce known coast/WS item name ('get the white sword off the coast with the ladder'/'consider the white sword item, which is a heart container')
+announce known coast/WS item name ('get the white sword off the coast with the ladder'/'consider the white sword item, which is a heart container')  (maybe - dont like speech getting longer though)
 
 power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
+decide about PTT functionality
 binary packaging for redistribution?
 versioning . . .
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
@@ -46,15 +55,6 @@ show list of remaining box items? if less than N left?
 (start screen eventually have 3. start OR load old data)
 
 MEDIUM
-
-I've been thinking I might want something along the lines of "highlight most recent map tile change" or "long duration mouse trail" or something.  
-Like I have found that, I might be mapping stuff, and then go mark an item box or whatever, and then be like, 'wait, where am I? where should the mouse be?'  
-Or I may find a dungeon, and select its dungeon map tab but forget to mark its location on the overworld, and then later be in the dungeon and be like 'where am I?'  
-So I wonder if there is some good heuristic I can apply that is like, based on your mouse movements over the past few minutes, 
-I think the most likely spot you are on the overworld is here (highlighted).
-I think the heuristic is something like, there is a YouAreHere (x,y) and marking a map tile pokes it, or hovering a map square for at least ten seconds pokes it.  
-Maybe?  An unfortunate interaction is that I sometimes move my mouse to an 'X'ed tile just to ensure that my speech doesn't accidentally mark the map 
-(speech only affects unmarked tiles), so that confounds it a little.
 
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
@@ -74,6 +74,15 @@ white sword item gets projected onto S2 tile.  A-H might not be good lettering, 
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 
+I've been thinking I might want something along the lines of "highlight most recent map tile change" or "long duration mouse trail" or something.  
+Like I have found that, I might be mapping stuff, and then go mark an item box or whatever, and then be like, 'wait, where am I? where should the mouse be?'  
+Or I may find a dungeon, and select its dungeon map tab but forget to mark its location on the overworld, and then later be in the dungeon and be like 'where am I?'  
+So I wonder if there is some good heuristic I can apply that is like, based on your mouse movements over the past few minutes, 
+I think the most likely spot you are on the overworld is here (highlighted).
+I think the heuristic is something like, there is a YouAreHere (x,y) and marking a map tile pokes it, or hovering a map square for at least ten seconds pokes it.  
+Maybe?  An unfortunate interaction is that I sometimes move my mouse to an 'X'ed tile just to ensure that my speech doesn't accidentally mark the map 
+(speech only affects unmarked tiles), so that confounds it a little.
+
 review other common flagsets from rando, what works, what could work, etc
  - currently assumes these rando flags:
     - (routing, map legend) whistle to new dungeons & not recorder-to-unbeaten
@@ -83,16 +92,18 @@ review other common flagsets from rando, what works, what could work, etc
  - works poorly with
     - hide dungeon numbers
 
-Layout/size/stretch options were common requests for zhelper – can I scale?
+size options were common requests for zhelper – can I scale? consider 2/3 size or something.
 
-auto save/load tracker state (not just options)? no, would be better for explicit UI action to save to a filename, and load from start screen, zhelper behavior is confusing to folks
-
-hotkeys (e.g. immediately mark S3)
+hotkeys as scroll-macros (e.g. immediately mark S3, or a dungeon room, or an item box)
 
 BIG
 
+auto save/load tracker state (not just options)? no, would be better for explicit UI action to save to a filename, and load from start screen, zhelper behavior is confusing to folks
+
 layout options, e.g. maybe overworld map and dungeon/notes are two tabs, kinda like zhelper, for those who prefer a 4x3-ish layout, etc, hm
-Keyboard focus, keyboard shortcuts for marking maps, etc
+
+Keyboard focus and control
+
 auto-tracking (link to emulator)
 
 
