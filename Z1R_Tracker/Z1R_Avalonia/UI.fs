@@ -334,13 +334,14 @@ let makeAll(owMapNum) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        c.PointerPressed.Add(fun ea -> if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then (
-            if obj.Equals(rect.Stroke, no) then
-                rect.Stroke <- yes
-            else
-                rect.Stroke <- no
-            changedFunc(obj.Equals(rect.Stroke, yes))
-        ))
+        c.PointerPressed.Add(fun ea -> 
+            if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
+                if obj.Equals(rect.Stroke, no) then
+                    rect.Stroke <- yes
+                else
+                    rect.Stroke <- no
+                changedFunc(obj.Equals(rect.Stroke, yes))
+        )
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
             timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
@@ -812,13 +813,14 @@ let makeAll(owMapNum) =
             do! Async.AwaitTask task
             if cmb.MessageBoxResult = "Go to website" then
                 let cmd = (sprintf "xdg-open %s" OverworldData.Website).Replace("\"", "\\\"")
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
-                    FileName = "/bin/sh",
-                    Arguments = sprintf "-c \"%s\"" cmd,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo(
+                        FileName = "/bin/sh",
+                        Arguments = sprintf "-c \"%s\"" cmd,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
                     )) |> ignore
         } |> Async.StartImmediate
         )
@@ -1151,9 +1153,10 @@ let makeAll(owMapNum) =
     let fixedDungeon2Outlines = ResizeArray()
 
     let grabHelper = new Dungeon.GrabHelper()
-    let grabModeTextBlock = new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, Child=
-        new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=12., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
-                      Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
+    let grabModeTextBlock = 
+        new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, 
+                   Child=new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=12., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
+                                        Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
     let dungeonTabs = new TabControl()
     dungeonTabs.Background <- Brushes.Black 

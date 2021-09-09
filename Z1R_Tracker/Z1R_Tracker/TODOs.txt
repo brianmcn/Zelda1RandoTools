@@ -12,15 +12,11 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-Hints:
- - hint decoder should be a button, clicking brings up modal dialog to select hints
- - hovering hint button displays the list, but below (over dungeon/notes) so as to not obscure map. if any hints to unknown locations are zones, those zones highlight?
- - hovering any of 9 triforce numerals or associated boxes highlight map locations thusly:
-    - if exact location known, that row and column of ow map gets a white highlight
-    - if only hint area known, the zone boundaries for that area are displayed, and all unmarked tiles in that zone glow
-    - if nothing known, nothing happens
- - hovering white sword (or itembox) or magic sword in upper right also displays its location similarly
-
+consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
+ - i could probably joy2key a shoulder button as right-shift or something and check that held? hm
+ - probably do want a tone when voice makes a mark
+ - might want other shoulder button as a 'clear' hotkey, for when voice does wrong thing?  but also consider up+a, hm, how not accidental trigger when deathwarp, hm...  maybe focus on avoid false positive
+ - would need to experiment with retargeting net31core and using silk.net.input
 
 select dungeon number via voice?  select item box via voice?  select dungeon room via voice?
 feedback for recent voice selections? (tone, log)
@@ -28,6 +24,17 @@ feedback for recent voice selections? (tone, log)
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
 
 (triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
+ - all triforce
+ - bow
+ - silvers
+ - ladder?
+ - recorder?
+sounds like:
+ - allDungeonsFound+bow+silvers+ladder+recorder  "you are triforce and go"
+ - allDungeonsFound+bow+silvers+ladder  "you are probably triforce and go"
+ - allDungeonsFound+bow+silvers  "you might be triforce and go"
+ - missingDungeon+bow+silvers+ladder  "if you find N, you might be triforce and go"
+could be a good heuristic
 
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
 
@@ -39,6 +46,7 @@ always-bombable spots:
 shift-click the start screen to place the lime circle? 
 something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
+announce known coast/WS item name ('get the white sword off the coast with the ladder'/'consider the white sword item, which is a heart container')
 
 power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
@@ -64,18 +72,20 @@ Maybe?  An unfortunate interaction is that I sometimes move my mouse to an 'X'ed
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
  - Make notes textbox smaller, and have 8 reminder areas where you can scroll
- - Sword – need better weapon; Bow – need bow; Recorder; ladder; Bomb; Key; Bait; money??? (bomb upgrade, but how much, hard to mouse)
+ - Sword – need better weapon; BowArrow – need bow; Recorder; ladder; Bomb; Key; Bait; money??? (bomb upgrade, but how much, hard to mouse)
  - Can auto hook a voice reminder when you get the unblocker
-
-maybe also auto-reminders of hint stuff? e.g. 'mags grave' didn't help me when I had no sword3 marked and 2/3 remaining grave spots were recorder-blocked (1/3 PB blocked), would be nice 
-for tracker to know this hint and when I get recorder tell me S3 may have been unblocked, hm...
+ui display could be dungeon number and icon boxes (how deal with scrolling? i guess not make a forceUpdate, so nothing happen until they interact with other ui)
+   text  1:_ _ 2:_ _                text = BLOCKERS(hovertext explains) 
+   3:_ _ 4:_ _ 5:_ _
+   6:_ _ 7:_ _ 8:_ _
+when you get the unblocker, numeral/box could get some highlight (and voice would announce once - accumulate all into one sentence "now that you have ladder, consider dungeons 2, 3, and 6")
+when dungeon completed, could be grayed out
+might you ever want to clear/change it? what if unmark getting unblocker (accidentally click bow, then unclick)?
 
 General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
-white sword item gets projected onto S2 tile.
+white sword item gets projected onto S2 tile.  A-H might not be good lettering, since it's associated with coordinates, maybe STUVWXYZZ or IJKLMNOP or something.
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
-
-consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
 
 review other common flagsets from rando, what works, what could work, etc
  - currently assumes these rando flags:
