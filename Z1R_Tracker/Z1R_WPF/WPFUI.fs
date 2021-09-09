@@ -6,30 +6,48 @@ open System.Windows.Controls
 open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
+
+
+let soundPlayer = new MediaPlayer()
+soundPlayer.Volume <- 0.1
+soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
+let PlaySoundForSpeechRecognizedAndUsedToMark() =
+    soundPlayer.Position <- TimeSpan(0L)
+    soundPlayer.Play()
+
 let voice = OptionsMenu.voice
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 let wakePhrase = "tracker set"
-let mapStatePhrases = [|
-        "any road"
-        "sword three"
-        "sword two"
-        "hint shop"
-        "arrow shop"
-        "bomb shop"
-        "book shop"
-        "candle shop"
-        "blue ring shop"
-        "meat shop"
-        "key shop"
-        "shield shop"
-        "take any"
-        "potion shop"
-        "money"
+let mapStatePhrases = dict [|
+        "level one"         , 0
+        "level two"         , 1
+        "level three"       , 2
+        "level four"        , 3
+        "level five"        , 4
+        "level six"         , 5
+        "level seven"       , 6
+        "level eight"       , 7
+        "level nine"        , 8
+        "any road"          , 12  // 9 10 11 12
+        "sword three"       , 13
+        "sword two"         , 14
+        "hint shop"         , 15
+        "arrow shop"        , 16
+        "bomb shop"         , 17
+        "book shop"         , 18
+        "candle shop"       , 19
+        "blue ring shop"    , 20
+        "meat shop"         , 21
+        "key shop"          , 22
+        "shield shop"       , 23
+        "take any"          , 24
+        "potion shop"       , 25
+        "money"             , 26
         |]
-speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases)); gb))
+speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases.Keys |> Seq.toArray)); gb))
 let convertSpokenPhraseToMapCell(phrase:string) =
     let phrase = phrase.Substring(wakePhrase.Length+1)
-    let newState = TrackerModel.mapSquareChoiceDomain.MaxKey-mapStatePhrases.Length + Array.IndexOf(mapStatePhrases, phrase)
+    let newState = mapStatePhrases.[phrase]
     if newState = 12 then // any road
         if   TrackerModel.mapSquareChoiceDomain.NumUses( 9) < TrackerModel.mapSquareChoiceDomain.MaxUses( 9) then
             Some 9
@@ -718,7 +736,10 @@ let makeAll(owMapNum) =
                         if curState = -1 then
                             // if unmarked, use voice to set new state
                             match convertSpokenPhraseToMapCell(phrase) with
-                            | Some newState -> TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
+                            | Some newState -> 
+                                TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
+                                if TrackerModel.overworldMapMarks.[i,j].Current() = newState then
+                                    PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                         elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.overworldMapExtraData.[i,j]=0 then
                             // if item shop with only one item marked, use voice to set other item
@@ -726,6 +747,7 @@ let makeAll(owMapNum) =
                             | Some newState -> 
                                 if MapStateProxy.IsItem(newState) then
                                     TrackerModel.overworldMapExtraData.[i,j] <- MapStateProxy.ToItem(newState)
+                                    PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                     elif delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
@@ -827,14 +849,22 @@ let makeAll(owMapNum) =
                 c.MouseWheel.Add(fun x -> updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognizer.SpeechRecognized.Add(fun r ->
         if TrackerModel.Options.ListenForSpeech.Value then 
-            //printfn "conf: %f" r.Result.Confidence
-            if r.Result.Confidence > 0.94f then  // empirical tests suggest this confidence threshold is good to avoid false positives
-                    c.Dispatcher.Invoke(fun () -> 
-                            if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
-                                let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
-                                if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
-                                    owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
-                        )
+            if not(TrackerModel.Options.RequirePTTForSpeech.Value) ||                                               // if PTT not required, or
+                    Gamepad.IsLeftShoulderButtonDown() ||                                                           // if PTT is currently held, or
+                    (DateTime.Now - Gamepad.LeftShoulderButtonMostRecentRelease) < TimeSpan.FromSeconds(1.0) then   // if PTT was just recently released
+                //printfn "conf: %3.3f  %s" r.Result.Confidence r.Result.Text                                         // then we want to use speech
+                let threshold =
+                    if TrackerModel.Options.RequirePTTForSpeech.Value then
+                        0.90f   // empirical tests suggest this confidence threshold is good enough to avoid false positives with PTT
+                    else
+                        0.94f   // empirical tests suggest this confidence threshold is good to avoid false positives
+                if r.Result.Confidence > threshold then  
+                        c.Dispatcher.Invoke(fun () -> 
+                                if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
+                                    let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
+                                    if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
+                                        owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
+                            )
         )
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
 
@@ -1158,6 +1188,14 @@ let makeAll(owMapNum) =
                         async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
                     if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
                         async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
+            member _this.AnnounceTriforceAndGo(triforces, tagLevel) = 
+                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
+                    let go = if triforces=8 then "go time" else "triforce and go"
+                    match tagLevel with
+                    | 1 -> async { voice.Speak("You might be "+go) } |> Async.Start
+                    | 2 -> async { voice.Speak("You are probably "+go) } |> Async.Start
+                    | 3 -> async { voice.Speak("You are "+go) } |> Async.Start
+                    | _ -> ()
             member _this.RemindShortly(itemId) = 
                 let f, g, text =
                     if itemId = TrackerModel.ITEMS.KEY then

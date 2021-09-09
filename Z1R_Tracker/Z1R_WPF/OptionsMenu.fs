@@ -6,6 +6,7 @@ open System.Windows
 
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let mutable microphoneFailedToInitialize = false
+let mutable gamepadFailedToInitialize = false
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool) =
     cb.IsChecked <- System.Nullable.op_Implicit b.Value
@@ -19,7 +20,7 @@ let data1 = [|
     |]
 
 let data21 = [|
-    "Dungeon feedback", "Note when dungeons are located, completed, and triforces obtained", TrackerModel.Options.VoiceReminders.DungeonFeedback
+    "Dungeon feedback", "Note when dungeons are located/completed, triforces obtained, and go-time", TrackerModel.Options.VoiceReminders.DungeonFeedback
     "Sword hearts", "Remind to consider white/magical sword when you get 4-6 or 10-14 hearts", TrackerModel.Options.VoiceReminders.SwordHearts
     "Coast Item", "Reminder to fetch to coast item when you have the ladder", TrackerModel.Options.VoiceReminders.CoastItem
     |]
@@ -95,6 +96,7 @@ let makeOptionsCanvas(width, height, heightOffset) =
     let options3sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,0.,0.))
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold)
     options3sp.Children.Add(tb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false
@@ -105,12 +107,41 @@ let makeOptionsCanvas(width, height, heightOffset) =
         cb.ToolTip <- "Use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
         link(cb, TrackerModel.Options.ListenForSpeech)
     options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Confirmation sound",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    if microphoneFailedToInitialize then
+        cb.IsEnabled <- false
+        cb.IsChecked <- System.Nullable.op_Implicit false
+        cb.ToolTip <- "Disabled (microphone was not initialized properly during startup)"
+        ToolTipService.SetShowOnDisabled(cb, true)
+    else
+        cb.ToolTip <- "Play a confirmation sound whenever speech recognition is used to make an update to the tracker"
+        link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech)
+    options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Require PTT",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    if microphoneFailedToInitialize then
+        cb.IsEnabled <- false
+        cb.IsChecked <- System.Nullable.op_Implicit false
+        cb.ToolTip <- "Disabled (microphone was not initialized properly during startup)"
+        ToolTipService.SetShowOnDisabled(cb, true)
+    elif gamepadFailedToInitialize then
+        cb.IsEnabled <- false
+        cb.IsChecked <- System.Nullable.op_Implicit false
+        cb.ToolTip <- "Disabled (gamepad was not initialized properly during startup)"
+        ToolTipService.SetShowOnDisabled(cb, true)
+    else
+        link(cb, TrackerModel.Options.RequirePTTForSpeech)
+        cb.ToolTip <- "Only listen for speech when Push-To-Talk button is held (SNES gamepad left shoulder button)"
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
     cb.Checked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- true; TrackerModel.forceUpdate())
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; TrackerModel.forceUpdate())
     cb.ToolTip <- "Check this if dungeon 4, rather than dungeon 1, has 3 items"
     options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Mirror overworld",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.MirrorOverworld.Value
     cb.Checked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- true; TrackerModel.forceUpdate())

@@ -59,6 +59,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
@@ -76,9 +77,13 @@
     <EmbeddedResource Include="icons10x10.png" />
     <EmbeddedResource Include="icons13x9.png" />
     <EmbeddedResource Include="icons3x7.png" />
+    <Content Include="confirm_speech.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -87,6 +92,12 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="SharpDX">
+      <HintPath>..\packages\SharpDX.4.2.0\lib\net45\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DirectInput">
+      <HintPath>..\packages\SharpDX.DirectInput.4.2.0\lib\net45\SharpDX.DirectInput.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />

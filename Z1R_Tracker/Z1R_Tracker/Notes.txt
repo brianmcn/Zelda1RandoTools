@@ -162,20 +162,29 @@ This option must be enabled when first starting the tracker on the startup scree
 The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
 
 let wakePhrase = "tracker set"
-let mapStatePhrases = [|
-        "any road"
-        "sword three"
-        "sword two"
-        "hint shop"
-        "arrow shop"
-        "bomb shop"
-        "book shop"
-        "candle shop"
-        "blue ring shop"
-        "meat shop"
-        "key shop"
-        "shield shop"
-        "take any"
-        "potion shop"
-        "money"
+let mapStatePhrases = dict [|
+        "level one"         , 0
+        "level two"         , 1
+        "level three"       , 2
+        "level four"        , 3
+        "level five"        , 4
+        "level six"         , 5
+        "level seven"       , 6
+        "level eight"       , 7
+        "level nine"        , 8
+        "any road"          , 12  // 9 10 11 12
+        "sword three"       , 13
+        "sword two"         , 14
+        "hint shop"         , 15
+        "arrow shop"        , 16
+        "bomb shop"         , 17
+        "book shop"         , 18
+        "candle shop"       , 19
+        "blue ring shop"    , 20
+        "meat shop"         , 21
+        "key shop"          , 22
+        "shield shop"       , 23
+        "take any"          , 24
+        "potion shop"       , 25
+        "money"             , 26
         |]

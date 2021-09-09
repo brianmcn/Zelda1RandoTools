@@ -9,32 +9,19 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 (dungeon palette rom)
 
+test PTT, 'level one', TAG reminders
+
 
 SMALL
 
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
- - i could probably joy2key a shoulder button as right-shift or something and check that held? hm
- - probably do want a tone when voice makes a mark
- - might want other shoulder button as a 'clear' hotkey, for when voice does wrong thing?  but also consider up+a, hm, how not accidental trigger when deathwarp, hm...  maybe focus on avoid false positive
- - would need to experiment with retargeting net31core and using silk.net.input
+ - option to play a sound when voice makes a mark
+ - maybe want a quick 'unmark' gesture, to undo accidents?
+ - if ship PTT feature, need a gamepad button chooser binding thingy, even if e.g. ask them to go to gamepad-tester.com and then select a number 0-9
 
-select dungeon number via voice?  select item box via voice?  select dungeon room via voice?
-feedback for recent voice selections? (tone, log)
+select item box via voice?  select dungeon room via voice?
 
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
-
-(triforce-and-)'go mode' reminder/announcement (and maybe one-item-short reminder)
- - all triforce
- - bow
- - silvers
- - ladder?
- - recorder?
-sounds like:
- - allDungeonsFound+bow+silvers+ladder+recorder  "you are triforce and go"
- - allDungeonsFound+bow+silvers+ladder  "you are probably triforce and go"
- - allDungeonsFound+bow+silvers  "you might be triforce and go"
- - missingDungeon+bow+silvers+ladder  "if you find N, you might be triforce and go"
-could be a good heuristic
 
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
 

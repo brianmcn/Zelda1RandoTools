@@ -3,9 +3,6 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
-// TODO
-// free form text for seed flags?
-
 let mutable f5WasRecentlyPressed = false
 
 open System.Runtime.InteropServices 
@@ -152,6 +149,9 @@ type MyWindow() as this =
                 Async.Start (async {
                     do! Async.SwitchToContext ctxt
                     TrackerModel.Options.writeSettings()
+
+                    OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+
                     if TrackerModel.Options.ListenForSpeech.Value then
                         printfn "Initializing microphone for speech recognition..."
                         try

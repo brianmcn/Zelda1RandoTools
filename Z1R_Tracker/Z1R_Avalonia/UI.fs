@@ -1072,6 +1072,7 @@ let makeAll(owMapNum) =
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
             member _this.AnnounceFoundDungeonCount(n) = ()
             member _this.AnnounceTriforceCount(n) = ()
+            member _this.AnnounceTriforceAndGo(triforces, tagLevel) = ()
             member _this.RemindShortly(itemId) = ()
             })
     let threshold = TimeSpan.FromMilliseconds(500.0)
