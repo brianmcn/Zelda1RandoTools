@@ -12,8 +12,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
-hint halo highlights are above area zone labels, fix Z order
-hover boomstick book should showLocator the book shop
 something is weird with door clicks, sometimes registering multiple clicks or something
 hover armos shows white-highlight of all static armos locations?
 hover bomb/candle/arrow/bluering shows white-highlight of all their shows? (maybe dont need right click routing feature?)

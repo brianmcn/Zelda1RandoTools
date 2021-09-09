@@ -240,25 +240,37 @@ let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
     1 // dungeon 8
     1 // dungeon 9
     1 // any road 1
-    1 // any road 2
+    1 // any road 2              
     1 // any road 3
     1 // any road 4
     1 // sword 3
     1 // sword 2
     999 // hint shop
+    999 // arrow shop
+    999 // bomb shop
+    999 // book shop             
+    999 // candle shop
     999 // blue ring shop
     999 // meat shop
     999 // key shop
-    999 // candle shop
-    999 // book shop
-    999 // bomb shop
-    999 // arrow shop
     999 // shield shop
     999 // take any
     999 // potion shop
     999 // money
     999 // X (nothing, but visited)
     |])
+type MapSquareChoiceDomainHelper = 
+    static member ARROW = 16
+    static member BOMB = 17
+    static member BOOK = 18
+    static member CANDLE = 19
+    static member BLUE_RING = 20
+    static member MEAT = 21
+    static member KEY = 22
+    static member SHIELD = 23
+    static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
+    static member IsItem(state) = state >=16 && state <=23
+    static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -459,18 +471,23 @@ let recomputePlayerStateSummary() =
 
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
-let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
-let overworldMapExtraData = Array2D.create 16 8 0   // extra data, currently only used by 3-item shops to store the second item, where 0 is none and 1-7 are those items
 let mutable mapLastChangedTime = System.DateTime.Now
+let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
+let private overworldMapExtraData = Array2D.create 16 8 0   // extra data, currently only used by 3-item shops to store the second item, where 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
+let getOverworldMapExtraData(i,j) = overworldMapExtraData.[i,j]
+let setOverworldMapExtraData(i,j,x) = 
+    overworldMapExtraData.[i,j] <- x
+    mapLastChangedTime <- System.DateTime.Now
 do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
 let NOTFOUND = (-1,-1)
-type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,owSpotsRemain,owGettableLocations,
+type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
     member _this.DungeonLocations = dungeonLocations
     member _this.AnyRoadLocations = anyRoadLocations
     member _this.Sword3Location = sword3Location
     member _this.Sword2Location = sword2Location
+    member _this.BoomBookShopLocation = boomBookShopLocation
     member _this.OwSpotsRemain = owSpotsRemain
     member _this.OwGettableLocations = owGettableLocations
     member _this.OwWhistleSpotsRemain = owWhistleSpotsRemain
@@ -478,13 +495,14 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Loca
     member _this.OwRouteworthySpots = owRouteworthySpots
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
-let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
+let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
 let mutable mapStateSummaryLastComputedTime = System.DateTime.Now
 let recomputeMapStateSummary() =
     let dungeonLocations = Array.create 9 NOTFOUND
     let anyRoadLocations = Array.create 4 NOTFOUND
     let mutable sword3Location = NOTFOUND
     let mutable sword2Location = NOTFOUND
+    let mutable boomBookShopLocation = NOTFOUND  // i think there can be at most one?
     let mutable owSpotsRemain = 0
     let owGettableLocations = ResizeArray()
     let owWhistleSpotsRemain = ResizeArray()
@@ -529,13 +547,17 @@ let recomputeMapStateSummary() =
                         owRouteworthySpots.[i,j] <- true
                         owGettableLocations.Add(i,j)
                 | _ -> () // shop or whatnot
+                let cur = overworldMapMarks.[i,j].Current()
+                if MapSquareChoiceDomainHelper.IsItem(cur) then
+                    if cur = MapSquareChoiceDomainHelper.BOOK || (getOverworldMapExtraData(i,j) = MapSquareChoiceDomainHelper.ToItem(MapSquareChoiceDomainHelper.BOOK)) then
+                        boomBookShopLocation <- i,j
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 
                     secondQuestOnlyInterestingMarks.[i,j] <- isInteresting 
                 if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then 
                     firstQuestOnlyInterestingMarks.[i,j] <- isInteresting 
     owRouteworthySpots.[15,5] <- playerComputedStateSummary.HaveLadder && not playerComputedStateSummary.HaveCoastItem // gettable coast item is routeworthy
-    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,owSpotsRemain,owGettableLocations,
+    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime <- System.DateTime.Now
 let initializeAll(instance:OverworldData.OverworldInstance) =

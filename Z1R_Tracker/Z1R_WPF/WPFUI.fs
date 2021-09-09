@@ -68,17 +68,6 @@ let convertSpokenPhraseToMapCell(phrase:string) =
 type MapStateProxy(state) =
     let U = Graphics.uniqueMapIcons.Length 
     let NU = Graphics.nonUniqueMapIconBMPs.Length
-    static member ARROW = 16
-    static member BOMB = 17
-    static member BOOK = 18
-    static member CANDLE = 19
-    static member BLUE_RING = 20
-    static member MEAT = 21
-    static member KEY = 22
-    static member SHIELD = 23
-    static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
-    static member IsItem(state) = state >=16 && state <=23
-    static member ToItem(state) = if MapStateProxy.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     member this.State = state
     member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
@@ -86,8 +75,8 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
-    member this.IsThreeItemShop = MapStateProxy.IsItem(state)
-    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+MapStateProxy.NUM_ITEMS+1   // dungeons, warps, swords, and item-shops
+    member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
+    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
         if state = -1 then
@@ -104,7 +93,7 @@ let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j) =
             for x = 0 to 15 do
                 for y = 0 to 7 do
                     let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                    if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.overworldMapExtraData.[x,y] = MapStateProxy.ToItem(targetItemState)) then
+                    if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItemState)) then
                         owTargetworthySpots.[x,y] <- true
             OverworldRouteDrawing.drawPaths(routeDrawingCanvas, owTargetworthySpots, 
                                             Array2D.zeroCreate 16 8, point, i, j)
@@ -180,6 +169,8 @@ let makeAll(owMapNum) =
         routeTargetLastClickedTime <- DateTime.Now
         routeTargetState <- newTargetState
     
+    let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
+    let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone) -> ()
     let mutable showLocator = fun(_l:int) -> ()
     let mutable hideLocator = fun() -> ()
 
@@ -438,9 +429,9 @@ let makeAll(owMapNum) =
         c.ToolTip <- tts
         c
     gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(MapStateProxy.ARROW))), 2, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(MapStateProxy.CANDLE))), 1, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(MapStateProxy.BLUE_RING))), 2, 0)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.ARROW))), 2, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.CANDLE))), 1, 1)
+    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))), 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ()))
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
@@ -455,12 +446,15 @@ let makeAll(owMapNum) =
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(c, owItemGrid, OFFSET+60., 30.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    canvasAdd(c, basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOOK))), OFFSET+120., 0.)
+    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BOOK)))
+    boom_book_box.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
+    boom_book_box.MouseLeave.Add(fun _ -> hideLocator())
+    canvasAdd(c, boom_book_box, OFFSET+120., 0.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     gridAdd(owItemGrid, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), 1, 2)
     gridAdd(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), 2, 2)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(MapStateProxy.BOMB)))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BOMB)))
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
@@ -741,12 +735,12 @@ let makeAll(owMapNum) =
                                 if TrackerModel.overworldMapMarks.[i,j].Current() = newState then
                                     PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
-                        elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.overworldMapExtraData.[i,j]=0 then
+                        elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
                             // if item shop with only one item marked, use voice to set other item
                             match convertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
-                                if MapStateProxy.IsItem(newState) then
-                                    TrackerModel.overworldMapExtraData.[i,j] <- MapStateProxy.ToItem(newState)
+                                if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
+                                    TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
                                     PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                     elif delta = 1 then
@@ -758,9 +752,9 @@ let makeAll(owMapNum) =
                     else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let icon = 
-                        if ms.IsThreeItemShop && TrackerModel.overworldMapExtraData.[i,j] <> 0 then
+                        if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
                             let item1 = ms.State - 16  // 0-based
-                            let item2 = TrackerModel.overworldMapExtraData.[i,j] - 1   // 0-based
+                            let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
                             // cons up a two-item shop image
                             let tile = new System.Drawing.Bitmap(16*3,11*3)
                             for px = 0 to 16*3-1 do
@@ -815,7 +809,7 @@ let makeAll(owMapNum) =
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let MODULO = MapStateProxy.NUM_ITEMS+1
+                let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
                 c.MouseLeftButtonDown.Add(fun _ -> 
                     let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     if msp.State = -1 then
@@ -825,11 +819,11 @@ let makeAll(owMapNum) =
                         // left click a shop cycles up the second item
                         if msp.IsThreeItemShop then
                             // next item
-                            let e = (TrackerModel.overworldMapExtraData.[i,j] + 1) % MODULO
+                            let e = (TrackerModel.getOverworldMapExtraData(i,j) + 1) % MODULO
                             // skip past duplicates
                             let item1 = msp.State - 15  // 1-based
                             let e = if e = item1 then (e + 1) % MODULO else e
-                            TrackerModel.overworldMapExtraData.[i,j] <- e
+                            TrackerModel.setOverworldMapExtraData(i,j,e)
                             // redraw
                             updateGridSpot 0 ""
                     )
@@ -838,11 +832,11 @@ let makeAll(owMapNum) =
                     // right click a shop cycles down the second item
                     if msp.IsThreeItemShop then
                         // next item
-                        let e = (TrackerModel.overworldMapExtraData.[i,j] - 1 + MODULO) % MODULO
+                        let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
                         // skip past duplicates
                         let item1 = msp.State - 15  // 1-based
                         let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
-                        TrackerModel.overworldMapExtraData.[i,j] <- e
+                        TrackerModel.setOverworldMapExtraData(i,j,e)
                         // redraw
                         updateGridSpot 0 ""
                     )
@@ -1740,7 +1734,7 @@ let makeAll(owMapNum) =
     addLine(15,15,4,7)
     addLine(14,14,3,4)
 
-    let zoneNames = ResizeArray()
+    let zoneNames = ResizeArray()  // added later, to be top of z-order
     let addZoneName(hz, name, x, y) =
         let tb = new TextBox(Text=name,FontSize=16.,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(2.),IsReadOnly=true)
         mirrorOverworldFEs.Add(tb)
@@ -1750,19 +1744,6 @@ let makeAll(owMapNum) =
         tb.FontWeight <- FontWeights.Bold
         tb.IsHitTestVisible <- false
         zoneNames.Add(hz,tb)
-    addZoneName(TrackerModel.HintZone.DEATH_MOUNTAIN, "DEATH\nMOUNTAIN", 2.5, 0.3)
-    addZoneName(TrackerModel.HintZone.GRAVE,          "GRAVE", 1.5, 2.8)
-    addZoneName(TrackerModel.HintZone.DEAD_WOODS,     "DEAD\nWOODS", 1.4, 5.3)
-    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 1", 10.2, 0.1)
-    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 2", 5.5, 3.5)
-    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 3", 9.4, 5.5)
-    addZoneName(TrackerModel.HintZone.RIVER,          "RIVER 1", 7.3, 1.1)
-    addZoneName(TrackerModel.HintZone.RIVER,          "RIV\nER2", 5.1, 6.2)
-    addZoneName(TrackerModel.HintZone.NEAR_START,     "START", 7.3, 6.2)
-    addZoneName(TrackerModel.HintZone.DESERT,         "DESERT", 10.3, 3.1)
-    addZoneName(TrackerModel.HintZone.FOREST,         "FOREST", 12.3, 5.1)
-    addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
-    addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
     let changeZoneOpacity(hintZone,show) =
         let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
@@ -1797,6 +1778,25 @@ let makeAll(owMapNum) =
             gridAdd(owLocatorGrid, z, i, j)
     canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
 
+    showLocatorExactLocation <- (fun (x,y) ->
+        if (x,y) <> TrackerModel.NOTFOUND then
+            // show exact location
+            for i = 0 to 15 do
+                owLocatorTilesRowColumn.[i,y].Opacity <- 0.4
+            for j = 0 to 7 do
+                owLocatorTilesRowColumn.[x,j].Opacity <- 0.4
+        )
+    showLocatorHintedZone <- (fun hinted_zone ->
+        if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+            // have hint, so draw that zone...
+            if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
+            for i = 0 to 15 do
+                for j = 0 to 7 do
+                    // ... and highlight all undiscovered tiles
+                    if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
+                        if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                            owLocatorTilesZone.[i,j].Opacity <- 0.4
+        )
     showLocator <- (fun level ->
         let loc = 
             if level < 9 then
@@ -1808,23 +1808,11 @@ let makeAll(owMapNum) =
             else
                 failwith "bad showLocator(level)"
         if loc <> TrackerModel.NOTFOUND then
-            // show exact location
-            let x,y = loc
-            for i = 0 to 15 do
-                owLocatorTilesRowColumn.[i,y].Opacity <- 0.4
-            for j = 0 to 7 do
-                owLocatorTilesRowColumn.[x,j].Opacity <- 0.4
+            showLocatorExactLocation(loc)
         else
             let hinted_zone = TrackerModel.levelHints.[level]
             if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
-                // have hint, so draw that zone...
-                if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
-                for i = 0 to 15 do
-                    for j = 0 to 7 do
-                        // ... and highlight all undiscovered tiles
-                        if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
-                            if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
-                                owLocatorTilesZone.[i,j].Opacity <- 0.4
+                showLocatorHintedZone(hinted_zone)
         )
     hideLocator <- (fun () ->
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
@@ -1833,6 +1821,20 @@ let makeAll(owMapNum) =
                 owLocatorTilesRowColumn.[i,j].Opacity <- 0.0
                 owLocatorTilesZone.[i,j].Opacity <- 0.0
         )
+
+    addZoneName(TrackerModel.HintZone.DEATH_MOUNTAIN, "DEATH\nMOUNTAIN", 2.5, 0.3)
+    addZoneName(TrackerModel.HintZone.GRAVE,          "GRAVE", 1.5, 2.8)
+    addZoneName(TrackerModel.HintZone.DEAD_WOODS,     "DEAD\nWOODS", 1.4, 5.3)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 1", 10.2, 0.1)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 2", 5.5, 3.5)
+    addZoneName(TrackerModel.HintZone.LAKE,           "LAKE 3", 9.4, 5.5)
+    addZoneName(TrackerModel.HintZone.RIVER,          "RIVER 1", 7.3, 1.1)
+    addZoneName(TrackerModel.HintZone.RIVER,          "RIV\nER2", 5.1, 6.2)
+    addZoneName(TrackerModel.HintZone.NEAR_START,     "START", 7.3, 6.2)
+    addZoneName(TrackerModel.HintZone.DESERT,         "DESERT", 10.3, 3.1)
+    addZoneName(TrackerModel.HintZone.FOREST,         "FOREST", 12.3, 5.1)
+    addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
+    addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
     // timeline & options menu
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
