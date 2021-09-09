@@ -278,6 +278,18 @@ let makeAll(owMapNum) =
             if requiresForceUpdate then
                 TrackerModel.forceUpdate()
         )
+        c.MouseEnter.Add(fun _ ->
+            match box.CellCurrent() with
+            | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
+            | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
+            | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
+            | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
+            | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
+            | _ -> ()
+            )
+        c.MouseLeave.Add(fun _ ->
+            hideLocator()
+            )
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
@@ -1773,8 +1785,8 @@ let makeAll(owMapNum) =
     let owLocatorTilesZone = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let rc = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), StrokeThickness=0., Fill=Brushes.White, Opacity=0., IsHitTestVisible=false)
-            let z  = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), StrokeThickness=0., Fill=Brushes.Lime,  Opacity=0., IsHitTestVisible=false)
+            let rc = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.Transparent, StrokeThickness=0., Fill=Brushes.White, Opacity=0., IsHitTestVisible=false)
+            let z  = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.Transparent, StrokeThickness=12., Fill=Brushes.Lime, Opacity=0., IsHitTestVisible=false)
             owLocatorTilesRowColumn.[i,j] <- rc
             owLocatorTilesZone.[i,j] <- z
             let c = new Canvas(Width=OMTW, Height=float(11*3))

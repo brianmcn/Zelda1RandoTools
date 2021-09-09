@@ -13,9 +13,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 SMALL
 
 something is weird with door clicks, sometimes registering multiple clicks or something
-hover bomb/candle/arrow/bluering shows white-highlight of all their shows? (maybe dont need right click routing feature?)
-highlight rectangles maybe ought not be 'full', so e.g. recorder blue-box not fade away into green highlight edge?
-hover recorder/PB/raft/redcandle in your inventory should white-highlight the remaining unmarked OW spots that use them
+hover bomb/candle/arrow/bluering shows white-highlight of all their shops? (maybe dont need right click routing feature?)
 
 
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy

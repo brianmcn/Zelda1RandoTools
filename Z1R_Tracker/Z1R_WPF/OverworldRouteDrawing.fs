@@ -121,7 +121,7 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                         Brushes.Yellow, 0.35
                     else
                         Brushes.Lime, 0.3
-                let rect = new System.Windows.Shapes.Rectangle(Width=OMTW,Height=11.*3.,Fill=color,Opacity=opacity,IsHitTestVisible=false)
+                let rect = new System.Windows.Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Transparent,StrokeThickness=12.,Fill=color,Opacity=opacity,IsHitTestVisible=false)
                 Graphics.canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
 
 
