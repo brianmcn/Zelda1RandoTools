@@ -42,8 +42,10 @@ ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clickin
 Show N gettable - click to animate all the remaining overworld tiles you could uncover given your current item set
 
 Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
-Mouse-hovering the boomstick book icon will highlight its shop location on the map if known.
+Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
 Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
+Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory will 
+  highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
 OVERWORLD MAP

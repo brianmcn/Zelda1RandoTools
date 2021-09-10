@@ -12,9 +12,12 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 SMALL
 
+dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)
+
 something is weird with door clicks, sometimes registering multiple clicks or something
 hover bomb/candle/arrow/bluering shows white-highlight of all their shops? (maybe dont need right click routing feature?)
 
+maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?
 
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
  - option to play a sound when voice makes a mark
@@ -27,6 +30,11 @@ select item box via voice?  select dungeon room via voice?
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
 
 timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
+
+Timer: Yeah, everyone has their own timer, it's for me, I should really have an option to turn it off, and have it off by default.
+It would also leave some blank space in the tracker for streamers to use for branding or cams, or things.
+
+remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 
 always-bombable spots:  
  - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?'  - no it looks awful
@@ -51,6 +59,41 @@ show list of remaining box items? if less than N left?
 
 MEDIUM
 
+Currently, when I find a take-any on the overworld, I
+ - move the mouse to the top, and either click both candle and heart-X or click heart-gain
+ - wander the mouse back down to where I am on overworld (where was it again?) and 'X' that tile
+The mouse-movement is slow and error-prone.  Instead I should scroll tile to take-any and then some nearby-mouse-popup should give me options to take these action-sets:
+ - do nothing (leaving decision for later)
+ - X spot (I took the potion)
+ - gain blue candle, X out a take-any-heart, X out map tile (I took candle)
+ - gain take-any-heart, X out map tile (I took heart)
+I don't know the right UI*, but it involves not having the mouse make the long journey from the overworld map to the hearts/candle tracker, and then another long journey back.
+At the same time, need to preserve the simple/intuitive UI that already exists - don't let the advanced user break/clutter the casual user's experience.
+...A similar thing happens when find S2 cave.
+...A vagely similar thing happens when witnessing ladder item (ladder is fixed location on map, so easier to mouse back to un-erroneously).
+...A similar thing happens when finding the ladder in dungeon 6 basement - what could be a good "local UI" there to mark up 6's floor drop and basement drop?
+
+* a possible take-any UI is, once the take-any tile is on the map, middle-clicking that tile brings up some local popup selection of potion/candle/heart and you click which of the 
+  3 options you want, which dismisses the popup and takes the actions.  And for hotkey-guy, simply pressing the hotkey to mark the tile also automatically pops up the local take-any UI 
+  without needing the middle-click, maybe? In that case maybe need 4th option in popup (defer decision until later and leave tile on map)... actually, local popups always need a 
+  'do nothing' option, e.g. for the casual user who accidentally activates the UI and just wants to dismiss it because 'what the heck even is this'
+
+homer conversation, he forgot shops could even have second items:
+regarding second-shop-icon, are you saying that it would help you remember that second-item is an option available to you if 'bomb' displays not just 'bomb' in center, but 
+like 'bomb' on left hand side and like "shop item #2 question mark" icon on the right side, to display that the second slot is still available for use
+
+and are you also/instead saying that rather than 8 scrollwheel slots for 'shop1-8' you would want 1 scrollwheel slot for 'shop' and then a separate popup UI for populating the shop
+
+(I have no idea offhand which of those would be best/popular, a bunch of possible ways to 'do shops' and none completely obviously better than others to me)
+
+IF I go with a generalized idea of take-any, where an overworld tile can have a separate popup-ui that activates via middle click or hotkey, THEN I can imagine a 
+single SHOP overworld tile, with a popup-ui for populating the shop.  This is perhaps too complicated for the casual user, though, so I could imagine that the 
+'default scrollwheel pool' would just contain the one-item-shop tiles, and the user could choose to customize/hotkey which of one-item-shop tiles or SHOP-popup-ui tile they 
+want to have available to them.  And then there'd have to be a couple customization-default-templates for 'casual' v 'hotkey racer' audiences, which is a whole extra layer 
+of UI/customization, so there is trade-offs in depth to serving each audience individually best versus serving a single common audience well... I will mull this over a bit.
+Make the simple things simple, and the complex/optimized/customized things possible.
+
+
 "when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
 (possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
  - Make notes textbox smaller, and have 8 reminder areas where you can scroll
@@ -65,7 +108,21 @@ when dungeon completed, could be grayed out
 might you ever want to clear/change it? what if unmark getting unblocker (accidentally click bow, then unclick)?
 
 General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
-white sword item gets projected onto S2 tile.  A-H might not be good lettering, since it's associated with coordinates, maybe STUVWXYZZ or IJKLMNOP or something.
+white sword item gets projected onto S2 tile.  
+A-H might not be good lettering, since it's associated with coordinates, maybe STUVWXYZ or IJKLMNOP or something.  Ideally good 3x5 pixels, so JKLOPRTU... POLKJURY?
+Or I am overthinking it, and A-H is best? Hm.
+There is room to add 30 pixels at the top of the tracker for space for level-color-swatches and numerals.
+
+If I want to put chosen color on backgrounds with text foreground (e.g. LEVEL-A) then see e.g.
+https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+https://stackoverflow.com/questions/9733288/how-to-programmatically-calculate-the-contrast-ratio-between-two-colors
+https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-find-the-most-contrasting-color-y
+for text contrast info
+also https://lospec.com/palette-list/nintendo-entertainment-system
+
+homer: e. I like how the 1q/2q outlines work. It would be nice if you could select both at the same time for mixed quest when you don’t know the number, it would help narrow down options.
+
+homer: larger shop icons (advanced users wont care as much about obscuring map)
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 
@@ -90,8 +147,19 @@ review other common flagsets from rando, what works, what could work, etc
 size options were common requests for zhelper – can I scale? consider 2/3 size or something.
 
 hotkeys as scroll-macros (e.g. immediately mark S3, or a dungeon room, or an item box)
+hotkeys should be able to select icons that have been customized out of scrollwheen pool
+hotkeys are often one-handed, so shift (e.g. R versus r to mark recorder basement v floor drop) is probably not useful (could maybe have r versus rr)
+
 
 BIG
+
+'undo'
+[9:52 AM] homerjsmash: Yeah I like where you're going with all of this. Also this prompted another thought for me, one of my big mistakes I make is I accidentally reclick a tile I 
+have already assigned. Example the potion shop is an open cave which is next to pb spot or something. When I finally get pb I move the mouse to that spot but accidentally fat finger
+the potion shop, which since I deselect everything but x makes it an X. Shoot. What the heck was that cave? There's no undo button or something like that
+[9:55 AM] Lorgon111: yes, undo, i have been vaguely thinking of that (mostly for speech recognition fat-AI-ing what you spoke), its a pain to code, but yes
+like, not even just coding, but from a design perspective, someone scrolls down 3 slots on B4 and then realizes they meant to change B5, what should 'undo' do? undo one 
+scroll? undo all recent (how recent?) changes to tile?  what will the user expect? etc etc etc it's a very difficult design space
 
 auto save/load tracker state (not just options)? no, would be better for explicit UI action to save to a filename, and load from start screen, zhelper behavior is confusing to folks
 
@@ -109,7 +177,7 @@ auto-tracking (link to emulator)
 
 comparisons to ZHelper
 
-ZHelper has lots of features this tracker lacks (save state, network coordination, support for more rando flagsets, ...) and consumes less screen real estate.
+ZHelper has lots of features this tracker lacks (save state, network coordination, support for more rando flagsets, custom icons, ...) and uses less screen real estate.
 
 That said, I think this tracker has a number of advantages in usability, both in design and feature set:
 
@@ -139,6 +207,8 @@ This tracker also has a number of attractive added features, including:
  - a timeline which displays the 'history' of when you got key items, to orient latecomer stream viewers, or to help you replay the seed in your head in the post-game recap analysis
 
  - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld with no scrolling
+
+ - ability to mark each type of dungeon room as 'cleared' or not, independent of the icon content you marked it with; also, ability to 'circle' key rooms in dungeons
 
 
 
