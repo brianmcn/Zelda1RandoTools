@@ -101,17 +101,8 @@ let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j) =
             OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                             TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j)
 
-let gridAdd(g:Grid, x, c, r) =
-    g.Children.Add(x) |> ignore
-    Grid.SetColumn(x, c)
-    Grid.SetRow(x, r)
-let makeGrid(nc, nr, cw, rh) =
-    let grid = new Grid()
-    for i = 0 to nc-1 do
-        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
-    for i = 0 to nr-1 do
-        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
-    grid
+let gridAdd = Graphics.gridAdd
+let makeGrid = Graphics.makeGrid
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 4
@@ -176,6 +167,7 @@ let makeAll(owMapNum) =
     let mutable hideLocator = fun() -> ()
 
     let c = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
+    let appMainCanvas = c  // alias for when c gets shadowed by local of same name
 
     let mainTracker = makeGrid(9, 4, H, H)
     canvasAdd(c, mainTracker, 0., 0.)
@@ -213,70 +205,52 @@ let makeAll(owMapNum) =
     mainTrackerCanvases.[8,0] <- level9NumeralCanvas
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let no = Brushes.DarkRed
-        let yes = Brushes.LimeGreen 
-        let skipped = Brushes.MediumPurple
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=no, StrokeThickness=3.0)
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        let boxCurrentBMP(isForTimeline) =
-            match box.CellCurrent() with
-            | -1 -> null
-            |  0 -> (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp)
-            |  1 -> Graphics.boomerang_bmp
-            |  2 -> Graphics.bow_bmp
-            |  3 -> Graphics.power_bracelet_bmp
-            |  4 -> Graphics.ladder_bmp
-            |  5 -> Graphics.magic_boomerang_bmp
-            |  6 -> Graphics.key_bmp
-            |  7 -> Graphics.raft_bmp
-            |  8 -> Graphics.recorder_bmp
-            |  9 -> Graphics.red_candle_bmp
-            | 10 -> Graphics.red_ring_bmp
-            | 11 -> Graphics.silver_arrow_bmp
-            | 12 -> Graphics.wand_bmp
-            | 13 -> Graphics.white_sword_bmp
-            |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
-        c.MouseLeftButtonDown.Add(fun _ ->
-            box.SetPlayerHas(
-                if not(obj.Equals(rect.Stroke, yes)) then
-                    rect.Stroke <- yes
-                    TrackerModel.PlayerHas.YES
+        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), isForTimeline)
+        let redrawBoxOutline() =
+            match box.PlayerHas() with
+            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
+            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped
+        let activateComboBox(initBCC) =
+            let pos = c.TranslatePoint(Point(),appMainCanvas)
+            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), initBCC, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+                // update model
+                box.Set(newBoxCellValue, newPlayerHas)
+                // update view
+                redrawBoxOutline()
+                innerc.Children.Clear()
+                let mutable i = box.CellCurrent()
+                // find unique heart FrameworkElement to display
+                while i>=14 && whichItems.[i].Parent<>null do
+                    i <- i + 1
+                let fe = if i = -1 then null else whichItems.[i]
+                canvasAdd(innerc, fe, 4., 4.)
+                if requiresForceUpdate then
+                    TrackerModel.forceUpdate()
+                ))
+        c.MouseDown.Add(fun ea ->
+            if ea.ButtonState = Input.MouseButtonState.Pressed &&
+                    (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
+                if box.CellCurrent() = -1 then
+                    activateComboBox(-1)
                 else
-                    rect.Stroke <- no
-                    TrackerModel.PlayerHas.NO
-                )
-            if requiresForceUpdate then
-                TrackerModel.forceUpdate()
-        )
-        c.MouseRightButtonDown.Add(fun _ ->
-            box.SetPlayerHas(
-                if not(obj.Equals(rect.Stroke, skipped)) then
-                    rect.Stroke <- skipped
-                    TrackerModel.PlayerHas.SKIPPED
-                else
-                    rect.Stroke <- no
-                    TrackerModel.PlayerHas.NO
-                )
-            if requiresForceUpdate then
-                TrackerModel.forceUpdate()
+                    box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
+                    redrawBoxOutline()
+                    if requiresForceUpdate then
+                        TrackerModel.forceUpdate()
         )
         // item
         c.MouseWheel.Add(fun x -> 
-            innerc.Children.Clear()
-            if x.Delta<0 then
-                box.CellNext()
-            else
-                box.CellPrev()
-            let mutable i = box.CellCurrent()
-            // find unique heart FrameworkElement to display
-            while i>=14 && whichItems.[i].Parent<>null do
-                i <- i + 1
-            let fe = if i = -1 then null else whichItems.[i]
-            canvasAdd(innerc, fe, 4., 4.)
-            if requiresForceUpdate then
-                TrackerModel.forceUpdate()
+            let initBCC =
+                if x.Delta<0 then
+                    box.CellNextFreeKey()
+                else
+                    box.CellPrevFreeKey()
+            activateComboBox(initBCC)
         )
         c.MouseEnter.Add(fun _ ->
             match box.CellCurrent() with
@@ -290,7 +264,7 @@ let makeAll(owMapNum) =
         c.MouseLeave.Add(fun _ ->
             hideLocator()
             )
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
     let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.FinalBoxOf1Or4, false)
@@ -747,8 +721,7 @@ let makeAll(owMapNum) =
                             // if unmarked, use voice to set new state
                             match convertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
-                                TrackerModel.overworldMapMarks.[i,j].TrySet(newState)
-                                if TrackerModel.overworldMapMarks.[i,j].Current() = newState then
+                                if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
                                     PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                         elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
@@ -1920,6 +1893,7 @@ let makeAll(owMapNum) =
 
     canvasAdd(c, hintBorder, 0., THRU_MAP_AND_LEGEND_H + 6.)  // ensure this is atop other elements
 
+    CustomComboBoxes.InitializeItemComboBox(c)  // very very top
 
     TrackerModel.forceUpdate()
     c, updateTimeline

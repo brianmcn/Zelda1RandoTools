@@ -14,6 +14,17 @@ let canvasAdd(c:Canvas, item, left, top) =
         c.Children.Add(item) |> ignore
         Canvas.SetTop(item, top)
         Canvas.SetLeft(item, left)
+let gridAdd(g:Grid, x, c, r) =
+    g.Children.Add(x) |> ignore
+    Grid.SetColumn(x, c)
+    Grid.SetRow(x, r)
+let makeGrid(nc, nr, cw, rh) =
+    let grid = new Grid()
+    for i = 0 to nc-1 do
+        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
+    for i = 0 to nr-1 do
+        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
+    grid
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
@@ -223,3 +234,9 @@ let nonUniqueMapIconBMPs =
                             tile.SetPixel(px,py,System.Drawing.Color.Black)
             yield tile
     |]
+
+let mouseIconButtonColorsBMP =
+    let imageStream = GetResourceStream("mouse-icon-button-colors.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    bmp
+    

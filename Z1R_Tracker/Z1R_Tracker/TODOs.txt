@@ -1,6 +1,11 @@
-﻿
-TODOs
+﻿Inspirational reminder:
 
+[11:49 AM] marcmagus: I have never installed ZHelper, my only experience of it is hating it as a viewer.
+[11:49 AM] Lorgon111: oh man, you are missing out on new ways to hate it
+
+
+
+TODOs
 
 Just a place to dump feature ideas (small or big) or fixes/improvements
 
@@ -8,6 +13,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 (Don't forget to keep Notes.txt up-to-date as change features!)
 
 (dungeon palette rom)
+
 
 
 SMALL
@@ -34,11 +40,16 @@ timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that 
 Timer: Yeah, everyone has their own timer, it's for me, I should really have an option to turn it off, and have it off by default.
 It would also leave some blank space in the tracker for streamers to use for branding or cams, or things.
 
+now that I have the 'scrollLocator' hover UI, I can probably get rid of S3/L9 blinking in the late-game - people hate blinking
+
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 
 always-bombable spots:  
  - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?'  - no it looks awful
- - or make the 'highlight pixel' a darker color?
+ - or make the 'highlight pixel' a darker color? something.  the display should ideally capture it independent of the route-highlighting
+related:
+homer: e. I like how the 1q/2q outlines work. It would be nice if you could select both at the same time for mixed quest when you don’t know the number, it would help narrow down options.
+ - again, subtle display that can overlay options to implicitly capture the info is useful, like the maybe-v-always ow-map-tiles
 
 
 shift-click the start screen to place the lime circle? 
@@ -77,6 +88,7 @@ At the same time, need to preserve the simple/intuitive UI that already exists -
   3 options you want, which dismisses the popup and takes the actions.  And for hotkey-guy, simply pressing the hotkey to mark the tile also automatically pops up the local take-any UI 
   without needing the middle-click, maybe? In that case maybe need 4th option in popup (defer decision until later and leave tile on map)... actually, local popups always need a 
   'do nothing' option, e.g. for the casual user who accidentally activates the UI and just wants to dismiss it because 'what the heck even is this'
+  (When a local popup-ui makes changes at a distance in other parts of tracker, long duration animations highlighting the changes will help users understand, and undo would be nice)
 
 homer conversation, he forgot shops could even have second items:
 regarding second-shop-icon, are you saying that it would help you remember that second-item is an option available to you if 'bomb' displays not just 'bomb' in center, but 
@@ -120,8 +132,6 @@ https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-fin
 for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
 
-homer: e. I like how the 1q/2q outlines work. It would be nice if you could select both at the same time for mixed quest when you don’t know the number, it would help narrow down options.
-
 homer: larger shop icons (advanced users wont care as much about obscuring map)
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
@@ -149,6 +159,23 @@ size options were common requests for zhelper – can I scale? consider 2/3 size
 hotkeys as scroll-macros (e.g. immediately mark S3, or a dungeon room, or an item box)
 hotkeys should be able to select icons that have been customized out of scrollwheen pool
 hotkeys are often one-handed, so shift (e.g. R versus r to mark recorder basement v floor drop) is probably not useful (could maybe have r versus rr)
+
+
+
+[11:39 AM] Lorgon111: I am already starting to imagine a first-time-experience UI, along the lines of
+
+ZTracker did not find a settings file on disk, perhaps this is your first time using this tool?
+ - Yes, I am relatively new to Z1R and ZTracker, start me with basic default settings
+ - Yes, I am a seasoned Z1R runner who has experience with other trackers, turn off the tutorial/helper options and quickly walk me through icons/customization/hotkeys
+ - I know ZTracker, first time on this machine, give me some defaults and I can customize it myself
+ - No, what, I just used this yesterday, help me troubleshoot why my settings did not get saved
+[11:45 AM] marcmagus:
+ - I know ZTracker, first time on this machine, give me some defaults and I can customize it myself
+Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
+[11:46 AM] marcmagus: (If config-editing is a thing, can also be done by shipping a few 'example' configs)
+[11:46 AM] Lorgon111: yeah shipped samples is what I vaguely imagine
+
+
 
 
 BIG

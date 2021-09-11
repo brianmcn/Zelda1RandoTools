@@ -28,17 +28,8 @@ type MapStateProxy(state) =
         else
             Graphics.nonUniqueMapIconBMPs.[state-U]
 
-let gridAdd(g:Grid, x, c, r) =
-    g.Children.Add(x) |> ignore
-    Grid.SetColumn(x, c)
-    Grid.SetRow(x, r)
-let makeGrid(nc, nr, cw, rh) =
-    let grid = new Grid()
-    for i = 0 to nc-1 do
-        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
-    for i = 0 to nr-1 do
-        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
-    grid
+let gridAdd = Graphics.gridAdd
+let makeGrid = Graphics.makeGrid
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 4
@@ -96,6 +87,7 @@ let makeAll(owMapNum) =
     let mutable hideLocator = fun() -> ()
 
     let c = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
+    let appMainCanvas = c  // alias for when c gets shadowed by local of same name
 
     let mainTracker = makeGrid(9, 4, H, H)
     canvasAdd(c, mainTracker, 0., 0.)
@@ -135,69 +127,51 @@ let makeAll(owMapNum) =
     mainTrackerCanvases.[8,0] <- level9NumeralCanvas
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let no = Brushes.DarkRed
-        let yes = Brushes.LimeGreen 
-        let skipped = Brushes.MediumPurple
-        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=no, StrokeThickness=3.0)
+        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        c.PointerPressed.Add(fun ea -> 
-            if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
-                box.SetPlayerHas(
-                    if not(obj.Equals(rect.Stroke, yes)) then
-                        rect.Stroke <- yes
-                        TrackerModel.PlayerHas.YES
-                    else
-                        rect.Stroke <- no
-                        TrackerModel.PlayerHas.NO
-                    )
-                if requiresForceUpdate then
-                    TrackerModel.forceUpdate()
-            elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
-                box.SetPlayerHas(
-                    if not(obj.Equals(rect.Stroke, skipped)) then
-                        rect.Stroke <- skipped
-                        TrackerModel.PlayerHas.SKIPPED
-                    else
-                        rect.Stroke <- no
-                        TrackerModel.PlayerHas.NO
-                    )
-                if requiresForceUpdate then
-                    TrackerModel.forceUpdate()
-            )
-        let boxCurrentBMP(isForTimeline) =
-            match box.CellCurrent() with
-            | -1 -> null
-            |  0 -> (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp)
-            |  1 -> Graphics.boomerang_bmp
-            |  2 -> Graphics.bow_bmp
-            |  3 -> Graphics.power_bracelet_bmp
-            |  4 -> Graphics.ladder_bmp
-            |  5 -> Graphics.magic_boomerang_bmp
-            |  6 -> Graphics.key_bmp
-            |  7 -> Graphics.raft_bmp
-            |  8 -> Graphics.recorder_bmp
-            |  9 -> Graphics.red_candle_bmp
-            | 10 -> Graphics.red_ring_bmp
-            | 11 -> Graphics.silver_arrow_bmp
-            | 12 -> Graphics.wand_bmp
-            | 13 -> Graphics.white_sword_bmp
-            |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
+        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), isForTimeline)
+        let redrawBoxOutline() =
+            match box.PlayerHas() with
+            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
+            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped
         let redraw() =
             innerc.Children.Clear()
             let bmp = boxCurrentBMP(false)
             if bmp <> null then
                 canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
+        let activateComboBox(initBCC) =
+            let pos = c.TranslatePoint(Point(),appMainCanvas)
+            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.Value.X, pos.Value.Y, box.CellCurrent(), initBCC, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+                // update model
+                box.Set(newBoxCellValue, newPlayerHas)
+                // update view
+                redrawBoxOutline()
+                redraw()
+                if requiresForceUpdate then
+                    TrackerModel.forceUpdate()
+                ))
+        c.PointerPressed.Add(fun ea -> 
+            let pp = ea.GetCurrentPoint(c)
+            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                if box.CellCurrent() = -1 then
+                    activateComboBox(-1)
+                else
+                    box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
+                    redrawBoxOutline()
+                    if requiresForceUpdate then
+                        TrackerModel.forceUpdate()
+            )
         // item
         c.PointerWheelChanged.Add(fun x -> 
-            if x.Delta.Y<0. then
-                box.CellNext()
-            else
-                box.CellPrev()
-            redraw()
-            if requiresForceUpdate then
-                TrackerModel.forceUpdate()
+            let initBCC =
+                if x.Delta.Y<0. then
+                    box.CellNextFreeKey()
+                else
+                    box.CellPrevFreeKey()
+            activateComboBox(initBCC)
             )
         c.PointerEnter.Add(fun _ ->
             match box.CellCurrent() with
@@ -212,7 +186,7 @@ let makeAll(owMapNum) =
             hideLocator()
             )
         redrawBoxes.Add(fun() -> redraw())
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(boxCurrentBMP(true)) else None))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
     let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.FinalBoxOf1Or4, false)
@@ -1765,6 +1739,8 @@ let makeAll(owMapNum) =
 
     //                items  ow map  prog  timeline  dungeon tabs                
     c.Height <- float(30*4 + 11*3*9 + 30 + TCH + 6 + TH + TH + 27*8 + 12*7 + 30)
+
+    CustomComboBoxes.InitializeItemComboBox(c)  // very very top
     
     TrackerModel.forceUpdate()
     c, updateTimeline

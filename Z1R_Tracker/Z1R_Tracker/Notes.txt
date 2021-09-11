@@ -21,11 +21,15 @@ Triforce display suggests if dungeon has been located on overworld map:
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
 
 Items:
-Scroll to change item in a dungeon
-Left click to mark you have obtained that dungeon item, right click to mark intentionally skipped item. 
-Display is: red box = don't have, green box = do have, purple box = skipped.  
-(The purpose of being able to mark items as 'skipped' is so that the various reminder systems will e.g. quit pestering you about the 
-boomerang you left behind on the coast, while still accurately capturing your true 'item progress' on the screen for viewers.)
+Scroll to change item in a dungeon, then click it to commit the change:
+ - left click marks it green, to denote that you have this item in your inventory
+ - right click marks it red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
+ - middle click marks it purple, to denote you intentionally are skipping this item (see below)
+Scrolling (or clicking an empty item box) also brings up a popup menu, which is an alternative UI to choose the item.  You can either ignore the popup and scroll+click as above,
+or you can simply use the mouse to choose an item from the popup, using the appropriate click on that item to commit the selection.
+
+The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
+boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 

@@ -134,17 +134,23 @@ type ChoiceDomain(name:string,maxUsesArray:int[]) =
     member _this.Name = name  // just useful for debugging etc
     member _this.MaxKey = uses.Length-1
     member this.RemoveUse(key) =
-        if uses.[key] > 0 then
-            uses.[key] <- uses.[key] - 1
+        if key = -1 then  // since Next/Prev FreeKey can return -1 to mean the implicit empty slot, seems ok to RemoveUse() it, it implicitly has infinity current uses
             ev.Trigger(this,key)
         else
-            failwith "choice domain underflow"
+            if uses.[key] > 0 then
+                uses.[key] <- uses.[key] - 1
+                ev.Trigger(this,key)
+            else
+                failwith "choice domain underflow"
     member this.AddUse(key) =
-        if uses.[key] >= maxUsesArray.[key] then
-            failwith "choice domain overflow"
-        else
-            uses.[key] <- uses.[key] + 1
+        if key = -1 then  // since Next/Prev FreeKey can return -1 to mean the implicit empty slot, seems ok to AddUse() it, it implicitly has infinity max uses
             ev.Trigger(this,key)
+        else
+            if uses.[key] >= maxUsesArray.[key] then
+                failwith "choice domain overflow"
+            else
+                uses.[key] <- uses.[key] + 1
+                ev.Trigger(this,key)
     member this.NextFreeKey(key) =
         if key = uses.Length-1 then
             -1
@@ -182,13 +188,21 @@ type Cell(cd:ChoiceDomain) =
         state <- cd.PrevFreeKey(state)
         if state <> -1 then
             cd.AddUse(state)
-    member this.TrySet(newState) =
+    member this.Set(newState) =
         if newState < -1 || newState > cd.MaxKey then
-            failwith "TrySet out of range"
-        try
+            failwith "Cell.Set out of range"
+        if state = newState then
+            ()
+        else
             cd.AddUse(newState)
+            cd.RemoveUse(state)
             state <- newState
-        with _ -> ()
+    member this.AttemptToSet(newState) =
+        try
+            this.Set(newState)
+            true
+        with _e -> 
+            false
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -337,6 +351,8 @@ type Box() =
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
     let mutable playerHas = PlayerHas.NO
     member _this.PlayerHas() = playerHas
+    member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
+    member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
         cell.Prev()
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
@@ -344,6 +360,10 @@ type Box() =
         cell.Next()
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
     member _this.CellCurrent() = cell.Current()
+    member _this.Set(v,ph) = 
+        cell.Set(v)
+        playerHas <- ph
+        dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
     member _this.SetPlayerHas(v) = 
         playerHas <- v
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
