@@ -55,17 +55,6 @@ type MyWindow(owMapNum) as this =
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
-        let tb = new TextBox(Text="Choose overworld quest:", MaxWidth=300.)
-        stackPanel.Children.Add(tb) |> ignore
-        let owQuest = new ComboBox(MaxWidth=300.)
-        owQuest.Items <- [|
-                "First Quest"
-                "Second Quest"
-                "Mixed - First Quest"
-                "Mixed - Second Quest"
-            |]
-        owQuest.SelectedIndex <- owMapNum % 4
-        stackPanel.Children.Add(owQuest) |> ignore
 
         let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
@@ -77,28 +66,35 @@ type MyWindow(owMapNum) as this =
 
         let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false), MaxWidth=300.)
-        stackPanel.Children.Add(startButton) |> ignore
+        let Quests = [|
+                "First Quest"
+                "Second Quest"
+                "Mixed - First Quest"
+                "Mixed - Second Quest"
+            |]
+        for i = 0 to 3 do
+            let startButton = new Button(Content=new TextBox(Text=Quests.[i],IsReadOnly=true,IsHitTestVisible=false), MaxWidth=300.)
+            stackPanel.Children.Add(startButton) |> ignore
+            startButton.Click.Add(fun _ ->
+                    let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, MaxWidth=300.)
+                    stackPanel.Children.Add(tb) |> ignore
+                    let ctxt = System.Threading.SynchronizationContext.Current
+                    Async.Start (async {
+                        do! Async.Sleep(10) // get off UI thread so UI will update
+                        do! Async.SwitchToContext ctxt
+                        TrackerModel.Options.writeSettings()
+                        printfn "you pressed start after selecting %d" i
+                        this.Background <- Brushes.Black
+                        let c,u = UI.makeAll(i)
+                        canvas <- c
+                        updateTimeline <- u
+                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
+                        this.Content <- canvas
+                    })
+                )
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         hstackPanel.Children.Add(stackPanel) |> ignore
         this.Content <- hstackPanel
-        startButton.Click.Add(fun _ ->
-                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, MaxWidth=300.)
-                stackPanel.Children.Add(tb) |> ignore
-                let ctxt = System.Threading.SynchronizationContext.Current
-                Async.Start (async {
-                    do! Async.Sleep(10) // get off UI thread so UI will update
-                    do! Async.SwitchToContext ctxt
-                    TrackerModel.Options.writeSettings()
-                    printfn "you pressed start after selecting %d" owQuest.SelectedIndex
-                    this.Background <- Brushes.Black
-                    let c,u = UI.makeAll(owQuest.SelectedIndex)
-                    canvas <- c
-                    updateTimeline <- u
-                    UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
-                    this.Content <- canvas
-                })
-            )
     member this.Update(f10Press) =
         // update time
         let ts = DateTime.Now - startTime
