@@ -589,6 +589,49 @@ let initializeAll(instance:OverworldData.OverworldInstance) =
     recomputeMapStateSummary()
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Dungeon blockers
+
+// only some of these can participate in semantic reminders, obviously...
+[<RequireQualifiedAccess>]
+type DungeonBlocker =
+    | COMBAT    // need better weapon/armor
+    | BOW_AND_ARROW
+    | RECORDER
+    | LADDER  
+    | BAIT    
+    | KEY
+    | BOMB
+//    | MONEY     // money or life room? bomb upgrade?
+    | NOTHING
+    member this.Next() =
+        match this with
+        | DungeonBlocker.COMBAT -> DungeonBlocker.BOW_AND_ARROW
+        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.RECORDER
+        | DungeonBlocker.RECORDER -> DungeonBlocker.LADDER
+        | DungeonBlocker.LADDER -> DungeonBlocker.BAIT
+        | DungeonBlocker.BAIT -> DungeonBlocker.KEY
+        | DungeonBlocker.KEY -> DungeonBlocker.BOMB
+        | DungeonBlocker.BOMB -> DungeonBlocker.NOTHING
+        | DungeonBlocker.NOTHING -> DungeonBlocker.COMBAT
+    member this.Prev() =
+        match this with
+        | DungeonBlocker.COMBAT -> DungeonBlocker.NOTHING
+        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.COMBAT
+        | DungeonBlocker.RECORDER -> DungeonBlocker.BOW_AND_ARROW
+        | DungeonBlocker.LADDER -> DungeonBlocker.RECORDER
+        | DungeonBlocker.BAIT -> DungeonBlocker.LADDER
+        | DungeonBlocker.KEY -> DungeonBlocker.BAIT
+        | DungeonBlocker.BOMB -> DungeonBlocker.KEY
+        | DungeonBlocker.NOTHING -> DungeonBlocker.BOMB
+[<RequireQualifiedAccess>]
+type CombatUnblockerDetail =
+    | BETTER_SWORD
+    | BETTER_ARMOR
+    | WAND
+let MAX_BLOCKERS_PER_DUNGEON = 2
+let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 let recomputeWhatIsNeeded() =
     let mutable changed = false
@@ -690,6 +733,8 @@ type ITrackerEvents =
     abstract AnnounceFoundDungeonCount : int -> unit
     abstract AnnounceTriforceCount : int -> unit
     abstract AnnounceTriforceAndGo : int * int -> unit
+    // blockers
+    abstract RemindUnblock : DungeonBlocker * seq<int> * seq<CombatUnblockerDetail> -> unit
     // items
     abstract RemindShortly : int -> unit
 
@@ -699,6 +744,12 @@ let haveAnnouncedCompletedDungeons = Array.zeroCreate 8
 let mutable previouslyAnnouncedFoundDungeonCount = 0
 let mutable previouslyAnnouncedTriforceCount = 0
 let mutable remindedLadder, remindedAnyKey = false, false
+let mutable priorSwordWandLevel = 0
+let mutable priorRingLevel = 0
+let mutable priorBowArrow = false
+let mutable priorRecorder = false
+let mutable priorLadder = false
+let mutable priorAnyKey = false
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
@@ -794,6 +845,52 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         previouslyAnnouncedTriforceAndGo <- tagLevel
         if not justAnnouncedTAG then
             ite.AnnounceTriforceAndGo(triforces, tagLevel)
+    // blockers - COMBAT
+    let combatUnblockers = ResizeArray()
+    if playerComputedStateSummary.SwordLevel > priorSwordWandLevel then
+        combatUnblockers.Add(CombatUnblockerDetail.BETTER_SWORD)
+    if playerComputedStateSummary.HaveWand && (priorSwordWandLevel < 2) then
+        combatUnblockers.Add(CombatUnblockerDetail.WAND)
+    if playerComputedStateSummary.RingLevel > priorRingLevel then
+        combatUnblockers.Add(CombatUnblockerDetail.BETTER_ARMOR)
+    if combatUnblockers.Count > 0 then
+        let dungeonNums = ResizeArray()
+        for i = 0 to 7 do
+            if dungeonBlockers.[i,0] = DungeonBlocker.COMBAT || dungeonBlockers.[i,1] = DungeonBlocker.COMBAT then
+                if not(dungeons.[i].IsComplete) then
+                    dungeonNums.Add(i)
+        if dungeonNums.Count > 0 then
+            ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonNums, combatUnblockers)
+    priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
+    priorRingLevel <- playerComputedStateSummary.RingLevel
+    // blockers - generic
+    let blockerLogic(db) =
+        let dungeonNums = ResizeArray()
+        for i = 0 to 7 do
+            if dungeonBlockers.[i,0] = db || dungeonBlockers.[i,1] = db then
+                if not(dungeons.[i].IsComplete) then
+                    dungeonNums.Add(i)
+        if dungeonNums.Count > 0 then
+            ite.RemindUnblock(db, dungeonNums, [])
+    // blockers - others
+    if not priorBowArrow && playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1 then
+        blockerLogic(DungeonBlocker.BOW_AND_ARROW)
+    priorBowArrow <- playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1
+
+    if not priorRecorder && playerComputedStateSummary.HaveRecorder then
+        blockerLogic(DungeonBlocker.RECORDER)
+    priorRecorder <- playerComputedStateSummary.HaveRecorder
+
+    if not priorLadder && playerComputedStateSummary.HaveLadder then
+        blockerLogic(DungeonBlocker.LADDER)
+    priorLadder <- playerComputedStateSummary.HaveLadder
+
+    if not priorAnyKey && playerComputedStateSummary.HaveAnyKey then
+        blockerLogic(DungeonBlocker.KEY)
+    priorAnyKey <- playerComputedStateSummary.HaveAnyKey
+
+    // Note: no logic for BAIT, BOMB, loose KEYs, as the tracker has no reliable knowledge of this aspect of player's inventory
+
     // items
     if not remindedLadder && playerComputedStateSummary.HaveLadder then
         ite.RemindShortly(ITEMS.LADDER)

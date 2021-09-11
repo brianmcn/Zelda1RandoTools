@@ -423,6 +423,7 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.CANDLE))), 1, 1)
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))), 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ()))
+    ToolTipService.SetPlacement(mags_box, System.Windows.Controls.Primitives.PlacementMode.Top)
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
         mags_box.Children.Remove(magsHintHighlight)
@@ -977,6 +978,7 @@ let makeAll(owMapNum) =
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
+    let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let doUIUpdate() =
         if displayIsCurrentlyMirrored <> TrackerModel.Options.MirrorOverworld.Value then
             // model changed, align the view
@@ -1148,11 +1150,17 @@ let makeAll(owMapNum) =
             member _this.AnnounceCompletedDungeon(i) = if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
+                    // top ui
                     for j = 0 to 3 do
                         mainTrackerCanvases.[i,j].Children.Remove(mainTrackerCanvasShaders.[i,j]) |> ignore
                     if a.[i] then
                         for j = 0 to 3 do
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
+                    // blockers ui
+                    if a.[i] then
+                        blockerDungeonSunglasses.[i].Opacity <- 0.5
+                    else
+                        blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
                 if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
                     async {
@@ -1179,6 +1187,30 @@ let makeAll(owMapNum) =
                     | 2 -> async { voice.Speak("You are probably "+go) } |> Async.Start
                     | 3 -> async { voice.Speak("You are "+go) } |> Async.Start
                     | _ -> ()
+            member _this.RemindUnblock(blockerType, dungeons, detail) =
+                let sentence = 
+                    "Now that you have" + 
+                        match blockerType with
+                        | TrackerModel.DungeonBlocker.COMBAT ->
+                            let words = ResizeArray()
+                            for d in detail do
+                                match d with
+                                | TrackerModel.CombatUnblockerDetail.BETTER_SWORD -> words.Add(" a better sword,")
+                                | TrackerModel.CombatUnblockerDetail.BETTER_ARMOR -> words.Add(" better armor,")
+                                | TrackerModel.CombatUnblockerDetail.WAND -> words.Add(" the wand,")
+                            System.String.Concat words
+                        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> " a beau and arrow,"
+                        | TrackerModel.DungeonBlocker.RECORDER -> " the recorder,"
+                        | TrackerModel.DungeonBlocker.LADDER -> " the ladder,"
+                        | TrackerModel.DungeonBlocker.KEY -> " the any key,"
+                        | _ -> " "
+                        + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ") + (1 + Seq.head dungeons).ToString() +
+                        (let mutable s = ""
+                         for d in Seq.tail dungeons do
+                            s <- s + " and " + (1+d).ToString()
+                         s
+                         )
+                async { voice.Speak(sentence) } |> Async.Start
             member _this.RemindShortly(itemId) = 
                 let f, g, text =
                     if itemId = TrackerModel.ITEMS.KEY then
@@ -1590,15 +1622,78 @@ let makeAll(owMapNum) =
 
     canvasAdd(c, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H)
 
+    // blockers
+    let blockerCurrentBMP(current) =
+        match current with
+        | TrackerModel.DungeonBlocker.COMBAT -> Graphics.white_sword_bmp
+        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> Graphics.bow_and_arrow_bmp
+        | TrackerModel.DungeonBlocker.RECORDER -> Graphics.recorder_bmp
+        | TrackerModel.DungeonBlocker.LADDER -> Graphics.ladder_bmp
+        | TrackerModel.DungeonBlocker.BAIT -> Graphics.bait_bmp
+        | TrackerModel.DungeonBlocker.KEY -> Graphics.key_bmp
+        | TrackerModel.DungeonBlocker.BOMB -> Graphics.bomb_bmp
+        | TrackerModel.DungeonBlocker.NOTHING -> null
+
+    let makeBlockerBox(dungeonNumber, blockerIndex) =
+        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
+        c.Children.Add(rect) |> ignore
+        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
+        c.Children.Add(innerc) |> ignore
+        let mutable current = TrackerModel.DungeonBlocker.NOTHING
+        let redraw(n) =
+            innerc.Children.Clear()
+            let bmp = blockerCurrentBMP(n)
+            if bmp <> null then
+                let image = Graphics.BMPtoImage(bmp)
+                image.IsHitTestVisible <- false
+                canvasAdd(innerc, image, 4., 4.)
+        redraw(current)
+        c.MouseWheel.Add(fun x -> 
+            if x.Delta<0 then
+                current <- current.Next()
+            else
+                current <- current.Prev()
+            redraw(current)
+            TrackerModel.dungeonBlockers.[dungeonNumber, blockerIndex] <- current
+        )
+        c
+
+    let blockerColumnWidth = int((c.Width-402.)/3.)
+    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
+    blockerGrid.Height <- float(36*3)
+    for i = 0 to 2 do
+        for j = 0 to 2 do
+            if i=0 && j=0 then
+                let d = new DockPanel(LastChildFill=false)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth,
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
+                tb.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome voice reminders will trigger when you get the item that may unblock you."
+                d.Children.Add(tb) |> ignore
+                gridAdd(blockerGrid, d, i, j)
+            else
+                let dungeonNumeral = (3*j+i)
+                let d = new DockPanel(LastChildFill=false)
+                let sp = new StackPanel(Orientation=Orientation.Horizontal)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%d" dungeonNumeral, Width=30., 
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Right)
+                sp.Children.Add(tb) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 0)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 1)) |> ignore
+                d.Children.Add(sp) |> ignore
+                gridAdd(blockerGrid, d, i, j)
+                blockerDungeonSunglasses.[dungeonNumeral-1] <- upcast sp // just reduce its opacity
+    canvasAdd(c, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+
     // notes    
-    let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
+    let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height - blockerGrid.Height)
     notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(c, tb, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(c, tb, 402., START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width

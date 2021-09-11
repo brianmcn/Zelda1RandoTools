@@ -41,7 +41,7 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
         silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 
         heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
         brown_sword_bmp; magical_sword_bmp; blue_candle_bmp; blue_ring_bmp;
-        ganon_bmp; zelda_bmp; bomb_bmp |] =
+        ganon_bmp; zelda_bmp; bomb_bmp; bow_and_arrow_bmp; bait_bmp  |] =
     let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/7 - 1 do

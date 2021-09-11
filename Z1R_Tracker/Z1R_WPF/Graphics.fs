@@ -41,7 +41,7 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
         silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 
         heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
         brown_sword_bmp; magical_sword_bmp; blue_candle_bmp; blue_ring_bmp;
-        ganon_bmp; zelda_bmp; bomb_bmp |] =
+        ganon_bmp; zelda_bmp; bomb_bmp; bow_and_arrow_bmp; bait_bmp |] =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/7 - 1 do
@@ -110,8 +110,14 @@ let greyscale(bmp:System.Drawing.Bitmap) =
     r
 
 let overworldImage =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_map_overworld_strip8.png")
-    // 8 maps in here: 1st quest, 2nd quest, 1st quest with mixed secrets, 2nd quest with mixed secrets, and then horizontal-reflected versions of each of those
+    let files = [|
+//        "s_map_overworld_strip8.png"
+        "s_map_overworld_vanilla_strip8.png"
+//        "s_map_overworld_zones_strip8.png"
+        |]
+    let file = files.[(new System.Random()).Next(files.Length)]
+    printfn "selecting overworld file %s" file
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(file)
     new System.Drawing.Bitmap(imageStream)
 let zhMapIcons =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_icon_overworld_strip39.png")
@@ -260,3 +266,22 @@ let mouseIconButtonColorsBMP =
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("mouse-icon-button-colors.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
+
+(*
+do
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons3x7.png")
+    let bmp37 = new System.Drawing.Bitmap(imageStream)
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons7x7.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let newBmp = new System.Drawing.Bitmap(bmp.Width+7, bmp.Height)
+    for i = 0 to bmp.Width-1 do
+        for j = 0 to bmp.Height-1 do
+            newBmp.SetPixel(i,j,bmp.GetPixel(i,j))
+    for i = 0 to 6 do
+        for j = 0 to 6 do
+            newBmp.SetPixel(bmp.Width+i, j, Drawing.Color.Transparent)
+    for i = 0 to 2 do
+        for j = 0 to 6 do
+            newBmp.SetPixel(bmp.Width+i+2, j, bmp37.GetPixel(3*5+i,j))
+    newBmp.Save("""C:\Users\Admin1\Source\Repos\Zelda1RandoTools\Z1R_Tracker\Z1R_WPF\tmp.png""")
+*)

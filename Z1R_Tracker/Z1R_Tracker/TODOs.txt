@@ -16,7 +16,53 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 
 
+CURRENT PRIORITIES
+
+hide dungeon numbers
+
+hotkeys
+
+
+
+
+
+[10:57 AM] marcmagus: Decode Hint: popup covers Notes section; I'd suggest cutting the third column and left-aligning so if people still want to take notes they can. Alternatively, if say you want to discourage that action, mirror new popup behavior and dismiss the popup on click anywhere outside the box.
+[10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
+[11:03 AM] marcmagus: Green "go here" highlights in the forest didn't initially read as highlighted to me.
+
+
+re: multiple startup buttons per quest:
+[5:29 PM] marcmagus: With some kind of config it's probably less relevant because people will probably usually choose the same option, but also, since it's the one thing you can't change...
+[5:30 PM] Lorgon111: with the new item interaction, I do plan to make an accelerator for 'not heart shuffle', where the top box of 1-8 is pre-populated with a heart container, and that's also a startup option, so kinda 8 boxes
+[5:31 PM] Lorgon111: but i do find that i simply 'forget' the quest and click start
+[5:31 PM] Lorgon111: so i like forcing the choice via separate buttons
+[5:31 PM] Lorgon111: or, could start with nothing prepoulated
+[5:31 PM] marcmagus: Oh that makes sense.
+[5:31 PM] Lorgon111: so you are forced to combobox first
+[5:31 PM] marcmagus: Could have "no heart shuffle" be a checkbox next to the start buttons.
+[5:32 PM] Lorgon111: in any case, startup ui can be better
+[5:32 PM] marcmagus: Combobox starting blank until config does correct behavior for us and new people at the cost of extra interactions.
+
+
 SMALL
+
+does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
+
+see what like if 'X' tiles are just grayed without the X
+
+should 'show gettable' checkbox do a yellow/green highlight like routing maybe-always stuff? I think yes.  can it be fast enough to have a hover?
+
+Should blue candle switch to highlighting burn spots after it's 'gotten'? 
+Yes; there's no reason to want to locate blue candle shop after have candle. And can't otherwise display burnable until red candle.
+
+
+While the ladder _item_ is not routeworthy if you don't yet have the ladder, not-knowing-the-ladder-item-information-yet makes the ladder _tile_ routeworthy.
+And by proxy, marc wants non-recon'd coast item to be non-X'd
+
+
+consider: when moused over dungeon area, showLocator() and/or routeFrom() that dungeon if location known
+
+some setup-for-heart-shuffle accelerator (startup option, not optionMenus option)
 
 dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)
 
@@ -64,7 +110,7 @@ binary packaging for redistribution?
 versioning . . .
 ad-hoc counters? e.g. for door repair charges, or whatever else folks may want to track
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
-show list of remaining box items? if less than N left?
+show list of remaining box items? if less than N left? - the popup now kinda accomplishes this
 
 (start screen eventually have 3. start OR load old data)
 
@@ -105,19 +151,6 @@ want to have available to them.  And then there'd have to be a couple customizat
 of UI/customization, so there is trade-offs in depth to serving each audience individually best versus serving a single common audience well... I will mull this over a bit.
 Make the simple things simple, and the complex/optimized/customized things possible.
 
-
-"when X remind Y" (can imagine various system with note text parsing; dragging e.g. 1 and ladder icons into notes to say 1 is ladder blocked; generic reminder when get bow+arrow; etc)
-(possibly related to item above) way to take notes of e.g. dungeon ladder/gohma block, that is mouse-only for keyboardless folks
- - Make notes textbox smaller, and have 8 reminder areas where you can scroll
- - Sword – need better weapon; BowArrow – need bow; Recorder; ladder; Bomb; Key; Bait; money??? (bomb upgrade, but how much, hard to mouse)
- - Can auto hook a voice reminder when you get the unblocker
-ui display could be dungeon number and icon boxes (how deal with scrolling? i guess not make a forceUpdate, so nothing happen until they interact with other ui)
-   text  1:_ _ 2:_ _                text = BLOCKERS(hovertext explains) 
-   3:_ _ 4:_ _ 5:_ _
-   6:_ _ 7:_ _ 8:_ _
-when you get the unblocker, numeral/box could get some highlight (and voice would announce once - accumulate all into one sentence "now that you have ladder, consider dungeons 2, 3, and 6")
-when dungeon completed, could be grayed out
-might you ever want to clear/change it? what if unmark getting unblocker (accidentally click bow, then unclick)?
 
 General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
 white sword item gets projected onto S2 tile.  
@@ -176,6 +209,7 @@ Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
 [11:46 AM] Lorgon111: yeah shipped samples is what I vaguely imagine
 
 
+check for memory leaks
 
 
 BIG

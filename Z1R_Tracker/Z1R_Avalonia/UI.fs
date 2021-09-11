@@ -4,6 +4,7 @@ open System
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Media
+open Avalonia.Layout
 
 let canvasAdd = Graphics.canvasAdd
 
@@ -336,6 +337,7 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
     gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
+    ToolTip.SetPlacement(mags_box, PlacementMode.Left)  // Avalonia's tip placement seems awful, at least on Windows
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
         mags_box.Children.Remove(magsHintHighlight) |> ignore
@@ -876,6 +878,7 @@ let makeAll(owMapNum) =
     kitty.Height <- THRU_MAP_H - THRU_MAIN_MAP_H
     canvasAdd(c, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
+    let blockerDungeonSunglasses : Visual[] = Array.zeroCreate 8
     let doUIUpdate() =
         if displayIsCurrentlyMirrored <> TrackerModel.Options.MirrorOverworld.Value then
             // model changed, align the view
@@ -1049,14 +1052,21 @@ let makeAll(owMapNum) =
             member _this.AnnounceCompletedDungeon(i) = ()
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
+                    // top ui
                     for j = 0 to 3 do
                         mainTrackerCanvases.[i,j].Children.Remove(mainTrackerCanvasShaders.[i,j]) |> ignore
                     if a.[i] then
                         for j = 0 to 3 do
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
+                    // blockers ui
+                    if a.[i] then
+                        blockerDungeonSunglasses.[i].Opacity <- 0.5
+                    else
+                        blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = ()
             member _this.AnnounceTriforceCount(n) = ()
             member _this.AnnounceTriforceAndGo(triforces, tagLevel) = ()
+            member _this.RemindUnblock(blockerType, dungeons, detail) = ()
             member _this.RemindShortly(itemId) = ()
             })
     let threshold = TimeSpan.FromMilliseconds(500.0)
@@ -1494,8 +1504,71 @@ let makeAll(owMapNum) =
 
     canvasAdd(c, dungeonTabsOverlay, 0., THRU_TIMELINE_H)
 
+    // blockers
+    let blockerCurrentBMP(current) =
+        match current with
+        | TrackerModel.DungeonBlocker.COMBAT -> Graphics.white_sword_bmp
+        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> Graphics.bow_and_arrow_bmp
+        | TrackerModel.DungeonBlocker.RECORDER -> Graphics.recorder_bmp
+        | TrackerModel.DungeonBlocker.LADDER -> Graphics.ladder_bmp
+        | TrackerModel.DungeonBlocker.BAIT -> Graphics.bait_bmp
+        | TrackerModel.DungeonBlocker.KEY -> Graphics.key_bmp
+        | TrackerModel.DungeonBlocker.BOMB -> Graphics.bomb_bmp
+        | TrackerModel.DungeonBlocker.NOTHING -> null
+
+    let makeBlockerBox(dungeonNumber, blockerIndex) =
+        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
+        c.Children.Add(rect) |> ignore
+        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
+        c.Children.Add(innerc) |> ignore
+        let mutable current = TrackerModel.DungeonBlocker.NOTHING
+        let redraw(n) =
+            innerc.Children.Clear()
+            let bmp = blockerCurrentBMP(n)
+            if bmp <> null then
+                let image = Graphics.BMPtoImage(bmp)
+                image.IsHitTestVisible <- false
+                canvasAdd(innerc, image, 4., 4.)
+        redraw(current)
+        c.PointerWheelChanged.Add(fun x -> 
+            if x.Delta.Y<0. then
+                current <- current.Next()
+            else
+                current <- current.Prev()
+            redraw(current)
+            TrackerModel.dungeonBlockers.[dungeonNumber, blockerIndex] <- current
+        )
+        c
+
+    let blockerColumnWidth = int((c.Width-402.)/3.)
+    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
+    blockerGrid.Height <- float(36*3)
+    for i = 0 to 2 do
+        for j = 0 to 2 do
+            if i=0 && j=0 then
+                let d = new DockPanel(LastChildFill=false)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth,
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
+                ToolTip.SetTip(tb, "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.")
+                d.Children.Add(tb) |> ignore
+                gridAdd(blockerGrid, d, i, j)
+            else
+                let dungeonNumeral = (3*j+i)
+                let d = new DockPanel(LastChildFill=false)
+                let sp = new StackPanel(Orientation=Orientation.Horizontal)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%d" dungeonNumeral, Width=18., 
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Right)
+                sp.Children.Add(tb) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 0)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 1)) |> ignore
+                d.Children.Add(sp) |> ignore
+                gridAdd(blockerGrid, d, i, j)
+                blockerDungeonSunglasses.[dungeonNumeral-1] <- upcast sp // just reduce its opacity
+    canvasAdd(c, blockerGrid, 402., THRU_TIMELINE_H) 
+
     // notes    
-    let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height)
+    let tb = new TextBox(Width=c.Width-402., Height=dungeonTabs.Height - blockerGrid.Height)
     notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- Brushes.LimeGreen 
@@ -1503,7 +1576,7 @@ let makeAll(owMapNum) =
     tb.CaretBrush <- Brushes.LimeGreen 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(c, tb, 402., THRU_TIMELINE_H) 
+    canvasAdd(c, tb, 402., THRU_TIMELINE_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width

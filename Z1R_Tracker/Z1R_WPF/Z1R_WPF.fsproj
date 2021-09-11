@@ -69,6 +69,8 @@
     <Compile Include="CustomComboBoxes.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
+    <EmbeddedResource Include="s_map_overworld_vanilla_strip8.png" />
+    <EmbeddedResource Include="s_map_overworld_zones_strip8.png" />
     <EmbeddedResource Include="s_map_overworld_strip8.png" />
     <EmbeddedResource Include="s_icon_overworld_strip39.png" />
     <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />

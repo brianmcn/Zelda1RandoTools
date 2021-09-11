@@ -150,6 +150,20 @@ FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dun
 Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
 
 
+BLOCKERS
+
+This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon and need to return later.
+You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
+ - Sword: you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
+ - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
+ - Recorder: you are blocked by Digdogger
+ - Ladder: there's a ladder block (moat)
+ - Bait: there's a hungry Goriya blocking you
+ - Key: you need more keys
+ - Bomb: you need to find more explosion walls
+(WPF Only) When possible, the tracker will give a voice reminder when you may be unblocked, e.g. "Now that you have the ladder, consider dungeon 5"
+
+
 NOTES
 
 This area is for ad-hoc textual note-taking by the player (e.g. "2 gohma" to remind you to return to dungeon 2 when you have bow&arrow).
