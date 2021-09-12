@@ -17,7 +17,7 @@ let data1 = [|
     |]
 
 let makeOptionsCanvas(width, height, heightOffset) = 
-    let optionsCanvas = new Canvas(Width=width, Height=height, Background=Brushes.White, Opacity=0., IsHitTestVisible=false)
+    let optionsCanvas = new Canvas(Width=width, Height=height, Opacity=0., IsHitTestVisible=false)
 
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
     let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, Margin=Thickness(0.,heightOffset,0.,0.), FontWeight=FontWeight.Bold)

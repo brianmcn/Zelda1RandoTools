@@ -114,7 +114,7 @@ type App() =
         () //Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(this)
         this.Styles.AddRange [ 
             new Avalonia.Markup.Xaml.Styling.StyleInclude(baseUri=null, Source = Uri("resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"))
-            new Avalonia.Markup.Xaml.Styling.StyleInclude(baseUri=null, Source = Uri("resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default"))
+            new Avalonia.Markup.Xaml.Styling.StyleInclude(baseUri=null, Source = Uri("resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default"))
         ]
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
