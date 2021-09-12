@@ -27,10 +27,6 @@ hotkeys
 
 SMALL
 
-Should blue candle switch to highlighting burn spots after it's 'gotten'? 
-Yes; there's no reason to want to locate blue candle shop after have candle. And can't otherwise display burnable until red candle.
-
-
 While the ladder _item_ is not routeworthy if you don't yet have the ladder, not-knowing-the-ladder-item-information-yet makes the ladder _tile_ routeworthy.
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 

@@ -89,6 +89,7 @@ let makeAll(owMapNum) =
     let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone) -> ()
     let mutable showLocatorInstanceFunc = fun(f:int*int->bool) -> ()
+    let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable showLocator = fun(_l:int) -> ()
     let mutable hideLocator = fun() -> ()
 
@@ -337,10 +338,20 @@ let makeAll(owMapNum) =
         let c = veryBasicBoxImpl(img, false, true, changedFunc)
         ToolTip.SetTip(c, tts)
         c
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle())), 2, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle())), 1, 1)
-    gridAdd(owItemGrid, basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle())), 2, 0)
+    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()))
+    gridAdd(owItemGrid, wood_sword_box, 1, 0)
+    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()))
+    wood_arrow_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
+    wood_arrow_box.PointerLeave.Add(fun _ -> hideLocator())
+    gridAdd(owItemGrid, wood_arrow_box, 2, 1)
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()))
+    blue_candle_box.PointerEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
+    blue_candle_box.PointerLeave.Add(fun _ -> hideLocator())
+    gridAdd(owItemGrid, blue_candle_box, 1, 1)
+    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()))
+    blue_ring_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
+    blue_ring_box.PointerLeave.Add(fun _ -> hideLocator())
+    gridAdd(owItemGrid, blue_ring_box, 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
     ToolTip.SetPlacement(mags_box, PlacementMode.Left)  // Avalonia's tip placement seems awful, at least on Windows
     let magsHintHighlight = makeHintHighlight(30.)
@@ -365,6 +376,8 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
+    bombIcon.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
+    bombIcon.PointerLeave.Add(fun _ -> hideLocator())
     ToolTip.SetTip(bombIcon, "Player currently has bombs (affects routing)")
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
@@ -1773,6 +1786,13 @@ let makeAll(owMapNum) =
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                    owLocatorTilesZone.[i,j].Opacity <- 0.4
+        )
+    showShopLocatorInstanceFunc <- (fun item ->
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = item || (TrackerModel.getOverworldMapExtraData(i,j) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item)) then
                     owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
     showLocator <- (fun level ->
