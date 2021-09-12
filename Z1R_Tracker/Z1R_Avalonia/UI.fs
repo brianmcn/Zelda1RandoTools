@@ -802,7 +802,7 @@ let makeAll(owMapNum) =
 
     // Version
     let vb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
-                            Text=sprintf "v%s" OverworldData.VersionString, IsReadOnly=true, IsHitTestVisible=false),
+                            Text=sprintf "v%s" OverworldData.VersionString, IsReadOnly=true, IsHitTestVisible=false, Padding=Thickness(0.)),
                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     canvasAdd(c, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
     vb.Click.Add(fun _ ->
