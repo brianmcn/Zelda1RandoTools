@@ -31,8 +31,6 @@ While the ladder _item_ is not routeworthy if you don't yet have the ladder, not
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 
 
-consider: when moused over dungeon area, showLocator() and/or routeFrom() that dungeon if location known
-
 some setup-for-heart-shuffle accelerator (startup option, not optionMenus option)
 
 dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)

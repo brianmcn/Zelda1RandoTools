@@ -152,6 +152,8 @@ FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dun
 
 Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
 
+When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+
 
 BLOCKERS
 

@@ -1302,7 +1302,9 @@ let makeAll(owMapNum) =
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
-        let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))
+        let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)
+        contentCanvas.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1]))
+        contentCanvas.MouseLeave.Add(fun _ -> hideLocator())
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
