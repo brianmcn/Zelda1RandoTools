@@ -1091,7 +1091,10 @@ let makeAll(owMapNum) =
     // timeline & options menu
     let moreOptionsLabel = new TextBox(Text="Options...", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Margin=Thickness(0.), Padding=Thickness(0.), BorderThickness=Thickness(0.), IsReadOnly=true, IsHitTestVisible=false)
     let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(c.Width, float TCH + 6., 25.)
+    let optionsCanvas = new Border(Child=OptionsMenu.makeOptionsCanvas(25.),
+                                   Background=SolidColorBrush(0xFF282828u), BorderBrush=Brushes.Gray, BorderThickness=Thickness(2.),
+                                   ZIndex=111, IsVisible=false)
+    moreOptionsButton.ZIndex <- optionsCanvas.ZIndex+1
 
     let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 1, "0h", "30m", "1h", 53.)
     let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 2, "0h", "1h", "2h", 53.)
@@ -1122,19 +1125,16 @@ let makeAll(owMapNum) =
     canvasAdd(c, optionsCanvas, 0., THRU_MAP_H)
     canvasAdd(c, moreOptionsButton, 0., THRU_MAP_H)
     moreOptionsButton.Click.Add(fun _ -> 
-        if optionsCanvas.Opacity = 0. then
-            optionsCanvas.Opacity <- 1.
-            optionsCanvas.IsHitTestVisible <- true
+        if not optionsCanvas.IsVisible then
+            optionsCanvas.IsVisible <- true
         else
-            optionsCanvas.Opacity <- 0.
-            optionsCanvas.IsHitTestVisible <- false
+            optionsCanvas.IsVisible <- false
+            TrackerModel.Options.writeSettings()
         )
     // auto-close logic
-    c.PointerMoved.Add(fun ea ->
-        let pos = ea.GetPosition(optionsCanvas)
-        if optionsCanvas.IsHitTestVisible && (pos.Y < 0. || pos.Y > optionsCanvas.Height) then
-            optionsCanvas.Opacity <- 0.
-            optionsCanvas.IsHitTestVisible <- false
+    optionsCanvas.PointerLeave.Add(fun ea ->
+        if optionsCanvas.IsVisible then
+            optionsCanvas.IsVisible <- false
             TrackerModel.Options.writeSettings()
         )
 

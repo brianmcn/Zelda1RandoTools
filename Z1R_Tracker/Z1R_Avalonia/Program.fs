@@ -59,9 +59,7 @@ type MyWindow(owMapNum) as this =
         let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
-        let options = OptionsMenu.makeOptionsCanvas(16.*OverworldRouteDrawing.OMTW, float(UI.TCH+6), 0.)
-        options.IsHitTestVisible <- true
-        options.Opacity <- 1.0
+        let options = OptionsMenu.makeOptionsCanvas(0.)
         stackPanel.Children.Add(options) |> ignore
 
         let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
