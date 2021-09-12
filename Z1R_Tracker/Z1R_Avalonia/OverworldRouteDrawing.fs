@@ -26,8 +26,8 @@ let drawLine(c,v1,v2,color) =
     let line = new Shapes.Line(StartPoint=Point(x1,y1), EndPoint=Point(x2,y2), Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
     canvasAdd(c, line, 0., 0.)
 
-
-let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j) = 
+let MaxYGH = 12 // default
+let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, maxYellowGreenHighlights) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
@@ -73,7 +73,7 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                                 xs |> Seq.exists (fun (v,c) -> v=g)
                             else
                                 false
-                        if TrackerModel.Options.Overworld.DrawRoutes.Value then 
+                        if drawRouteMarks then 
                             if isRecorderWarpDestination(g) && not canWalk then
                                 ()  // don't bother drawing lines to every recorder warp destination - is patently obvious and just clutters screen
                             elif (isWarpDestination(p) || isWarpDestination(g)) && not canWalk then
@@ -105,9 +105,9 @@ let drawPaths(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:boo
                         if ok then
                             let (cost,_preds) = r
                             pq.Enqueue((if ok then cost else 99999), (i,j))
-        if TrackerModel.Options.Overworld.HighlightNearby.Value then 
-            // highlight cheapest N unmarked
-            let N = 12
+        // highlight cheapest N unmarked
+        let N = maxYellowGreenHighlights
+        if N > 0 then
             let toHighlight = ResizeArray()
             let rec iterate(N,recentCost) =
                 if not pq.IsEmpty then

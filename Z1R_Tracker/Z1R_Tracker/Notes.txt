@@ -43,7 +43,8 @@ bombs - click when you get bombs, to have map routing send you to bombable locat
 boomstick book - click when you get, to mark timeline, and click S/B to toggle whether Shield or Book is available as a dungeon item
 ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your time as text in the NOTES section
 (timer, current hearts - just for display)
-Show N gettable - click to animate all the remaining overworld tiles you could uncover given your current item set
+Show N gettable - click or hover to highlight all the remaining overworld tiles you could uncover given your current item set; color will be 
+  greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
 
 Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.

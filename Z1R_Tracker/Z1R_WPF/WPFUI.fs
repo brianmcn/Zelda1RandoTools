@@ -86,21 +86,6 @@ type MapStateProxy(state) =
         else
             Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[state-U]
 
-let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j) =
-        match targetItemStateOption with
-        | Some(targetItemState) ->
-            let owTargetworthySpots = Array2D.zeroCreate 16 8
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                    if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItemState)) then
-                        owTargetworthySpots.[x,y] <- true
-            OverworldRouteDrawing.drawPaths(routeDrawingCanvas, owTargetworthySpots, 
-                                            Array2D.zeroCreate 16 8, point, i, j)
-        | None ->
-            OverworldRouteDrawing.drawPaths(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j)
-
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
 
@@ -111,6 +96,23 @@ let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., For
 let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
+
+let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxYellowGreenHighlights) =
+    let maxYellowGreenHighlights = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then 128 else maxYellowGreenHighlights
+    match targetItemStateOption with
+    | Some(targetItemState) ->
+        let owTargetworthySpots = Array2D.zeroCreate 16 8
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
+                if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItemState)) then
+                    owTargetworthySpots.[x,y] <- true
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, 
+                                            Array2D.zeroCreate 16 8, point, i, j, drawRouteMarks, maxYellowGreenHighlights)
+    | None ->
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j, drawRouteMarks, maxYellowGreenHighlights)
+
 
 let mutable f5WasRecentlyPressed = false
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
@@ -460,16 +462,6 @@ let makeAll(owMapNum) =
     // ow map animation layer
     let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
                                   AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    let slowerBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames(Duration=new Duration(System.TimeSpan.FromSeconds(3.0)), RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.0))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.5, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.25))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(0.5))) |> ignore
-    slowerBlinkAnimation.KeyFrames.Add(System.Windows.Media.Animation.LinearDoubleKeyFrame(Value=0.3, KeyTime=System.Windows.Media.Animation.KeyTime.FromPercent(1.0))) |> ignore
-    let owRemainSpotHighlighters = Array2D.init 16 8 (fun i j ->
-        let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=System.Windows.Media.Brushes.Lime)
-        rect.BeginAnimation(UIElement.OpacityProperty, slowerBlinkAnimation)
-        rect
-        )
 
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
@@ -679,7 +671,7 @@ let makeAll(owMapNum) =
                                         // draw routes
                                         let mousePos = ea.GetPosition(c)
                                         let mousePos = if displayIsCurrentlyMirrored then Point(OMTW - mousePos.X, mousePos.Y) else mousePos
-                                        drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j)
+                                        drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
                                         // show enlarged version of current & nearby rooms
                                         dungeonTabsOverlayContent.Children.Clear()
                                         // fill whole canvas black, so elements behind don't show through
@@ -851,6 +843,11 @@ let makeAll(owMapNum) =
                             )
         )
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
+    owMapGrid.MouseLeave.Add(fun _ ->
+        if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
+            OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
+        )
 
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -1140,13 +1137,11 @@ let makeAll(owMapNum) =
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
-                    drawRoutesTo(currentRouteTarget(), routeDrawingCanvas,System.Windows.Point(0.,0.), i, j)
-                // unexplored but gettable spots highlight
-                if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
-                    for x = 0 to 15 do
-                        for y = 0 to 7 do
-                            if owRouteworthySpots.[x,y] && TrackerModel.overworldMapMarks.[x,y].Current() = -1 then
-                                canvasAdd(recorderingCanvas, owRemainSpotHighlighters.[x,y], OMTW*float(x), float(y*11*3))
+                    drawRoutesTo(currentRouteTarget(), routeDrawingCanvas,System.Windows.Point(0.,0.), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
+                elif owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
+                    // unexplored but gettable spots highlight
+                    OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
             member _this.AnnounceCompletedDungeon(i) = if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
@@ -1706,6 +1701,14 @@ let makeAll(owMapNum) =
     canvasAdd(c, owGettableScreensCheckBox, RIGHT_COL, 80.)
     owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
     owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
+    owGettableScreensTextBox.MouseEnter.Add(fun _ -> 
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
+        )
+    owGettableScreensTextBox.MouseLeave.Add(fun _ -> 
+        if not(owGettableScreensCheckBox.IsChecked.HasValue) || not(owGettableScreensCheckBox.IsChecked.Value) then 
+            routeDrawingCanvas.Children.Clear()
+        )
     // current hearts
     canvasAdd(c, currentHeartsTextBox, RIGHT_COL, 100.)
     // coordinate grid

@@ -25,32 +25,7 @@ hotkeys
 
 
 
-
-[10:57 AM] marcmagus: Decode Hint: popup covers Notes section; I'd suggest cutting the third column and left-aligning so if people still want to take notes they can. Alternatively, if say you want to discourage that action, mirror new popup behavior and dismiss the popup on click anywhere outside the box.
-[10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
-[11:03 AM] marcmagus: Green "go here" highlights in the forest didn't initially read as highlighted to me.
-
-
-re: multiple startup buttons per quest:
-[5:29 PM] marcmagus: With some kind of config it's probably less relevant because people will probably usually choose the same option, but also, since it's the one thing you can't change...
-[5:30 PM] Lorgon111: with the new item interaction, I do plan to make an accelerator for 'not heart shuffle', where the top box of 1-8 is pre-populated with a heart container, and that's also a startup option, so kinda 8 boxes
-[5:31 PM] Lorgon111: but i do find that i simply 'forget' the quest and click start
-[5:31 PM] Lorgon111: so i like forcing the choice via separate buttons
-[5:31 PM] Lorgon111: or, could start with nothing prepoulated
-[5:31 PM] marcmagus: Oh that makes sense.
-[5:31 PM] Lorgon111: so you are forced to combobox first
-[5:31 PM] marcmagus: Could have "no heart shuffle" be a checkbox next to the start buttons.
-[5:32 PM] Lorgon111: in any case, startup ui can be better
-[5:32 PM] marcmagus: Combobox starting blank until config does correct behavior for us and new people at the cost of extra interactions.
-
-
 SMALL
-
-does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
-
-see what like if 'X' tiles are just grayed without the X
-
-should 'show gettable' checkbox do a yellow/green highlight like routing maybe-always stuff? I think yes.  can it be fast enough to have a hover?
 
 Should blue candle switch to highlighting burn spots after it's 'gotten'? 
 Yes; there's no reason to want to locate blue candle shop after have candle. And can't otherwise display burnable until red candle.
@@ -114,6 +89,10 @@ show list of remaining box items? if less than N left? - the popup now kinda acc
 
 (start screen eventually have 3. start OR load old data)
 
+see what like if 'X' tiles are just grayed without the X (can comment out 3 lines under 'if i=38 then' in Graphics.fs)
+
+does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
+
 MEDIUM
 
 Currently, when I find a take-any on the overworld, I
@@ -165,6 +144,9 @@ https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-fin
 for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
 
+[10:57 AM] marcmagus: Decode Hint: popup covers Notes section; I'd suggest cutting the third column and left-aligning so if people still want to take notes they can. Alternatively, if say you want to discourage that action, mirror new popup behavior and dismiss the popup on click anywhere outside the box.
+[10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
+
 homer: larger shop icons (advanced users wont care as much about obscuring map)
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
@@ -207,6 +189,20 @@ ZTracker did not find a settings file on disk, perhaps this is your first time u
 Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
 [11:46 AM] marcmagus: (If config-editing is a thing, can also be done by shipping a few 'example' configs)
 [11:46 AM] Lorgon111: yeah shipped samples is what I vaguely imagine
+
+
+re: multiple startup buttons per quest:
+[5:29 PM] marcmagus: With some kind of config it's probably less relevant because people will probably usually choose the same option, but also, since it's the one thing you can't change...
+[5:30 PM] Lorgon111: with the new item interaction, I do plan to make an accelerator for 'not heart shuffle', where the top box of 1-8 is pre-populated with a heart container, and that's also a startup option, so kinda 8 boxes
+[5:31 PM] Lorgon111: but i do find that i simply 'forget' the quest and click start
+[5:31 PM] Lorgon111: so i like forcing the choice via separate buttons
+[5:31 PM] Lorgon111: or, could start with nothing prepoulated
+[5:31 PM] marcmagus: Oh that makes sense.
+[5:31 PM] Lorgon111: so you are forced to combobox first
+[5:31 PM] marcmagus: Could have "no heart shuffle" be a checkbox next to the start buttons.
+[5:32 PM] Lorgon111: in any case, startup ui can be better
+[5:32 PM] marcmagus: Combobox starting blank until config does correct behavior for us and new people at the cost of extra interactions.
+
 
 
 check for memory leaks

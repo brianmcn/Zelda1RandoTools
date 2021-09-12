@@ -851,7 +851,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_SWORD)
     if playerComputedStateSummary.HaveWand && (priorSwordWandLevel < 2) then
         combatUnblockers.Add(CombatUnblockerDetail.WAND)
-    if playerComputedStateSummary.RingLevel > priorRingLevel then
+    if playerComputedStateSummary.RingLevel > priorRingLevel 
+                && (playerComputedStateSummary.SwordLevel>0 || playerComputedStateSummary.HaveWand) then  // armor won't help you win combat if you have 0 weapons
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_ARMOR)
     if combatUnblockers.Count > 0 then
         let dungeonNums = ResizeArray()
