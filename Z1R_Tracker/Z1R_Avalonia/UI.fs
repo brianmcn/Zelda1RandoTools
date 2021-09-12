@@ -144,7 +144,7 @@ let makeAll(owMapNum) =
             | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
             | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
             | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped
-        let redraw() =
+        let redrawInner() =
             innerc.Children.Clear()
             let bmp = boxCurrentBMP(false)
             if bmp <> null then
@@ -156,7 +156,7 @@ let makeAll(owMapNum) =
                 box.Set(newBoxCellValue, newPlayerHas)
                 // update view
                 redrawBoxOutline()
-                redraw()
+                redrawInner()
                 if requiresForceUpdate then
                     TrackerModel.forceUpdate()
                 ))
@@ -192,7 +192,9 @@ let makeAll(owMapNum) =
         c.PointerLeave.Add(fun _ ->
             hideLocator()
             )
-        redrawBoxes.Add(fun() -> redraw())
+        redrawBoxes.Add(fun() -> redrawInner())
+        redrawBoxOutline()
+        redrawInner()
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items

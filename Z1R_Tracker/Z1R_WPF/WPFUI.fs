@@ -218,6 +218,14 @@ let makeAll(owMapNum) =
             | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
             | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
             | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped
+        let redrawInner() =
+            innerc.Children.Clear()
+            let mutable i = box.CellCurrent()
+            // find unique heart FrameworkElement to display
+            while i>=14 && whichItems.[i].Parent<>null do
+                i <- i + 1
+            let fe = if i = -1 then null else whichItems.[i]
+            canvasAdd(innerc, fe, 4., 4.)
         let activateComboBox(initBCC) =
             let pos = c.TranslatePoint(Point(),appMainCanvas)
             CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), initBCC, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
@@ -225,13 +233,7 @@ let makeAll(owMapNum) =
                 box.Set(newBoxCellValue, newPlayerHas)
                 // update view
                 redrawBoxOutline()
-                innerc.Children.Clear()
-                let mutable i = box.CellCurrent()
-                // find unique heart FrameworkElement to display
-                while i>=14 && whichItems.[i].Parent<>null do
-                    i <- i + 1
-                let fe = if i = -1 then null else whichItems.[i]
-                canvasAdd(innerc, fe, 4., 4.)
+                redrawInner()
                 if requiresForceUpdate then
                     TrackerModel.forceUpdate()
                 ))
@@ -267,6 +269,8 @@ let makeAll(owMapNum) =
         c.MouseLeave.Add(fun _ ->
             hideLocator()
             )
+        redrawBoxOutline()
+        redrawInner()
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
