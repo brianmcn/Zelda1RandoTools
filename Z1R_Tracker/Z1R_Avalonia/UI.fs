@@ -35,9 +35,9 @@ let makeGrid = Graphics.makeGrid
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 4
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 4 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
-let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
-let owRemainingScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
-let owGettableScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts, Padding=Thickness(0.))
+let owRemainingScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain, Padding=Thickness(0.))
+let owGettableScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count, Padding=Thickness(0.))
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
 
 let drawRoutesTo(routeDrawingCanvas, point, i, j, drawRouteMarks, maxYellowGreenHighlights) =
@@ -232,9 +232,9 @@ let makeAll(owMapNum) =
     let mutable hideFirstQuestFromMixed = fun b -> ()
     let mutable hideSecondQuestFromMixed = fun b -> ()
 
-    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true, Padding=Thickness(0.)))
     ToolTip.SetTip(hideFirstQuestCheckBox, "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something.")
-    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true, Padding=Thickness(0.)))
     ToolTip.SetTip(hideSecondQuestCheckBox, "Hide Second Quest\nIn a mixed quest overworld tracker, shade out the second-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or first quest.\nCan't be used if you've marked a second-quest-only spot as having something.")
 
     hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
@@ -382,7 +382,7 @@ let makeAll(owMapNum) =
     canvasAdd(c, bombIcon, OFFSET+160., 30.)
 
     // shield versus book icon (for boomstick flags/seeds)
-    let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true, Padding=Thickness(0.)))
     ToolTip.SetTip(toggleBookShieldCheckBox, "Shield item icon instead of book item icon")
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> toggleBookMagicalShield())
@@ -761,34 +761,34 @@ let makeAll(owMapNum) =
     let legendCanvas = new Canvas()
     canvasAdd(c, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
 
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker", Padding=Thickness(0.))
     canvasAdd(c, tb, 0., THRU_MAIN_MAP_H)
 
     canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, OMTW, 0.)
 
     canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 2.5*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
     canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
     canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[9], 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
 
     let legendStartIcon = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0)
     canvasAdd(legendCanvas, legendStartIcon, 10.*OMTW+8.5*OMTW/48., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 11.*OMTW, 0.)
 
     let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
@@ -797,7 +797,7 @@ let makeAll(owMapNum) =
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
     itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(c, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress", Padding=Thickness(0.))
     canvasAdd(c, tb, 38., THRU_MAP_AND_LEGEND_H + 4.)
 
     // Version
@@ -1728,7 +1728,7 @@ let makeAll(owMapNum) =
             allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
             zoneNames |> Seq.iter (fun (hz,textbox) -> textbox.Opacity <- 0.0)
-    let zone_checkbox = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
     zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
