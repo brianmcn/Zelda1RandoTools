@@ -36,7 +36,6 @@ some setup-for-heart-shuffle accelerator (startup option, not optionMenus option
 dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)
 
 something is weird with door clicks, sometimes registering multiple clicks or something
-hover bomb/candle/arrow/bluering shows white-highlight of all their shops? (maybe dont need right click routing feature?)
 
 maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?
 
@@ -54,8 +53,6 @@ timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that 
 
 Timer: Yeah, everyone has their own timer, it's for me, I should really have an option to turn it off, and have it off by default.
 It would also leave some blank space in the tracker for streamers to use for branding or cams, or things.
-
-now that I have the 'scrollLocator' hover UI, I can probably get rid of S3/L9 blinking in the late-game - people hate blinking
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 

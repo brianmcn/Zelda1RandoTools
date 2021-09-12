@@ -389,10 +389,6 @@ let makeAll(owMapNum) =
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> toggleBookMagicalShield())
     canvasAdd(c, toggleBookShieldCheckBox, OFFSET+150., 0.)
 
-    // ow map animation layer
-    // I can't figure out how to code Animations in Avalonia, so here's a simple kludge that uses DispatcherTime Interval Tick
-    let canvasesToFastBlink = ResizeArray()
-
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<Visual>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let mutable displayIsCurrentlyMirrored = false
@@ -1019,18 +1015,9 @@ let makeAll(owMapNum) =
                 // highlight any triforce dungeons as recorder warp destinations
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
-                // highlight 9 after get all triforce
-                if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
-                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Pink)
-                    canvasesToFastBlink.Add(rect)
-                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
-            member _this.Sword3(x,y) = 
-                if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
-                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Pink)
-                    canvasesToFastBlink.Add(rect)
-                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
+            member _this.Sword3(x,y) = ()
             member _this.Sword2(x,y) =
                 if (TrackerModel.sword2Box.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.sword2Box.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
@@ -1098,8 +1085,6 @@ let makeAll(owMapNum) =
             let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
             if hasTheModelChanged then
                 doUIUpdate()
-        for c in canvasesToFastBlink do
-            c.Opacity <- if c.Opacity = 0.0 then 0.6 else 0.0
         )
     timer.Start()
 

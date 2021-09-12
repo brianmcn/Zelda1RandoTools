@@ -471,10 +471,6 @@ let makeAll(owMapNum) =
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> toggleBookMagicalShield())
     canvasAdd(c, toggleBookShieldCheckBox, OFFSET+150., 0.)
 
-    // ow map animation layer
-    let fasterBlinkAnimation = new System.Windows.Media.Animation.DoubleAnimation(From=System.Nullable(0.0), To=System.Nullable(0.6), Duration=new Duration(System.TimeSpan.FromSeconds(1.0)), 
-                                  AutoReverse=true, RepeatBehavior=System.Windows.Media.Animation.RepeatBehavior.Forever)
-
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let mutable displayIsCurrentlyMirrored = false
@@ -1111,19 +1107,10 @@ let makeAll(owMapNum) =
                 // highlight any triforce dungeons as recorder warp destinations
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
-                // highlight 9 after get all triforce
-                if i = 8 && TrackerModel.dungeons.[0..7] |> Array.forall (fun d -> d.PlayerHasTriforce()) then
-                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
-                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) =
                 drawWhistleableHighlight(recorderingCanvas,float x,y)
-            member _this.Sword3(x,y) = 
-                if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && TrackerModel.playerComputedStateSummary.PlayerHearts>=10 then
-                    let rect = new Canvas(Width=OMTW, Height=float(11*3), Background=System.Windows.Media.Brushes.Pink)
-                    rect.BeginAnimation(UIElement.OpacityProperty, fasterBlinkAnimation)
-                    canvasAdd(recorderingCanvas, rect, OMTW*float(x), float(y*11*3))
+            member _this.Sword3(x,y) = ()
             member _this.Sword2(x,y) =
                 if (TrackerModel.sword2Box.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.sword2Box.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
