@@ -56,18 +56,12 @@ It would also leave some blank space in the tracker for streamers to use for bra
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 
-always-bombable spots:  
- - I guess I could overlay a grey question mark icon over the maybe rooms? Like the inverse of the 'X' rooms with a '?'  - no it looks awful
- - or make the 'highlight pixel' a darker color? something.  the display should ideally capture it independent of the route-highlighting
-related:
 homer: e. I like how the 1q/2q outlines work. It would be nice if you could select both at the same time for mixed quest when you don’t know the number, it would help narrow down options.
  - again, subtle display that can overlay options to implicitly capture the info is useful, like the maybe-v-always ow-map-tiles
 
 
 shift-click the start screen to place the lime circle? 
 something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
-
-announce known coast/WS item name ('get the white sword off the coast with the ladder'/'consider the white sword item, which is a heart container')  (maybe - dont like speech getting longer though)
 
 power bracelet spots with red box, like whistle spots have blue?
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
@@ -135,21 +129,16 @@ https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-fin
 for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
 
+
 [10:57 AM] marcmagus: Decode Hint: popup covers Notes section; I'd suggest cutting the third column and left-aligning so if people still want to take notes they can. Alternatively, if say you want to discourage that action, mirror new popup behavior and dismiss the popup on click anywhere outside the box.
 [10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
 
+
 homer: larger shop icons (advanced users wont care as much about obscuring map)
+
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 
-I've been thinking I might want something along the lines of "highlight most recent map tile change" or "long duration mouse trail" or something.  
-Like I have found that, I might be mapping stuff, and then go mark an item box or whatever, and then be like, 'wait, where am I? where should the mouse be?'  
-Or I may find a dungeon, and select its dungeon map tab but forget to mark its location on the overworld, and then later be in the dungeon and be like 'where am I?'  
-So I wonder if there is some good heuristic I can apply that is like, based on your mouse movements over the past few minutes, 
-I think the most likely spot you are on the overworld is here (highlighted).
-I think the heuristic is something like, there is a YouAreHere (x,y) and marking a map tile pokes it, or hovering a map square for at least ten seconds pokes it.  
-Maybe?  An unfortunate interaction is that I sometimes move my mouse to an 'X'ed tile just to ensure that my speech doesn't accidentally mark the map 
-(speech only affects unmarked tiles), so that confounds it a little.
 
 review other common flagsets from rando, what works, what could work, etc
  - currently assumes these rando flags:
@@ -160,16 +149,16 @@ review other common flagsets from rando, what works, what could work, etc
  - works poorly with
     - hide dungeon numbers
 
+
 size options were common requests for zhelper – can I scale? consider 2/3 size or something.
+
 
 hotkeys as scroll-macros (e.g. immediately mark S3, or a dungeon room, or an item box)
 hotkeys should be able to select icons that have been customized out of scrollwheen pool
 hotkeys are often one-handed, so shift (e.g. R versus r to mark recorder basement v floor drop) is probably not useful (could maybe have r versus rr)
 
 
-
 [11:39 AM] Lorgon111: I am already starting to imagine a first-time-experience UI, along the lines of
-
 ZTracker did not find a settings file on disk, perhaps this is your first time using this tool?
  - Yes, I am relatively new to Z1R and ZTracker, start me with basic default settings
  - Yes, I am a seasoned Z1R runner who has experience with other trackers, turn off the tutorial/helper options and quickly walk me through icons/customization/hotkeys
@@ -234,11 +223,13 @@ That said, I think this tracker has a number of advantages in usability, both in
  - More consistent use of color: as things are completed (overworld 'X' spot, completed dungeon/room), they get 'dimmer' coloration, to fade somewhat into the background.
    As a result, the eye is drawn to the bright spots, which are where the remaining work is and where the player needs to focus.
 
- - Less scrolling: when an item or dungeon location is found, it gets removed from the 'scroll wheel pool', which means that as the game progresses, you need fewer scrolls to find the remaining mark you need.
+ - Less scrolling: 
+     - you can populate item boxes without any scrolling due to local popup menu showing all the item choices
+     - when an item or dungeon location is found, it gets removed from the 'scroll wheel pool', which means that as the game progresses, you need fewer scrolls to find the remaining mark you need.
 
  - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.
 
- - Fewer clicks: mouse hovering can show the area zone overlay or helpful hints; fewer default options for e.g. dungeon doors provide a simpler interface.
+ - More information in fewer clicks: mouse hovering can show the area zone overlay, helpful hint locations, dungeon locations, and all kinds of other contextual information, with no switching tabs.
 
  - Quick after-the-fact dungeon markup: if you play half a dungeon without mapping, and then decide you need to map it, drag gestures can quickly 'paint out' the already-explored portions.
 
@@ -248,7 +239,7 @@ This tracker also has a number of attractive added features, including:
 
  - ability to correct mistakes in dungeon markup (e.g. when you put a bunch of rooms in the wrong column) by cut&pasting a segment
 
- - a note-taking text area to type ad-hoc reminders to yourself (e.g. "2 gohma", or "L5 bomb upgrade 106")
+ - a note-taking text area to type ad-hoc reminders to yourself (e.g. "L5 bomb upgrade 106"), and an area to mark dungeon blockers via icons (e.g. 4 needs ladder, 7 needs bow&arrow)
 
  - overworld routing guidance that can help steer newer players to remaining unexplored locations
 
@@ -256,7 +247,5 @@ This tracker also has a number of attractive added features, including:
 
  - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld with no scrolling
 
- - ability to mark each type of dungeon room as 'cleared' or not, independent of the icon content you marked it with; also, ability to 'circle' key rooms in dungeons
-
-
+ - richer dungeon mapping: ability to mark each dungeon room as 'cleared' or not, independent of the room icon; also, ability to 'circle' key rooms in dungeons
 
