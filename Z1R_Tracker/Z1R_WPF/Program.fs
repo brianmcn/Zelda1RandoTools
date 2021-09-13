@@ -94,20 +94,8 @@ type MyWindow() as this =
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
-        let image1 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[0]
-        stackPanel.Children.Add(image1) |> ignore
-
-        let tb = new TextBox(Text="Choose overworld quest:", Margin=spacing, MaxWidth=WIDTH/2.)
+        let tb = new TextBox(Text="Startup Option:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
-        let owQuest = new ComboBox(IsEditable=false,IsReadOnly=true, MaxWidth=WIDTH/2.)
-        owQuest.ItemsSource <- [|
-                "First Quest"
-                "Second Quest"
-                "Mixed - First Quest"
-                "Mixed - Second Quest"
-            |]
-        owQuest.SelectedIndex <- 2
-        stackPanel.Children.Add(owQuest) |> ignore
 
         let box(n) = 
             let pict,rect,_ = CustomComboBoxes.makeItemBoxPicture(n, ref false, false)
@@ -152,36 +140,19 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        stackPanel.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
-        let image2 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[1]
-        image2.Margin <- spacing
-        stackPanel.Children.Add(image2) |> ignore
-
-        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing, HorizontalAlignment=HorizontalAlignment.Center)
-        stackPanel.Children.Add(tb) |> ignore
-        TrackerModel.Options.readSettings()
-        WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), float(WPFUI.TCH+6), 0.)
-        options.IsHitTestVisible <- true
-        options.Opacity <- 1.0
-        stackPanel.Children.Add(options) |> ignore
-
-        stackPanel.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
-        let image3 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[2]
-        image3.Margin <- spacing
-        stackPanel.Children.Add(image3) |> ignore
-
         let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
-        let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
-        stackPanel.Children.Add(startButton) |> ignore
-        
-        let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        hstackPanel.Children.Add(stackPanel) |> ignore
-        this.Content <- hstackPanel
-        
-        startButton.Click.Add(fun _ -> 
+        let quests = [|
+            0, "First Quest"
+            1, "Second Quest"
+            2, "Mixed - First Quest"
+            3, "Mixed - Second Quest"
+            |]
+        for n,q in quests do
+            let startButton = new Button(Content=new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
+            stackPanel.Children.Add(startButton) |> ignore
+            startButton.Click.Add(fun _ -> 
                 let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
                 stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
@@ -209,7 +180,7 @@ type MyWindow() as this =
                     else
                         for i = 0 to 7 do
                             TrackerModel.dungeons.[i].Boxes.[0].Set(14,TrackerModel.PlayerHas.NO)
-                    let c,u = WPFUI.makeAll(owQuest.SelectedIndex)
+                    let c,u = WPFUI.makeAll(n)
                     canvas <- c
                     updateTimeline <- u
                     Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
@@ -232,6 +203,25 @@ type MyWindow() as this =
                         )
                 })
             )
+
+        let mainDock = new DockPanel()
+        let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
+        bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
+        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center)
+        bottomSP.Children.Add(tb) |> ignore
+        TrackerModel.Options.readSettings()
+        WPFUI.voice.Volume <- TrackerModel.Options.Volume
+        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), float(WPFUI.TCH+6), 0.)
+        options.IsHitTestVisible <- true
+        options.Opacity <- 1.0
+        bottomSP.Children.Add(options) |> ignore
+        mainDock.Children.Add(bottomSP) |> ignore
+        DockPanel.SetDock(bottomSP, Dock.Bottom)
+
+        mainDock.Children.Add(stackPanel) |> ignore
+
+        this.Content <- mainDock
+        
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time

@@ -31,8 +31,6 @@ While the ladder _item_ is not routeworthy if you don't yet have the ladder, not
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 
 
-some setup-for-heart-shuffle accelerator (startup option, not optionMenus option)
-
 dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)
 
 something is weird with door clicks, sometimes registering multiple clicks or something
@@ -169,19 +167,6 @@ ZTracker did not find a settings file on disk, perhaps this is your first time u
 Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
 [11:46 AM] marcmagus: (If config-editing is a thing, can also be done by shipping a few 'example' configs)
 [11:46 AM] Lorgon111: yeah shipped samples is what I vaguely imagine
-
-
-re: multiple startup buttons per quest:
-[5:29 PM] marcmagus: With some kind of config it's probably less relevant because people will probably usually choose the same option, but also, since it's the one thing you can't change...
-[5:30 PM] Lorgon111: with the new item interaction, I do plan to make an accelerator for 'not heart shuffle', where the top box of 1-8 is pre-populated with a heart container, and that's also a startup option, so kinda 8 boxes
-[5:31 PM] Lorgon111: but i do find that i simply 'forget' the quest and click start
-[5:31 PM] Lorgon111: so i like forcing the choice via separate buttons
-[5:31 PM] Lorgon111: or, could start with nothing prepoulated
-[5:31 PM] marcmagus: Oh that makes sense.
-[5:31 PM] Lorgon111: so you are forced to combobox first
-[5:31 PM] marcmagus: Could have "no heart shuffle" be a checkbox next to the start buttons.
-[5:32 PM] Lorgon111: in any case, startup ui can be better
-[5:32 PM] marcmagus: Combobox starting blank until config does correct behavior for us and new people at the cost of extra interactions.
 
 
 
