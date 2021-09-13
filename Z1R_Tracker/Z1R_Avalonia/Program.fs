@@ -21,7 +21,7 @@ type MyWindow(owMapNum) as this =
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=32.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                 items  ow map  prog  timeline     dungeon tabs                
-    let HEIGHT = float(30*4 + 11*3*9 + 30 + UI.TCH + 6 + UI.TH + UI.TH + 27*8 + 12*7 + 30)
+    let HEIGHT = float(30*5 + 11*3*9 + 30 + UI.TCH + 6 + UI.TH + UI.TH + 27*8 + 12*7 + 30)
     let WIDTH = 16.*OverworldRouteDrawing.OMTW
     do
         printfn "W,H = %d,%d" (int WIDTH) (int HEIGHT)
@@ -114,10 +114,13 @@ type MyWindow(owMapNum) as this =
                 "Mixed - First Quest"
                 "Mixed - Second Quest"
             |]
+        let mutable startButtonHasBeenClicked = false
         for i = 0 to 3 do
             let startButton = new Button(Content=new TextBox(Text=Quests.[i],IsReadOnly=true,IsHitTestVisible=false), MaxWidth=300.)
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ ->
+                    if startButtonHasBeenClicked then () else
+                    startButtonHasBeenClicked <- true
                     let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, MaxWidth=300.)
                     stackPanel.Children.Add(tb) |> ignore
                     let ctxt = System.Threading.SynchronizationContext.Current
@@ -135,7 +138,7 @@ type MyWindow(owMapNum) as this =
                         let c,u = UI.makeAll(i)
                         canvas <- c
                         updateTimeline <- u
-                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
+                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 30.)
                         this.Content <- canvas
                     })
                 )

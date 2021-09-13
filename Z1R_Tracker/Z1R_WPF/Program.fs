@@ -77,7 +77,7 @@ type MyWindow() as this =
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                 items  ow map  prog  dungeon tabs                      timeline   
-    let HEIGHT = float(30*4 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
+    let HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
         WPFUI.timeTextBox <- hmsTimeTextBox
@@ -143,6 +143,7 @@ type MyWindow() as this =
         let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
+        let mutable startButtonHasBeenClicked = false
         let quests = [|
             0, "First Quest"
             1, "Second Quest"
@@ -153,6 +154,8 @@ type MyWindow() as this =
             let startButton = new Button(Content=new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
+                if startButtonHasBeenClicked then () else
+                startButtonHasBeenClicked <- true
                 let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
                 stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
@@ -183,7 +186,7 @@ type MyWindow() as this =
                     let c,u = WPFUI.makeAll(n)
                     canvas <- c
                     updateTimeline <- u
-                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 0.)
+                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 30.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans
                     this.Content <- canvas
