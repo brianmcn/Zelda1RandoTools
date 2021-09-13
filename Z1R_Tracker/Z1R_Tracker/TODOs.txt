@@ -31,8 +31,6 @@ While the ladder _item_ is not routeworthy if you don't yet have the ladder, not
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 
 
-dungeon icons: gleeok (swordless, may need to return), blue bubbles (reminder where uncurse)
-
 something is weird with door clicks, sometimes registering multiple clicks or something
 
 maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?

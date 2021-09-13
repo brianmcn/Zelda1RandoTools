@@ -1360,7 +1360,7 @@ let makeAll(owMapNum) =
         let roomStates = Array2D.zeroCreate 8 8 // 1-9 = transports, see redraw() below for rest
         let roomIsCircled = Array2D.zeroCreate 8 8
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let ROOMS = 24 // how many types
+        let ROOMS = 26 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         let roomRedrawFuncs = ResizeArray()
         let redrawAllRooms() =
@@ -1418,12 +1418,14 @@ let makeAll(owMapNum) =
                         | 15 -> Graphics.cdungeonVChuteBMP
                         | 16 -> Graphics.cdungeonHChuteBMP
                         | 17 -> Graphics.cdungeonTeeBMP
-                        | 18 -> Graphics.cdungeonNeedRecorder
-                        | 19 -> Graphics.cdungeonNeedBow
-                        | 20 -> Graphics.cdungeonTriforceBMP 
-                        | 21 -> Graphics.cdungeonPrincessBMP 
-                        | 22 -> Graphics.cdungeonStartBMP 
-                        | 23 -> Graphics.cdungeonExploredRoomBMP 
+                        | 18 -> Graphics.cdungeonNeedWand
+                        | 19 -> Graphics.cdungeonBlueBubble
+                        | 20 -> Graphics.cdungeonNeedRecorder
+                        | 21 -> Graphics.cdungeonNeedBow
+                        | 22 -> Graphics.cdungeonTriforceBMP 
+                        | 23 -> Graphics.cdungeonPrincessBMP 
+                        | 24 -> Graphics.cdungeonStartBMP 
+                        | 25 -> Graphics.cdungeonExploredRoomBMP 
                         | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
