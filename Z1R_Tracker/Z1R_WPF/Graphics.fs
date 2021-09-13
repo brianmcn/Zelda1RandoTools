@@ -37,6 +37,39 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i.Width <- float bmp.Width 
     i
 
+let alphaNumBmp =
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("alphanumerics3x5.png")
+    new System.Drawing.Bitmap(imageStream)
+let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x and y are 1-pixel coordinates, even though bmp is blown up 3x
+    let index =
+        match ch with
+        | '1' -> 0
+        | '2' -> 1
+        | '3' -> 2
+        | '4' -> 3
+        | '5' -> 4
+        | '6' -> 5
+        | '7' -> 6
+        | '8' -> 7
+        | '9' -> 8
+        | '?' -> 9
+        | 'A' -> 10
+        | 'B' -> 11
+        | 'C' -> 12
+        | 'D' -> 13
+        | 'E' -> 14
+        | 'F' -> 15
+        | 'G' -> 16
+        | 'H' -> 17
+        | _ -> failwith "bad alphanumeric character to paint"
+    for i = 0 to 2 do
+        for j = 0 to 4 do
+            if alphaNumBmp.GetPixel(index*3 + i, j).ToArgb() = System.Drawing.Color.Black.ToArgb() then
+                // blow it up 3x
+                for dx = 0 to 2 do
+                    for dy = 0 to 2 do
+                        bmp.SetPixel(3*(x+i)+dx, 3*(y+j)+dy, color)
+
 let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
         silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 
         heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
@@ -52,7 +85,7 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
             yield r
     |]
 
-let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp = 
+let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp = 
     let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -60,26 +93,35 @@ let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps, owHea
             let r = new System.Drawing.Bitmap(10*3,10*3)
             for px = 0 to 10*3-1 do
                 for py = 0 to 10*3-1 do
-                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*10, py/3))
+                    let color = bmp.GetPixel(px/3 + i*10, py/3)
+                    let color = if color.ToArgb() = System.Drawing.Color.White.ToArgb() then System.Drawing.Color.Transparent else color
+                    r.SetPixel(px, py, color)
             yield r
         |]
-    all.[0..7], all.[8..15], all.[16..23], all.[24], all.[25], all.[26]
+    all.[0], all.[1], all.[2], all.[3], all.[3]
+let emptyUnfoundTriforce_bmps = [|
+    for i = 0 to 7 do
+        let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.DarkGray, bmp, 4, 4)
+        yield bmp
+    |]
+let emptyFoundTriforce_bmps = [|
+    for i = 0 to 7 do
+        let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.White, bmp, 4, 4)
+        yield bmp
+    |]
+let fullTriforce_bmps = [|
+    for i = 0 to 7 do
+        let bmp = fullTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.White, bmp, 4, 4)
+        yield bmp
+    |]
 let unfoundL9_bmp,foundL9_bmp =
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
-    let u8,f8 = emptyUnfoundTriforce_bmps.[7], emptyFoundTriforce_bmps.[7]
-    let uc,fc = u8.GetPixel(4*3, 7*3), f8.GetPixel(4*3, 7*3)
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
-            // copy just numeral 8
-            let c = u8.GetPixel(px, py)
-            u.SetPixel(px, py, if c.ToArgb()=uc.ToArgb() then c else System.Drawing.Color.Transparent)
-            let c = f8.GetPixel(px, py)
-            f.SetPixel(px, py, if c.ToArgb()=fc.ToArgb() then c else System.Drawing.Color.Transparent)
-            // change a couple 'pixel's to make it a 9
-            if px/3 = 4 && py/3 = 7 || px/3 = 6 && py/3 = 8 then
-                u.SetPixel(px, py, System.Drawing.Color.Transparent)
-                f.SetPixel(px, py, System.Drawing.Color.Transparent)
+    paintAlphanumerics3x5('9', System.Drawing.Color.DarkGray, u, 4, 4)
+    paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f
 
 let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonDoubleMoatBMP; cdungeonChevyBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; 

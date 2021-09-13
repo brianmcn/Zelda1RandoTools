@@ -1987,6 +1987,8 @@ let makeAll(owMapNum) =
 
     CustomComboBoxes.InitializeItemComboBox(appMainCanvas)  // very very top
 
+    //Dungeon.drawDungeonColorGrid(appMainCanvas)
+
     TrackerModel.forceUpdate()
     appMainCanvas, updateTimeline
 

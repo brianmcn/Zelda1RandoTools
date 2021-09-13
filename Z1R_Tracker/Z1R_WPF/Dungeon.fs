@@ -120,3 +120,86 @@ type GrabHelper() =
         roomCompletedIfGrabWereACut <- null
     member this.Log() =
         printfn "log"
+
+///////////////////////////////////////////
+
+let colors = [|
+    // dungeon colors
+    0x808080
+    0xADADAD
+    0xE0E0E0
+
+    0x0050F1
+    0x4BA0FF
+    0xB6D8FF
+    
+    0x3B34FF
+    0x8A84FF
+    0xD0CDFF
+    
+    0x8022E8
+    0xD172FF
+    0xEDC6FF
+    
+    0xBB1EA5
+    0xFF6DF7
+    0xFFC4FC
+    
+    0xDB294E
+    0xFF799E
+    0xFFC8D8
+    
+    0xD74000
+    0xFF9047
+    0xFFD2B4
+    
+    0xB15E00
+    0xFFAE0A
+    0xFFDE9C
+    
+    0x737900
+    0xC4CA00
+    0xE7E994
+    
+    0x2D8B00
+    0x7DDC13
+    0xCAF19F
+
+    0x008F08
+    0x41E157
+    0xB2F3BB
+
+    0x008460
+    0x21D5B0
+    0xA5EEDF
+
+    0x006DB5
+    0x25BEFF
+    0xA6E5FF
+    |]
+let drawDungeonColorGrid(appMainCanvas:Canvas) =
+    let w = colors.Length/3
+    let grid = Graphics.makeGrid(w, 3, 30, 30)
+    for i = 0 to w-1 do
+        for j = 0 to 2 do
+            let color = colors.[i*3+j]
+            let r = (color &&& 0xFF0000) / 0x10000
+            let g = (color &&& 0x00FF00) / 0x100
+            let b = (color &&& 0x0000FF) / 0x1
+            let brush = new SolidColorBrush(Color.FromRgb(byte r, byte g, byte b))
+            Graphics.gridAdd(grid, new DockPanel(Background=brush), i, j)
+    Graphics.canvasAdd(appMainCanvas, grid, 100., 400.)
+
+    // ABCDEFGH across top (black on gray to start?)
+    // clicking one brings up color picker, as hover, a big swatch shows below picker; when chosen, letter changes for good contrast
+    // (DoModal might wants to return a dismiss() function, which you can call if you are done - ought it invoke your onClose()?)
+    // color projection onto overworld tiles; overworld tile icons changing from 1-8 to A-H
+    // color projection onto LEVEL-N (use contrast color for LEVEL text)
+    // triforce numbering being '?' to start
+    // LEVEL-N being LEVEL-A or whatnot, BLOCKERS 1-8 being A-H, dungeon tab names being A-H
+    // some kind of letter-number associator, updates triforce numeral, some logic regarding 3rd item box?
+    // all 8 dungeons having 3 boxes (HFQ/HSQ move elsewhere)
+    // FQ and SQ highlights would need a bit of rework
+    // use alphanumerics compositing for dungeon/anyroad overworld tiles
+
+

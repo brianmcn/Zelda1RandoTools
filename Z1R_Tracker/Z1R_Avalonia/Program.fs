@@ -64,7 +64,7 @@ type MyWindow(owMapNum) as this =
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black
         for i = 0 to 2 do
-            let image = Graphics.BMPtoImage Graphics.emptyFoundTriforce_bmps.[i]
+            let image = Graphics.BMPtoImage Graphics.emptyUnfoundTriforce_bmps.[i]
             Graphics.gridAdd(hsGrid, image, i, 0)
         let row1boxesA = ResizeArray()
         let row1boxesB = ResizeArray()

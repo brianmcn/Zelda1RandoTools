@@ -126,6 +126,8 @@ for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
 
 
+
+
 [10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
 
 
