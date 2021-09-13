@@ -91,10 +91,6 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         this.FontSize <- 18.
 
-        let dock(x) =
-            let d = new DockPanel(LastChildFill=false, HorizontalAlignment=HorizontalAlignment.Center)
-            d.Children.Add(x) |> ignore
-            d
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
@@ -113,12 +109,55 @@ type MyWindow() as this =
         owQuest.SelectedIndex <- 2
         stackPanel.Children.Add(owQuest) |> ignore
 
+        let box(n) = 
+            let pict,rect,_ = CustomComboBoxes.makeItemBoxPicture(n, ref false, false)
+            rect.Stroke <- CustomComboBoxes.no
+            pict
+        let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
+        hsGrid.Background <- Brushes.Black
+        for i = 0 to 2 do
+            let image = Graphics.BMPtoImage Graphics.emptyFoundTriforce_bmps.[i]
+            Graphics.gridAdd(hsGrid, image, i, 0)
+        let row1boxesA = ResizeArray()
+        let row1boxesB = ResizeArray()
+        for i = 0 to 2 do
+            let pict = box(14)
+            row1boxesA.Add(pict)
+            Graphics.gridAdd(hsGrid, pict, i, 1)
+            let pict = box(-1)
+            row1boxesB.Add(pict)
+            Graphics.gridAdd(hsGrid, pict, i, 1)
+            let pict = box(-1)
+            Graphics.gridAdd(hsGrid, pict, i, 2)
+        let yes() =
+            for b in row1boxesA do
+                b.Opacity <- 0.
+            for b in row1boxesB do
+                b.Opacity <- 1.
+        let no() =
+            for b in row1boxesA do
+                b.Opacity <- 1.
+            for b in row1boxesB do
+                b.Opacity <- 0.
+        yes()
+        let cutoffCanvas = new Canvas(Width=80., Height=80., ClipToBounds=true)
+        cutoffCanvas.Children.Add(hsGrid) |> ignore
+        let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(10.))
+        hscb.IsChecked <- System.Nullable.op_Implicit true
+        hscb.Checked.Add(fun _ -> yes())
+        hscb.Unchecked.Add(fun _ -> no())
+        hsPanel.Children.Add(hscb) |> ignore
+        hsPanel.Children.Add(border) |> ignore
+        stackPanel.Children.Add(hsPanel) |> ignore
+
         stackPanel.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
         let image2 = Graphics.BMPtoImage Graphics.fullTriforce_bmps.[1]
         image2.Margin <- spacing
         stackPanel.Children.Add(image2) |> ignore
 
-        let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
+        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
@@ -132,7 +171,7 @@ type MyWindow() as this =
         image3.Margin <- spacing
         stackPanel.Children.Add(image3) |> ignore
 
-        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center)
+        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
         let startButton = new Button(Content=new TextBox(Text="Start Z-Tracker",IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
@@ -165,6 +204,11 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
+                    if hscb.IsChecked.HasValue && hscb.IsChecked.Value then
+                        ()
+                    else
+                        for i = 0 to 7 do
+                            TrackerModel.dungeons.[i].Boxes.[0].Set(14,TrackerModel.PlayerHas.NO)
                     let c,u = WPFUI.makeAll(owQuest.SelectedIndex)
                     canvas <- c
                     updateTimeline <- u

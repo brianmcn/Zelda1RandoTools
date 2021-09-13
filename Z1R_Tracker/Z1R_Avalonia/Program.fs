@@ -56,6 +56,50 @@ type MyWindow(owMapNum) as this =
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
 
+        let box(n) = 
+            let pict,rect,_ = CustomComboBoxes.makeItemBoxPicture(n, ref false, false)
+            rect.Stroke <- CustomComboBoxes.no
+            pict
+        let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
+        hsGrid.Background <- Brushes.Black
+        for i = 0 to 2 do
+            let image = Graphics.BMPtoImage Graphics.emptyFoundTriforce_bmps.[i]
+            Graphics.gridAdd(hsGrid, image, i, 0)
+        let row1boxesA = ResizeArray()
+        let row1boxesB = ResizeArray()
+        for i = 0 to 2 do
+            let pict = box(14)
+            row1boxesA.Add(pict)
+            Graphics.gridAdd(hsGrid, pict, i, 1)
+            let pict = box(-1)
+            row1boxesB.Add(pict)
+            Graphics.gridAdd(hsGrid, pict, i, 1)
+            let pict = box(-1)
+            Graphics.gridAdd(hsGrid, pict, i, 2)
+        let yes() =
+            for b in row1boxesA do
+                b.Opacity <- 0.
+            for b in row1boxesB do
+                b.Opacity <- 1.
+        let no() =
+            for b in row1boxesA do
+                b.Opacity <- 1.
+            for b in row1boxesB do
+                b.Opacity <- 0.
+        yes()
+        let cutoffCanvas = new Canvas(Width=80., Height=80., ClipToBounds=true)
+        cutoffCanvas.Children.Add(hsGrid) |> ignore
+        let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(10.))
+        hscb.IsChecked <- System.Nullable.op_Implicit true
+        hscb.Checked.Add(fun _ -> yes())
+        hscb.Unchecked.Add(fun _ -> no())
+        hsPanel.Children.Add(hscb) |> ignore
+        hsPanel.Children.Add(border) |> ignore
+        stackPanel.Children.Add(hsPanel) |> ignore
+
+
         let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
@@ -85,6 +129,11 @@ type MyWindow(owMapNum) as this =
                         TrackerModel.Options.writeSettings()
                         printfn "you pressed start after selecting %d" i
                         this.Background <- Brushes.Black
+                        if hscb.IsChecked.HasValue && hscb.IsChecked.Value then
+                            ()
+                        else
+                            for i = 0 to 7 do
+                                TrackerModel.dungeons.[i].Boxes.[0].Set(14,TrackerModel.PlayerHas.NO)
                         let c,u = UI.makeAll(i)
                         canvas <- c
                         updateTimeline <- u

@@ -82,7 +82,7 @@ let private Prev(current) =
         current <- Modulus(current-1)
     current
     
-let private makeItemBoxPicture(boxCellCurrent, isCurrentlyBook, isScrollable) =
+let makeItemBoxPicture(boxCellCurrent, isCurrentlyBook, isScrollable) =
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
     let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
     c.Children.Add(rect) |> ignore
@@ -96,7 +96,7 @@ let private makeItemBoxPicture(boxCellCurrent, isCurrentlyBook, isScrollable) =
             image.IsHitTestVisible <- false
             canvasAdd(innerc, image, 4., 4.)
     redraw(boxCellCurrent)
-    let greyOut = new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)
+    let greyOut = new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.0, IsHitTestVisible=false)
     c.Children.Add(greyOut) |> ignore
     if isScrollable then
         primaryBoxCellCurrent <- boxCellCurrent

@@ -954,7 +954,8 @@ let makeAll(owMapNum) =
         dp.Children.Add(b) |> ignore
         dp.Children.Add(tb) |> ignore
         gridAdd(hintGrid, dp, 1, row)
-        let comboBox = new ComboBox(FontSize=16., IsEditable=false, IsReadOnly=true)
+        let comboBox = new ComboBox(FontSize=16., IsEditable=false, IsReadOnly=true, Foreground=Brushes.Black)
+        comboBox.Resources.Add(SystemColors.WindowBrushKey, Brushes.YellowGreen)
         comboBox.ItemsSource <- [| for i = 0 to 10 do yield TrackerModel.HintZone.FromIndex(i).ToString() |]
         comboBox.SelectedIndex <- 0
         comboBox.SelectionChanged.Add(fun _ -> 
