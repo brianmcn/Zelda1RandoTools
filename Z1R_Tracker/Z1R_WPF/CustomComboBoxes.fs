@@ -295,3 +295,44 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
     // TODO tweak greyedOut opacity?
     // TODO do the greyed out ones need a red X or a ghostbusters on them, to make it clearer they are unclickable?
 
+
+
+let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
+    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
+    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
+    appMainCanvas.Children.Add(c) |> ignore
+    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
+    c.Children.Add(sunglasses) |> ignore
+    // put the element at x,y
+    canvasAdd(c, element, x, y)
+    // catch mouse clicks outside the element to dismiss mode
+    c.MouseDown.Add(fun ea ->
+        if ea.ButtonState = Input.MouseButtonState.Pressed &&
+                (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
+            // if there were something to do, we would undo it here, but there is no model or view change, other than...
+            onClose()
+            c.Children.Remove(element)
+            appMainCanvas.Children.Remove(c)
+        )
+
+let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
+    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
+    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
+    appMainCanvas.Children.Add(c) |> ignore
+    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
+    c.Children.Add(sunglasses) |> ignore
+    let d = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height, LastChildFill=false)
+    // put the element docked
+    DockPanel.SetDock(element, dock)
+    d.Children.Add(element) |> ignore
+    canvasAdd(c, d, 0., 0.)
+    // catch mouse clicks outside the element to dismiss mode
+    c.MouseDown.Add(fun ea ->
+        if ea.ButtonState = Input.MouseButtonState.Pressed &&
+                (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
+            // if there were something to do, we would undo it here, but there is no model or view change, other than...
+            onClose()
+            d.Children.Remove(element)
+            appMainCanvas.Children.Remove(c)
+        )
+        

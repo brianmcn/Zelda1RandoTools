@@ -1951,7 +1951,9 @@ let makeAll(owMapNum) =
     let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(c.Width, float TCH + 6., moreOptionsButton.DesiredSize.Height)
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(c.Width, moreOptionsButton.DesiredSize.Height)
+    optionsCanvas.Opacity <- 1.
+    optionsCanvas.IsHitTestVisible <- true
 
     let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 1, "0h", "30m", "1h", moreOptionsButton.DesiredSize.Width-24.)
     let theTimeline2 = new Timeline.Timeline(21., 4, 60, 5, c.Width-48., 2, "0h", "1h", "2h", moreOptionsButton.DesiredSize.Width-24.)
@@ -1979,24 +1981,8 @@ let makeAll(owMapNum) =
     canvasAdd(c, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(c, theTimeline3.Canvas, 24., START_TIMELINE_H)
 
-    canvasAdd(c, optionsCanvas, 0., START_TIMELINE_H)
     canvasAdd(c, moreOptionsButton, 0., START_TIMELINE_H)
-    moreOptionsButton.Click.Add(fun _ -> 
-        if optionsCanvas.Opacity = 0. then
-            optionsCanvas.Opacity <- 1.
-            optionsCanvas.IsHitTestVisible <- true
-        else
-            optionsCanvas.Opacity <- 0.
-            optionsCanvas.IsHitTestVisible <- false
-        )
-    // auto-close logic
-    c.MouseMove.Add(fun ea ->
-        let pos = ea.GetPosition(optionsCanvas)
-        if optionsCanvas.IsHitTestVisible && (pos.Y < 0. || pos.Y > optionsCanvas.Height) then
-            optionsCanvas.Opacity <- 0.
-            optionsCanvas.IsHitTestVisible <- false
-            TrackerModel.Options.writeSettings()
-        )
+    moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModalDocked(appMainCanvas, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings())))
 
     let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 

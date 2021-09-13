@@ -211,9 +211,7 @@ type MyWindow() as this =
         bottomSP.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), float(WPFUI.TCH+6), 0.)
-        options.IsHitTestVisible <- true
-        options.Opacity <- 1.0
+        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), 0.)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)

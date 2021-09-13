@@ -1095,7 +1095,7 @@ let makeAll(owMapNum) =
     let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     let optionsCanvas = new Border(Child=OptionsMenu.makeOptionsCanvas(25.),
                                    Background=SolidColorBrush(0xFF282828u), BorderBrush=Brushes.Gray, BorderThickness=Thickness(2.),
-                                   ZIndex=111, IsVisible=false)
+                                   ZIndex=111, IsVisible=true)
     moreOptionsButton.ZIndex <- optionsCanvas.ZIndex+1
 
     let theTimeline1 = new Timeline.Timeline(21., 4, 60, 5, c.Width-10., 1, "0h", "30m", "1h", 53.)
@@ -1124,22 +1124,8 @@ let makeAll(owMapNum) =
     canvasAdd(c, theTimeline2.Canvas, 5., THRU_MAP_H)
     canvasAdd(c, theTimeline3.Canvas, 5., THRU_MAP_H)
 
-    canvasAdd(c, optionsCanvas, 0., THRU_MAP_H)
     canvasAdd(c, moreOptionsButton, 0., THRU_MAP_H)
-    moreOptionsButton.Click.Add(fun _ -> 
-        if not optionsCanvas.IsVisible then
-            optionsCanvas.IsVisible <- true
-        else
-            optionsCanvas.IsVisible <- false
-            TrackerModel.Options.writeSettings()
-        )
-    // auto-close logic
-    optionsCanvas.PointerLeave.Add(fun ea ->
-        if optionsCanvas.IsVisible then
-            optionsCanvas.IsVisible <- false
-            TrackerModel.Options.writeSettings()
-        )
-
+    moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings())))
 
     let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
 

@@ -30,15 +30,15 @@ let data22 = [|
     "Have any key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", TrackerModel.Options.VoiceReminders.HaveKeyLadder
     |]
 
-let makeOptionsCanvas(width, height, heightOffset) = 
-    let optionsCanvas = new Canvas(Width=width, Height=height, Background=Brushes.White, Opacity=0., IsHitTestVisible=false)
+let makeOptionsCanvas(width, heightOffset) = 
+    let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Width=width, Background=Brushes.White)
     let style = new Style(typeof<TextBox>)
     style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
     style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
-    optionsCanvas.Resources.Add(typeof<TextBox>, style)
+    optionsAllsp.Resources.Add(typeof<TextBox>, style)
     let style = new Style(typeof<CheckBox>)
     style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
-    optionsCanvas.Resources.Add(typeof<CheckBox>, style)
+    optionsAllsp.Resources.Add(typeof<CheckBox>, style)
 
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
     let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, Margin=Thickness(0.,heightOffset,0.,0.), FontWeight=FontWeights.Bold)
@@ -48,7 +48,6 @@ let makeOptionsCanvas(width, height, heightOffset) =
         cb.ToolTip <- tip
         link(cb, b)
         options1sp.Children.Add(cb) |> ignore
-    let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal)
     optionsAllsp.Children.Add(options1sp) |> ignore
 
     let options2sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,10.,0.))
@@ -89,9 +88,9 @@ let makeOptionsCanvas(width, height, heightOffset) =
     options2Hsp.Children.Add(options2V1sp) |> ignore
     options2Hsp.Children.Add(options2V2sp) |> ignore
     options2sp.Children.Add(options2Hsp) |> ignore
-    optionsAllsp.Children.Add(new Canvas(Height=height,Width=2.,Background=Brushes.Black)) |> ignore
+    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Black)) |> ignore
     optionsAllsp.Children.Add(options2sp) |> ignore
-    optionsAllsp.Children.Add(new Canvas(Height=height,Width=2.,Background=Brushes.Black)) |> ignore
+    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Black)) |> ignore
 
     let options3sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,0.,0.))
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold)
@@ -150,5 +149,4 @@ let makeOptionsCanvas(width, height, heightOffset) =
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
-    Graphics.canvasAdd(optionsCanvas, optionsAllsp, 0., 0.)
-    optionsCanvas
+    optionsAllsp
