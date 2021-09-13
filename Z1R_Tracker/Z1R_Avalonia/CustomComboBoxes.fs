@@ -238,7 +238,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
 
 
 
-let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
+let DoModal(appMainCanvas:Canvas, x, y, element:Control, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
     appMainCanvas.Children.Add(c) |> ignore
@@ -248,15 +248,19 @@ let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
     canvasAdd(c, element, x, y)
     // catch mouse clicks outside the element to dismiss mode
     c.PointerPressed.Add(fun ea ->
-        let pp = ea.GetCurrentPoint(c)
-        if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-            // if there were something to do, we would undo it here, but there is no model or view change, other than...
-            onClose()
-            c.Children.Remove(element) |> ignore
-            appMainCanvas.Children.Remove(c) |> ignore
+        let pos = ea.GetPosition(c)
+        if pos.X = 0. && pos.Y = 0. then
+            () // ignore the click, it's e.g. in another window
+        elif (pos.X < element.Bounds.Left || pos.X > element.Bounds.Right) || (pos.Y < element.Bounds.Top || pos.Y > element.Bounds.Bottom) then
+            let pp = ea.GetCurrentPoint(c)
+            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                // if there were something to do, we would undo it here, but there is no model or view change, other than...
+                onClose()
+                c.Children.Remove(element) |> ignore
+                appMainCanvas.Children.Remove(c) |> ignore
         )
 
-let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
+let DoModalDocked(appMainCanvas:Canvas, dock, element:Control, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
     appMainCanvas.Children.Add(c) |> ignore
@@ -269,10 +273,14 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
     canvasAdd(c, d, 0., 0.)
     // catch mouse clicks outside the element to dismiss mode
     c.PointerPressed.Add(fun ea ->
-        let pp = ea.GetCurrentPoint(c)
-        if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-            // if there were something to do, we would undo it here, but there is no model or view change, other than...
-            onClose()
-            d.Children.Remove(element) |> ignore
-            appMainCanvas.Children.Remove(c) |> ignore
+        let pos = ea.GetPosition(c)
+        if pos.X = 0. && pos.Y = 0. then
+            () // ignore the click, it's e.g. in another window
+        elif (pos.X < element.Bounds.Left || pos.X > element.Bounds.Right) || (pos.Y < element.Bounds.Top || pos.Y > element.Bounds.Bottom) then
+            let pp = ea.GetCurrentPoint(c)
+            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                // if there were something to do, we would undo it here, but there is no model or view change, other than...
+                onClose()
+                d.Children.Remove(element) |> ignore
+                appMainCanvas.Children.Remove(c) |> ignore
         )

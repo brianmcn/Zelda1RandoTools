@@ -126,7 +126,6 @@ for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
 
 
-[10:57 AM] marcmagus: Decode Hint: popup covers Notes section; I'd suggest cutting the third column and left-aligning so if people still want to take notes they can. Alternatively, if say you want to discourage that action, mirror new popup behavior and dismiss the popup on click anywhere outside the box.
 [10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
 
 

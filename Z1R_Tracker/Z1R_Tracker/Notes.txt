@@ -93,7 +93,6 @@ The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: green
 (WPF only) Right click arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI: routing sends you only to shops containing that item for the next 10s.
 
 Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
-(Click button again to dismiss the table.)
 Each hinted-but not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
 shows the possible location for that dungeon or sword cave.
 

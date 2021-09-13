@@ -970,21 +970,9 @@ let makeAll(owMapNum) =
         row <- row + 1
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
     hintBorder.Child <- hintGrid
-    hintBorder.Opacity <- 0.
-    hintBorder.IsHitTestVisible <- false
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Hint Decoder"))
     canvasAdd(c, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
-    let mutable hintBorderWasClicked = false
-    tb.Click.Add(fun _ ->
-        if hintBorderWasClicked then
-            hintBorderWasClicked <- false
-            hintBorder.Opacity <- 0.0
-            hintBorder.IsHitTestVisible <- false
-        else
-            hintBorderWasClicked <- true
-            hintBorder.Opacity <- 1.0
-            hintBorder.IsHitTestVisible <- true
-        )
+    tb.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, fun()->()))
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
@@ -1989,8 +1977,6 @@ let makeAll(owMapNum) =
     //                items  ow map  prog  dungeon tabs                timeline
     c.Height <- float(30*4 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
 
-
-    canvasAdd(c, hintBorder, 0., THRU_MAP_AND_LEGEND_H + 6.)  // ensure this is atop other elements
 
     CustomComboBoxes.InitializeItemComboBox(c)  // very very top
 

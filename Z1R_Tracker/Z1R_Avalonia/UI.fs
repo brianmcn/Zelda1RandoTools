@@ -865,22 +865,10 @@ let makeAll(owMapNum) =
         row <- row + 1
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black)
     hintBorder.Child <- hintGrid
-    hintBorder.Opacity <- 0.
-    hintBorder.IsHitTestVisible <- false
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Decode Hint"), 
                         BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
     canvasAdd(c, tb, 496., THRU_MAP_AND_LEGEND_H + 4.)
-    let mutable hintBorderWasClicked = false
-    tb.Click.Add(fun _ ->
-        if hintBorderWasClicked then
-            hintBorderWasClicked <- false
-            hintBorder.Opacity <- 0.0
-            hintBorder.IsHitTestVisible <- false
-        else
-            hintBorderWasClicked <- true
-            hintBorder.Opacity <- 1.0
-            hintBorder.IsHitTestVisible <- true
-        )
+    tb.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, fun()->()))
 
     let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
     printfn "H thru item prog = %d" (int THRU_MAP_H)
@@ -1812,7 +1800,6 @@ let makeAll(owMapNum) =
     addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
 
-    canvasAdd(c, hintBorder, 0., THRU_MAP_AND_LEGEND_H + 4.)  // ensure this is atop other elements
 
 
     //                items  ow map  prog  timeline  dungeon tabs                
