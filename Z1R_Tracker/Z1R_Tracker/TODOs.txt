@@ -135,6 +135,15 @@ homer: larger shop icons (advanced users wont care as much about obscuring map)
 
 
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
+Random thought about 'crawl text for reminders' - maybe, rather than a crawl, it should be a message queue?  like, if you have no messages yet, a text reminder becomes a thing that takes a line of screen real estate until you dismiss it with some confirmatory gesture.  and if you get more reminders, it's like a little blinking light 'you have new mail (4)' thingy in the corner, and each time you dismiss a message, the next one rolls in and takes its place, until you are caught up?  maybe?
+and yeah I'm not sure how to grapple with the trade-off of me wanting "please dismiss me to ensure that (A) you have gotten my timely helpful feedback and (B) Brian can see his beautiful timeline in its full splendor once again" and the user wanting to not be disturbed/distracted
+[9:47 PM] Lorgon111: i suppose another alternative is that messages auto-dismiss after some fixed time interval, but are somehow re-playable after dismissal when the seed runner is like, wait, what did it say?
+[7:27 PM] marcmagus: I know whenever there's a new mail (4) badge I feel a pretty strong compulsion to dismiss it immediately; I think I'd find that pretty annoying unless I had, like, a foot pedal to dismiss.
+[12:28 AM] Lorgon111: maybe if the only thing was 'replay previous message'
+[12:28 AM] Lorgon111: as a quiet button somewhere
+[12:31 AM] Lorgon111: but yeah, i guess since they typically trigger 'when you update tracker' then you are probably looking at it then
+[12:32 AM] marcmagus: Could also have some kind of audio chime to get attention if that would be helpful.
+[12:33 AM] marcmagus: [Ding-dong] [Text scrolls] Consider the magical sword
 
 
 review other common flagsets from rando, what works, what could work, etc

@@ -5,6 +5,8 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let GetResourceStream(name) = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name)
+
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
         c.Children.Add(item) |> ignore
@@ -38,7 +40,7 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let alphaNumBmp =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("alphanumerics3x5.png")
+    let imageStream = GetResourceStream("alphanumerics3x5.png")
     new System.Drawing.Bitmap(imageStream)
 let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x and y are 1-pixel coordinates, even though bmp is blown up 3x
     let index =
@@ -75,7 +77,7 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
         heart_container_bmp; power_bracelet_bmp; white_sword_bmp; ow_key_armos_bmp;
         brown_sword_bmp; magical_sword_bmp; blue_candle_bmp; blue_ring_bmp;
         ganon_bmp; zelda_bmp; bomb_bmp; bow_and_arrow_bmp; bait_bmp |] =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons7x7.png")
+    let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/7 - 1 do
             let r = new System.Drawing.Bitmap(7*3,7*3)
@@ -86,7 +88,7 @@ let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; record
     |]
 
 let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp = 
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons10x10.png")
+    let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
         for i = 0 to bmp.Width/10 - 1 do
@@ -98,11 +100,12 @@ let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, o
                     r.SetPixel(px, py, color)
             yield r
         |]
-    all.[0], all.[1], all.[2], all.[3], all.[3]
+    all.[0], all.[1], all.[2], all.[3], all.[4]
+let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
 let emptyUnfoundTriforce_bmps = [|
     for i = 0 to 7 do
         let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.DarkGray, bmp, 4, 4)
+        paintAlphanumerics3x5(char(int '1' + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
         yield bmp
     |]
 let emptyFoundTriforce_bmps = [|
@@ -120,14 +123,14 @@ let fullTriforce_bmps = [|
 let unfoundL9_bmp,foundL9_bmp =
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
-    paintAlphanumerics3x5('9', System.Drawing.Color.DarkGray, u, 4, 4)
+    paintAlphanumerics3x5('9', UNFOUND_NUMERAL_COLOR, u, 4, 4)
     paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f
 
 let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonDoubleMoatBMP; cdungeonChevyBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; 
         cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonNeedWand; cdungeonBlueBubble; cdungeonNeedRecorder; cdungeonNeedBow; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
         cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |] =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons13x9.png")
+    let imageStream = GetResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     [|  for i = 0 to bmp.Width/13 - 1 do
             let cr = new System.Drawing.Bitmap(13*3,9*3)
@@ -159,16 +162,16 @@ let overworldImage =
         |]
     let file = files.[(new System.Random()).Next(files.Length)]
     printfn "selecting overworld file %s" file
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(file)
+    let imageStream = GetResourceStream(file)
     new System.Drawing.Bitmap(imageStream)
 let zhMapIcons =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_icon_overworld_strip39.png")
+    let imageStream = GetResourceStream("s_icon_overworld_strip39.png")
     new System.Drawing.Bitmap(imageStream)
 let zhDungeonIcons =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_cell_strip3.png")
+    let imageStream = GetResourceStream("s_btn_tr_dungeon_cell_strip3.png")
     new System.Drawing.Bitmap(imageStream)
 let zhDungeonNums =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("s_btn_tr_dungeon_num_strip18.png")
+    let imageStream = GetResourceStream("s_btn_tr_dungeon_num_strip18.png")
     new System.Drawing.Bitmap(imageStream)
 
 
@@ -215,65 +218,58 @@ let overworldMapBMPs(n) =
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
 let uniqueMapIcons, d1bmp, w1bmp =
-    let m = zhMapIcons 
-    let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
-    let tiles = [|
-        // levels 1-9
-        for i in [2..10] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+    let imageStream = GetResourceStream("ow_icons5x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let tiles = [|  
+        for i = 1 to 9 do  // levels 1-9
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
-                        let c = m.GetPixel((i*16*3 + px)/3, (py)/3)
-                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Yellow)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, System.Drawing.Color.Yellow)
                     else
-                        tile.SetPixel(px, py, TRANS_BG)
-            yield tile
-        // warps 1-4
-        for i in [11..14] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        b.SetPixel(px, py, TRANS_BG)
+            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
+            yield b
+        for i = 1 to 4 do  // warps 1-4
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
-                        let c = m.GetPixel(((i-9)*16*3 + px)/3, (py)/3)
-                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Aqua)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, System.Drawing.Color.Orchid)
                     else
-                        tile.SetPixel(px, py, TRANS_BG)
-            yield tile
-        // sword 3
-        for i in [19] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        b.SetPixel(px, py, TRANS_BG)
+            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
+            yield b
+        for i = 0 to 1 do  // sword 3, sword 2
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
-        // sword 2
-        for i in [20] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px > 8*3 && py < 10*3 then  // leave blank spot to insert the actual white sword item for this seed
-                        tile.SetPixel(px, py, m.GetPixel(i*16, 0)) // System.Drawing.Color.Transparent)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
                     else
-                        tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
     |]
     tiles |> Array.map BMPtoImage, tiles.[0], tiles.[9]
 
 let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
 let itemsBMP = 
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons3x7.png")
+    let imageStream = GetResourceStream("icons3x7.png")
     new System.Drawing.Bitmap(imageStream)
 let nonUniqueMapIconBMPs = 
-    let m = zhMapIcons 
-    [|
-        // hint shop
-        for i in [22] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+    let imageStream = GetResourceStream("ow_icons5x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let tiles = [|  
+        for i = 2 to 2 do  // hint shop
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
+                    else
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
         // 3-item shops
         for i = 0 to 7 do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -290,30 +286,34 @@ let nonUniqueMapIconBMPs =
                         if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                             tile.SetPixel(px, py, c)
             yield tile
-        // others (take-any, potion shop, ?rupee, 'X')
-        for i in [yield 15; yield 32; yield 34; yield 38] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+        for i = 3 to 5 do  // take-any, potion shop, rupee
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-                    if i=38 then
-                        if tile.GetPixel(px,py).ToArgb() = System.Drawing.Color.Black.ToArgb() then
-                            tile.SetPixel(px,py,System.Drawing.Color.DarkGray)
-                        else
-                            tile.SetPixel(px,py,System.Drawing.Color.Black)
-            yield tile
-    |]
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
+                    else
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
+        for i = 0 to 0 do  // 'X'
+            let b = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    b.SetPixel(px, py, System.Drawing.Color.Black)
+            yield b
+        |]
+    tiles
 
 let mouseIconButtonColorsBMP =
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("mouse-icon-button-colors.png")
+    let imageStream = GetResourceStream("mouse-icon-button-colors.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
 
 (*
 do
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons3x7.png")
+    let imageStream = GetResourceStream("icons3x7.png")
     let bmp37 = new System.Drawing.Bitmap(imageStream)
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("icons7x7.png")
+    let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let newBmp = new System.Drawing.Bitmap(bmp.Width+7, bmp.Height)
     for i = 0 to bmp.Width-1 do

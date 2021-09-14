@@ -76,7 +76,6 @@ type MapStateProxy(state) =
     member this.IsSword3 = state=13
     member this.IsSword2 = state=14
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
-    member this.HasTransparency = state >= 0 && state < 13 || state >= U+1 && state < U+TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1   // dungeons, warps, swords, and item-shops
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.Current() =
         if state = -1 then
@@ -490,7 +489,7 @@ let makeAll(owMapNum) =
     mirrorOverworldFEs.Add(overworldCanvas)
 
     // ow map opaque fixed bottom layer
-    let X_OPACITY = 0.4
+    let X_OPACITY = 0.55
     let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
@@ -654,27 +653,26 @@ let makeAll(owMapNum) =
         canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
     let drawDungeonHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Yellow)
+    let drawCompletedIconHighlight(c,x,y) =
+        let rect = new System.Windows.Shapes.Rectangle(Width=15.0*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        let diff = if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.
+        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
     let drawCompletedDungeonHighlight(c,x,y) =
         // darkened rectangle corners
         let yellow = System.Windows.Media.Brushes.Yellow.Color
         let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
         drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
         // darken the number
-        let rect = new System.Windows.Shapes.Rectangle(Width=15.0*OMTW/48., Height=21.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
-        let diff = if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.
-        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+6.0)
+        drawCompletedIconHighlight(c,x,y)
     let drawWarpHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Aqua)
+        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Orchid)
     let drawDarkening(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-1.5, Height=float(11*3)-1.5, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+        let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
-    let drawWhistleableHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.DeepSkyBlue, StrokeThickness=2.0)
-        canvasAdd(c, rect, x*OMTW+1., float(y*11*3)+1.)
     let mutable mostRecentMouseEnterTime = DateTime.Now 
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -779,29 +777,20 @@ let makeAll(owMapNum) =
                         else
                             ms.Current()
                     // be sure to draw in appropriate layer
-                    let canvasToDrawOn =
-                        if ms.HasTransparency && not ms.IsSword3 && not ms.IsSword2 then
-                            if not ms.IsDungeon || (ms.State < 8 && TrackerModel.dungeons.[ms.State].IsComplete) then
-                                drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)  // completed dungeons, warps, and shops get a darkened background in layer below routing
-                            c
-                        else
-                            owDarkeningMapGridCanvases.[i,j]
                     if icon <> null then 
-                        if ms.HasTransparency then
-                            icon.Opacity <- 0.9
+                        if ms.IsX then
+                            icon.Opacity <- X_OPACITY
+                            resizeMapTileImage icon |> ignore
+                            canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         else
-                            if ms.IsUnique then
-                                icon.Opacity <- 0.6
-                            elif ms.IsX then
-                                icon.Opacity <- X_OPACITY
-                            else
-                                icon.Opacity <- 0.5
-                        resizeMapTileImage icon |> ignore
-                    canvasAdd(canvasToDrawOn, icon, 0., 0.)
+                            icon.Opacity <- 1.0
+                            drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)     // darken below icon and routing marks
+                            resizeMapTileImage icon |> ignore
+                            canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
                     if ms.IsDungeon then
-                        drawDungeonHighlight(canvasToDrawOn,0.,0)
+                        drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
-                        drawWarpHighlight(canvasToDrawOn,0.,0)
+                        drawWarpHighlight(c,0.,0)
                     if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
                         secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                     if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
@@ -905,10 +894,6 @@ let makeAll(owMapNum) =
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
-
-    drawWhistleableHighlight(legendCanvas,10.,0)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nSpots")
-    canvasAdd(legendCanvas, tb, 11.*OMTW, 0.)
 
     let legendStartIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
     canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
@@ -1108,18 +1093,24 @@ let makeAll(owMapNum) =
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
             member _this.AnyRoadLocation(i,x,y) = ()
-            member _this.WhistleableLocation(x,y) =
-                drawWhistleableHighlight(recorderingCanvas,float x,y)
-            member _this.Sword3(x,y) = ()
+            member _this.WhistleableLocation(x,y) = ()
+            member _this.Sword3(x,y) = 
+                if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
-                if (TrackerModel.sword2Box.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.sword2Box.CellCurrent() <> -1 then
+                if (TrackerModel.sword2Box.PlayerHas() = TrackerModel.PlayerHas.NO) && (TrackerModel.sword2Box.CellCurrent() <> -1) then
                     // display known-but-ungotten item on the map
                     let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
+                    if displayIsCurrentlyMirrored then 
+                        itemImage.RenderTransform <- new ScaleTransform(-1., 1., OMTW/4., 30.)
+                    itemImage.Width <- OMTW/2.
                     itemImage.Opacity <- 1.0
                     let color = Brushes.Black
-                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
+                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.5)
                     let diff = if displayIsCurrentlyMirrored then 0. else OMTW - 24.
                     canvasAdd(recorderingCanvas, border, OMTW*float(x)+diff, float(y*11*3)+4.)
+                if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon
             member _this.CoastItem() =
                 if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() <> -1 then
                     // display known-but-ungotten item on the map
@@ -1290,8 +1281,22 @@ let makeAll(owMapNum) =
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
         levelTab.Header <- sprintf "  %d  " level
         let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)
-        contentCanvas.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1]))
-        contentCanvas.MouseLeave.Add(fun _ -> hideLocator())
+        contentCanvas.MouseEnter.Add(fun _ -> 
+            let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
+            if (i,j) <> TrackerModel.NOTFOUND then
+                // when mouse in a dungeon map, show its location...
+                showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
+                // ...and behave like we are moused there
+                drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
+            )
+        contentCanvas.MouseLeave.Add(fun ea -> 
+            // only hide the locator if we actually left
+            // MouseLeave fires (erroneously?) when we e.g. click a room, and redraw() causes the element we are Entered to be removed from the tree and replaced by another,
+            // even though we never left the bounds of the enclosing canvas
+            let pos = ea.GetPosition(contentCanvas)
+            if (pos.X < 0. || pos.X > contentCanvas.ActualWidth) || (pos.Y < 0. || pos.Y > contentCanvas.ActualHeight) then
+                hideLocator()
+            )
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
@@ -1872,9 +1877,9 @@ let makeAll(owMapNum) =
         if (x,y) <> TrackerModel.NOTFOUND then
             // show exact location
             for i = 0 to 15 do
-                owLocatorTilesRowColumn.[i,y].Opacity <- 0.4
+                owLocatorTilesRowColumn.[i,y].Opacity <- 0.35
             for j = 0 to 7 do
-                owLocatorTilesRowColumn.[x,j].Opacity <- 0.4
+                owLocatorTilesRowColumn.[x,j].Opacity <- 0.35
         )
     showLocatorHintedZone <- (fun hinted_zone ->
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then

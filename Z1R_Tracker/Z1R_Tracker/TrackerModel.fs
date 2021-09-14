@@ -861,7 +861,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                 if not(dungeons.[i].IsComplete) then
                     dungeonNums.Add(i)
         if dungeonNums.Count > 0 then
-            ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonNums, combatUnblockers)
+            if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
+                ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonNums, combatUnblockers)
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
@@ -872,7 +873,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                 if not(dungeons.[i].IsComplete) then
                     dungeonNums.Add(i)
         if dungeonNums.Count > 0 then
-            ite.RemindUnblock(db, dungeonNums, [])
+            if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
+                ite.RemindUnblock(db, dungeonNums, [])
     // blockers - others
     if not priorBowArrow && playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1 then
         blockerLogic(DungeonBlocker.BOW_AND_ARROW)

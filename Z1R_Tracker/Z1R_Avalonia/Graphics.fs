@@ -98,11 +98,12 @@ let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, o
                     r.SetPixel(px, py, color)
             yield r
         |]
-    all.[0], all.[1], all.[2], all.[3], all.[3]
+    all.[0], all.[1], all.[2], all.[3], all.[4]
+let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
 let emptyUnfoundTriforce_bmps = [|
     for i = 0 to 7 do
         let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.DarkGray, bmp, 4, 4)
+        paintAlphanumerics3x5(char(int '1' + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
         yield bmp
     |]
 let emptyFoundTriforce_bmps = [|
@@ -120,7 +121,7 @@ let fullTriforce_bmps = [|
 let unfoundL9_bmp,foundL9_bmp =
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
-    paintAlphanumerics3x5('9', System.Drawing.Color.DarkGray, u, 4, 4)
+    paintAlphanumerics3x5('9', UNFOUND_NUMERAL_COLOR, u, 4, 4)
     paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f
     
@@ -187,48 +188,38 @@ let overworldMapBMPs(n) =
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
 let uniqueMapIconBMPs =
-    let m = zhMapIcons 
-    let BLACK = m.GetPixel(( 9*16*3 + 24)/3, (21)/3)
-    let tiles = [|
-        // levels 1-9
-        for i in [2..10] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+    let imageStream = GetResourceStream("ow_icons5x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let tiles = [|  
+        for i = 1 to 9 do  // levels 1-9
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
-                        let c = m.GetPixel((i*16*3 + px)/3, (py)/3)
-                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Yellow)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, System.Drawing.Color.Yellow)
                     else
-                        tile.SetPixel(px, py, TRANS_BG)
-            yield tile
-        // warps 1-4
-        for i in [11..14] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        b.SetPixel(px, py, TRANS_BG)
+            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
+            yield b
+        for i = 1 to 4 do  // warps 1-4
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 2 && py/3 <= 8 then
-                        let c = m.GetPixel(((i-9)*16*3 + px)/3, (py)/3)
-                        tile.SetPixel(px, py, if c = BLACK then c else System.Drawing.Color.Aqua)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, System.Drawing.Color.Orchid)
                     else
-                        tile.SetPixel(px, py, TRANS_BG)
-            yield tile
-        // sword 3
-        for i in [19] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        b.SetPixel(px, py, TRANS_BG)
+            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
+            yield b
+        for i = 0 to 1 do  // sword 3, sword 2
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
-        // sword 2
-        for i in [20] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px > 8*3 && py < 10*3 then  // leave blank spot to insert the actual white sword item for this seed
-                        tile.SetPixel(px, py, m.GetPixel(i*16, 0)) // System.Drawing.Color.Transparent)
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
                     else
-                        tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
     |]
     tiles
 
@@ -237,15 +228,18 @@ let itemsBMP =
     let imageStream = GetResourceStream("icons3x7.png")
     new System.Drawing.Bitmap(imageStream)
 let nonUniqueMapIconBMPs = 
-    let m = zhMapIcons 
-    [|
-        // hint shop
-        for i in [22] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+    let imageStream = GetResourceStream("ow_icons5x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let tiles = [|  
+        for i = 2 to 2 do  // hint shop
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-            yield tile
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
+                    else
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
         // 3-item shops
         for i = 0 to 7 do
             let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -262,19 +256,23 @@ let nonUniqueMapIconBMPs =
                         if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                             tile.SetPixel(px, py, c)
             yield tile
-        // others (take-any, potion shop, ?rupee, 'X')
-        for i in [yield 15; yield 32; yield 34; yield 38] do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
+        for i = 3 to 5 do  // take-any, potion shop, rupee
+            let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel((i*16*3 + px)/3, (py)/3))
-                    if i=38 then
-                        if tile.GetPixel(px,py).ToArgb() = System.Drawing.Color.Black.ToArgb() then
-                            tile.SetPixel(px,py,System.Drawing.Color.DarkGray)
-                        else
-                            tile.SetPixel(px,py,System.Drawing.Color.Black)
-            yield tile
-    |]
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
+                    else
+                        b.SetPixel(px, py, TRANS_BG)
+            yield b
+        for i = 0 to 0 do  // 'X'
+            let b = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    b.SetPixel(px, py, System.Drawing.Color.Black)
+            yield b
+        |]
+    tiles
 
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")
