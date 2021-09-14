@@ -9,8 +9,9 @@ open Avalonia.Layout
 let canvasAdd = Graphics.canvasAdd
 
 type MapStateProxy(state) =
-    let U = Graphics.uniqueMapIconBMPs.Length 
-    let NU = Graphics.nonUniqueMapIconBMPs.Length
+    static let U = Graphics.uniqueMapIconBMPs.Length 
+    static let NU = Graphics.nonUniqueMapIconBMPs.Length
+    static member NumStates = U + NU
     member this.State = state
     member this.IsX = state = U+NU-1
     member this.IsUnique = state >= 0 && state < U
@@ -20,13 +21,18 @@ type MapStateProxy(state) =
     member this.IsSword2 = state=14
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
     member this.IsInteresting = not(state = -1 || this.IsX)
-    member this.Current() =
+    member this.CurrentBMP() =
         if state = -1 then
             null
         elif state < U then
             Graphics.uniqueMapIconBMPs.[state]
         else
             Graphics.nonUniqueMapIconBMPs.[state-U]
+    member this.CurrentInteriorBMP() =
+        if state = -1 then
+            null
+        else
+            Graphics.mapIconInteriorBMPs.[state]
 
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
@@ -639,7 +645,7 @@ let makeAll(owMapNum) =
             if owInstance.AlwaysEmpty(i,j) then
                 () // already set up as permanent opaque layer, in code above
             else
-                let updateGridSpot delta phrase =
+                let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
@@ -647,13 +653,6 @@ let makeAll(owMapNum) =
                     let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
-                    if delta = 1 then
-                        TrackerModel.overworldMapMarks.[i,j].Next()
-                    elif delta = -1 then 
-                        TrackerModel.overworldMapMarks.[i,j].Prev() 
-                    elif delta = 0 then 
-                        ()
-                    else failwith "bad delta"
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let iconBMP = 
                         if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
@@ -680,10 +679,10 @@ let makeAll(owMapNum) =
                                             tile.SetPixel(px, py, c)
                             tile
                         else
-                            ms.Current()
-                    let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
+                            ms.CurrentBMP()
                     // be sure to draw in appropriate layer
-                    if icon <> null then 
+                    if iconBMP <> null then 
+                        let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.IsX then
                             icon.Opacity <- X_OPACITY
                             resizeMapTileImage icon |> ignore
@@ -697,35 +696,125 @@ let makeAll(owMapNum) =
                         drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
                         drawWarpHighlight(c,0.,0)
+                let updateGridSpot delta phrase =
+                    if delta = 1 then
+                        TrackerModel.overworldMapMarks.[i,j].Next()
+                    elif delta = -1 then 
+                        TrackerModel.overworldMapMarks.[i,j].Prev() 
+                    elif delta = 0 then 
+                        ()
+                    else failwith "bad delta"
+                    let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
                         secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                     if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
                         firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
+                    redrawGridSpot()
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 c.PointerPressed.Add(fun ea -> 
-                    let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
-                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
-                        if msp.State = -1 then
-                            // left click empty tile changes to 'X'
-                            updateGridSpot -1 ""
-                        else
-                            // left click a shop cycles up the second item
-                            if msp.IsThreeItemShop then
-                                // next item
-                                let e = (TrackerModel.getOverworldMapExtraData(i,j) + 1) % MODULO
-                                // skip past duplicates
-                                let item1 = msp.State - 15  // 1-based
-                                let e = if e = item1 then (e + 1) % MODULO else e
-                                TrackerModel.setOverworldMapExtraData(i,j,e)
-                                // redraw
-                                updateGridSpot 0 ""
+                        // left click activates the popup selector
+                        let popupCanvas = new Canvas()  // will be located at same x,y as this tile, we will draw outside the canvas
+                        let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+                        let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
+                        canvasAdd(popupCanvas, tileCanvas, 0., 0.)
+                        let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        let ST = 3.
+                        let originalTileBorder = new Shapes.Rectangle(Width=OMTW+2.*ST, Height=11.*3.+2.*ST, StrokeThickness=ST, Stroke=Brushes.Lime)
+                        canvasAdd(popupCanvas, originalTileBorder, -ST, -ST)
+                        if TrackerModel.mapSquareChoiceDomain.MaxKey + 2 > 8*4 then
+                            failwith "the grid is not big enough to accomodate all the choices"
+                        let grid = makeGrid(8, 4, 5*3+2*int ST, 9*3+2*int ST)
+                        grid.Background <- Brushes.Black
+                        let mutable currentState = originalState   // the only bit of local mutable state during the modal
+                        let mutable dismissPopup = fun () -> ()
+                        let redraws = ResizeArray()
+                        let changeCurrentState(newState) =
+                            currentState <- newState
+                            for r in redraws do r()
+                        let snapBack() = changeCurrentState(originalState)
+                        let commit() =
+                            TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                            redrawGridSpot()
+                            dismissPopup()
+                        // original overworld tile
+                        let redrawTile() =
+                            tileCanvas.Children.Clear()
+                            canvasAdd(tileCanvas, tileImage, 0., 0.)
+                            let bmp = MapStateProxy(currentState).CurrentBMP()
+                            if bmp <> null then
+                                let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
+                                if MapStateProxy(currentState).IsX then
+                                    icon.Opacity <- X_OPACITY
+                                canvasAdd(tileCanvas, icon, 0., 0.)
+                        redraws.Add(redrawTile)
+                        redrawTile()
+                        tileCanvas.PointerWheelChanged.Add(fun x ->
+                            if x.Delta.Y<0. then
+                                changeCurrentState(TrackerModel.mapSquareChoiceDomain.NextFreeKeyWithAllowance(currentState, originalState))
+                            else
+                                changeCurrentState(TrackerModel.mapSquareChoiceDomain.PrevFreeKeyWithAllowance(currentState, originalState))
+                            )
+                        tileCanvas.PointerPressed.Add(fun ea -> 
+                            ea.Handled <- true
+                            commit()
+                            )
+                        // grid of choices
+                        for x = 0 to 7 do
+                            for y = 0 to 3 do
+                                let n = y*8 + x
+                                let n, (icon:IControl) = 
+                                    if MapStateProxy(n).IsX then
+                                        n, upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)), Opacity=X_OPACITY)
+                                    elif n = MapStateProxy.NumStates then
+                                        -1, upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)))
+                                    elif n < MapStateProxy.NumStates then
+                                        n, upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP())
+                                    else
+                                        -1, null
+                                let isCurrent = (n = originalState)
+                                let isSelectable = not(icon=null) && (isCurrent || TrackerModel.mapSquareChoiceDomain.CanAddUse(n))
+                                if icon <> null then
+                                    let c = new Canvas()
+                                    c.Children.Add(icon) |> ignore
+                                    if not(isSelectable) then // grey out
+                                        c.Children.Add(new Canvas(Width=5.*3., Height=9.*3., Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
+                                    let b = new Border(BorderThickness=Thickness(ST), Child=c)
+                                    b.PointerEnter.Add(fun _ -> changeCurrentState(n))
+                                    let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then Brushes.Lime else Brushes.Red) else Brushes.Black)
+                                    redraws.Add(redraw)
+                                    redraw()
+                                    b.PointerPressed.Add(fun ea -> 
+                                        ea.Handled <- true
+                                        if isSelectable then
+                                            commit()
+                                        )
+                                    gridAdd(grid, b, x, y)
+                                else
+                                    let dp = new DockPanel(Background=Brushes.Black)
+                                    dp.PointerEnter.Add(fun _ -> snapBack())
+                                    dp.PointerPressed.Add(fun ea -> ea.Handled <- true)  // empty grid elements swallow clicks because we don't want to commit or dismiss
+                                    gridAdd(grid, dp, x, y)
+                        grid.PointerLeave.Add(fun _ -> snapBack())
+                        let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=grid)
+                        let xPosition = 
+                            if i < 12 then -ST
+                            else OMTW - float(8*(5*3+2*int ST)+int ST)
+                        canvasAdd(popupCanvas, b, xPosition, originalTileBorder.Height-ST)
+                        // activate the modal
+                        dismissPopup <- CustomComboBoxes.DoModal(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, popupCanvas, (fun()->()))
                     elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
-                        // right click a shop cycles down the second item
+                        // right click is the 'special interaction'
+                        let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
+                        let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                        if msp.State = -1 then
+                            // right click empty tile changes to 'X'
+                            updateGridSpot -1 ""
                         if msp.IsThreeItemShop then
+                            // right click a shop cycles down the second item
                             // next item
                             let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
                             // skip past duplicates
@@ -733,7 +822,7 @@ let makeAll(owMapNum) =
                             let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
                             TrackerModel.setOverworldMapExtraData(i,j,e)
                             // redraw
-                            updateGridSpot 0 ""
+                            redrawGridSpot()
                     )
                 c.PointerWheelChanged.Add(fun x -> updateGridSpot (if x.Delta.Y<0. then 1 else -1) "")
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
@@ -864,7 +953,7 @@ let makeAll(owMapNum) =
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Decode Hint"), 
                         BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
     canvasAdd(appMainCanvas, tb, 496., THRU_MAP_AND_LEGEND_H + 4.)
-    tb.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, fun()->()))
+    tb.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, fun()->()) |> ignore)
 
     let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
     printfn "H thru item prog = %d" (int THRU_MAP_H)
@@ -1115,7 +1204,7 @@ let makeAll(owMapNum) =
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 5., THRU_MAP_H)
 
     canvasAdd(appMainCanvas, moreOptionsButton, 0., THRU_MAP_H)
-    moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings())))
+    moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings())) |> ignore)
 
     let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
 

@@ -274,6 +274,16 @@ let nonUniqueMapIconBMPs =
         |]
     tiles
 
+let mapIconInteriorBMPs =
+    [|
+    for bmp in [yield! uniqueMapIconBMPs; yield! nonUniqueMapIconBMPs] do
+        let r = new System.Drawing.Bitmap(5*3,9*3)
+        for px = 0 to 5*3-1 do
+            for py = 0 to 9*3-1 do
+                r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
+        yield r
+    |]
+
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")
     let bmp = new System.Drawing.Bitmap(imageStream)

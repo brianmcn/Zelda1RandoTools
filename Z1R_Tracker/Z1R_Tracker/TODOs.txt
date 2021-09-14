@@ -27,11 +27,23 @@ hotkeys
 
 SMALL
 
+maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
+white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
+
+given how shops work now, one could imagine dealing with the various money icons thusly:
+ - rupee tile can be customized to show additional detail
+ - details might be: ?, small, med, large, door repair, etc
+ - right click could cycle through the options
+ - hotkey could set directly the state and the extraData
+ - (implementation detail: be careful that extraData is exclusive, e.g. don't have a rupee-state translate into a second-shop-icon-state, or vice versa)
+
 While the ladder _item_ is not routeworthy if you don't yet have the ladder, not-knowing-the-ladder-item-information-yet makes the ladder _tile_ routeworthy.
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 
 
-something is weird with door clicks, sometimes registering multiple clicks or something
+something is weird with door clicks, sometimes registering multiple clicks or something 
+    - or maybe it's maybe a hardware problem with my mouse? 
+    - but I have seen weird MouseLeave behavior when removing items from visual tree, hm
 
 maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?
 
@@ -59,7 +71,7 @@ homer: e. I like how the 1q/2q outlines work. It would be nice if you could sele
 shift-click the start screen to place the lime circle? 
 something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
-power bracelet spots with red box, like whistle spots have blue?
+
 decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 decide about PTT functionality
 binary packaging for redistribution?
@@ -69,8 +81,6 @@ yellow door state? (maybe left/right rotate forward/reverse thru unknown->green-
 show list of remaining box items? if less than N left? - the popup now kinda accomplishes this
 
 (start screen eventually have 3. start OR load old data)
-
-see what like if 'X' tiles are just grayed without the X (can comment out 3 lines under 'if i=38 then' in Graphics.fs)
 
 does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
 

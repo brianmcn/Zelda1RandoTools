@@ -61,19 +61,24 @@ HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at s
 Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Show coords - click or hover to show a coordinate overlay
 
-16x8 Map Tiles - scroll to mark what is there:
-   "icon"    description
- - "1-9"     dungeons
- - "1-4"     any roads (stair warps)
- - "S3/S2"   magical sword/white sword item cave
- - "???"     hint shop, or white/magical sword hint
- - (items)   item shop
- - "heart/potion" cave to "take any one you want"
- - "potions" potion shop
- - "?rupee"  free money, or gambling
- - "X"       nothing, or don't care
-Left clicking an unmarked map tile will mark it 'X'
-Left or right clicking an item shop will cycle through choices of a second item in the shop (max of 2 items can be displayed on a tile)
+16x8 Map Tiles:
+   "icon"     description
+ - "1-9"      dungeons
+ - "1-4"      any roads (stair warps)
+ - "sword3/2" magical sword/white sword item cave
+ - "?"        hint shop, or white/magical sword hint
+ - (items)    item shop
+ - "heart"    cave to "take any one you want"
+ - "potion"   potion shop
+ - "rupee"    free money, or gambling
+ - "dark"     nothing, or don't care
+
+To select a map tile, you can either scroll-wheel through the options, or you can left-click a tile to bring up a popup selector, which displays all 
+the options: click on an option to choose it, or click outside the popup to dismiss it without making a change.
+
+Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
+Right clicking an item shop will cycle through choices of a second item to display in the shop (max of 2 items can be displayed on a tile).
+
 An unclaimed-but-known White-Sword- or Coast- Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.

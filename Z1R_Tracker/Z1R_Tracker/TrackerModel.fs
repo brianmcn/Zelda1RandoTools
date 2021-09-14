@@ -151,24 +151,27 @@ type ChoiceDomain(name:string,maxUsesArray:int[]) =
             else
                 uses.[key] <- uses.[key] + 1
                 ev.Trigger(this,key)
-    member this.NextFreeKey(key) =
+    member this.NextFreeKeyWithAllowance(key, allowance) =
         if key = uses.Length-1 then
             -1
-        elif uses.[key+1] < maxUsesArray.[key+1] then
+        elif (allowance = key+1) || (uses.[key+1] < maxUsesArray.[key+1]) then
             key+1
         else
-            this.NextFreeKey(key+1)
-    member this.PrevFreeKey(key) =
+            this.NextFreeKeyWithAllowance(key+1, allowance)
+    member this.NextFreeKey(key) = this.NextFreeKeyWithAllowance(key, -999)  
+    member this.PrevFreeKeyWithAllowance(key, allowance) =
         if key = -1 then
-            this.PrevFreeKey(uses.Length)
+            this.PrevFreeKeyWithAllowance(uses.Length, allowance)
         elif key = 0 then
             -1
-        elif uses.[key-1] < maxUsesArray.[key-1] then
+        elif (allowance = key-1) || (uses.[key-1] < maxUsesArray.[key-1]) then
             key-1
         else
-            this.PrevFreeKey(key-1)
+            this.PrevFreeKeyWithAllowance(key-1, allowance)
+    member this.PrevFreeKey(key) = this.PrevFreeKeyWithAllowance(key, -999)  
     member _this.NumUses(key) = uses.[key]
     member _this.MaxUses(key) = maxUsesArray.[key]
+    member _this.CanAddUse(key) = (key = -1) || (uses.[key] < maxUsesArray.[key])
         
 type Cell(cd:ChoiceDomain) =
     // a location that can hold one item, e.g. armos box that can hold red candle or white sword or whatnot, or

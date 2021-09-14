@@ -265,8 +265,14 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
         if ea.ButtonState = Input.MouseButtonState.Pressed &&
                 (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
             ea.Handled <- true
-            DismissItemComboBox()
-            commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas ea)
+            if boxCellCurrent=primaryBoxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(primaryBoxCellCurrent) then
+                DismissItemComboBox()
+                commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas ea)
+            else
+                // this can happen if e.g. the book is already used by another box, the user interacts with this box, moves mouse over book, moves mouse back to original box, and clicks
+                // in this case, we treat it like clicking on a greyed-out box in the grid, namely we swallow the click and do nothing
+                () // todo rewrite this whole mess
+                // TODO alternatively, leaving the grid could cause the primaryBoxCellCurrent state to 'snap back' to the original state, which is probably better?
         )
     // populate grid with right set of pictures
     g.Children.Clear()
@@ -274,7 +280,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
         for j = 0 to 3 do
             let n,(pict,rect,greyOut) = if !isCurrentlyBook then gridItemBoxPicturesIsCurrentlyBook.[i,j] else gridItemBoxPicturesIsNotCurrentlyBook.[i,j]
             let isOriginallyCurrent = n=boxCellCurrent
-            let isSelectable = (n = -1) || isOriginallyCurrent || (TrackerModel.allItemWithHeartShuffleChoiceDomain.NumUses(n) < TrackerModel.allItemWithHeartShuffleChoiceDomain.MaxUses(n))
+            let isSelectable = isOriginallyCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             isGreyed.[i,j] <- not(isSelectable)
             if isGreyed.[i,j] then
                 greyOut.Opacity <- 0.6
@@ -297,46 +303,37 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
 
 
 
-let DoModal(appMainCanvas:Canvas, x, y, element:FrameworkElement, onClose) =
+let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
     appMainCanvas.Children.Add(c) |> ignore
     let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
     c.Children.Add(sunglasses) |> ignore
-    // put the element at x,y
-    canvasAdd(c, element, x, y)
-    // catch mouse clicks outside the element to dismiss mode
+    // place the element
+    placeElementOntoCanvas(c, element)
+    let dismiss() =
+        removeElementFromCanvas(c, element)
+        appMainCanvas.Children.Remove(c)
+    // catch mouse clicks outside the element
     c.MouseDown.Add(fun ea ->
         let pos = ea.GetPosition(element)
         if (pos.X < 0. || pos.X > element.ActualWidth) || (pos.Y < 0. || pos.Y > element.ActualHeight) then
             if ea.ButtonState = Input.MouseButtonState.Pressed &&
                     (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
-                // if there were something to do, we would undo it here, but there is no model or view change, other than...
                 onClose()
-                c.Children.Remove(element)
-                appMainCanvas.Children.Remove(c)
+                dismiss()
         )
+    dismiss // return a dismissal handle, which the caller can use to dismiss the dialog based on their own criteria; note that onClose() is not called by the dismissal handle
 
-let DoModalDocked(appMainCanvas:Canvas, dock, element:FrameworkElement, onClose) =
-    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
-    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
-    appMainCanvas.Children.Add(c) |> ignore
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
-    c.Children.Add(sunglasses) |> ignore
+let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
+    DoModalCore(appMainCanvas, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, onClose)
+
+let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
     let d = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height, LastChildFill=false)
-    // put the element docked
-    DockPanel.SetDock(element, dock)
-    d.Children.Add(element) |> ignore
-    canvasAdd(c, d, 0., 0.)
-    // catch mouse clicks outside the element to dismiss mode
-    c.MouseDown.Add(fun ea ->
-        let pos = ea.GetPosition(element)
-        if (pos.X < 0. || pos.X > element.ActualWidth) || (pos.Y < 0. || pos.Y > element.ActualHeight) then
-            if ea.ButtonState = Input.MouseButtonState.Pressed &&
-                    (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
-                // if there were something to do, we would undo it here, but there is no model or view change, other than...
-                onClose()
-                d.Children.Remove(element)
-                appMainCanvas.Children.Remove(c)
-        )
-        
+    DoModalCore(appMainCanvas, 
+                    (fun (c,e) -> 
+                        DockPanel.SetDock(e, dock)
+                        d.Children.Add(e) |> ignore
+                        canvasAdd(c, d, 0., 0.)),
+                    (fun (c,e) -> d.Children.Remove(e)), element, onClose)
+   

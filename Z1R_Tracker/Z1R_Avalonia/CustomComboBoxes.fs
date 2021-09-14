@@ -206,8 +206,14 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
         let pp = ea.GetCurrentPoint(c)
         if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
             ea.Handled <- true
-            DismissItemComboBox()
-            commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas pp)
+            if boxCellCurrent=primaryBoxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(primaryBoxCellCurrent) then
+                DismissItemComboBox()
+                commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas pp)
+            else
+                // this can happen if e.g. the book is already used by another box, the user interacts with this box, moves mouse over book, moves mouse back to original box, and clicks
+                // in this case, we treat it like clicking on a greyed-out box in the grid, namely we swallow the click and do nothing
+                () // todo rewrite this whole mess
+                // TODO alternatively, leaving the grid could cause the primaryBoxCellCurrent state to 'snap back' to the original state, which is probably better?
         )
     // populate grid with right set of pictures
     g.Children.Clear()
@@ -215,7 +221,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
         for j = 0 to 3 do
             let n,(pict,rect,greyOut) = if !isCurrentlyBook then gridItemBoxPicturesIsCurrentlyBook.[i,j] else gridItemBoxPicturesIsNotCurrentlyBook.[i,j]
             let isOriginallyCurrent = n=boxCellCurrent
-            let isSelectable = (n = -1) || isOriginallyCurrent || (TrackerModel.allItemWithHeartShuffleChoiceDomain.NumUses(n) < TrackerModel.allItemWithHeartShuffleChoiceDomain.MaxUses(n))
+            let isSelectable = isOriginallyCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             isGreyed.[i,j] <- not(isSelectable)
             if isGreyed.[i,j] then
                 greyOut.Opacity <- 0.6
@@ -237,7 +243,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
     // TODO do the greyed out ones need a red X or a ghostbusters on them, to make it clearer they are unclickable?
 
 
-
+(*
 let DoModal(appMainCanvas:Canvas, x, y, element:Control, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
@@ -284,3 +290,41 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element:Control, onClose) =
                 d.Children.Remove(element) |> ignore
                 appMainCanvas.Children.Remove(c) |> ignore
         )
+*)
+
+
+let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:Control, onClose) =
+    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
+    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
+    appMainCanvas.Children.Add(c) |> ignore
+    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
+    c.Children.Add(sunglasses) |> ignore
+    // place the element
+    placeElementOntoCanvas(c, element)
+    let dismiss() =
+        removeElementFromCanvas(c, element)
+        appMainCanvas.Children.Remove(c) |> ignore
+    // catch mouse clicks outside the element
+    c.PointerPressed.Add(fun ea ->
+        let pos = ea.GetPosition(c)
+        if pos.X = 0. && pos.Y = 0. then
+            () // ignore the click, it's e.g. in another window
+        elif (pos.X < element.Bounds.Left || pos.X > element.Bounds.Right) || (pos.Y < element.Bounds.Top || pos.Y > element.Bounds.Bottom) then
+            let pp = ea.GetCurrentPoint(c)
+            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                onClose()
+                dismiss()
+        )
+    dismiss // return a dismissal handle, which the caller can use to dismiss the dialog based on their own criteria; note that onClose() is not called by the dismissal handle
+
+let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
+    DoModalCore(appMainCanvas, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e) |> ignore), element, onClose)
+
+let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
+    let d = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height, LastChildFill=false)
+    DoModalCore(appMainCanvas, 
+                    (fun (c,e) -> 
+                        DockPanel.SetDock(e, dock)
+                        d.Children.Add(e) |> ignore
+                        canvasAdd(c, d, 0., 0.)),
+                    (fun (c,e) -> d.Children.Remove(e) |> ignore), element, onClose)

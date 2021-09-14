@@ -217,7 +217,7 @@ let overworldMapBMPs(n) =
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
-let uniqueMapIcons, d1bmp, w1bmp =
+let uniqueMapIconBMPs =
     let imageStream = GetResourceStream("ow_icons5x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let tiles = [|  
@@ -251,7 +251,9 @@ let uniqueMapIcons, d1bmp, w1bmp =
                         b.SetPixel(px, py, TRANS_BG)
             yield b
     |]
-    tiles |> Array.map BMPtoImage, tiles.[0], tiles.[9]
+    tiles
+let uniqueMapIcons, d1bmp, w1bmp =
+    uniqueMapIconBMPs |> Array.map BMPtoImage, uniqueMapIconBMPs.[0], uniqueMapIconBMPs.[9]
 
 let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
 let itemsBMP = 
@@ -303,6 +305,16 @@ let nonUniqueMapIconBMPs =
             yield b
         |]
     tiles
+
+let mapIconInteriorBMPs =
+    [|
+    for bmp in [yield! uniqueMapIconBMPs; yield! nonUniqueMapIconBMPs] do
+        let r = new System.Drawing.Bitmap(5*3,9*3)
+        for px = 0 to 5*3-1 do
+            for py = 0 to 9*3-1 do
+                r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
+        yield r
+    |]
 
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")
