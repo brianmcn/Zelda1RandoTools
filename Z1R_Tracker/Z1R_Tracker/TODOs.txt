@@ -27,6 +27,26 @@ hotkeys
 
 SMALL
 
+announce known coast/WS item, for real
+
+center ow popup targets near mouse, bias left 2 and right 2?
+
+when change this overworld cell empty -> nonempty, immediately kill the green/yellow in that cell
+
+click-click dungeon flash - can popup wait a short time before popping up, so can mark 'empty room' without it?
+
+blockers, there's a lot of stuff to scroll, add a grid-popup, that one is easy
+
+ow map: if click empty room, should immediately accelerator auto-scroll to X so that click-click marks off the tile, just like dungeon room common case
+
+if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
+
+middle click an overworld tile to 'route me only to here' for 10s?  i kinda wanted it multiple times, i am helpless at finding my way
+
+reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need (bow/silver/n triforces) for go mode'
+
+
+
 my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
  - mouse into dungeon 3 map, L3 is showLocator highlighted on overworld
  - move mouse into overworld map, click to dismiss popup
@@ -34,11 +54,9 @@ my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
 I could not worry about that, or apply some ad-hoc fixes for the common case, but in general it seems non-trivial
 
 
-there might be at most 6 transports per dungeon, if so, take 789 out of the icon pool, but maybe add '?' transport for unknown stair
+there might be at most 6 transports per dungeon, if so, take 789 out of the icon pool, but add '?' transport for unknown stair
 
-dungeon room marks, key/bomb on floor? orthogonal to other marks? hm
-
-possible reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing? 'you still need ... for go mode'
+dungeon room marks, key/bomb on floor? orthogonal to other marks? hm, middle-click cycle thru circle colors?
 
 maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
 white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen

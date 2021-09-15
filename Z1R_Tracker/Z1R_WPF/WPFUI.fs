@@ -1350,46 +1350,64 @@ let makeAll(owMapNum) =
         let no = Dungeon.no
         let yes = Dungeon.yes
         let blackedOut = Dungeon.blackedOut
-        let horizontalDoorCanvases = Array2D.zeroCreate 7 8
+        let horizontalDoors = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
-                let d = new Canvas(Height=12., Width=12., Background=unknown)
-                horizontalDoorCanvases.[i,j] <- d
-                canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+8))
+                let d = new Canvas(Width=12., Height=16., Background=Brushes.Black)
+                let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=unknown, StrokeThickness=2., Fill=unknown)
+                let line = new Shapes.Line(X1 = 6., Y1 = -11., X2 = 6., Y2 = 27., StrokeThickness=2., Stroke=no, Opacity=0.)
+                d.Children.Add(rect) |> ignore
+                d.Children.Add(line) |> ignore
+                let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
+                    | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
+                    | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
+                horizontalDoors.[i,j] <- door
+                canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+6))
                 let left _ =        
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if not(obj.Equals(d.Background, yes)) then
-                            d.Background <- yes
+                        if door.State <> Dungeon.DoorState.YES then
+                            door.State <- Dungeon.DoorState.YES
                         else
-                            d.Background <- unknown
+                            door.State <- Dungeon.DoorState.UNKNOWN
                 d.MouseLeftButtonDown.Add(left)
                 let right _ = 
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if not(obj.Equals(d.Background, no)) then
-                            d.Background <- no
+                        if door.State <> Dungeon.DoorState.NO then
+                            door.State <- Dungeon.DoorState.NO
                         else
-                            d.Background <- unknown
+                            door.State <- Dungeon.DoorState.UNKNOWN
                 d.MouseRightButtonDown.Add(right)
         // vertical doors
-        let verticalDoorCanvases = Array2D.zeroCreate 8 7
+        let verticalDoors = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
             for j = 0 to 6 do
-                let d = new Canvas(Height=12., Width=12., Background=unknown)
-                verticalDoorCanvases.[i,j] <- d
-                canvasAdd(dungeonCanvas, d, float(i*(39+12)+14), float(TH+j*(27+12)+27))
+                let d = new Canvas(Width=24., Height=12., Background=Brushes.Black)
+                let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=unknown, StrokeThickness=2., Fill=unknown)
+                let line = new Shapes.Line(X1 = -13., Y1 = 6., X2 = 37., Y2 = 6., StrokeThickness=2., Stroke=no, Opacity=0.)
+                d.Children.Add(rect) |> ignore
+                d.Children.Add(line) |> ignore
+                let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
+                    | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
+                    | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
+                verticalDoors.[i,j] <- door
+                canvasAdd(dungeonCanvas, d, float(i*(39+12)+8), float(TH+j*(27+12)+27))
                 let left _ =
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if not(obj.Equals(d.Background, yes)) then
-                            d.Background <- yes
+                        if door.State <> Dungeon.DoorState.YES then
+                            door.State <- Dungeon.DoorState.YES
                         else
-                            d.Background <- unknown
+                            door.State <- Dungeon.DoorState.UNKNOWN
                 d.MouseLeftButtonDown.Add(left)
                 let right _ = 
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if not(obj.Equals(d.Background, no)) then
-                            d.Background <- no
+                        if door.State <> Dungeon.DoorState.NO then
+                            door.State <- Dungeon.DoorState.NO
                         else
-                            d.Background <- unknown
+                            door.State <- Dungeon.DoorState.UNKNOWN
                 d.MouseRightButtonDown.Add(right)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
@@ -1574,16 +1592,16 @@ let makeAll(owMapNum) =
                             if not grabHelper.HasGrab then
                                 if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
                                     dungeonHighlightCanvas.Children.Clear() // clear preview
-                                    let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                    let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
                                     highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
                                     highlight(contiguous, Brushes.Lime)
                             else
                                 let backupRoomStates = roomStates.Clone() :?> int[,]
                                 let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
                                 let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
-                                let backupHorizontalDoors = horizontalDoorCanvases |> Array2D.map (fun c -> c.Background)
-                                let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
-                                grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                let backupHorizontalDoors = horizontalDoors |> Array2D.map (fun c -> c.State)
+                                let backupVerticalDoors = verticalDoors |> Array2D.map (fun c -> c.State)
+                                grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
                                 redrawAllRooms()  // make updated changes visual
                                 let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
                                 cmb.Owner <- Window.GetWindow(c)
@@ -1595,34 +1613,34 @@ let makeAll(owMapNum) =
                                     backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
                                     backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
                                     redrawAllRooms()  // make reverted changes visual
-                                    horizontalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupHorizontalDoors.[x,y])
-                                    verticalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupVerticalDoors.[x,y])
+                                    horizontalDoors |> Array2D.iteri (fun x y c -> c.State <- backupHorizontalDoors.[x,y])
+                                    verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                         else
                             if isInterior then
                                 if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
                                     // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
                                     if roomStates.[i,j] = 0 then
                                         if i > 0 then
-                                            horizontalDoorCanvases.[i-1,j].Background <- blackedOut
+                                            horizontalDoors.[i-1,j].State <- Dungeon.DoorState.BLACKEDOUT
                                         if i < 7 then
-                                            horizontalDoorCanvases.[i,j].Background <- blackedOut
+                                            horizontalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
                                         if j > 0 then
-                                            verticalDoorCanvases.[i,j-1].Background <- blackedOut
+                                            verticalDoors.[i,j-1].State <- Dungeon.DoorState.BLACKEDOUT
                                         if j < 7 then
-                                            verticalDoorCanvases.[i,j].Background <- blackedOut
+                                            verticalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
                                         roomStates.[i,j] <- 10
                                         roomCompleted.[i,j] <- true
                                         redraw()
                                     // shift click a blackedOut room to undo it back to unknown
                                     elif roomStates.[i,j] = 10 then
-                                        if i > 0 && obj.Equals(horizontalDoorCanvases.[i-1,j].Background,blackedOut) then
-                                            horizontalDoorCanvases.[i-1,j].Background <- unknown
-                                        if i < 7 && obj.Equals(horizontalDoorCanvases.[i,j].Background,blackedOut) then
-                                            horizontalDoorCanvases.[i,j].Background <- unknown
-                                        if j > 0 && obj.Equals(verticalDoorCanvases.[i,j-1].Background,blackedOut) then
-                                            verticalDoorCanvases.[i,j-1].Background <- unknown
-                                        if j < 7 && obj.Equals(verticalDoorCanvases.[i,j].Background,blackedOut) then
-                                            verticalDoorCanvases.[i,j].Background <- unknown
+                                        if i > 0 && horizontalDoors.[i-1,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                            horizontalDoors.[i-1,j].State <- Dungeon.DoorState.UNKNOWN
+                                        if i < 7 && horizontalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                            horizontalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
+                                        if j > 0 && verticalDoors.[i,j-1].State = Dungeon.DoorState.BLACKEDOUT then
+                                            verticalDoors.[i,j-1].State <- Dungeon.DoorState.UNKNOWN
+                                        if j < 7 && verticalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                            verticalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
                                         roomStates.[i,j] <- 0
                                         roomCompleted.[i,j] <- false
                                         redraw()
