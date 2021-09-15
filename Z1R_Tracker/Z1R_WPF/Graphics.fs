@@ -39,6 +39,36 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i.Width <- float bmp.Width 
     i
 
+// see also
+// https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag
+// https://stackoverflow.com/questions/12802122/wpf-handle-drag-and-drop-as-well-as-left-click
+let setupClickVersusDrag(e:FrameworkElement, onClick, onStartDrag) =  // will only call onClick on 'clicks', will tell you when drag starts, you can call DoDragDrop or not
+    let mutable isDragging = false
+    let mutable startPoint = None
+    e.PreviewMouseDown.Add(fun ea -> 
+        startPoint <- Some(ea.GetPosition(null))
+        )
+    e.PreviewMouseMove.Add(fun ea ->
+        if (ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed ||
+            ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed ||
+            ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
+                && not isDragging && startPoint.IsSome then
+            let pos = ea.GetPosition(null)
+            if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
+                isDragging <- true
+                onStartDrag(ea)
+                isDragging <- false
+        )
+    e.MouseUp.Add(fun ea ->
+        if not isDragging then
+            if startPoint.IsSome then
+                onClick(ea)
+            // else e.g. dragged into and released
+        startPoint <- None
+        )
+
+////////////////////////////////////////////////////
+
 let alphaNumBmp =
     let imageStream = GetResourceStream("alphanumerics3x5.png")
     new System.Drawing.Bitmap(imageStream)
@@ -318,6 +348,10 @@ let mapIconInteriorBMPs =
 
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    bmp
+let mouseIconButtonColors2BMP =
+    let imageStream = GetResourceStream("mouse-icon-button-colors-2.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
 

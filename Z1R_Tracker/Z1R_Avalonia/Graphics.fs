@@ -37,6 +37,36 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     image.Height <- bmp.Size.Height
     image
 
+// see also
+// https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag
+// https://stackoverflow.com/questions/12802122/wpf-handle-drag-and-drop-as-well-as-left-click
+let setupClickVersusDrag(e:Control, onClick, onStartDrag) =  // will only call onClick on 'clicks', will tell you when drag starts, you can call DoDragDrop or not
+    let mutable isDragging = false
+    let mutable startPoint = None
+    e.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, new EventHandler<Avalonia.Input.PointerPressedEventArgs>(fun o ea -> 
+        startPoint <- Some(ea.GetPosition(null))
+        ), Avalonia.Interactivity.RoutingStrategies.Tunnel, false)
+    e.AddHandler(Avalonia.Input.InputElement.PointerMovedEvent, new EventHandler<Avalonia.Input.PointerEventArgs>(fun o ea ->
+        let pp = ea.GetCurrentPoint(e)
+        if (pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed)
+                && not isDragging && startPoint.IsSome then
+            let pos = ea.GetPosition(null)
+            let MIN = 4.
+            if Math.Abs(pos.X - startPoint.Value.X) > MIN || Math.Abs(pos.Y - startPoint.Value.Y) > MIN then
+                isDragging <- true
+                onStartDrag(ea)
+                isDragging <- false
+        ), Avalonia.Interactivity.RoutingStrategies.Tunnel, false)
+    e.PointerReleased.Add(fun ea ->
+        if not isDragging then
+            if startPoint.IsSome then
+                onClick(ea)
+            // else e.g. dragged into and released
+        startPoint <- None
+        )
+
+////////////////////////////////////////////////////
+
 let alphaNumBmp =
     let imageStream = GetResourceStream("alphanumerics3x5.png")
     new System.Drawing.Bitmap(imageStream)
@@ -286,6 +316,10 @@ let mapIconInteriorBMPs =
 
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    bmp
+let mouseIconButtonColors2BMP =
+    let imageStream = GetResourceStream("mouse-icon-button-colors-2.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
     

@@ -24,6 +24,7 @@
     <EmbeddedResource Include="..\Z1R_WPF\ow_icons5x9.png" Link="ow_icons5x9.png" />
     <EmbeddedResource Include="..\Z1R_WPF\alphanumerics3x5.png" Link="alphanumerics3x5.png" />
     <EmbeddedResource Include="..\Z1R_WPF\mouse-icon-button-colors.png" Link="mouse-icon-button-colors.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\mouse-icon-button-colors-2.png" Link="mouse-icon-button-colors-2.png" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />

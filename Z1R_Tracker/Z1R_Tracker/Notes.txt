@@ -127,14 +127,16 @@ DUNGEON TRACKER
 
 There are 9 tabs for the 9 dungeons.
 
-Rooms can be scrolled to mark:
+Rooms can be marked as:
  - stairway transports 1-9
- - special room shapes (moats, chutes, tee, chevy, etc.)
- - special markers for boss-needs-item rooms (digdogger+recorder; bow+arrow for gohma)
+ - special room shapes (moats, chutes, tee, etc.)
+ - special markers for certain rooms (digdogger+recorder; bow+arrow for gohma; gleeok+wand; blue bubble)
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
- - grey box (typical 'uncompleted room')
-Clicking a room darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten). 
-Thus uncompleted rooms stand out brighter.
+ - grey box (typical non-descript room)
+Clicking or scrolling brings up the room selector popup, so you can either scroll-and-click or mouse-and-click to select a room, similar to the item box chooser.
+Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten).
+Right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
+For the commonest case of a non-descript room needing no special marker, two left clicks (or two right clicks) will mark it as (un)completed non-descript room.
 
 You can 'circle' a room by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
 

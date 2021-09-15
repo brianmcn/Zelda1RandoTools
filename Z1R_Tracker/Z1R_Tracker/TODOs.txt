@@ -27,9 +27,18 @@ hotkeys
 
 SMALL
 
-possible reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing? 'you still need ... for go mode'
+my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
+ - mouse into dungeon 3 map, L3 is showLocator highlighted on overworld
+ - move mouse into overworld map, click to dismiss popup
+ - L3 is still showLocator()ed because dungeon map never got a MouseLeave event
+I could not worry about that, or apply some ad-hoc fixes for the common case, but in general it seems non-trivial
 
-consider dungeon room popup, with scroll-to-activate
+
+there might be at most 6 transports per dungeon, if so, take 789 out of the icon pool, but maybe add '?' transport for unknown stair
+
+dungeon room marks, key/bomb on floor? orthogonal to other marks? hm
+
+possible reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing? 'you still need ... for go mode'
 
 maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
 white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
@@ -44,10 +53,6 @@ given how shops work now, one could imagine dealing with the various money icons
 While the ladder _item_ is not routeworthy if you don't yet have the ladder, not-knowing-the-ladder-item-information-yet makes the ladder _tile_ routeworthy.
 And by proxy, marc wants non-recon'd coast item to be non-X'd
 
-
-something is weird with door clicks, sometimes registering multiple clicks or something 
-    - or maybe it's maybe a hardware problem with my mouse? 
-    - but I have seen weird MouseLeave behavior when removing items from visual tree, hm
 
 maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?
 

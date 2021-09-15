@@ -817,7 +817,7 @@ let makeAll(owMapNum) =
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 c.MouseLeftButtonDown.Add(fun _ -> 
                     // left button activates the popup selector
-                    let ST = 3.
+                    let ST = CustomComboBoxes.borderThickness
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
@@ -832,7 +832,7 @@ let makeAll(owMapNum) =
                             upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
                         )
                     CustomComboBoxes.DoModalGridSelect(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, tileCanvas,
-                        originalStateIndex, ST, gridElementsSelectablesAndIDs, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
+                        gridElementsSelectablesAndIDs, originalStateIndex, 0, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
                         (fun (dismissPopup, _ea, currentState) ->
                             TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                             redrawGridSpot()
@@ -845,7 +845,8 @@ let makeAll(owMapNum) =
                                 let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
                                 if MapStateProxy(currentState).IsX then
                                     icon.Opacity <- X_OPACITY
-                                canvasAdd(tileCanvas, icon, 0., 0.)))
+                                canvasAdd(tileCanvas, icon, 0., 0.)),
+                        None)
                     )
                 c.MouseRightButtonDown.Add(fun _ -> 
                     // right click is the 'special interaction'
@@ -1442,7 +1443,7 @@ let makeAll(owMapNum) =
                 roomIsCircled.[i,j] <- false
                 let roomBMPpairs(n) =
                     match n with
-                    | 0  -> Graphics.cdungeonUnexploredRoomBMP // TODO should this bs fst, fst?
+                    | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
                     | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
                     | 11 -> Graphics.cdungeonDoubleMoatBMP
                     | 12 -> Graphics.cdungeonChevyBMP
@@ -1464,26 +1465,75 @@ let makeAll(owMapNum) =
                     c.Children.Clear()
                     let image =
                         roomBMPpairs(roomStates.[i,j])
-                        |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
+                        |> (fun (u,c) -> if roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
                     if roomIsCircled.[i,j] then
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3.)
                         canvasAdd(c, ellipse, -6., -6.)
                 roomRedrawFuncs.Add(fun () -> redraw())
-                let f b =
+                let usedTransportsRemoveState(roomState) =
                     // track transport being changed away from
-                    if [1..9] |> List.contains roomStates.[i,j] then
-                        usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] - 1
-                    // go to next state
-                    roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
-                    // skip transport if already used both; also skip state 10 (blackedOut)
-                    while [1..9] |> List.contains roomStates.[i,j] && usedTransports.[roomStates.[i,j]] = 2 || roomStates.[i,j]=10 do
-                        roomStates.[i,j] <- ((roomStates.[i,j] + (if b then 1 else -1)) + ROOMS) % ROOMS
+                    if [1..9] |> List.contains roomState then
+                        usedTransports.[roomState] <- usedTransports.[roomState] - 1
+                let usedTransportsAddState(roomState) =
                     // note any new transports
-                    if [1..9] |> List.contains roomStates.[i,j] then
-                        usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
-                    redraw()
+                    if [1..9] |> List.contains roomState then
+                        usedTransports.[roomState] <- usedTransports.[roomState] + 1
+                let activatePopup(activationDelta) =
+                    let ST = CustomComboBoxes.borderThickness
+                    let tileCanvas = new Canvas(Width=13.*3., Height=9.*3.)
+                    let originalStateIndex = if roomStates.[i,j] < 10 then roomStates.[i,j] else roomStates.[i,j] - 1
+                    let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init (ROOMS-1) (fun n ->
+                        let tweak(im:Image) = im.Opacity <- 0.8; im
+                        if n < 10 then
+                            upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n)))), not(usedTransports.[n]=2) || n=originalStateIndex, n
+                        else
+                            upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n+1)))), true, n+1
+                        )
+                    let roomPos = c.TranslatePoint(Point(), appMainCanvas)
+                    let gridxPosition = 13.*3. + ST
+                    let gridYPosition = 0.-5.*9.*3.-ST
+                    CustomComboBoxes.DoModalGridSelect(appMainCanvas, roomPos.X, roomPos.Y, tileCanvas,
+                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, 5, 5, 13*3, 9*3, gridxPosition, gridYPosition,
+                        (fun (dismissPopup, ea, currentState) ->
+                            if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
+                                usedTransportsRemoveState(roomStates.[i,j])
+                                roomStates.[i,j] <- currentState
+                                usedTransportsAddState(roomStates.[i,j])
+                                roomCompleted.[i,j] <- ea.ChangedButton = Input.MouseButton.Left
+                                redraw()
+                                dismissPopup()
+                            ),
+                        (fun (currentState) -> 
+                            tileCanvas.Children.Clear()
+                            let tileBMP = roomBMPpairs(currentState) |> (fun (u,c) -> u)
+                            canvasAdd(tileCanvas, Graphics.BMPtoImage tileBMP, 0., 0.)),
+                        Some(
+                            // extra decoration
+                            let h = 9.*3.*2.+ST*4.
+                            let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black)
+                            let mouseBMP = Graphics.mouseIconButtonColors2BMP
+                            let mouse = Graphics.BMPtoImage mouseBMP
+                            mouse.Height <- h
+                            mouse.Width <- float(mouseBMP.Width) * h / float(mouseBMP.Height)
+                            mouse.Stretch <- Stretch.Uniform
+                            let mouse = new Border(BorderThickness=Thickness(0.,0.,ST,0.), BorderBrush=Brushes.Gray, Child=mouse)
+                            d.Children.Add(mouse) |> ignore
+                            DockPanel.SetDock(mouse,Dock.Left)
+                            let sp = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Bottom)
+                            d.Children.Add(sp) |> ignore
+                            for color, text, b in [Brushes.DarkMagenta,"Completed room",true; Brushes.DarkCyan,"Uncompleted room",false] do
+                                let p = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(ST))
+                                let pict = Graphics.BMPtoImage((if b then snd else fst)(roomBMPpairs(ROOMS-1)))
+                                pict.Margin <- Thickness(ST,0.,2.*ST,0.)
+                                p.Children.Add(pict) |> ignore
+                                let tb = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                                     Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(ST), BorderBrush=color)
+                                p.Children.Add(tb) |> ignore
+                                sp.Children.Add(p) |> ignore
+                            let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
+                            upcast b, gridxPosition, gridYPosition-h-ST))
                 let BUFFER = 2.
                 let highlightImpl(canvas,contiguous:_[,], brush) =
                     for x = 0 to 7 do
@@ -1509,110 +1559,100 @@ let makeAll(owMapNum) =
                     if grabHelper.IsGrabMode then
                         dungeonHighlightCanvas.Children.Clear() // clear old preview
                     )
-                c.MouseLeftButtonDown.Add(fun ea -> 
-                    if grabHelper.IsGrabMode then
-                        if not grabHelper.HasGrab then
-                            if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
-                                dungeonHighlightCanvas.Children.Clear() // clear preview
-                                let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
-                                highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
-                                highlight(contiguous, Brushes.Lime)
-                        else
-                            let backupRoomStates = roomStates.Clone() :?> int[,]
-                            let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
-                            let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
-                            let backupHorizontalDoors = horizontalDoorCanvases |> Array2D.map (fun c -> c.Background)
-                            let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
-                            grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
-                            redrawAllRooms()  // make updated changes visual
-                            let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
-                            cmb.Owner <- Window.GetWindow(c)
-                            cmb.ShowDialog() |> ignore
-                            grabRedraw()  // DoDrop completes the grab, neeed to update the visual
-                            if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
-                                // copy back from old state
-                                backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
-                                backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
-                                backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
-                                redrawAllRooms()  // make reverted changes visual
-                                horizontalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupHorizontalDoors.[x,y])
-                                verticalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupVerticalDoors.[x,y])
-                    else
-                        let pos = ea.GetPosition(c)
-                        if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
-                            () // do nothing, as I often accidentally click room when trying to target doors with mouse
-                        else
-                            if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
-                                // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
-                                if roomStates.[i,j] = 0 then
-                                    if i > 0 then
-                                        horizontalDoorCanvases.[i-1,j].Background <- blackedOut
-                                    if i < 7 then
-                                        horizontalDoorCanvases.[i,j].Background <- blackedOut
-                                    if j > 0 then
-                                        verticalDoorCanvases.[i,j-1].Background <- blackedOut
-                                    if j < 7 then
-                                        verticalDoorCanvases.[i,j].Background <- blackedOut
-                                    roomStates.[i,j] <- 10
-                                    roomCompleted.[i,j] <- true
-                                    redraw()
-                                // shift click a blackedOut room to undo it back to unknown
-                                elif roomStates.[i,j] = 10 then
-                                    if i > 0 && obj.Equals(horizontalDoorCanvases.[i-1,j].Background,blackedOut) then
-                                        horizontalDoorCanvases.[i-1,j].Background <- unknown
-                                    if i < 7 && obj.Equals(horizontalDoorCanvases.[i,j].Background,blackedOut) then
-                                        horizontalDoorCanvases.[i,j].Background <- unknown
-                                    if j > 0 && obj.Equals(verticalDoorCanvases.[i,j-1].Background,blackedOut) then
-                                        verticalDoorCanvases.[i,j-1].Background <- unknown
-                                    if j < 7 && obj.Equals(verticalDoorCanvases.[i,j].Background,blackedOut) then
-                                        verticalDoorCanvases.[i,j].Background <- unknown
-                                    roomStates.[i,j] <- 0
-                                    roomCompleted.[i,j] <- false
-                                    redraw()
-                            else
-                                if roomStates.[i,j] <> 0 then
-                                    roomCompleted.[i,j] <- not roomCompleted.[i,j]
-                                else
-                                    // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
-                                    roomStates.[i,j] <- ROOMS-1
-                                    roomCompleted.[i,j] <- true
-                                redraw()
-                    )
-                c.MouseRightButtonDown.Add(fun ea -> 
-                    if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
-                        let pos = ea.GetPosition(c)
-                        if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
-                            () // do nothing, as I often accidentally click room when trying to target doors with mouse
-                        else
-                            if roomStates.[i,j] = 0 then
-                                // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
-                                roomStates.[i,j] <- ROOMS-1
-                                roomCompleted.[i,j] <- false
-                                redraw()
-                    )
-                c.MouseDown.Add(fun ea -> 
-                    // middle click toggles roomIsCircled
-                    if ea.ChangedButton = Input.MouseButton.Middle && ea.ButtonState = Input.MouseButtonState.Pressed then
-                        if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
-                            let pos = ea.GetPosition(c)
-                            if pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER then
-                                () // do nothing, as I often accidentally click room when trying to target doors with mouse
-                            else
-                                roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
-                                redraw()
-                    )
                 c.MouseWheel.Add(fun x -> 
                     if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
-                        f (x.Delta<0)
+                        // scroll wheel activates the popup selector
+                        let activationDelta = if x.Delta<0 then 1 else -1
+                        activatePopup(activationDelta)
                     )
-                // drag and drop to quickly 'paint' rooms
-                c.MouseMove.Add(fun ea ->
+                Graphics.setupClickVersusDrag(c, (fun ea ->
+                    let pos = ea.GetPosition(c)
+                    // I often accidentally click room when trying to target doors with mouse, only do certain actions when isInterior
+                    let isInterior = not(pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER)
+                    if ea.ChangedButton = Input.MouseButton.Left then
+                        if grabHelper.IsGrabMode then
+                            if not grabHelper.HasGrab then
+                                if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
+                                    dungeonHighlightCanvas.Children.Clear() // clear preview
+                                    let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                    highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
+                                    highlight(contiguous, Brushes.Lime)
+                            else
+                                let backupRoomStates = roomStates.Clone() :?> int[,]
+                                let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
+                                let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
+                                let backupHorizontalDoors = horizontalDoorCanvases |> Array2D.map (fun c -> c.Background)
+                                let backupVerticalDoors = verticalDoorCanvases |> Array2D.map (fun c -> c.Background)
+                                grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoorCanvases,verticalDoorCanvases)
+                                redrawAllRooms()  // make updated changes visual
+                                let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
+                                cmb.Owner <- Window.GetWindow(c)
+                                cmb.ShowDialog() |> ignore
+                                grabRedraw()  // DoDrop completes the grab, neeed to update the visual
+                                if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
+                                    // copy back from old state
+                                    backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
+                                    backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
+                                    backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
+                                    redrawAllRooms()  // make reverted changes visual
+                                    horizontalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupHorizontalDoors.[x,y])
+                                    verticalDoorCanvases |> Array2D.iteri (fun x y c -> c.Background <- backupVerticalDoors.[x,y])
+                        else
+                            if isInterior then
+                                if System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift) then
+                                    // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
+                                    if roomStates.[i,j] = 0 then
+                                        if i > 0 then
+                                            horizontalDoorCanvases.[i-1,j].Background <- blackedOut
+                                        if i < 7 then
+                                            horizontalDoorCanvases.[i,j].Background <- blackedOut
+                                        if j > 0 then
+                                            verticalDoorCanvases.[i,j-1].Background <- blackedOut
+                                        if j < 7 then
+                                            verticalDoorCanvases.[i,j].Background <- blackedOut
+                                        roomStates.[i,j] <- 10
+                                        roomCompleted.[i,j] <- true
+                                        redraw()
+                                    // shift click a blackedOut room to undo it back to unknown
+                                    elif roomStates.[i,j] = 10 then
+                                        if i > 0 && obj.Equals(horizontalDoorCanvases.[i-1,j].Background,blackedOut) then
+                                            horizontalDoorCanvases.[i-1,j].Background <- unknown
+                                        if i < 7 && obj.Equals(horizontalDoorCanvases.[i,j].Background,blackedOut) then
+                                            horizontalDoorCanvases.[i,j].Background <- unknown
+                                        if j > 0 && obj.Equals(verticalDoorCanvases.[i,j-1].Background,blackedOut) then
+                                            verticalDoorCanvases.[i,j-1].Background <- unknown
+                                        if j < 7 && obj.Equals(verticalDoorCanvases.[i,j].Background,blackedOut) then
+                                            verticalDoorCanvases.[i,j].Background <- unknown
+                                        roomStates.[i,j] <- 0
+                                        roomCompleted.[i,j] <- false
+                                        redraw()
+                                else
+                                    if roomStates.[i,j] = 0 then
+                                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
+                                        roomStates.[i,j] <- ROOMS-1
+                                        roomCompleted.[i,j] <- true
+                                    activatePopup(0)
+                    elif ea.ChangedButton = Input.MouseButton.Right then
+                        if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
+                            if isInterior then
+                                if roomStates.[i,j] = 0 then
+                                    // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state
+                                    roomStates.[i,j] <- ROOMS-1
+                                    roomCompleted.[i,j] <- false
+                                activatePopup(0)
+                    elif ea.ChangedButton = Input.MouseButton.Middle then
+                        if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
+                            if isInterior then
+                                roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
+                                redraw()
+                    ), (fun ea ->
+                    // drag and drop to quickly 'paint' rooms
                     if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
                         if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
                             DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
                         elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
                             DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
-                    )
+                    ))
                 c.DragOver.Add(fun ea ->
                     if roomStates.[i,j] = 0 then
                         if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then

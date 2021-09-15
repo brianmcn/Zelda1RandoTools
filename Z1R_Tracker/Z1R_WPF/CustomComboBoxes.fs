@@ -340,19 +340,51 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
 /////////////////////////////////////////
 
 
+// draw a pretty dashed rectangle with thickness ST around outside of (0,0) to (W,H)
+let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
+    let dashLength = dash * ST
+    let spaceLength = space * ST
+    let computeDashArray(length) =
+        let usable = length - dashLength
+        let n = System.Math.Round(usable/(dashLength + spaceLength)) |> int
+        let usableSpace = usable - float n * dashLength
+        let actualSpaceLength = usableSpace / float n
+        let a = [| 
+            yield dash
+            for i=0 to n-1 do 
+                yield actualSpaceLength / ST
+                yield dash
+        |]
+        a
+    let topLine = new Shapes.Line(X1 = -ST, Y1 = -ST/2., X2 = W + ST, Y2 = -ST/2., StrokeThickness=ST, Stroke=brush)
+    topLine.StrokeDashArray <- new DoubleCollection(computeDashArray (W+2.*ST))
+    canvasAdd(canvas, topLine, 0., 0.)
+    let bottomLine = new Shapes.Line(X1 = -ST, Y1 = H+ST/2., X2 = W + ST, Y2 = H+ST/2., StrokeThickness=ST, Stroke=brush)
+    bottomLine.StrokeDashArray <- new DoubleCollection(computeDashArray (W+2.*ST))
+    canvasAdd(canvas, bottomLine, 0., 0.)
+    let leftLine = new Shapes.Line(X1 = -ST/2., Y1 = -ST, X2 = -ST/2., Y2 = H+ST, StrokeThickness=ST, Stroke=brush)
+    leftLine.StrokeDashArray <- new DoubleCollection(computeDashArray (H+2.*ST))
+    canvasAdd(canvas, leftLine, 0., 0.)
+    let rightLine = new Shapes.Line(X1 = W+ST/2., Y1 = -ST, X2 = W+ST/2., Y2 = H+ST, StrokeThickness=ST, Stroke=brush)
+    rightLine.StrokeDashArray <- new DoubleCollection(computeDashArray (H+2.*ST))
+    canvasAdd(canvas, rightLine, 0., 0.)
+
 // TODO: factor out brush colors
+let borderThickness = 3.  // TODO should this be a param?
 let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
-                        originalStateIndex:int, borderThickness:float, gridElementsSelectablesAndIDs:(FrameworkElement*bool*int)[], // originalStateIndex is array index into the array
+                        gridElementsSelectablesAndIDs:(FrameworkElement*bool*int)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
+                        originalStateIndex:int, // originalStateIndex is array index into the array
+                        activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
                         gnc, gnr, gcw, grh,   // grid: numRows, numCols, colWidth, rowHeight (heights of elements; this control will add border highlight)
                         gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
                         onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
-                        redrawTile  // we pass you currentStateID
+                        redrawTile,  // we pass you currentStateID
+                        extraDecoration:option<FrameworkElement*float*float>  // extra thing to draw at (x,y)
                         ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
     let ST = borderThickness
-    let originalTileBorder = new Shapes.Rectangle(Width=tileCanvas.Width+2.*ST, Height=tileCanvas.Height+2.*ST, StrokeThickness=ST, Stroke=Brushes.Lime)
-    canvasAdd(popupCanvas, originalTileBorder, -ST, -ST)
+    MakePrettyDashes(popupCanvas, Brushes.Lime, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
     if gridElementsSelectablesAndIDs.Length > gnr*gnc then
         failwith "the grid is not big enough to accomodate all the choices"
     let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
@@ -366,25 +398,25 @@ let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCan
         currentState <- newState
         redrawTile(stateID())
         for r in redrawGridFuncs do r()
+    let next() =
+        currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
+        while not(isSelectable()) do
+            currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
+        changeCurrentState(currentState)
+    let prev() =
+        currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
+        while not(isSelectable()) do
+            currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
+        changeCurrentState(currentState)
     let snapBack() = changeCurrentState(originalStateIndex)
     // original tile
     redrawTile(stateID())
-    tileCanvas.MouseWheel.Add(fun x ->
-        if x.Delta<0 then
-            currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
-            while not(isSelectable()) do
-                currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
-            changeCurrentState(currentState)
-        else
-            currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
-            while not(isSelectable()) do
-                currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
-            changeCurrentState(currentState)
-        )
+    tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
     tileCanvas.MouseDown.Add(fun ea -> 
         ea.Handled <- true
         onClick(dismissPopup, ea, stateID())
         )
+    tileCanvas.MouseLeave.Add(fun _ -> snapBack())
     // grid of choices
     for x = 0 to gnc-1 do
         for y = 0 to gnr-1 do
@@ -414,8 +446,15 @@ let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCan
     grid.MouseLeave.Add(fun _ -> snapBack())
     let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=grid)
     canvasAdd(popupCanvas, b, gx, gy)
+    match extraDecoration with
+    | None -> ()
+    | Some(d,x,y) -> canvasAdd(popupCanvas, d, x, y)
+    // initial input
+    match activationDelta with
+    | -1 -> prev()
+    |  0 -> ()
+    |  1 -> next()
+    | _ -> failwith "bad activationDelta"
     // activate the modal
     dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, (fun()->()))
-
-
    

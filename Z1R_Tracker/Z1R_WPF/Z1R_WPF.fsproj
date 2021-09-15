@@ -83,6 +83,7 @@
     <EmbeddedResource Include="ow_icons5x9.png" />
     <EmbeddedResource Include="alphanumerics3x5.png" />
     <EmbeddedResource Include="mouse-icon-button-colors.png" />
+    <EmbeddedResource Include="mouse-icon-button-colors-2.png" />
     <Content Include="confirm_speech.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
