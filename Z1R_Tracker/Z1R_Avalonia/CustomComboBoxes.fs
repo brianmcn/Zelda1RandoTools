@@ -242,57 +242,6 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCel
     // TODO tweak greyedOut opacity?
     // TODO do the greyed out ones need a red X or a ghostbusters on them, to make it clearer they are unclickable?
 
-
-(*
-let DoModal(appMainCanvas:Canvas, x, y, element:Control, onClose) =
-    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
-    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
-    appMainCanvas.Children.Add(c) |> ignore
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
-    c.Children.Add(sunglasses) |> ignore
-    // put the element at x,y
-    canvasAdd(c, element, x, y)
-    // catch mouse clicks outside the element to dismiss mode
-    c.PointerPressed.Add(fun ea ->
-        let pos = ea.GetPosition(c)
-        if pos.X = 0. && pos.Y = 0. then
-            () // ignore the click, it's e.g. in another window
-        elif (pos.X < element.Bounds.Left || pos.X > element.Bounds.Right) || (pos.Y < element.Bounds.Top || pos.Y > element.Bounds.Bottom) then
-            let pp = ea.GetCurrentPoint(c)
-            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-                // if there were something to do, we would undo it here, but there is no model or view change, other than...
-                onClose()
-                c.Children.Remove(element) |> ignore
-                appMainCanvas.Children.Remove(c) |> ignore
-        )
-
-let DoModalDocked(appMainCanvas:Canvas, dock, element:Control, onClose) =
-    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
-    let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
-    appMainCanvas.Children.Add(c) |> ignore
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
-    c.Children.Add(sunglasses) |> ignore
-    let d = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height, LastChildFill=false)
-    // put the element docked
-    DockPanel.SetDock(element, dock)
-    d.Children.Add(element) |> ignore
-    canvasAdd(c, d, 0., 0.)
-    // catch mouse clicks outside the element to dismiss mode
-    c.PointerPressed.Add(fun ea ->
-        let pos = ea.GetPosition(c)
-        if pos.X = 0. && pos.Y = 0. then
-            () // ignore the click, it's e.g. in another window
-        elif (pos.X < element.Bounds.Left || pos.X > element.Bounds.Right) || (pos.Y < element.Bounds.Top || pos.Y > element.Bounds.Bottom) then
-            let pp = ea.GetCurrentPoint(c)
-            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-                // if there were something to do, we would undo it here, but there is no model or view change, other than...
-                onClose()
-                d.Children.Remove(element) |> ignore
-                appMainCanvas.Children.Remove(c) |> ignore
-        )
-*)
-
-
 let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:Control, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
@@ -328,3 +277,83 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
                         d.Children.Add(e) |> ignore
                         canvasAdd(c, d, 0., 0.)),
                     (fun (c,e) -> d.Children.Remove(e) |> ignore), element, onClose)
+
+/////////////////////////////////////////
+
+// TODO: factor out brush colors
+let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
+                        originalStateIndex:int, borderThickness:float, gridElementsSelectablesAndIDs:(Control*bool*int)[], // originalStateIndex is array index into the array
+                        gnc, gnr, gcw, grh,   // grid: numRows, numCols, colWidth, rowHeight (heights of elements; this control will add border highlight)
+                        gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
+                        onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
+                        redrawTile  // we pass you currentStateID
+                        ) =
+    let popupCanvas = new Canvas()  // we will draw outside the canvas
+    canvasAdd(popupCanvas, tileCanvas, 0., 0.)
+    let ST = borderThickness
+    let originalTileBorder = new Shapes.Rectangle(Width=tileCanvas.Width+2.*ST, Height=tileCanvas.Height+2.*ST, StrokeThickness=ST, Stroke=Brushes.Lime)
+    canvasAdd(popupCanvas, originalTileBorder, -ST, -ST)
+    if gridElementsSelectablesAndIDs.Length > gnr*gnc then
+        failwith "the grid is not big enough to accomodate all the choices"
+    let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
+    grid.Background <- Brushes.Black
+    let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
+    let mutable dismissPopup = fun () -> ()
+    let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
+    let stateID() = let _,_,x = gridElementsSelectablesAndIDs.[currentState] in x
+    let redrawGridFuncs = ResizeArray()
+    let changeCurrentState(newState) =
+        currentState <- newState
+        redrawTile(stateID())
+        for r in redrawGridFuncs do r()
+    let snapBack() = changeCurrentState(originalStateIndex)
+    // original tile
+    redrawTile(stateID())
+    tileCanvas.PointerWheelChanged.Add(fun x ->
+        if x.Delta.Y<0. then
+            currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
+            while not(isSelectable()) do
+                currentState <- (currentState+1) % gridElementsSelectablesAndIDs.Length
+            changeCurrentState(currentState)
+        else
+            currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
+            while not(isSelectable()) do
+                currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
+            changeCurrentState(currentState)
+        )
+    tileCanvas.PointerPressed.Add(fun ea -> 
+        ea.Handled <- true
+        onClick(dismissPopup, ea, stateID())
+        )
+    // grid of choices
+    for x = 0 to gnc-1 do
+        for y = 0 to gnr-1 do
+            let n = y*gnc + x
+            let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,0
+            if icon <> null then
+                let c = new Canvas()
+                c.Children.Add(icon) |> ignore
+                if not(isSelectable) then // grey out
+                    c.Children.Add(new Canvas(Width=float gcw, Height=float grh, Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
+                let b = new Border(BorderThickness=Thickness(ST), Child=c)
+                b.PointerEnter.Add(fun _ -> changeCurrentState(n))
+                let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then Brushes.Lime else Brushes.Red) else Brushes.Black)
+                redrawGridFuncs.Add(redraw)
+                redraw()
+                b.PointerPressed.Add(fun ea -> 
+                    ea.Handled <- true
+                    if isSelectable then
+                        onClick(dismissPopup, ea, stateID())
+                    )
+                gridAdd(grid, b, x, y)
+            else
+                let dp = new DockPanel(Background=Brushes.Black)
+                dp.PointerEnter.Add(fun _ -> snapBack())
+                dp.PointerPressed.Add(fun ea -> ea.Handled <- true)  // empty grid elements swallow clicks because we don't want to commit or dismiss
+                gridAdd(grid, dp, x, y)
+    grid.PointerLeave.Add(fun _ -> snapBack())
+    let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=grid)
+    canvasAdd(popupCanvas, b, gx, gy)
+    // activate the modal
+    dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, (fun()->()))
+

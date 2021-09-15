@@ -815,98 +815,37 @@ let makeAll(owMapNum) =
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
                 c.MouseLeftButtonDown.Add(fun _ -> 
-                    // left click activates the popup selector
-                    let popupCanvas = new Canvas()  // will be located at same x,y as this tile, we will draw outside the canvas
+                    // left button activates the popup selector
+                    let ST = 3.
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
-                    canvasAdd(popupCanvas, tileCanvas, 0., 0.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
-                    let ST = 3.
-                    let originalTileBorder = new Shapes.Rectangle(Width=OMTW+2.*ST, Height=11.*3.+2.*ST, StrokeThickness=ST, Stroke=Brushes.Lime)
-                    canvasAdd(popupCanvas, originalTileBorder, -ST, -ST)
-                    if TrackerModel.mapSquareChoiceDomain.MaxKey + 2 > 8*4 then
-                        failwith "the grid is not big enough to accomodate all the choices"
-                    let grid = makeGrid(8, 4, 5*3+2*int ST, 9*3+2*int ST)
-                    grid.Background <- Brushes.Black
-                    let mutable currentState = originalState   // the only bit of local mutable state during the modal
-                    let mutable dismissPopup = fun () -> ()
-                    let redraws = ResizeArray()
-                    let changeCurrentState(newState) =
-                        currentState <- newState
-                        for r in redraws do r()
-                    let snapBack() = changeCurrentState(originalState)
-                    let commit() =
-                        TrackerModel.overworldMapMarks.[i,j].Set(currentState)
-                        redrawGridSpot()
-                        dismissPopup()
-                    // original overworld tile
-                    let redrawTile() =
-                        tileCanvas.Children.Clear()
-                        canvasAdd(tileCanvas, tileImage, 0., 0.)
-                        let bmp = MapStateProxy(currentState).CurrentBMP()
-                        if bmp <> null then
-                            let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
-                            if MapStateProxy(currentState).IsX then
-                                icon.Opacity <- X_OPACITY
-                            canvasAdd(tileCanvas, icon, 0., 0.)
-                    redraws.Add(redrawTile)
-                    redrawTile()
-                    tileCanvas.MouseWheel.Add(fun x ->
-                        if x.Delta<0 then
-                            changeCurrentState(TrackerModel.mapSquareChoiceDomain.NextFreeKeyWithAllowance(currentState, originalState))
+                    let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
+                    let gridxPosition = if i < 12 then -ST else OMTW - float(8*(5*3+2*int ST)+int ST)
+                    let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
+                        if MapStateProxy(n).IsX then
+                            upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)), Opacity=X_OPACITY), true, n
+                        elif n = MapStateProxy.NumStates then
+                            upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))), true, -1
                         else
-                            changeCurrentState(TrackerModel.mapSquareChoiceDomain.PrevFreeKeyWithAllowance(currentState, originalState))
+                            upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
                         )
-                    tileCanvas.MouseDown.Add(fun ea -> 
-                        ea.Handled <- true
-                        commit()
-                        )
-                    // grid of choices
-                    for x = 0 to 7 do
-                        for y = 0 to 3 do
-                            let n = y*8 + x
-                            let n, (icon:FrameworkElement) = 
-                                if MapStateProxy(n).IsX then
-                                    n, upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)), Opacity=X_OPACITY)
-                                elif n = MapStateProxy.NumStates then
-                                    -1, upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)))
-                                elif n < MapStateProxy.NumStates then
-                                    n, upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP())
-                                else
-                                    -1, null
-                            let isCurrent = (n = originalState)
-                            let isSelectable = not(icon=null) && (isCurrent || TrackerModel.mapSquareChoiceDomain.CanAddUse(n))
-                            if icon <> null then
-                                let c = new Canvas()
-                                c.Children.Add(icon) |> ignore
-                                if not(isSelectable) then // grey out
-                                    c.Children.Add(new Canvas(Width=5.*3., Height=9.*3., Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
-                                let b = new Border(BorderThickness=Thickness(ST), Child=c)
-                                b.MouseEnter.Add(fun _ -> changeCurrentState(n))
-                                let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then Brushes.Lime else Brushes.Red) else Brushes.Black)
-                                redraws.Add(redraw)
-                                redraw()
-                                b.MouseDown.Add(fun ea -> 
-                                    ea.Handled <- true
-                                    if isSelectable then
-                                        commit()
-                                    )
-                                gridAdd(grid, b, x, y)
-                            else
-                                let dp = new DockPanel(Background=Brushes.Black)
-                                dp.MouseEnter.Add(fun _ -> snapBack())
-                                dp.MouseDown.Add(fun ea -> ea.Handled <- true)  // empty grid elements swallow clicks because we don't want to commit or dismiss
-                                gridAdd(grid, dp, x, y)
-                    grid.MouseLeave.Add(fun _ -> snapBack())
-                    let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=grid)
-                    let xPosition = 
-                        if i < 12 then -ST
-                        else OMTW - float(8*(5*3+2*int ST)+int ST)
-                    canvasAdd(popupCanvas, b, xPosition, originalTileBorder.Height-ST)
-                    // activate the modal
-                    dismissPopup <- CustomComboBoxes.DoModal(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, popupCanvas, (fun()->()))
+                    CustomComboBoxes.DoModalGridSelect(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, tileCanvas,
+                        originalStateIndex, ST, gridElementsSelectablesAndIDs, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
+                        (fun (dismissPopup, _ea, currentState) ->
+                            TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                            redrawGridSpot()
+                            dismissPopup()),
+                        (fun (currentState) -> 
+                            tileCanvas.Children.Clear()
+                            canvasAdd(tileCanvas, tileImage, 0., 0.)
+                            let bmp = MapStateProxy(currentState).CurrentBMP()
+                            if bmp <> null then
+                                let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
+                                if MapStateProxy(currentState).IsX then
+                                    icon.Opacity <- X_OPACITY
+                                canvasAdd(tileCanvas, icon, 0., 0.)))
                     )
                 c.MouseRightButtonDown.Add(fun _ -> 
                     // right click is the 'special interaction'
@@ -916,6 +855,7 @@ let makeAll(owMapNum) =
                         updateGridSpot -1 ""
                     elif msp.IsThreeItemShop then
                         // right click a shop cycles down the second item
+                        let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
                         // next item
                         let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
                         // skip past duplicates
@@ -1500,28 +1440,30 @@ let makeAll(owMapNum) =
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
                 roomIsCircled.[i,j] <- false
+                let roomBMPpairs(n) =
+                    match n with
+                    | 0  -> Graphics.cdungeonUnexploredRoomBMP // TODO should this bs fst, fst?
+                    | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
+                    | 11 -> Graphics.cdungeonDoubleMoatBMP
+                    | 12 -> Graphics.cdungeonChevyBMP
+                    | 13 -> Graphics.cdungeonVMoatBMP
+                    | 14 -> Graphics.cdungeonHMoatBMP
+                    | 15 -> Graphics.cdungeonVChuteBMP
+                    | 16 -> Graphics.cdungeonHChuteBMP
+                    | 17 -> Graphics.cdungeonTeeBMP
+                    | 18 -> Graphics.cdungeonNeedWand
+                    | 19 -> Graphics.cdungeonBlueBubble
+                    | 20 -> Graphics.cdungeonNeedRecorder
+                    | 21 -> Graphics.cdungeonNeedBow
+                    | 22 -> Graphics.cdungeonTriforceBMP 
+                    | 23 -> Graphics.cdungeonPrincessBMP 
+                    | 24 -> Graphics.cdungeonStartBMP 
+                    | 25 -> Graphics.cdungeonExploredRoomBMP 
+                    | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                 let redraw() =
                     c.Children.Clear()
                     let image =
-                        match roomStates.[i,j] with
-                        | 0  -> Graphics.cdungeonUnexploredRoomBMP 
-                        | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
-                        | 11 -> Graphics.cdungeonDoubleMoatBMP
-                        | 12 -> Graphics.cdungeonChevyBMP
-                        | 13 -> Graphics.cdungeonVMoatBMP
-                        | 14 -> Graphics.cdungeonHMoatBMP
-                        | 15 -> Graphics.cdungeonVChuteBMP
-                        | 16 -> Graphics.cdungeonHChuteBMP
-                        | 17 -> Graphics.cdungeonTeeBMP
-                        | 18 -> Graphics.cdungeonNeedWand
-                        | 19 -> Graphics.cdungeonBlueBubble
-                        | 20 -> Graphics.cdungeonNeedRecorder
-                        | 21 -> Graphics.cdungeonNeedBow
-                        | 22 -> Graphics.cdungeonTriforceBMP 
-                        | 23 -> Graphics.cdungeonPrincessBMP 
-                        | 24 -> Graphics.cdungeonStartBMP 
-                        | 25 -> Graphics.cdungeonExploredRoomBMP 
-                        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+                        roomBMPpairs(roomStates.[i,j])
                         |> (fun (u,c) -> if roomStates.[i,j] = 0 then u elif roomCompleted.[i,j] then c else u)
                         |> Graphics.BMPtoImage 
                     canvasAdd(c, image, 0., 0.)
@@ -1661,7 +1603,8 @@ let makeAll(owMapNum) =
                     )
                 c.MouseWheel.Add(fun x -> 
                     if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
-                        f (x.Delta<0))
+                        f (x.Delta<0)
+                    )
                 // drag and drop to quickly 'paint' rooms
                 c.MouseMove.Add(fun ea ->
                     if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode

@@ -27,6 +27,10 @@ hotkeys
 
 SMALL
 
+possible reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing? 'you still need ... for go mode'
+
+consider dungeon room popup, with scroll-to-activate
+
 maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
 white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
 
