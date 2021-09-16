@@ -80,7 +80,9 @@ A double-click (two clicks) of an unmarked overworld tile is a shorthand way to 
 Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
 Right clicking an item shop will cycle through choices of a second item to display in the shop (max of 2 items can be displayed on a tile).
 
-An unclaimed-but-known White-Sword- or Coast- Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience
+An unclaimed-but-known White-Sword- or Coast- Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience.
+When there is an unclaimed, unknown Coast Item (e.g. at the start), an item box you can interact with appears on the Coast man tile, so that when 
+you first visit the tile, you can manipulate the ladder box without having to move your mouse to the top of the UI.
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
 

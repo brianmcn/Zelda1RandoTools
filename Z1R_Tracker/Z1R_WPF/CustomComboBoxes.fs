@@ -176,16 +176,17 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
     static member Defaults() =
         new ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)
 let borderThickness = 3.  // TODO should this be a param?
+
 let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
                             gridElementsSelectablesAndIDs:(FrameworkElement*bool*'a)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
                             originalStateIndex:int, // originalStateIndex is array index into the array
                             activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
                             (gnc, gnr, gcw, grh),   // grid: numCols, numRows, colWidth, rowHeight (heights of elements; this control will add border highlight)
                             gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
-                            onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
                             redrawTile,  // we pass you currentStateID
-                            onClose,
-                            extraDecoration:option<FrameworkElement*float*float>,  // extra thing to draw at an (x,y)
+                            onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
+                            onClose,  // called when user clicks outside modal, and it dismisses itself
+                            extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
                             brushes:ModalGridSelectBrushes
                             ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
@@ -197,7 +198,13 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
     grid.Background <- Brushes.Black
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
-    let mutable dismissPopup = fun () -> ()
+    let mutable dismissDoModalPopup = fun () -> ()
+    let selfCleanup() =
+        for (d,x,y) in extraDecorations do
+            popupCanvas.Children.Remove(d)
+    let dismiss() =
+        dismissDoModalPopup()
+        selfCleanup()
     let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
     let stateID() = let _,_,x = gridElementsSelectablesAndIDs.[currentState] in x
     let redrawGridFuncs = ResizeArray()
@@ -221,7 +228,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
     tileCanvas.MouseDown.Add(fun ea -> 
         ea.Handled <- true
-        onClick(dismissPopup, ea, stateID())
+        onClick(dismiss, ea, stateID())
         )
     tileCanvas.MouseLeave.Add(fun _ -> snapBack())
     // grid of choices
@@ -230,7 +237,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
             let n = y*gnc + x
             let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,Unchecked.defaultof<_>
             if icon <> null then
-                let c = new Canvas()
+                let c = new Canvas(Background=Brushes.Black, Width=float gcw, Height=float grh)  // ensure the canvas has a surface on which to receive mouse clicks
                 c.Children.Add(icon) |> ignore
                 if not(isSelectable) then // grey out
                     c.Children.Add(new Canvas(Width=float gcw, Height=float grh, Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
@@ -242,7 +249,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                 b.MouseDown.Add(fun ea -> 
                     ea.Handled <- true
                     if isSelectable then
-                        onClick(dismissPopup, ea, stateID())
+                        onClick(dismiss, ea, stateID())
                     )
                 gridAdd(grid, b, x, y)
             else
@@ -253,9 +260,8 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     grid.MouseLeave.Add(fun _ -> snapBack())
     let b = new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid)
     canvasAdd(popupCanvas, b, gx, gy)
-    match extraDecoration with
-    | None -> ()
-    | Some(d,x,y) -> canvasAdd(popupCanvas, d, x, y)
+    for (d,x,y) in extraDecorations do
+        canvasAdd(popupCanvas, d, x, y)
     // initial input
     match activationDelta with
     | -1 -> prev()
@@ -263,11 +269,37 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     |  1 -> next()
     | _ -> failwith "bad activationDelta"
     // activate the modal
-    dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, onClose)
+    dismissDoModalPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, (fun () -> onClose(); selfCleanup()))
 
 ////////////////////////////////
 
-let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, commitFunction) =
+let itemBoxMouseButtonExplainerDecoration =
+    let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
+    let mouseBMP = Graphics.mouseIconButtonColorsBMP
+    let mouse = Graphics.BMPtoImage mouseBMP
+    mouse.Height <- 90.
+    mouse.Width <- float(mouseBMP.Width) * 90. / float(mouseBMP.Height)
+    mouse.Stretch <- Stretch.Uniform
+    d.Children.Add(mouse) |> ignore
+    DockPanel.SetDock(mouse,Dock.Left)
+    let sp = new StackPanel(Orientation=Orientation.Vertical)
+    d.Children.Add(sp) |> ignore
+    for color, text in [yes,"Have it"; skipped,"Don't want it"; no,"Don't have it"] do
+        let p = new StackPanel(Orientation=Orientation.Horizontal)
+        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=color, StrokeThickness=3.0, IsHitTestVisible=false)
+        p.Children.Add(rect) |> ignore
+        let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
+        p.Children.Add(tb) |> ignore
+        sp.Children.Add(p) |> ignore
+    let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=d)
+    let fe : FrameworkElement = upcast b
+    fe
+let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
+
+let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, 
+                        commitFunction,  // the user clicked a selection, we're dismissing the modal, this is how we notify you of the final choice
+                        onClose) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
@@ -279,8 +311,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activa
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 15 do
             let fe:FrameworkElement = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(isCurrentlyBook, n, false) |> Graphics.BMPtoImage)
-            let isOriginallyCurrent = n=boxCellCurrent
-            let isSelectable = n = 15 || isOriginallyCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
+            let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             let ident = if n=15 then -1 else n
             yield fe, isSelectable, ident
         |]
@@ -292,32 +323,32 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activa
     let redrawTile(ident) =
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         redraw(ident)
-    let onClose() =
+    let selfCleanup() =
         // the user clicked outside the modal dialog, it is dismissing itself, do any final cleanup we need to do
         ()
-    let extraDecoration =
-        Some(
-            // arrange visual tree of gridContainer
-            let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
-            let mouseBMP = Graphics.mouseIconButtonColorsBMP
-            let mouse = Graphics.BMPtoImage mouseBMP
-            mouse.Height <- 90.
-            mouse.Width <- float(mouseBMP.Width) * 90. / float(mouseBMP.Height)
-            mouse.Stretch <- Stretch.Uniform
-            d.Children.Add(mouse) |> ignore
-            DockPanel.SetDock(mouse,Dock.Left)
-            let sp = new StackPanel(Orientation=Orientation.Vertical)
-            d.Children.Add(sp) |> ignore
-            for color, text in [yes,"Have it"; skipped,"Don't want it"; no,"Don't have it"] do
-                let p = new StackPanel(Orientation=Orientation.Horizontal)
-                let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=color, StrokeThickness=3.0, IsHitTestVisible=false)
-                p.Children.Add(rect) |> ignore
-                let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
-                p.Children.Add(tb) |> ignore
-                sp.Children.Add(p) |> ignore
-            let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=d)
-            let fe : FrameworkElement = upcast b
-            fe, -3., 138.  // TODO what is Y
-            )
+    let allCleanup() = selfCleanup(); onClose()
+    let extraDecorations = [itemBoxMouseButtonExplainerDecoration, -3., 138.]
     DoModalGridSelect(appMainCanvas, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), -3., 27., 
-        onClick, redrawTile, onClose, extraDecoration, new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray))
+        redrawTile, onClick, allCleanup, extraDecorations, itemBoxModalGridSelectBrushes)
+
+let DisplayRemoteItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, gridX, gridY, commitFunction, onClose, extraDecorations) =
+    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
+    let redraw(n) =
+        innerc.Children.Clear()
+        let bmp = boxCurrentBMP(isCurrentlyBook, n, false)
+        if bmp <> null then
+            let image = Graphics.BMPtoImage(bmp)
+            canvasAdd(innerc, image, 1., 1.)
+    redraw(boxCellCurrent)
+    let gridElementsSelectablesAndIDs = [|
+        for n = 0 to 15 do
+            let fe:FrameworkElement = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(isCurrentlyBook, n, false) |> Graphics.BMPtoImage)
+            let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
+            let ident = if n=15 then -1 else n
+            yield fe, isSelectable, ident
+        |]
+    let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
+    let onClick(dismissPopup,ea,ident) = dismissPopup(); commitFunction(ident, MouseButtonEventArgsToPlayerHas ea)
+    let redrawTile(ident) = redraw(ident)
+    DoModalGridSelect(appMainCanvas, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
+        redrawTile, onClick, onClose, extraDecorations, itemBoxModalGridSelectBrushes)

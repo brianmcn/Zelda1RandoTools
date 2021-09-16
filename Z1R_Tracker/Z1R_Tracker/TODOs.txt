@@ -28,11 +28,14 @@ hotkeys
 
 SMALL
 
-hover over item progress bar (grey ghosts) just like inventory, e.g. recorder to see recorder spots?
-
+in progress:
 maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
 white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
  - if i rewrite the item box to use my abstractions, the the 'extra decoration' could be a guide-line connecting the selection-grid to the actual item box-up-top
+
+
+
+hover over item progress bar (grey ghosts) just like inventory, e.g. recorder to see recorder spots?
 
 should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?
 
@@ -66,8 +69,6 @@ given how shops work now, one could imagine dealing with the various money icons
  - hotkey could set directly the state and the extraData
  - (implementation detail: be careful that extraData is exclusive, e.g. don't have a rupee-state translate into a second-shop-icon-state, or vice versa)
 
-While the ladder _item_ is not routeworthy if you don't yet have the ladder, not-knowing-the-ladder-item-information-yet makes the ladder _tile_ routeworthy.
-And by proxy, marc wants non-recon'd coast item to be non-X'd
 
 
 maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?

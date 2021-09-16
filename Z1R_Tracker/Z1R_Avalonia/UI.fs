@@ -161,42 +161,40 @@ let makeAll(owMapNum) =
             let bmp = boxCurrentBMP(false)
             if bmp <> null then
                 canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
+        box.Changed.Add(fun _ -> redrawBoxOutline(); redrawInner(); if requiresForceUpdate then TrackerModel.forceUpdate())
+        let mutable popupIsActive = false
         let activateComboBox(activationDelta) =
+            popupIsActive <- true
             let pos = c.TranslatePoint(Point(),appMainCanvas)
             CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
-                // update model
                 box.Set(newBoxCellValue, newPlayerHas)
-                // update view
-                redrawBoxOutline()
-                redrawInner()
-                if requiresForceUpdate then
-                    TrackerModel.forceUpdate()
-                ))
+                popupIsActive <- false
+                ), (fun () -> popupIsActive <- false))
         c.PointerPressed.Add(fun ea -> 
-            let pp = ea.GetCurrentPoint(c)
-            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-                if box.CellCurrent() = -1 then
-                    activateComboBox(0)
-                else
-                    box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
-                    redrawBoxOutline()
-                    if requiresForceUpdate then
-                        TrackerModel.forceUpdate()
+            if not popupIsActive then
+                let pp = ea.GetCurrentPoint(c)
+                if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                    if box.CellCurrent() = -1 then
+                        activateComboBox(0)
+                    else
+                        box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
+                        redrawBoxOutline()
+                        if requiresForceUpdate then
+                            TrackerModel.forceUpdate()
             )
         // item
-        c.PointerWheelChanged.Add(fun x -> activateComboBox(if x.Delta.Y<0. then 1 else -1))
+        c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activateComboBox(if x.Delta.Y<0. then 1 else -1))
         c.PointerEnter.Add(fun _ ->
-            match box.CellCurrent() with
-            | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
-            | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
-            | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
-            | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
-            | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
-            | _ -> ()
+            if not popupIsActive then
+                match box.CellCurrent() with
+                | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
+                | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
+                | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
+                | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
+                | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
+                | _ -> ()
             )
-        c.PointerLeave.Add(fun _ ->
-            hideLocator()
-            )
+        c.PointerLeave.Add(fun _ -> if not popupIsActive then hideLocator())
         redrawBoxes.Add(fun() -> redrawInner())
         redrawBoxOutline()
         redrawInner()
@@ -318,9 +316,10 @@ let makeAll(owMapNum) =
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), 1, 2)
     white_sword_canvas.PointerEnter.Add(fun _ -> showLocator(9))
     white_sword_canvas.PointerLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, owItemGrid, OFFSET, 60.)
+    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = OFFSET,60.
+    canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
     // brown sword, blue candle, blue ring, magical sword
-    let owItemGrid = makeGrid(3, 3, 30, 30)
+    let owItemGrid2 = makeGrid(3, 3, 30, 30)
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
@@ -346,19 +345,19 @@ let makeAll(owMapNum) =
         ToolTip.SetTip(c, tts)
         c
     let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()))
-    gridAdd(owItemGrid, wood_sword_box, 1, 0)
+    gridAdd(owItemGrid2, wood_sword_box, 1, 0)
     let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()))
     wood_arrow_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid, wood_arrow_box, 2, 1)
+    gridAdd(owItemGrid2, wood_arrow_box, 2, 1)
     let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()))
     blue_candle_box.PointerEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid, blue_candle_box, 1, 1)
+    gridAdd(owItemGrid2, blue_candle_box, 1, 1)
     let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()))
     blue_ring_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid, blue_ring_box, 2, 0)
+    gridAdd(owItemGrid2, blue_ring_box, 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
     ToolTip.SetPlacement(mags_box, PlacementMode.Left)  // Avalonia's tip placement seems awful, at least on Windows
     let magsHintHighlight = makeHintHighlight(30.)
@@ -369,18 +368,18 @@ let makeAll(owMapNum) =
                 TrackerModel.levelHints.[10]<>TrackerModel.HintZone.UNKNOWN then               // have a hint
             mags_box.Children.Insert(0, magsHintHighlight)
     redrawMagicalSwordCanvas()
-    gridAdd(owItemGrid, mags_box, 0, 2)
+    gridAdd(owItemGrid2, mags_box, 0, 2)
     mags_box.PointerEnter.Add(fun _ -> showLocator(10))
     mags_box.PointerLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, owItemGrid, OFFSET+60., 60.)
+    canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
     let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()))
     boom_book_box.PointerEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
     boom_book_box.PointerLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, boom_book_box, OFFSET+120., 30.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAdd(owItemGrid, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), 1, 2)
-    gridAdd(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), 1, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
     bombIcon.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
@@ -636,7 +635,69 @@ let makeAll(owMapNum) =
                                         routeDrawingCanvas.Children.Clear())
             // icon
             if owInstance.AlwaysEmpty(i,j) then
-                () // already set up as permanent opaque layer, in code above
+                // already set up as permanent opaque layer, in code above, so nothing else to do
+                // except...
+                if i=15 && j=5 then // ladder spot
+                    let coastBoxOnOwGridRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Red, StrokeThickness=3., Fill=Graphics.overworldCommonestFloorColorBrush)
+                    canvasAdd(c, coastBoxOnOwGridRect, OMTW-30., 1.)
+                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
+                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO && TrackerModel.ladderBox.CellCurrent() = -1 then
+                            coastBoxOnOwGridRect.Opacity <- 1.
+                            coastBoxOnOwGridRect.IsHitTestVisible <- true
+                        else
+                            coastBoxOnOwGridRect.Opacity <- 0.
+                            coastBoxOnOwGridRect.IsHitTestVisible <- false
+                        )
+                    let mutable popupIsActive = false
+                    let activateLadderSpotPopup(activationDelta) =
+                        popupIsActive <- true
+                        let pos =
+                            if displayIsCurrentlyMirrored then
+                                c.TranslatePoint(Point(OMTW,4.),appMainCanvas)
+                            else
+                                c.TranslatePoint(Point(OMTW-30.,4.),appMainCanvas)
+                        let pos = pos.Value
+                        // in appMainCanvas coordinates:
+                        // ladderBox position in main canvas
+                        let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
+                        // bottom middle of the box, as an arrow target
+                        let tx,ty = lx+15., ly+30.+3.   // +3 so arrowhead does not touch the target box
+                        // top middle of the box we are drawing on the coast, as an arrow source
+                        let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
+                        // line from source to target
+                        let line = new Shapes.Line(StartPoint=Point(sx,sy), EndPoint=Point(tx,ty), Stroke=Brushes.Yellow, StrokeThickness=3.)
+                        line.StrokeDashArray <- new Collections.AvaloniaList<_>(seq[5.;4.])
+                        // 93% along the line towards the target, for an arrowhead base
+                        let ax,ay = (tx-sx)*0.93+sx, (ty-sy)*0.93+sy
+                        // differential between target and arrowhead base
+                        let dx,dy = tx-ax, ty-ay
+                        // points orthogonal to the line from the base
+                        let p1x,p1y = ax+dy/2., ay-dx/2.
+                        let p2x,p2y = ax-dy/2., ay+dx/2.
+                        // triangle to make arrowhead
+                        let triangle = new Shapes.Polygon(Fill=Brushes.Yellow)
+                        triangle.Points <- [| Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y) |]
+                        // rectangle for remote box highlight
+                        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
+                        // TODO mirror overworld - maybe TP() relative to owCanvas?
+                        let gridX,gridY = if displayIsCurrentlyMirrored then 27., -3. else -117., -3. 
+                        let decoX,decoY = if displayIsCurrentlyMirrored then 27., 108. else -152., 108.
+                        let extraDecorations = [|
+                            CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
+                            upcast line, -pos.X-3., -pos.Y-3.
+                            upcast triangle, -pos.X-3., -pos.Y-3.
+                            upcast rect, lx-pos.X-3., ly-pos.Y-3.
+                            |]
+                        CustomComboBoxes.DisplayRemoteItemComboBox(appMainCanvas, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
+                            gridX, gridY, (fun (newBoxCellValue, newPlayerHas) ->
+                                TrackerModel.ladderBox.Set(newBoxCellValue, newPlayerHas)
+                                TrackerModel.forceUpdate()
+                                popupIsActive <- false
+                                ), 
+                            (fun () -> popupIsActive <- false), extraDecorations)
+                    coastBoxOnOwGridRect.PointerPressed.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
+                    coastBoxOnOwGridRect.PointerWheelChanged.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta.Y<0. then 1 else -1))
+                    //if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() = -1 then  // dont have, unknown
             else
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
@@ -707,61 +768,67 @@ let makeAll(owMapNum) =
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
+                let mutable popupIsActive = false
                 c.PointerPressed.Add(fun ea -> 
-                    if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
-                        // left click activates the popup selector
-                        let ST = CustomComboBoxes.borderThickness
-                        let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
-                        let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
-                        let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
-                        let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
-                        let activationDelta = if originalState = -1 then -1 else 0  // accelerator so 'click' means 'X'
-                        let gridxPosition = if i < 12 then -ST else OMTW - float(8*(5*3+2*int ST)+int ST)
-                        let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
-                            if MapStateProxy(n).IsX then
-                                upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)), Opacity=X_OPACITY), true, n
-                            elif n = MapStateProxy.NumStates then
-                                upcast new Canvas(Width=5.*3., Height=9.*3., Background=new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))), true, -1
-                            else
-                                upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
-                            )
-                        CustomComboBoxes.DoModalGridSelect(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, tileCanvas,
-                            gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
-                            (fun (dismissPopup, _ea, currentState) ->
-                                TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                    if not popupIsActive then
+                        if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
+                            // left click activates the popup selector
+                            popupIsActive <- true
+                            let ST = CustomComboBoxes.borderThickness
+                            let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+                            let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
+                            let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
+                            let activationDelta = if originalState = -1 then -1 else 0  // accelerator so 'click' means 'X'
+                            let leftAligned = if displayIsCurrentlyMirrored then not(i<12) else i<12
+                            let gridxPosition = if leftAligned then -ST else OMTW - float(8*(5*3+2*int ST)+int ST)
+                            let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
+                                if MapStateProxy(n).IsX then
+                                    upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, n
+                                elif n = MapStateProxy.NumStates then
+                                    upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
+                                else
+                                    upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
+                                )
+                            let pos = c.TranslatePoint(Point(), appMainCanvas).Value
+                            CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, tileCanvas,
+                                gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                                (fun (currentState) -> 
+                                    tileCanvas.Children.Clear()
+                                    canvasAdd(tileCanvas, tileImage, 0., 0.)
+                                    let bmp = MapStateProxy(currentState).CurrentBMP()
+                                    if bmp <> null then
+                                        let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
+                                        if MapStateProxy(currentState).IsX then
+                                            icon.Opacity <- X_OPACITY
+                                        canvasAdd(tileCanvas, icon, 0., 0.)),
+                                (fun (dismissPopup, _ea, currentState) ->
+                                    TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                                    redrawGridSpot()
+                                    dismissPopup()
+                                    if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                                    popupIsActive <- false),
+                                (fun () -> popupIsActive <- false),
+                                [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                        elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
+                            // right click is the 'special interaction'
+                            let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
+                            let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                            if msp.State = -1 then
+                                // right click empty tile changes to 'X'
+                                updateGridSpot -1 ""
+                            if msp.IsThreeItemShop then
+                                // right click a shop cycles down the second item
+                                // next item
+                                let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
+                                // skip past duplicates
+                                let item1 = msp.State - 15  // 1-based
+                                let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
+                                TrackerModel.setOverworldMapExtraData(i,j,e)
+                                // redraw
                                 redrawGridSpot()
-                                dismissPopup()
-                                if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()),  // immediate update to dismiss green/yellow highlight from current tile
-                            (fun (currentState) -> 
-                                tileCanvas.Children.Clear()
-                                canvasAdd(tileCanvas, tileImage, 0., 0.)
-                                let bmp = MapStateProxy(currentState).CurrentBMP()
-                                if bmp <> null then
-                                    let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
-                                    if MapStateProxy(currentState).IsX then
-                                        icon.Opacity <- X_OPACITY
-                                    canvasAdd(tileCanvas, icon, 0., 0.)),
-                            (fun () -> ()),
-                            None, CustomComboBoxes.ModalGridSelectBrushes.Defaults())
-                    elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
-                        // right click is the 'special interaction'
-                        let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
-                        let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        if msp.State = -1 then
-                            // right click empty tile changes to 'X'
-                            updateGridSpot -1 ""
-                        if msp.IsThreeItemShop then
-                            // right click a shop cycles down the second item
-                            // next item
-                            let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
-                            // skip past duplicates
-                            let item1 = msp.State - 15  // 1-based
-                            let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
-                            TrackerModel.setOverworldMapExtraData(i,j,e)
-                            // redraw
-                            redrawGridSpot()
                     )
-                c.PointerWheelChanged.Add(fun x -> updateGridSpot (if x.Delta.Y<0. then 1 else -1) "")
+                c.PointerWheelChanged.Add(fun x -> if not popupIsActive then updateGridSpot (if x.Delta.Y<0. then 1 else -1) "")
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     owMapGrid.PointerLeave.Add(fun _ ->
         if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
@@ -1051,6 +1118,8 @@ let makeAll(owMapNum) =
                     // display known-but-ungotten item on the map
                     let x,y = 15,5
                     let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.ladderBox.CellCurrent()]
+                    if displayIsCurrentlyMirrored then 
+                        itemImage.RenderTransform <- new ScaleTransform(-1., 1.)
                     itemImage.Opacity <- 1.0
                     itemImage.Width <- OMTW/2.2
                     let color = Brushes.Black
@@ -1148,6 +1217,53 @@ let makeAll(owMapNum) =
     // Dungeon level trackers
     let fixedDungeon1Outlines = ResizeArray()
     let fixedDungeon2Outlines = ResizeArray()
+
+    let ROOMS = 26 // how many types
+    let roomBMPpairs(n) =
+        match n with
+        | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
+        | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
+        | 11 -> Graphics.cdungeonDoubleMoatBMP
+        | 12 -> Graphics.cdungeonChevyBMP
+        | 13 -> Graphics.cdungeonVMoatBMP
+        | 14 -> Graphics.cdungeonHMoatBMP
+        | 15 -> Graphics.cdungeonVChuteBMP
+        | 16 -> Graphics.cdungeonHChuteBMP
+        | 17 -> Graphics.cdungeonTeeBMP
+        | 18 -> Graphics.cdungeonNeedWand
+        | 19 -> Graphics.cdungeonBlueBubble
+        | 20 -> Graphics.cdungeonNeedRecorder
+        | 21 -> Graphics.cdungeonNeedBow
+        | 22 -> Graphics.cdungeonTriforceBMP 
+        | 23 -> Graphics.cdungeonPrincessBMP 
+        | 24 -> Graphics.cdungeonStartBMP 
+        | 25 -> Graphics.cdungeonExploredRoomBMP 
+        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+    let dungeonRoomMouseButtonExplainerDecoration =
+        let ST = CustomComboBoxes.borderThickness
+        let h = 9.*3.*2.+ST*4.
+        let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black)
+        let mouseBMP = Graphics.mouseIconButtonColors2BMP
+        let mouse = Graphics.BMPtoImage mouseBMP
+        mouse.Height <- h
+        mouse.Width <- float(mouseBMP.Width) * h / float(mouseBMP.Height)
+        mouse.Stretch <- Stretch.Uniform
+        let mouse = new Border(BorderThickness=Thickness(0.,0.,ST,0.), BorderBrush=Brushes.Gray, Child=mouse)
+        d.Children.Add(mouse) |> ignore
+        DockPanel.SetDock(mouse,Dock.Left)
+        let sp = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Bottom)
+        d.Children.Add(sp) |> ignore
+        for color, text, b in [Brushes.DarkMagenta,"Completed room",true; Brushes.DarkCyan,"Uncompleted room",false] do
+            let p = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(ST))
+            let pict = Graphics.BMPtoImage((if b then snd else fst)(roomBMPpairs(ROOMS-1)))
+            pict.Margin <- Thickness(ST,0.,2.*ST,0.)
+            p.Children.Add(pict) |> ignore
+            let tb = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Padding=Thickness(2.,0.,2.,0.),
+                                 Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(ST), BorderBrush=color)
+            p.Children.Add(tb) |> ignore
+            sp.Children.Add(p) |> ignore
+        let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
+        b
 
     let grabHelper = new Dungeon.GrabHelper()
     let grabModeTextBlock = 
@@ -1258,10 +1374,9 @@ let makeAll(owMapNum) =
                     elif ea.GetCurrentPoint(appMainCanvas).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = Array2D.zeroCreate 8 8 // 1-9 = transports, see redraw() below for rest
+        let roomStates = Array2D.zeroCreate 8 8 // 1-9 = transports, see roomBMPpairs() for rest
         let roomIsCircled = Array2D.zeroCreate 8 8
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let ROOMS = 26 // how many types
         let usedTransports = Array.zeroCreate 10 // slot 0 unused
         let roomRedrawFuncs = ResizeArray()
         let redrawAllRooms() =
@@ -1306,26 +1421,6 @@ let makeAll(owMapNum) =
                 roomCanvases.[i,j] <- c
                 roomStates.[i,j] <- 0
                 roomIsCircled.[i,j] <- false
-                let roomBMPpairs(n) =
-                    match n with
-                    | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
-                    | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
-                    | 11 -> Graphics.cdungeonDoubleMoatBMP
-                    | 12 -> Graphics.cdungeonChevyBMP
-                    | 13 -> Graphics.cdungeonVMoatBMP
-                    | 14 -> Graphics.cdungeonHMoatBMP
-                    | 15 -> Graphics.cdungeonVChuteBMP
-                    | 16 -> Graphics.cdungeonHChuteBMP
-                    | 17 -> Graphics.cdungeonTeeBMP
-                    | 18 -> Graphics.cdungeonNeedWand
-                    | 19 -> Graphics.cdungeonBlueBubble
-                    | 20 -> Graphics.cdungeonNeedRecorder
-                    | 21 -> Graphics.cdungeonNeedBow
-                    | 22 -> Graphics.cdungeonTriforceBMP 
-                    | 23 -> Graphics.cdungeonPrincessBMP 
-                    | 24 -> Graphics.cdungeonStartBMP 
-                    | 25 -> Graphics.cdungeonExploredRoomBMP 
-                    | n  -> Graphics.cdungeonNumberBMPs.[n-1]
                 let redraw() =
                     c.Children.Clear()
                     let image =
@@ -1364,8 +1459,13 @@ let makeAll(owMapNum) =
                         let roomPos = c.TranslatePoint(Point(), appMainCanvas).Value
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
+                        let h = 9.*3.*2.+ST*4.
                         CustomComboBoxes.DoModalGridSelect(appMainCanvas, roomPos.X, roomPos.Y, tileCanvas,
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
+                            (fun (currentState) -> 
+                                tileCanvas.Children.Clear()
+                                let tileBMP = roomBMPpairs(currentState) |> (fun (u,c) -> u)
+                                canvasAdd(tileCanvas, Graphics.BMPtoImage tileBMP, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->
                                 let pp = ea.GetCurrentPoint(c)
                                 if pp.Properties.IsLeftButtonPressed || pp.Properties.IsRightButtonPressed then 
@@ -1377,36 +1477,8 @@ let makeAll(owMapNum) =
                                     dismissPopup()
                                     popupState <- Dungeon.DelayedPopupState.NONE
                                 ),
-                            (fun (currentState) -> 
-                                tileCanvas.Children.Clear()
-                                let tileBMP = roomBMPpairs(currentState) |> (fun (u,c) -> u)
-                                canvasAdd(tileCanvas, Graphics.BMPtoImage tileBMP, 0., 0.)),
                             (fun () -> popupState <- Dungeon.DelayedPopupState.NONE),   // onClose
-                            Some(
-                                // extra decoration
-                                let h = 9.*3.*2.+ST*4.
-                                let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black)
-                                let mouseBMP = Graphics.mouseIconButtonColors2BMP
-                                let mouse = Graphics.BMPtoImage mouseBMP
-                                mouse.Height <- h
-                                mouse.Width <- float(mouseBMP.Width) * h / float(mouseBMP.Height)
-                                mouse.Stretch <- Stretch.Uniform
-                                let mouse = new Border(BorderThickness=Thickness(0.,0.,ST,0.), BorderBrush=Brushes.Gray, Child=mouse)
-                                d.Children.Add(mouse) |> ignore
-                                DockPanel.SetDock(mouse,Dock.Left)
-                                let sp = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Bottom)
-                                d.Children.Add(sp) |> ignore
-                                for color, text, b in [Brushes.DarkMagenta,"Completed room",true; Brushes.DarkCyan,"Uncompleted room",false] do
-                                    let p = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(ST))
-                                    let pict = Graphics.BMPtoImage((if b then snd else fst)(roomBMPpairs(ROOMS-1)))
-                                    pict.Margin <- Thickness(ST,0.,2.*ST,0.)
-                                    p.Children.Add(pict) |> ignore
-                                    let tb = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Padding=Thickness(2.,0.,2.,0.),
-                                                         Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(ST), BorderBrush=color)
-                                    p.Children.Add(tb) |> ignore
-                                    sp.Children.Add(p) |> ignore
-                                let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
-                                upcast b, gridxPosition, gridYPosition-h-ST), 
+                            [upcast dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST], 
                             CustomComboBoxes.ModalGridSelectBrushes.Defaults())
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
@@ -1430,142 +1502,148 @@ let makeAll(owMapNum) =
                                 canvasAdd(canvas, r, float(x*51 - 6), float(TH+y*39 - 6))
                 let highlight(contiguous:_[,], brush) = highlightImpl(dungeonHighlightCanvas,contiguous,brush)
                 c.PointerEnter.Add(fun _ ->
-                    if grabHelper.IsGrabMode then
-                        if not grabHelper.HasGrab then
-                            if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
-                                dungeonHighlightCanvas.Children.Clear() // clear old preview
-                                let contiguous = grabHelper.PreviewGrab(i,j,roomStates)
-                                highlight(contiguous, Brushes.Lime)
-                        else
-                            dungeonHighlightCanvas.Children.Clear() // clear old preview
-                            let ok,warn = grabHelper.PreviewDrop(i,j,roomStates)
-                            highlight(ok, Brushes.Lime)
-                            highlight(warn, Brushes.Yellow)
-                    )
-                c.PointerLeave.Add(fun _ ->
-                    if grabHelper.IsGrabMode then
-                        dungeonHighlightCanvas.Children.Clear() // clear old preview
-                    )
-                c.PointerWheelChanged.Add(fun x -> 
-                    if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
-                        // scroll wheel activates the popup selector
-                        let activationDelta = if x.Delta.Y<0. then 1 else -1
-                        immediateActivatePopup(activationDelta)
-                    )
-                Graphics.setupClickVersusDrag(c, (fun ea ->
-                    let pos = ea.GetPosition(c)
-                    // I often accidentally click room when trying to target doors with mouse, only do certain actions when isInterior
-                    let isInterior = not(pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER)
-                    if ea.InitialPressMouseButton = Input.MouseButton.Left then
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
                         if grabHelper.IsGrabMode then
                             if not grabHelper.HasGrab then
                                 if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
-                                    dungeonHighlightCanvas.Children.Clear() // clear preview
-                                    let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
-                                    highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
+                                    dungeonHighlightCanvas.Children.Clear() // clear old preview
+                                    let contiguous = grabHelper.PreviewGrab(i,j,roomStates)
                                     highlight(contiguous, Brushes.Lime)
                             else
-                                let backupRoomStates = roomStates.Clone() :?> int[,]
-                                let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
-                                let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
-                                let backupHorizontalDoors = horizontalDoors |> Array2D.map (fun c -> c.State)
-                                let backupVerticalDoors = verticalDoors |> Array2D.map (fun c -> c.State)
-                                grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
-                                redrawAllRooms()  // make updated changes visual
-                                let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
-                                async {
-                                    let task = cmb.ShowDialog((Application.Current.ApplicationLifetime :?> ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).MainWindow)
-                                    do! Async.AwaitTask task
-                                    grabRedraw()  // DoDrop completes the grab, neeed to update the visual
-                                    if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
-                                        // copy back from old state
-                                        backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
-                                        backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
-                                        backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
-                                        redrawAllRooms()  // make reverted changes visual
-                                        horizontalDoors |> Array2D.iteri (fun x y c -> c.State <- backupHorizontalDoors.[x,y])
-                                        verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
-                                } |> Async.StartImmediate
-                        else
-                            if isInterior then
-                                if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
-                                    // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
-                                    if roomStates.[i,j] = 0 then
-                                        if i > 0 then
-                                            horizontalDoors.[i-1,j].State <- Dungeon.DoorState.BLACKEDOUT
-                                        if i < 7 then
-                                            horizontalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
-                                        if j > 0 then
-                                            verticalDoors.[i,j-1].State <- Dungeon.DoorState.BLACKEDOUT
-                                        if j < 7 then
-                                            verticalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
-                                        roomStates.[i,j] <- 10
-                                        roomCompleted.[i,j] <- true
-                                        redraw()
-                                    // shift click a blackedOut room to undo it back to unknown
-                                    elif roomStates.[i,j] = 10 then
-                                        if i > 0 && horizontalDoors.[i-1,j].State = Dungeon.DoorState.BLACKEDOUT then
-                                            horizontalDoors.[i-1,j].State <- Dungeon.DoorState.UNKNOWN
-                                        if i < 7 && horizontalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
-                                            horizontalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
-                                        if j > 0 && verticalDoors.[i,j-1].State = Dungeon.DoorState.BLACKEDOUT then
-                                            verticalDoors.[i,j-1].State <- Dungeon.DoorState.UNKNOWN
-                                        if j < 7 && verticalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
-                                            verticalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
-                                        roomStates.[i,j] <- 0
-                                        roomCompleted.[i,j] <- false
-                                        redraw()
+                                dungeonHighlightCanvas.Children.Clear() // clear old preview
+                                let ok,warn = grabHelper.PreviewDrop(i,j,roomStates)
+                                highlight(ok, Brushes.Lime)
+                                highlight(warn, Brushes.Yellow)
+                    )
+                c.PointerLeave.Add(fun _ ->
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                        if grabHelper.IsGrabMode then
+                            dungeonHighlightCanvas.Children.Clear() // clear old preview
+                    )
+                c.PointerWheelChanged.Add(fun x -> 
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                        if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
+                            // scroll wheel activates the popup selector
+                            let activationDelta = if x.Delta.Y<0. then 1 else -1
+                            immediateActivatePopup(activationDelta)
+                    )
+                Graphics.setupClickVersusDrag(c, (fun ea ->
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                        let pos = ea.GetPosition(c)
+                        // I often accidentally click room when trying to target doors with mouse, only do certain actions when isInterior
+                        let isInterior = not(pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER)
+                        if ea.InitialPressMouseButton = Input.MouseButton.Left then
+                            if grabHelper.IsGrabMode then
+                                if not grabHelper.HasGrab then
+                                    if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
+                                        dungeonHighlightCanvas.Children.Clear() // clear preview
+                                        let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
+                                        highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted
+                                        highlight(contiguous, Brushes.Lime)
                                 else
+                                    let backupRoomStates = roomStates.Clone() :?> int[,]
+                                    let backupRoomIsCircled = roomIsCircled.Clone() :?> bool[,]
+                                    let backupRoomCompleted = roomCompleted.Clone() :?> bool[,]
+                                    let backupHorizontalDoors = horizontalDoors |> Array2D.map (fun c -> c.State)
+                                    let backupVerticalDoors = verticalDoors |> Array2D.map (fun c -> c.State)
+                                    grabHelper.DoDrop(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
+                                    redrawAllRooms()  // make updated changes visual
+                                    let cmb = new CustomMessageBox.CustomMessageBox("Verify changes", System.Drawing.SystemIcons.Question, "You moved a dungeon segment. Keep this change?", ["Keep changes"; "Undo"])
+                                    async {
+                                        let task = cmb.ShowDialog((Application.Current.ApplicationLifetime :?> ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).MainWindow)
+                                        do! Async.AwaitTask task
+                                        grabRedraw()  // DoDrop completes the grab, neeed to update the visual
+                                        if cmb.MessageBoxResult = null || cmb.MessageBoxResult = "Undo" then
+                                            // copy back from old state
+                                            backupRoomStates |> Array2D.iteri (fun x y v -> roomStates.[x,y] <- v)
+                                            backupRoomIsCircled |> Array2D.iteri (fun x y v -> roomIsCircled.[x,y] <- v)
+                                            backupRoomCompleted |> Array2D.iteri (fun x y v -> roomCompleted.[x,y] <- v)
+                                            redrawAllRooms()  // make reverted changes visual
+                                            horizontalDoors |> Array2D.iteri (fun x y c -> c.State <- backupHorizontalDoors.[x,y])
+                                            verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
+                                    } |> Async.StartImmediate
+                            else
+                                if isInterior then
+                                    if ea.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift) then
+                                        // shift click an unexplored room to mark not-on-map rooms (by "blackedOut"ing all the connections)
+                                        if roomStates.[i,j] = 0 then
+                                            if i > 0 then
+                                                horizontalDoors.[i-1,j].State <- Dungeon.DoorState.BLACKEDOUT
+                                            if i < 7 then
+                                                horizontalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
+                                            if j > 0 then
+                                                verticalDoors.[i,j-1].State <- Dungeon.DoorState.BLACKEDOUT
+                                            if j < 7 then
+                                                verticalDoors.[i,j].State <- Dungeon.DoorState.BLACKEDOUT
+                                            roomStates.[i,j] <- 10
+                                            roomCompleted.[i,j] <- true
+                                            redraw()
+                                        // shift click a blackedOut room to undo it back to unknown
+                                        elif roomStates.[i,j] = 10 then
+                                            if i > 0 && horizontalDoors.[i-1,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                                horizontalDoors.[i-1,j].State <- Dungeon.DoorState.UNKNOWN
+                                            if i < 7 && horizontalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                                horizontalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
+                                            if j > 0 && verticalDoors.[i,j-1].State = Dungeon.DoorState.BLACKEDOUT then
+                                                verticalDoors.[i,j-1].State <- Dungeon.DoorState.UNKNOWN
+                                            if j < 7 && verticalDoors.[i,j].State = Dungeon.DoorState.BLACKEDOUT then
+                                                verticalDoors.[i,j].State <- Dungeon.DoorState.UNKNOWN
+                                            roomStates.[i,j] <- 0
+                                            roomCompleted.[i,j] <- false
+                                            redraw()
+                                    else
+                                        if roomStates.[i,j] = 0 then
+                                            // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                                            roomStates.[i,j] <- ROOMS-1
+                                            roomCompleted.[i,j] <- true
+                                        redraw()
+                                        if popupState=Dungeon.DelayedPopupState.SOON then
+                                            //printfn "click canceling"
+                                            popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
+                                        else
+                                            delayedActivatePopup(0)
+                        elif ea.InitialPressMouseButton = Input.MouseButton.Right then
+                            if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
+                                if isInterior then
                                     if roomStates.[i,j] = 0 then
-                                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state in a single click
+                                        // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
                                         roomStates.[i,j] <- ROOMS-1
-                                        roomCompleted.[i,j] <- true
+                                        roomCompleted.[i,j] <- false
                                     redraw()
                                     if popupState=Dungeon.DelayedPopupState.SOON then
-                                        //printfn "click canceling"
                                         popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
                                     else
                                         delayedActivatePopup(0)
-                    elif ea.InitialPressMouseButton = Input.MouseButton.Right then
-                        if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
-                            if isInterior then
-                                if roomStates.[i,j] = 0 then
-                                    // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state in a single click
-                                    roomStates.[i,j] <- ROOMS-1
-                                    roomCompleted.[i,j] <- false
-                                redraw()
-                                if popupState=Dungeon.DelayedPopupState.SOON then
-                                    popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
-                                else
-                                    delayedActivatePopup(0)
-                    elif ea.InitialPressMouseButton = Input.MouseButton.Middle then
-                        // middle click toggles roomIsCircled
-                        if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
-                            if isInterior then
-                                roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
-                                redraw()
+                        elif ea.InitialPressMouseButton = Input.MouseButton.Middle then
+                            // middle click toggles roomIsCircled
+                            if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
+                                if isInterior then
+                                    roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
+                                    redraw()
                     ), (fun ea -> 
-                        // drag and drop to quickly 'paint' rooms
-                        if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
-                            if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then
-                                let o = new Avalonia.Input.DataObject()
-                                o.Set(Avalonia.Input.DataFormats.Text,"L")
-                                Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.None) |> ignore
-                            elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then
-                                let o = new Avalonia.Input.DataObject()
-                                o.Set(Avalonia.Input.DataFormats.Text,"R")
-                                Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.None) |> ignore
+                        if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                            // drag and drop to quickly 'paint' rooms
+                            if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
+                                if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then
+                                    let o = new Avalonia.Input.DataObject()
+                                    o.Set(Avalonia.Input.DataFormats.Text,"L")
+                                    Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.None) |> ignore
+                                elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then
+                                    let o = new Avalonia.Input.DataObject()
+                                    o.Set(Avalonia.Input.DataFormats.Text,"R")
+                                    Avalonia.Input.DragDrop.DoDragDrop(ea, o, Avalonia.Input.DragDropEffects.None) |> ignore
                         ))
                 c.AddHandler<_>(Avalonia.Input.DragDrop.DropEvent, new EventHandler<_>(fun o ea -> ea.Handled <- true))
                 c.AddHandler<_>(Avalonia.Input.DragDrop.DragOverEvent, new EventHandler<_>(fun o ea ->
-                    if roomStates.[i,j] = 0 then
-                        if ea.Data.GetText() = "L" then
-                            roomStates.[i,j] <- ROOMS-1
-                            roomCompleted.[i,j] <- true
-                        else
-                            roomStates.[i,j] <- ROOMS-1
-                            roomCompleted.[i,j] <- false
-                        redraw()
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                        if roomStates.[i,j] = 0 then
+                            if ea.Data.GetText() = "L" then
+                                roomStates.[i,j] <- ROOMS-1
+                                roomCompleted.[i,j] <- true
+                            else
+                                roomStates.[i,j] <- ROOMS-1
+                                roomCompleted.[i,j] <- false
+                            redraw()
                     ))
                 Avalonia.Input.DragDrop.SetAllowDrop(c, true)
         for quest,outlines in [| (DungeonData.firstQuest.[level-1], fixedDungeon1Outlines); (DungeonData.secondQuest.[level-1], fixedDungeon2Outlines) |] do
@@ -1642,23 +1720,21 @@ let makeAll(owMapNum) =
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
         redraw(current)
+        let mutable popupIsActive = false
         let activate(activationDelta) =
+            popupIsActive <- true
             let pc, predraw = make()
             let pos = c.TranslatePoint(Point(), appMainCanvas)
             CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.Value.X, pos.Value.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                     (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
-                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., 
+                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
                     (fun (dismissPopup,ea,db) -> 
                         current <- db
                         redraw(db)
-                        dismissPopup()), predraw, (fun()->()), None, CustomComboBoxes.ModalGridSelectBrushes.Defaults())
-        c.PointerWheelChanged.Add(fun x -> 
-            let activationDelta = if x.Delta.Y<0. then 1 else -1
-            activate(activationDelta)
-            )
-        c.PointerPressed.Add(fun x -> 
-            activate(0)
-            )
+                        dismissPopup()
+                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+        c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activate(if x.Delta.Y<0. then 1 else -1))
+        c.PointerPressed.Add(fun x -> if not popupIsActive then activate(0))
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-402.)/3.)

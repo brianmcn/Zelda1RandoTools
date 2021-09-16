@@ -355,6 +355,7 @@ let mouseIconButtonColors2BMP =
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
 
+let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
 (*
 do
     let imageStream = GetResourceStream("icons3x7.png")

@@ -371,23 +371,29 @@ type Box() =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
     let mutable playerHas = PlayerHas.NO
+    let changed = new Event<_>()
+    member _this.Changed = changed.Publish
     member _this.PlayerHas() = playerHas
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
         cell.Prev()
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        changed.Trigger()
     member _this.CellNext() = 
         cell.Next()
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        changed.Trigger()
     member _this.CellCurrent() = cell.Current()
     member _this.Set(v,ph) = 
         cell.Set(v)
         playerHas <- ph
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        changed.Trigger()
     member _this.SetPlayerHas(v) = 
         playerHas <- v
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        changed.Trigger()
 
 let FinalBoxOf1Or4 = new Box()
 type Dungeon(id,numBoxes) =
