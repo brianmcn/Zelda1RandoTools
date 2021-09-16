@@ -379,6 +379,7 @@ let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCan
                         gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
                         onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
                         redrawTile,  // we pass you currentStateID
+                        onClose,
                         extraDecoration:option<FrameworkElement*float*float>  // extra thing to draw at (x,y)
                         ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
@@ -456,5 +457,5 @@ let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCan
     |  1 -> next()
     | _ -> failwith "bad activationDelta"
     // activate the modal
-    dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, (fun()->()))
+    dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, onClose)
    

@@ -3,6 +3,12 @@
 open Avalonia.Media
 open Avalonia.Controls
 
+[<RequireQualifiedAccess>]
+type DelayedPopupState =
+    | NONE
+    | SOON
+    | ACTIVE_NOW
+
 // door colors
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
 let no = new SolidColorBrush(Color.FromRgb(105uy, 0uy, 0uy)) :> Brush

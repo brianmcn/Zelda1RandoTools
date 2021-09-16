@@ -134,9 +134,10 @@ Rooms can be marked as:
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
  - grey box (typical non-descript room)
 Clicking or scrolling brings up the room selector popup, so you can either scroll-and-click or mouse-and-click to select a room, similar to the item box chooser.
-Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten).
-Right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
-For the commonest case of a non-descript room needing no special marker, two left clicks (or two right clicks) will mark it as (un)completed non-descript room.
+Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten);
+   right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
+For the commonest case of a non-descript room needing no special marker, a quick double-left-click (double-right-click) will mark a room as
+   an (un)completed non-descript room, without even activating the popup.
 
 You can 'circle' a room by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
 
