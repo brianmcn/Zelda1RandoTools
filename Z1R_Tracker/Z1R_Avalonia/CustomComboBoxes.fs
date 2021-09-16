@@ -40,207 +40,7 @@ let boxCurrentBMP(isCurrentlyBook, boxCellCurrent, isForTimeline) =
     | 13 -> Graphics.white_sword_bmp
     |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
 
-let mutable private c, sunglasses = (null:Canvas), null
-let mutable private primaryBoxCellCurrent = -99
-let mutable private primaryBoxRedraw = fun() -> ()
-let mutable private commitFunc = fun(_boxCellCurrent,_playerHas) -> ()
-let private gridBoxRedrawFuncs = ResizeArray()
-let private isGreyed = Array2D.zeroCreate 4 4
-let private g = makeGrid(4, 4, 30, 30)
-let private gridContainer = new StackPanel(Orientation=Orientation.Vertical)
-
-let private currentAsArrayIndex(current,a:_[,]) =
-    match current with
-    | 0 -> a.[0,0]
-    | 1 -> a.[1,0]
-    | 2 -> a.[2,0]
-    | 3 -> a.[3,0]
-    | 4 -> a.[0,1]
-    | 5 -> a.[1,1]
-    | 6 -> a.[2,1]
-    | 7 -> a.[3,1]
-    | 8 -> a.[0,2]
-    | 9 -> a.[1,2]
-    | 10 -> a.[2,2]
-    | 11 -> a.[3,2]
-    | 12 -> a.[0,3]
-    | 13 -> a.[1,3]
-    | 14 -> a.[2,3]
-    | -1 -> a.[3,3]
-    | _ -> failwith "bad currentAsArrayIndex"
-let private Modulus(current) =   // -1..14
-    let x = (current + 16) % 16
-    if x = 15 then - 1 else x
-let private Next(current) =
-    let mutable current = Modulus(current+1)
-    while currentAsArrayIndex(current,isGreyed) do
-        current <- Modulus(current+1)
-    current
-let private Prev(current) =
-    let mutable current = Modulus(current-1)
-    while currentAsArrayIndex(current,isGreyed) do
-        current <- Modulus(current-1)
-    current
-    
-let makeItemBoxPicture(boxCellCurrent, isCurrentlyBook, isScrollable) =
-    let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
-    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
-    c.Children.Add(rect) |> ignore
-    let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
-    c.Children.Add(innerc) |> ignore
-    let redraw(n) =
-        innerc.Children.Clear()
-        let bmp = boxCurrentBMP(isCurrentlyBook, n, false)
-        if bmp <> null then
-            let image = Graphics.BMPtoImage(bmp)
-            image.IsHitTestVisible <- false
-            canvasAdd(innerc, image, 4., 4.)
-    redraw(boxCellCurrent)
-    let greyOut = new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.0, IsHitTestVisible=false)
-    c.Children.Add(greyOut) |> ignore
-    if isScrollable then
-        primaryBoxCellCurrent <- boxCellCurrent
-        primaryBoxRedraw <- (fun() -> redraw(primaryBoxCellCurrent))
-        c.PointerWheelChanged.Add(fun x -> 
-            if x.Delta.Y<0. then
-                primaryBoxCellCurrent <- Next(primaryBoxCellCurrent)
-            else
-                primaryBoxCellCurrent <- Prev(primaryBoxCellCurrent)
-            redraw(primaryBoxCellCurrent)  // redraw self
-            // redraw popup grid
-            for f in gridBoxRedrawFuncs do
-                f()
-        )
-    c, rect, greyOut
-
-let private gridItemBoxPicturesIsCurrentlyBook = Array2D.init 4 4 (fun i j ->
-    let boxCellCurrent = Modulus(j*4 + i)
-    boxCellCurrent, makeItemBoxPicture(boxCellCurrent, ref true, false)
-    )
-let private gridItemBoxPicturesIsNotCurrentlyBook = Array2D.init 4 4 (fun i j ->
-    let boxCellCurrent = Modulus(j*4 + i)
-    boxCellCurrent, makeItemBoxPicture(boxCellCurrent, ref false, false)
-    )
-let private DismissItemComboBox() =
-    c.IsHitTestVisible <- false
-    c.Opacity <- 0.
-let InitializeItemComboBox(appMainCanvas:Canvas) =
-    // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
-    c <- new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
-    appMainCanvas.Children.Add(c) |> ignore
-    sunglasses <- new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
-    c.PointerPressed.Add(fun ea ->
-        let pp = ea.GetCurrentPoint(c)
-        if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-            // if there were something to do, we would undo it here, but there is no model or view change, other than...
-            DismissItemComboBox()
-        )
-    // establish all grid mouse interaction logic
-    for i = 0 to 3 do
-        for j = 0 to 3 do
-            for a in [gridItemBoxPicturesIsCurrentlyBook; gridItemBoxPicturesIsNotCurrentlyBook] do
-                let n,(pict,rect,greyOut) = a.[i,j]
-                pict.PointerEnter.Add(fun ea ->
-                    // unselect prior
-                    let _,(_,oldrect,_) = currentAsArrayIndex(primaryBoxCellCurrent, a)
-                    oldrect.Stroke <- Brushes.Black
-                    // select it
-                    primaryBoxCellCurrent <- n
-                    rect.Stroke <- Brushes.Yellow
-                    // update primary box
-                    primaryBoxRedraw()
-                    )
-                pict.PointerPressed.Add(fun ea ->
-                    let pp = ea.GetCurrentPoint(c)
-                    if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-                        if greyOut.Opacity = 0. then // not greyed out
-                                // select it (no need to update primary box or other grid cell ui, we're about to dismiss entire ui)
-                                primaryBoxCellCurrent <- n
-                                // commit it
-                                ea.Handled <- true
-                                DismissItemComboBox()
-                                commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas pp)
-                        else
-                            ea.Handled <- true  // clicking a greyed out one does nothing, but don't want to let event continue to outer canvas and dismiss the UI, just swallow the click
-                    )
-    // arrange visual tree of gridContainer
-    let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
-    let mouseBMP = Graphics.mouseIconButtonColorsBMP
-    let mouse = Graphics.BMPtoImage mouseBMP
-    mouse.Height <- 90.
-    mouse.Width <- float(mouseBMP.Width) * 90. / float(mouseBMP.Height)
-    mouse.Stretch <- Stretch.Uniform
-    d.Children.Add(mouse) |> ignore
-    DockPanel.SetDock(mouse,Dock.Left)
-    let sp = new StackPanel(Orientation=Orientation.Vertical)
-    d.Children.Add(sp) |> ignore
-    for color, text in [yes,"Have it"; skipped,"Don't want it"; no,"Don't have it"] do
-        let p = new StackPanel(Orientation=Orientation.Horizontal)
-        let pict,rect,greyOut = makeItemBoxPicture(-1, ref false, false)
-        rect.Stroke <- color
-        greyOut.Opacity <- 0.
-        p.Children.Add(pict) |> ignore
-        let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
-        p.Children.Add(tb) |> ignore
-        sp.Children.Add(p) |> ignore
-    let left(x) = 
-        let sp = new StackPanel(Orientation=Orientation.Horizontal)
-        sp.Children.Add(x) |> ignore
-        sp
-    gridContainer.Children.Add(left <| new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.,3.,3.,0.), Child=g)) |> ignore
-    gridContainer.Children.Add(left <| new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.,3.,3.,3.), Child=d)) |> ignore
-
-let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, boxCellFirstSelection, isCurrentlyBook, commitFunction) =
-    commitFunc <- commitFunction
-    c.IsHitTestVisible <- true
-    c.Opacity <- 1.
-    c.Children.Clear()
-    c.Children.Add(sunglasses) |> ignore
-    // put the box at boxX,boxY
-    let pict,rect,greyOut = makeItemBoxPicture(boxCellFirstSelection, isCurrentlyBook, true)
-    rect.Stroke <- Brushes.Yellow
-    greyOut.Opacity <- 0.
-    canvasAdd(c, pict, boxX, boxY)
-    // clicking the primary box
-    pict.PointerPressed.Add(fun ea ->
-        let pp = ea.GetCurrentPoint(c)
-        if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
-            ea.Handled <- true
-            if boxCellCurrent=primaryBoxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(primaryBoxCellCurrent) then
-                DismissItemComboBox()
-                commitFunc(primaryBoxCellCurrent, MouseButtonEventArgsToPlayerHas pp)
-            else
-                // this can happen if e.g. the book is already used by another box, the user interacts with this box, moves mouse over book, moves mouse back to original box, and clicks
-                // in this case, we treat it like clicking on a greyed-out box in the grid, namely we swallow the click and do nothing
-                () // todo rewrite this whole mess
-                // TODO alternatively, leaving the grid could cause the primaryBoxCellCurrent state to 'snap back' to the original state, which is probably better?
-        )
-    // populate grid with right set of pictures
-    g.Children.Clear()
-    for i = 0 to 3 do
-        for j = 0 to 3 do
-            let n,(pict,rect,greyOut) = if !isCurrentlyBook then gridItemBoxPicturesIsCurrentlyBook.[i,j] else gridItemBoxPicturesIsNotCurrentlyBook.[i,j]
-            let isOriginallyCurrent = n=boxCellCurrent
-            let isSelectable = isOriginallyCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
-            isGreyed.[i,j] <- not(isSelectable)
-            if isGreyed.[i,j] then
-                greyOut.Opacity <- 0.6
-            else
-                greyOut.Opacity <- 0.0
-            let redraw() =
-                let isCurrent = n=primaryBoxCellCurrent
-                if isCurrent then
-                    rect.Stroke <- Brushes.Yellow
-                else
-                    rect.Stroke <- Brushes.Black
-            redraw()
-            gridBoxRedrawFuncs.Add(redraw)
-            gridAdd(g, pict, i, j)
-    // find the right location next to box to place the grid
-    canvasAdd(c, gridContainer, boxX, boxY+30.)  // TODO eventually deal with going off the lower/right edge?
-    // TODO tweak sunglasses opacity?
-    // TODO tweak greyedOut opacity?
-    // TODO do the greyed out ones need a red X or a ghostbusters on them, to make it clearer they are unclickable?
+///////////////////////////////////////////////////////////////////
 
 let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:Control, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
@@ -311,23 +111,31 @@ let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
     canvasAdd(canvas, rightLine, 0., 0.)
 
 
-// TODO: factor out brush colors
+// TODO: factor out background brush color (assumes black)
+type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightBrush, gridNotSelectableHighlightBrush, borderBrush) =
+    member _this.OriginalTileHighlightBrush = originalTileHighlightBrush
+    member _this.GridSelectableHighlightBrush = gridSelectableHighlightBrush
+    member _this.GridNotSelectableHighlightBrush = gridNotSelectableHighlightBrush
+    member _this.BorderBrush = borderBrush
+    static member Defaults() =
+        new ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)
 let borderThickness = 3.  // TODO should this be a param?
 let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
                             gridElementsSelectablesAndIDs:(Control*bool*'a)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
                             originalStateIndex:int, // originalStateIndex is array index into the array
                             activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
-                            gnc, gnr, gcw, grh,   // grid: numRows, numCols, colWidth, rowHeight (heights of elements; this control will add border highlight)
+                            (gnc, gnr, gcw, grh),   // grid: numCols, numRows, colWidth, rowHeight (heights of elements; this control will add border highlight)
                             gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
                             onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
                             redrawTile,  // we pass you currentStateID
                             onClose,
-                            extraDecoration:option<Control*float*float>  // extra thing to draw at (x,y)
+                            extraDecoration:option<Control*float*float>,  // extra thing to draw at (x,y)
+                            brushes:ModalGridSelectBrushes
                             ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
     let ST = borderThickness
-    MakePrettyDashes(popupCanvas, Brushes.Lime, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
+    MakePrettyDashes(popupCanvas, brushes.OriginalTileHighlightBrush, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
     if gridElementsSelectablesAndIDs.Length > gnr*gnc then
         failwith "the grid is not big enough to accomodate all the choices"
     let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
@@ -372,7 +180,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                     c.Children.Add(new Canvas(Width=float gcw, Height=float grh, Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
                 let b = new Border(BorderThickness=Thickness(ST), Child=c)
                 b.PointerEnter.Add(fun _ -> changeCurrentState(n))
-                let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then Brushes.Lime else Brushes.Red) else Brushes.Black)
+                let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then brushes.GridSelectableHighlightBrush else brushes.GridNotSelectableHighlightBrush) else Brushes.Black)
                 redrawGridFuncs.Add(redraw)
                 redraw()
                 b.PointerPressed.Add(fun ea -> 
@@ -387,7 +195,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                 dp.PointerPressed.Add(fun ea -> ea.Handled <- true)  // empty grid elements swallow clicks because we don't want to commit or dismiss
                 gridAdd(grid, dp, x, y)
     grid.PointerLeave.Add(fun _ -> snapBack())
-    let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=grid)
+    let b = new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid)
     canvasAdd(popupCanvas, b, gx, gy)
     match extraDecoration with
     | None -> ()
@@ -401,3 +209,60 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     // activate the modal
     dismissPopup <- DoModal(appMainCanvas, tileX, tileY, popupCanvas, onClose)
 
+////////////////////////////////
+
+let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, commitFunction) =
+    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
+    let redraw(n) =
+        innerc.Children.Clear()
+        let bmp = boxCurrentBMP(isCurrentlyBook, n, false)
+        if bmp <> null then
+            let image = Graphics.BMPtoImage(bmp)
+            canvasAdd(innerc, image, 1., 1.)
+    redraw(boxCellCurrent)
+    let gridElementsSelectablesAndIDs = [|
+        for n = 0 to 15 do
+            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(isCurrentlyBook, n, false) |> Graphics.BMPtoImage)
+            let isOriginallyCurrent = n=boxCellCurrent
+            let isSelectable = n = 15 || isOriginallyCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
+            let ident = if n=15 then -1 else n
+            yield fe, isSelectable, ident
+        |]
+    let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
+    let onClick(dismissPopup,ea:Input.PointerPressedEventArgs,ident) =
+        let pp = ea.GetCurrentPoint(appMainCanvas)
+        // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
+        dismissPopup()
+        commitFunction(ident, MouseButtonEventArgsToPlayerHas pp)
+    let redrawTile(ident) =
+        // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
+        redraw(ident)
+    let onClose() =
+        // the user clicked outside the modal dialog, it is dismissing itself, do any final cleanup we need to do
+        ()
+    let extraDecoration =
+        Some(
+            // arrange visual tree of gridContainer
+            let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
+            let mouseBMP = Graphics.mouseIconButtonColorsBMP
+            let mouse = Graphics.BMPtoImage mouseBMP
+            mouse.Height <- 90.
+            mouse.Width <- float(mouseBMP.Width) * 90. / float(mouseBMP.Height)
+            mouse.Stretch <- Stretch.Uniform
+            d.Children.Add(mouse) |> ignore
+            DockPanel.SetDock(mouse,Dock.Left)
+            let sp = new StackPanel(Orientation=Orientation.Vertical)
+            d.Children.Add(sp) |> ignore
+            for color, text in [yes,"Have it"; skipped,"Don't want it"; no,"Don't have it"] do
+                let p = new StackPanel(Orientation=Orientation.Horizontal)
+                let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=color, StrokeThickness=3.0, IsHitTestVisible=false)
+                p.Children.Add(rect) |> ignore
+                let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
+                p.Children.Add(tb) |> ignore
+                sp.Children.Add(p) |> ignore
+            let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=d)
+            let fe : Control = upcast b
+            fe, -3., 138.  // TODO what is Y
+            )
+    DoModalGridSelect(appMainCanvas, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), -3., 27., 
+        onClick, redrawTile, onClose, extraDecoration, new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray))

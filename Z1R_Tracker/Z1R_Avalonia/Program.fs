@@ -56,10 +56,7 @@ type MyWindow(owMapNum) as this =
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
 
-        let box(n) = 
-            let pict,rect,_ = CustomComboBoxes.makeItemBoxPicture(n, ref false, false)
-            rect.Stroke <- CustomComboBoxes.no
-            pict
+        let box(n) = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black

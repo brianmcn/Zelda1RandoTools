@@ -19,6 +19,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 CURRENT PRIORITIES
 
 hide dungeon numbers
+ - triforce decoder picture is maybe part of this?
 
 hotkeys
 
@@ -26,6 +27,12 @@ hotkeys
 
 
 SMALL
+
+hover over item progress bar (grey ghosts) just like inventory, e.g. recorder to see recorder spots?
+
+maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
+white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
+ - if i rewrite the item box to use my abstractions, the the 'extra decoration' could be a guide-line connecting the selection-grid to the actual item box-up-top
 
 should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?
 
@@ -49,10 +56,8 @@ I could not worry about that, or apply some ad-hoc fixes for the common case, bu
 
 there might be at most 6 transports per dungeon, if so, take 789 out of the icon pool, but add '?' transport for unknown stair
 
-dungeon room marks, key/bomb on floor? orthogonal to other marks? hm, middle-click cycle thru circle colors?
-
-maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
-white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
+dungeon room marks, key/bomb on floor? orthogonal to other marks? hm, middle-click cycle thru circle colors? who would ever leave a key?
+   maybe middle click is sufficient - you can remember one thing apart from the room type and the completed state, use it for floor bombs or whatever
 
 given how shops work now, one could imagine dealing with the various money icons thusly:
  - rupee tile can be customized to show additional detail
@@ -100,7 +105,7 @@ ad-hoc counters? e.g. for door repair charges, or whatever else folks may want t
 yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 show list of remaining box items? if less than N left? - the popup now kinda accomplishes this
 
-(start screen eventually have 3. start OR load old data)
+(start screen eventually have start OR load old data)
 
 does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
 

@@ -245,9 +245,9 @@ let makeAll(owMapNum) =
                 i <- i + 1
             let fe = if i = -1 then null else whichItems.[i]
             canvasAdd(innerc, fe, 4., 4.)
-        let activateComboBox(initBCC) =
+        let activateComboBox(activationDelta) =
             let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), initBCC, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
                 // update model
                 box.Set(newBoxCellValue, newPlayerHas)
                 // update view
@@ -260,7 +260,7 @@ let makeAll(owMapNum) =
             if ea.ButtonState = Input.MouseButtonState.Pressed &&
                     (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
                 if box.CellCurrent() = -1 then
-                    activateComboBox(-1)
+                    activateComboBox(0)
                 else
                     box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
                     redrawBoxOutline()
@@ -268,14 +268,7 @@ let makeAll(owMapNum) =
                         TrackerModel.forceUpdate()
         )
         // item
-        c.MouseWheel.Add(fun x -> 
-            let initBCC =
-                if x.Delta<0 then
-                    box.CellNextFreeKey()
-                else
-                    box.CellPrevFreeKey()
-            activateComboBox(initBCC)
-        )
+        c.MouseWheel.Add(fun x -> activateComboBox(if x.Delta<0 then 1 else -1))
         c.MouseEnter.Add(fun _ ->
             match box.CellCurrent() with
             | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
@@ -833,7 +826,7 @@ let makeAll(owMapNum) =
                             upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
                         )
                     CustomComboBoxes.DoModalGridSelect(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, tileCanvas,
-                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
+                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                         (fun (dismissPopup, _ea, currentState) ->
                             TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                             redrawGridSpot()
@@ -849,7 +842,7 @@ let makeAll(owMapNum) =
                                     icon.Opacity <- X_OPACITY
                                 canvasAdd(tileCanvas, icon, 0., 0.)),
                         (fun () -> ()),
-                        None)
+                        None, CustomComboBoxes.ModalGridSelectBrushes.Defaults())
                     )
                 c.MouseRightButtonDown.Add(fun _ -> 
                     // right click is the 'special interaction'
@@ -1532,7 +1525,7 @@ let makeAll(owMapNum) =
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
                         CustomComboBoxes.DoModalGridSelect(appMainCanvas, roomPos.X, roomPos.Y, tileCanvas,
-                            gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, 5, 5, 13*3, 9*3, gridxPosition, gridYPosition,
+                            gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (dismissPopup, ea, currentState) ->
                                 if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
                                     usedTransportsRemoveState(roomStates.[i,j])
@@ -1572,9 +1565,11 @@ let makeAll(owMapNum) =
                                     p.Children.Add(tb) |> ignore
                                     sp.Children.Add(p) |> ignore
                                 let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
-                                upcast b, gridxPosition, gridYPosition-h-ST))
+                                upcast b, gridxPosition, gridYPosition-h-ST),
+                            CustomComboBoxes.ModalGridSelectBrushes.Defaults())
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
+                            popupState <- Dungeon.DelayedPopupState.SOON
                             activatePopup(ad)
                     let soon(ad) =
                         if popupState=Dungeon.DelayedPopupState.NONE then
@@ -1798,11 +1793,11 @@ let makeAll(owMapNum) =
             let pos = c.TranslatePoint(Point(), appMainCanvas)
             CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                     (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
-                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, 3, 3, 21, 21, -60., 30., 
+                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., 
                     (fun (dismissPopup,ea,db) -> 
                         current <- db
                         redraw(db)
-                        dismissPopup()), predraw, (fun()->()), None)
+                        dismissPopup()), predraw, (fun()->()), None, CustomComboBoxes.ModalGridSelectBrushes.Defaults())
         c.MouseWheel.Add(fun x -> 
             let activationDelta = if x.Delta<0 then 1 else -1
             activate(activationDelta)
@@ -2140,8 +2135,6 @@ let makeAll(owMapNum) =
     //                items  ow map  prog  dungeon tabs                timeline
     appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
 
-
-    CustomComboBoxes.InitializeItemComboBox(appMainCanvas)  // very very top
 
     //Dungeon.drawDungeonColorGrid(appMainCanvas)
 
