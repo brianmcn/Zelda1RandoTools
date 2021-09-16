@@ -27,6 +27,9 @@ hotkeys
 
 SMALL
 
+should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?
+
+
 center ow popup targets near mouse, bias left 2 and right 2?
 
 if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)

@@ -1342,6 +1342,7 @@ let makeAll(owMapNum) =
                     canvasAdd(c, image, 0., 0.)
                     if roomIsCircled.[i,j] then
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3.)
+                        ellipse.StrokeDashArray <- new Collections.AvaloniaList<_>( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
                         canvasAdd(c, ellipse, -6., -6.)
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let usedTransportsRemoveState(roomState) =
