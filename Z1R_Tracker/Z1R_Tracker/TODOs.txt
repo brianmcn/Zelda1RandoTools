@@ -27,8 +27,6 @@ hotkeys
 
 SMALL
 
-announce known coast/WS item, for real
-
 center ow popup targets near mouse, bias left 2 and right 2?
 
 when change this overworld cell empty -> nonempty, immediately kill the green/yellow in that cell

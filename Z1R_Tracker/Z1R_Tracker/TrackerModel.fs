@@ -225,6 +225,24 @@ module ITEMS =
     let WAND = 12
     let WHITESWORD = 13
     let HEARTCONTAINER = 14
+    let AsPronounceString(n, isbook) =
+        match n with
+        | 0 -> if isbook then "book" else "shield"
+        | 1 -> "boomerang"
+        | 2 -> "beau"
+        | 3 -> "power bracelet"
+        | 4 -> "ladder"
+        | 5 -> "magic boomerang"
+        | 6 -> "any key"
+        | 7 -> "raft"
+        | 8 -> "recorder"
+        | 9 -> "red candle"
+        | 10 -> "red ring"
+        | 11 -> "silver arrow"
+        | 12 -> "wand"
+        | 13 -> "white sword"
+        | 14 -> "heart container"
+        | _ -> failwith "bad ITEMS id"
 
 let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle", [|
     1 // book 

@@ -1118,7 +1118,13 @@ let makeAll(owMapNum) =
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
-            member _this.AnnounceConsiderSword2() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider getting the white sword item") } |> Async.Start
+            member _this.AnnounceConsiderSword2() = 
+                if TrackerModel.Options.VoiceReminders.SwordHearts.Value then 
+                    let n = TrackerModel.sword2Box.CellCurrent()
+                    if n = -1 then
+                        async { voice.Speak("Consider getting the white sword item") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook))) } |> Async.Start
             member _this.AnnounceConsiderSword3() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider the magical sword") } |> Async.Start
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
@@ -1272,7 +1278,11 @@ let makeAll(owMapNum) =
             if TrackerModel.playerComputedStateSummary.HaveLadder then
                 if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
                     if TrackerModel.Options.VoiceReminders.CoastItem.Value then 
-                        async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                        let n = TrackerModel.ladderBox.CellCurrent()
+                        if n = -1 then
+                            async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
+                        else
+                            async { voice.Speak(sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook))) } |> Async.Start
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
