@@ -1000,10 +1000,24 @@ let makeAll(owMapNum) =
 
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
-    itemProgressCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(appMainCanvas, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress", IsHitTestVisible=false)
     canvasAdd(appMainCanvas, tb, 120., THRU_MAP_AND_LEGEND_H + 4.)
+    itemProgressCanvas.MouseMove.Add(fun ea ->
+        let pos = ea.GetPosition(itemProgressCanvas)
+        let x = pos.X - 200.
+        if x >  30. && x <  60. then
+            showLocatorInstanceFunc(owInstance.Burnable)
+        if x > 240. && x < 270. then
+            showLocatorInstanceFunc(owInstance.Ladderable)
+        if x > 270. && x < 300. then
+            showLocatorInstanceFunc(owInstance.Whistleable)
+        if x > 300. && x < 330. then
+            showLocatorInstanceFunc(owInstance.PowerBraceletable)
+        if x > 330. && x < 360. then
+            showLocatorInstanceFunc(owInstance.Raftable)
+        )
+    itemProgressCanvas.MouseLeave.Add(fun _ -> hideLocator())
 
     // Version
     let vb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 

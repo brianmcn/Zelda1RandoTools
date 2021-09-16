@@ -28,6 +28,17 @@ hotkeys
 
 SMALL
 
+middle click an overworld tile to 'route me only to here' for 10s?  i kinda wanted it multiple times, i am helpless at finding my way
+or maybe right click a triforce to route to that dungeon, like the bombs shops?
+decide if right-click bomb/candle/book/ring WPF feature needs UI feedback (link icon, arrow, thing-route-to? would need to work even if general routing flag disabled), port to Avalonia, or what to do
+
+should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?  almost surely yes
+
+reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
+
+
+
+
 in progress:
 maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
 white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
@@ -35,18 +46,12 @@ white-sword-box/ladder-box way up top, and you can change the item 'from there' 
 
 
 
-hover over item progress bar (grey ghosts) just like inventory, e.g. recorder to see recorder spots?
-
-should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?
 
 
 center ow popup targets near mouse, bias left 2 and right 2?
 
 if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
 
-middle click an overworld tile to 'route me only to here' for 10s?  i kinda wanted it multiple times, i am helpless at finding my way
-
-reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need (bow/silver/n triforces) for go mode'
 
 
 
@@ -98,7 +103,6 @@ shift-click the start screen to place the lime circle?
 something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
 
-decide if right-click bomb/candle/book/ring WPF feature is worth keeping, or needs UI feedback, or port to Avalonia, or what to do
 decide about PTT functionality
 binary packaging for redistribution?
 versioning . . .

@@ -51,7 +51,7 @@ Mouse-hovering the boomstick book icon will highlight its shop location on the m
 Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
 Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle, otherwise it highlights burnable trees.
 Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
-Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory will 
+Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar will 
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
