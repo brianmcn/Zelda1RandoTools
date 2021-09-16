@@ -1763,28 +1763,40 @@ let makeAll(owMapNum) =
         | TrackerModel.DungeonBlocker.NOTHING -> null
 
     let makeBlockerBox(dungeonNumber, blockerIndex) =
-        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
-        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
-        c.Children.Add(rect) |> ignore
-        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
-        c.Children.Add(innerc) |> ignore
+        let make() =
+            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
+            c.Children.Add(rect) |> ignore
+            let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
+            c.Children.Add(innerc) |> ignore
+            let redraw(n) =
+                innerc.Children.Clear()
+                let bmp = blockerCurrentBMP(n)
+                if bmp <> null then
+                    let image = Graphics.BMPtoImage(bmp)
+                    image.IsHitTestVisible <- false
+                    canvasAdd(innerc, image, 4., 4.)
+            c, redraw
+        let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
-        let redraw(n) =
-            innerc.Children.Clear()
-            let bmp = blockerCurrentBMP(n)
-            if bmp <> null then
-                let image = Graphics.BMPtoImage(bmp)
-                image.IsHitTestVisible <- false
-                canvasAdd(innerc, image, 4., 4.)
         redraw(current)
+        let activate(activationDelta) =
+            let pc, predraw = make()
+            let pos = c.TranslatePoint(Point(), appMainCanvas)
+            CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
+                    (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
+                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, 3, 3, 21, 21, -60., 30., 
+                    (fun (dismissPopup,ea,db) -> 
+                        current <- db
+                        redraw(db)
+                        dismissPopup()), predraw, (fun()->()), None)
         c.MouseWheel.Add(fun x -> 
-            if x.Delta<0 then
-                current <- current.Next()
-            else
-                current <- current.Prev()
-            redraw(current)
-            TrackerModel.dungeonBlockers.[dungeonNumber, blockerIndex] <- current
-        )
+            let activationDelta = if x.Delta<0 then 1 else -1
+            activate(activationDelta)
+            )
+        c.MouseDown.Add(fun x -> 
+            activate(0)
+            )
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-402.)/3.)
@@ -1804,7 +1816,8 @@ let makeAll(owMapNum) =
                 let d = new DockPanel(LastChildFill=false)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%d" dungeonNumeral, Width=30., 
-                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Right)
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
+                                        TextAlignment=TextAlignment.Right, Margin=Thickness(0.,0.,6.,0.))
                 sp.Children.Add(tb) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 0)) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 1)) |> ignore

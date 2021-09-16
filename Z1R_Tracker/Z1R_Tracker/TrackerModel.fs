@@ -626,6 +626,16 @@ type DungeonBlocker =
         | DungeonBlocker.KEY -> DungeonBlocker.BAIT
         | DungeonBlocker.BOMB -> DungeonBlocker.KEY
         | DungeonBlocker.NOTHING -> DungeonBlocker.BOMB
+    static member All = [| 
+        DungeonBlocker.COMBAT
+        DungeonBlocker.BOW_AND_ARROW
+        DungeonBlocker.RECORDER
+        DungeonBlocker.LADDER
+        DungeonBlocker.BAIT
+        DungeonBlocker.KEY
+        DungeonBlocker.BOMB
+        DungeonBlocker.NOTHING
+        |]
 [<RequireQualifiedAccess>]
 type CombatUnblockerDetail =
     | BETTER_SWORD

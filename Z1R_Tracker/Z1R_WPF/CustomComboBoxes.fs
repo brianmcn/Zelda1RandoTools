@@ -371,17 +371,17 @@ let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
 
 // TODO: factor out brush colors
 let borderThickness = 3.  // TODO should this be a param?
-let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
-                        gridElementsSelectablesAndIDs:(FrameworkElement*bool*int)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
-                        originalStateIndex:int, // originalStateIndex is array index into the array
-                        activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
-                        gnc, gnr, gcw, grh,   // grid: numRows, numCols, colWidth, rowHeight (heights of elements; this control will add border highlight)
-                        gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
-                        onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
-                        redrawTile,  // we pass you currentStateID
-                        onClose,
-                        extraDecoration:option<FrameworkElement*float*float>  // extra thing to draw at (x,y)
-                        ) =
+let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
+                            gridElementsSelectablesAndIDs:(FrameworkElement*bool*'a)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
+                            originalStateIndex:int, // originalStateIndex is array index into the array
+                            activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
+                            gnc, gnr, gcw, grh,   // grid: numRows, numCols, colWidth, rowHeight (heights of elements; this control will add border highlight)
+                            gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
+                            onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
+                            redrawTile,  // we pass you currentStateID
+                            onClose,
+                            extraDecoration:option<FrameworkElement*float*float>  // extra thing to draw at (x,y)
+                            ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
     let ST = borderThickness
@@ -422,7 +422,7 @@ let DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCan
     for x = 0 to gnc-1 do
         for y = 0 to gnr-1 do
             let n = y*gnc + x
-            let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,0
+            let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,Unchecked.defaultof<_>
             if icon <> null then
                 let c = new Canvas()
                 c.Children.Add(icon) |> ignore
