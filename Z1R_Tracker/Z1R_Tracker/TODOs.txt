@@ -29,10 +29,6 @@ SMALL
 
 center ow popup targets near mouse, bias left 2 and right 2?
 
-when change this overworld cell empty -> nonempty, immediately kill the green/yellow in that cell
-
-ow map: if click empty room, should immediately accelerator auto-scroll to X so that click-click marks off the tile, just like dungeon room common case
-
 if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
 
 middle click an overworld tile to 'route me only to here' for 10s?  i kinda wanted it multiple times, i am helpless at finding my way

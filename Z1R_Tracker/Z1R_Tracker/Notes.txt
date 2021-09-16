@@ -75,6 +75,7 @@ Show coords - click or hover to show a coordinate overlay
 
 To select a map tile, you can either scroll-wheel through the options, or you can left-click a tile to bring up a popup selector, which displays all 
 the options: click on an option to choose it, or click outside the popup to dismiss it without making a change.
+A double-click (two clicks) of an unmarked overworld tile is a shorthand way to mark it "dark" (nothing/don't care).
 
 Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
 Right clicking an item shop will cycle through choices of a second item to display in the shop (max of 2 items can be displayed on a tile).

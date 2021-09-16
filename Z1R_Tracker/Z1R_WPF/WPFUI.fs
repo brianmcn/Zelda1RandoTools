@@ -822,6 +822,7 @@ let makeAll(owMapNum) =
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
+                    let activationDelta = if originalState = -1 then -1 else 0  // accelerator so 'click' means 'X'
                     let gridxPosition = if i < 12 then -ST else OMTW - float(8*(5*3+2*int ST)+int ST)
                     let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
                         if MapStateProxy(n).IsX then
@@ -832,11 +833,12 @@ let makeAll(owMapNum) =
                             upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
                         )
                     CustomComboBoxes.DoModalGridSelect(appMainCanvas, 0.+OMTW*float i, 150.+11.*3.*float j, tileCanvas,
-                        gridElementsSelectablesAndIDs, originalStateIndex, 0, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
+                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, 8, 4, 5*3, 9*3, gridxPosition, 11.*3.+ST,
                         (fun (dismissPopup, _ea, currentState) ->
                             TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                             redrawGridSpot()
-                            dismissPopup()),
+                            dismissPopup()
+                            if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()),  // immediate update to dismiss green/yellow highlight from current tile
                         (fun (currentState) -> 
                             tileCanvas.Children.Clear()
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
