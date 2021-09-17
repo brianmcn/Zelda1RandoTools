@@ -135,7 +135,7 @@ type MyWindow(owMapNum) as this =
                         let c,u = UI.makeAll(i)
                         canvas <- c
                         updateTimeline <- u
-                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 30.)
+                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
                         this.Content <- canvas
                     })
                 )

@@ -201,7 +201,9 @@ let zhDungeonNums =
     new System.Drawing.Bitmap(imageStream)
 
 
-let emptyUnfoundTriforces, emptyFoundTriforces , fullTriforces = emptyUnfoundTriforce_bmps |> Array.map BMPtoImage, emptyFoundTriforce_bmps |> Array.map BMPtoImage, fullTriforce_bmps |> Array.map BMPtoImage
+let emptyUnfoundTriforces(i) = emptyUnfoundTriforce_bmps.[i] |> BMPtoImage
+let emptyFoundTriforces(i) = emptyFoundTriforce_bmps.[i] |> BMPtoImage
+let fullTriforces(i) = fullTriforce_bmps.[i] |> BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 
 let overworldMapBMPs(n) =
@@ -313,6 +315,19 @@ let mapIconInteriorBMPs =
                 r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
         yield r
     |]
+
+let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
+    let imageStream = GetResourceStream("link_icons.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|
+        for i = 0 to 3 do
+            let r = new System.Drawing.Bitmap(16, 16)
+            for x = 0 to 15 do
+                for y = 0 to 15 do
+                    r.SetPixel(x, y, bmp.GetPixel(16*i+x, y))
+            yield r
+        |]
+    a.[0], a.[1], a.[2], a.[3]
 
 let mouseIconButtonColorsBMP =
     let imageStream = GetResourceStream("mouse-icon-button-colors.png")

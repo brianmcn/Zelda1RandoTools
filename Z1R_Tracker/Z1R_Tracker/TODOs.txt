@@ -18,6 +18,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+get a new build to Kig once tested/stable
+
 hide dungeon numbers
  - triforce decoder picture is maybe part of this?
 
@@ -28,15 +30,24 @@ hotkeys
 
 SMALL
 
-middle click an overworld tile to 'route me only to here' for 10s?  i kinda wanted it multiple times, i am helpless at finding my way
-or maybe right click a triforce to route to that dungeon, like the bombs shops?
-decide if right-click bomb/candle/book/ring WPF feature needs UI feedback (link icon, arrow, thing-route-to? would need to work even if general routing flag disabled), port to Avalonia, or what to do
 
 should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?  almost surely yes
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
 
 
+
+Kigalas:
+First was finding a way to get the cursor out of the Notes box - it seems clicking on a checkbox or Hint Decoder is the only way to do this, and hitting Start on the controller is like hitting Enter on the keyboard, etc. Just clicking outside that box into the black portion to deselect the text box would help greatly.
+
+Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
+
+Oh, and last week I accidentally put an item into the White Sword box instead of the Ladder item box, then fixed it, and it gave me verbal prompts for the White Sword cave once I found some hearts later. Might want to teach it to forget things when humans screw up.
+
+
+
+
+i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
 
 
 in progress:

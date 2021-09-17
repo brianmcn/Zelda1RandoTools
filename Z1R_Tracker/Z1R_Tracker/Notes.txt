@@ -55,6 +55,18 @@ Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your invento
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
+LINK (Specific routing)
+
+Link is here to help guide you on your quest!  Click on Link, select a destination, and the best path(s) from your mouse cursor to the destination
+will be shown on the screen for the next ten seconds.
+
+Link can even deal with ambiguous locations, for example, if dungeon 3 was hinted to be 'by a lake', you can have Link route you there, and he will
+show routes to all the remaining accessible lake destinations, as well as highlighting other inaccessible locations (e.g. because you don't have 
+the raft and can't reach the middle of the lake).  Link's highlight colors are: green for accessible destinations that always have an entrance,
+yellow for accessible destinations that only sometimes have an entrance (e.g. mixed quest, some map tiles don't bomb), and red for map tiles of 
+interest that you can't reveal with your current inventory.
+
+
 OVERWORLD MAP
 
 HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
@@ -86,7 +98,7 @@ you first visit the tile, you can manipulate the ladder box without having to mo
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
 
-Mouse-hover for routing from the current tile:
+Mouse-hover for routing from the current tile: (generalized routing)
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
     - unmarked overworld spots
     - uncompleted dungeons
@@ -98,7 +110,8 @@ Mouse-hover for routing from the current tile:
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
 The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
-(WPF only) Right click arrow/boomstickbook/bluering/bluecandle/bomb in upper right UI: routing sends you only to shops containing that item for the next 10s.
+You can turn off these routing and highlighting marks if you find them distracting (options menu).  Even if you turn off these generalized routing marks, 
+you can still click on Link to get the temporary, specific routing marks on-demand.
 
 Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo

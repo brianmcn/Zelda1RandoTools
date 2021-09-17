@@ -27,7 +27,7 @@ let drawLine(c,v1,v2,color) =
     canvasAdd(c, line, 0., 0.)
 
 let MaxYGH = 12 // default
-let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, maxYellowGreenHighlights) = 
+let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, fadeOut, maxYellowGreenHighlights) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
@@ -87,7 +87,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                                 canvasAdd(routeDrawingCanvas, line, 0., 0.)
                             else
                                 // normal walk is solid line with fading color based on cost
-                                drawLine(routeDrawingCanvas,g,p,color(cost))
+                                drawLine(routeDrawingCanvas, g, p, if fadeOut then color(cost) else color(0))
                         draw(p)
         // draw routes to everywhere
         //for v in adjacencyDict.Keys do
@@ -121,7 +121,9 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                 iterate(N-1,recentCost)
             for (i,j) in toHighlight do
                 let color,opacity = 
-                    if TrackerModel.owInstance.SometimesEmpty(i,j) then
+                    if not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
+                        Brushes.Red, 0.35  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
+                    elif TrackerModel.owInstance.SometimesEmpty(i,j) then
                         Brushes.Yellow, 0.35
                     else
                         Brushes.Lime, 0.3

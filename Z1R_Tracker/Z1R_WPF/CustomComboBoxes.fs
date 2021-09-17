@@ -101,11 +101,11 @@ let boxCurrentBMP(isCurrentlyBook, boxCellCurrent, isForTimeline) =
 
 ///////////////////////////////////////////////////////////////////
 
-let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, onClose) =
+let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity, onClose) =
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
     appMainCanvas.Children.Add(c) |> ignore
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=0.5)
+    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=blackSunglassesOpacity)
     c.Children.Add(sunglasses) |> ignore
     // place the element
     placeElementOntoCanvas(c, element)
@@ -124,7 +124,7 @@ let DoModalCore(appMainCanvas:Canvas, placeElementOntoCanvas, removeElementFromC
     dismiss // return a dismissal handle, which the caller can use to dismiss the dialog based on their own criteria; note that onClose() is not called by the dismissal handle
 
 let DoModal(appMainCanvas:Canvas, x, y, element, onClose) =
-    DoModalCore(appMainCanvas, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, onClose)
+    DoModalCore(appMainCanvas, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, 0.5, onClose)
 
 let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
     let d = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height, LastChildFill=false)
@@ -133,7 +133,7 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
                         DockPanel.SetDock(e, dock)
                         d.Children.Add(e) |> ignore
                         canvasAdd(c, d, 0., 0.)),
-                    (fun (c,e) -> d.Children.Remove(e)), element, onClose)
+                    (fun (c,e) -> d.Children.Remove(e)), element, 0.5, onClose)
 
 /////////////////////////////////////////
 

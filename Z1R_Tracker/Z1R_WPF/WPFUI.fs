@@ -105,25 +105,72 @@ let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
-let owRemainingScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
-let owGettableScreensTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+let owRemainingScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
+let owGettableScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
 
-let drawRoutesTo(targetItemStateOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxYellowGreenHighlights) =
+[<RequireQualifiedAccess>]
+type RouteDestination =
+    | SHOP of int
+    | OW_MAP of int * int
+    | DUNGEON of int
+    | SWORD2CAVE
+    | SWORD3CAVE
+
+let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxYellowGreenHighlights) =
     let maxYellowGreenHighlights = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then 128 else maxYellowGreenHighlights
-    match targetItemStateOption with
-    | Some(targetItemState) ->
-        let owTargetworthySpots = Array2D.zeroCreate 16 8
+    let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
+    let interestingButInaccesible = ResizeArray()
+    let owTargetworthySpots = Array2D.zeroCreate 16 8
+    let processHint(n) =
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                if OverworldData.owMapZone.[j].[i] = TrackerModel.levelHints.[n].AsDataChar() then
+                    if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                        if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
+                            owTargetworthySpots.[i,j] <- true
+                        else
+                            interestingButInaccesible.Add(i,j)
+    match routeDestinationOption with
+    | Some(RouteDestination.SHOP(targetItem)) ->
         for x = 0 to 15 do
             for y = 0 to 7 do
                 let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                if msp.State = targetItemState || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItemState)) then
+                if msp.State = targetItem || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItem)) then
                     owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, 
-                                            Array2D.zeroCreate 16 8, point, i, j, drawRouteMarks, maxYellowGreenHighlights)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
+    | Some(RouteDestination.OW_MAP(x,y)) ->
+        owTargetworthySpots.[x,y] <- true
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
+    | Some(RouteDestination.DUNGEON(n)) ->
+        if TrackerModel.dungeons.[n].HasBeenLocated() then
+            let x,y = TrackerModel.mapStateSummary.DungeonLocations.[n]
+            owTargetworthySpots.[x,y] <- true
+        elif TrackerModel.levelHints.[n] <> TrackerModel.HintZone.UNKNOWN then
+            processHint(n)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 128)
+    | Some(RouteDestination.SWORD2CAVE) ->
+        if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND then
+            let x,y = TrackerModel.mapStateSummary.Sword2Location
+            owTargetworthySpots.[x,y] <- true
+        elif TrackerModel.levelHints.[9] <> TrackerModel.HintZone.UNKNOWN then
+            processHint(9)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
+    | Some(RouteDestination.SWORD3CAVE) ->
+        if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND then
+            let x,y = TrackerModel.mapStateSummary.Sword3Location
+            owTargetworthySpots.[x,y] <- true
+        elif TrackerModel.levelHints.[10] <> TrackerModel.HintZone.UNKNOWN then
+            processHint(10)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
     | None ->
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), point, i, j, drawRouteMarks, maxYellowGreenHighlights)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxYellowGreenHighlights)
+    for i,j in interestingButInaccesible do
+        let OMTW = OverworldRouteDrawing.OMTW
+        let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Transparent,StrokeThickness=12.,Fill=Brushes.Red,Opacity=0.3,IsHitTestVisible=false)
+        Graphics.canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
+
+
 
 
 let mutable f5WasRecentlyPressed = false
@@ -163,16 +210,22 @@ let makeAll(owMapNum) =
         isCurrentlyBook := not !isCurrentlyBook
         TrackerModel.forceUpdate()
 
-    let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
-    let mutable routeTargetState = 0
-    let currentRouteTarget() =
-        if DateTime.Now - routeTargetLastClickedTime < TimeSpan.FromSeconds(10.) then
-            Some(routeTargetState)
-        else
-            None
-    let changeCurrentRouteTarget(newTargetState) =
-        routeTargetLastClickedTime <- DateTime.Now
-        routeTargetState <- newTargetState
+    let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
+        let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
+        let mutable routeTarget = None
+        let isSpecificRouteTargetActive() = DateTime.Now - routeTargetLastClickedTime < TimeSpan.FromSeconds(10.)
+        let currentRouteTarget() =
+            if isSpecificRouteTargetActive() then
+                routeTarget
+            else
+                None
+        let eliminateCurrentRouteTarget(newTarget) =
+            routeTarget <- None
+            routeTargetLastClickedTime <- DateTime.Now - TimeSpan.FromMinutes(10.)
+        let changeCurrentRouteTarget(newTarget) =
+            routeTargetLastClickedTime <- DateTime.Now
+            routeTarget <- Some(newTarget)
+        isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget
     
     let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone) -> ()
@@ -189,19 +242,28 @@ let makeAll(owMapNum) =
     let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
     let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
     // triforce
-    let updateTriforceDisplay(i) =
-        let innerc : Canvas = triforceInnerCanvases.[i]
+    let updateTriforceDisplayImpl(innerc:Canvas, i) =
         innerc.Children.Clear()
         let found = TrackerModel.mapStateSummary.DungeonLocations.[i]<>TrackerModel.NOTFOUND 
         if not(TrackerModel.dungeons.[i].IsComplete) &&  // dungeon could be complete without finding, in case of starting items and helpful hints
                 not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
             innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then 
-            innerc.Children.Add(if not(found) then Graphics.emptyUnfoundTriforces.[i] else Graphics.emptyFoundTriforces.[i]) |> ignore
+            innerc.Children.Add(if not(found) then Graphics.emptyUnfoundTriforces(i) else Graphics.emptyFoundTriforces(i)) |> ignore
         else
-            innerc.Children.Add(Graphics.fullTriforces.[i]) |> ignore 
+            innerc.Children.Add(Graphics.fullTriforces(i)) |> ignore 
+    let updateLevel9NumeralImpl(level9NumeralCanvas:Canvas) =
+        level9NumeralCanvas.Children.Clear()
+        let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
+        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
+        if not(l9found) && TrackerModel.levelHints.[8]<>TrackerModel.HintZone.UNKNOWN then
+            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
+        canvasAdd(level9NumeralCanvas, img, 0., 0.)
+    let updateTriforceDisplay(i) =
+        let innerc : Canvas = triforceInnerCanvases.[i]
+        updateTriforceDisplayImpl(innerc,i)
     for i = 0 to 7 do
-        let image = Graphics.emptyUnfoundTriforces.[i]
+        let image = Graphics.emptyUnfoundTriforces(i)
         // triforce dungeon color
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         mainTrackerCanvases.[i,0] <- c
@@ -409,7 +471,7 @@ let makeAll(owMapNum) =
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid2 = makeGrid(3, 3, 30, 30)
-    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc, rightClick) =
+    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
@@ -424,29 +486,28 @@ let makeAll(owMapNum) =
                 rect.Stroke <- no
             changedFunc(obj.Equals(rect.Stroke, yes))
         )
-        c.MouseRightButtonDown.Add(fun _ -> rightClick())
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
             timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
         c
-    let basicBoxImpl(tts, img, changedFunc, rightClick) =
-        let c = veryBasicBoxImpl(img, false, true, changedFunc, rightClick)
+    let basicBoxImpl(tts, img, changedFunc) =
+        let c = veryBasicBoxImpl(img, false, true, changedFunc)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid2, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()),    (fun () -> ())), 1, 0)
-    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()),    (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.ARROW)))
+    gridAdd(owItemGrid2, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
+    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()))
     wood_arrow_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, wood_arrow_box, 2, 1)
-    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()),   (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)))
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()))
     blue_candle_box.MouseEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_candle_box, 1, 1)
-    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()),     (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)))
+    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()))
     blue_ring_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_ring_box, 2, 0)
-    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()), (fun () -> ()))
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
     ToolTipService.SetPlacement(mags_box, System.Windows.Controls.Primitives.PlacementMode.Top)
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
@@ -461,15 +522,15 @@ let makeAll(owMapNum) =
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()), (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BOOK)))
+    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()))
     boom_book_box.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
     boom_book_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, boom_book_box, OFFSET+120., 30.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()), (fun () -> ())), 1, 2)
-    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text), (fun () -> ())), 2, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), 1, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()), (fun () -> changeCurrentRouteTarget(TrackerModel.MapSquareChoiceDomainHelper.BOMB)))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
@@ -489,6 +550,136 @@ let makeAll(owMapNum) =
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
     mirrorOverworldFEs.Add(overworldCanvas)
+
+    // help the player route to locations
+    let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+    let mutable linkIconN = 0
+    let setLinkIconImpl(n,linkIcon:Canvas) =
+        linkIconN <- n
+        let bmp =
+            if n=0 then Graphics.linkFaceForward_bmp
+            elif n=1 then Graphics.linkFaceRight_bmp
+            elif n=2 then Graphics.linkRunRight_bmp
+            elif n=3 then Graphics.linkGotTheThing_bmp
+            else failwith "bad link position"
+        let linkImage = bmp |> Graphics.BMPtoImage
+        linkImage.Width <- 30.
+        linkImage.Height <- 30.
+        linkImage.Stretch <- Stretch.UniformToFill
+        linkIcon.Children.Clear()
+        canvasAdd(linkIcon, linkImage, 0., 0.)
+    let setLinkIcon(n) = setLinkIconImpl(n,linkIcon)
+    setLinkIcon(0)
+    canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 90.)
+    linkIcon.ToolTip <- "Click me and I'll help route you to a destination!"
+    let currentTargetIcon = new Canvas(Width=30., Height=30.)
+    canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 90.)
+    do   // scope for local variable names to not leak out
+        let mutable popupIsActive = false
+        let activatePopup() =
+            popupIsActive <- true
+            setLinkIcon(3)
+            let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
+            let dismissHandle = CustomComboBoxes.DoModalCore(appMainCanvas, 
+                (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
+                (fun (c,e) -> c.Children.Remove(e) |> ignore), 
+                wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
+            let dismiss() = dismissHandle(); setLinkIcon(1); popupIsActive <- false
+            
+            let fakeSunglassesOverTopThird = new Canvas(Width=16.*OMTW, Height=150., Background=Brushes.Black, Opacity=0.50)
+            canvasAdd(wholeAppCanvas, fakeSunglassesOverTopThird, 0., 0.)
+            let fakeSunglassesOverBottomThird = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Black, Opacity=0.50)
+            canvasAdd(wholeAppCanvas, fakeSunglassesOverBottomThird, 0., 150.+8.*11.*3.)
+            let explanation = 
+                new TextBox(Background=Brushes.Black, Foreground=Brushes.Orange, FontSize=18.,
+                            Text="--Temporarily show routing only to a specific destination--\n"+
+                                    "Choose a route destination:\n"+
+                                    " - click an overworld map tile to route to that tile\n"+
+                                    " - click a highlighted shop icon to route to any shops you've marked with that item\n"+
+                                    " - click a highlighted triforce to route to that dungeon if location known or hinted\n"+
+                                    " - click highlighted white/magical sword to route to that cave, if location known or hinted\n"+
+                                    " - click anywhere else to cancel temporary routing\n"+
+                                    "Link will 'chase' an icon in upper right while this is active")
+                                    // TODO item progress, route to all burnables/powerbraceletables/etc?
+            let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=explanation, Width=OMTW*16.-6., Height=230., IsHitTestVisible=false)
+            canvasAdd(wholeAppCanvas, b, 0., 150.+8.*11.*3. + 100.)
+
+            // bright, clickable targets
+            let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 90.)
+            setLinkIconImpl(3,duplicateLinkIcon)
+            let makeIconTargetImpl(draw, drawLinkTarget, x, y, routeDest) =
+                let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+                draw(c)
+                canvasAdd(wholeAppCanvas, c, x, y)
+                let borderRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=1.)
+                canvasAdd(c, borderRect, 0., 0.)
+                c.MouseDown.Add(fun ea -> 
+                    ea.Handled <- true  // so it doesn't bubble up to wholeAppCanvas, which would treat it as an outside-region click and eliminate-target-and-dismiss
+                    changeCurrentRouteTarget(routeDest)
+                    dismiss()
+                    currentTargetIcon.Children.Clear()
+                    drawLinkTarget(currentTargetIcon)
+                    )
+            let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(draw, draw, x, y, routeDest)
+            let makeShopIconTarget(draw, x, y, shopDest) =
+                let mutable found = false
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if cur = shopDest || (TrackerModel.getOverworldMapExtraData(i,j) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(shopDest)) then
+                            found <- true
+                if found then
+                    makeIconTarget(draw, x, y, RouteDestination.SHOP(shopDest))
+            // shops
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), OFFSET+160., 60., TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.boom_book_bmp, 4., 4.)), OFFSET+120., 30., TrackerModel.MapSquareChoiceDomainHelper.BOOK)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), OFFSET+120., 60., TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), OFFSET+120., 90., TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), OFFSET+90., 90., TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
+            // triforces
+            for i = 0 to 7 do
+                if TrackerModel.dungeons.[i].HasBeenLocated() || TrackerModel.levelHints.[i] <> TrackerModel.HintZone.UNKNOWN then
+                    makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.DUNGEON(i))
+            if TrackerModel.dungeons.[8].HasBeenLocated() || TrackerModel.levelHints.[8] <> TrackerModel.HintZone.UNKNOWN then
+                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.DUNGEON(8))
+            // swords
+            if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.levelHints.[9] <> TrackerModel.HintZone.UNKNOWN then
+                makeIconTargetImpl((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)), 
+                    (fun c -> 
+                        // white sword seems dodgy for link to chase, since it's actually the cave which likely has something else, so draw the map marker instead
+                        let image = MapStateProxy(14).CurrentInteriorBMP() |> Graphics.BMPtoImage
+                        canvasAdd(c, image, 7., 1.)), OFFSET, 120., RouteDestination.SWORD2CAVE)
+            if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND || TrackerModel.levelHints.[10] <> TrackerModel.HintZone.UNKNOWN then
+                makeIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)), OFFSET+60., 120., RouteDestination.SWORD3CAVE)
+            wholeAppCanvas.MouseDown.Add(fun ea ->
+                let pos = ea.GetPosition(wholeAppCanvas)
+                if pos.Y > 150. && pos.Y < 150.+8.*11.*3. then
+                    // overworld map tile
+                    let i = pos.X / OMTW |> int
+                    let j = (pos.Y-150.) / (11.*3.) |> int
+                    let i = if displayIsCurrentlyMirrored then 15-i else i
+                    changeCurrentRouteTarget(RouteDestination.OW_MAP(i,j))
+                    // draw crosshairs icon
+                    currentTargetIcon.Children.Clear()
+                    canvasAdd(currentTargetIcon, new Canvas(Width=30., Height=30., Background=Graphics.overworldCommonestFloorColorBrush), 0., 0.)
+                    let tb = new TextBox(FontSize=18., Foreground=Brushes.Black, Background=Brushes.Transparent, Text="+", IsHitTestVisible=false, BorderThickness=Thickness(0.))
+                    canvasAdd(currentTargetIcon, tb, 7., 1.)
+                    let borderRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=1.)
+                    canvasAdd(currentTargetIcon, borderRect, 0., 0.)
+                    dismiss()
+                else
+                    // they clicked elsewhere
+                    eliminateCurrentRouteTarget()
+                    dismiss()
+                    setLinkIcon(0)
+                )
+        linkIcon.MouseDown.Add(fun _ ->
+            if not popupIsActive then
+                activatePopup()
+            )
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.55
@@ -950,7 +1141,7 @@ let makeAll(owMapNum) =
     owMapGrid.MouseLeave.Add(fun _ ->
         if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
             OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
+                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
         )
 
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
@@ -1092,12 +1283,7 @@ let makeAll(owMapNum) =
         // redraw triforce display (some may have located/unlocated/hinted)
         for i = 0 to 7 do
             updateTriforceDisplay(i)
-        level9NumeralCanvas.Children.Clear()
-        let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
-        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
-        if not(l9found) && TrackerModel.levelHints.[8]<>TrackerModel.HintZone.UNKNOWN then
-            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
-        canvasAdd(level9NumeralCanvas, img, 0., 0.)
+        updateLevel9NumeralImpl(level9NumeralCanvas)
         // redraw white/magical swords (may have located/unlocated/hinted)
         redrawWhiteSwordCanvas()
         redrawMagicalSwordCanvas()
@@ -1250,7 +1436,7 @@ let makeAll(owMapNum) =
                 elif owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
                     // unexplored but gettable spots highlight
                     OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
+                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
             member _this.AnnounceCompletedDungeon(i) = if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
@@ -1349,6 +1535,15 @@ let makeAll(owMapNum) =
             let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
             if hasTheModelChanged then
                 doUIUpdate()
+        // link animation
+        if not(isSpecificRouteTargetActive()) then
+            currentTargetIcon.Children.Clear()
+            setLinkIcon(0)
+        else
+            if linkIconN=1 then
+                setLinkIcon(2)
+            elif linkIconN=2 then
+                setLinkIcon(1)
         // remind ladder
         if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HaveLadder then
@@ -1945,7 +2140,7 @@ let makeAll(owMapNum) =
     owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
     owGettableScreensTextBox.MouseEnter.Add(fun _ -> 
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, 128)
+                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
         )
     owGettableScreensTextBox.MouseLeave.Add(fun _ -> 
         if not(owGettableScreensCheckBox.IsChecked.HasValue) || not(owGettableScreensCheckBox.IsChecked.Value) then 
@@ -2124,12 +2319,20 @@ let makeAll(owMapNum) =
                     // ... and highlight all undiscovered tiles
                     if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
                         if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                            if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
+                                if owInstance.SometimesEmpty(i,j) then
+                                    owLocatorTilesZone.[i,j].Fill <- Brushes.Yellow
+                                else
+                                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
+                            else
+                                owLocatorTilesZone.[i,j].Fill <- Brushes.Red
                             owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
     showLocatorInstanceFunc <- (fun f ->
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
                     owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
     showShopLocatorInstanceFunc <- (fun item ->
@@ -2137,6 +2340,7 @@ let makeAll(owMapNum) =
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = item || (TrackerModel.getOverworldMapExtraData(i,j) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item)) then
+                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
                     owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
     showLocator <- (fun level ->
