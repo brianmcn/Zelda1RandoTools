@@ -1640,7 +1640,8 @@ let makeAll(owMapNum) =
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
-        levelTab.Header <- sprintf "  %d  " level
+        let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
+        levelTab.Header <- sprintf "  %c  " labelChar
         let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)
         contentCanvas.MouseEnter.Add(fun _ -> 
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
@@ -1669,7 +1670,6 @@ let makeAll(owMapNum) =
         dungeonTabs.Height <- dungeonCanvas.Height + 30.   // ok to set this 9 times
         dungeonTabs.Items.Add(levelTab) |> ignore
 
-        let TEXT = sprintf "LEVEL-%d " level
         // horizontal doors
         let unknown = Dungeon.unknown
         let no = Dungeon.no
@@ -1770,10 +1770,31 @@ let makeAll(owMapNum) =
                     grabRedraw()
                     )
             else
-                // LEVEL-9        
-                let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
-                                        Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
-                canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    let gsc = new GradientStopCollection()
+                    gsc.Add(new GradientStop(Colors.Red, 0.))
+                    gsc.Add(new GradientStop(Colors.Orange, 0.2))
+                    gsc.Add(new GradientStop(Colors.Yellow, 0.4))
+                    gsc.Add(new GradientStop(Colors.LightGreen, 0.6))
+                    gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
+                    gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
+                    let rainbowBrush = new LinearGradientBrush(gsc, 90.)
+                    let TEXT = "LEVEL-9"
+                    if i <> 6 || labelChar = '9' then
+                        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                                Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                        canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+                    else
+                        let tb = new TextBox(Width=float(13*3-16), Height=float(TH-4), FontSize=float(TH-4), Foreground=Brushes.Black, Background=rainbowBrush, IsReadOnly=true, IsHitTestVisible=false,
+                                                Text="?", BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold,
+                                                HorizontalContentAlignment=HorizontalAlignment.Center)
+                        let button = new Button(Height=float(TH), Content=tb, BorderThickness=Thickness(2.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.White)
+                        canvasAdd(dungeonCanvas, button, float(i*51)+6., 0.)
+                else
+                    let TEXT = sprintf "LEVEL-%d " level
+                    let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                            Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                    canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
             // room map
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
@@ -2104,18 +2125,19 @@ let makeAll(owMapNum) =
                 d.Children.Add(tb) |> ignore
                 gridAdd(blockerGrid, d, i, j)
             else
-                let dungeonNumeral = (3*j+i)
+                let dungeonNumber = (3*j+i)-1
+                let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonNumber] else "12345678".[dungeonNumber]
                 let d = new DockPanel(LastChildFill=false)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%d" dungeonNumeral, Width=30., 
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=30., 
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
                                         TextAlignment=TextAlignment.Right, Margin=Thickness(0.,0.,6.,0.))
                 sp.Children.Add(tb) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 0)) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonNumeral-1, 1)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumber, 0)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonNumber, 1)) |> ignore
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
-                blockerDungeonSunglasses.[dungeonNumeral-1] <- upcast sp // just reduce its opacity
+                blockerDungeonSunglasses.[dungeonNumber] <- upcast sp // just reduce its opacity
     canvasAdd(appMainCanvas, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    
