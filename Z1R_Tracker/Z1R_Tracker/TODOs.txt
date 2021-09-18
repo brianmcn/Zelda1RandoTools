@@ -24,6 +24,7 @@ hide dungeon numbers
  - triforce decoder picture is maybe part of this?
 
 hotkeys
+ - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
 
 
@@ -31,18 +32,22 @@ hotkeys
 SMALL
 
 
-should double-left-click or double-right-click work on any dungeon tile, as a way to set its completed state?  almost surely yes
+
+should link keep routing you until you dismiss him (with a click?)
+should there be a separate gesture for 'timeout in 10s mode' versus 'keep it until you dismiss' mode?
+
+
+
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
 
 
 
 Kigalas:
-First was finding a way to get the cursor out of the Notes box - it seems clicking on a checkbox or Hint Decoder is the only way to do this, and hitting Start on the controller is like hitting Enter on the keyboard, etc. Just clicking outside that box into the black portion to deselect the text box would help greatly.
-
 Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
 
-Oh, and last week I accidentally put an item into the White Sword box instead of the Ladder item box, then fixed it, and it gave me verbal prompts for the White Sword cave once I found some hearts later. Might want to teach it to forget things when humans screw up.
+Oh, and last week I accidentally put an item into the White Sword box instead of the Ladder item box, then fixed it, and it gave me verbal prompts for the White Sword 
+cave once I found some hearts later. Might want to teach it to forget things when humans screw up.
 
 
 
@@ -146,6 +151,17 @@ At the same time, need to preserve the simple/intuitive UI that already exists -
   without needing the middle-click, maybe? In that case maybe need 4th option in popup (defer decision until later and leave tile on map)... actually, local popups always need a 
   'do nothing' option, e.g. for the casual user who accidentally activates the UI and just wants to dismiss it because 'what the heck even is this'
   (When a local popup-ui makes changes at a distance in other parts of tracker, long duration animations highlighting the changes will help users understand, and undo would be nice)
+
+Given where the overworld-selector API is now (weeks after writing the above), I think the take-any scenario is:
+ - use overworld popup selector to choose take-any mark
+ - it immediately pops up a second selector with old-man 'take any one you want' decoration and grid choices potion, candle, heart, and below candle some kind of 'leave' option, and 
+   'leave' behaves like an exterior-click-dismiss (and leaves take-any tile on OW map), and the other choices have the expected accelerator effects (map tile X, top-UI hearts/candle update)
+And if there were e.g. a 'got-an-item-here' dungeon room selector or something, it could also have a local popup
+ - the 'room' would not even have to be a real rool, like maybe selecting that room from the room grid makes no changes to the backing state, but instead just invokes the new popup
+ - or it could even be outside the grid, like a decoration, with a click interaction that dismisses the room-selector with no commit, and instead invokes new popup
+ - icon should clearly be linkGotTheThing :)
+ - popup could somehow offer basement versus floor item choices, and populate top-UI boxes via some logic, guideline-arrow appears while interacting
+ - (turning it up to 11, maybe top-ui item boxes should be non-interactive, have all local interactions to set it? probably no, need to correct errors, non-intuitive, etc, but think about)
 
 homer conversation, he forgot shops could even have second items:
 regarding second-shop-icon, are you saying that it would help you remember that second-item is an option available to you if 'bomb' displays not just 'bomb' in center, but 

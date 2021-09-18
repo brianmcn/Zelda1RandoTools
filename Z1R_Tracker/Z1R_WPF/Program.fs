@@ -80,6 +80,7 @@ type MyWindow() as this =
     let HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
+        Graphics.theWindow <- this
         WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"

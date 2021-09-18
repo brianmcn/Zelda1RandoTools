@@ -7,13 +7,7 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 
-
-let soundPlayer = new MediaPlayer()
-soundPlayer.Volume <- 0.1
-soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
-let PlaySoundForSpeechRecognizedAndUsedToMark() =
-    soundPlayer.Position <- TimeSpan(0L)
-    soundPlayer.Play()
+let PlaySoundForSpeechRecognizedAndUsedToMark = Graphics.PlaySoundForSpeechRecognizedAndUsedToMark
 
 let voice = OptionsMenu.voice
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
@@ -1096,7 +1090,7 @@ let makeAll(owMapNum) =
                                 if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                                 popupIsActive <- false),
                             (fun () -> popupIsActive <- false),
-                            [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                            [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                     )
                 c.MouseRightButtonDown.Add(fun _ -> 
                     if not popupIsActive then
@@ -1610,7 +1604,7 @@ let makeAll(owMapNum) =
     let dungeonRoomMouseButtonExplainerDecoration =
         let ST = CustomComboBoxes.borderThickness
         let h = 9.*3.*2.+ST*4.
-        let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black)
+        let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black, Opacity=0.6)
         let mouseBMP = Graphics.mouseIconButtonColors2BMP
         let mouse = Graphics.BMPtoImage mouseBMP
         mouse.Height <- h
@@ -1630,7 +1624,7 @@ let makeAll(owMapNum) =
                                     Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(ST), BorderBrush=color)
             p.Children.Add(tb) |> ignore
             sp.Children.Add(p) |> ignore
-        let b:FrameworkElement = upcast new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
+        let b:FrameworkElement = upcast new Border(Background=Brushes.Black, BorderThickness=Thickness(ST), BorderBrush=Brushes.DimGray, Child=d)
         b
 
     let grabHelper = new Dungeon.GrabHelper()
@@ -1814,10 +1808,10 @@ let makeAll(owMapNum) =
                         popupState <- Dungeon.DelayedPopupState.ACTIVE_NOW
                         //printfn "activating"
                         let ST = CustomComboBoxes.borderThickness
-                        let tileCanvas = new Canvas(Width=13.*3., Height=9.*3.)
+                        let tileCanvas = new Canvas(Width=13.*3., Height=9.*3., Background=Brushes.Black)
                         let originalStateIndex = if roomStates.[i,j] < 10 then roomStates.[i,j] else roomStates.[i,j] - 1
                         let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init (ROOMS-1) (fun n ->
-                            let tweak(im:Image) = im.Opacity <- 0.8; im
+                            let tweak(im:Image) = im.Opacity <- 0.5; im
                             if n < 10 then
                                 upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n)))), not(usedTransports.[n]=2) || n=originalStateIndex, n
                             else
@@ -1831,8 +1825,9 @@ let makeAll(owMapNum) =
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
-                                let tileBMP = roomBMPpairs(currentState) |> (fun (u,c) -> u)
-                                canvasAdd(tileCanvas, Graphics.BMPtoImage tileBMP, 0., 0.)),
+                                let tile = roomBMPpairs(currentState) |> (fun (u,c) -> u) |> Graphics.BMPtoImage
+                                tile.Opacity <- 0.6
+                                canvasAdd(tileCanvas, tile, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->
                                 if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
                                     usedTransportsRemoveState(roomStates.[i,j])
@@ -1845,7 +1840,7 @@ let makeAll(owMapNum) =
                                 ),
                             (fun () -> popupState <- Dungeon.DelayedPopupState.NONE),   // onClose
                             [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST],
-                            CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                            (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
                             popupState <- Dungeon.DelayedPopupState.SOON
@@ -1956,15 +1951,18 @@ let makeAll(owMapNum) =
                                             roomCompleted.[i,j] <- false
                                             redraw()
                                     else
+                                        // plain left click
                                         if roomStates.[i,j] = 0 then
                                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
                                             roomStates.[i,j] <- ROOMS-1
                                             roomCompleted.[i,j] <- true
-                                        redraw()
                                         if popupState=Dungeon.DelayedPopupState.SOON then
                                             //printfn "click canceling"
                                             popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
+                                            roomCompleted.[i,j] <- true  // interpret the double-left-click as completion
+                                            redraw()
                                         else
+                                            redraw()
                                             delayedActivatePopup(0)
                         elif ea.ChangedButton = Input.MouseButton.Right then
                             if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
@@ -1973,10 +1971,12 @@ let makeAll(owMapNum) =
                                         // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state
                                         roomStates.[i,j] <- ROOMS-1
                                         roomCompleted.[i,j] <- false
-                                    redraw()
                                     if popupState=Dungeon.DelayedPopupState.SOON then
                                         popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
+                                        roomCompleted.[i,j] <- false  // interpret the double-right-click as uncompletion
+                                        redraw()
                                     else
+                                        redraw()
                                         delayedActivatePopup(0)
                         elif ea.ChangedButton = Input.MouseButton.Middle then
                             if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
@@ -2085,7 +2085,7 @@ let makeAll(owMapNum) =
                         current <- db
                         redraw(db)
                         dismissPopup()
-                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun x -> if not popupIsActive then activate(0))
         c
@@ -2427,6 +2427,7 @@ let makeAll(owMapNum) =
     //                items  ow map  prog  dungeon tabs                timeline
     appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
 
+    appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
 
     //Dungeon.drawDungeonColorGrid(appMainCanvas)
 

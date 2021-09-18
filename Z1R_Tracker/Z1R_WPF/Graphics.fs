@@ -5,6 +5,25 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let mutable theWindow : System.Windows.Window = null
+type Win32() =
+    [<System.Runtime.InteropServices.DllImport("User32.dll")>]
+    static extern bool SetCursorPos(int X, int Y)
+    
+    static member SetCursor(x,y) = 
+        let pos = theWindow.PointToScreen(new Point(x,y))
+        SetCursorPos(int pos.X, int pos.Y) |> ignore
+
+let soundPlayer = new MediaPlayer()
+soundPlayer.Volume <- 0.1
+soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
+let PlaySoundForSpeechRecognizedAndUsedToMark() =
+    soundPlayer.Position <- TimeSpan(0L)
+    soundPlayer.Play()
+
+
+
+
 let GetResourceStream(name) = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name)
 
 let canvasAdd(c:Canvas, item, left, top) =

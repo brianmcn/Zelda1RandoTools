@@ -173,8 +173,15 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
     member _this.GridSelectableHighlightBrush = gridSelectableHighlightBrush
     member _this.GridNotSelectableHighlightBrush = gridNotSelectableHighlightBrush
     member _this.BorderBrush = borderBrush
+    member this.Dim(opacity) =
+        let dim(scb:SolidColorBrush) =
+            let c = scb.Color
+            let nc = Color.FromArgb(byte(255.*opacity), c.R, c.G, c.B)
+            new SolidColorBrush(nc)
+        new ModalGridSelectBrushes(dim(this.OriginalTileHighlightBrush), dim(this.GridSelectableHighlightBrush), dim(this.GridNotSelectableHighlightBrush), dim(this.BorderBrush))
     static member Defaults() =
         new ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)
+
 let borderThickness = 3.  // TODO should this be a param?
 
 let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
@@ -187,7 +194,8 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                             onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
                             onClose,  // called when user clicks outside modal, and it dismisses itself
                             extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
-                            brushes:ModalGridSelectBrushes
+                            brushes:ModalGridSelectBrushes,
+                            gridClickDismissalDoesMouseWarpBackToTileCenter
                             ) =
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
@@ -246,10 +254,16 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                 let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then brushes.GridSelectableHighlightBrush else brushes.GridNotSelectableHighlightBrush) else Brushes.Black)
                 redrawGridFuncs.Add(redraw)
                 redraw()
+                let mouseWarpDismiss() =
+                    let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), appMainCanvas)
+                    dismiss()
+                    Graphics.Win32.SetCursor(pos.X, pos.Y)
+                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                 b.MouseDown.Add(fun ea -> 
                     ea.Handled <- true
                     if isSelectable then
-                        onClick(dismiss, ea, stateID())
+                        let dismisser = if gridClickDismissalDoesMouseWarpBackToTileCenter then mouseWarpDismiss else dismiss
+                        onClick(dismisser, ea, stateID())
                     )
                 gridAdd(grid, b, x, y)
             else
@@ -329,7 +343,7 @@ let DisplayItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activa
     let allCleanup() = selfCleanup(); onClose()
     let extraDecorations = [itemBoxMouseButtonExplainerDecoration, -3., 138.]
     DoModalGridSelect(appMainCanvas, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), -3., 27., 
-        redrawTile, onClick, allCleanup, extraDecorations, itemBoxModalGridSelectBrushes)
+        redrawTile, onClick, allCleanup, extraDecorations, itemBoxModalGridSelectBrushes, true)
 
 let DisplayRemoteItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, gridX, gridY, commitFunction, onClose, extraDecorations) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
@@ -351,4 +365,4 @@ let DisplayRemoteItemComboBox(appMainCanvas:Canvas, boxX, boxY, boxCellCurrent, 
     let onClick(dismissPopup,ea,ident) = dismissPopup(); commitFunction(ident, MouseButtonEventArgsToPlayerHas ea)
     let redrawTile(ident) = redraw(ident)
     DoModalGridSelect(appMainCanvas, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-        redrawTile, onClick, onClose, extraDecorations, itemBoxModalGridSelectBrushes)
+        redrawTile, onClick, onClose, extraDecorations, itemBoxModalGridSelectBrushes, true)
