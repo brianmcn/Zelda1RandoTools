@@ -102,38 +102,55 @@ type MyWindow() as this =
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black
+        let triforcesNumbered = ResizeArray()
+        let triforcesLettered = ResizeArray()
         for i = 0 to 2 do
-            let image = Graphics.BMPtoImage Graphics.emptyUnfoundTriforce_bmps.[i]
+            let image = Graphics.BMPtoImage Graphics.emptyUnfoundNumberedTriforce_bmps.[i]
+            triforcesNumbered.Add(image)
             Graphics.gridAdd(hsGrid, image, i, 0)
-        let row1boxesA = ResizeArray()
-        let row1boxesB = ResizeArray()
+            let image = Graphics.BMPtoImage Graphics.emptyUnfoundLetteredTriforce_bmps.[i]
+            triforcesLettered.Add(image)
+            Graphics.gridAdd(hsGrid, image, i, 0)
+        let turnHideDungeonNumbersOn() =
+            for b in triforcesNumbered do
+                b.Opacity <- 0.
+            for b in triforcesLettered do
+                b.Opacity <- 1.
+        let turnHideDungeonNumbersOff() =
+            for b in triforcesNumbered do
+                b.Opacity <- 1.
+            for b in triforcesLettered do
+                b.Opacity <- 0.
+        turnHideDungeonNumbersOff()
+        let row1BoxesHearts = ResizeArray()
+        let row1BoxesEmpty = ResizeArray()
         for i = 0 to 2 do
             let pict = box(14)
-            row1boxesA.Add(pict)
+            row1BoxesHearts.Add(pict)
             Graphics.gridAdd(hsGrid, pict, i, 1)
             let pict = box(-1)
-            row1boxesB.Add(pict)
+            row1BoxesEmpty.Add(pict)
             Graphics.gridAdd(hsGrid, pict, i, 1)
             let pict = box(-1)
             Graphics.gridAdd(hsGrid, pict, i, 2)
-        let yes() =
-            for b in row1boxesA do
+        let turnHeartShuffleOn() =
+            for b in row1BoxesHearts do
                 b.Opacity <- 0.
-            for b in row1boxesB do
+            for b in row1BoxesEmpty do
                 b.Opacity <- 1.
-        let no() =
-            for b in row1boxesA do
+        let turnHeartShuffleOff() =
+            for b in row1BoxesHearts do
                 b.Opacity <- 1.
-            for b in row1boxesB do
+            for b in row1BoxesEmpty do
                 b.Opacity <- 0.
-        yes()
+        turnHeartShuffleOn()
         let cutoffCanvas = new Canvas(Width=80., Height=80., ClipToBounds=true)
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
         let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(10.))
         hscb.IsChecked <- System.Nullable.op_Implicit true
-        hscb.Checked.Add(fun _ -> yes())
-        hscb.Unchecked.Add(fun _ -> no())
+        hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
+        hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
         hsPanel.Children.Add(hscb) |> ignore
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore

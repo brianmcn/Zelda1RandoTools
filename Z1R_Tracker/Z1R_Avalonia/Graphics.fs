@@ -130,24 +130,36 @@ let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, o
         |]
     all.[0], all.[1], all.[2], all.[3], all.[4]
 let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
-let emptyUnfoundTriforce_bmps = [|
-    for i = 0 to 7 do
-        let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-        paintAlphanumerics3x5(char(int '1' + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
-        yield bmp
-    |]
-let emptyFoundTriforce_bmps = [|
-    for i = 0 to 7 do
-        let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.White, bmp, 4, 4)
-        yield bmp
-    |]
-let fullTriforce_bmps = [|
-    for i = 0 to 7 do
-        let bmp = fullTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-        paintAlphanumerics3x5(char(int '1' + i), System.Drawing.Color.White, bmp, 4, 4)
-        yield bmp
-    |]
+let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
+    let a = [|
+        for ch in ['1'; 'A'] do
+            yield [|
+            for i = 0 to 7 do
+                let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
+                yield bmp
+            |] |]
+    a.[0], a.[1]
+let emptyFoundNumberedTriforce_bmps, emptyFoundLetteredTriforce_bmps = 
+    let a = [|
+        for ch in ['1'; 'A'] do
+            yield [|
+            for i = 0 to 7 do
+                let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), System.Drawing.Color.White, bmp, 4, 4)
+                yield bmp
+            |] |]
+    a.[0], a.[1]
+let fullNumberedTriforce_bmps, fullLetteredTriforce_bmps =
+    let a = [|
+        for ch in ['1'; 'A'] do
+            yield [|
+            for i = 0 to 7 do
+                let bmp = fullTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), System.Drawing.Color.White, bmp, 4, 4)
+                yield bmp
+            |] |]
+    a.[0], a.[1]
 let unfoundL9_bmp,foundL9_bmp =
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
@@ -201,9 +213,6 @@ let zhDungeonNums =
     new System.Drawing.Bitmap(imageStream)
 
 
-let emptyUnfoundTriforces(i) = emptyUnfoundTriforce_bmps.[i] |> BMPtoImage
-let emptyFoundTriforces(i) = emptyFoundTriforce_bmps.[i] |> BMPtoImage
-let fullTriforces(i) = fullTriforce_bmps.[i] |> BMPtoImage
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 
 let overworldMapBMPs(n) =
@@ -219,41 +228,43 @@ let overworldMapBMPs(n) =
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
-let uniqueMapIconBMPs =
-    let imageStream = GetResourceStream("ow_icons5x9.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    let tiles = [|  
-        for i = 1 to 9 do  // levels 1-9
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                        b.SetPixel(px, py, System.Drawing.Color.Yellow)
-                    else
-                        b.SetPixel(px, py, TRANS_BG)
-            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
-            yield b
-        for i = 1 to 4 do  // warps 1-4
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                        b.SetPixel(px, py, System.Drawing.Color.Orchid)
-                    else
-                        b.SetPixel(px, py, TRANS_BG)
-            paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
-            yield b
-        for i = 0 to 1 do  // sword 3, sword 2
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
-                    else
-                        b.SetPixel(px, py, TRANS_BG)
-            yield b
-    |]
-    tiles
+let uniqueNumberedMapIconBMPs, uniqueLetteredMapIconBMPs =
+    let f labels =
+        let imageStream = GetResourceStream("ow_icons5x9.png")
+        let bmp = new System.Drawing.Bitmap(imageStream)
+        let tiles = [|  
+            for i in labels do
+                let b = new System.Drawing.Bitmap(16*3,11*3)
+                for px = 0 to 16*3-1 do
+                    for py = 0 to 11*3-1 do
+                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                            b.SetPixel(px, py, System.Drawing.Color.Yellow)
+                        else
+                            b.SetPixel(px, py, TRANS_BG)
+                paintAlphanumerics3x5(i, System.Drawing.Color.Black, b, 6, 3)
+                yield b
+            for i = 1 to 4 do  // warps 1-4
+                let b = new System.Drawing.Bitmap(16*3,11*3)
+                for px = 0 to 16*3-1 do
+                    for py = 0 to 11*3-1 do
+                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                            b.SetPixel(px, py, System.Drawing.Color.Orchid)
+                        else
+                            b.SetPixel(px, py, TRANS_BG)
+                paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
+                yield b
+            for i = 0 to 1 do  // sword 3, sword 2
+                let b = new System.Drawing.Bitmap(16*3,11*3)
+                for px = 0 to 16*3-1 do
+                    for py = 0 to 11*3-1 do
+                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                            b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
+                        else
+                            b.SetPixel(px, py, TRANS_BG)
+                yield b
+        |]
+        tiles
+    f "123456789", f "ABCDEFGH9"
 
 let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
 let itemsBMP = 
@@ -306,15 +317,16 @@ let nonUniqueMapIconBMPs =
         |]
     tiles
 
-let mapIconInteriorBMPs =
-    [|
-    for bmp in [yield! uniqueMapIconBMPs; yield! nonUniqueMapIconBMPs] do
-        let r = new System.Drawing.Bitmap(5*3,9*3)
-        for px = 0 to 5*3-1 do
-            for py = 0 to 9*3-1 do
-                r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
-        yield r
-    |]
+let numberedMapIconInteriorBMPs, letteredMapIconInteriorBMPs =
+    let f u = [|
+        for bmp in [yield! u; yield! nonUniqueMapIconBMPs] do
+            let r = new System.Drawing.Bitmap(5*3,9*3)
+            for px = 0 to 5*3-1 do
+                for py = 0 to 9*3-1 do
+                    r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
+            yield r
+        |]
+    f uniqueNumberedMapIconBMPs, f uniqueLetteredMapIconBMPs
 
 let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
     let imageStream = GetResourceStream("link_icons.png")

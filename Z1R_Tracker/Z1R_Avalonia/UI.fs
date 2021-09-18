@@ -9,7 +9,7 @@ open Avalonia.Layout
 let canvasAdd = Graphics.canvasAdd
 
 type MapStateProxy(state) =
-    static let U = Graphics.uniqueMapIconBMPs.Length 
+    static let U = Graphics.uniqueNumberedMapIconBMPs.Length   // ok to just use Numbered, as Lettered has same length
     static let NU = Graphics.nonUniqueMapIconBMPs.Length
     static member NumStates = U + NU
     member this.State = state
@@ -25,14 +25,14 @@ type MapStateProxy(state) =
         if state = -1 then
             null
         elif state < U then
-            Graphics.uniqueMapIconBMPs.[state]
+            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.uniqueLetteredMapIconBMPs.[state] else Graphics.uniqueNumberedMapIconBMPs.[state]
         else
             Graphics.nonUniqueMapIconBMPs.[state-U]
     member this.CurrentInteriorBMP() =
         if state = -1 then
             null
         else
-            Graphics.mapIconInteriorBMPs.[state]
+            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.letteredMapIconInteriorBMPs.[state] else Graphics.numberedMapIconInteriorBMPs.[state]
 
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
@@ -138,7 +138,15 @@ let makeAll(owMapNum) =
         | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
         | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
-    TrackerModel.initializeAll(owInstance, new TrackerModel.DungeonTrackerInstance(TrackerModel.DungeonTrackerInstanceKind.DEFAULT))
+    let dungeonInstance = new TrackerModel.DungeonTrackerInstance(TrackerModel.DungeonTrackerInstanceKind.DEFAULT)
+    TrackerModel.initializeAll(owInstance, dungeonInstance)
+    let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps =
+        match dungeonInstance.Kind with
+        | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
+            Graphics.emptyUnfoundLetteredTriforce_bmps, Graphics.emptyFoundLetteredTriforce_bmps, Graphics.fullLetteredTriforce_bmps
+        | TrackerModel.DungeonTrackerInstanceKind.DEFAULT ->
+            Graphics.emptyUnfoundNumberedTriforce_bmps, Graphics.emptyFoundNumberedTriforce_bmps, Graphics.fullNumberedTriforce_bmps
+    
     let isCurrentlyBook = ref true
     let redrawBoxes = ResizeArray()
     let toggleBookMagicalShield() =
@@ -188,9 +196,9 @@ let makeAll(owMapNum) =
                 not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
             innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         if not(TrackerModel.GetDungeon(i).PlayerHasTriforce()) then 
-            innerc.Children.Add(if not(found) then Graphics.emptyUnfoundTriforces(i) else Graphics.emptyFoundTriforces(i)) |> ignore
+            innerc.Children.Add(if not(found) then Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i] else Graphics.BMPtoImage emptyFoundTriforce_bmps.[i]) |> ignore
         else
-            innerc.Children.Add(Graphics.fullTriforces(i)) |> ignore 
+            innerc.Children.Add(Graphics.BMPtoImage fullTriforce_bmps.[i]) |> ignore 
     let updateLevel9NumeralImpl(level9NumeralCanvas:Canvas) =
         level9NumeralCanvas.Children.Clear()
         let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
@@ -202,7 +210,7 @@ let makeAll(owMapNum) =
         let innerc : Canvas = triforceInnerCanvases.[i]
         updateTriforceDisplayImpl(innerc,i)
     for i = 0 to 7 do
-        let image = Graphics.emptyUnfoundTriforces(i)
+        let image = Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i]
         // triforce dungeon color
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         mainTrackerCanvases.[i,0] <- c
@@ -219,7 +227,7 @@ let makeAll(owMapNum) =
             updateTriforceDisplay(i)
         )
         gridAdd(mainTracker, c, i, 1)
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforce_bmps.[i]) else None))
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
@@ -1067,24 +1075,25 @@ let makeAll(owMapNum) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker", Padding=Thickness(0.))
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 0., 0.)
+    let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.uniqueLetteredMapIconBMPs.[0] else Graphics.uniqueNumberedMapIconBMPs.[0]
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 2.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 2.5*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,2.5,0)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[0], 5.*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueMapIconBMPs.[9], 7.5*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage Graphics.uniqueNumberedMapIconBMPs.[9], 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
@@ -1151,7 +1160,7 @@ let makeAll(owMapNum) =
         let dp = new DockPanel(LastChildFill=true)
         let bmp = 
             if row < 8 then
-                Graphics.emptyFoundTriforce_bmps.[row]
+                emptyFoundTriforce_bmps.[row]
             elif row = 8 then
                 Graphics.foundL9_bmp
             elif row = 9 then
