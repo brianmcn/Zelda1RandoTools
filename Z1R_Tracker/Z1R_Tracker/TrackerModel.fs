@@ -395,43 +395,69 @@ type Box() =
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
         changed.Trigger()
 
-let FinalBoxOf1Or4 = new Box()
-type Dungeon(id,numBoxes) =
-    let mutable playerHasTriforce = false  // just ignore this for dungeon 9 (id=8)
-    let boxes = Array.init numBoxes (fun _ -> new Box())
-    member _this.HasBeenLocated() =
-        mapSquareChoiceDomain.NumUses(id) = 1
-    member _this.PlayerHasTriforce() = playerHasTriforce
-    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
-    member _this.Boxes = 
-        if id=0 && not(Options.IsSecondQuestDungeons.Value) || id=3 && Options.IsSecondQuestDungeons.Value then
-            [| yield! boxes; yield FinalBoxOf1Or4 |]
-        else
-            boxes
-    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
-
-let dungeons = [|
-    new Dungeon(0, 2)
-    new Dungeon(1, 2)
-    new Dungeon(2, 2)
-    new Dungeon(3, 2)
-    new Dungeon(4, 2)
-    new Dungeon(5, 2)
-    new Dungeon(6, 2)
-    new Dungeon(7, 3)
-    new Dungeon(8, 2)
-    |]    
 let ladderBox = Box()
 let armosBox  = Box()
 let sword2Box = Box()
 
-let allBoxes = [|
-    for d in dungeons do
-        yield! d.Boxes
-    yield ladderBox
-    yield armosBox
-    yield sword2Box
-    |]
+[<RequireQualifiedAccess>]
+type DungeonTrackerInstanceKind =
+    | HIDE_DUNGEON_NUMBERS
+    | DEFAULT
+
+type DungeonTrackerInstance(kind) =
+    static let mutable theInstance = DungeonTrackerInstance(DungeonTrackerInstanceKind.DEFAULT)
+    let finalBoxOf1Or4 = new Box()  // only relevant in DEFAULT
+    let dungeons = 
+        match kind with
+        | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> [| 
+            for i = 0 to 7 do 
+                yield new Dungeon(i,3) 
+            yield new Dungeon(8,2)
+            |]
+        | DungeonTrackerInstanceKind.DEFAULT -> [|
+            new Dungeon(0, 2)
+            new Dungeon(1, 2)
+            new Dungeon(2, 2)
+            new Dungeon(3, 2)
+            new Dungeon(4, 2)
+            new Dungeon(5, 2)
+            new Dungeon(6, 2)
+            new Dungeon(7, 3)
+            new Dungeon(8, 2)
+            |]
+    member _this.Kind = kind
+    member _this.Dungeons(i) = dungeons.[i]
+    member _this.FinalBoxOf1Or4 =
+        match kind with
+        | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> failwith "FinalBoxOf1Or4 does not exist in HIDE_DUNGEON_NUMBERS"
+        | DungeonTrackerInstanceKind.DEFAULT -> finalBoxOf1Or4
+    member _this.AllBoxes() =
+        [|
+        for d in dungeons do
+            yield! d.Boxes
+        yield ladderBox
+        yield armosBox
+        yield sword2Box
+        |]
+    static member TheDungeonTrackerInstance with get() = theInstance and set(x) = theInstance <- x
+
+and Dungeon(id,numBoxes) =
+    let mutable playerHasTriforce = false  // just ignore this for dungeon 9 (id=8)
+    let boxes = Array.init numBoxes (fun _ -> new Box())
+    member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
+    member _this.PlayerHasTriforce() = playerHasTriforce
+    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.Boxes = 
+        match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
+        | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes
+        | DungeonTrackerInstanceKind.DEFAULT ->
+            if id=0 && not(Options.IsSecondQuestDungeons.Value) || id=3 && Options.IsSecondQuestDungeons.Value then
+                [| yield! boxes; yield DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4 |]
+            else
+                boxes
+    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
+
+let GetDungeon(i) = DungeonTrackerInstance.TheDungeonTrackerInstance.Dungeons(i)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Player computed state summary
@@ -460,7 +486,7 @@ let mutable playerComputedStateSummaryLastComputedTime = System.DateTime.Now
 let recomputePlayerStateSummary() =
     let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
     let mutable swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel = 0,0,0,false,0,false,false,0
-    for b in allBoxes do
+    for b in DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() do
         if b.PlayerHas() = PlayerHas.YES then
             if b.CellCurrent() = ITEMS.RECORDER then
                 haveRecorder <- true
@@ -563,9 +589,13 @@ let recomputeMapStateSummary() =
                 match overworldMapMarks.[i,j].Current() with
                 | x when x>=0 && x<9 -> 
                     dungeonLocations.[x] <- i,j
-                    if x < 8 && not(dungeons.[x].IsComplete) then
+                    if x < 8 && not(GetDungeon(x).IsComplete) then
                         owRouteworthySpots.[i,j] <- true
-                    if x = 8 && dungeons |> Array.forall (fun d -> d.PlayerHasTriforce()) then
+                    let mutable playerHasAllTriforce = true
+                    for i = 0 to 7 do
+                        if not(GetDungeon(i).PlayerHasTriforce()) then
+                            playerHasAllTriforce <- false
+                    if x = 8 && playerHasAllTriforce then
                         owRouteworthySpots.[i,j] <- true
                 | x when x>=9 && x<13 -> 
                     anyRoadLocations.[x-9] <- i,j
@@ -607,7 +637,9 @@ let recomputeMapStateSummary() =
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime <- System.DateTime.Now
-let initializeAll(instance:OverworldData.OverworldInstance) =
+
+let initializeAll(instance:OverworldData.OverworldInstance, dungeonTrackerInstance) =
+    DungeonTrackerInstance.TheDungeonTrackerInstance <- dungeonTrackerInstance
     owInstance <- instance
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -791,8 +823,11 @@ let mutable priorAnyKey = false
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
 let computeTriforceAndGo() =
-    let missing = dungeons |> Array.filter (fun d -> not(d.HasBeenLocated()))
-    if missing.Length=0 then  // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without locating them all   // TODO advanced flags: only need N triforces to enter 9
+    let mutable missing = 0
+    for i = 0 to 8 do
+        if not(GetDungeon(i).HasBeenLocated()) then
+            missing <- missing + 1
+    if missing=0 then  // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without locating them all   // TODO advanced flags: only need N triforces to enter 9
         if playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder && playerComputedStateSummary.HaveRecorder then
             3
         elif playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder then
@@ -801,7 +836,7 @@ let computeTriforceAndGo() =
             1
         else
             0   // TODO anything for silvers-in-9, like 'silvers and go'? hmmm
-    elif missing.Length=1 then
+    elif missing=1 then
         // TODO missingDungeon+bow+silvers+ladder  "if you find N, you might be triforce and go"
         0
     else
@@ -823,7 +858,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d] <> NOTFOUND then
             let x,y = mapStateSummary.DungeonLocations.[d]
-            ite.DungeonLocation(d, x, y, dungeons.[d].PlayerHasTriforce(), dungeons.[d].IsComplete)
+            ite.DungeonLocation(d, x, y, GetDungeon(d).PlayerHasTriforce(), GetDungeon(d).IsComplete)
     for a = 0 to 3 do
         if mapStateSummary.AnyRoadLocations.[a] <> NOTFOUND then
             let x,y = mapStateSummary.AnyRoadLocations.[a]
@@ -838,7 +873,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     let recorderDests = [|
         if playerComputedStateSummary.HaveRecorder then
             for d = 0 to 7 do
-                if mapStateSummary.DungeonLocations.[d] <> NOTFOUND && dungeons.[d].PlayerHasTriforce() then
+                if mapStateSummary.DungeonLocations.[d] <> NOTFOUND && GetDungeon(d).PlayerHasTriforce() then
                     yield mapStateSummary.DungeonLocations.[d]
         |]
     let anyRoadDests = [|
@@ -849,10 +884,10 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     ite.RoutingInfo(playerComputedStateSummary.HaveLadder, playerComputedStateSummary.HaveRaft, recorderDests, anyRoadDests, mapStateSummary.OwRouteworthySpots)
     // dungeons
     for d = 0 to 7 do
-        if not haveAnnouncedCompletedDungeons.[d] && dungeons.[d].IsComplete then
+        if not haveAnnouncedCompletedDungeons.[d] && GetDungeon(d).IsComplete then
             ite.AnnounceCompletedDungeon(d)
             haveAnnouncedCompletedDungeons.[d] <- true
-    ite.CompletedDungeons [| for d = 0 to 7 do yield dungeons.[d].IsComplete |]
+    ite.CompletedDungeons [| for d = 0 to 7 do yield GetDungeon(d).IsComplete |]
     let mutable numFound = 0
     for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d]<>NOTFOUND then
@@ -862,11 +897,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         previouslyAnnouncedFoundDungeonCount <- numFound
     let mutable triforces = 0
     for d = 0 to 8 do
-        if dungeons.[d].PlayerHasTriforce() then
+        if GetDungeon(d).PlayerHasTriforce() then
             triforces <- triforces + 1
     let mutable completedDungeons = 0
     for d = 0 to 8 do
-        if dungeons.[d].IsComplete then
+        if GetDungeon(d).IsComplete then
             completedDungeons <- completedDungeons + 1
     let tagLevel = computeTriforceAndGo()
     let mutable justAnnouncedTAG = false
@@ -895,7 +930,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         let dungeonNums = ResizeArray()
         for i = 0 to 7 do
             if dungeonBlockers.[i,0] = DungeonBlocker.COMBAT || dungeonBlockers.[i,1] = DungeonBlocker.COMBAT then
-                if not(dungeons.[i].IsComplete) then
+                if not(GetDungeon(i).IsComplete) then
                     dungeonNums.Add(i)
         if dungeonNums.Count > 0 then
             if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
@@ -907,7 +942,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         let dungeonNums = ResizeArray()
         for i = 0 to 7 do
             if dungeonBlockers.[i,0] = db || dungeonBlockers.[i,1] = db then
-                if not(dungeons.[i].IsComplete) then
+                if not(GetDungeon(i).IsComplete) then
                     dungeonNums.Add(i)
         if dungeonNums.Count > 0 then
             if tagLevel < 3 then // no need for blocker-reminder if fully-go-time

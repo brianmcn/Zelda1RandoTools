@@ -79,7 +79,7 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
         owTargetworthySpots.[x,y] <- true
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
     | Some(RouteDestination.DUNGEON(n)) ->
-        if TrackerModel.dungeons.[n].HasBeenLocated() then
+        if TrackerModel.GetDungeon(n).HasBeenLocated() then
             let x,y = TrackerModel.mapStateSummary.DungeonLocations.[n]
             owTargetworthySpots.[x,y] <- true
         elif TrackerModel.levelHints.[n] <> TrackerModel.HintZone.UNKNOWN then
@@ -138,7 +138,7 @@ let makeAll(owMapNum) =
         | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
         | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
-    TrackerModel.initializeAll(owInstance)
+    TrackerModel.initializeAll(owInstance, new TrackerModel.DungeonTrackerInstance(TrackerModel.DungeonTrackerInstanceKind.DEFAULT))
     let isCurrentlyBook = ref true
     let redrawBoxes = ResizeArray()
     let toggleBookMagicalShield() =
@@ -184,10 +184,10 @@ let makeAll(owMapNum) =
     let updateTriforceDisplayImpl(innerc:Canvas, i) =
         innerc.Children.Clear()
         let found = TrackerModel.mapStateSummary.DungeonLocations.[i]<>TrackerModel.NOTFOUND 
-        if not(TrackerModel.dungeons.[i].IsComplete) &&  // dungeon could be complete without finding, in case of starting items and helpful hints
+        if not(TrackerModel.GetDungeon(i).IsComplete) &&  // dungeon could be complete without finding, in case of starting items and helpful hints
                 not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
             innerc.Children.Add(makeHintHighlight(30.)) |> ignore
-        if not(TrackerModel.dungeons.[i].PlayerHasTriforce()) then 
+        if not(TrackerModel.GetDungeon(i).PlayerHasTriforce()) then 
             innerc.Children.Add(if not(found) then Graphics.emptyUnfoundTriforces(i) else Graphics.emptyFoundTriforces(i)) |> ignore
         else
             innerc.Children.Add(Graphics.fullTriforces(i)) |> ignore 
@@ -215,11 +215,11 @@ let makeAll(owMapNum) =
         c.Children.Add(innerc) |> ignore
         canvasAdd(innerc, image, 0., 0.)
         c.PointerPressed.Add(fun _ -> 
-            TrackerModel.dungeons.[i].ToggleTriforce()
+            TrackerModel.GetDungeon(i).ToggleTriforce()
             updateTriforceDisplay(i)
         )
         gridAdd(mainTracker, c, i, 1)
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.dungeons.[i].PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(Graphics.fullTriforce_bmps.[i]) else None))
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
@@ -283,13 +283,13 @@ let makeAll(owMapNum) =
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
-    let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.FinalBoxOf1Or4, false)
+    let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
     for i = 0 to 8 do
         for j = 0 to 2 do
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             gridAdd(mainTracker, c, i, j+2)
             if j=0 || j=1 || i=7 then
-                canvasAdd(c, boxItemImpl(TrackerModel.dungeons.[i].Boxes.[j], false), 0., 0.)
+                canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
             if i < 8 then
                 mainTrackerCanvases.[i,j+2] <- c
     let RedrawForSecondQuestDungeonToggle() =
@@ -572,9 +572,9 @@ let makeAll(owMapNum) =
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), OFFSET+90., 90., TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
             // triforces
             for i = 0 to 7 do
-                if TrackerModel.dungeons.[i].HasBeenLocated() || TrackerModel.levelHints.[i] <> TrackerModel.HintZone.UNKNOWN then
+                if TrackerModel.GetDungeon(i).HasBeenLocated() || TrackerModel.levelHints.[i] <> TrackerModel.HintZone.UNKNOWN then
                     makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.DUNGEON(i))
-            if TrackerModel.dungeons.[8].HasBeenLocated() || TrackerModel.levelHints.[8] <> TrackerModel.HintZone.UNKNOWN then
+            if TrackerModel.GetDungeon(8).HasBeenLocated() || TrackerModel.levelHints.[8] <> TrackerModel.HintZone.UNKNOWN then
                 makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.DUNGEON(8))
             // swords
             if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.levelHints.[9] <> TrackerModel.HintZone.UNKNOWN then

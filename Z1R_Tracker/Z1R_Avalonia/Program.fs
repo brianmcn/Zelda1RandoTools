@@ -131,7 +131,7 @@ type MyWindow(owMapNum) as this =
                             ()
                         else
                             for i = 0 to 7 do
-                                TrackerModel.dungeons.[i].Boxes.[0].Set(14,TrackerModel.PlayerHas.NO)
+                                TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
                         let c,u = UI.makeAll(i)
                         canvas <- c
                         updateTimeline <- u
