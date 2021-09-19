@@ -238,6 +238,7 @@ let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, or
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
 let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex, onClose) =
+    // TODO need 'triforce map's
     let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
     let dp = new DockPanel(Width=tileW, Height=tileH)
     canvasAdd(tileCanvas, dp, 0., 0.)
@@ -269,7 +270,7 @@ let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, o
     CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
-let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, onClose) =
+let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, warpReturn:Point, onClose) =
     // setup main visual tree
     let mainDock = new DockPanel(Background=Brushes.Black)
     
@@ -316,8 +317,7 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
     let mutable dismissSelf = fun() -> ()
     let close() =
         onClose()
-        // TODO this should be an option based on the caller, as this dialog might be triggered from other places
-        //Graphics.Win32.SetCursor(float dungeonIndex*30.+15., 15.)
+        //Graphics.Win32.SetCursor(warpReturn.X, warpReturn.Y)
         //Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
 
     let mutable popupIsActive = false

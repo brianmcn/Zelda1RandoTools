@@ -18,10 +18,10 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-get a new build to Kig once tested/stable
-
 hide dungeon numbers
  - triforce decoder picture is maybe part of this?
+
+refactor code so UI file not so long
 
 hotkeys
  - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere

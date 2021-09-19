@@ -265,17 +265,21 @@ let makeAll(owMapNum) =
         colorCanvas.MouseDown.Add(fun _ -> 
             if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
                 popupIsActive <- true
-                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, 
+                let pos = colorCanvas.TranslatePoint(Point(15., 15.), appMainCanvas)
+                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, pos,
                     (fun() -> 
-                        colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
-                        colorCanvas.Children.Clear()
-                        let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
-                        if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
-                            colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparent30x30bmp(TrackerModel.GetDungeon(i).LabelChar, color))) |> ignore
                         popupIsActive <- false
                         )) |> ignore
             )
         gridAdd(mainTracker, colorCanvas, i, 0)
+        TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
+            let colorCanvas = mainTrackerCanvases.[i,0]
+            colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
+            colorCanvas.Children.Clear()
+            let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
+            if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
+                colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparent30x30bmp(TrackerModel.GetDungeon(i).LabelChar, color))) |> ignore
+            )
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
@@ -1649,13 +1653,18 @@ let makeAll(owMapNum) =
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
     let mutable popupState = Dungeon.DelayedPopupState.NONE  // key to an interlock that enables a fast double-click to bypass the popup
-    let dungeonTabs = new TabControl(FontSize=12.)
-    dungeonTabs.Background <- System.Windows.Media.Brushes.Black 
+    let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     for level = 1 to 9 do
-        let levelTab = new TabItem(Background=System.Windows.Media.Brushes.SlateGray)
+        let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
-        levelTab.Header <- sprintf "  %c  " labelChar
+        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsHitTestVisible=false, 
+                                    HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        levelTab.Header <- header
+        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) -> 
+            header.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
+            )
         let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)
         contentCanvas.MouseEnter.Add(fun _ -> 
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
@@ -1759,6 +1768,11 @@ let makeAll(owMapNum) =
             for f in roomRedrawFuncs do
                 f()
         let mutable grabRedraw = fun () -> ()
+        let backgroundColorCanvas = new Canvas(Width=float(51*6+12), Height=float(TH))
+        canvasAdd(dungeonCanvas, backgroundColorCanvas, 0., 0.)
+        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
+            backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            )
         for i = 0 to 7 do
             if i=7 then
                 let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=true,
@@ -1785,25 +1799,37 @@ let makeAll(owMapNum) =
                     )
             else
                 if TrackerModel.IsHiddenDungeonNumbers() then
-                    let gsc = new GradientStopCollection()
-                    gsc.Add(new GradientStop(Colors.Red, 0.))
-                    gsc.Add(new GradientStop(Colors.Orange, 0.2))
-                    gsc.Add(new GradientStop(Colors.Yellow, 0.4))
-                    gsc.Add(new GradientStop(Colors.LightGreen, 0.6))
-                    gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
-                    gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
-                    let rainbowBrush = new LinearGradientBrush(gsc, 90.)
                     let TEXT = "LEVEL-9"
                     if i <> 6 || labelChar = '9' then
-                        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                        let fg = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color) then Brushes.Black else Brushes.White
+                        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=fg, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false,
                                                 Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
                         canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+                        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
+                            tb.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
+                            )
                     else
+                        let gsc = new GradientStopCollection()
+                        gsc.Add(new GradientStop(Colors.Red, 0.))
+                        gsc.Add(new GradientStop(Colors.Orange, 0.2))
+                        gsc.Add(new GradientStop(Colors.Yellow, 0.4))
+                        gsc.Add(new GradientStop(Colors.LightGreen, 0.6))
+                        gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
+                        gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
+                        let rainbowBrush = new LinearGradientBrush(gsc, 90.)
                         let tb = new TextBox(Width=float(13*3-16), Height=float(TH-4), FontSize=float(TH-4), Foreground=Brushes.Black, Background=rainbowBrush, IsReadOnly=true, IsHitTestVisible=false,
                                                 Text="?", BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold,
                                                 HorizontalContentAlignment=HorizontalAlignment.Center)
                         let button = new Button(Height=float(TH), Content=tb, BorderThickness=Thickness(2.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.White)
                         canvasAdd(dungeonCanvas, button, float(i*51)+6., 0.)
+                        let mutable popupIsActive = false
+                        button.Click.Add(fun _ ->
+                            if not popupIsActive then
+                                let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), appMainCanvas)
+                                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, level-1, TrackerModel.GetDungeon(level-1).Color, TrackerModel.GetDungeon(level-1).LabelChar, pos,
+                                    (fun () -> 
+                                        popupIsActive <- false)) |> ignore
+                            )
                 else
                     let TEXT = sprintf "LEVEL-%d " level
                     let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
