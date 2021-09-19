@@ -2022,7 +2022,7 @@ let makeAll(owMapNum) =
         for j = 0 to 2 do
             if i=0 && j=0 then
                 let d = new DockPanel(LastChildFill=false)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth,
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth, IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
                 ToolTip.SetTip(tb, "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.")
                 d.Children.Add(tb) |> ignore
@@ -2032,7 +2032,7 @@ let makeAll(owMapNum) =
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonNumber] else "12345678".[dungeonNumber]
                 let d = new DockPanel(LastChildFill=false)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=18., 
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=18., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Right)
                 sp.Children.Add(tb) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonNumber, 0)) |> ignore
