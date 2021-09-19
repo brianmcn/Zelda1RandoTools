@@ -66,6 +66,7 @@
     <Compile Include="Timeline.fs" />
     <Compile Include="CustomComboBoxes.fs" />
     <Compile Include="Dungeon.fs" />
+    <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
