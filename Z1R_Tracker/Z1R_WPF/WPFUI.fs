@@ -377,6 +377,14 @@ let makeAll(owMapNum) =
             mainTrackerCanvases.[i,j].MouseEnter.Add(fun _ -> showLocator(i))
             mainTrackerCanvases.[i,j].MouseLeave.Add(fun _ -> hideLocator())
 
+    // WANT!
+    let kitty = new Image()
+    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
+    kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+    canvasAdd(appMainCanvas, kitty, 285., 30.)
+
+    let OFFSET = 400.
+
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -407,8 +415,6 @@ let makeAll(owMapNum) =
         hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
-    if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox, 35., 130.) 
 
     hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideSecondQuestCheckBox.Checked.Add(fun _ -> 
@@ -421,15 +427,9 @@ let makeAll(owMapNum) =
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, 160., 130.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET +  5., 10.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 65., 10.) 
 
-    // WANT!
-    let kitty = new Image()
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
-    kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
-    canvasAdd(appMainCanvas, kitty, 285., 30.)
-
-    let OFFSET = 400.
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do

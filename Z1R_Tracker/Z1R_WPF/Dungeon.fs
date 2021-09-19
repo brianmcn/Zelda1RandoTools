@@ -213,15 +213,11 @@ let threeTallColorArray =
 
 let makeColor = Graphics.makeColor
 
-    // clicking one brings up color picker, as hover, a big swatch shows below picker; when chosen, letter changes for good contrast
     // color projection onto overworld tiles; overworld tile icons changing from 1-8 to A-H
-    // color projection onto LEVEL-N (use contrast color for LEVEL text)
-    // triforce numbering being '?' to start
     // obtaining triforce (clicking it to 'full') should auto-popup the chooser if the number label not already populated, and show the triforce diagram
-    // LEVEL-N being LEVEL-A or whatnot, BLOCKERS 1-8 being A-H, dungeon tab names being A-H
-    // some kind of letter-number associator, updates triforce numeral, some logic regarding 3rd item box?
-    // all 8 dungeons having 3 boxes (HFQ/HSQ move elsewhere)
-    // FQ and SQ highlights would need a bit of rework
+    // some kind of letter-number associator, some logic regarding 3rd item box?
+    // all 8 dungeons having 3 boxes
+    // FQ and SQ highlights would need a lot of rework
     // voice reminders 'dungeon seven' need to change to 'dungeon gee' I suppose
     // speech synthesis should probably just be like 'tracker set level' and choose the next free one
 

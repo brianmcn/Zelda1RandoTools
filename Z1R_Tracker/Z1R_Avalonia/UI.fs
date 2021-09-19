@@ -331,6 +331,7 @@ let makeAll(owMapNum) =
             mainTrackerCanvases.[i,j].PointerEnter.Add(fun _ -> showLocator(i))
             mainTrackerCanvases.[i,j].PointerLeave.Add(fun _ -> hideLocator())
 
+    let OFFSET = 280.
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -359,8 +360,6 @@ let makeAll(owMapNum) =
         hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
-    if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox, 35., 120.) 
 
     hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideSecondQuestCheckBox.Checked.Add(fun _ -> 
@@ -373,9 +372,9 @@ let makeAll(owMapNum) =
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, 140., 120.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET +  5., 10.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 65., 10.) 
 
-    let OFFSET = 280.
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
