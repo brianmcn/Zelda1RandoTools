@@ -2,6 +2,8 @@
 
 open Avalonia.Media
 open Avalonia.Controls
+open Avalonia
+open Avalonia.Layout
 
 [<RequireQualifiedAccess>]
 type DelayedPopupState =
@@ -133,3 +135,238 @@ type GrabHelper() =
         roomCompletedIfGrabWereACut <- null
     member this.Log() =
         printfn "log"
+
+///////////////////////////////////////////
+
+let flatColorArray = [|
+    // dungeon colors
+    0x808080
+    0xADADAD
+    0xE0E0E0
+
+    0x0050F1
+    0x4BA0FF
+    0xB6D8FF
+    
+    0x3B34FF
+    0x8A84FF
+    0xD0CDFF
+    
+    0x8022E8
+    0xD172FF
+    0xEDC6FF
+    
+    0xBB1EA5
+    0xFF6DF7
+    0xFFC4FC
+    
+    0xDB294E
+    0xFF799E
+    0xFFC8D8
+    
+    0xD74000
+    0xFF9047
+    0xFFD2B4
+    
+    0xB15E00
+    0xFFAE0A
+    0xFFDE9C
+    
+    0x737900
+    0xC4CA00
+    0xE7E994
+    
+    0x2D8B00
+    0x7DDC13
+    0xCAF19F
+
+    0x008F08
+    0x41E157
+    0xB2F3BB
+
+    0x008460
+    0x21D5B0
+    0xA5EEDF
+
+    0x006DB5
+    0x25BEFF
+    0xA6E5FF
+
+    0x000000   // add black as default
+    0x000000   
+    0x000000   
+    |]
+let threeTallColorArray = 
+    let a = ResizeArray()
+    let mutable i = 0
+    while i < flatColorArray.Length do
+        a.Add(flatColorArray.[i])
+        i <- i + 3
+    i <- 1
+    while i < flatColorArray.Length do
+        a.Add(flatColorArray.[i])
+        i <- i + 3
+    i <- 2
+    while i < flatColorArray.Length do
+        a.Add(flatColorArray.[i])
+        i <- i + 3
+    a.ToArray()
+
+let makeColor = Graphics.makeColor
+
+    // clicking one brings up color picker, as hover, a big swatch shows below picker; when chosen, letter changes for good contrast
+    // color projection onto overworld tiles; overworld tile icons changing from 1-8 to A-H
+    // color projection onto LEVEL-N (use contrast color for LEVEL text)
+    // triforce numbering being '?' to start
+    // obtaining triforce (clicking it to 'full') should auto-popup the chooser if the number label not already populated, and show the triforce diagram
+    // LEVEL-N being LEVEL-A or whatnot, BLOCKERS 1-8 being A-H, dungeon tab names being A-H
+    // some kind of letter-number associator, updates triforce numeral, some logic regarding 3rd item box?
+    // all 8 dungeons having 3 boxes (HFQ/HSQ move elsewhere)
+    // FQ and SQ highlights would need a bit of rework
+    // voice reminders 'dungeon seven' need to change to 'dungeon gee' I suppose
+    // speech synthesis should probably just be like 'tracker set level' and choose the next free one
+
+let canvasAdd = Graphics.canvasAdd
+
+let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalColor, dungeonIndex, onClose) =
+    let colors = threeTallColorArray
+    let tileCanvas = new Canvas(Width=tileW, Height=tileH)
+    let gridElementsSelectablesAndIDs = colors |> Array.mapi (fun i c -> new Canvas(Width=30., Height=30., Background=new SolidColorBrush(makeColor(c))) :> Control, true, i)
+    let originalStateIndex = match colors |> Array.tryFindIndex (fun c -> c=originalColor) with Some i -> i | None -> colors.Length-1
+    tileCanvas.Background <- new SolidColorBrush(makeColor(colors.[originalStateIndex]))
+    let activationDelta = 0
+    let gnc = colors.Length / 3
+    let gnr = 3
+    let gcw,grh = 30,30
+    let gx,gy = -100., tileH+20.
+    let redrawTile(i) = tileCanvas.Background <- new SolidColorBrush(makeColor(colors.[i]))
+    let onClick(dismiss, _ea, state) =
+        TrackerModel.GetDungeon(dungeonIndex).Color <- colors.[state]
+        dismiss()
+        onClose()
+    let extraDecorations = []
+    let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
+    let gridClickDismissalDoesMouseWarpBackToTileCenter = false
+    CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+        gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+
+let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex, onClose) =
+    let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
+    let dp = new DockPanel(Width=tileW, Height=tileH)
+    canvasAdd(tileCanvas, dp, 0., 0.)
+    let mkTxt(ch) =
+        new TextBox(Width=60., Height=60., FontSize=36., Foreground=Brushes.White, Background=Brushes.Black, IsHitTestVisible=false, 
+                    BorderThickness=Thickness(0.), Text=sprintf "%c" ch, VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center,
+                    VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+    let theTB = mkTxt(originalLabelChar)
+    dp.Children.Add(theTB) |> ignore
+    let gridElementsSelectablesAndIDs = [|
+        for ch in "?12345678" do
+            yield (mkTxt(ch) :> Control), true, ch
+        |]
+    let originalStateIndex = 
+        let i = "?12345678".IndexOf(originalLabelChar)
+        if i = -1 then 0 else i
+    let activationDelta = 0
+    let gnc,gnr = 3,3
+    let gcw,grh = 60,60
+    let gx,gy = -100., tileH+20.
+    let redrawTile(ch) = theTB.Text <- sprintf "%c" ch
+    let onClick(dismiss, _ea, ch) =
+        TrackerModel.GetDungeon(dungeonIndex).LabelChar <- ch
+        dismiss()
+        onClose()
+    let extraDecorations = []
+    let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
+    let gridClickDismissalDoesMouseWarpBackToTileCenter = false
+    CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+        gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+
+let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, onClose) =
+    // setup main visual tree
+    let mainDock = new DockPanel(Background=Brushes.Black)
+    
+    let text = sprintf "Dungeon %c" "ABCDEFGH".[dungeonIndex]
+    let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=24., Text=text, IsHitTestVisible=false, 
+                            HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Margin=Thickness(0.,0.,0.,20.))
+    mainDock.Children.Add(tb) |> ignore
+    DockPanel.SetDock(tb, Dock.Top)
+
+    let innerDock = new DockPanel(LastChildFill=false)
+    let button1Content = new Canvas(Width=60., Height=60., Background=new SolidColorBrush(makeColor(curColor)))
+    let button1 = new Button(Content=button1Content, Margin=Thickness(20.,0.,20.,0.), BorderThickness=Thickness(5.))
+    let button2Content = new TextBox(Width=60., Height=60., IsHitTestVisible=false, FontSize=36., Foreground=Brushes.White, Background=Brushes.Black, 
+                                        Text=sprintf "%c" curLabel, HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
+    let button2 = new Button(Content=button2Content, Margin=Thickness(20.,0.,20.,0.), BorderThickness=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Center)
+    let b1a = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="Change", IsHitTestVisible=false, 
+                            HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), HorizontalAlignment=HorizontalAlignment.Center)
+    let b1b = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="Color", IsHitTestVisible=false, 
+                            HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), HorizontalAlignment=HorizontalAlignment.Center)
+    let b1sp = new StackPanel(Orientation=Orientation.Vertical)
+    b1sp.Children.Add(b1a) |> ignore
+    b1sp.Children.Add(button1) |> ignore
+    b1sp.Children.Add(b1b) |> ignore
+    let b2a = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="Change", IsHitTestVisible=false, 
+                            HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), HorizontalAlignment=HorizontalAlignment.Center)
+    let b2b = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="Number", IsHitTestVisible=false, 
+                            HorizontalContentAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), HorizontalAlignment=HorizontalAlignment.Center)
+    let b2sp = new StackPanel(Orientation=Orientation.Vertical)
+    b2sp.Children.Add(b2a) |> ignore
+    b2sp.Children.Add(button2) |> ignore
+    b2sp.Children.Add(b2b) |> ignore
+
+    innerDock.Children.Add(b1sp) |> ignore
+    DockPanel.SetDock(button1, Dock.Left)
+    innerDock.Children.Add(b2sp) |> ignore
+    DockPanel.SetDock(button2, Dock.Right)
+
+    mainDock.Children.Add(innerDock) |> ignore
+
+    let theBorder = new Border(BorderBrush=Brushes.Black, BorderThickness=Thickness(20.), Child=mainDock)
+    let theBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Child=theBorder)
+
+    // hook up the button actions
+    let mutable dismissSelf = fun() -> ()
+    let close() =
+        onClose()
+        // TODO this should be an option based on the caller, as this dialog might be triggered from other places
+        //Graphics.Win32.SetCursor(float dungeonIndex*30.+15., 15.)
+        //Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+
+    let mutable popupIsActive = false
+    button1.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let pos = button1Content.TranslatePoint(Point(), appMainCanvas).Value
+            HiddenDungeonColorChooserPopup(appMainCanvas, pos.X, pos.Y, button1Content.Width, button1Content.Height, curColor, dungeonIndex, 
+                                            (fun () -> 
+                                                dismissSelf()
+                                                close()
+                                                popupIsActive <- false))
+        )
+    button2.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let pos = button2Content.TranslatePoint(Point(), appMainCanvas).Value
+            HiddenDungeonNumberChooserPopup(appMainCanvas, pos.X, pos.Y, button2Content.Width, button2Content.Height, curLabel, dungeonIndex, 
+                                            (fun () -> 
+                                                dismissSelf()
+                                                close()
+                                                popupIsActive <- false))
+        )
+
+    // add main element and extra decorations 
+    let popupCanvas = new Canvas()
+    canvasAdd(popupCanvas, theBorder, 0., 0.)
+    
+    let mainX,mainY = 150.,150.
+
+    let dungeonColorCanvas = new Canvas(Width=30., Height=30.)
+    canvasAdd(popupCanvas, dungeonColorCanvas, float dungeonIndex*30. - mainX, 0. - mainY)
+    CustomComboBoxes.MakePrettyDashes(dungeonColorCanvas, Brushes.Lime, 30., 30., 3., 2., 1.)
+
+    let guideline = new Shapes.Line(StartPoint=Point(float dungeonIndex*30. - mainX + 15., 36. - mainY), EndPoint=Point(0.,0.), Stroke=Brushes.Gray, StrokeThickness=3.)
+    canvasAdd(popupCanvas, guideline, 0., 0.)
+
+    dismissSelf <- CustomComboBoxes.DoModal(appMainCanvas, mainX, mainY, popupCanvas, close)
+    dismissSelf

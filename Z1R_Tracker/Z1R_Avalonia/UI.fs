@@ -212,9 +212,23 @@ let makeAll(owMapNum) =
     for i = 0 to 7 do
         let image = Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i]
         // triforce dungeon color
-        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        mainTrackerCanvases.[i,0] <- c
-        gridAdd(mainTracker, c, i, 0)
+        let colorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+        mainTrackerCanvases.[i,0] <- colorCanvas
+        let mutable popupIsActive = false
+        colorCanvas.PointerPressed.Add(fun _ -> 
+            if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
+                popupIsActive <- true
+                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, 
+                    (fun() -> 
+                        colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
+                        colorCanvas.Children.Clear()
+                        let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
+                        if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
+                            colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparent30x30bmp(TrackerModel.GetDungeon(i).LabelChar, color))) |> ignore
+                        popupIsActive <- false
+                        )) |> ignore
+            )
+        gridAdd(mainTracker, colorCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
@@ -1029,7 +1043,7 @@ let makeAll(owMapNum) =
                                     if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                                     popupIsActive <- false),
                                 (fun () -> popupIsActive <- false),
-                                [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                                [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                         elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
                             // right click is the 'special interaction'
                             let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
@@ -1743,7 +1757,7 @@ let makeAll(owMapNum) =
                                 ),
                             (fun () -> popupState <- Dungeon.DelayedPopupState.NONE),   // onClose
                             [upcast dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST], 
-                            CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                            CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
                             popupState <- Dungeon.DelayedPopupState.SOON
@@ -1996,7 +2010,7 @@ let makeAll(owMapNum) =
                         current <- db
                         redraw(db)
                         dismissPopup()
-                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults())
+                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
         c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activate(if x.Delta.Y<0. then 1 else -1))
         c.PointerPressed.Add(fun x -> if not popupIsActive then activate(0))
         c

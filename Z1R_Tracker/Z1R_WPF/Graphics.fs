@@ -44,6 +44,24 @@ let makeGrid(nc, nr, cw, rh) =
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
+let makeColor(rgb) =
+    let r = (rgb &&& 0xFF0000) / 0x10000
+    let g = (rgb &&& 0x00FF00) / 0x100
+    let b = (rgb &&& 0x0000FF) / 0x1
+    Color.FromRgb(byte r, byte g, byte b)
+
+let isBlackGoodContrast(rgb) =
+    // https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-find-the-most-contrasting-color-y
+    let r = (rgb &&& 0xFF0000) / 0x10000
+    let g = (rgb &&& 0x00FF00) / 0x100
+    let b = (rgb &&& 0x0000FF) / 0x1
+    let r = float r / 255.
+    let g = float g / 255.
+    let b = float b / 255.
+    let l = 0.2126 * r*r + 0.7152 * g*g + 0.0722 * b*b
+    let use_black = l > 0.5*0.5
+    use_black  // else use white
+
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
@@ -120,6 +138,14 @@ let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x an
                 for dx = 0 to 2 do
                     for dy = 0 to 2 do
                         bmp.SetPixel(3*(x+i)+dx, 3*(y+j)+dy, color)
+
+let alphaNumOnTransparent30x30bmp(ch, color) =
+    let r = new System.Drawing.Bitmap(10*3,10*3)
+    for px = 0 to 10*3-1 do
+        for py = 0 to 10*3-1 do
+            r.SetPixel(px, py, System.Drawing.Color.Transparent)
+    paintAlphanumerics3x5(ch, color, r, 4, 3)
+    r
 
 let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
         silver_arrow_bmp; wood_arrow_bmp; red_ring_bmp; magic_shield_bmp; boom_book_bmp; 

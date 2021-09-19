@@ -442,8 +442,10 @@ type DungeonTrackerInstance(kind) =
     static member TheDungeonTrackerInstance with get() = theInstance and set(x) = theInstance <- x
 
 and Dungeon(id,numBoxes) =
-    let mutable playerHasTriforce = false  // just ignore this for dungeon 9 (id=8)
+    let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
     let boxes = Array.init numBoxes (fun _ -> new Box())
+    let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
+    let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
     member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
     member _this.PlayerHasTriforce() = playerHasTriforce
     member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
@@ -456,6 +458,9 @@ and Dungeon(id,numBoxes) =
             else
                 boxes
     member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
+    // for Hidden Dungeon Numbers
+    member _this.Color with get() = color and set(x) = color <- x
+    member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x
 
 let GetDungeon(i) = DungeonTrackerInstance.TheDungeonTrackerInstance.Dungeons(i)
 let IsHiddenDungeonNumbers() = DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS

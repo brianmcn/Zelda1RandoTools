@@ -259,9 +259,23 @@ let makeAll(owMapNum) =
     for i = 0 to 7 do
         let image = Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i]
         // triforce dungeon color
-        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        mainTrackerCanvases.[i,0] <- c
-        gridAdd(mainTracker, c, i, 0)
+        let colorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+        mainTrackerCanvases.[i,0] <- colorCanvas
+        let mutable popupIsActive = false
+        colorCanvas.MouseDown.Add(fun _ -> 
+            if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
+                popupIsActive <- true
+                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, 
+                    (fun() -> 
+                        colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
+                        colorCanvas.Children.Clear()
+                        let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
+                        if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
+                            colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparent30x30bmp(TrackerModel.GetDungeon(i).LabelChar, color))) |> ignore
+                        popupIsActive <- false
+                        )) |> ignore
+            )
+        gridAdd(mainTracker, colorCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c

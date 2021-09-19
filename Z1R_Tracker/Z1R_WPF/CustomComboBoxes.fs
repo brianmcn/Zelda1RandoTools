@@ -9,7 +9,7 @@ let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
 
 (*
-
+ 
 A possible way to 'save the UI' is to get rid of scrolling
  - a custom combo-box selector lets you click a box to reveal a set of selections, and click again to select
     - the modality is not as UI-ugly as modal windows are
@@ -184,6 +184,10 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
 
 let borderThickness = 3.  // TODO should this be a param?
 
+(*
+CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+    gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+*)
 let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
                             gridElementsSelectablesAndIDs:(FrameworkElement*bool*'a)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
                             originalStateIndex:int, // originalStateIndex is array index into the array
