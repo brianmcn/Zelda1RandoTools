@@ -18,8 +18,44 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-hide dungeon numbers
- - triforce decoder picture is maybe part of this?
+hide dungeon numbers:
+ - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should own tracker, it should only suggest?
+ - FQ/SQ boxes need to totally be re-done somehow
+ - speech recognition: 'tracker set level' chooses next free one
+ - irrecoverable error can occur when startup in non-hidden-dungeons mode, amrk some map, and it's hidden dungeons, hm
+ - if you mark dungeon B on the map (scrolling??), should it auto-popup the color chooser?
+ - if you mark dungeon B on the map (scrolling??), should it auto-tab to the B tab at bottom?
+ - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
+ - hint halos are probably broken? D3-lake, there's nowhere to draw the halo
+ - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
+ - hint haloes should remain even after have triforce, but not if location is known (e.g. start-with-triforce)
+ - when the dungeon numbers are not in order, deciding where whistle goes next is very hard
+    - could re-order them as numbers confirmed on known triforces
+    - could have a 'whistle triforce list' somewhere (even for non-hidden-dungeons) to help
+       - this could maybe also maybe be where the hint halos live?, e.g. maybe in upper right shows ungotten 2,3,5 and gotten 1,4,6,7,8 so you can 'read' the whistle order 14678 and hover hint halos 235?
+            or, simpler, just put 1-8 in order, and you can 'read' like non-hidden dungeons
+       - would need to somehow be clearly non-interactable, er, well, hover for hint halos, but not click them, ugh
+          - and hint halos only show unmarked spots, but 'lettered dungeons' might be the halo target, hmmmmmm
+
+ - I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
+
+ - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
+marc's hover dungeon tab -> showLocator idea
+marc's crosshairs idea (outline rather than tile highlight), can maybe carry dungeon colors
+
+Is my HDN completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them.
+
+blockers: bomb, i had no bombs, i got bombs and marked, should remind
+
+draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+
+towards the end of the map, when there's like 20 tiles left, the 'highlight nearby' makes it harder, not easier, for me to see what's left
+ - maybe only show nearbys if they are at most N screen away?
+ - the yellow/green still 'covers' too much of the tile, it feels, makes the 'emptiness' of not being darkened fade away some
+    - if I am hover-highlighting something, should I fade out all the overworld marks (other than 'X') by like 50% opacity, so the highlights pop more?  could maybe just opacity-tweak the canvas 
+         they all live in as a simple implementation?
+
+
 
 hotkeys
  - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
@@ -29,6 +65,8 @@ hotkeys
 
 SMALL
 
+
+Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
 
 
 should link keep routing you until you dismiss him (with a click?)
@@ -155,7 +193,7 @@ Given where the overworld-selector API is now (weeks after writing the above), I
  - it immediately pops up a second selector with old-man 'take any one you want' decoration and grid choices potion, candle, heart, and below candle some kind of 'leave' option, and 
    'leave' behaves like an exterior-click-dismiss (and leaves take-any tile on OW map), and the other choices have the expected accelerator effects (map tile X, top-UI hearts/candle update)
 And if there were e.g. a 'got-an-item-here' dungeon room selector or something, it could also have a local popup
- - the 'room' would not even have to be a real rool, like maybe selecting that room from the room grid makes no changes to the backing state, but instead just invokes the new popup
+ - the 'room' would not even have to be a real room, like maybe selecting that room from the room grid makes no changes to the backing state, but instead just invokes the new popup
  - or it could even be outside the grid, like a decoration, with a click interaction that dismisses the room-selector with no commit, and instead invokes new popup
  - icon should clearly be linkGotTheThing :)
  - popup could somehow offer basement versus floor item choices, and populate top-UI boxes via some logic, guideline-arrow appears while interacting

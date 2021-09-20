@@ -10,6 +10,38 @@ F10 - reset timer to 0
 (Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
 
 
+STARTUP OPTIONS
+
+Heart Shuffle: Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
+
+Hide Dungeon Numbers:
+
+Enabling this option causes a number of changes in the tracker to help the player deal with this randomizer feature:
+ - top area:
+   - the dungeon triforces in the top of the tracker will be labeled ABCDEFGH instead of 12345678
+   - a button above each triforce can be clicked to select that dungeon's Color and Number, once known
+   - clicking the triforce to mark it gotten automatically pops up the Number chooser (and displays the 'triforce decoder diagram')
+   - each dungeon has 3 boxes (some will go unused)
+ - dungeon area:
+   - the dungeon tabs are labeled ABCDEFGH9
+   - the dungeon tabs and LEVEL- text get the Color of the dungeon
+   - LEVEL-N becomes LEVEL-?, and the rainbow question mark is a button to select a Color for the dungeon
+ - other:
+   - the overworld map tiles for dungeons are labeled A-H
+   - the blockers labels are A-H
+   - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
+
+The workflow for the player then becomes:
+ - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon
+    - optionally, mark the floor color of the dungeon, by clicking either the '?' in the dungeon tab or the button above that letter's triforce
+ - as you get items from the dungeon, mark them in that letter's column
+ - when you get the triforce, set the dungeon Number (the Number chooser pops up automatically when you mark the triforce gotten)
+ - if you can otherwise deduce with certainty the dungeon Number, set the dungeon number by clicking the button above the triforce
+
+The Color marks are for the player's reference, and have no semantic meaning to the tracker.
+The Number marks have semantics that interact with a number of tracker features, you should set it once known.
+
+
 DUNGEON ITEM AREA
 
 Triforces:
@@ -25,8 +57,9 @@ Scroll to change item in a dungeon, then click it to commit the change:
  - left click marks it green, to denote that you have this item in your inventory
  - right click marks it red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
  - middle click marks it purple, to denote you intentionally are skipping this item (see below)
-Scrolling (or clicking an empty item box) also brings up a popup menu, which is an alternative UI to choose the item.  You can either ignore the popup and scroll+click as above,
-or you can simply use the mouse to choose an item from the popup, using the appropriate click on that item to commit the selection.
+Scrolling (or clicking an empty item box) also brings up a popup menu, which is an alternative UI to choose the item.  You can either ignore 
+the popup and scroll+click as above, or you can simply use the mouse to choose an item from the popup, using the appropriate click on that item 
+to commit the selection.
 
 The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
 boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.

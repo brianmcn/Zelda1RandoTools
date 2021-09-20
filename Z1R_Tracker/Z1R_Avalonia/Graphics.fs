@@ -119,12 +119,12 @@ let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x an
                     for dy = 0 to 2 do
                         bmp.SetPixel(3*(x+i)+dx, 3*(y+j)+dy, color)
 
-let alphaNumOnTransparent30x30bmp(ch, color) =
-    let r = new System.Drawing.Bitmap(10*3,10*3)
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
+let alphaNumOnTransparentBmp(ch, color, w:int, h:int, x, y) =
+    let r = new System.Drawing.Bitmap(w,h)
+    for px = 0 to w-1 do
+        for py = 0 to h-1 do
             r.SetPixel(px, py, System.Drawing.Color.Transparent)
-    paintAlphanumerics3x5(ch, color, r, 4, 3)
+    paintAlphanumerics3x5(ch, color, r, x, y)
     r
 
 let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
@@ -378,3 +378,9 @@ let mouseIconButtonColors2BMP =
     bmp
 
 let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
+
+let WarpMouseCursorTo(pos:Avalonia.Point) =
+    // TODO
+    //Win32.SetCursor(pos.X, pos.Y)
+    //PlaySoundForSpeechRecognizedAndUsedToMark()
+    ()

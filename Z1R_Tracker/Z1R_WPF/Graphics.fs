@@ -139,12 +139,12 @@ let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x an
                     for dy = 0 to 2 do
                         bmp.SetPixel(3*(x+i)+dx, 3*(y+j)+dy, color)
 
-let alphaNumOnTransparent30x30bmp(ch, color) =
-    let r = new System.Drawing.Bitmap(10*3,10*3)
-    for px = 0 to 10*3-1 do
-        for py = 0 to 10*3-1 do
+let alphaNumOnTransparentBmp(ch, color, w:int, h:int, x, y) =
+    let r = new System.Drawing.Bitmap(w,h)
+    for px = 0 to w-1 do
+        for py = 0 to h-1 do
             r.SetPixel(px, py, System.Drawing.Color.Transparent)
-    paintAlphanumerics3x5(ch, color, r, 4, 3)
+    paintAlphanumerics3x5(ch, color, r, x, y)
     r
 
 let [| boomerang_bmp; bow_bmp; magic_boomerang_bmp; raft_bmp; ladder_bmp; recorder_bmp; wand_bmp; red_candle_bmp; book_bmp; key_bmp; 
@@ -444,3 +444,7 @@ do
             newBmp.SetPixel(bmp.Width+i+2, j, bmp37.GetPixel(3*5+i,j))
     newBmp.Save("""C:\Users\Admin1\Source\Repos\Zelda1RandoTools\Z1R_Tracker\Z1R_WPF\tmp.png""")
 *)
+
+let WarpMouseCursorTo(pos:Point) =
+    Win32.SetCursor(pos.X, pos.Y)
+    PlaySoundForSpeechRecognizedAndUsedToMark()

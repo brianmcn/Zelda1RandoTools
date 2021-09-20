@@ -56,7 +56,19 @@ type MyWindow(owMapNum) as this =
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
 
-        let box(n) = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
+        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        stackPanel.Children.Add(tb) |> ignore
+
+        let box(n) = 
+            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
+            c.Children.Add(rect) |> ignore
+            let bmp = CustomComboBoxes.boxCurrentBMP(ref false, n, false)
+            if bmp <> null then
+                let image = Graphics.BMPtoImage(bmp)
+                image.IsHitTestVisible <- false
+                Graphics.canvasAdd(c, image, 4., 4.)
+            c
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black
@@ -102,14 +114,25 @@ type MyWindow(owMapNum) as this =
             for b in row1BoxesEmpty do
                 b.Opacity <- 0.
         tunrHeartShuffleOn()
-        let cutoffCanvas = new Canvas(Width=80., Height=80., ClipToBounds=true)
+        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true)
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
-        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(10.))
+
+        let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
+
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), Margin=Thickness(10.))
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> tunrHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
-        hsPanel.Children.Add(hscb) |> ignore
+        checkboxSP.Children.Add(hscb) |> ignore
+
+        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true), Margin=Thickness(10.))
+        hdcb.IsChecked <- System.Nullable.op_Implicit false
+        hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
+        hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())
+        checkboxSP.Children.Add(hdcb) |> ignore
+
+        hsPanel.Children.Add(checkboxSP) |> ignore
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
@@ -123,10 +146,10 @@ type MyWindow(owMapNum) as this =
         let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
         let Quests = [|
-                "First Quest"
-                "Second Quest"
-                "Mixed - First Quest"
-                "Mixed - Second Quest"
+                "First Quest Overworld"
+                "Second Quest Overworld"
+                "Mixed - First Quest Overworld"
+                "Mixed - Second Quest Overworld"
             |]
         let mutable startButtonHasBeenClicked = false
         for i = 0 to 3 do
@@ -144,12 +167,13 @@ type MyWindow(owMapNum) as this =
                         TrackerModel.Options.writeSettings()
                         printfn "you pressed start after selecting %d" i
                         this.Background <- Brushes.Black
-                        if hscb.IsChecked.HasValue && hscb.IsChecked.Value then
-                            ()
-                        else
-                            for i = 0 to 7 do
-                                TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
-                        let c,u = UI.makeAll(i)
+                        let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
+                        let kind = 
+                            if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                            else
+                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                        let c,u = UI.makeAll(i, heartShuffle, kind)
                         canvas <- c
                         updateTimeline <- u
                         UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)

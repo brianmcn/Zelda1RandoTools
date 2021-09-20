@@ -458,14 +458,39 @@ and Dungeon(id,numBoxes) =
                 [| yield! boxes; yield DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4 |]
             else
                 boxes
-    member this.IsComplete = playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
+    member this.IsComplete = 
+        match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
+        | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
+            if playerHasTriforce then
+                let mutable numBoxesDone = 0
+                for b in boxes do
+                    if b.PlayerHas() <> PlayerHas.NO then
+                        numBoxesDone <- numBoxesDone + 1
+                let twoBoxers = if Options.IsSecondQuestDungeons.Value then "123567" else "234567"
+                numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
+            else
+                false
+        | DungeonTrackerInstanceKind.DEFAULT ->
+            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
     // for Hidden Dungeon Numbers
     member _this.Color with get() = color and set(x) = color <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
-    member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
+    member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
     member _this.HiddenDungeonColorOrLabelChanged = hiddenDungeonColorLabelChangeEvent.Publish
 
 let GetDungeon(i) = DungeonTrackerInstance.TheDungeonTrackerInstance.Dungeons(i)
 let IsHiddenDungeonNumbers() = DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+let GetTriforceHaves() =
+    if IsHiddenDungeonNumbers() then
+        let haves = Array.zeroCreate 8
+        for i = 0 to 7 do
+            let d = GetDungeon(i)
+            if d.PlayerHasTriforce() then
+                if d.LabelChar >= '1' && d.LabelChar <= '8' then
+                    let n = int d.LabelChar - int '1'
+                    haves.[n] <- true
+        haves
+    else
+        [| for i = 0 to 7 do yield GetDungeon(i).PlayerHasTriforce() |]
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Player computed state summary

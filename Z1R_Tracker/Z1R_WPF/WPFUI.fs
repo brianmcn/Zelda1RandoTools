@@ -90,7 +90,7 @@ let makeGrid = Graphics.makeGrid
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
-let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _ _ -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=0.4, IsHitTestVisible=false))
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
@@ -175,9 +175,8 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
-let makeAll(owMapNum) =
-    let timelineItems = ResizeArray()
-    let stringReverse (s:string) = new string(s.ToCharArray() |> Array.rev)
+let makeAll(owMapNum, heartShuffle, kind) =
+    // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
         match owMapNum with
         | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.FIRST)
@@ -185,14 +184,20 @@ let makeAll(owMapNum) =
         | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_FIRST)
         | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND)
         | _ -> failwith "bad/unsupported owMapNum"
-    let dungeonInstance = new TrackerModel.DungeonTrackerInstance(TrackerModel.DungeonTrackerInstanceKind.DEFAULT)
+    let dungeonInstance = new TrackerModel.DungeonTrackerInstance(kind)
     TrackerModel.initializeAll(owInstance, dungeonInstance)
+    if not heartShuffle then
+        for i = 0 to 7 do
+            TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
     let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps =
         match dungeonInstance.Kind with
         | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
             Graphics.emptyUnfoundLetteredTriforce_bmps, Graphics.emptyFoundLetteredTriforce_bmps, Graphics.fullLetteredTriforce_bmps
         | TrackerModel.DungeonTrackerInstanceKind.DEFAULT ->
             Graphics.emptyUnfoundNumberedTriforce_bmps, Graphics.emptyFoundNumberedTriforce_bmps, Graphics.fullNumberedTriforce_bmps
+
+    // make the entire UI
+    let timelineItems = ResizeArray()
     let whichItems = Graphics.allItemsWithHeartShuffle 
     let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
     let isCurrentlyBook = ref true
@@ -258,28 +263,34 @@ let makeAll(owMapNum) =
         updateTriforceDisplayImpl(innerc,i)
     for i = 0 to 7 do
         let image = Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i]
-        // triforce dungeon color
-        let colorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        mainTrackerCanvases.[i,0] <- colorCanvas
-        let mutable popupIsActive = false
-        colorCanvas.MouseDown.Add(fun _ -> 
-            if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
-                popupIsActive <- true
-                let pos = colorCanvas.TranslatePoint(Point(15., 15.), appMainCanvas)
-                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, pos,
-                    (fun() -> 
-                        popupIsActive <- false
-                        )) |> ignore
-            )
-        gridAdd(mainTracker, colorCanvas, i, 0)
-        TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
-            let colorCanvas = mainTrackerCanvases.[i,0]
-            colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
-            colorCanvas.Children.Clear()
-            let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
-            if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
-                colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparent30x30bmp(TrackerModel.GetDungeon(i).LabelChar, color))) |> ignore
-            )
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            // triforce dungeon color
+            let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+            //mainTrackerCanvases.[i,0] <- colorCanvas
+            let colorButton = new Button(Width=30., Height=30., BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.DimGray, Content=colorCanvas)
+            let mutable popupIsActive = false
+            colorButton.Click.Add(fun _ -> 
+                if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
+                    popupIsActive <- true
+                    let pos = colorButton.TranslatePoint(Point(15., 15.), appMainCanvas)
+                    Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
+                        (fun() -> 
+                            popupIsActive <- false
+                            )) |> ignore
+                )
+            gridAdd(mainTracker, colorButton, i, 0)
+            TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
+                colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
+                colorCanvas.Children.Clear()
+                let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
+                if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
+                    colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(TrackerModel.GetDungeon(i).LabelChar, color, 28, 28, 3, 2))) |> ignore
+                )
+            colorButton.MouseEnter.Add(fun _ -> showLocator(i))
+            colorButton.MouseLeave.Add(fun _ -> hideLocator())
+        else
+            let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+            gridAdd(mainTracker, colorCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
@@ -287,10 +298,22 @@ let makeAll(owMapNum) =
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         canvasAdd(innerc, image, 0., 0.)
+        let mutable popupIsActive = false
         c.MouseDown.Add(fun _ -> 
-            TrackerModel.GetDungeon(i).ToggleTriforce()
-            updateTriforceDisplay(i)
-        )
+            if not popupIsActive then
+                TrackerModel.GetDungeon(i).ToggleTriforce()
+                updateTriforceDisplay(i)
+                if TrackerModel.GetDungeon(i).PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar='?' then
+                    // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
+                    popupIsActive <- true
+                    let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas)
+                    Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, true, pos,
+                        (fun() -> 
+                            popupIsActive <- false
+                            )) |> ignore
+            )
+        c.MouseEnter.Add(fun _ -> showLocator(i))
+        c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforce_bmps.[i]) else None))
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
@@ -355,27 +378,36 @@ let makeAll(owMapNum) =
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
-    let finalCanvasOf1Or4 = boxItemImpl(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
-    for i = 0 to 8 do
-        for j = 0 to 2 do
-            let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-            gridAdd(mainTracker, c, i, j+2)
-            if j=0 || j=1 || i=7 then
-                canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
-            mainTrackerCanvases.[i,j+2] <- c
+    let finalCanvasOf1Or4 = 
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            null
+        else        
+            boxItemImpl(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        for i = 0 to 8 do
+            for j = 0 to 2 do
+                let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+                gridAdd(mainTracker, c, i, j+2)
+                if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
+                    canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                mainTrackerCanvases.[i,j+2] <- c
+    else
+        for i = 0 to 8 do
+            for j = 0 to 2 do
+                let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+                gridAdd(mainTracker, c, i, j+2)
+                if j=0 || j=1 || i=7 then
+                    canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                mainTrackerCanvases.[i,j+2] <- c
     let RedrawForSecondQuestDungeonToggle() =
-        mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
-        mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
-        if TrackerModel.Options.IsSecondQuestDungeons.Value then
-            canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
-        else
-            canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
+        if not(TrackerModel.IsHiddenDungeonNumbers()) then
+            mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
+            mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
+            if TrackerModel.Options.IsSecondQuestDungeons.Value then
+                canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
+            else
+                canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
     RedrawForSecondQuestDungeonToggle()
-
-    for i = 0 to 8 do
-        for j = 0 to 1 do  // only hovering colors/triforces will show it
-            mainTrackerCanvases.[i,j].MouseEnter.Add(fun _ -> showLocator(i))
-            mainTrackerCanvases.[i,j].MouseLeave.Add(fun _ -> hideLocator())
 
     // WANT!
     let kitty = new Image()
@@ -1450,14 +1482,23 @@ let makeAll(owMapNum) =
                     // unexplored but gettable spots highlight
                     OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                 TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
-            member _this.AnnounceCompletedDungeon(i) = if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
+            member _this.AnnounceCompletedDungeon(i) = 
+                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
+                    if TrackerModel.IsHiddenDungeonNumbers() then
+                        let labelChar = TrackerModel.GetDungeon(i).LabelChar
+                        if labelChar <> '?' then
+                            async { voice.Speak(sprintf "Dungeon %c is complete" labelChar) } |> Async.Start
+                        else
+                            async { voice.Speak("This dungeon is complete") } |> Async.Start
+                    else
+                        async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
                     // top ui
-                    for j = 0 to 4 do
+                    for j = 1 to 4 do
                         mainTrackerCanvases.[i,j].Children.Remove(mainTrackerCanvasShaders.[i,j]) |> ignore
                     if a.[i] then
-                        for j = 0 to 4 do
+                        for j = 1 to 4 do  // don't shade the color swatches
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
                     // blockers ui
                     if a.[i] then
@@ -2013,8 +2054,6 @@ let makeAll(owMapNum) =
     appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
 
     appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
-
-    //Dungeon.drawDungeonColorGrid(appMainCanvas)
 
     TrackerModel.forceUpdate()
     appMainCanvas, updateTimeline

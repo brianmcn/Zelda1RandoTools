@@ -95,10 +95,20 @@ type MyWindow() as this =
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
-        let tb = new TextBox(Text="Startup Option:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
-        let box(n) = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
+        let box(n) = 
+            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
+            c.Children.Add(rect) |> ignore
+            let bmp = CustomComboBoxes.boxCurrentBMP(ref false, n, false)
+            if bmp <> null then
+                let image = Graphics.BMPtoImage(bmp)
+                image.IsHitTestVisible <- false
+                Graphics.canvasAdd(c, image, 4., 4.)
+            c
+
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black
@@ -144,14 +154,24 @@ type MyWindow() as this =
             for b in row1BoxesEmpty do
                 b.Opacity <- 0.
         turnHeartShuffleOn()
-        let cutoffCanvas = new Canvas(Width=80., Height=80., ClipToBounds=true)
+        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true)
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
-        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(10.))
+
+        let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), Margin=Thickness(10.))
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
-        hsPanel.Children.Add(hscb) |> ignore
+        checkboxSP.Children.Add(hscb) |> ignore
+
+        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true), Margin=Thickness(10.))
+        hdcb.IsChecked <- System.Nullable.op_Implicit false
+        hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
+        hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())
+        checkboxSP.Children.Add(hdcb) |> ignore
+
+        hsPanel.Children.Add(checkboxSP) |> ignore
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
@@ -160,10 +180,10 @@ type MyWindow() as this =
 
         let mutable startButtonHasBeenClicked = false
         let quests = [|
-            0, "First Quest"
-            1, "Second Quest"
-            2, "Mixed - First Quest"
-            3, "Mixed - Second Quest"
+            0, "First Quest Overworld"
+            1, "Second Quest Overworld"
+            2, "Mixed - First Quest Overworld"
+            3, "Mixed - Second Quest Overworld"
             |]
         for n,q in quests do
             let startButton = new Button(Content=new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
@@ -193,12 +213,13 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                    if hscb.IsChecked.HasValue && hscb.IsChecked.Value then
-                        ()
-                    else
-                        for i = 0 to 7 do
-                            TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
-                    let c,u = WPFUI.makeAll(n)
+                    let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
+                    let kind = 
+                        if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                            TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                        else
+                            TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                    let c,u = WPFUI.makeAll(n, heartShuffle, kind)
                     canvas <- c
                     updateTimeline <- u
                     Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 30.)

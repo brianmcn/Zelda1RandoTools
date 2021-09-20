@@ -240,8 +240,9 @@ let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanva
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), appMainCanvas)
-                                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, level-1, TrackerModel.GetDungeon(level-1).Color, TrackerModel.GetDungeon(level-1).LabelChar, pos,
+                                Dungeon.HiddenDungeonColorChooserPopup(appMainCanvas, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
                                     (fun () -> 
+                                        Graphics.WarpMouseCursorTo(pos)
                                         popupIsActive <- false)) |> ignore
                             )
                 else

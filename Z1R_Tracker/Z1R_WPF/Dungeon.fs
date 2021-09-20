@@ -213,15 +213,71 @@ let threeTallColorArray =
 
 let makeColor = Graphics.makeColor
 
-    // color projection onto overworld tiles; overworld tile icons changing from 1-8 to A-H
-    // obtaining triforce (clicking it to 'full') should auto-popup the chooser if the number label not already populated, and show the triforce diagram
-    // some kind of letter-number associator, some logic regarding 3rd item box?
-    // all 8 dungeons having 3 boxes
-    // FQ and SQ highlights would need a lot of rework
-    // voice reminders 'dungeon seven' need to change to 'dungeon gee' I suppose
-    // speech synthesis should probably just be like 'tracker set level' and choose the next free one
-
 let canvasAdd = Graphics.canvasAdd
+
+let TRIFORCE_SIZE = 80.
+let DrawTriforceMapCore(haves:bool[], labels:string) =
+    let N = TRIFORCE_SIZE
+    
+    let p1 = Point(2.*N, 0.)
+    
+    let p2 = Point(N, N)
+    let p3 = Point(2.*N, N)
+    let p4 = Point(3.*N, N)
+
+    let p5 = Point(0., 2.*N)
+    let p6 = Point(N, 2.*N)
+    let p7 = Point(2.*N, 2.*N)
+    let p8 = Point(3.*N, 2.*N)
+    let p9 = Point(4.*N, 2.*N)
+
+    let tri(ps:seq<_>) = new Shapes.Polygon(Stroke=Brushes.DarkSlateBlue, StrokeThickness=2., Fill=Brushes.Black, Points=new PointCollection(ps))
+    let triforces = [|   // first quest mapping
+        tri [| p1; p2; p3 |]
+        tri [| p1; p3; p4 |]
+        tri [| p2; p5; p6 |]
+        tri [| p4; p8; p9 |]
+        tri [| p2; p3; p7 |]
+        tri [| p2; p6; p7 |]
+        tri [| p3; p4; p7 |]
+        tri [| p4; p7; p8 |]
+        |]
+    let labelLocations = [|
+        (1.5*N, 0.5*N)
+        (2.0*N, 0.5*N)
+        (0.5*N, 1.5*N)
+        (3.0*N, 1.5*N)
+        (1.5*N, 1.0*N)
+        (1.0*N, 1.5*N)
+        (2.0*N, 1.0*N)
+        (2.5*N, 1.5*N)
+        |]
+    let c = new Canvas(Width=4.*N, Height=2.*N, Background=Brushes.Black)
+    for i = 0 to 7 do
+        canvasAdd(c, triforces.[i], 0., 0.)
+        let x,y = labelLocations.[i]
+        let tb = new TextBox(Width=N/2., Height=N/2., IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=N/3., FontWeight=FontWeights.Bold, 
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text=(sprintf"%c"(labels.ToCharArray().[i])), Foreground=Brushes.White, Background=Brushes.Transparent)
+        canvasAdd(c, tb, x, y)
+        if haves.[i] then
+            triforces.[i].Fill <- Brushes.Orange
+            tb.Foreground <- Brushes.Black
+    c.Margin <- Thickness(N/8.)
+    c
+let DrawTriforces1Q(haves) = 
+    DrawTriforceMapCore(haves, "12345678")
+let DrawTriforces2Q(haves:_[]) = 
+    let h = Array.zeroCreate 8
+    h.[0] <- haves.[0]
+    h.[1] <- haves.[2]
+    h.[2] <- haves.[1]
+    h.[3] <- haves.[4]
+    h.[4] <- haves.[3]
+    h.[5] <- haves.[5]
+    h.[6] <- haves.[7]
+    h.[7] <- haves.[6]
+    DrawTriforceMapCore(h, "13254687")
 
 let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalColor, dungeonIndex, onClose) =
     let colors = threeTallColorArray
@@ -233,7 +289,7 @@ let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, or
     let gnc = colors.Length / 3
     let gnr = 3
     let gcw,grh = 30,30
-    let gx,gy = -100., tileH+20.
+    let gx,gy = -60., tileH+20.
     let redrawTile(i) = tileCanvas.Background <- new SolidColorBrush(makeColor(colors.[i]))
     let onClick(dismiss, _ea, state) =
         TrackerModel.GetDungeon(dungeonIndex).Color <- colors.[state]
@@ -246,7 +302,7 @@ let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, or
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
 let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex, onClose) =
-    // TODO need 'triforce map's
+    // TODO can you choose same # twice?
     let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
     let dp = new DockPanel(Width=tileW, Height=tileH)
     canvasAdd(tileCanvas, dp, 0., 0.)
@@ -266,19 +322,40 @@ let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, o
     let activationDelta = 0
     let gnc,gnr = 3,3
     let gcw,grh = 60,60
-    let gx,gy = -100., tileH+20.
+    let gx,gy = -73., tileH+20.
     let redrawTile(ch) = theTB.Text <- sprintf "%c" ch
     let onClick(dismiss, _ea, ch) =
         TrackerModel.GetDungeon(dungeonIndex).LabelChar <- ch
         dismiss()
         onClose()
-    let extraDecorations = []
+    let extraDecorations = 
+        let warnTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="Don't mark anything other than '?'\nunless you are certain!", Foreground=Brushes.Red, Background=Brushes.Black)
+        let warnBorder = new Border(BorderThickness=Thickness(4.), BorderBrush=Brushes.Gray, Child=warnTB)
+
+        let sp = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+        let haves = TrackerModel.GetTriforceHaves()
+        let makeTB(text) = new TextBox(Width=TRIFORCE_SIZE*3.8, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
+                                        VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                        Text=text, Foreground=Brushes.Orange, Background=Brushes.Black)
+        sp.Children.Add(makeTB("Reference diagram - don't click here")) |> ignore
+        sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
+        sp.Children.Add(makeTB("First Quest or Shapes dungeons")) |> ignore
+        sp.Children.Add(DrawTriforces1Q(haves)) |> ignore
+        sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
+        sp.Children.Add(makeTB("Second Quest dungeons")) |> ignore
+        sp.Children.Add(DrawTriforces2Q(haves)) |> ignore
+        sp.Children.Add(makeTB("Note: in Mixed Quest dungeons,\n7 and 8 can be swapped")) |> ignore
+        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Child=sp)
+        b.MouseDown.Add(fun ea -> ea.Handled <- true)  // clicking the reference diagram should not close the dialog, people will do it by accident
+        [(upcast warnBorder : FrameworkElement), -123., 284.; (upcast b : FrameworkElement), 190., -120.]
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
     CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
-let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, warpReturn:Point, onClose) =
+let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, accelerateIntoNumberChooser, warpReturn:Point, onClose) =
     // setup main visual tree
     let mainDock = new DockPanel(Background=Brushes.Black)
     
@@ -318,15 +395,14 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
 
     mainDock.Children.Add(innerDock) |> ignore
 
-    let theBorder = new Border(BorderBrush=Brushes.Black, BorderThickness=Thickness(20.), Child=mainDock)
-    let theBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Child=theBorder)
+    let theBorder = new Border(BorderBrush=Brushes.Black, BorderThickness=Thickness(10.), Child=mainDock)
+    let theBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Child=theBorder)
 
     // hook up the button actions
     let mutable dismissSelf = fun() -> ()
     let close() =
         onClose()
-        Graphics.Win32.SetCursor(warpReturn.X, warpReturn.Y)
-        Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+        Graphics.WarpMouseCursorTo(warpReturn)
 
     let mutable popupIsActive = false
     button1.Click.Add(fun _ ->
@@ -339,7 +415,7 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
                                                 close()
                                                 popupIsActive <- false))
         )
-    button2.Click.Add(fun _ ->
+    let button2Body() =
         if not popupIsActive then
             popupIsActive <- true
             let pos = button2Content.TranslatePoint(Point(), appMainCanvas)
@@ -348,20 +424,23 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
                                                 dismissSelf()
                                                 close()
                                                 popupIsActive <- false))
-        )
+    button2.Click.Add(fun _ -> button2Body())
 
     // add main element and extra decorations 
     let popupCanvas = new Canvas()
     canvasAdd(popupCanvas, theBorder, 0., 0.)
     
-    let mainX,mainY = 150.,150.
+    let mainX,mainY = 24.,165.
 
     let dungeonColorCanvas = new Canvas(Width=30., Height=30.)
     canvasAdd(popupCanvas, dungeonColorCanvas, float dungeonIndex*30. - mainX, 0. - mainY)
     CustomComboBoxes.MakePrettyDashes(dungeonColorCanvas, Brushes.Lime, 30., 30., 3., 2., 1.)
 
-    let guideline = new Shapes.Line(X1=float dungeonIndex*30. - mainX + 15., Y1=36. - mainY, X2=0., Y2=0., Stroke=Brushes.Gray, StrokeThickness=3.)
-    canvasAdd(popupCanvas, guideline, 0., 0.)
+//    let guideline = new Shapes.Line(X1=float dungeonIndex*30. - mainX + 15., Y1=36. - mainY, X2=0., Y2=0., Stroke=Brushes.Gray, StrokeThickness=3.)
+//    canvasAdd(popupCanvas, guideline, 0., 0.)
 
     dismissSelf <- CustomComboBoxes.DoModal(appMainCanvas, mainX, mainY, popupCanvas, close)
+    if accelerateIntoNumberChooser then
+        button2.Loaded.Add(fun _ -> button2Body())
     dismissSelf
+
