@@ -58,7 +58,8 @@ let dungeonRoomMouseButtonExplainerDecoration =
 
 ////////////////////////
 
-let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, fixedDungeon1Outlines:ResizeArray<Shapes.Line>, fixedDungeon2Outlines:ResizeArray<Shapes.Line>) =
+let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, 
+                        fixedDungeon1Outlines:ResizeArray<Shapes.Line>, fixedDungeon2Outlines:ResizeArray<Shapes.Line>) =
     let grabHelper = new Dungeon.GrabHelper()
     let grabModeTextBlock = 
         new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, 
@@ -502,4 +503,5 @@ let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanva
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
     dungeonTabs.SelectedIndex <- 8
+    selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
     dungeonTabs, grabModeTextBlock

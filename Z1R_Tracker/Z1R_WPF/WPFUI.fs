@@ -813,6 +813,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     c
                             bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
+    // ow map -> dungeon tabs interaction
+    let selectDungeonTabEvent = new Event<_>()
+    let mutable mostRecentlyScrolledDungeonIndex = -1
+    let mutable mostRecentlyScrolledDungeonIndexTime = DateTime.Now
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -1022,6 +1026,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
                                 if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
+                                    if newState >=0 && newState <=7 then
+                                        selectDungeonTabEvent.Trigger(newState)
                                     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                         elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
@@ -1034,8 +1040,16 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             | None -> ()
                     elif delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
+                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if newState >=0 && newState <=7 then
+                            mostRecentlyScrolledDungeonIndex <- newState
+                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
                     elif delta = -1 then 
                         TrackerModel.overworldMapMarks.[i,j].Prev() 
+                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if newState >=0 && newState <=7 then
+                            mostRecentlyScrolledDungeonIndex <- newState
+                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
                     elif delta = 0 then 
                         ()
                     else failwith "bad delta"
@@ -1084,6 +1098,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     canvasAdd(tileCanvas, icon, 0., 0.)),
                             (fun (dismissPopup, _ea, currentState) ->
                                 TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                                if currentState >=0 && currentState <=7 then
+                                    selectDungeonTabEvent.Trigger(currentState)
                                 redrawGridSpot()
                                 dismissPopup()
                                 if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
@@ -1442,6 +1458,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
+                if DateTime.Now - mostRecentlyScrolledDungeonIndexTime < TimeSpan.FromSeconds(1.5) then
+                    selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
                 if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
                     async {
                         if n = 1 then
@@ -1576,7 +1594,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let fixedDungeon1Outlines = ResizeArray<Shapes.Line>()
     let fixedDungeon2Outlines = ResizeArray<Shapes.Line>()
     
-    let dungeonTabs,grabModeTextBlock = DungeonUI.makeDungeonTabs(appMainCanvas, TH, (fun level ->
+    let dungeonTabs,grabModeTextBlock = DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1602,7 +1620,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
     canvasAdd(appMainCanvas, sqcb, 360., START_DUNGEON_AND_NOTES_AREA_H) 
 
-    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H)
+    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
     // blockers
     let blockerCurrentBMP(current) =

@@ -59,8 +59,8 @@ let dungeonRoomMouseButtonExplainerDecoration =
 
 ////////////////////////
 
-let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, fixedDungeon1Outlines:ResizeArray<Shapes.Line>, fixedDungeon2Outlines:ResizeArray<Shapes.Line>) =
-
+let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, 
+                        fixedDungeon1Outlines:ResizeArray<Shapes.Line>, fixedDungeon2Outlines:ResizeArray<Shapes.Line>) =
     let grabHelper = new Dungeon.GrabHelper()
     let grabModeTextBlock = 
         new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, 
@@ -86,6 +86,7 @@ let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanva
         dungeonTabs.SelectionChanged.Add(fun _ ->
             if TrackerModel.IsHiddenDungeonNumbers() then
                 let color = TrackerModel.GetDungeon(level-1).Color
+                let color = if level-1 = dungeonTabs.SelectedIndex && color=0 then 0x2F4F4F else color  // kludge selected to DarkSlateGray, as avalonia currently has no selection highlight
                 levelTab.Background <- new SolidColorBrush(Graphics.makeColor(color))
                 levelTab.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
             else
@@ -510,6 +511,7 @@ let makeDungeonTabs(appMainCanvas, TH, contentCanvasMouseEnterFunc, contentCanva
                         outlines.Add(s)
     dungeonTabs.Items <- tabItems
     dungeonTabs.SelectedIndex <- 8
+    selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
     dungeonTabs, grabModeTextBlock
 
 

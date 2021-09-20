@@ -808,6 +808,10 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                     c
                             bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
+    // ow map -> dungeon tabs interaction
+    let selectDungeonTabEvent = new Event<_>()
+    let mutable mostRecentlyScrolledDungeonIndex = -1
+    let mutable mostRecentlyScrolledDungeonIndexTime = DateTime.Now
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -1020,8 +1024,16 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 let updateGridSpot delta phrase =
                     if delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
+                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if newState >=0 && newState <=7 then
+                            mostRecentlyScrolledDungeonIndex <- newState
+                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
                     elif delta = -1 then 
                         TrackerModel.overworldMapMarks.[i,j].Prev() 
+                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if newState >=0 && newState <=7 then
+                            mostRecentlyScrolledDungeonIndex <- newState
+                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
                     elif delta = 0 then 
                         ()
                     else failwith "bad delta"
@@ -1071,6 +1083,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                         canvasAdd(tileCanvas, icon, 0., 0.)),
                                 (fun (dismissPopup, _ea, currentState) ->
                                     TrackerModel.overworldMapMarks.[i,j].Set(currentState)
+                                    if currentState >=0 && currentState <=7 then
+                                        selectDungeonTabEvent.Trigger(currentState)
                                     redrawGridSpot()
                                     dismissPopup()
                                     if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
@@ -1430,7 +1444,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         blockerDungeonSunglasses.[i].Opacity <- 0.5
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
-            member _this.AnnounceFoundDungeonCount(n) = ()
+            member _this.AnnounceFoundDungeonCount(n) = 
+                if DateTime.Now - mostRecentlyScrolledDungeonIndexTime < TimeSpan.FromSeconds(1.5) then
+                    selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
             member _this.AnnounceTriforceCount(n) = ()
             member _this.AnnounceTriforceAndGo(triforces, tagLevel) = ()
             member _this.RemindUnblock(blockerType, dungeons, detail) = ()
@@ -1505,7 +1521,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let fixedDungeon1Outlines = ResizeArray<Shapes.Line>()
     let fixedDungeon2Outlines = ResizeArray<Shapes.Line>()
 
-    let dungeonTabs,grabModeTextBlock = DungeonUI.makeDungeonTabs(appMainCanvas, TH, (fun level ->
+    let dungeonTabs,grabModeTextBlock = DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1531,7 +1547,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
     canvasAdd(appMainCanvas, sqcb, 360., THRU_TIMELINE_H) 
 
-    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., THRU_TIMELINE_H)
+    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., THRU_TIMELINE_H+float(TH))
 
     // blockers
     let blockerCurrentBMP(current) =
