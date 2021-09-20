@@ -23,16 +23,7 @@ hide dungeon numbers:
  - FQ/SQ boxes need to totally be re-done somehow
  - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
  - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
- - hint halos are probably broken? D3-lake, there's nowhere to draw the halo
  - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
- - hint haloes should remain even after have triforce, but not if location is known (e.g. start-with-triforce)
- - when the dungeon numbers are not in order, deciding where whistle goes next is very hard
-    - could re-order them as numbers confirmed on known triforces
-    - could have a 'whistle triforce list' somewhere (even for non-hidden-dungeons) to help
-       - this could maybe also maybe be where the hint halos live?, e.g. maybe in upper right shows ungotten 2,3,5 and gotten 1,4,6,7,8 so you can 'read' the whistle order 14678 and hover hint halos 235?
-            or, simpler, just put 1-8 in order, and you can 'read' like non-hidden dungeons
-       - would need to somehow be clearly non-interactable, er, well, hover for hint halos, but not click them, ugh
-          - and hint halos only show unmarked spots, but 'lettered dungeons' might be the halo target, hmmmmmm
 
  - I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
 

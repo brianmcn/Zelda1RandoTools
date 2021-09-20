@@ -14,7 +14,7 @@ STARTUP OPTIONS
 
 Heart Shuffle: Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
 
-Hide Dungeon Numbers:
+Hide Dungeon Numbers: (if this is your first time reading this document, skip this section and return to it later)
 
 Enabling this option causes a number of changes in the tracker to help the player deal with this randomizer feature:
  - top area:
@@ -22,6 +22,9 @@ Enabling this option causes a number of changes in the tracker to help the playe
    - a button above each triforce can be clicked to select that dungeon's Color and Number, once known
    - clicking the triforce to mark it gotten automatically pops up the Number chooser (and displays the 'triforce decoder diagram')
    - each dungeon has 3 boxes (some will go unused)
+   - an additional 'triforce summary' appears in the upper right
+      - triforces appear in 1-8 order, this helps the player see the numeric order e.g. when they are trying to recorder-to-next-dungeon 
+      - hint 'halo's are associated with triforce numbers (not letters) and thus appear here by default
  - dungeon area:
    - the dungeon tabs are labeled ABCDEFGH9
    - the dungeon tabs and LEVEL- text get the Color of the dungeon

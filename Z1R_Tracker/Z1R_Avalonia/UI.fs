@@ -128,6 +128,12 @@ let trimNumeralBmpToImage(iconBMP:System.Drawing.Bitmap) =
         for y = 0 to iconBMP.Height-1 do
             trimmedBMP.SetPixel(x,y,iconBMP.GetPixel(x+offset,y))
     Graphics.BMPtoImage trimmedBMP
+[<RequireQualifiedAccess>]
+type ShowLocatorDescriptor =
+    | DungeonNumber of int   // 0-7 means dungeon 1-8
+    | DungeonIndex of int    // 0-8 means 123456789 or ABCDEFGH9 in top-left-ui presentation order
+    | Sword2
+    | Sword3
 let makeAll(owMapNum, heartShuffle, kind) =
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
@@ -177,10 +183,10 @@ let makeAll(owMapNum, heartShuffle, kind) =
         isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget
 
     let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
-    let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone) -> ()
+    let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
     let mutable showLocatorInstanceFunc = fun(f:int*int->bool) -> ()
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
-    let mutable showLocator = fun(_l:int) -> ()
+    let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
     let appMainCanvas = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
@@ -192,13 +198,59 @@ let makeAll(owMapNum, heartShuffle, kind) =
     hintHighlightBrush.GradientStops.Add(new GradientStop(Colors.Yellow, 0.))
     hintHighlightBrush.GradientStops.Add(new GradientStop(Colors.DarkGreen, 1.))
     let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
+
+    let OFFSET = 280.
+    // numbered triforce display
+    let updateNumberedTriforceDisplayIfItExists =
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
+            for i = 0 to 7 do
+                let c = numberedTriforceCanvases.[i]
+                canvasAdd(appMainCanvas, c, OFFSET+30.*float i, 0.)
+                c.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonNumber i))
+                c.PointerLeave.Add(fun _ -> hideLocator())
+            let update() =
+                for i = 0 to 7 do
+                    let level = i+1
+                    let levelLabel = char(int '0' + level)
+                    let mutable index = -1
+                    for j = 0 to 7 do
+                        if TrackerModel.GetDungeon(j).LabelChar = levelLabel then
+                            index <- j
+                    let mutable found,hasTriforce = false,false
+                    if index <> -1 then
+                        found <- TrackerModel.GetDungeon(index).HasBeenLocated()
+                        hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
+                    let hasHint = not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN
+                    let c = numberedTriforceCanvases.[i]
+                    c.Children.Clear()
+                    if hasHint then
+                        c.Children.Add(makeHintHighlight(30.)) |> ignore
+                    if not hasTriforce then
+                        if not found then
+                            c.Children.Add(Graphics.BMPtoImage Graphics.emptyUnfoundNumberedTriforce_bmps.[i]) |> ignore
+                        else
+                            c.Children.Add(Graphics.BMPtoImage Graphics.emptyFoundNumberedTriforce_bmps.[i]) |> ignore
+                    else
+                        c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedTriforce_bmps.[i]) |> ignore
+            update
+        else
+            fun () -> ()
+    updateNumberedTriforceDisplayIfItExists()
     // triforce
     let updateTriforceDisplayImpl(innerc:Canvas, i) =
         innerc.Children.Clear()
-        let found = TrackerModel.mapStateSummary.DungeonLocations.[i]<>TrackerModel.NOTFOUND 
-        if not(TrackerModel.GetDungeon(i).IsComplete) &&  // dungeon could be complete without finding, in case of starting items and helpful hints
-                not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
-            innerc.Children.Add(makeHintHighlight(30.)) |> ignore
+        let found = TrackerModel.GetDungeon(i).HasBeenLocated()
+        if not(TrackerModel.IsHiddenDungeonNumbers()) then
+            if not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
+                innerc.Children.Add(makeHintHighlight(30.)) |> ignore
+        else
+            let label = TrackerModel.GetDungeon(i).LabelChar
+            if label >= '1' && label <= '8' then
+                let index = int label - int '1'
+                let hasHint = not(found) && TrackerModel.levelHints.[index]<>TrackerModel.HintZone.UNKNOWN
+                if hasHint then
+                    innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         if not(TrackerModel.GetDungeon(i).PlayerHasTriforce()) then 
             innerc.Children.Add(if not(found) then Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i] else Graphics.BMPtoImage emptyFoundTriforce_bmps.[i]) |> ignore
         else
@@ -238,7 +290,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
                     colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(TrackerModel.GetDungeon(i).LabelChar, color, 28, 28, 3, 2))) |> ignore
                 )
-            colorButton.PointerEnter.Add(fun _ -> showLocator(i))
+            colorButton.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
             colorButton.PointerLeave.Add(fun _ -> hideLocator())
         else
             let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
@@ -263,7 +315,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         popupIsActive <- false
                         )) |> ignore
             )
-        c.PointerEnter.Add(fun _ -> showLocator(i))
+        c.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.PointerLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforce_bmps.[i]) else None))
@@ -273,6 +325,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
+    level9NumeralCanvas.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
+    level9NumeralCanvas.PointerLeave.Add(fun _ -> hideLocator())
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
@@ -362,7 +416,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
     RedrawForSecondQuestDungeonToggle()
 
-    let OFFSET = 280.
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -403,8 +456,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET +  5., 10.) 
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 65., 10.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET + 195., 54.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 245., 54.) 
 
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
@@ -451,7 +504,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), 1, 0)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), 1, 1)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), 1, 2)
-    white_sword_canvas.PointerEnter.Add(fun _ -> showLocator(9))
+    white_sword_canvas.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword2))
     white_sword_canvas.PointerLeave.Add(fun _ -> hideLocator())
     let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = OFFSET,60.
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
@@ -506,7 +559,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
             mags_box.Children.Insert(0, magsHintHighlight)
     redrawMagicalSwordCanvas()
     gridAdd(owItemGrid2, mags_box, 0, 2)
-    mags_box.PointerEnter.Add(fun _ -> showLocator(10))
+    mags_box.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.PointerLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
@@ -1221,7 +1274,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         let dp = new DockPanel(LastChildFill=true)
         let bmp = 
             if row < 8 then
-                emptyFoundTriforce_bmps.[row]
+                Graphics.emptyUnfoundNumberedTriforce_bmps.[row]
             elif row = 8 then
                 Graphics.foundL9_bmp
             elif row = 9 then
@@ -1281,6 +1334,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         // redraw triforce display (some may have located/unlocated/hinted)
         for i = 0 to 7 do
             updateTriforceDisplay(i)
+        updateNumberedTriforceDisplayIfItExists()
         updateLevel9NumeralImpl(level9NumeralCanvas)
         // redraw white/magical swords (may have located/unlocated/hinted)
         redrawWhiteSwordCanvas()
@@ -1814,7 +1868,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
             for j = 0 to 7 do
                 owLocatorTilesRowColumn.[x,j].Opacity <- 0.35
         )
-    showLocatorHintedZone <- (fun hinted_zone ->
+    showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
             // have hint, so draw that zone...
             if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
@@ -1822,7 +1876,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 for j = 0 to 7 do
                     // ... and highlight all undiscovered tiles
                     if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
-                        if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if cur = -1 || (alsoHighlightABCDEFGH && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?') then
                             if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
                                 if owInstance.SometimesEmpty(i,j) then
                                     owLocatorTilesZone.[i,j].Fill <- Brushes.Yellow
@@ -1847,22 +1902,57 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     owLocatorTilesZone.[i,j].Fill <- Brushes.Green
                     owLocatorTilesZone.[i,j].Opacity <- 0.4
         )
-    showLocator <- (fun level ->
-        let loc = 
-            if level < 9 then
-                TrackerModel.mapStateSummary.DungeonLocations.[level]
-            elif level = 9 then
-                TrackerModel.mapStateSummary.Sword2Location
-            elif level = 10 then
-                TrackerModel.mapStateSummary.Sword3Location
+    showLocator <- (fun sld ->
+        match sld with
+        | ShowLocatorDescriptor.DungeonNumber(n) ->
+            let mutable index = -1
+            for i = 0 to 7 do
+                if TrackerModel.GetDungeon(i).LabelChar = char(int '1' + n) then
+                    index <- i
+            let showHint() =
+                let hinted_zone = TrackerModel.levelHints.[n]
+                if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                    showLocatorHintedZone(hinted_zone,true)
+            if index <> -1 then
+                let loc = TrackerModel.mapStateSummary.DungeonLocations.[index]
+                if loc <> TrackerModel.NOTFOUND then
+                    showLocatorExactLocation(loc)
+                else
+                    showHint()
             else
-                failwith "bad showLocator(level)"
-        if loc <> TrackerModel.NOTFOUND then
-            showLocatorExactLocation(loc)
-        else
-            let hinted_zone = TrackerModel.levelHints.[level]
-            if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
-                showLocatorHintedZone(hinted_zone)
+                showHint()
+        | ShowLocatorDescriptor.DungeonIndex(i) ->
+            let loc = TrackerModel.mapStateSummary.DungeonLocations.[i]
+            if loc <> TrackerModel.NOTFOUND then
+                showLocatorExactLocation(loc)
+            else
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    let label = TrackerModel.GetDungeon(i).LabelChar
+                    if label >= '1' && label <= '8' then
+                        let index = int label - int '1'
+                        let hinted_zone = TrackerModel.levelHints.[index]
+                        if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                            showLocatorHintedZone(hinted_zone,true)
+                else
+                    let hinted_zone = TrackerModel.levelHints.[i]
+                    if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                        showLocatorHintedZone(hinted_zone,false)
+        | ShowLocatorDescriptor.Sword2 ->
+            let loc = TrackerModel.mapStateSummary.Sword2Location
+            if loc <> TrackerModel.NOTFOUND then
+                showLocatorExactLocation(loc)
+            else
+                let hinted_zone = TrackerModel.levelHints.[9]
+                if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                    showLocatorHintedZone(hinted_zone,false)
+        | ShowLocatorDescriptor.Sword3 ->
+            let loc = TrackerModel.mapStateSummary.Sword3Location
+            if loc <> TrackerModel.NOTFOUND then
+                showLocatorExactLocation(loc)
+            else
+                let hinted_zone = TrackerModel.levelHints.[10]
+                if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
+                    showLocatorHintedZone(hinted_zone,false)
         )
     hideLocator <- (fun () ->
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
