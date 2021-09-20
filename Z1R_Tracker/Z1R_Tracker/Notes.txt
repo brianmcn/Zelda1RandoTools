@@ -244,6 +244,7 @@ When hovering over a blank map tile, with a microphone equipped, you can speak a
 This option must be enabled when first starting the tracker on the startup screen, it cannot be enabled later while the application is running.
 
 The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
+If 'Hide Dungeon Numbers' is enabled, just say "tracker set level" to select the next free dungeon letter A-H; "tracker set level nine" still works.
 
 let wakePhrase = "tracker set"
 let mapStatePhrases = dict [|

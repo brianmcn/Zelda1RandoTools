@@ -200,11 +200,18 @@ type MyWindow() as this =
 
                     OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
 
+                    let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
+                    let kind = 
+                        if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                            TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                        else
+                            TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                    let speechRecognitionInstance = new SpeechRecognition.SpeechRecognitionInstance(kind)
                     if TrackerModel.Options.ListenForSpeech.Value then
                         printfn "Initializing microphone for speech recognition..."
                         try
-                            WPFUI.speechRecognizer.SetInputToDefaultAudioDevice()
-                            WPFUI.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                            SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
+                            SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
                         with ex ->
                             printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
                             printfn "%s" (ex.ToString())
@@ -213,13 +220,7 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                    let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
-                    let kind = 
-                        if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
-                            TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
-                        else
-                            TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                    let c,u = WPFUI.makeAll(n, heartShuffle, kind)
+                    let c,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
                     canvas <- c
                     updateTimeline <- u
                     Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 30.)

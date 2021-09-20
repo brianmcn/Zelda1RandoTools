@@ -21,7 +21,6 @@ CURRENT PRIORITIES
 hide dungeon numbers:
  - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should own tracker, it should only suggest?
  - FQ/SQ boxes need to totally be re-done somehow
- - speech recognition: 'tracker set level' chooses next free one
  - irrecoverable error can occur when startup in non-hidden-dungeons mode, amrk some map, and it's hidden dungeons, hm
  - if you mark dungeon B on the map (scrolling??), should it auto-popup the color chooser?
  - if you mark dungeon B on the map (scrolling??), should it auto-tab to the B tab at bottom?

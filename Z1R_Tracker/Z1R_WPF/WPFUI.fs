@@ -6,58 +6,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
-
-let PlaySoundForSpeechRecognizedAndUsedToMark = Graphics.PlaySoundForSpeechRecognizedAndUsedToMark
-
 let voice = OptionsMenu.voice
-let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
-let wakePhrase = "tracker set"
-let mapStatePhrases = dict [|
-        "level one"         , 0
-        "level two"         , 1
-        "level three"       , 2
-        "level four"        , 3
-        "level five"        , 4
-        "level six"         , 5
-        "level seven"       , 6
-        "level eight"       , 7
-        "level nine"        , 8
-        "any road"          , 12  // 9 10 11 12
-        "sword three"       , 13
-        "sword two"         , 14
-        "hint shop"         , 15
-        "arrow shop"        , 16
-        "bomb shop"         , 17
-        "book shop"         , 18
-        "candle shop"       , 19
-        "blue ring shop"    , 20
-        "meat shop"         , 21
-        "key shop"          , 22
-        "shield shop"       , 23
-        "take any"          , 24
-        "potion shop"       , 25
-        "money"             , 26
-        |]
-speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases.Keys |> Seq.toArray)); gb))
-let convertSpokenPhraseToMapCell(phrase:string) =
-    let phrase = phrase.Substring(wakePhrase.Length+1)
-    let newState = mapStatePhrases.[phrase]
-    if newState = 12 then // any road
-        if   TrackerModel.mapSquareChoiceDomain.CanAddUse( 9) then
-            Some 9
-        elif TrackerModel.mapSquareChoiceDomain.CanAddUse(10) then
-            Some 10
-        elif TrackerModel.mapSquareChoiceDomain.CanAddUse(11) then
-            Some 11
-        elif TrackerModel.mapSquareChoiceDomain.CanAddUse(12) then
-            Some 12
-        else
-            None
-    else
-        if TrackerModel.mapSquareChoiceDomain.CanAddUse(newState) then
-            Some newState
-        else
-            None
 
 type MapStateProxy(state) =
     static let U = Graphics.uniqueNumberedMapIconBMPs.Length   // ok to just use Numbered, as Lettered has same length
@@ -175,7 +124,7 @@ let resizeMapTileImage(image:Image) =
     image.Stretch <- Stretch.Fill
     image.StretchDirection <- StretchDirection.Both
     image
-let makeAll(owMapNum, heartShuffle, kind) =
+let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) =
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
         match owMapNum with
@@ -1070,18 +1019,18 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         let curState = TrackerModel.overworldMapMarks.[i,j].Current()
                         if curState = -1 then
                             // if unmarked, use voice to set new state
-                            match convertSpokenPhraseToMapCell(phrase) with
+                            match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
                                 if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
-                                    PlaySoundForSpeechRecognizedAndUsedToMark()
+                                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                         elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
                             // if item shop with only one item marked, use voice to set other item
-                            match convertSpokenPhraseToMapCell(phrase) with
+                            match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
                                 if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
                                     TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
-                                    PlaySoundForSpeechRecognizedAndUsedToMark()
+                                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
                     elif delta = 1 then
                         TrackerModel.overworldMapMarks.[i,j].Next()
@@ -1162,25 +1111,12 @@ let makeAll(owMapNum, heartShuffle, kind) =
                             redrawGridSpot()
                     )
                 c.MouseWheel.Add(fun x -> if not popupIsActive then updateGridSpot (if x.Delta<0 then 1 else -1) "")
-    speechRecognizer.SpeechRecognized.Add(fun r ->
-        if TrackerModel.Options.ListenForSpeech.Value then 
-            if not(TrackerModel.Options.RequirePTTForSpeech.Value) ||                                               // if PTT not required, or
-                    Gamepad.IsLeftShoulderButtonDown() ||                                                           // if PTT is currently held, or
-                    (DateTime.Now - Gamepad.LeftShoulderButtonMostRecentRelease) < TimeSpan.FromSeconds(1.0) then   // if PTT was just recently released
-                //printfn "conf: %3.3f  %s" r.Result.Confidence r.Result.Text                                         // then we want to use speech
-                let threshold =
-                    if TrackerModel.Options.RequirePTTForSpeech.Value then
-                        0.90f   // empirical tests suggest this confidence threshold is good enough to avoid false positives with PTT
-                    else
-                        0.94f   // empirical tests suggest this confidence threshold is good to avoid false positives
-                if r.Result.Confidence > threshold then  
-                        appMainCanvas.Dispatcher.Invoke(fun () -> 
+    speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                                     let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
                                     if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places
-                                        owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 r.Result.Text
-                            )
-        )
+                                        owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 recognizedText
+                            ))
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     owMapGrid.MouseLeave.Add(fun _ ->
         if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
