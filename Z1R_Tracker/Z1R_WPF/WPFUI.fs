@@ -625,9 +625,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             setLinkIcon(3)
             let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
             let dismissHandle = CustomComboBoxes.DoModalCore(appMainCanvas, 
-                (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
-                (fun (c,e) -> c.Children.Remove(e) |> ignore), 
-                wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
+                                                                (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
+                                                                (fun (c,e) -> c.Children.Remove(e) |> ignore), 
+                                                                wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
             let dismiss() = dismissHandle(); setLinkIcon(1); popupIsActive <- false
             
             let fakeSunglassesOverTopThird = new Canvas(Width=16.*OMTW, Height=150., Background=Brushes.Black, Opacity=0.50)
@@ -1553,6 +1553,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         | TrackerModel.DungeonBlocker.RECORDER -> " the recorder,"
                         | TrackerModel.DungeonBlocker.LADDER -> " the ladder,"
                         | TrackerModel.DungeonBlocker.KEY -> " the any key,"
+                        | TrackerModel.DungeonBlocker.BOMB -> " bombs,"
                         | _ -> " "
                         + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ") + (1 + Seq.head dungeons).ToString() +
                         (let mutable s = ""
@@ -1646,7 +1647,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let fixedDungeon1Outlines = ResizeArray<Shapes.Line>()
     let fixedDungeon2Outlines = ResizeArray<Shapes.Line>()
     
-    let dungeonTabs,grabModeTextBlock = DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
+    let dungeonTabs,grabModeTextBlock = 
+        DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1686,7 +1688,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         | TrackerModel.DungeonBlocker.BOMB -> Graphics.bomb_bmp
         | TrackerModel.DungeonBlocker.NOTHING -> null
 
-    let makeBlockerBox(dungeonNumber, blockerIndex) =
+    let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
             let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
@@ -1715,6 +1717,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     (fun (dismissPopup,ea,db) -> 
                         current <- db
                         redraw(db)
+                        TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
                         dismissPopup()
                         popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
@@ -1734,19 +1737,19 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 d.Children.Add(tb) |> ignore
                 gridAdd(blockerGrid, d, i, j)
             else
-                let dungeonNumber = (3*j+i)-1
-                let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonNumber] else "12345678".[dungeonNumber]
+                let dungeonIndex = (3*j+i)-1
+                let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
                 let d = new DockPanel(LastChildFill=false)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=30., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
                                         TextAlignment=TextAlignment.Right, Margin=Thickness(0.,0.,6.,0.))
                 sp.Children.Add(tb) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonNumber, 0)) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonNumber, 1)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonIndex, 0)) |> ignore
+                sp.Children.Add(makeBlockerBox(dungeonIndex, 1)) |> ignore
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
-                blockerDungeonSunglasses.[dungeonNumber] <- upcast sp // just reduce its opacity
+                blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
     canvasAdd(appMainCanvas, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    

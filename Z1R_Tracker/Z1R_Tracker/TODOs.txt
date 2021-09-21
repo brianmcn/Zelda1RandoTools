@@ -18,6 +18,10 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+need a circle-moat dungeon room
+need to play 2nd quest dung rooms in case others
+
+
 hide dungeon numbers:
  - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should own tracker, it should only suggest?
  - FQ/SQ boxes need to totally be re-done somehow
@@ -28,12 +32,9 @@ hide dungeon numbers:
  - I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
 
  - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
-marc's hover dungeon tab -> showLocator idea
 marc's crosshairs idea (outline rather than tile highlight), can maybe carry dungeon colors
 
 Is my HDN completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them.
-
-blockers: bomb, i had no bombs, i got bombs and marked, should remind
 
 draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
 

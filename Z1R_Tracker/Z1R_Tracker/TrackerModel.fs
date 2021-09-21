@@ -848,6 +848,7 @@ let mutable previouslyAnnouncedTriforceCount = 0
 let mutable remindedLadder, remindedAnyKey = false, false
 let mutable priorSwordWandLevel = 0
 let mutable priorRingLevel = 0
+let mutable priorBombs = false
 let mutable priorBowArrow = false
 let mutable priorRecorder = false
 let mutable priorLadder = false
@@ -960,27 +961,31 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                 && (playerComputedStateSummary.SwordLevel>0 || playerComputedStateSummary.HaveWand) then  // armor won't help you win combat if you have 0 weapons
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_ARMOR)
     if combatUnblockers.Count > 0 then
-        let dungeonNums = ResizeArray()
+        let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
             if dungeonBlockers.[i,0] = DungeonBlocker.COMBAT || dungeonBlockers.[i,1] = DungeonBlocker.COMBAT then
                 if not(GetDungeon(i).IsComplete) then
-                    dungeonNums.Add(i)
-        if dungeonNums.Count > 0 then
+                    dungeonIdxs.Add(i)
+        if dungeonIdxs.Count > 0 then
             if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
-                ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonNums, combatUnblockers)
+                ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonIdxs, combatUnblockers)
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
     let blockerLogic(db) =
-        let dungeonNums = ResizeArray()
+        let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
             if dungeonBlockers.[i,0] = db || dungeonBlockers.[i,1] = db then
                 if not(GetDungeon(i).IsComplete) then
-                    dungeonNums.Add(i)
-        if dungeonNums.Count > 0 then
+                    dungeonIdxs.Add(i)
+        if dungeonIdxs.Count > 0 then
             if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
-                ite.RemindUnblock(db, dungeonNums, [])
+                ite.RemindUnblock(db, dungeonIdxs, [])
     // blockers - others
+    if not priorBombs && playerProgressAndTakeAnyHearts.PlayerHasBombs.Value() then
+        blockerLogic(DungeonBlocker.BOMB)
+    priorBombs <- playerProgressAndTakeAnyHearts.PlayerHasBombs.Value()
+
     if not priorBowArrow && playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1 then
         blockerLogic(DungeonBlocker.BOW_AND_ARROW)
     priorBowArrow <- playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1
@@ -997,7 +1002,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         blockerLogic(DungeonBlocker.KEY)
     priorAnyKey <- playerComputedStateSummary.HaveAnyKey
 
-    // Note: no logic for BAIT, BOMB, loose KEYs, as the tracker has no reliable knowledge of this aspect of player's inventory
+    // Note: no logic for BAIT or loose KEYs, as the tracker has no reliable knowledge of this aspect of player's inventory
 
     // items
     if not remindedLadder && playerComputedStateSummary.HaveLadder then
