@@ -18,6 +18,18 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
+
+reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
+
+center ow popup targets near mouse, bias left 2 and right 2?
+
+if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
+
+there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
+ - change 9 icon on strip
+ - make it not participate in usedTransports
+
 
 
 hotkeys
@@ -41,26 +53,14 @@ draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but
 I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
 
 
-
-Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
-
-
 should link keep routing you until you dismiss him (with a click?)
 should there be a separate gesture for 'timeout in 10s mode' versus 'keep it until you dismiss' mode?
 
 
 
 
-reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
-
-
-
 Kigalas:
 Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
-
-Oh, and last week I accidentally put an item into the White Sword box instead of the Ladder item box, then fixed it, and it gave me verbal prompts for the White Sword 
-cave once I found some hearts later. Might want to teach it to forget things when humans screw up.
-
 
 
 
@@ -74,23 +74,13 @@ white-sword-box/ladder-box way up top, and you can change the item 'from there' 
 
 
 
-
-
-center ow popup targets near mouse, bias left 2 and right 2?
-
-if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
-
-
-
-
 my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
  - mouse into dungeon 3 map, L3 is showLocator highlighted on overworld
+ - invoke room popup
  - move mouse into overworld map, click to dismiss popup
  - L3 is still showLocator()ed because dungeon map never got a MouseLeave event
 I could not worry about that, or apply some ad-hoc fixes for the common case, but in general it seems non-trivial
 
-
-there might be at most 6 transports per dungeon, if so, take 789 out of the icon pool, but add '?' transport for unknown stair
 
 dungeon room marks, key/bomb on floor? orthogonal to other marks? hm, middle-click cycle thru circle colors? who would ever leave a key?
    maybe middle click is sufficient - you can remember one thing apart from the room type and the completed state, use it for floor bombs or whatever
@@ -173,6 +163,8 @@ And if there were e.g. a 'got-an-item-here' dungeon room selector or something, 
  - popup could somehow offer basement versus floor item choices, and populate top-UI boxes via some logic, guideline-arrow appears while interacting
  - (turning it up to 11, maybe top-ui item boxes should be non-interactive, have all local interactions to set it? probably no, need to correct errors, non-intuitive, etc, but think about)
 
+
+
 homer conversation, he forgot shops could even have second items:
 regarding second-shop-icon, are you saying that it would help you remember that second-item is an option available to you if 'bomb' displays not just 'bomb' in center, but 
 like 'bomb' on left hand side and like "shop item #2 question mark" icon on the right side, to display that the second slot is still available for use
@@ -189,19 +181,12 @@ of UI/customization, so there is trade-offs in depth to serving each audience in
 Make the simple things simple, and the complex/optimized/customized things possible.
 
 
-General thoughts for LEVEL-?: For maybe marking unknown triforces A-H and assigning colors and labeling map with letters instead of numbers, maybe projecting colors like 
-white sword item gets projected onto S2 tile.  
-A-H might not be good lettering, since it's associated with coordinates, maybe STUVWXYZ or IJKLMNOP or something.  Ideally good 3x5 pixels, so JKLOPRTU... POLKJURY?
-Or I am overthinking it, and A-H is best? Hm.
-There is room to add 30 pixels at the top of the tracker for space for level-color-swatches and numerals.
-
 If I want to put chosen color on backgrounds with text foreground (e.g. LEVEL-A) then see e.g.
 https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
 https://stackoverflow.com/questions/9733288/how-to-programmatically-calculate-the-contrast-ratio-between-two-colors
 https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-find-the-most-contrasting-color-y
 for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
-
 
 
 
@@ -228,9 +213,7 @@ review other common flagsets from rando, what works, what could work, etc
     - (routing, map legend) whistle to new dungeons & not recorder-to-unbeaten
     - (reminders) change sword hearts
     - (reminders/display) 3 starting hearts
-    - (reminders) level 9 requires 8 triforces
- - works poorly with
-    - hide dungeon numbers
+    - (reminders) level 9 requires 8 triforces, go-time needs silvers
 
 
 size options were common requests for zhelper – can I scale? consider 2/3 size or something.
@@ -284,7 +267,7 @@ auto-tracking (link to emulator)
 
 comparisons to ZHelper
 
-ZHelper has lots of features this tracker lacks (save state, network coordination, support for more rando flagsets, custom icons, ...) and uses less screen real estate.
+ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, ...) and uses less screen real estate.
 
 That said, I think this tracker has a number of advantages in usability, both in design and feature set:
 
@@ -309,13 +292,15 @@ This tracker also has a number of attractive added features, including:
 
  - ability to correct mistakes in dungeon markup (e.g. when you put a bunch of rooms in the wrong column) by cut&pasting a segment
 
+ - full support for 'hide dungeon numbers' - no more needing to move all your marks from one column to another after discovering you guessed the dungeon number wrong
+
  - a note-taking text area to type ad-hoc reminders to yourself (e.g. "L5 bomb upgrade 106"), and an area to mark dungeon blockers via icons (e.g. 4 needs ladder, 7 needs bow&arrow)
 
- - overworld routing guidance that can help steer newer players to remaining unexplored locations
+ - overworld routing guidance that can help steer newer players to remaining unexplored locations, or find the best route from A to B
 
  - a timeline which displays the 'history' of when you got key items, to orient latecomer stream viewers, or to help you replay the seed in your head in the post-game recap analysis
 
- - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld with no scrolling
+ - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld without any scrolling or clicking
 
  - richer dungeon mapping: ability to mark each dungeon room as 'cleared' or not, independent of the room icon; also, ability to 'circle' key rooms in dungeons
 
