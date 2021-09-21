@@ -6,8 +6,7 @@ open Avalonia.Media
 
 open OverworldRouting
 
-let OMTW = 40.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
-
+let OMTW = Graphics.OMTW
 let canvasAdd = Graphics.canvasAdd
 
 let coords(Vertex(x,y,p)) =
@@ -20,11 +19,11 @@ let coords(Vertex(x,y,p)) =
     | EAST -> cx+12.,cy
     | WEST -> cx-12.,cy
 
-let drawLine(c,v1,v2,color) =
+let makeLine(v1,v2,color) =
     let x1,y1 = coords(v1)
     let x2,y2 = coords(v2)
     let line = new Shapes.Line(StartPoint=Point(x1,y1), EndPoint=Point(x2,y2), Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
-    canvasAdd(c, line, 0., 0.)
+    line
 
 let MaxYGH = 12 // default
 let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, fadeOut, maxYellowGreenHighlights) = 
@@ -41,14 +40,15 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
         let goal = Vertex(-1,-1,FULL) // non-existent goal will map all reachable locations
         let color(cost) =
             // white path that is bright near the cursor, but opacity falls off quickly as you get more cost-distance away
-            if   cost <=  4 then new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy))
-            elif cost <=  8 then new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy))
+            //if   cost <=  4 then new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy))   // too bright
+            if   cost <=  8 then new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy))
             elif cost <= 14 then new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy))
             elif cost <= 22 then new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
             elif cost <= 30 then new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
             else                 new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
         let d = findAllBestPaths(adjacencyDict, v, goal)
         let visited = new System.Collections.Generic.HashSet<_>()
+        let accumulatedLines = ResizeArray()
         let rec draw(g) = 
             if visited.Add(g) then
                 let ok, r = d.TryGetValue(g)
@@ -84,10 +84,10 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                                 line.StrokeDashArray <- new Collections.AvaloniaList<float>()
                                 line.StrokeDashArray.Add(1.0)  // number of thicknesses on...
                                 line.StrokeDashArray.Add(1.0)  // number of thicknesses off...
-                                canvasAdd(routeDrawingCanvas, line, 0., 0.)
+                                accumulatedLines.Add(line)
                             else
                                 // normal walk is solid line with fading color based on cost
-                                drawLine(routeDrawingCanvas, g, p, if fadeOut then color(cost) else color(0))
+                                accumulatedLines.Add(makeLine(g, p, if fadeOut then color(cost) else color(0)))
                         draw(p)
         // draw routes to everywhere
         //for v in adjacencyDict.Keys do
@@ -120,16 +120,17 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                 toHighlight.Add(i,j)
                 iterate(N-1,recentCost)
             for (i,j) in toHighlight do
-                let color,opacity = 
-                    if not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
-                        Brushes.Red, 0.35  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
-                    elif TrackerModel.owInstance.SometimesEmpty(i,j) then
-                        Brushes.Yellow, 0.35
-                    else
-                        Brushes.Lime, 0.3
-                let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Transparent,StrokeThickness=10.,Fill=color,Opacity=opacity,IsHitTestVisible=false)
-                canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
-
+                let thr = new Graphics.TileHighlightRectangle()
+                if not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
+                    thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
+                elif TrackerModel.owInstance.SometimesEmpty(i,j) then
+                    thr.MakeYellow()
+                else
+                    thr.MakeGreen()
+                for s in thr.Shapes do
+                    canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
+        for line in accumulatedLines do
+            canvasAdd(routeDrawingCanvas, line, 0., 0.)  // we want the lines drawn atop everything else
 
 
 

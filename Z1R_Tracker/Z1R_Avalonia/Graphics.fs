@@ -56,6 +56,32 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     image.Height <- bmp.Size.Height
     image
 
+let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+type TileHighlightRectangle() =
+    (*
+    // full rectangles badly obscure routing paths, so we just draw corners
+    let L1,L2,R1,R2 = 2.+0.0, 2.+(OMTW-4.)/2.-6., 2.+(OMTW-4.)/2.+6., 2.+OMTW-4.
+    let T1,T2,B1,B2 = 2.+0.0, 2.+10.0, 2.+19.0, 2.+29.0
+    *)
+    let shapes = [|
+        new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=4.,Opacity=1.0,IsHitTestVisible=false)
+        (*
+        new Shapes.Line(StartPoint=Point(L1,T1+1.5), EndPoint=Point(L2,T1+1.5), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(L1+1.5,T1), EndPoint=Point(L1+1.5,T2), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(L1,B2-1.5), EndPoint=Point(L2,B2-1.5), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(L1+1.5,B1), EndPoint=Point(L1+1.5,B2), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(R1,T1+1.5), EndPoint=Point(R2,T1+1.5), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(R2-1.5,T1), EndPoint=Point(R2-1.5,T2), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(R1,B2-1.5), EndPoint=Point(R2,B2-1.5), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        new Shapes.Line(StartPoint=Point(R2-1.5,B1), EndPoint=Point(R2-1.5,B2), Stroke=Brushes.Lime, StrokeThickness = 3., IsHitTestVisible=false)
+        *)
+        |]
+    member _this.MakeRed() = for s in shapes do (s.Stroke <- Brushes.Red; s.Opacity <- 0.7)
+    member _this.MakeYellow() = for s in shapes do (s.Stroke <- Brushes.Yellow; s.Opacity <- 0.75)
+    member _this.MakeGreen() = for s in shapes do (s.Stroke <- Brushes.Lime; s.Opacity <- 0.55)
+    member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
+    member _this.Shapes = shapes
+
 // see also
 // https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag
 // https://stackoverflow.com/questions/12802122/wpf-handle-drag-and-drop-as-well-as-left-click

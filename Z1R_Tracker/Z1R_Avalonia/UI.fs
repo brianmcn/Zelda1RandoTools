@@ -20,10 +20,19 @@ type MapStateProxy(state) =
         if state = -1 then
             null
         elif this.IsDungeon then
-            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[state].[2] else Graphics.theFullTileBmpTable.[state].[0]
+            if TrackerModel.IsHiddenDungeonNumbers() then 
+                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
+                    Graphics.theFullTileBmpTable.[state].[3] 
+                else
+                    Graphics.theFullTileBmpTable.[state].[2] 
+            else 
+                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
+                    Graphics.theFullTileBmpTable.[state].[1]
+                else
+                    Graphics.theFullTileBmpTable.[state].[0]
         else
             Graphics.theFullTileBmpTable.[state].[0]
-    member this.CurrentInteriorBMP() =
+    member this.CurrentInteriorBMP() =  // so that the grid popup is unchanging, always choose same representative (e.g. yellow dungeon)
         if state = -1 then
             null
         elif this.IsDungeon then
@@ -867,6 +876,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
     let drawRectangleCornersHighlight(c,x,y,color) =
+        ignore(c,x,y,color)
+        (*
         // full rectangles badly obscure routing paths, so we just draw corners
         let L1,L2,R1,R2 = 0.0, (OMTW-4.)/2.-6., (OMTW-4.)/2.+6., OMTW-4.
         let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
@@ -886,6 +897,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
         let s = new Shapes.Line(StartPoint=Point(R2-1.5,B1), EndPoint=Point(R2-1.5,B2), Stroke=color, StrokeThickness = 3.)
         canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
+        *)
     let drawDungeonHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,Brushes.Yellow)
     let drawCompletedIconHighlight(c,x,y) =
@@ -1186,19 +1198,23 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker", Padding=Thickness(0.))
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
 
-    let firstDungeonBMP = MapStateProxy(0).CurrentBMP()
+    let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
     canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 2.5*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.5,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
+    let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 2.3*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.3,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.3,0)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstGreenDungeonBMP, 2.7*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.7,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.7,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon", Padding=Thickness(0.))
     canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 5.*OMTW, 0.)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstGreenDungeonBMP, 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination", Padding=Thickness(0.))
@@ -1304,7 +1320,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Decode Hint"), 
                         BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
     canvasAdd(appMainCanvas, tb, 496., THRU_MAP_AND_LEGEND_H + 4.)
-    tb.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, fun()->()) |> ignore)
+    let mutable popupIsActive = false
+    tb.Click.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
 
     let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
     printfn "H thru item prog = %d" (int THRU_MAP_H)
@@ -1437,6 +1457,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 // highlight any triforce dungeons as recorder warp destinations
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
                     drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Sword3(x,y) =
@@ -1564,7 +1585,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 5., THRU_MAP_H)
 
     canvasAdd(appMainCanvas, moreOptionsButton, 0., THRU_MAP_H)
-    moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings())) |> ignore)
+    let mutable popupIsActive = false
+    moreOptionsButton.Click.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
     let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
 
@@ -1828,25 +1853,30 @@ let makeAll(owMapNum, heartShuffle, kind) =
     canvasAdd(appMainCanvas, zone_checkbox, RIGHT_COL + 140., 96.)
 
     let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let owLocatorTilesRowColumn = Array2D.zeroCreate 16 8
     let owLocatorTilesZone = Array2D.zeroCreate 16 8
+    let owLocatorCanvas = new Canvas()
+
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let rc = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.Transparent, StrokeThickness=0., Fill=Brushes.White, Opacity=0., IsHitTestVisible=false)
-            let z  = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.Transparent, StrokeThickness=10., Fill=Brushes.Lime,  Opacity=0., IsHitTestVisible=false)
-            owLocatorTilesRowColumn.[i,j] <- rc
+            let z = new Graphics.TileHighlightRectangle()
+            z.Hide()
             owLocatorTilesZone.[i,j] <- z
-            gridAdd(owLocatorGrid, rc, i, j)
-            gridAdd(owLocatorGrid, z, i, j)
+            for s in z.Shapes do
+                gridAdd(owLocatorGrid, s, i, j)
     canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
+    canvasAdd(overworldCanvas, owLocatorCanvas, 0., 0.)
 
     showLocatorExactLocation <- (fun (x,y) ->
         if (x,y) <> TrackerModel.NOTFOUND then
             // show exact location
-            for i = 0 to 15 do
-                owLocatorTilesRowColumn.[i,y].Opacity <- 0.35
-            for j = 0 to 7 do
-                owLocatorTilesRowColumn.[x,j].Opacity <- 0.35
+            let leftLine = new Shapes.Line(StartPoint=Point(OMTW*float x, 0.), EndPoint=Point(OMTW*float x, float(8*11*3)), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            canvasAdd(owLocatorCanvas, leftLine, 0., 0.)
+            let rightLine = new Shapes.Line(StartPoint=Point(OMTW*float (x+1)-1., 0.), EndPoint=Point(OMTW*float (x+1)-1., float(8*11*3)), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            canvasAdd(owLocatorCanvas, rightLine, 0., 0.)
+            let topLine = new Shapes.Line(StartPoint=Point(0., float(y*11*3)), EndPoint=Point(OMTW*float(16*3), float(y*11*3)), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            canvasAdd(owLocatorCanvas, topLine, 0., 0.)
+            let bottomLine = new Shapes.Line(StartPoint=Point(0., float((y+1)*11*3)-1.), EndPoint=Point(OMTW*float(16*3), float((y+1)*11*3)-1.), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
@@ -1857,30 +1887,31 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     // ... and highlight all undiscovered tiles
                     if OverworldData.owMapZone.[j].[i] = hinted_zone.AsDataChar() then
                         let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                        if cur = -1 || (alsoHighlightABCDEFGH && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?') then
+                        let isLetteredNumberlessDungeon = (alsoHighlightABCDEFGH && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?')
+                        if cur = -1 || isLetteredNumberlessDungeon then
                             if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
                                 if owInstance.SometimesEmpty(i,j) then
-                                    owLocatorTilesZone.[i,j].Fill <- Brushes.Yellow
+                                    owLocatorTilesZone.[i,j].MakeYellow()
                                 else
-                                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
+                                    owLocatorTilesZone.[i,j].MakeGreen()
                             else
-                                owLocatorTilesZone.[i,j].Fill <- Brushes.Red
-                            owLocatorTilesZone.[i,j].Opacity <- 0.4
+                                if isLetteredNumberlessDungeon then  // OwGettableLocations does not contain already-marked spots
+                                    owLocatorTilesZone.[i,j].MakeGreen()
+                                else
+                                    owLocatorTilesZone.[i,j].MakeRed()
         )
     showLocatorInstanceFunc <- (fun f ->
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
-                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
-                    owLocatorTilesZone.[i,j].Opacity <- 0.4
+                    owLocatorTilesZone.[i,j].MakeGreen()
         )
     showShopLocatorInstanceFunc <- (fun item ->
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = item || (TrackerModel.getOverworldMapExtraData(i,j) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item)) then
-                    owLocatorTilesZone.[i,j].Fill <- Brushes.Green
-                    owLocatorTilesZone.[i,j].Opacity <- 0.4
+                    owLocatorTilesZone.[i,j].MakeGreen()
         )
     showLocator <- (fun sld ->
         match sld with
@@ -1938,8 +1969,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
         for i = 0 to 15 do
             for j = 0 to 7 do
-                owLocatorTilesRowColumn.[i,j].Opacity <- 0.0
-                owLocatorTilesZone.[i,j].Opacity <- 0.0
+                owLocatorTilesZone.[i,j].Hide()
+        owLocatorCanvas.Children.Clear()
         )
 
     addZoneName(TrackerModel.HintZone.DEATH_MOUNTAIN, "DEATH\nMOUNTAIN", 2.5, 0.3)

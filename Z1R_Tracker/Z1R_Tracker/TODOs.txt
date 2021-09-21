@@ -20,20 +20,6 @@ CURRENT PRIORITIES
 
 
 
-marc's crosshairs idea (outline rather than tile highlight), can maybe carry dungeon colors
-
-
-
-towards the end of the map, when there's like 20 tiles left, the 'highlight nearby' makes it harder, not easier, for me to see what's left
- - maybe only show nearbys if they are at most N screen away?
- - the yellow/green still 'covers' too much of the tile, it feels, makes the 'emptiness' of not being darkened fade away some
-    - if I am hover-highlighting something, should I fade out all the overworld marks (other than 'X') by like 50% opacity, so the highlights pop more?  could maybe just opacity-tweak the canvas 
-         they all live in as a simple implementation?
-the issue is the dungeons/warp corners scream too much, solution may be to get rid of them
- - see also bottom of OverworldRouteDrawing, full rectangle borders rather than transparent interiors
-
-
-
 hotkeys
  - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
