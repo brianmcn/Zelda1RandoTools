@@ -48,7 +48,9 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
         let tb = new TextBlock(Text=leftText,FontSize=12.,Foreground=TLC,Background=Brushes.Black)
-        let mkft(t) = new FormattedText(t, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), tb.FontSize, tb.Foreground, new NumberSubstitution(), TextFormattingMode.Display)
+        let mkft(t) = new FormattedText(t, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, 
+                                            new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), 
+                                            tb.FontSize, tb.Foreground, new NumberSubstitution(), TextFormattingMode.Display, VisualTreeHelper.GetDpi(timelineCanvas).PixelsPerDip)
         let ft = mkft(leftText)
         if ft.Height > iconSize then
             printfn "bad ft1"

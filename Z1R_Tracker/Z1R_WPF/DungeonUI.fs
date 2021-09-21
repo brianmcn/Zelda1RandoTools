@@ -350,7 +350,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                                     highlight(contiguous, Brushes.Lime)
                             else
                                 dungeonHighlightCanvas.Children.Clear() // clear old preview
-                                let ok,warn = grabHelper.PreviewDrop(i,j,roomStates)
+                                let ok,warn = grabHelper.PreviewDrop(i,j)
                                 highlight(ok, Brushes.Lime)
                                 highlight(warn, Brushes.Yellow)
                     )

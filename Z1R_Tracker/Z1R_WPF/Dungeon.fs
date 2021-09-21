@@ -66,7 +66,7 @@ type GrabHelper() =
         verticalDoorsIfGrabWereACut <- Array2D.init 8 7 (fun x y -> if contigous.[x,y] || contigous.[x,y+1] then DoorState.UNKNOWN else verticalDoors.[x,y].State)
         contigous
 
-    member this.PreviewDrop(mouseX, mouseY, roomStates:int[,]) =
+    member this.PreviewDrop(mouseX, mouseY) =
         if not this.IsGrabMode || not this.HasGrab then
             failwith "bad"
         let dx,dy = mouseX-grabMouseX, mouseY-grabMouseY
