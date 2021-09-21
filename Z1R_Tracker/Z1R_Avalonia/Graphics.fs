@@ -264,105 +264,86 @@ let overworldMapBMPs(n) =
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
-let uniqueNumberedMapIconBMPs, uniqueLetteredMapIconBMPs =
-    let f labels =
-        let imageStream = GetResourceStream("ow_icons5x9.png")
-        let bmp = new System.Drawing.Bitmap(imageStream)
-        let tiles = [|  
-            for i in labels do
-                let b = new System.Drawing.Bitmap(16*3,11*3)
-                for px = 0 to 16*3-1 do
-                    for py = 0 to 11*3-1 do
-                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                            b.SetPixel(px, py, System.Drawing.Color.Yellow)
-                        else
-                            b.SetPixel(px, py, TRANS_BG)
-                paintAlphanumerics3x5(i, System.Drawing.Color.Black, b, 6, 3)
-                yield b
-            for i = 1 to 4 do  // warps 1-4
-                let b = new System.Drawing.Bitmap(16*3,11*3)
-                for px = 0 to 16*3-1 do
-                    for py = 0 to 11*3-1 do
-                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                            b.SetPixel(px, py, System.Drawing.Color.Orchid)
-                        else
-                            b.SetPixel(px, py, TRANS_BG)
-                paintAlphanumerics3x5(i.ToString().[0], System.Drawing.Color.Black, b, 6, 3)
-                yield b
-            for i = 0 to 1 do  // sword 3, sword 2
-                let b = new System.Drawing.Bitmap(16*3,11*3)
-                for px = 0 to 16*3-1 do
-                    for py = 0 to 11*3-1 do
-                        if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                            b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
-                        else
-                            b.SetPixel(px, py, TRANS_BG)
-                yield b
-        |]
-        tiles
-    f "123456789", f "ABCDEFGH9"
-
 let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
 let itemsBMP = 
     let imageStream = GetResourceStream("icons3x7.png")
     new System.Drawing.Bitmap(imageStream)
-let nonUniqueMapIconBMPs = 
-    let imageStream = GetResourceStream("ow_icons5x9.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    let tiles = [|  
-        for i = 2 to 2 do  // hint shop
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
-                    else
-                        b.SetPixel(px, py, TRANS_BG)
-            yield b
-        // 3-item shops
-        for i = 0 to 7 do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    // one-icon area
-                    if px/3 >= 5 && px/3 <= 9 && py/3 >= 1 && py/3 <= 9 then
-                        tile.SetPixel(px, py, itemBackgroundColor)
-                    else
-                        tile.SetPixel(px, py, TRANS_BG)
-                    // icon
-                    if px/3 >= 6 && px/3 <= 8 && py/3 >= 2 && py/3 <= 8 then
-                        let c = itemsBMP.GetPixel(i*3 + px/3-6, py/3-2)
-                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                            tile.SetPixel(px, py, c)
-            yield tile
-        for i = 3 to 5 do  // take-any, potion shop, rupee
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
-                        b.SetPixel(px, py, bmp.GetPixel(i*5+(px-5*3)/3, (py-1*3)/3))
-                    else
-                        b.SetPixel(px, py, TRANS_BG)
-            yield b
-        for _i = 0 to 0 do  // 'X'
-            let b = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    b.SetPixel(px, py, System.Drawing.Color.Black)
-            yield b
-        |]
-    tiles
 
-let numberedMapIconInteriorBMPs, letteredMapIconInteriorBMPs =
-    let f u = [|
-        for bmp in [yield! u; yield! nonUniqueMapIconBMPs] do
-            let r = new System.Drawing.Bitmap(5*3,9*3)
-            for px = 0 to 5*3-1 do
-                for py = 0 to 9*3-1 do
-                    r.SetPixel(px, py, bmp.GetPixel(5*3+px, 1*3+py))
-            yield r
-        |]
-    f uniqueNumberedMapIconBMPs, f uniqueLetteredMapIconBMPs
+// each overworld map tile may have multiple icons that can represent it (e.g. dungeon 1 versus dungeon A)
+// we store a table, where the array index is the mapSquareChoiceDomain index of the general entry type, and the value there is a list of all possible icons
+// MapStateProxy will eventually be responsible for 'decoding' the current tracker state into the appropriate icon
+let theInteriorBmpTable = Array.init 28 (fun _ -> ResizeArray())
+do
+    let imageStream = GetResourceStream("ow_icons5x9.png")
+    let interiorIconStrip = new System.Drawing.Bitmap(imageStream)
+    let getInteriorIconFromStrip(i) = 
+        let bmp = new System.Drawing.Bitmap(5*3,9*3)
+        for px = 0 to 5*3-1 do
+            for py = 0 to 9*3-1 do
+                bmp.SetPixel(px, py, interiorIconStrip.GetPixel(i*5+px/3, py/3))
+        bmp
+    // 0-8  dungeons: 4 varieties (numbered yellow, numbered green, lettered yellow, lettered green)
+    for labels in ["123456789";"ABCDEFGH9"] do
+        for color in [System.Drawing.Color.Yellow; System.Drawing.Color.Lime] do
+            labels |> Seq.iteri (fun i ch ->
+                let bmp = new System.Drawing.Bitmap(5*3,9*3)
+                for px = 0 to 5*3-1 do
+                    for py = 0 to 9*3-1 do
+                        bmp.SetPixel(px, py, color)
+                paintAlphanumerics3x5(ch, System.Drawing.Color.Black, bmp, 1, 2)
+                theInteriorBmpTable.[i].Add(bmp)
+                )
+    // 9-12  any roads
+    "1234" |> Seq.iteri (fun i ch ->
+        let bmp = new System.Drawing.Bitmap(5*3,9*3)
+        for px = 0 to 5*3-1 do
+            for py = 0 to 9*3-1 do
+                bmp.SetPixel(px, py, System.Drawing.Color.Orchid)
+        paintAlphanumerics3x5(ch, System.Drawing.Color.Black, bmp, 1, 2)
+        theInteriorBmpTable.[i+9].Add(bmp)
+        )
+    // 13  sword3
+    theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0))
+    // 14  sword2
+    theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1))
+    // 15  hint shop
+    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2))
+    // 16-23  item shops (as single-item icons)
+    for i = 0 to TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS-1 do
+        let bmp = new System.Drawing.Bitmap(5*3,9*3)
+        for px = 0 to 5*3-1 do
+            for py = 0 to 9*3-1 do
+                bmp.SetPixel(px, py, itemBackgroundColor)
+                if px/3 >= 1 && px/3 <= 3 && py/3 >= 1 && py/3 <= 7 then
+                    let c = itemsBMP.GetPixel(i*3 + px/3-1, py/3-1)
+                    if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                        bmp.SetPixel(px, py, c)
+        theInteriorBmpTable.[i+16].Add(bmp)
+    // 24  take any
+    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3))
+    // 25  potion shop
+    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4))
+    // 26  money
+    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(5))
+    // 27  'X'
+    let bmp = new System.Drawing.Bitmap(5*3,9*3)
+    for px = 0 to 5*3-1 do
+        for py = 0 to 9*3-1 do
+            bmp.SetPixel(px, py, System.Drawing.Color.Black)
+    theInteriorBmpTable.[27].Add(bmp)
+// full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
+let theFullTileBmpTable = Array.init 28 (fun _ -> ResizeArray())
+do
+    for i = 0 to 27 do
+        for interiorBmp in theInteriorBmpTable.[i] do
+            let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
+                        fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-5*3, py-1*3))
+                    else
+                        fullTileBmp.SetPixel(px, py, if i=27 then System.Drawing.Color.Black else TRANS_BG)
+            theFullTileBmpTable.[i].Add(fullTileBmp)
 
 let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
     let imageStream = GetResourceStream("link_icons.png")

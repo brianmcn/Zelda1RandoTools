@@ -9,30 +9,27 @@ let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
 
 type MapStateProxy(state) =
-    static let U = Graphics.uniqueNumberedMapIconBMPs.Length   // ok to just use Numbered, as Lettered has same length
-    static let NU = Graphics.nonUniqueMapIconBMPs.Length
-    static member NumStates = U + NU
+    static member NumStates = 28
     member this.State = state
-    member this.IsX = state = U+NU-1
-    member this.IsUnique = state >= 0 && state < U
+    member this.IsX = state=27
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
-    member this.IsSword3 = state=13
-    member this.IsSword2 = state=14
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
     member this.IsInteresting = not(state = -1 || this.IsX)
     member this.CurrentBMP() =
         if state = -1 then
             null
-        elif state < U then
-            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.uniqueLetteredMapIconBMPs.[state] else Graphics.uniqueNumberedMapIconBMPs.[state]
+        elif this.IsDungeon then
+            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[state].[2] else Graphics.theFullTileBmpTable.[state].[0]
         else
-            Graphics.nonUniqueMapIconBMPs.[state-U]
+            Graphics.theFullTileBmpTable.[state].[0]
     member this.CurrentInteriorBMP() =
         if state = -1 then
             null
+        elif this.IsDungeon then
+            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theInteriorBmpTable.[state].[2] else Graphics.theInteriorBmpTable.[state].[0]
         else
-            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.letteredMapIconInteriorBMPs.[state] else Graphics.numberedMapIconInteriorBMPs.[state]
+            Graphics.theInteriorBmpTable.[state].[0]
 
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
@@ -743,7 +740,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = resizeMapTileImage <| Graphics.BMPtoImage Graphics.nonUniqueMapIconBMPs.[Graphics.nonUniqueMapIconBMPs.Length-1] // "X"
+                let icon = resizeMapTileImage <| Graphics.BMPtoImage(MapStateProxy(27).CurrentBMP()) // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)
@@ -1207,7 +1204,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
 
     let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.uniqueLetteredMapIconBMPs.[0] else Graphics.uniqueNumberedMapIconBMPs.[0]
+    let firstDungeonBMP = MapStateProxy(0).CurrentBMP()
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
@@ -1225,7 +1222,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink(Graphics.uniqueNumberedMapIconBMPs.[9]), 7.5*OMTW, 0.)
+    canvasAdd(legendCanvas, shrink(MapStateProxy(9).CurrentBMP()), 7.5*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)

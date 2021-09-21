@@ -265,32 +265,32 @@ let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle
 //////////////////////////////////////////////////////////////////////////////////////////
 
 let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
-    1 // dungeon 1
+    1 // dungeon 1          // 0
     1 // dungeon 2
     1 // dungeon 3
     1 // dungeon 4
     1 // dungeon 5
-    1 // dungeon 6
+    1 // dungeon 6          // 5
     1 // dungeon 7
     1 // dungeon 8
     1 // dungeon 9
     1 // any road 1
-    1 // any road 2              
+    1 // any road 2         // 10 
     1 // any road 3
     1 // any road 4
     1 // sword 3
     1 // sword 2
-    999 // hint shop
+    999 // hint shop        // 15
     999 // arrow shop
     999 // bomb shop
     999 // book shop             
     999 // candle shop
-    999 // blue ring shop
+    999 // blue ring shop   // 20
     999 // meat shop
     999 // key shop
     999 // shield shop
     999 // take any
-    999 // potion shop
+    999 // potion shop      // 25
     999 // money
     999 // X (nothing, but visited)
     |])

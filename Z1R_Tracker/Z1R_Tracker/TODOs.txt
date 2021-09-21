@@ -18,30 +18,19 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-need a circle-moat dungeon room
-need to play 2nd quest dung rooms in case others
 
 
-hide dungeon numbers:
- - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should own tracker, it should only suggest?
- - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
- - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
- - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
-
- - I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
-
- - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
 marc's crosshairs idea (outline rather than tile highlight), can maybe carry dungeon colors
 
-Is my HDN completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them.
 
-draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
 
 towards the end of the map, when there's like 20 tiles left, the 'highlight nearby' makes it harder, not easier, for me to see what's left
  - maybe only show nearbys if they are at most N screen away?
  - the yellow/green still 'covers' too much of the tile, it feels, makes the 'emptiness' of not being darkened fade away some
     - if I am hover-highlighting something, should I fade out all the overworld marks (other than 'X') by like 50% opacity, so the highlights pop more?  could maybe just opacity-tweak the canvas 
          they all live in as a simple implementation?
+the issue is the dungeons/warp corners scream too much, solution may be to get rid of them
+ - see also bottom of OverworldRouteDrawing, full rectangle borders rather than transparent interiors
 
 
 
@@ -52,6 +41,19 @@ hotkeys
 
 
 SMALL
+
+hide dungeon numbers:
+ - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should 'own' tracker marks, it should only suggest?
+ - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
+ - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
+ - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
+ - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
+ - Is my completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them.
+
+draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+
+I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
+
 
 
 Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
