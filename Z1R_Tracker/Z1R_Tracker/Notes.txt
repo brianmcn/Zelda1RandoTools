@@ -208,7 +208,9 @@ Sometimes you may mark up a bit of dungeon map, before noticing that (a portion 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
 fix an offset map.
 
-FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews and hinting which ones 
+    are compatible with your current room markup.
 
 Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
 

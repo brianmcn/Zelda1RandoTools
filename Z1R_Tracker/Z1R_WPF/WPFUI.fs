@@ -116,7 +116,7 @@ let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 560.
 let TCH = 123  // timeline height
-let TH = 24 // text height
+let TH = DungeonUI.TH // text height
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let resizeMapTileImage(image:Image) =
     image.Width <- OMTW
@@ -1644,9 +1644,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     // Dungeon level trackers
     let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
-    let fixedDungeon1Outlines = ResizeArray<Shapes.Line>()
-    let fixedDungeon2Outlines = ResizeArray<Shapes.Line>()
-    
     let dungeonTabs,grabModeTextBlock = 
         DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
@@ -1656,24 +1653,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()), fixedDungeon1Outlines, fixedDungeon2Outlines)
+            ), (fun _level -> hideLocator()))
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     
-    let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    fqcb.ToolTip <- "Show vanilla first quest dungeon outlines"
-    let sqcb = new CheckBox(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    sqcb.ToolTip <- "Show vanilla second quest dungeon outlines"
-
-    fqcb.IsChecked <- System.Nullable.op_Implicit false
-    fqcb.Checked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); sqcb.IsChecked <- System.Nullable.op_Implicit false)
-    fqcb.Unchecked.Add(fun _ -> fixedDungeon1Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
-    canvasAdd(appMainCanvas, fqcb, 310., START_DUNGEON_AND_NOTES_AREA_H) 
-
-    sqcb.IsChecked <- System.Nullable.op_Implicit false
-    sqcb.Checked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 1.0); fqcb.IsChecked <- System.Nullable.op_Implicit false)
-    sqcb.Unchecked.Add(fun _ -> fixedDungeon2Outlines |> Seq.iter (fun s -> s.Opacity <- 0.0))
-    canvasAdd(appMainCanvas, sqcb, 360., START_DUNGEON_AND_NOTES_AREA_H) 
-
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
     // blockers

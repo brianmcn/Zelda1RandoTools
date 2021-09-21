@@ -24,7 +24,6 @@ need to play 2nd quest dung rooms in case others
 
 hide dungeon numbers:
  - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should own tracker, it should only suggest?
- - FQ/SQ boxes need to totally be re-done somehow
  - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
  - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
  - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
@@ -136,8 +135,6 @@ It would also leave some blank space in the tracker for streamers to use for bra
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 
-homer: e. I like how the 1q/2q outlines work. It would be nice if you could select both at the same time for mixed quest when you don’t know the number, it would help narrow down options.
- - again, subtle display that can overlay options to implicitly capture the info is useful, like the maybe-v-always ow-map-tiles
 
 
 shift-click the start screen to place the lime circle? 
