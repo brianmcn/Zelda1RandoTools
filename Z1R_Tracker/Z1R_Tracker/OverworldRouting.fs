@@ -323,7 +323,6 @@ let findAllBestPaths(adjacencyCostDict:System.Collections.Generic.IDictionary<Ve
     let visited = new System.Collections.Generic.Dictionary<_,_>()
     let q = PriorityQueue()
     let mutable bestCost = System.Int32.MaxValue 
-    let results = ResizeArray()
     q.Enqueue(0, (f, None))   // costSoFar, nodeToTry, predecessor
     while not q.IsEmpty && q.MinimumPriority <= bestCost do
         let cost, (cur, pred) = q.Dequeue()

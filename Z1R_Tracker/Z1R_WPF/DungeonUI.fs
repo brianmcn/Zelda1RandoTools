@@ -303,7 +303,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
-                                let tile = roomBMPpairs(currentState) |> (fun (u,c) -> u) |> Graphics.BMPtoImage
+                                let tile = roomBMPpairs(currentState) |> (fun (u,_c) -> u) |> Graphics.BMPtoImage
                                 tile.Opacity <- 0.6
                                 canvasAdd(tileCanvas, tile, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->

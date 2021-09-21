@@ -30,7 +30,7 @@ type MyWindowBase() as this =
         timer.Start()
     member this.StartTime = startTime
     abstract member Update : bool -> unit
-    default this.Update(f10Press) = ()
+    default this.Update(_f10Press) = ()
     override this.OnSourceInitialized(e) =
         base.OnSourceInitialized(e)
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
@@ -58,7 +58,7 @@ type MyWindowBase() as this =
     member this.UnregisterHotKey() =
         let helper = new System.Windows.Interop.WindowInteropHelper(this)
         Winterop.UnregisterHotKey(helper.Handle, Winterop.HOTKEY_ID) |> ignore
-    member this.HwndHook(hwnd:IntPtr, msg:int, wParam:IntPtr, lParam:IntPtr, handled:byref<bool>) : IntPtr =
+    member this.HwndHook(_hwnd:IntPtr, msg:int, wParam:IntPtr, lParam:IntPtr, handled:byref<bool>) : IntPtr =
         let WM_HOTKEY = 0x0312
         if msg = WM_HOTKEY then
             if wParam.ToInt32() = Winterop.HOTKEY_ID then

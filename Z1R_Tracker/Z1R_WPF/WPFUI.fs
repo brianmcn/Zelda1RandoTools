@@ -39,7 +39,7 @@ let makeGrid = Graphics.makeGrid
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
-let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
@@ -173,7 +173,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 routeTarget
             else
                 None
-        let eliminateCurrentRouteTarget(newTarget) =
+        let eliminateCurrentRouteTarget() =
             routeTarget <- None
             routeTargetLastClickedTime <- DateTime.Now - TimeSpan.FromMinutes(10.)
         let changeCurrentRouteTarget(newTarget) =
@@ -183,7 +183,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     
     let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
-    let mutable showLocatorInstanceFunc = fun(f:int*int->bool) -> ()
+    let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
@@ -280,11 +280,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 )
             gridAdd(mainTracker, colorButton, i, 0)
             TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
-                colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(TrackerModel.GetDungeon(i).Color))
+                colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
                 colorCanvas.Children.Clear()
-                let color = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(i).Color) then System.Drawing.Color.Black else System.Drawing.Color.White
+                let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
                 if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number
-                    colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(TrackerModel.GetDungeon(i).LabelChar, color, 28, 28, 3, 2))) |> ignore
+                    colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(labelChar, color, 28, 28, 3, 2))) |> ignore
                 )
             colorButton.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
             colorButton.MouseLeave.Add(fun _ -> hideLocator())
@@ -427,8 +427,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if questOnlyInterestingMarks.[x,y] then
                     r <- true
         r
-    let mutable hideFirstQuestFromMixed = fun b -> ()
-    let mutable hideSecondQuestFromMixed = fun b -> ()
+    let mutable hideFirstQuestFromMixed = fun _b -> ()
+    let mutable hideSecondQuestFromMixed = fun _b -> ()
 
     let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
@@ -1656,7 +1656,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun level -> hideLocator()), fixedDungeon1Outlines, fixedDungeon2Outlines)
+            ), (fun _level -> hideLocator()), fixedDungeon1Outlines, fixedDungeon2Outlines)
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     
     let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -1714,14 +1714,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                     (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
                     Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
-                    (fun (dismissPopup,ea,db) -> 
+                    (fun (dismissPopup,_ea,db) -> 
                         current <- db
                         redraw(db)
                         TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
                         dismissPopup()
                         popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
-        c.MouseDown.Add(fun x -> if not popupIsActive then activate(0))
+        c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-402.)/3.)
@@ -1908,13 +1908,13 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
         if show then
             if noZone then 
-                allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.3)
+                allOwMapZoneImages |> Array2D.iteri (fun _x _y image -> image.Opacity <- 0.3)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
             zoneNames |> Seq.iter (fun (hz,textbox) -> if noZone || hz=hintZone then textbox.Opacity <- 0.6)
         else
-            allOwMapZoneImages |> Array2D.iteri (fun x y image -> image.Opacity <- 0.0)
+            allOwMapZoneImages |> Array2D.iteri (fun _x _y image -> image.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
-            zoneNames |> Seq.iter (fun (hz,textbox) -> textbox.Opacity <- 0.0)
+            zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
     zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
@@ -1932,7 +1932,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             let z  = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.Transparent, StrokeThickness=12., Fill=Brushes.Lime, Opacity=0., IsHitTestVisible=false)
             owLocatorTilesRowColumn.[i,j] <- rc
             owLocatorTilesZone.[i,j] <- z
-            let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owLocatorGrid, rc, i, j)
             gridAdd(owLocatorGrid, z, i, j)
     canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
@@ -2093,7 +2092,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, moreOptionsButton, 0., START_TIMELINE_H)
     moreOptionsButton.Click.Add(fun _ -> CustomComboBoxes.DoModalDocked(appMainCanvas, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings())) |> ignore)
 
-    let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
+    //let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
     //                items  ow map  prog  dungeon tabs                timeline
     appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)

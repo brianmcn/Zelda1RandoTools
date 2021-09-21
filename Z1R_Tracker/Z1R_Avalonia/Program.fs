@@ -7,14 +7,14 @@ open Avalonia.Layout
 type MyCommand(f) =
     let ev = new Event<EventArgs>()
     interface System.Windows.Input.ICommand with
-        member this.CanExecute(x) = true
+        member this.CanExecute(_x) = true
         member this.Execute(x) = f(x)
         //[<CLIEventAttribute>]
         //member this.CanExecuteChanged = ev.Publish
         member this.add_CanExecuteChanged(h) = ev.Publish.AddHandler(fun o ea -> h.Invoke(o,ea))
         member this.remove_CanExecuteChanged(h) = ev.Publish.RemoveHandler(fun o ea -> h.Invoke(o,ea))
 
-type MyWindow(owMapNum) as this = 
+type MyWindow() as this = 
     inherit Window()
     let mutable startTime = DateTime.Now
     let mutable canvas, updateTimeline = null, fun _ -> ()
@@ -34,13 +34,13 @@ type MyWindow(owMapNum) as this =
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
-        this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F5"), Command=new MyCommand(fun x -> 
+        this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F5"), Command=new MyCommand(fun _ -> 
                 printfn "F5 was pressed"
                 TrackerModel.startIconX <- UI.currentlyMousedOWX
                 TrackerModel.startIconY <- UI.currentlyMousedOWY
                 TrackerModel.forceUpdate()
                 )))
-        this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F10"), Command=new MyCommand(fun x -> 
+        this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F10"), Command=new MyCommand(fun _ -> 
                 printfn "F10 was pressed"
                 startTime <- DateTime.Now
                 this.Update(true)
@@ -207,7 +207,7 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime as desktop ->
-            desktop.MainWindow <- new MyWindow(0)
+            desktop.MainWindow <- new MyWindow()
         | _ -> ()
         base.OnFrameworkInitializationCompleted()
 

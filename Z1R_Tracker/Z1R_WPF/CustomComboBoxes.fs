@@ -133,7 +133,7 @@ let DoModalDocked(appMainCanvas:Canvas, dock, element, onClose) =
                         DockPanel.SetDock(e, dock)
                         d.Children.Add(e) |> ignore
                         canvasAdd(c, d, 0., 0.)),
-                    (fun (c,e) -> d.Children.Remove(e)), element, 0.5, onClose)
+                    (fun (_c,e) -> d.Children.Remove(e)), element, 0.5, onClose)
 
 /////////////////////////////////////////
 
@@ -149,7 +149,7 @@ let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
         let actualSpaceLength = usableSpace / float n
         let a = [| 
             yield dash
-            for i=0 to n-1 do 
+            for _i=0 to n-1 do 
                 yield actualSpaceLength / ST
                 yield dash
         |]
@@ -212,7 +212,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
     let mutable dismissDoModalPopup = fun () -> ()
     let selfCleanup() =
-        for (d,x,y) in extraDecorations do
+        for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
     let dismiss() =
         dismissDoModalPopup()
@@ -261,8 +261,7 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
                 let mouseWarpDismiss() =
                     let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), appMainCanvas)
                     dismiss()
-                    Graphics.Win32.SetCursor(pos.X, pos.Y)
-                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+                    Graphics.WarpMouseCursorTo(pos)
                 b.MouseDown.Add(fun ea -> 
                     ea.Handled <- true
                     if isSelectable then

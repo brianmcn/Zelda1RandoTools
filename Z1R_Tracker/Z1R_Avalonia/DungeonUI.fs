@@ -285,7 +285,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                         usedTransports.[roomState] <- usedTransports.[roomState] - 1
                 let usedTransportsAddState(roomState) =
                     // note any new transports
-                    if [1..9] |> List.contains roomStates.[i,j] then
+                    if [1..9] |> List.contains roomState then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                 let immediateActivatePopup, delayedActivatePopup =
                     let activatePopup(activationDelta) =
@@ -310,7 +310,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
-                                let tileBMP = roomBMPpairs(currentState) |> (fun (u,c) -> u)
+                                let tileBMP = roomBMPpairs(currentState) |> (fun (u,_c) -> u)
                                 canvasAdd(tileCanvas, Graphics.BMPtoImage tileBMP, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->
                                 let pp = ea.GetCurrentPoint(c)

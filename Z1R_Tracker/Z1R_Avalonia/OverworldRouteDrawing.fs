@@ -70,7 +70,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         let canWalk = 
                             let ok, xs = adjacencyDictSansWarps.TryGetValue(p)
                             if ok then
-                                xs |> Seq.exists (fun (v,c) -> v=g)
+                                xs |> Seq.exists (fun (v,_c) -> v=g)
                             else
                                 false
                         if drawRouteMarks then 

@@ -283,10 +283,10 @@ let copyHeartContainer() =
     BMPtoImage bmp
 
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
-let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for i = 0 to 8 do yield heart_container_bmp |]
+let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]
 let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang; key; raft; recorder; red_candle; red_ring; silver_arrow; wand; white_sword |]
 let allItemsWithHeartShuffle = 
-    [| yield! allItems; for i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
+    [| yield! allItems; for _i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
 
 let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
 
@@ -383,7 +383,7 @@ let nonUniqueMapIconBMPs =
                     else
                         b.SetPixel(px, py, TRANS_BG)
             yield b
-        for i = 0 to 0 do  // 'X'
+        for _i = 0 to 0 do  // 'X'
             let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do

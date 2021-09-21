@@ -27,6 +27,7 @@
     <DocumentationFile>bin\Debug\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <StartArguments>heartShuffle 1</StartArguments>
+    <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -38,8 +39,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <OtherFlags>
-    </OtherFlags>
+    <OtherFlags>--warnon:1182</OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
   </PropertyGroup>
   <PropertyGroup>

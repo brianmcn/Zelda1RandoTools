@@ -196,7 +196,7 @@ let unfoundL9_bmp,foundL9_bmp =
     
 
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
-let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for i = 0 to 8 do yield heart_container_bmp |]
+let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]
 
 let [| cdungeonUnexploredRoomBMP; cdungeonExploredRoomBMP; cdungeonDoubleMoatBMP; cdungeonChevyBMP; cdungeonVMoatBMP; cdungeonHMoatBMP; 
         cdungeonVChuteBMP; cdungeonHChuteBMP; cdungeonTeeBMP; cdungeonNeedWand; cdungeonBlueBubble; cdungeonNeedRecorder; cdungeonNeedBow; cdungeonTriforceBMP; cdungeonPrincessBMP; cdungeonStartBMP;
@@ -335,7 +335,7 @@ let nonUniqueMapIconBMPs =
                     else
                         b.SetPixel(px, py, TRANS_BG)
             yield b
-        for i = 0 to 0 do  // 'X'
+        for _i = 0 to 0 do  // 'X'
             let b = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
@@ -383,4 +383,4 @@ let WarpMouseCursorTo(pos:Avalonia.Point) =
     // TODO
     //Win32.SetCursor(pos.X, pos.Y)
     //PlaySoundForSpeechRecognizedAndUsedToMark()
-    ()
+    ignore(pos)

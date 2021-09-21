@@ -27,8 +27,6 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
-    let items = ResizeArray()
-    let guidelines = ResizeArray()
     let line1 = new Shapes.Line(X1=0., Y1=iconAreaHeight+BIG_HASH/2., X2=lineWidth, Y2=iconAreaHeight+BIG_HASH/2., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
     let curTime = new Shapes.Line(X1=0., Y1=iconAreaHeight, X2=0., Y2=iconAreaHeight+BIG_HASH, Stroke=Brushes.White, StrokeThickness=LINE_THICKNESS)
     let mutable iconAreaFilled = Array2D.zeroCreate (int lineWidth + 1) numRows
