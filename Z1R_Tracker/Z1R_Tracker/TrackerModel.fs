@@ -845,6 +845,7 @@ let haveAnnouncedHearts = Array.zeroCreate 17
 let haveAnnouncedCompletedDungeons = Array.zeroCreate 8
 let mutable previouslyAnnouncedFoundDungeonCount = 0
 let mutable previouslyAnnouncedTriforceCount = 0
+let mutable previouslyLocatedDungeonCount = 0
 let mutable remindedLadder, remindedAnyKey = false, false
 let mutable priorSwordWandLevel = 0
 let mutable priorRingLevel = 0
@@ -856,12 +857,30 @@ let mutable priorAnyKey = false
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
+let unreachablePossibleDungeonSpotCount() =
+    let mutable count = 0
+    for x = 0 to 15 do
+        for y = 0 to 7 do
+            let cur = overworldMapMarks.[x,y].Current()
+            if cur < 9 then  // it's marked as a dungeon, or it's unmarked so it might be an unfound dungeon
+                if owInstance.Bombable(x,y) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value()) then
+                    count <- count + 1
+                if owInstance.Burnable(x,y) && not(playerComputedStateSummary.CandleLevel>0) then
+                    count <- count + 1
+                if owInstance.Raftable(x,y) && not(playerComputedStateSummary.HaveRaft) then
+                    count <- count + 1
+                if owInstance.Ladderable(x,y) && not(playerComputedStateSummary.HaveLadder) then
+                    count <- count + 1
+                if owInstance.Whistleable(x,y) && not(playerComputedStateSummary.HaveRecorder) then
+                    count <- count + 1
+    count
 let computeTriforceAndGo() =
     let mutable missing = 0
     for i = 0 to 8 do
         if not(GetDungeon(i).HasBeenLocated()) then
             missing <- missing + 1
-    if missing=0 then  // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without locating them all   // TODO advanced flags: only need N triforces to enter 9
+    // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without being able to locate them all   // TODO advanced flags: only need N triforces to enter 9
+    if missing=0 || unreachablePossibleDungeonSpotCount()=0 then 
         if playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder && playerComputedStateSummary.HaveRecorder then
             3
         elif playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder then
@@ -933,10 +952,13 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     for d = 0 to 8 do
         if GetDungeon(d).PlayerHasTriforce() then
             triforces <- triforces + 1
+    let mutable locatedDungeons = 0
     let mutable completedDungeons = 0
     for d = 0 to 8 do
         if GetDungeon(d).IsComplete then
             completedDungeons <- completedDungeons + 1
+        if GetDungeon(d).HasBeenLocated() then
+            locatedDungeons <- locatedDungeons + 1
     let tagLevel = computeTriforceAndGo()
     let mutable justAnnouncedTAG = false
     if triforces > previouslyAnnouncedTriforceCount then
@@ -946,7 +968,12 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             // just got a new triforce, it did not complete a dungeon, but the player is probably triforce and go, so remind them, so they might abandon rest of dungeon
             ite.AnnounceTriforceAndGo(triforces, tagLevel)
             justAnnouncedTAG <- true
+    if locatedDungeons > previouslyLocatedDungeonCount && tagLevel > 1 && not justAnnouncedTAG then
+        // just located a new dungeon, the player is probably triforce and go, so remind them
+        ite.AnnounceTriforceAndGo(triforces, tagLevel)
+        justAnnouncedTAG <- true
     previousCompletedDungeonCount <- completedDungeons
+    previouslyLocatedDungeonCount <- locatedDungeons
     if tagLevel > previouslyAnnouncedTriforceAndGo then
         previouslyAnnouncedTriforceAndGo <- tagLevel
         if not justAnnouncedTAG then
