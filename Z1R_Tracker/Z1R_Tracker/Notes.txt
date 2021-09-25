@@ -81,6 +81,8 @@ ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clickin
 (timer, current hearts - just for display)
 Show N gettable - click or hover to highlight all the remaining overworld tiles you could uncover given your current item set; color will be 
   greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
+OW spots left - count of all remaining spots, hovering shows them all with green/yellow highlights as with 'gettable' spots above, and red for 
+  un-gettable (given the player's current inventory)
 
 Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
@@ -145,7 +147,7 @@ Mouse-hover for routing from the current tile: (generalized routing)
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
-The 12-ish routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
+The routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
 You can turn off these routing and highlighting marks if you find them distracting (options menu).  Even if you turn off these generalized routing marks, 
 you can still click on Link to get the temporary, specific routing marks on-demand.
 

@@ -40,10 +40,6 @@ hotkeys
 
 SMALL
 
-Should green yellow narby be a fadeout, e.g. nearest 12 bright, then low opacity?
-
-Should hover ’78 remain’ show green/yellow/red on all?
-
 Pie menus for take-any, rupee?
  - Hold and drag for options
  - Release middle for default icon placement

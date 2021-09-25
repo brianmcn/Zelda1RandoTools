@@ -43,6 +43,9 @@ type MapStateProxy(state) =
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
 
+let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
+
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
@@ -50,6 +53,10 @@ let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., For
 let owRemainingScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
+let ensureRespectingOwGettableScreensCheckBox() =
+    if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
+                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
 
 [<RequireQualifiedAccess>]
 type RouteDestination =
@@ -108,11 +115,10 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
     | None ->
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxYellowGreenHighlights)
     for i,j in interestingButInaccesible do
-        let OMTW = OverworldRouteDrawing.OMTW
-        let rect = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Transparent,StrokeThickness=12.,Fill=Brushes.Red,Opacity=0.3,IsHitTestVisible=false)
-        Graphics.canvasAdd(routeDrawingCanvas, rect, OMTW*float(i), float(j*11*3))
-
-
+        let rect = new Graphics.TileHighlightRectangle()
+        rect.MakeRed()
+        for s in rect.Shapes do
+            Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
 
 
 let mutable f5WasRecentlyPressed = false
@@ -123,7 +129,6 @@ let H = 30
 let RIGHT_COL = 560.
 let TCH = 123  // timeline height
 let TH = DungeonUI.TH // text height
-let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let resizeMapTileImage(image:Image) =
     image.Width <- OMTW
     image.Height <- float(11*3)
@@ -807,7 +812,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         )
 
     // ow route drawing layer
-    let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, routeDrawingCanvas, 0., 0.)
 
@@ -1194,11 +1198,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                         owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 recognizedText
                             ))
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
-    owMapGrid.MouseLeave.Add(fun _ ->
-        if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
-            OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                        TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
-        )
+    owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensCheckBox())
 
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -1501,10 +1501,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
                     drawRoutesTo(currentRouteTarget(), routeDrawingCanvas,System.Windows.Point(0.,0.), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-                elif owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
-                    // unexplored but gettable spots highlight
-                    OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 128)
+                else
+                    ensureRespectingOwGettableScreensCheckBox()
             member _this.AnnounceCompletedDungeon(i) = 
                 if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
                     if TrackerModel.IsHiddenDungeonNumbers() then
@@ -1771,6 +1769,15 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL, 90.)
+    owRemainingScreensTextBox.MouseEnter.Add(fun _ ->
+        let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, unmarked, 
+                                            unmarked, Point(0.,0.), 0, 0, false, true, 128)
+        )
+    owRemainingScreensTextBox.MouseLeave.Add(fun _ ->
+        routeDrawingCanvas.Children.Clear()
+        ensureRespectingOwGettableScreensCheckBox()
+        )
     canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
     owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
     owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())

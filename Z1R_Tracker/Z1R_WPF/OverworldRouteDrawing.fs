@@ -103,7 +103,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         let ok, r = d.TryGetValue(goal)
                         if ok then
                             let (cost,_preds) = r
-                            pq.Enqueue((if ok then cost else 99999), (i,j))
+                            pq.Enqueue(cost, (i,j))
         // highlight cheapest N unmarked
         let N = maxYellowGreenHighlights
         if N > 0 then
@@ -112,20 +112,32 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                 if not pq.IsEmpty then
                     let nextCost,(i,j) = pq.Dequeue()
                     if N > 0 || nextCost = recentCost then
-                        toHighlight.Add(i,j)
+                        toHighlight.Add(i,j,true)
                         iterate(N-1,nextCost)
+                    elif N > -maxYellowGreenHighlights then
+                        toHighlight.Add(i,j,false)
+                        iterate(N-1,999999)
             if not pq.IsEmpty then
                 let recentCost,(i,j) = pq.Dequeue()
-                toHighlight.Add(i,j)
+                toHighlight.Add(i,j,true)
                 iterate(N-1,recentCost)
-            for (i,j) in toHighlight do
+            for (i,j,bright) in toHighlight do
                 let thr = new Graphics.TileHighlightRectangle()
                 if not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
-                    thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
+                    if bright then
+                        thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
+                    else
+                        thr.MakePaleRed()
                 elif TrackerModel.owInstance.SometimesEmpty(i,j) then
-                    thr.MakeYellow()
+                    if bright then
+                        thr.MakeYellow()
+                    else
+                        thr.MakePaleYellow()
                 else
-                    thr.MakeGreen()
+                    if bright then
+                        thr.MakeGreen()
+                    else
+                        thr.MakePaleGreen()
                 for s in thr.Shapes do
                     canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
         for line in accumulatedLines do

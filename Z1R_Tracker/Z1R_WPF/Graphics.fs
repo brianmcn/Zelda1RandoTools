@@ -99,6 +99,9 @@ type TileHighlightRectangle() =
     member _this.MakeRed() = for s in shapes do (s.Stroke <- Brushes.Red; s.Opacity <- 0.7)
     member _this.MakeYellow() = for s in shapes do (s.Stroke <- Brushes.Yellow; s.Opacity <- 0.75)
     member _this.MakeGreen() = for s in shapes do (s.Stroke <- Brushes.Lime; s.Opacity <- 0.55)
+    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- Brushes.Red; s.Opacity <- 0.35)
+    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- Brushes.Yellow; s.Opacity <- 0.4)
+    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- Brushes.Lime; s.Opacity <- 0.3)
     member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
     member _this.Shapes = shapes
 
