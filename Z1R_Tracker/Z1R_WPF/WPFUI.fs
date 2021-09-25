@@ -62,22 +62,23 @@ let ensureRespectingOwGettableScreensCheckBox() =
 type RouteDestination =
     | SHOP of int
     | OW_MAP of int * int
-    | DUNGEON of int
-    | SWORD2CAVE
-    | SWORD3CAVE
+    | HINTZONE of TrackerModel.HintZone * bool // bool is couldBeLetterDungeon
 
 let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxYellowGreenHighlights) =
     let maxYellowGreenHighlights = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then 128 else maxYellowGreenHighlights
     let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
     let interestingButInaccesible = ResizeArray()
     let owTargetworthySpots = Array2D.zeroCreate 16 8
-    let processHint(n) =
+    let processHint(hz:TrackerModel.HintZone,couldBeLetterDungeon) =
         for i = 0 to 15 do
             for j = 0 to 7 do
-                if OverworldData.owMapZone.[j].[i] = TrackerModel.levelHints.[n].AsDataChar() then
-                    if TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
-                        if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
+                if OverworldData.owMapZone.[j].[i] = hz.AsDataChar() then
+                    let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                    let cbld = (couldBeLetterDungeon && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?')
+                    if cur = -1 || cbld then
+                        if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) || cbld then
                             owTargetworthySpots.[i,j] <- true
+                            unmarked.[i,j] <- true  // for cbld case
                         else
                             interestingButInaccesible.Add(i,j)
     match routeDestinationOption with
@@ -91,27 +92,9 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
     | Some(RouteDestination.OW_MAP(x,y)) ->
         owTargetworthySpots.[x,y] <- true
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
-    | Some(RouteDestination.DUNGEON(n)) ->
-        if TrackerModel.GetDungeon(n).HasBeenLocated() then
-            let x,y = TrackerModel.mapStateSummary.DungeonLocations.[n]
-            owTargetworthySpots.[x,y] <- true
-        elif TrackerModel.levelHints.[n] <> TrackerModel.HintZone.UNKNOWN then
-            processHint(n)
+    | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
+        processHint(hz,couldBeLetterDungeon)
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 128)
-    | Some(RouteDestination.SWORD2CAVE) ->
-        if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND then
-            let x,y = TrackerModel.mapStateSummary.Sword2Location
-            owTargetworthySpots.[x,y] <- true
-        elif TrackerModel.levelHints.[9] <> TrackerModel.HintZone.UNKNOWN then
-            processHint(9)
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
-    | Some(RouteDestination.SWORD3CAVE) ->
-        if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND then
-            let x,y = TrackerModel.mapStateSummary.Sword3Location
-            owTargetworthySpots.[x,y] <- true
-        elif TrackerModel.levelHints.[10] <> TrackerModel.HintZone.UNKNOWN then
-            processHint(10)
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
     | None ->
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxYellowGreenHighlights)
     for i,j in interestingButInaccesible do
@@ -208,6 +191,28 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
     let OFFSET = 400.
     // numbered triforce display
+    let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
+        let level = i+1
+        let levelLabel = char(int '0' + level)
+        let mutable index = -1
+        for j = 0 to 7 do
+            if TrackerModel.GetDungeon(j).LabelChar = levelLabel then
+                index <- j
+        let mutable found,hasTriforce = false,false
+        if index <> -1 then
+            found <- TrackerModel.GetDungeon(index).HasBeenLocated()
+            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
+        let hasHint = not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN
+        c.Children.Clear()
+        if hasHint then
+            c.Children.Add(makeHintHighlight(30.)) |> ignore
+        if not hasTriforce then
+            if not found then
+                c.Children.Add(Graphics.BMPtoImage Graphics.emptyUnfoundNumberedTriforce_bmps.[i]) |> ignore
+            else
+                c.Children.Add(Graphics.BMPtoImage Graphics.emptyFoundNumberedTriforce_bmps.[i]) |> ignore
+        else
+            c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedTriforce_bmps.[i]) |> ignore
     let updateNumberedTriforceDisplayIfItExists =
         if TrackerModel.IsHiddenDungeonNumbers() then
             let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
@@ -218,28 +223,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 c.MouseLeave.Add(fun _ -> hideLocator())
             let update() =
                 for i = 0 to 7 do
-                    let level = i+1
-                    let levelLabel = char(int '0' + level)
-                    let mutable index = -1
-                    for j = 0 to 7 do
-                        if TrackerModel.GetDungeon(j).LabelChar = levelLabel then
-                            index <- j
-                    let mutable found,hasTriforce = false,false
-                    if index <> -1 then
-                        found <- TrackerModel.GetDungeon(index).HasBeenLocated()
-                        hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
-                    let hasHint = not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN
-                    let c = numberedTriforceCanvases.[i]
-                    c.Children.Clear()
-                    if hasHint then
-                        c.Children.Add(makeHintHighlight(30.)) |> ignore
-                    if not hasTriforce then
-                        if not found then
-                            c.Children.Add(Graphics.BMPtoImage Graphics.emptyUnfoundNumberedTriforce_bmps.[i]) |> ignore
-                        else
-                            c.Children.Add(Graphics.BMPtoImage Graphics.emptyFoundNumberedTriforce_bmps.[i]) |> ignore
-                    else
-                        c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedTriforce_bmps.[i]) |> ignore
+                    updateNumberedTriforceDisplayImpl(numberedTriforceCanvases.[i], i)
             update
         else
             fun () -> ()
@@ -693,20 +677,63 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), OFFSET+120., 90., TrackerModel.MapSquareChoiceDomainHelper.ARROW)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), OFFSET+90., 90., TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
             // triforces
-            for i = 0 to 7 do
-                if TrackerModel.GetDungeon(i).HasBeenLocated() || TrackerModel.levelHints.[i] <> TrackerModel.HintZone.UNKNOWN then
-                    makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.DUNGEON(i))
-            if TrackerModel.GetDungeon(8).HasBeenLocated() || TrackerModel.levelHints.[8] <> TrackerModel.HintZone.UNKNOWN then
-                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.DUNGEON(8))
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                // letters
+                for i = 0 to 7 do
+                    // located, letters
+                    if TrackerModel.GetDungeon(i).HasBeenLocated() then
+                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                        makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
+                    else
+                        // hint letter due to numbered hint
+                        let label = TrackerModel.GetDungeon(i).LabelChar
+                        if label >= '1' && label <= '8' then
+                            let index = int label - int '1'
+                            if TrackerModel.levelHints.[index]<>TrackerModel.HintZone.UNKNOWN then
+                                makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.HINTZONE(TrackerModel.levelHints.[index], true))
+                // numbers
+                for n = 0 to 7 do
+                    let mutable index = -1
+                    for i = 0 to 7 do
+                        if TrackerModel.GetDungeon(i).LabelChar = char(int '1' + n) then
+                            index <- i
+                    // located or hinted numbers
+                    let hint() =
+                        if TrackerModel.levelHints.[n] <> TrackerModel.HintZone.UNKNOWN then
+                            makeIconTarget((fun c -> updateNumberedTriforceDisplayImpl(c,n)), OFFSET+float n*30., 0., RouteDestination.HINTZONE(TrackerModel.levelHints.[n], true))
+                    if index <> -1 then
+                        let loc = TrackerModel.mapStateSummary.DungeonLocations.[index]
+                        if loc <> TrackerModel.NOTFOUND then
+                            makeIconTarget((fun c -> updateNumberedTriforceDisplayImpl(c,n)), OFFSET+float n*30., 0., RouteDestination.OW_MAP(loc))
+                        else
+                            hint()
+                    else
+                        hint()
+            else
+                for i = 0 to 7 do
+                    if TrackerModel.GetDungeon(i).HasBeenLocated() then
+                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                        makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
+                    elif TrackerModel.levelHints.[i] <> TrackerModel.HintZone.UNKNOWN then
+                        makeIconTarget((fun c -> updateTriforceDisplayImpl(c,i)), 0.+float i*30., 30., RouteDestination.HINTZONE(TrackerModel.levelHints.[i], false))
+            if TrackerModel.GetDungeon(8).HasBeenLocated() then
+                let x,y = TrackerModel.mapStateSummary.DungeonLocations.[8]
+                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.OW_MAP(x,y))
+            elif TrackerModel.levelHints.[8] <> TrackerModel.HintZone.UNKNOWN then
+                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.HINTZONE(TrackerModel.levelHints.[8], false))
             // swords
             if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.levelHints.[9] <> TrackerModel.HintZone.UNKNOWN then
+                let (x,y) as loc = TrackerModel.mapStateSummary.Sword2Location
+                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.levelHints.[9], false)
                 makeIconTargetImpl((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)), 
                     (fun c -> 
                         // white sword seems dodgy for link to chase, since it's actually the cave which likely has something else, so draw the map marker instead
                         let image = MapStateProxy(14).CurrentInteriorBMP() |> Graphics.BMPtoImage
-                        canvasAdd(c, image, 7., 1.)), OFFSET, 120., RouteDestination.SWORD2CAVE)
+                        canvasAdd(c, image, 7., 1.)), OFFSET, 120., dest)
             if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND || TrackerModel.levelHints.[10] <> TrackerModel.HintZone.UNKNOWN then
-                makeIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)), OFFSET+60., 120., RouteDestination.SWORD3CAVE)
+                let (x,y) as loc = TrackerModel.mapStateSummary.Sword3Location
+                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.levelHints.[10], false)
+                makeIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)), OFFSET+60., 120., dest)
             wholeAppCanvas.MouseDown.Add(fun ea ->
                 let pos = ea.GetPosition(wholeAppCanvas)
                 if pos.Y > 150. && pos.Y < 150.+8.*11.*3. then

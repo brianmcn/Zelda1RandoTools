@@ -123,7 +123,13 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                 iterate(N-1,recentCost)
             for (i,j,bright) in toHighlight do
                 let thr = new Graphics.TileHighlightRectangle()
-                if not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur>=0 && cur<=7 then // most callers pass in owUnmarked equal to TrackerModel.overworldMapMarks, but some pass dungeon letters A-H as unmarked too, color them accessible
+                    if bright then
+                        thr.MakeGreen()
+                    else
+                        thr.MakePaleGreen()
+                elif not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
                     if bright then
                         thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
                     else

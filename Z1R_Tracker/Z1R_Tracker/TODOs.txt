@@ -20,7 +20,7 @@ CURRENT PRIORITIES
 
 Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
 
-reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
+reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
 
 center ow popup targets near mouse, bias left 2 and right 2?
 
