@@ -1470,13 +1470,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if (TrackerModel.sword2Box.PlayerHas() = TrackerModel.PlayerHas.NO) && (TrackerModel.sword2Box.CellCurrent() <> -1) then
                     // display known-but-ungotten item on the map
                     let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
+                    itemImage.Width <- 21.
+                    itemImage.Height <- 21.
                     if displayIsCurrentlyMirrored then 
-                        itemImage.RenderTransform <- new ScaleTransform(-1., 1., OMTW/4., 30.)
-                    itemImage.Width <- OMTW/2.
+                        itemImage.RenderTransform <- new ScaleTransform(-1., 1., itemImage.Width/2., 0.)
                     itemImage.Opacity <- 1.0
                     let color = Brushes.Black
-                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.5)
-                    let diff = if displayIsCurrentlyMirrored then 0. else OMTW - 24.
+                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.7)
+                    let diff = if displayIsCurrentlyMirrored then -4. else OMTW - 19.
                     canvasAdd(recorderingCanvas, border, OMTW*float(x)+diff, float(y*11*3)+4.)
                 if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon

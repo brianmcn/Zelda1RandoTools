@@ -18,6 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+When locate new dungeon, re-remind triforce and go
+
+
 Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode'
@@ -40,6 +43,40 @@ hotkeys
 
 SMALL
 
+Should green yellow narby be a fadeout, e.g. nearest 12 bright, then low opacity?
+
+Should hover ’78 remain’ show green/yellow/red on all?
+
+Pie menus for take-any, rupee?
+ - Hold and drag for options
+ - Release middle for default icon placement
+ - How deal with app/screen edge? Popup always mid-screen with warp back?
+
+Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
+
+Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
+ - Yellow percentage, count DRCs, etc
+
+Get rid of shift-click room state, change behavior to marking 4 red doors? But what if two together… hmmm…. Don’t want to show wall between two adjacent holes, hm.
+
+Put documentation inside app (e.g. hint halos)
+
+Remove actual-modal windows (grab, version)
+
+Crash log write file
+
+Move kitty to legend (like Av, redo legend layout), box out timer branding area (If legend moves to top, may free up more dead space in upper right?)
+
+Purple box around item does not suggest ‘skipped’ – purple non-pixelated X, along with the box? be sure to choose different look from if/how 3rd-item-box-not-used in hidden dungeons looks.
+Maybe the take-any-hearts not taken should also have same mark? Is another intentional skip, effectively…
+
+If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
+
+Hovering ‘gettable’ – should hovering total show same thing but green/yellow/red?
+
+HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
+
+
 hide dungeon numbers:
  - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should 'own' tracker marks, it should only suggest?
  - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
@@ -57,6 +94,7 @@ should link keep routing you until you dismiss him (with a click?)
 should there be a separate gesture for 'timeout in 10s mode' versus 'keep it until you dismiss' mode?
 
 
+Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
 
 
 Kigalas:
