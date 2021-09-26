@@ -22,8 +22,6 @@ Kigalas: The Click-move-click works great, except for in dungeon mapping. I thin
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
 
-center ow popup targets near mouse, bias left 2 and right 2?
-
 if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
 
 there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair

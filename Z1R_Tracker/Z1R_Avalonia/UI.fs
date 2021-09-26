@@ -1150,8 +1150,13 @@ let makeAll(owMapNum, heartShuffle, kind) =
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                             let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
                             let activationDelta = if originalState = -1 then -1 else 0  // accelerator so 'click' means 'X'
-                            let leftAligned = if displayIsCurrentlyMirrored then not(i<12) else i<12
-                            let gridxPosition = if leftAligned then -ST else OMTW - float(8*(5*3+2*int ST)+int ST)
+                            let gridxPosition = 
+                                if (displayIsCurrentlyMirrored && i>13) || (not displayIsCurrentlyMirrored && i<2) then 
+                                    -ST // left align
+                                elif (displayIsCurrentlyMirrored && i<2) || (not displayIsCurrentlyMirrored && i>13) then 
+                                    OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
+                                else
+                                    (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
                             let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
                                 if MapStateProxy(n).IsX then
                                     upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, n
