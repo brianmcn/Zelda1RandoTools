@@ -1597,6 +1597,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     | 3 -> async { voice.Speak("You are "+go) } |> Async.Start
                     | _ -> ()
             member _this.RemindUnblock(blockerType, dungeons, detail) =
+                let name(d) =
+                    if TrackerModel.IsHiddenDungeonNumbers() then
+                        (char(int 'A' + d)).ToString()
+                    else
+                        (1+d).ToString()
                 let sentence = 
                     "Now that you have" + 
                         match blockerType with
@@ -1614,10 +1619,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         | TrackerModel.DungeonBlocker.KEY -> " the any key,"
                         | TrackerModel.DungeonBlocker.BOMB -> " bombs,"
                         | _ -> " "
-                        + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ") + (1 + Seq.head dungeons).ToString() +
+                        + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ") + name(Seq.head dungeons) +
                         (let mutable s = ""
                          for d in Seq.tail dungeons do
-                            s <- s + " and " + (1+d).ToString()
+                            s <- s + " and " + name(d)
                          s
                          )
                 async { voice.Speak(sentence) } |> Async.Start
