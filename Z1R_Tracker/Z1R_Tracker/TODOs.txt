@@ -52,10 +52,6 @@ Tracker could be smart about https://discord.com/channels/368763663986982912/586
 
 Get rid of shift-click room state, change behavior to marking 4 red doors? But what if two together… hmmm…. Don’t want to show wall between two adjacent holes, hm.
 
-Put documentation inside app (e.g. hint halos)
-
-Remove actual-modal windows (grab, version)
-
 Crash log write file
 
 Move kitty to legend (like Av, redo legend layout), box out timer branding area (If legend moves to top, may free up more dead space in upper right?)
@@ -64,8 +60,6 @@ Purple box around item does not suggest ‘skipped’ – purple non-pixelated X
 Maybe the take-any-hearts not taken should also have same mark? Is another intentional skip, effectively…
 
 If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
-
-Hovering ‘gettable’ – should hovering total show same thing but green/yellow/red?
 
 HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
 
@@ -143,6 +137,8 @@ Timer: Yeah, everyone has their own timer, it's for me, I should really have an 
 It would also leave some blank space in the tracker for streamers to use for branding or cams, or things.
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
+
+Remove actual-modal windows (grab, version)
 
 
 

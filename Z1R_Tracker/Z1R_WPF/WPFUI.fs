@@ -1349,8 +1349,15 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             )
         gridAdd(hintGrid, comboBox, 2, row)
         row <- row + 1
-    let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black)
-    hintBorder.Child <- hintGrid
+    let hintDescriptionTextBox = 
+        new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.,0.,0.,4.), 
+                    Text="Each hinted-but-not-yet-found location will cause a 'halo' to appear on\n"+
+                         "the triforce/sword icon in the upper portion of the tracker, and hovering the\n"+
+                         "halo will show the possible locations for that dungeon or sword cave.")
+    let hintSP = new StackPanel(Orientation=Orientation.Vertical)
+    hintSP.Children.Add(hintDescriptionTextBox) |> ignore
+    hintSP.Children.Add(hintGrid) |> ignore
+    let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Hint Decoder"))
     canvasAdd(appMainCanvas, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
     let mutable popupIsActive = false
@@ -1756,10 +1763,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     for i = 0 to 2 do
         for j = 0 to 2 do
             if i=0 && j=0 then
-                let d = new DockPanel(LastChildFill=false)
+                let d = new DockPanel(LastChildFill=false, Background=Brushes.Black)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth, IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
-                tb.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome voice reminders will trigger when you get the item that may unblock you."
+                d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome voice reminders will trigger when you get the item that may unblock you."
                 d.Children.Add(tb) |> ignore
                 gridAdd(blockerGrid, d, i, j)
             else

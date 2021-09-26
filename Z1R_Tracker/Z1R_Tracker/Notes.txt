@@ -152,8 +152,8 @@ You can turn off these routing and highlighting marks if you find them distracti
 you can still click on Link to get the temporary, specific routing marks on-demand.
 
 Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
-Each hinted-but not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
-shows the possible location for that dungeon or sword cave.  Hint-halo-highlights on the overworld map will be colored:
+Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
+shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map will be colored:
   green:   if it's a location you can uncover with your current inventory, and is guaranteed to yield a location
   yellow:  if it's a location you can uncover with your current inventory, but is not guaranteed to yield a location (mixed quest)
   red:     if it's a location you can't uncover yet (e.g. a push-block spot when you don't yet have the power bracelet)
