@@ -193,11 +193,11 @@ Rooms can be marked as:
  - special markers for certain rooms (digdogger+recorder; bow+arrow for gohma; gleeok+wand; blue bubble)
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
  - grey box (typical non-descript room)
-Clicking or scrolling brings up the room selector popup, so you can either scroll-and-click or mouse-and-click to select a room, similar to the item box chooser.
 Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten);
    right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
-For the commonest case of a non-descript room needing no special marker, a quick double-left-click (double-right-click) will mark a room as
-   an (un)completed non-descript room, without even activating the popup.
+Single-clicking an unmarked room transforms it into the default, non-descript room.
+Double-clicking or scrolling brings up the room selector popup, where you can choose among all the different room types; after selecting, the final 
+  left (right) click will commit that selection as a(n) (un)completed room.
 
 You can 'circle' a room with a yellow dashed line by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
 
@@ -243,6 +243,16 @@ NOTES
 
 This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 with 128 rupees to buy a Bomb Upgrade).
 Unlike e.g. scrap paper on your desk, these notes are visible to stream viewers.
+
+
+HOTKEYS
+
+There is no support for hotkeys yet; this is a priority on the to-do list.
+
+
+SAVE STATE
+
+There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
 
 
 SPEECH SYNTHESIS (WPF only)

@@ -18,7 +18,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-Kigalas: The Click-move-click works great, except for in dungeon mapping. I think having the single click for completed rooms or not is more intuitive, and having the pop up on the 2nd click would be better.
+give updated copy to Truant
+
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
 
@@ -37,6 +38,8 @@ hotkeys
 
 
 SMALL
+
+see if can use VisualBrush to make an obs-projection-window that uses mouse location to only broadcast a portion of the tracker (as a 'simple' layout solution; an issue is player knowing what is broadcast)
 
 Pie menus for take-any, rupee?
  - Hold and drag for options
@@ -297,7 +300,8 @@ That said, I think this tracker has a number of advantages in usability, both in
    As a result, the eye is drawn to the bright spots, which are where the remaining work is and where the player needs to focus.
 
  - Less scrolling: 
-     - you can populate item boxes without any scrolling due to local popup menu showing all the item choices
+     - you can populate most icon boxes without any scrolling due to local popup menu showing all the item choices
+     - you can populate most overworld tiles without any scrolling via speech recognition
      - when an item or dungeon location is found, it gets removed from the 'scroll wheel pool', which means that as the game progresses, you need fewer scrolls to find the remaining mark you need.
 
  - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.

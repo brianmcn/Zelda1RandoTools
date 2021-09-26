@@ -90,7 +90,18 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                     Child=new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=16., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
+    let MILLISECONDS_DOUBLE_CLICK = 250 // if second click within this many milliseconds, consider it a double-click
     let mutable popupState = Dungeon.DelayedPopupState.NONE  // key to an interlock that enables a fast double-click to bypass the popup
+    let mutable mostRecentRoomClickTime = DateTime.Now
+    let USE_SOON = false // if true, single click will delay-activate popup, and double click cancels popup; if false, only double-click (or scroll) popups, single-click just toggles room completion
+(*
+USE_SOON = true   Notes.txt 
+Clicking or scrolling brings up the room selector popup, so you can either scroll-and-click or mouse-and-click to select a room, similar to the item box chooser.
+Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten);
+   right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
+For the commonest case of a non-descript room needing no special marker, a quick double-left-click (double-right-click) will mark a room as
+   an (un)completed non-descript room, without even activating the popup.
+*)
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.zeroCreate 8 8)
     for level = 1 to 9 do
@@ -344,7 +355,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                             //printfn "soon scheduling"
                             popupState <- Dungeon.DelayedPopupState.SOON
                             async {
-                                do! Async.Sleep(250)
+                                do! Async.Sleep(MILLISECONDS_DOUBLE_CLICK)
                                 appMainCanvas.Dispatcher.Invoke(fun _ -> activatePopup(ad))
                             } |> Async.Start
                     now, soon
@@ -450,14 +461,24 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
                                             roomStates.[i,j] <- ROOMS-1
                                             roomCompleted.[i,j] <- true
-                                        if popupState=Dungeon.DelayedPopupState.SOON then
-                                            //printfn "click canceling"
-                                            popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
-                                            roomCompleted.[i,j] <- true  // interpret the double-left-click as completion
-                                            redraw()
+                                        if USE_SOON then
+                                            if popupState=Dungeon.DelayedPopupState.SOON then
+                                                //printfn "click canceling"
+                                                popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
+                                                roomCompleted.[i,j] <- true  // interpret the double-left-click as completion
+                                                redraw()
+                                            else
+                                                redraw()
+                                                delayedActivatePopup(0)
                                         else
+                                            let time = DateTime.Now
+                                            // do single-click action regardless
+                                            roomCompleted.[i,j] <- true
                                             redraw()
-                                            delayedActivatePopup(0)
+                                            // if double-click, popup
+                                            if DateTime.Now - mostRecentRoomClickTime < TimeSpan.FromMilliseconds(float MILLISECONDS_DOUBLE_CLICK) then
+                                                immediateActivatePopup(0)
+                                            mostRecentRoomClickTime <- time
                         elif ea.ChangedButton = Input.MouseButton.Right then
                             if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
                                 if isInterior then
@@ -465,13 +486,23 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                                         // ad hoc useful gesture for right-clicking unknown room - it moves it to explored & uncompleted state
                                         roomStates.[i,j] <- ROOMS-1
                                         roomCompleted.[i,j] <- false
-                                    if popupState=Dungeon.DelayedPopupState.SOON then
-                                        popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
-                                        roomCompleted.[i,j] <- false  // interpret the double-right-click as uncompletion
-                                        redraw()
+                                    if USE_SOON then
+                                        if popupState=Dungeon.DelayedPopupState.SOON then
+                                            popupState <- Dungeon.DelayedPopupState.NONE // we clicked again before it activated, cancel it
+                                            roomCompleted.[i,j] <- false  // interpret the double-right-click as uncompletion
+                                            redraw()
+                                        else
+                                            redraw()
+                                            delayedActivatePopup(0)
                                     else
+                                        let time = DateTime.Now
+                                        // do single-click action regardless
+                                        roomCompleted.[i,j] <- false
                                         redraw()
-                                        delayedActivatePopup(0)
+                                        // if double-click, popup
+                                        if DateTime.Now - mostRecentRoomClickTime < TimeSpan.FromMilliseconds(float MILLISECONDS_DOUBLE_CLICK) then
+                                            immediateActivatePopup(0)
+                                        mostRecentRoomClickTime <- time
                         elif ea.ChangedButton = Input.MouseButton.Middle then
                             if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
                                 if isInterior then
