@@ -49,9 +49,9 @@ let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
-let currentHeartsTextBox = new TextBox(Width=200., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
-let owRemainingScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
-let owGettableScreensTextBox = new TextBox(Width=120., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
+let owGettableScreensTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
 let ensureRespectingOwGettableScreensCheckBox() =
     if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
@@ -109,7 +109,8 @@ let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
-let RIGHT_COL = 560.
+let RIGHT_COL = 440.
+let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 let TCH = 123  // timeline height
 let TH = DungeonUI.TH // text height
 let resizeMapTileImage(image:Image) =
@@ -189,7 +190,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
     let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
-    let OFFSET = 400.
+    let OFFSET = 280.
     // numbered triforce display
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
         let level = i+1
@@ -406,12 +407,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
     RedrawForSecondQuestDungeonToggle()
 
-    // WANT!
-    let kitty = new Image()
-    let imageStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("CroppedBrianKitty.png")
-    kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
-    canvasAdd(appMainCanvas, kitty, 285., 30.)
-
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -454,8 +449,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET + 245., 10.) 
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 305., 10.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 10.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 10.) 
 
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
@@ -609,10 +604,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         canvasAdd(linkIcon, linkImage, 0., 0.)
     let setLinkIcon(n) = setLinkIconImpl(n,linkIcon)
     setLinkIcon(0)
-    canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 90.)
+    canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 120.)
     linkIcon.ToolTip <- "Click me and I'll help route you to a destination!"
     let currentTargetIcon = new Canvas(Width=30., Height=30.)
-    canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 90.)
+    canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 120.)
     do   // scope for local variable names to not leak out
         let mutable popupIsActive = false
         let activatePopup() =
@@ -645,7 +640,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
             // bright, clickable targets
             let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-            canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 90.)
+            canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 120.)
             setLinkIconImpl(3,duplicateLinkIcon)
             let makeIconTargetImpl(draw, drawLinkTarget, x, y, routeDest) =
                 let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -760,6 +755,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             if not popupIsActive then
                 activatePopup()
             )
+
+    let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
+    canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1247,44 +1245,45 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
-    canvasAdd(legendCanvas, tb, OMTW, 0.)
+    canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
 
     let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
-    canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.3*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.3,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.3,0)
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.7*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.7,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.7,0)
+    canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.1*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.1,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.1,0)
+    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.5*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
-    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 5.*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,5.,0)
-    drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
+    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 4.8*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,4.8,0)
+    drawDungeonRecorderWarpHighlight(legendCanvas,4.8,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink(MapStateProxy(9).CurrentBMP()), 7.5*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.5,0)
+    canvasAdd(legendCanvas, shrink(MapStateProxy(9).CurrentBMP()), 7.1*OMTW, 0.)
+    drawWarpHighlight(legendCanvas,7.1,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
     let legendStartIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
-    canvasAdd(legendCanvas, legendStartIcon, 12.5*OMTW+8.5*OMTW/48., 0.)
+    canvasAdd(legendCanvas, legendStartIcon, 9.4*OMTW+8.5*OMTW/48., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
-    canvasAdd(legendCanvas, tb, 13.5*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 10.4*OMTW, 0.)
 
     let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
 
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
+    let ITEM_PROGRESS_FIRST_ITEM = 130.
     canvasAdd(appMainCanvas, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress", IsHitTestVisible=false)
-    canvasAdd(appMainCanvas, tb, 120., THRU_MAP_AND_LEGEND_H + 4.)
+    canvasAdd(appMainCanvas, tb, 50., THRU_MAP_AND_LEGEND_H + 4.)
     itemProgressCanvas.MouseMove.Add(fun ea ->
         let pos = ea.GetPosition(itemProgressCanvas)
-        let x = pos.X - 200.
+        let x = pos.X - ITEM_PROGRESS_FIRST_ITEM
         if x >  30. && x <  60. then
             showLocatorInstanceFunc(owInstance.Burnable)
         if x > 240. && x < 270. then
@@ -1359,7 +1358,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     hintSP.Children.Add(hintGrid) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Hint Decoder"))
-    canvasAdd(appMainCanvas, tb, 680., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(appMainCanvas, tb, 530., THRU_MAP_AND_LEGEND_H + 6.)
     let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
@@ -1367,6 +1366,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
+
+    // WANT!
+    let kitty = new Image()
+    let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
+    kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+    kitty.Width <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
+    kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
+    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let doUIUpdate() =
@@ -1392,7 +1399,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         RedrawForSecondQuestDungeonToggle()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
-        let mutable x, y = 200., 3.
+        let mutable x, y = ITEM_PROGRESS_FIRST_ITEM, 3.
         let DX = 30.
         match TrackerModel.playerComputedStateSummary.SwordLevel with
         | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)
@@ -1476,7 +1483,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
-            member _this.CurrentHearts(h) = currentHeartsTextBox.Text <- sprintf "Current Hearts: %d" h
+            member _this.CurrentHearts(h) = currentMaxHeartsTextBox.Text <- sprintf "Max Hearts: %d" h
             member _this.AnnounceConsiderSword2() = 
                 if TrackerModel.Options.VoiceReminders.SwordHearts.Value then 
                     let n = TrackerModel.sword2Box.CellCurrent()
@@ -1487,7 +1494,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             member _this.AnnounceConsiderSword3() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider the magical sword") } |> Async.Start
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
-                owGettableScreensTextBox.Text <- sprintf "Show %d gettable" gettable
+                owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
                     drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
@@ -1823,8 +1830,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if not(owGettableScreensCheckBox.IsChecked.HasValue) || not(owGettableScreensCheckBox.IsChecked.Value) then 
             routeDrawingCanvas.Children.Clear()
         )
-    // current hearts
-    canvasAdd(appMainCanvas, currentHeartsTextBox, RIGHT_COL, 130.)
+    // current max hearts
+    canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
     // coordinate grid
     let owCoordsGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCoordsTBs = Array2D.zeroCreate 16 8
@@ -1848,7 +1855,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     cb.Unchecked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
     showCoords.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
     showCoords.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
-    canvasAdd(appMainCanvas, cb, RIGHT_COL + 140., 130.)
+    canvasAdd(appMainCanvas, cb, OFFSET+200., 72.)
 
     // zone overlay
     let owMapZoneBmps =
@@ -1957,13 +1964,13 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             allOwMapZoneImages |> Array2D.iteri (fun _x _y image -> image.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
             zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
-    let zone_checkbox = new CheckBox(Content=new TextBox(Text="Show zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
     zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
-    canvasAdd(appMainCanvas, zone_checkbox, 285., 130.)
+    canvasAdd(appMainCanvas, zone_checkbox, OFFSET+200., 52.)
 
     let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owLocatorTilesZone = Array2D.zeroCreate 16 8

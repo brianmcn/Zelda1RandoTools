@@ -78,11 +78,18 @@ wood sword, blue ring, blue candle, wood arrow, magic sword - click these when y
 bombs - click when you get bombs, to have map routing send you to bombable locations (see below)
 boomstick book - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section
-(timer, current hearts - just for display)
-Show N gettable - click or hover to highlight all the remaining overworld tiles you could uncover given your current item set; color will be 
+
+(timer, current max hearts - just for display)
+'N' gettable - click or hover to highlight all the remaining overworld tiles you could uncover given your current item set; color will be 
   greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
-OW spots left - count of all remaining spots, hovering shows them all with green/yellow highlights as with 'gettable' spots above, and red for 
+'N' OW spots left - count of all remaining spots, hovering shows them all with green/yellow highlights as with 'gettable' spots above, and red for 
   un-gettable (given the player's current inventory)
+Zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
+Coords - click or hover to show a coordinate overlay
+HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
+
+(WPF only) the upper right area of the tracker, containing only the HFQ/HSQ buttons and the timer (and Link) is 'boxed off', so that streamers with
+  their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. (Send Brian feedback if you use this.)
 
 Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
@@ -106,10 +113,6 @@ interest that you can't reveal with your current inventory.
 
 
 OVERWORLD MAP
-
-HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
-Show zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
-Show coords - click or hover to show a coordinate overlay
 
 16x8 Map Tiles:
    "icon"     description

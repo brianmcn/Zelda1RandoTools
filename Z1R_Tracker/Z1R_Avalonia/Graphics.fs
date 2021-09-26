@@ -56,7 +56,7 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     image.Height <- bmp.Size.Height
     image
 
-let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let OMTW = 40.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 type TileHighlightRectangle() =
     (*
     // full rectangles badly obscure routing paths, so we just draw corners

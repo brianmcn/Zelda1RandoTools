@@ -223,7 +223,7 @@ type MyWindow() as this =
                     let c,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
                     canvas <- c
                     updateTimeline <- u
-                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+40., 30.)
+                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 30.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans
                     this.Content <- canvas

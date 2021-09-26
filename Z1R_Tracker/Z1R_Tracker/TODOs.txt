@@ -54,8 +54,6 @@ Get rid of shift-click room state, change behavior to marking 4 red doors? But w
 
 Crash log write file
 
-Move kitty to legend (like Av, redo legend layout), box out timer branding area (If legend moves to top, may free up more dead space in upper right?)
-
 Purple box around item does not suggest ‘skipped’ – purple non-pixelated X, along with the box? be sure to choose different look from if/how 3rd-item-box-not-used in hidden dungeons looks.
 Maybe the take-any-hearts not taken should also have same mark? Is another intentional skip, effectively…
 
