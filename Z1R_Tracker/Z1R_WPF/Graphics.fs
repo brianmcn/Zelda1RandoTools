@@ -327,8 +327,6 @@ let allItems = [| book; boomerang; bow; power_bracelet; ladder; magic_boomerang;
 let allItemsWithHeartShuffle = 
     [| yield! allItems; for _i = 0 to 8 do yield makeVBrect(copyHeartContainer()) |]
 
-let owHeartsSkipped, owHeartsEmpty, owHeartsFull = Array.init 4 (fun _ -> BMPtoImage owHeartSkipped_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartEmpty_bmp), Array.init 4 (fun _ -> BMPtoImage owHeartFull_bmp)
-
 let overworldMapBMPs(n) =
     let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8

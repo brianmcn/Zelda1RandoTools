@@ -59,7 +59,7 @@ Items:
 Scroll to change item in a dungeon, then click it to commit the change:
  - left click marks it green, to denote that you have this item in your inventory
  - right click marks it red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
- - middle click marks it purple, to denote you intentionally are skipping this item (see below)
+ - middle click marks it purple (with X), to denote you intentionally are skipping this item (see below)
 Scrolling (or clicking an empty item box) also brings up a popup menu, which is an alternative UI to choose the item.  You can either ignore 
 the popup and scroll+click as above, or you can simply use the mouse to choose an item from the popup, using the appropriate click on that item 
 to commit the selection.

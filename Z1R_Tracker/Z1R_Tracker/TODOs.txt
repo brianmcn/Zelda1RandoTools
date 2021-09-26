@@ -54,9 +54,6 @@ Get rid of shift-click room state, change behavior to marking 4 red doors? But w
 
 Crash log write file
 
-Purple box around item does not suggest ‘skipped’ – purple non-pixelated X, along with the box? be sure to choose different look from if/how 3rd-item-box-not-used in hidden dungeons looks.
-Maybe the take-any-hearts not taken should also have same mark? Is another intentional skip, effectively…
-
 If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
 
 HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.

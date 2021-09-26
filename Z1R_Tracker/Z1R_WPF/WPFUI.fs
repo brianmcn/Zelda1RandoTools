@@ -327,12 +327,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
         let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), isForTimeline)
-        let redrawBoxOutline() =
-            match box.PlayerHas() with
-            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
-            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped
-        let redrawInner() =
+        let redraw() =
+            // redraw inner canvas
             innerc.Children.Clear()
             let mutable i = box.CellCurrent()
             // find unique heart FrameworkElement to display
@@ -340,7 +336,12 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 i <- i + 1
             let fe = if i = -1 then null else whichItems.[i]
             canvasAdd(innerc, fe, 4., 4.)
-        box.Changed.Add(fun _ -> redrawBoxOutline(); redrawInner(); if requiresForceUpdate then TrackerModel.forceUpdate())
+            // redraw box outline (and atop inner canvas)
+            match box.PlayerHas() with
+            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
+            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
+        box.Changed.Add(fun _ -> redraw(); if requiresForceUpdate then TrackerModel.forceUpdate())
         let mutable popupIsActive = false
         let activateComboBox(activationDelta) =
             popupIsActive <- true
@@ -371,8 +372,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> if not popupIsActive then hideLocator())
-        redrawBoxOutline()
-        redrawInner()
+        redraw()
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
     // items
@@ -455,22 +455,18 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
-        let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-        canvasAdd(c, Graphics.owHeartsEmpty.[i], 0., 0.)
-        let f b =
-            let cur = 
-                if c.Children.Contains(Graphics.owHeartsEmpty.[i]) then 0
-                elif c.Children.Contains(Graphics.owHeartsFull.[i]) then 1
-                else 2
+        let mutable curState = 0   // 0 empty, 1 full, 2 X
+        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+        let redraw() = 
             c.Children.Clear()
-            let next = (cur + (if b then 1 else -1) + 3) % 3
-            canvasAdd(c, (  if next = 0 then 
-                                Graphics.owHeartsEmpty.[i] 
-                            elif next = 1 then 
-                                Graphics.owHeartsFull.[i] 
-                            else 
-                                Graphics.owHeartsSkipped.[i]), 0., 0.)
-            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i,next)
+            if curState=0 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.)
+            elif curState=1 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartFull_bmp), 0., 0.)
+            else canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.); CustomComboBoxes.placeSkippedItemXDecoration(c)
+        redraw()
+        let f b =
+            curState <- (curState + (if b then 1 else -1) + 3) % 3
+            redraw()
+            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i,curState)
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))

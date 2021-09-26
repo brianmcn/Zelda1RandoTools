@@ -223,6 +223,9 @@ let DoModalGridSelect<'a>(appMainCanvas, tileX, tileY, tileCanvas:Canvas, // til
 
 ////////////////////////////////
 
+let placeSkippedItemXDecoration(innerc:Canvas) =
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., StartPoint=Point(0., 0.), EndPoint=Point(30., 30.))) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., StartPoint=Point(30., 0.), EndPoint=Point(0., 30.))) |> ignore
 let itemBoxMouseButtonExplainerDecoration =
     let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
     let mouseBMP = Graphics.mouseIconButtonColorsBMP
@@ -236,8 +239,12 @@ let itemBoxMouseButtonExplainerDecoration =
     d.Children.Add(sp) |> ignore
     for color, text in [yes,"Have it"; skipped,"Don't want it"; no,"Don't have it"] do
         let p = new StackPanel(Orientation=Orientation.Horizontal)
+        let c = new Canvas(Width=30., Height=30.)
         let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=color, StrokeThickness=3.0, IsHitTestVisible=false)
-        p.Children.Add(rect) |> ignore
+        c.Children.Add(rect) |> ignore
+        if obj.Equals(color, skipped) then
+            placeSkippedItemXDecoration(c)
+        p.Children.Add(c) |> ignore
         let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
         p.Children.Add(tb) |> ignore
         sp.Children.Add(p) |> ignore
