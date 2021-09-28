@@ -20,6 +20,7 @@ CURRENT PRIORITIES
 
 give updated copy to Truant
 
+when know dungeon number, cross off third box?
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
 
