@@ -148,7 +148,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
             for j = 0 to 7 do
                 let d = new Canvas(Width=12., Height=16., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=unknown, StrokeThickness=2., Fill=unknown)
-                let line = new Shapes.Line(StartPoint=Point(6.,-11.), EndPoint=Point(6.,27.), StrokeThickness=2., Stroke=no, Opacity=0.)
+                let line = new Shapes.Line(StartPoint=Point(6.,-11.), EndPoint=Point(6.,27.), StrokeThickness=3., Stroke=no, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
@@ -179,7 +179,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
             for j = 0 to 6 do
                 let d = new Canvas(Width=24., Height=12., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=unknown, StrokeThickness=2., Fill=unknown)
-                let line = new Shapes.Line(StartPoint=Point(-13.,6.), EndPoint=Point(37.,6.), StrokeThickness=2., Stroke=no, Opacity=0.)
+                let line = new Shapes.Line(StartPoint=Point(-13.,6.), EndPoint=Point(37.,6.), StrokeThickness=3., Stroke=no, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 

@@ -233,6 +233,16 @@ let unfoundL9_bmp,foundL9_bmp =
     paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f
     
+let fairy_bmp =
+    let imageStream = GetResourceStream("icons8x16.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let r = new System.Drawing.Bitmap(16,32)
+    for x = 0 to 15 do
+        for y = 0 to 31 do
+            let c = bmp.GetPixel(x/2, y/2)
+            if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                r.SetPixel(x, y, c)
+    r
 
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]

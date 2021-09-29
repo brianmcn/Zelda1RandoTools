@@ -794,7 +794,7 @@ type HintZone =
         | DESERT -> "Desert"
         | COAST -> "Coast"
         | DEAD_WOODS -> "Dead Woods"
-        | NEAR_START -> "Near Start"
+        | NEAR_START -> "Close to Start"
         | FOREST -> "Forest"
     static member FromIndex(i) =
         match i with

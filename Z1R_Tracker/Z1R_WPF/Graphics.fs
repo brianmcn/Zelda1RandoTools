@@ -254,6 +254,17 @@ let unfoundL9_bmp,foundL9_bmp =
     paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f
 
+let fairy_bmp =
+    let imageStream = GetResourceStream("icons8x16.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let r = new System.Drawing.Bitmap(16,32)
+    for x = 0 to 15 do
+        for y = 0 to 31 do
+            let c = bmp.GetPixel(x/2, y/2)
+            if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                r.SetPixel(x, y, c)
+    r
+
 let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, cdungeonChevyBMP, cdungeonVMoatBMP, cdungeonHMoatBMP, 
         cdungeonVChuteBMP, cdungeonHChuteBMP, cdungeonTeeBMP, cdungeonNeedWand, cdungeonBlueBubble, cdungeonNeedRecorder, cdungeonNeedBow, cdungeonTriforceBMP, cdungeonPrincessBMP, cdungeonStartBMP,
         cdn1bmp, cdn2bmp, cdn3bmp, cdn4bmp, cdn5bmp, cdn6bmp, cdn7bmp, cdn8bmp, cdn9bmp) =

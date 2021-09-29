@@ -999,6 +999,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
             if owInstance.AlwaysEmpty(i,j) then
                 // already set up as permanent opaque layer, in code above, so nothing else to do
                 // except...
+                if i=9 && j=3 || i=3 && j=4 then // fairy spots
+                    let image = Graphics.BMPtoImage Graphics.fairy_bmp
+                    canvasAdd(c, image, OMTW/2.-8., 1.)
                 if i=15 && j=5 then // ladder spot
                     let coastBoxOnOwGridRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Red, StrokeThickness=3., Fill=Graphics.overworldCommonestFloorColorBrush)
                     canvasAdd(c, coastBoxOnOwGridRect, OMTW-30., 1.)

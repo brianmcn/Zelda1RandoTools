@@ -20,17 +20,12 @@ CURRENT PRIORITIES
 
 Avalonia, left-edge green popup leftover highlight
 
-'near start' should be 'close to start'
-
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
 timeline & mistakes
 
 should first dungeon room click default to green? any way to mark entry doorway?
 
-red door ('no') StrokeThickness as 3 not 2?
-
-make fairy fountains stand out (art decorate them)? (not routeworthy, not Link-able)
 
 
 

@@ -82,6 +82,7 @@
     <EmbeddedResource Include="icons10x10.png" />
     <EmbeddedResource Include="icons13x9.png" />
     <EmbeddedResource Include="icons3x7.png" />
+    <EmbeddedResource Include="icons8x16.png" />
     <EmbeddedResource Include="ow_icons5x9.png" />
     <EmbeddedResource Include="alphanumerics3x5.png" />
     <EmbeddedResource Include="link_icons.png" />
