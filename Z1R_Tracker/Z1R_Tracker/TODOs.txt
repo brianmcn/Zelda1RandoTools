@@ -18,13 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-accidental double-click: maybe redraw() causes new element to see MouseDown and repeat-get input? pin this down
- - after that, see if still need rework dungeons, maybe always select to 'uncomplete', and click (right click?) outside popup marks complete
-
-unfound 9 with a halo is a 'loud' halo
-
-if you find 9 last, it does not switch to 9's tab (either voice or scroll/popup) see selectDungeonTabEvent
-
 Avalonia, left-edge green popup leftover highlight
 
 'near start' should be 'close to start'
@@ -107,6 +100,10 @@ should there be a separate gesture for 'timeout in 10s mode' versus 'keep it unt
 
 
 Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
+
+
+accidental double-click on Avalonia-Linux: maybe redraw() causes new element to see MouseDown and repeat-get input? pin this down
+ - after that, see if still need rework dungeons, maybe always select to 'uncomplete', and click (right click?) outside popup marks complete
 
 
 Kigalas:

@@ -1179,7 +1179,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                         canvasAdd(tileCanvas, icon, 0., 0.)),
                                 (fun (dismissPopup, _ea, currentState) ->
                                     TrackerModel.overworldMapMarks.[i,j].Set(currentState)
-                                    if currentState >=0 && currentState <=7 then
+                                    if currentState >=0 && currentState <=8 then
                                         selectDungeonTabEvent.Trigger(currentState)
                                     redrawGridSpot()
                                     dismissPopup()

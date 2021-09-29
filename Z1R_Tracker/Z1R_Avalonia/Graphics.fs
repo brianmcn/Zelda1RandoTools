@@ -221,8 +221,14 @@ let fullNumberedTriforce_bmps, fullLetteredTriforce_bmps =
             |] |]
     a.[0], a.[1]
 let unfoundL9_bmp,foundL9_bmp =
+    let unfoundTriforceColor = emptyTriforce_bmp.GetPixel(15, 28)
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
+    // make a rectangle 'shield' to draw the 9 on, so that a hint halo does not wash out the '9'
+    for i = 3*3 to 8*3-1 do
+        for j = 3*3 to 10*3-1 do
+            u.SetPixel(i,j,unfoundTriforceColor)
+            f.SetPixel(i,j,unfoundTriforceColor)
     paintAlphanumerics3x5('9', UNFOUND_NUMERAL_COLOR, u, 4, 4)
     paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
     u, f

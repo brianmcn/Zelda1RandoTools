@@ -1119,7 +1119,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                             | Some newState -> 
                                 if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
-                                    if newState >=0 && newState <=7 then
+                                    if newState >=0 && newState <=8 then
                                         selectDungeonTabEvent.Trigger(newState)
                                     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                             | None -> ()
@@ -1196,7 +1196,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     canvasAdd(tileCanvas, icon, 0., 0.)),
                             (fun (dismissPopup, _ea, currentState) ->
                                 TrackerModel.overworldMapMarks.[i,j].Set(currentState)
-                                if currentState >=0 && currentState <=7 then
+                                if currentState >=0 && currentState <=8 then
                                     selectDungeonTabEvent.Trigger(currentState)
                                 redrawGridSpot()
                                 dismissPopup()
