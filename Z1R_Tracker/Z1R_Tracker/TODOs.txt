@@ -18,13 +18,31 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-Avalonia, left-edge green popup leftover highlight
+Remove actual-modal windows (grab, version; comboboxes, tooltips?!)
+
+shift-click the start screen to place the lime circle? 
+ - something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
+ - maybe legend icon can be a button, clicking it makes faux-grid selector over overworld to let you place it?
+
+[10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
+
+
+crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
+Random thought about 'crawl text for reminders' - maybe, rather than a crawl, it should be a message queue?  like, if you have no messages yet, a text reminder becomes a thing that takes a line of screen real estate until you dismiss it with some confirmatory gesture.  and if you get more reminders, it's like a little blinking light 'you have new mail (4)' thingy in the corner, and each time you dismiss a message, the next one rolls in and takes its place, until you are caught up?  maybe?
+and yeah I'm not sure how to grapple with the trade-off of me wanting "please dismiss me to ensure that (A) you have gotten my timely helpful feedback and (B) Brian can see his beautiful timeline in its full splendor once again" and the user wanting to not be disturbed/distracted
+[9:47 PM] Lorgon111: i suppose another alternative is that messages auto-dismiss after some fixed time interval, but are somehow re-playable after dismissal when the seed runner is like, wait, what did it say?
+[7:27 PM] marcmagus: I know whenever there's a new mail (4) badge I feel a pretty strong compulsion to dismiss it immediately; I think I'd find that pretty annoying unless I had, like, a foot pedal to dismiss.
+[12:28 AM] Lorgon111: maybe if the only thing was 'replay previous message'
+[12:28 AM] Lorgon111: as a quiet button somewhere
+[12:31 AM] Lorgon111: but yeah, i guess since they typically trigger 'when you update tracker' then you are probably looking at it then
+[12:32 AM] marcmagus: Could also have some kind of audio chime to get attention if that would be helpful.
+[12:33 AM] marcmagus: [Ding-dong] [Text scrolls] Consider the magical sword
+
+
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
 timeline & mistakes
-
-should first dungeon room click default to green? any way to mark entry doorway?
 
 
 
@@ -35,6 +53,7 @@ should first dungeon room click default to green? any way to mark entry doorway?
 when know dungeon number, cross off third box?
 
 reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
+ - or maybe a visual reminder? have icons ?unfound, ?triforce, bow, silver, ladder, recorder in a hover-popup?
 
 if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
 
@@ -155,12 +174,10 @@ It would also leave some blank space in the tracker for streamers to use for bra
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 
-Remove actual-modal windows (grab, version)
+should first dungeon room click default to green? any way to mark entry doorway?
 
 
 
-shift-click the start screen to place the lime circle? 
-something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
 
 
 decide about PTT functionality
@@ -234,22 +251,10 @@ also https://lospec.com/palette-list/nintendo-entertainment-system
 
 
 
-[10:58 AM] marcmagus: Very polish-oriented: all the white in Options and in the Decode Hint dropdown sections is very distracting.
-
 
 homer: larger shop icons (advanced users wont care as much about obscuring map)
 
 
-crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
-Random thought about 'crawl text for reminders' - maybe, rather than a crawl, it should be a message queue?  like, if you have no messages yet, a text reminder becomes a thing that takes a line of screen real estate until you dismiss it with some confirmatory gesture.  and if you get more reminders, it's like a little blinking light 'you have new mail (4)' thingy in the corner, and each time you dismiss a message, the next one rolls in and takes its place, until you are caught up?  maybe?
-and yeah I'm not sure how to grapple with the trade-off of me wanting "please dismiss me to ensure that (A) you have gotten my timely helpful feedback and (B) Brian can see his beautiful timeline in its full splendor once again" and the user wanting to not be disturbed/distracted
-[9:47 PM] Lorgon111: i suppose another alternative is that messages auto-dismiss after some fixed time interval, but are somehow re-playable after dismissal when the seed runner is like, wait, what did it say?
-[7:27 PM] marcmagus: I know whenever there's a new mail (4) badge I feel a pretty strong compulsion to dismiss it immediately; I think I'd find that pretty annoying unless I had, like, a foot pedal to dismiss.
-[12:28 AM] Lorgon111: maybe if the only thing was 'replay previous message'
-[12:28 AM] Lorgon111: as a quiet button somewhere
-[12:31 AM] Lorgon111: but yeah, i guess since they typically trigger 'when you update tracker' then you are probably looking at it then
-[12:32 AM] marcmagus: Could also have some kind of audio chime to get attention if that would be helpful.
-[12:33 AM] marcmagus: [Ding-dong] [Text scrolls] Consider the magical sword
 
 
 review other common flagsets from rando, what works, what could work, etc

@@ -7,6 +7,17 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
+let SendReminder(category, text:string) =
+    let shouldRemind =
+        match category with
+        | TrackerModel.ReminderCategory.Blockers -> true // TODO option
+        | TrackerModel.ReminderCategory.CoastItem -> TrackerModel.Options.VoiceReminders.CoastItem.Value
+        | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModel.Options.VoiceReminders.DungeonFeedback.Value
+        | TrackerModel.ReminderCategory.HaveKeyLadder -> TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value
+        | TrackerModel.ReminderCategory.RecorderPBSpots -> TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value
+        | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
+    if shouldRemind then 
+        async { voice.Speak(text) } |> Async.Start
 
 type MapStateProxy(state) =
     static member NumStates = 28
@@ -1497,13 +1508,12 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentMaxHeartsTextBox.Text <- sprintf "Max Hearts: %d" h
             member _this.AnnounceConsiderSword2() = 
-                if TrackerModel.Options.VoiceReminders.SwordHearts.Value then 
-                    let n = TrackerModel.sword2Box.CellCurrent()
-                    if n = -1 then
-                        async { voice.Speak("Consider getting the white sword item") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook))) } |> Async.Start
-            member _this.AnnounceConsiderSword3() = if TrackerModel.Options.VoiceReminders.SwordHearts.Value then async { voice.Speak("Consider the magical sword") } |> Async.Start
+                let n = TrackerModel.sword2Box.CellCurrent()
+                if n = -1 then
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item")
+                else
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)))
+            member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword")
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
@@ -1557,15 +1567,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 else
                     ensureRespectingOwGettableScreensCheckBox()
             member _this.AnnounceCompletedDungeon(i) = 
-                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
-                    if TrackerModel.IsHiddenDungeonNumbers() then
-                        let labelChar = TrackerModel.GetDungeon(i).LabelChar
-                        if labelChar <> '?' then
-                            async { voice.Speak(sprintf "Dungeon %c is complete" labelChar) } |> Async.Start
-                        else
-                            async { voice.Speak("This dungeon is complete") } |> Async.Start
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    let labelChar = TrackerModel.GetDungeon(i).LabelChar
+                    if labelChar <> '?' then
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %c is complete" labelChar)
                     else
-                        async { voice.Speak(sprintf "Dungeon %d is complete" (i+1)) } |> Async.Start
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "This dungeon is complete")
+                else
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %d is complete" (i+1))
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
                     // top ui
@@ -1582,31 +1591,26 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             member _this.AnnounceFoundDungeonCount(n) = 
                 if DateTime.Now - mostRecentlyScrolledDungeonIndexTime < TimeSpan.FromSeconds(1.5) then
                     selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
-                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
-                    async {
-                        if n = 1 then
-                            voice.Speak("You have located one dungeon") 
-                        elif n = 9 then
-                            voice.Speak("Congratulations, you have located all 9 dungeons")
-                        else
-                            voice.Speak(sprintf "You have located %d dungeons" n) 
-                    } |> Async.Start
+                if n = 1 then
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon") 
+                elif n = 9 then
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons")
+                else
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n) 
             member _this.AnnounceTriforceCount(n) = 
-                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
-                    if n = 1 then
-                        async { voice.Speak("You now have one triforce") } |> Async.Start
-                    else
-                        async { voice.Speak(sprintf "You now have %d triforces" n) } |> Async.Start
-                    if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
-                        async { voice.Speak("Consider the magical sword before dungeon nine") } |> Async.Start
+                if n = 1 then
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You now have one triforce")
+                else
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You now have %d triforces" n)
+                if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine")
             member _this.AnnounceTriforceAndGo(triforces, tagLevel) = 
-                if TrackerModel.Options.VoiceReminders.DungeonFeedback.Value then 
-                    let go = if triforces=8 then "go time" else "triforce and go"
-                    match tagLevel with
-                    | 1 -> async { voice.Speak("You might be "+go) } |> Async.Start
-                    | 2 -> async { voice.Speak("You are probably "+go) } |> Async.Start
-                    | 3 -> async { voice.Speak("You are "+go) } |> Async.Start
-                    | _ -> ()
+                let go = if triforces=8 then "go time" else "triforce and go"
+                match tagLevel with
+                | 1 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You might be "+go)
+                | 2 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are probably "+go)
+                | 3 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are "+go)
+                | _ -> ()
             member _this.RemindUnblock(blockerType, dungeons, detail) =
                 let name(d) =
                     if TrackerModel.IsHiddenDungeonNumbers() then
@@ -1636,7 +1640,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             s <- s + " and " + name(d)
                          s
                          )
-                async { voice.Speak(sentence) } |> Async.Start
+                SendReminder(TrackerModel.ReminderCategory.Blockers, sentence)
             member _this.RemindShortly(itemId) = 
                 let f, g, text =
                     if itemId = TrackerModel.ITEMS.KEY then
@@ -1650,9 +1654,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     do! Async.Sleep(60000)  // 60s
                     do! Async.SwitchToContext(cxt)
                     if f() then
-                        if TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value then 
-                            do! Async.SwitchToThreadPool()
-                            voice.Speak(text) 
+                        SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, text) 
                     else
                         g()
                 } |> Async.Start
@@ -1684,34 +1686,31 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HaveLadder then
                 if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
-                    if TrackerModel.Options.VoiceReminders.CoastItem.Value then 
-                        let n = TrackerModel.ladderBox.CellCurrent()
-                        if n = -1 then
-                            async { voice.Speak("Get the coast item with the ladder") } |> Async.Start
-                        else
-                            async { voice.Speak(sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook))) } |> Async.Start
+                    let n = TrackerModel.ladderBox.CellCurrent()
+                    if n = -1 then
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder")
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)))
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HaveRecorder then
                 let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
                 if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
-                    if TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value then 
-                        if owWhistleSpotsRemain = 1 then
-                            async { voice.Speak("There is one recorder spot") } |> Async.Start
-                        else
-                            async { voice.Speak(sprintf "There are %d recorder spots" owWhistleSpotsRemain) } |> Async.Start
+                    if owWhistleSpotsRemain = 1 then
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one recorder spot")
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d recorder spots" owWhistleSpotsRemain)
                 recorderTime <- DateTime.Now
                 owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
         // remind power bracelet spots
         if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
                 if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
-                    if TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value then 
-                        if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
-                            async { voice.Speak("There is one power bracelet spot") } |> Async.Start
-                        else
-                            async { voice.Speak(sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain) } |> Async.Start
+                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one power bracelet spot")
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain)
                 powerBraceletTime <- DateTime.Now
                 owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
         )

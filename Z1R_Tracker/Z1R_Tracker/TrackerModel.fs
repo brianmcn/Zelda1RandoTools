@@ -8,6 +8,15 @@
 open System.Text.Json
 open System.Text.Json.Serialization
 
+[<RequireQualifiedAccess>]
+type ReminderCategory =
+    | DungeonFeedback
+    | SwordHearts
+    | CoastItem
+    | RecorderPBSpots
+    | HaveKeyLadder
+    | Blockers  // TODO make option for it?
+
 module Options =
     type Bool(init) =
         let mutable v = init
