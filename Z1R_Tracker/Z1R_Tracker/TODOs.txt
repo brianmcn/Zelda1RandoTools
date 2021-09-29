@@ -18,7 +18,31 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-give updated copy to Truant
+accidental double-click: maybe redraw() causes new element to see MouseDown and repeat-get input? pin this down
+ - after that, see if still need rework dungeons, maybe always select to 'uncomplete', and click (right click?) outside popup marks complete
+
+unfound 9 with a halo is a 'loud' halo
+
+if you find 9 last, it does not switch to 9's tab (either voice or scroll/popup) see selectDungeonTabEvent
+
+Avalonia, left-edge green popup leftover highlight
+
+'near start' should be 'close to start'
+
+I should try 'painting out unmarked rooms' if map/atlas, to experience it
+
+timeline & mistakes
+
+should first dungeon room click default to green? any way to mark entry doorway?
+
+red door ('no') StrokeThickness as 3 not 2?
+
+make fairy fountains stand out (art decorate them)? (not routeworthy, not Link-able)
+
+
+
+
+
 
 when know dungeon number, cross off third box?
 
@@ -40,7 +64,11 @@ hotkeys
 
 SMALL
 
-see if can use VisualBrush to make an obs-projection-window that uses mouse location to only broadcast a portion of the tracker (as a 'simple' layout solution; an issue is player knowing what is broadcast)
+
+
+factoids for 'loading ui screen':
+ -  a room with a gleeok cannot have a push block
+
 
 Pie menus for take-any, rupee?
  - Hold and drag for options

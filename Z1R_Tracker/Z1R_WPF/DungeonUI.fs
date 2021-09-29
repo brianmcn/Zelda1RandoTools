@@ -81,7 +81,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 27*8 + 12*7))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -267,8 +267,8 @@ For the commonest case of a non-descript room needing no special marker, a quick
                         let mutable popupIsActive = false
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
-                                let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), appMainCanvas)
-                                Dungeon.HiddenDungeonColorChooserPopup(appMainCanvas, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
+                                let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), cm.AppMainCanvas)
+                                Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
                                     (fun () -> 
                                         Graphics.WarpMouseCursorTo(pos)
                                         popupIsActive <- false)) |> ignore
@@ -322,11 +322,11 @@ For the commonest case of a non-descript room needing no special marker, a quick
                             else
                                 upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n+1)))), true, n+1
                             )
-                        let roomPos = c.TranslatePoint(Point(), appMainCanvas)
+                        let roomPos = c.TranslatePoint(Point(), cm.AppMainCanvas)
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
                         let h = 9.*3.*2.+ST*4.
-                        CustomComboBoxes.DoModalGridSelect(appMainCanvas, roomPos.X, roomPos.Y, tileCanvas,
+                        CustomComboBoxes.DoModalGridSelect(cm, roomPos.X, roomPos.Y, tileCanvas,
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
@@ -356,7 +356,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                             popupState <- Dungeon.DelayedPopupState.SOON
                             async {
                                 do! Async.Sleep(MILLISECONDS_DOUBLE_CLICK)
-                                appMainCanvas.Dispatcher.Invoke(fun _ -> activatePopup(ad))
+                                cm.AppMainCanvas.Dispatcher.Invoke(fun _ -> activatePopup(ad))
                             } |> Async.Start
                     now, soon
                 let BUFFER = 2.
@@ -579,7 +579,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                             if not(roomIsEmpty(roomStates.[x,y])) && quest.[l-1].[y].Chars(x)<>'X' then
                                 ok <- false
                     ok
-                let pos = outlineDrawingCanvases.[SI].TranslatePoint(Point(), appMainCanvas)
+                let pos = outlineDrawingCanvases.[SI].TranslatePoint(Point(), cm.AppMainCanvas)
                 let tileCanvas = new Canvas(Width=float(39*8 + 12*7), Height=float(TH + 27*8 + 12*7))
                 let gridElementsSelectablesAndIDs = [|
                     yield (upcast mkTxt("none",true):FrameworkElement), true, 0
@@ -620,7 +620,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
                 let gridClickDismissalDoesMouseWarpBackToTileCenter = false
                 outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored in onClose()
-                CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                     gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
             )
     else

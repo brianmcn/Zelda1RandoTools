@@ -73,7 +73,7 @@ type MyWindowBase() as this =
 
 type MyWindow() as this = 
     inherit MyWindowBase()
-    let mutable canvas, updateTimeline = null, fun _ -> ()
+    let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                 items  ow map  prog  dungeon tabs                      timeline   
@@ -220,13 +220,12 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                    let c,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
-                    canvas <- c
+                    let cm,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
-                    Graphics.canvasAdd(canvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 30.)
+                    Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans
-                    this.Content <- canvas
+                    this.Content <- cm.RootCanvas
                     System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
                         let ex = e.Exception
                         printfn "An unhandled exception from UI thread:"

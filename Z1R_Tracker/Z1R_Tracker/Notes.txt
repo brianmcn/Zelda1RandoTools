@@ -255,6 +255,16 @@ SAVE STATE
 There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
 
 
+BROADCAST WINDOW (WPF only) - experimental feature
+
+On the options menu, you can opt into a 'broadcast window'.  This causes a separate, smaller window to appear; the new window is designed for stream-capture, 
+for streamers who think the Z-Tracker app is too large for their stream layout.  The broadcast window has two possible displays: one is overworld-focused, and
+the other is dungeon-map focused.  The broadcast window will automatically switch between views depending upon if your mouse is in the upper portion or the 
+lower portion of the main Z-Tracker window.  The broadcast window is not interactive - it does not respond to mouse clicks, and is only a display.  Thus, you 
+use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main interactive Z-Tracker window, you instead 
+capture the smaller broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
+
+
 SPEECH SYNTHESIS (WPF only)
 
 There are a variety of spoken reminders triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.

@@ -8,6 +8,8 @@ let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
+let broadcastWindowOptionChanged = new Event<bool>()
+
 let link(cb:CheckBox, b:TrackerModel.Options.Bool) =
     cb.IsChecked <- System.Nullable.op_Implicit b.Value
     cb.Checked.Add(fun _ -> b.Value <- true)
@@ -146,6 +148,13 @@ let makeOptionsCanvas(width, heightOffset) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- true; TrackerModel.forceUpdate())
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- false; TrackerModel.forceUpdate())
     cb.ToolTip <- "Flip the overworld map East<->West"
+    options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Broadcast window",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.ShowBroadcastWindow.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger(true))
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger(false))
+    cb.ToolTip <- "Open a separate, smaller window, for stream capture.\nYou still interact with the original large window,\nbut the smaller window will focus the view on either the overworld or\nthe dungeon tabs, based on your mouse position."
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore

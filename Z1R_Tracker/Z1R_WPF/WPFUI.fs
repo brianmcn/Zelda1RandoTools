@@ -183,7 +183,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
-    let appMainCanvas = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
+    let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
+        //                             items  ow map  prog  dungeon tabs                timeline
+        let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
+        let rootCanvas =    new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+        let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+        canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
+        let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
+        appMainCanvas, cm
 
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
@@ -269,7 +276,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
                     popupIsActive <- true
                     let pos = colorButton.TranslatePoint(Point(15., 15.), appMainCanvas)
-                    Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
+                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
                         (fun() -> 
                             popupIsActive <- false
                             )) |> ignore
@@ -303,7 +310,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                     popupIsActive <- true
                     let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas)
-                    Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, true, pos,
+                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, true, pos,
                         (fun() -> 
                             popupIsActive <- false
                             )) |> ignore
@@ -346,7 +353,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let activateComboBox(activationDelta) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+            CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
                 box.Set(newBoxCellValue, newPlayerHas)
                 popupIsActive <- false
                 ), (fun () -> popupIsActive <- false))
@@ -449,8 +456,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 10.) 
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 10.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.) 
 
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
@@ -610,7 +617,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             popupIsActive <- true
             setLinkIcon(3)
             let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
-            let dismissHandle = CustomComboBoxes.DoModalCore(appMainCanvas, 
+            let dismissHandle = CustomComboBoxes.DoModalCore(cm, 
                                                                 (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
                                                                 (fun (c,e) -> c.Children.Remove(e) |> ignore), 
                                                                 wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
@@ -840,7 +847,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let ENLARGE = 8.
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
-    let dungeonTabsOverlayContent = new Canvas(Width=3.*16.*ENLARGE + 4.*BT, Height=3.*11.*ENLARGE + 4.*BT)
+    let DTOCW,DTOCH = 3.*16.*ENLARGE + 4.*BT, 3.*11.*ENLARGE + 4.*BT
+    let dungeonTabsOverlayContent = new Canvas(Width=DTOCW, Height=DTOCH)
     mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
     dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
     let overlayTiles = Array2D.zeroCreate 16 8
@@ -1041,7 +1049,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             upcast triangle, -pos.X-3., -pos.Y-3.
                             upcast rect, lx-pos.X-3., ly-pos.Y-3.
                             |]
-                        CustomComboBoxes.DisplayRemoteItemComboBox(appMainCanvas, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
+                        CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
                             gridX, gridY, (fun (newBoxCellValue, newPlayerHas) ->
                                 TrackerModel.ladderBox.Set(newBoxCellValue, newPlayerHas)
                                 TrackerModel.forceUpdate()
@@ -1175,7 +1183,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                 upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
                             )
                         let pos = c.TranslatePoint(Point(), appMainCanvas)
-                        CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, tileCanvas,
+                        CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
@@ -1364,7 +1372,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
+            CustomComboBoxes.DoModal(cm, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
 
     let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
@@ -1709,7 +1717,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     // Dungeon level trackers
     let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1722,6 +1730,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
+    let BLOCKERS_AND_NOTES_OFFSET = 402.
     // blockers
     let blockerCurrentBMP(current) =
         match current with
@@ -1757,7 +1766,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             popupIsActive <- true
             let pc, predraw = make()
             let pos = c.TranslatePoint(Point(), appMainCanvas)
-            CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
+            CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                     (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
                     Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
                     (fun (dismissPopup,_ea,db) -> 
@@ -1770,7 +1779,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
         c
 
-    let blockerColumnWidth = int((appMainCanvas.Width-402.)/3.)
+    let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
     blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
@@ -1796,21 +1805,21 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
-    canvasAdd(appMainCanvas, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    
-    let tb = new TextBox(Width=appMainCanvas.Width-402., Height=dungeonTabs.Height - blockerGrid.Height)
+    let tb = new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)
     notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(appMainCanvas, tb, 402., START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width
-    canvasAdd(appMainCanvas, grabModeTextBlock, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
 
@@ -2154,16 +2163,145 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModalDocked(appMainCanvas, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
+            CustomComboBoxes.DoModalDocked(cm, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
-    //let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
-
-    //                items  ow map  prog  dungeon tabs                timeline
-    appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
+    let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
     appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
 
+    // broadcast window
+    let makeBroadcastWindow() =
+        let W = 768.
+        let broadcastWindow = new Window()
+        broadcastWindow.Title <- "Z-Tracker broadcast"
+        broadcastWindow.SizeToContent <- SizeToContent.Manual
+        broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+        broadcastWindow.Left <- 0.0
+        broadcastWindow.Top <- 0.0
+        broadcastWindow.Width <- W + 16.
+        broadcastWindow.Owner <- Application.Current.MainWindow
+        broadcastWindow.Background <- Brushes.Black
+
+        let makeViewRect(upperLeft:Point, lowerRight:Point) =
+            let vb = new VisualBrush(appMainCanvas)
+            vb.ViewboxUnits <- BrushMappingMode.Absolute
+            vb.Viewbox <- Rect(upperLeft, lowerRight)
+            vb.Stretch <- Stretch.None
+            let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
+            bwRect.Fill <- vb
+            bwRect
+        let dealWithPopups(topViewboxRelativeToApp, topViewboxRelativeToThisBroadcast, c) =
+            let popups = new System.Collections.Generic.Stack<_>()
+            let popupCanvasArea = new Canvas()
+            canvasAdd(c, popupCanvasArea, 0., 0.)
+            cm.AfterCreatePopupCanvas.Add(fun pc ->
+                let vb = new VisualBrush(pc)
+                vb.ViewboxUnits <- BrushMappingMode.Absolute
+                vb.Viewbox <- Rect(Point(0.,0.), Point(appMainCanvas.Width,appMainCanvas.Height))
+                vb.Stretch <- Stretch.None
+                let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
+                bwRect.Fill <- vb
+                popups.Push(bwRect)
+                canvasAdd(popupCanvasArea, bwRect, 0., topViewboxRelativeToThisBroadcast - topViewboxRelativeToApp)
+                )
+            cm.BeforeDismissPopupCanvas.Add(fun _pc ->
+                let bwRect = popups.Pop()
+                popupCanvasArea.Children.Remove(bwRect)
+                )
+
+        let timeline = makeViewRect(Point(0.,START_TIMELINE_H), Point(W,THRU_TIMELINE_H))
+    
+        // construct the top broadcast canvas (topc)
+        let notesY = START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height
+        let top = makeViewRect(Point(0.,0.), Point(W,notesY))
+        let topc = new Canvas()
+        canvasAdd(topc, top, 0., 0.)
+        let notes = makeViewRect(Point(BLOCKERS_AND_NOTES_OFFSET,notesY), Point(W,notesY+blockerGrid.Height))
+        canvasAdd(topc, notes, 0., START_DUNGEON_AND_NOTES_AREA_H)
+        let blackArea = new Canvas(Width=BLOCKERS_AND_NOTES_OFFSET*2.-W, Height=blockerGrid.Height, Background=Brushes.Black)
+        canvasAdd(topc, blackArea, W-BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H)
+        // TODO consider how to make smaller magnifier work? over notes/blockers?
+        dealWithPopups(0., 0., topc)
+
+        // construct the bottom broadcast canvas (bottomc)
+        let dun = makeViewRect(Point(0.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), Point(W,START_TIMELINE_H))
+        let tri = makeViewRect(Point(0.,0.), Point(W,150.))
+        let pro = makeViewRect(Point(ITEM_PROGRESS_FIRST_ITEM,THRU_MAP_AND_LEGEND_H), Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H))
+        pro.HorizontalAlignment <- HorizontalAlignment.Left
+        pro.Margin <- Thickness(20.,0.,0.,0.)
+        let owm = makeViewRect(Point(0.,150.), Point(W,THRU_MAIN_MAP_H))
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        sp.Children.Add(tri) |> ignore
+        sp.Children.Add(pro) |> ignore
+        sp.Children.Add(dun) |> ignore
+        let bottomc = new Canvas()
+        canvasAdd(bottomc, sp, 0., 0.)
+        let afterSoldItemBoxesX = OFFSET + 60. + 90.
+        let blackArea = new Canvas(Width=120., Height=30., Background=Brushes.Black)
+        canvasAdd(bottomc, blackArea, afterSoldItemBoxesX, 30.)
+        let scale = (W - afterSoldItemBoxesX) / W
+        owm.RenderTransform <- new ScaleTransform(scale,scale)
+        canvasAdd(bottomc, owm, afterSoldItemBoxesX, 60.)
+        let kitty = new Image()
+        let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
+        kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+        kitty.Width <- 60.
+        kitty.Height <- 60.
+        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+90. + 20., 0.)
+        dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 180., bottomc)
+
+        // draw fake mice on top level 
+        let addFakeMouse(c:Canvas) =
+            let fakeMouse = new Shapes.Polygon(Fill=Brushes.White)
+            fakeMouse.Points <- new PointCollection([Point(0.,0.); Point(12.,6.); Point(6.,12.)])
+            c.Children.Add(fakeMouse) |> ignore
+            fakeMouse
+        let fakeTopMouse = addFakeMouse(topc)
+        let fakeBottomMouse = addFakeMouse(bottomc)
+
+        // set up the main broadcast window
+        let H = max top.Height sp.Height
+        broadcastWindow.Height <- H + 40.
+        let dp = new DockPanel()
+        DockPanel.SetDock(timeline, Dock.Bottom)
+        dp.Children.Add(timeline) |> ignore
+        dp.Children.Add(topc) |> ignore
+        broadcastWindow.Content <- dp
+        let mutable isUpper = true
+        cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
+            let mousePos = ea.GetPosition(appMainCanvas)
+            if mousePos.Y < THRU_MAIN_MAP_AND_ITEM_PROGRESS_H then
+                if not isUpper then
+                    if cm.PopupCanvasStack.Count=0 then  // don't switch panes if a popup is active
+                        isUpper <- true
+                        dp.Children.RemoveAt(1)
+                        dp.Children.Add(topc) |> ignore
+                Canvas.SetLeft(fakeTopMouse, mousePos.X)
+                Canvas.SetTop(fakeTopMouse, mousePos.Y)
+            else
+                if isUpper then
+                    if cm.PopupCanvasStack.Count=0 then  // don't switch panes if a popup is active
+                        isUpper <- false
+                        dp.Children.RemoveAt(1)
+                        dp.Children.Add(bottomc) |> ignore
+                Canvas.SetLeft(fakeBottomMouse, mousePos.X)
+                Canvas.SetTop(fakeBottomMouse, mousePos.Y - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 180.)
+            )
+        broadcastWindow
+    let mutable broadcastWindow = null
+    if TrackerModel.Options.ShowBroadcastWindow.Value then
+        broadcastWindow <- makeBroadcastWindow()
+        broadcastWindow.Show()
+    OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun show ->
+        if show && broadcastWindow=null then
+            broadcastWindow <- makeBroadcastWindow()
+            broadcastWindow.Show()
+        if not(show) && broadcastWindow<>null then
+            broadcastWindow.Close()
+            broadcastWindow <- null
+        )
+
     TrackerModel.forceUpdate()
-    appMainCanvas, updateTimeline
+    cm, updateTimeline
 
 

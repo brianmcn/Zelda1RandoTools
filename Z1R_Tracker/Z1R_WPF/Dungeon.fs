@@ -279,7 +279,7 @@ let DrawTriforces2Q(haves:_[]) =
     h.[7] <- haves.[6]
     DrawTriforceMapCore(h, "13254687")
 
-let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalColor, dungeonIndex, onClose) =
+let HiddenDungeonColorChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, tileY, tileW, tileH, originalColor, dungeonIndex, onClose) =
     let colors = threeTallColorArray
     let tileCanvas = new Canvas(Width=tileW, Height=tileH)
     let gridElementsSelectablesAndIDs = colors |> Array.mapi (fun i c -> new Canvas(Width=30., Height=30., Background=new SolidColorBrush(makeColor(c))) :> FrameworkElement, true, i)
@@ -298,10 +298,10 @@ let HiddenDungeonColorChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, or
     let extraDecorations = []
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
-    CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+    CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
-let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex, onClose) =
+let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex, onClose) =
     // TODO can you choose same # twice?
     let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
     let dp = new DockPanel(Width=tileW, Height=tileH)
@@ -352,10 +352,10 @@ let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, o
         [(upcast warnBorder : FrameworkElement), -123., 284.; (upcast b : FrameworkElement), 190., -120.]
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
-    CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+    CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
         gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 
-let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel, accelerateIntoNumberChooser, warpReturn:Point, onClose) =
+let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex, curColor, curLabel, accelerateIntoNumberChooser, warpReturn:Point, onClose) =
     // setup main visual tree
     let mainDock = new DockPanel(Background=Brushes.Black)
     
@@ -408,8 +408,8 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
     button1.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
-            let pos = button1Content.TranslatePoint(Point(), appMainCanvas)
-            HiddenDungeonColorChooserPopup(appMainCanvas, pos.X, pos.Y, button1Content.Width, button1Content.Height, curColor, dungeonIndex, 
+            let pos = button1Content.TranslatePoint(Point(), cm.AppMainCanvas)
+            HiddenDungeonColorChooserPopup(cm, pos.X, pos.Y, button1Content.Width, button1Content.Height, curColor, dungeonIndex, 
                                             (fun () -> 
                                                 dismissSelf()
                                                 close()
@@ -418,8 +418,8 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
     let button2Body() =
         if not popupIsActive then
             popupIsActive <- true
-            let pos = button2Content.TranslatePoint(Point(), appMainCanvas)
-            HiddenDungeonNumberChooserPopup(appMainCanvas, pos.X, pos.Y, button2Content.Width, button2Content.Height, curLabel, dungeonIndex, 
+            let pos = button2Content.TranslatePoint(Point(), cm.AppMainCanvas)
+            HiddenDungeonNumberChooserPopup(cm, pos.X, pos.Y, button2Content.Width, button2Content.Height, curLabel, dungeonIndex, 
                                             (fun () -> 
                                                 dismissSelf()
                                                 close()
@@ -439,7 +439,7 @@ let HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, curColor, curLabel
 //    let guideline = new Shapes.Line(X1=float dungeonIndex*30. - mainX + 15., Y1=36. - mainY, X2=0., Y2=0., Stroke=Brushes.Gray, StrokeThickness=3.)
 //    canvasAdd(popupCanvas, guideline, 0., 0.)
 
-    dismissSelf <- CustomComboBoxes.DoModal(appMainCanvas, mainX, mainY, popupCanvas, close)
+    dismissSelf <- CustomComboBoxes.DoModal(cm, mainX, mainY, popupCanvas, close)
     if accelerateIntoNumberChooser then
         button2.Loaded.Add(fun _ -> button2Body())
     dismissSelf
