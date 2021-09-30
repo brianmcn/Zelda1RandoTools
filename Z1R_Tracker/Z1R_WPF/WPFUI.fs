@@ -18,6 +18,7 @@ let SendReminder(category, text:string) =
         | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
     if shouldRemind then 
         async { voice.Speak(text) } |> Async.Start
+let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 
 type MapStateProxy(state) =
     static member NumStates = 28
@@ -199,6 +200,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
         let rootCanvas =    new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
         let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+        let style = new Style(typeof<ToolTip>)
+        style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
+        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, almostBlack))
+        style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
+        rootCanvas.Resources.Add(typeof<ToolTip>, style)
         canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
         let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
         appMainCanvas, cm
@@ -2160,7 +2166,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width, moreOptionsButton.DesiredSize.Height)
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width)
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 

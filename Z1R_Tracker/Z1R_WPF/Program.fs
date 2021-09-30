@@ -92,10 +92,12 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         this.FontSize <- 18.
 
+        let almostBlack = WPFUI.almostBlack
+
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
-        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore
 
         let box(n) = 
@@ -159,13 +161,13 @@ type MyWindow() as this =
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
 
         let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
-        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), Margin=Thickness(10.))
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
         checkboxSP.Children.Add(hscb) |> ignore
 
-        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true), Margin=Thickness(10.))
+        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
         hdcb.IsChecked <- System.Nullable.op_Implicit false
         hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
         hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())
@@ -186,7 +188,9 @@ type MyWindow() as this =
             3, "Mixed - Second Quest Overworld"
             |]
         for n,q in quests do
-            let startButton = new Button(Content=new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false), Margin=spacing, MaxWidth=WIDTH/2.)
+            let startButtonText = new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), 
+                                                Background=almostBlack, Width=WIDTH/2.-4.)
+            let startButton = new Button(Content=startButtonText, Margin=spacing, Width=WIDTH/2.)
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
@@ -246,16 +250,34 @@ type MyWindow() as this =
         let mainDock = new DockPanel()
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
-        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center)
+        let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
+                                Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), 0.)
+        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3))
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)
 
         mainDock.Children.Add(stackPanel) |> ignore
+
+        // "dark theme"
+        mainDock.Background <- Brushes.Black
+        let style = new Style(typeof<TextBox>)
+        style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+        style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+        style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.Orange))
+        mainDock.Resources.Add(typeof<TextBox>, style)
+        let style = new Style(typeof<Button>)
+        style.Setters.Add(new Setter(Button.BorderBrushProperty, Brushes.Orange))
+        style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
+        mainDock.Resources.Add(typeof<Button>, style)
+        let style = new Style(typeof<ToolTip>)
+        style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
+        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, almostBlack))
+        style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
+        mainDock.Resources.Add(typeof<ToolTip>, style)
 
         this.Content <- mainDock
         

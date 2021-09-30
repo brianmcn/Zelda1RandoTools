@@ -32,18 +32,25 @@ let data22 = [|
     "Have any key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", TrackerModel.Options.VoiceReminders.HaveKeyLadder
     |]
 
-let makeOptionsCanvas(width, heightOffset) = 
-    let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Width=width, Background=Brushes.White)
+let makeOptionsCanvas(width) = 
+    let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Width=width, Background=Brushes.Black)
     let style = new Style(typeof<TextBox>)
     style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
+    style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.DarkGray))
     style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
+    style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+    style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
     optionsAllsp.Resources.Add(typeof<TextBox>, style)
     let style = new Style(typeof<CheckBox>)
     style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
     optionsAllsp.Resources.Add(typeof<CheckBox>, style)
 
+    let header(tb:TextBox) = 
+        tb.Margin <- Thickness(0., 0., 0., 6.)
+        tb.BorderThickness <- Thickness(0., 0., 0., 1.)
+        tb
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
-    let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, Margin=Thickness(0.,heightOffset,0.,0.), FontWeight=FontWeights.Bold)
+    let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options1sp.Children.Add(tb) |> ignore
     for text,tip,b in data1 do
         let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true))
@@ -53,7 +60,7 @@ let makeOptionsCanvas(width, heightOffset) =
     optionsAllsp.Children.Add(options1sp) |> ignore
 
     let options2sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,10.,0.))
-    let tb = new TextBox(Text="Voice reminders", IsReadOnly=true, FontWeight=FontWeights.Bold)
+    let tb = new TextBox(Text="Voice reminders", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options2sp.Children.Add(tb) |> ignore
     let options2Topsp = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(0.,0.,0.,6.))
     let muteCB = new CheckBox(Content=new TextBox(Text="Mute all",IsReadOnly=true))
@@ -90,12 +97,12 @@ let makeOptionsCanvas(width, heightOffset) =
     options2Hsp.Children.Add(options2V1sp) |> ignore
     options2Hsp.Children.Add(options2V2sp) |> ignore
     options2sp.Children.Add(options2Hsp) |> ignore
-    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Black)) |> ignore
+    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Gray)) |> ignore
     optionsAllsp.Children.Add(options2sp) |> ignore
-    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Black)) |> ignore
+    optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Gray)) |> ignore
 
     let options3sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,0.,0.))
-    let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold)
+    let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options3sp.Children.Add(tb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
@@ -158,4 +165,5 @@ let makeOptionsCanvas(width, heightOffset) =
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
-    optionsAllsp
+    let all = new Border(Child=optionsAllsp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray)
+    all
