@@ -92,8 +92,6 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         this.FontSize <- 18.
 
-        let almostBlack = WPFUI.almostBlack
-
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
@@ -188,8 +186,9 @@ type MyWindow() as this =
             3, "Mixed - Second Quest Overworld"
             |]
         for n,q in quests do
-            let startButtonText = new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=almostBlack)
-            let startButton = new Button(Content=startButtonText, Margin=spacing, Width=WIDTH/2., HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
+            let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
+            startButton.Margin <- spacing
+            startButton.Width <- WIDTH/2.
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
@@ -274,7 +273,7 @@ type MyWindow() as this =
         mainDock.Resources.Add(typeof<Button>, style)
         let style = new Style(typeof<ToolTip>)
         style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, almostBlack))
+        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
         style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
         mainDock.Resources.Add(typeof<ToolTip>, style)
 

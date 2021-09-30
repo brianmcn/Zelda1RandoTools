@@ -44,6 +44,14 @@ let makeGrid(nc, nr, cw, rh) =
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
 
+let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
+let makeButton(text, fontSizeOpt, fgOpt) =
+    let tb = new TextBox(Text=text, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=almostBlack)
+    match fontSizeOpt with | None -> () | Some x -> tb.FontSize <- x
+    match fgOpt with | None -> () | Some x -> tb.Foreground <- x
+    let button = new Button(Content=tb, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
+    button
+
 let makeColor(rgb) =
     let r = (rgb &&& 0xFF0000) / 0x10000
     let g = (rgb &&& 0x00FF00) / 0x100

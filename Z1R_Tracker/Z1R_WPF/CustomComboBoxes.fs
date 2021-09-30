@@ -7,7 +7,6 @@ open System.Windows
 let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
-let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 
 (*
  
@@ -206,7 +205,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
         DockPanel.SetDock(b, Dock.Right)
         buttonDock.Children.Add(b) |> ignore
         b.Content <- new TextBox(Text=bt, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), FontSize=16.,
-                                    Background=almostBlack, Margin=Thickness(0.))
+                                    Background=Graphics.almostBlack, Margin=Thickness(0.))
         b.Click.Add(fun _ -> dismiss(); onResult(bt))
     grid.Children.Add(buttonDock) |> ignore
     Grid.SetRow(buttonDock, 1)

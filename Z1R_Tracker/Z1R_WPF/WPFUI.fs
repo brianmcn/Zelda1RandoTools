@@ -18,7 +18,6 @@ let SendReminder(category, text:string) =
         | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
     if shouldRemind then 
         async { voice.Speak(text) } |> Async.Start
-let almostBlack = CustomComboBoxes.almostBlack
 
 type MapStateProxy(state) =
     static member NumStates = 28
@@ -202,7 +201,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
         let style = new Style(typeof<ToolTip>)
         style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, almostBlack))
+        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
         style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
         rootCanvas.Resources.Add(typeof<ToolTip>, style)
         canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
@@ -1327,9 +1326,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     itemProgressCanvas.MouseLeave.Add(fun _ -> hideLocator())
 
     // Version
-    let vb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
-                            Text=sprintf "v%s" OverworldData.VersionString, IsReadOnly=true, IsHitTestVisible=false),
-                        BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
+    let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
     vb.Click.Add(fun _ ->
         CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"], (fun r ->
@@ -1415,7 +1412,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     hintSP.Children.Add(hintDescriptionTextBox) |> ignore
     hintSP.Children.Add(hintGrid) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
-    let tb = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Hint Decoder"))
+    let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, tb, 530., THRU_MAP_AND_LEGEND_H + 6.)
     let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
@@ -2161,8 +2158,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     // timeline & options menu
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
 
-    let moreOptionsLabel = new TextBox(Text="Options...", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Margin=Thickness(0.), Padding=Thickness(0.), BorderThickness=Thickness(0.), IsReadOnly=true, IsHitTestVisible=false)
-    let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
+    let moreOptionsButton = Graphics.makeButton("Options...", Some(12.), Some(Brushes.Orange))
+    moreOptionsButton.MaxHeight <- 25.
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
     let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width)
