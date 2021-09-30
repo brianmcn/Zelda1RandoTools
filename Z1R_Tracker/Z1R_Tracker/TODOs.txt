@@ -68,6 +68,7 @@ some way to project e.g. 6 triforce&boxes onto 6's dungeon area, so not mouse to
 
 factoids for 'loading ui screen':
  -  a room with a gleeok cannot have a push block
+ - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's.
 
 
 Pie menus for take-any, rupee?
@@ -159,11 +160,6 @@ consider controller-button push-to-talk to explicitly activate speech recognitio
 select item box via voice?  select dungeon room via voice?
 
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
-
-timer: maybe two right clicks to reset (rather than F10), or a 0:00 button that takes two clicks? or a shift-click?
-
-Timer: Yeah, everyone has their own timer, it's for me, I should really have an option to turn it off, and have it off by default.   (But the timeline!)
-It would also leave some blank space in the tracker for streamers to use for branding or cams, or things.
 
 remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as can still hotkey/voice select
 

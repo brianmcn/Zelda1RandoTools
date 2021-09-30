@@ -115,7 +115,7 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
             Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
 
 
-let mutable f5WasRecentlyPressed = false
+let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
@@ -605,6 +605,23 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
     mirrorOverworldFEs.Add(overworldCanvas)
+
+    // timer reset
+    let timerResetButton = Graphics.makeButton("Reset timer", Some(16.), Some(Brushes.Orange))
+    canvasAdd(appMainCanvas, timerResetButton, 13.*OMTW, 65.)
+    let mutable popupIsActive = false
+    timerResetButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let secondButton = Graphics.makeButton("Click here to confirm you want to Reset the timer,\nor click anywhere else to cancel", Some(16.), Some(Brushes.Orange))
+            let mutable dismiss = fun()->()
+            secondButton.Click.Add(fun _ ->
+                resetTimerEvent.Trigger()
+                dismiss()
+                popupIsActive <- false
+                )
+            dismiss <- CustomComboBoxes.DoModal(cm, 100., 200., secondButton, (fun () -> popupIsActive <- false))
+        )
 
     // help the player route to locations
     let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)

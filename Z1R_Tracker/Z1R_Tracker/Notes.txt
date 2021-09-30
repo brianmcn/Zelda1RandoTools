@@ -3,9 +3,6 @@
 Notes about overall UI & behavior
 
 
-F10 - reset timer to 0
-
-
 (Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
 
 

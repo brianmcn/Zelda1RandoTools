@@ -26,6 +26,7 @@ type MyWindowBase() as this =
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
+    member this.SetStartTime(x) = startTime <- x
     member this.StartTime = startTime
     abstract member Update : bool -> unit
     default this.Update(_f10Press) = ()
@@ -171,7 +172,7 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        let tb = new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen,\nor press F10 to reset the\ntimer to 0, at any time\n",
+        let tb = new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen at any time\n",
                                 IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
@@ -221,6 +222,7 @@ type MyWindow() as this =
                         OptionsMenu.microphoneFailedToInitialize <- true
                     let cm,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
+                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> this.SetStartTime(DateTime.Now))
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans

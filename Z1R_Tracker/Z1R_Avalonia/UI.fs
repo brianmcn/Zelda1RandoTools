@@ -103,7 +103,7 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
         for s in rect.Shapes do
             Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
 
-let mutable f5WasRecentlyPressed = false
+let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
@@ -586,6 +586,28 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
     mirrorOverworldFEs.Add(overworldCanvas)
+
+    // timer reset
+    let timerResetButton = 
+        new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Reset"), 
+                        BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
+    canvasAdd(appMainCanvas, timerResetButton, 12.*OMTW, 40.)
+    let mutable popupIsActive = false
+    timerResetButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let secondButton = 
+                new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
+                                                Text="Click here to confirm you want to Reset the timer,\nor click anywhere else to cancel"), 
+                                BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
+            let mutable dismiss = fun()->()
+            secondButton.Click.Add(fun _ ->
+                resetTimerEvent.Trigger()
+                dismiss()
+                popupIsActive <- false
+                )
+            dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 100., 200., secondButton, (fun () -> popupIsActive <- false))
+        )
 
     // help the player route to locations
     let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
