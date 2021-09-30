@@ -18,7 +18,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-Remove actual-modal windows (grab, version; comboboxes, tooltips?!)
+Remove actual-modal windows (grab, version; tooltips?!)
 
 shift-click the start screen to place the lime circle? 
  - something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)

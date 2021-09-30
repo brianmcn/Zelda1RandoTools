@@ -819,6 +819,19 @@ type HintZone =
         | 9 -> NEAR_START
         | 10 -> FOREST
         | _ -> failwith "bad HintZone index"
+    member this.ToIndex() =
+        match this with
+        | UNKNOWN -> 0
+        | DEATH_MOUNTAIN -> 1
+        | LAKE -> 2
+        | LOST_HILLS -> 3
+        | RIVER -> 4
+        | GRAVE -> 5
+        | DESERT -> 6
+        | COAST -> 7
+        | DEAD_WOODS -> 8
+        | NEAR_START -> 9
+        | FOREST -> 10
 let levelHints = Array.create 11 HintZone.UNKNOWN   // 0-8 is L1-9, 9 is WS, 10 is MS
 
 let forceUpdate() = 

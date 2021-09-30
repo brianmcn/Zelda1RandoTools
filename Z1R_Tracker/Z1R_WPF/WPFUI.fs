@@ -1333,7 +1333,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
         )
 
-    let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,180,36)
+    let HINTGRID_W, HINTGRID_H = 180., 36.
+    let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,int HINTGRID_W,int HINTGRID_H)
     let mutable row=0 
     for a,b in OverworldData.hintMeanings do
         let thisRow = row
@@ -1344,7 +1345,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             if row < 8 then
                 Graphics.emptyUnfoundNumberedTriforce_bmps.[row]
             elif row = 8 then
-                Graphics.foundL9_bmp
+                Graphics.unfoundL9_bmp
             elif row = 9 then
                 Graphics.white_sword_bmp
             else
@@ -1357,19 +1358,48 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         dp.Children.Add(b) |> ignore
         dp.Children.Add(tb) |> ignore
         gridAdd(hintGrid, dp, 1, row)
-        let comboBox = new ComboBox(FontSize=16., IsEditable=false, IsReadOnly=true, Foreground=Brushes.Black)
-        comboBox.Resources.Add(SystemColors.WindowBrushKey, Brushes.YellowGreen)
-        comboBox.ItemsSource <- [| for i = 0 to 10 do yield TrackerModel.HintZone.FromIndex(i).ToString() |]
-        comboBox.SelectedIndex <- 0
-        comboBox.SelectionChanged.Add(fun _ -> 
-            TrackerModel.levelHints.[thisRow] <- TrackerModel.HintZone.FromIndex(comboBox.SelectedIndex)
-            if comboBox.SelectedIndex = 0 then
-                b.Background <- Brushes.Black
-            else
-                b.Background <- hintHighlightBrush
-            TrackerModel.forceUpdate()
+        let mkTxt(text) = 
+            new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                        Width=HINTGRID_W-6., Height=HINTGRID_H-6., BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text=text)
+        let button = new Button(Content=mkTxt(TrackerModel.HintZone.FromIndex(0).ToString()))
+        gridAdd(hintGrid, button, 2, row)
+        let mutable popupIsActive = false
+        button.Click.Add(fun _ ->
+            if not popupIsActive then
+                popupIsActive <- true
+                let tileX, tileY = (let p = button.TranslatePoint(Point(),appMainCanvas) in p.X+3., p.Y+3.)
+                let tileCanvas = new Canvas(Width=HINTGRID_W-6., Height=HINTGRID_H-6., Background=Brushes.Black)
+                let redrawTile(i) =
+                    tileCanvas.Children.Clear()
+                    canvasAdd(tileCanvas, mkTxt(TrackerModel.HintZone.FromIndex(i).ToString()), 3., 3.)
+                let gridElementsSelectablesAndIDs = [|
+                    for i = 0 to 10 do
+                        yield mkTxt(TrackerModel.HintZone.FromIndex(i).ToString()) :> FrameworkElement, true, i
+                    |]
+                let originalStateIndex = TrackerModel.levelHints.[thisRow].ToIndex()
+                let activationDelta = 0
+                let (gnc, gnr, gcw, grh) = 1, 11, int HINTGRID_W-6, int HINTGRID_H-6
+                let gx,gy = HINTGRID_W-3., -HINTGRID_H*10.-9.
+                let onClick(dismiss, _ea, i) =
+                    // update model
+                    TrackerModel.levelHints.[thisRow] <- TrackerModel.HintZone.FromIndex(i)
+                    TrackerModel.forceUpdate()
+                    // update view
+                    if i = 0 then
+                        b.Background <- Brushes.Black
+                    else
+                        b.Background <- hintHighlightBrush
+                    button.Content <- mkTxt(TrackerModel.HintZone.FromIndex(i).ToString())
+                    // cleanup
+                    dismiss()
+                    popupIsActive <- false
+                let onClose() = popupIsActive <- false
+                let extraDecorations = []
+                let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
+                let gridClickDismissalDoesMouseWarpBackToTileCenter = false
+                CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                                                    gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
             )
-        gridAdd(hintGrid, comboBox, 2, row)
         row <- row + 1
     let hintDescriptionTextBox = 
         new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.,0.,0.,4.), 
