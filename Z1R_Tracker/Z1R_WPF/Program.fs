@@ -188,9 +188,8 @@ type MyWindow() as this =
             3, "Mixed - Second Quest Overworld"
             |]
         for n,q in quests do
-            let startButtonText = new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), 
-                                                Background=almostBlack, Width=WIDTH/2.-4.)
-            let startButton = new Button(Content=startButtonText, Margin=spacing, Width=WIDTH/2.)
+            let startButtonText = new TextBox(Text=sprintf "Start: %s" q,IsReadOnly=true,IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=almostBlack)
+            let startButton = new Button(Content=startButtonText, Margin=spacing, Width=WIDTH/2., HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else

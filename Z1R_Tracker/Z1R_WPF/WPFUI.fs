@@ -18,7 +18,7 @@ let SendReminder(category, text:string) =
         | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
     if shouldRemind then 
         async { voice.Speak(text) } |> Async.Start
-let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
+let almostBlack = CustomComboBoxes.almostBlack
 
 type MapStateProxy(state) =
     static member NumStates = 28
@@ -1332,11 +1332,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
     vb.Click.Add(fun _ ->
-        let cmb = new CustomMessageBox.CustomMessageBox(OverworldData.AboutHeader, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
-        cmb.Owner <- Window.GetWindow(appMainCanvas)
-        cmb.ShowDialog() |> ignore
-        if cmb.MessageBoxResult = "Go to website" then
-            System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+        CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"], (fun r ->
+            if r = "Go to website" then
+                System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+            ))
         )
 
     let HINTGRID_W, HINTGRID_H = 180., 36.

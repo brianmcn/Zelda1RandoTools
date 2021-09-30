@@ -1293,7 +1293,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
     vb.Click.Add(fun _ ->
-        let cmb = new CustomMessageBox.CustomMessageBox(OverworldData.AboutHeader, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+        let cmb = new CustomMessageBox.CustomMessageBox("About Z-Tracker", System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
         async {
             let task = cmb.ShowDialog((Application.Current.ApplicationLifetime :?> ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).MainWindow)
             do! Async.AwaitTask task

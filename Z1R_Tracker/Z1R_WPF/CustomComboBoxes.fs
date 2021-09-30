@@ -7,6 +7,7 @@ open System.Windows
 let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
+let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 
 (*
  
@@ -176,6 +177,54 @@ let DoModalDocked(cm:CanvasManager, dock, element, onClose) =
 
 /////////////////////////////////////////
 
+let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>, onResult) =  // calls onResult(buttonText) if a button was pressed, or onResult(null) if dismissed
+    let grid = new Grid()
+    grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(1.0, GridUnitType.Star)))
+    grid.RowDefinitions.Add(new RowDefinition(Height=GridLength.Auto))
+
+    let mainDock = new DockPanel()
+    let image = Graphics.BMPtoImage(icon.ToBitmap())
+    image.HorizontalAlignment <- HorizontalAlignment.Left
+    image.Margin <- Thickness(30.,0.,0.,0.)
+    mainDock.Children.Add(image) |> ignore
+    DockPanel.SetDock(image, Dock.Left)
+    let mainTextBlock = new TextBox(Text=mainText, Background=Brushes.Transparent, BorderThickness=Thickness(0.), IsReadOnly=true, 
+                                        TextWrapping=TextWrapping.Wrap, MaxWidth=500., Width=System.Double.NaN, 
+                                        VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(12.,20.,41.,15.))
+    mainDock.Children.Add(mainTextBlock) |> ignore
+    grid.Children.Add(mainDock) |> ignore
+    Grid.SetRow(mainDock, 0)
+
+    let mutable dismiss = fun()->()
+    let buttonDock = new DockPanel(Margin=Thickness(5.,0.,0.,0.))
+    let mutable first = true
+    for bt in buttonTexts |> Seq.rev do
+        let b = new Button(MinWidth=88., MaxWidth=160., Height=26., Margin=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Right, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
+        if first then
+            b.Focus() |> ignore
+            first <- false
+        DockPanel.SetDock(b, Dock.Right)
+        buttonDock.Children.Add(b) |> ignore
+        b.Content <- new TextBox(Text=bt, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), FontSize=16.,
+                                    Background=almostBlack, Margin=Thickness(0.))
+        b.Click.Add(fun _ -> dismiss(); onResult(bt))
+    grid.Children.Add(buttonDock) |> ignore
+    Grid.SetRow(buttonDock, 1)
+
+    let b = new Border(Child=grid, Background=Brushes.Black, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray)
+    let style = new Style(typeof<TextBox>)
+    style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+    style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+    style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.Orange))
+    b.Resources.Add(typeof<TextBox>, style)
+    let style = new Style(typeof<Button>)
+    style.Setters.Add(new Setter(Button.BorderBrushProperty, Brushes.Orange))
+    style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
+    b.Resources.Add(typeof<Button>, style)
+
+    dismiss <- DoModal(cm, 150., 200., b, (fun () -> onResult(null)))
+
+/////////////////////////////////////////
 
 // draw a pretty dashed rectangle with thickness ST around outside of (0,0) to (W,H)
 let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
