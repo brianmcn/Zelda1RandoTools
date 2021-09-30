@@ -194,6 +194,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
+    let mutable doUIUpdate = fun() -> ()
+
     let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
         //                             items  ow map  prog  dungeon tabs                timeline
         let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
@@ -1256,7 +1258,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
-    let startIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
+    let makeStartIcon() = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+    let startIcon = makeStartIcon()
 
     let THRU_MAIN_MAP_H = float(150 + 8*11*3)
 
@@ -1296,10 +1299,44 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
-    let legendStartIcon = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0)
-    canvasAdd(legendCanvas, legendStartIcon, 9.4*OMTW+8.5*OMTW/48., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot")
-    canvasAdd(legendCanvas, tb, 10.4*OMTW, 0.)
+    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.7, Height=11.*3.)
+    let legendStartIcon = makeStartIcon()
+    canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+8.5*OMTW/48., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", IsHitTestVisible=false)
+    canvasAdd(legendStartIconButtonCanvas, tb, 1.*OMTW, 0.)
+    let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
+    canvasAdd(legendCanvas, legendStartIconButton, 9.4*OMTW, 0.)
+    let mutable popupIsActive = false
+    legendStartIconButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16.,
+                                    Text="Click an overworld map tile to move the Start Spot icon there, or click anywhere outside the map to cancel")
+            let element = new Canvas(Width=OMTW*16., Height=float(8*11*3), Background=Brushes.Transparent, IsHitTestVisible=true)
+            canvasAdd(element, tb, 0., -30.)
+            let hoverIcon = makeStartIcon()
+            element.MouseLeave.Add(fun _ -> element.Children.Remove(hoverIcon))
+            element.MouseMove.Add(fun ea ->
+                let mousePos = ea.GetPosition(element)
+                let i = int(mousePos.X / OMTW)
+                let j = int(mousePos.Y / (11.*3.))
+                element.Children.Remove(hoverIcon)
+                canvasAdd(element, hoverIcon, float i*OMTW + 8.5*OMTW/48., float(j*11*3))
+                )
+            let mutable dismiss = fun()->()
+            element.MouseDown.Add(fun ea ->
+                let mousePos = ea.GetPosition(element)
+                let i = int(mousePos.X / OMTW)
+                let j = int(mousePos.Y / (11.*3.))
+                if i>=0 && i<=15 && j>=0 && j<=7 then
+                    TrackerModel.startIconX <- i
+                    TrackerModel.startIconY <- j
+                    doUIUpdate()
+                    dismiss()
+                    popupIsActive <- false
+                )
+            dismiss <- CustomComboBoxes.DoModal(cm, 0., 150., element, (fun () -> popupIsActive <- false))
+        )
 
     let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
 
@@ -1431,7 +1468,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
-    let doUIUpdate() =
+    doUIUpdate <- (fun () ->
         if displayIsCurrentlyMirrored <> TrackerModel.Options.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
@@ -1691,6 +1728,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         g()
                 } |> Async.Start
             })
+        )
     let threshold = TimeSpan.FromMilliseconds(500.0)
     let mutable ladderTime, recorderTime, powerBraceletTime = DateTime.Now, DateTime.Now, DateTime.Now
     let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0, 0

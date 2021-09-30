@@ -3,8 +3,6 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
-let mutable f5WasRecentlyPressed = false
-
 open System.Runtime.InteropServices 
 module Winterop = 
     [<DllImport("User32.dll")>]
@@ -67,8 +65,6 @@ type MyWindowBase() as this =
                 if key = VK_F10 then
                     startTime <- DateTime.Now
                     this.Update(true)
-                if key = VK_F5 then
-                    f5WasRecentlyPressed <- true
         IntPtr.Zero
 
 type MyWindow() as this = 
@@ -175,7 +171,8 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        let tb = new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb = new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen,\nor press F10 to reset the\ntimer to 0, at any time\n",
+                                IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
         let mutable startButtonHasBeenClicked = false
@@ -292,12 +289,6 @@ type MyWindow() as this =
         if f10Press || curMinute > lastUpdateMinute then
             lastUpdateMinute <- curMinute
             updateTimeline(curMinute)
-        // update start icon
-        if f5WasRecentlyPressed then
-            TrackerModel.startIconX <- WPFUI.currentlyMousedOWX
-            TrackerModel.startIconY <- WPFUI.currentlyMousedOWY
-            TrackerModel.forceUpdate()
-            f5WasRecentlyPressed <- false
 
 type TimerOnlyWindow() as this = 
     inherit MyWindowBase()

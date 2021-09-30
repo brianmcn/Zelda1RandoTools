@@ -3,7 +3,6 @@
 Notes about overall UI & behavior
 
 
-F5 - place 'start screen' icon at moused tile
 F10 - reset timer to 0
 
 
@@ -162,6 +161,8 @@ shows the possible locations for that dungeon or sword cave.  Hint-halo-highligh
   red:     if it's a location you can't uncover yet (e.g. a push-block spot when you don't yet have the power bracelet)
 
 "Item progress" bar lights up items as you get them or upgrade them, as a quick display summary of the player state.
+
+You can click the 'Start Spot' icon in the legend to mark your starting screen on the overworld map.
 
 
 TIMELINE

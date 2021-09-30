@@ -18,11 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-shift-click the start screen to place the lime circle? 
- - something better than F5 for start icon? drag-drop maybe, explained on startup screen? click legend, then click map? hm.  (Keep as is, but add hover tooltip in legend?)
- - maybe legend icon can be a button, clicking it makes faux-grid selector over overworld to let you place it?
-
-
 crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
 Random thought about 'crawl text for reminders' - maybe, rather than a crawl, it should be a message queue?  like, if you have no messages yet, a text reminder becomes a thing that takes a line of screen real estate until you dismiss it with some confirmatory gesture.  and if you get more reminders, it's like a little blinking light 'you have new mail (4)' thingy in the corner, and each time you dismiss a message, the next one rolls in and takes its place, until you are caught up?  maybe?
 and yeah I'm not sure how to grapple with the trade-off of me wanting "please dismiss me to ensure that (A) you have gotten my timely helpful feedback and (B) Brian can see his beautiful timeline in its full splendor once again" and the user wanting to not be disturbed/distracted

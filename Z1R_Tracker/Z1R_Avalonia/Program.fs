@@ -34,12 +34,6 @@ type MyWindow() as this =
         timer.Interval <- TimeSpan.FromSeconds(1.0)
         timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
-        this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F5"), Command=new MyCommand(fun _ -> 
-                printfn "F5 was pressed"
-                TrackerModel.startIconX <- UI.currentlyMousedOWX
-                TrackerModel.startIconY <- UI.currentlyMousedOWY
-                TrackerModel.forceUpdate()
-                )))
         this.KeyBindings.Add(new Avalonia.Input.KeyBinding(Gesture=Avalonia.Input.KeyGesture.Parse("F10"), Command=new MyCommand(fun _ -> 
                 printfn "F10 was pressed"
                 startTime <- DateTime.Now
@@ -143,7 +137,7 @@ type MyWindow() as this =
         let options = OptionsMenu.makeOptionsCanvas(0.)
         stackPanel.Children.Add(options) |> ignore
 
-        let tb = dock <| new TextBox(Text="\nNote: once you start, you can use F5 to\nplace the 'start spot' icon at your mouse,\nor F10 to reset the timer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
+        let tb = dock <| new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen,\nor press F10 to reset the\ntimer to 0, at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
         let Quests = [|
                 "First Quest Overworld"
