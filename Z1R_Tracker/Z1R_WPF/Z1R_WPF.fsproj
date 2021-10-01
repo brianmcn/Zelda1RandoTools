@@ -69,6 +69,7 @@
     <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="SpeechRecognition.fs" />
+    <Compile Include="LinkRouting.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <EmbeddedResource Include="s_map_overworld_vanilla_strip8.png" />
