@@ -31,8 +31,6 @@ timeline & mistakes
 
 when know dungeon number, cross off third box?
 
-if know book shop exist and have wand, periodic reminder (in case you get rupees, you probably want)
-
 there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
  - change 9 icon on strip
  - make it not participate in usedTransports

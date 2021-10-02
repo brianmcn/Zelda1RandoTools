@@ -17,7 +17,7 @@ let SendReminder(category, text:string, icons:seq<Control>) =
         | TrackerModel.ReminderCategory.CoastItem ->       TrackerModel.Options.VoiceReminders.CoastItem.Value,       TrackerModel.Options.VisualReminders.CoastItem.Value
         | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModel.Options.VoiceReminders.DungeonFeedback.Value, TrackerModel.Options.VisualReminders.DungeonFeedback.Value
         | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value,   TrackerModel.Options.VisualReminders.HaveKeyLadder.Value
-        | TrackerModel.ReminderCategory.RecorderPBSpots -> TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value, TrackerModel.Options.VisualReminders.RecorderPBSpots.Value
+        | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
         | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
     if shouldRemindVoice || shouldRemindVisual then 
         reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual)
@@ -1594,7 +1594,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
             })
         )
     let threshold = TimeSpan.FromMilliseconds(500.0)
-    let mutable ladderTime, recorderTime, powerBraceletTime = DateTime.Now, DateTime.Now, DateTime.Now
+    let recently = DateTime.Now - TimeSpan.FromMinutes(3.0)
+    let mutable ladderTime, recorderTime, powerBraceletTime, boomstickTime = recently,recently,recently,recently
     let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0, 0
     let timer = new Threading.DispatcherTimer()
     timer.Interval <- TimeSpan.FromSeconds(1.0)
@@ -1627,9 +1628,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
                     let icons = [upcb(Graphics.recorder_bmp); ReminderTextBox(owWhistleSpotsRemain.ToString())]
                     if owWhistleSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one recorder spot", icons)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one recorder spot", icons)
                     else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
                 recorderTime <- DateTime.Now
                 owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
         // remind power bracelet spots
@@ -1638,11 +1639,17 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
                     let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
                     if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one power bracelet spot", icons)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one power bracelet spot", icons)
                     else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
                 powerBraceletTime <- DateTime.Now
                 owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
+        // remind boomstick book
+        if (DateTime.Now - boomstickTime).Minutes > 2 then  // every 3 mins
+            if TrackerModel.playerComputedStateSummary.HaveWand then
+                if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
+                    SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
+                    boomstickTime <- DateTime.Now
         )
     timer.Start()
 

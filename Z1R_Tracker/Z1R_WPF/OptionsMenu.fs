@@ -28,8 +28,8 @@ let data2 = [|
         TrackerModel.Options.VoiceReminders.SwordHearts,     TrackerModel.Options.VisualReminders.SwordHearts
     "Coast Item", "Reminder to fetch to coast item when you have the ladder", 
         TrackerModel.Options.VoiceReminders.CoastItem,       TrackerModel.Options.VisualReminders.CoastItem
-    "Recorder/PB spots", "Occasional reminder of how many recorder/power-bracelet spots remain", 
-        TrackerModel.Options.VoiceReminders.RecorderPBSpots, TrackerModel.Options.VisualReminders.RecorderPBSpots
+    "Recorder/PB/Boomstick", "Periodic reminders of how many recorder/power-bracelet spots remain, or that the boomstick is available", 
+        TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook
     "Have any key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", 
         TrackerModel.Options.VoiceReminders.HaveKeyLadder,   TrackerModel.Options.VisualReminders.HaveKeyLadder
     "Blockers", "Reminder when you may have become unblocked on a previously-aborted dungeon", 
