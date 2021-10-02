@@ -89,6 +89,9 @@
     <EmbeddedResource Include="link_icons.png" />
     <EmbeddedResource Include="mouse-icon-button-colors.png" />
     <EmbeddedResource Include="mouse-icon-button-colors-2.png" />
+    <Content Include="reminder_clink.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="confirm_speech.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

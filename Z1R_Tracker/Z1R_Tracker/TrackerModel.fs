@@ -841,6 +841,68 @@ let forceUpdate() =
                 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+let unreachablePossibleDungeonSpotCount() =
+    let mutable count = 0
+    for x = 0 to 15 do
+        for y = 0 to 7 do
+            let cur = overworldMapMarks.[x,y].Current()
+            if cur < 9 then  // it's marked as a dungeon, or it's unmarked so it might be an unfound dungeon
+                if owInstance.Bombable(x,y) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value()) then
+                    count <- count + 1
+                if owInstance.Burnable(x,y) && not(playerComputedStateSummary.CandleLevel>0) then
+                    count <- count + 1
+                if owInstance.Raftable(x,y) && not(playerComputedStateSummary.HaveRaft) then
+                    count <- count + 1
+                if owInstance.Ladderable(x,y) && not(playerComputedStateSummary.HaveLadder) then
+                    count <- count + 1
+                if owInstance.Whistleable(x,y) && not(playerComputedStateSummary.HaveRecorder) then
+                    count <- count + 1
+    count
+type TriforceAndGoSummary() =
+    // Note: we're just going to assume the player has a sword (or wand in swordless), let's not go nuts with advanced flags and/or unlikely no-sword-but-all-items situations
+    let haveBow = playerComputedStateSummary.HaveBow
+    let haveSilvers = playerComputedStateSummary.ArrowLevel=2
+    let haveLadder = playerComputedStateSummary.HaveLadder
+    let haveRecorder = playerComputedStateSummary.HaveLadder
+    let unreachableCount = unreachablePossibleDungeonSpotCount()
+    let mutable missingTriforceFromLocatedDungeonCount = 0   // TODO advanced flags: only need N triforces to enter 9
+    let mutable missingDungeonCount = 0
+    let tagLevel = 
+        for i = 0 to 8 do
+            if not(GetDungeon(i).PlayerHasTriforce()) then
+                if not(GetDungeon(i).HasBeenLocated()) then
+                    missingDungeonCount <- missingDungeonCount + 1
+                elif i <> 8 then // L9 has no triforce
+                    missingTriforceFromLocatedDungeonCount <- missingTriforceFromLocatedDungeonCount + 1
+        let compute() =
+            let mutable score = 100
+            let missingPenalty = 15 + unreachableCount
+            score <- score - missingDungeonCount*missingPenalty                  // big penalty for unlocated dungeon
+            score <- score - missingTriforceFromLocatedDungeonCount*8            // smallish penalty for missing triforce in a dungeon you already located
+            if not haveBow then score <- score - 35                              // huge penalty for missing bow
+            if not haveSilvers then score <- score - 30                          // huge penalty for missing silvers
+            if not haveLadder then score <- score - 15                           // medium penalty for missing ladder
+            if not haveRecorder then score <- score - 5                          // small penalty for missing recorder
+            //printfn "score: %d" score
+            if score < 0 then 0 else score
+        // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without being able to locate them all  
+        if missingDungeonCount=0 || unreachableCount=0 then 
+            if haveBow && haveSilvers && haveLadder && haveRecorder then
+                103
+            elif haveBow && haveSilvers && haveLadder then
+                102
+            elif haveBow && haveSilvers then
+                101
+            else
+                compute()
+        else
+            compute()
+    member _this.Level = tagLevel  // 103 TAG, 102 probably-TAG, 101 might-be-TAG, 1-100 see features below, 0 not worth reporting
+    member _this.HaveBow = haveBow
+    member _this.HaveSilvers = haveSilvers
+    member _this.HaveLadder = haveLadder
+    member _this.HaveRecorder = haveRecorder
+    member _this.MissingDungeonCount = missingDungeonCount
 type ITrackerEvents =
     // hearts
     abstract CurrentHearts : int -> unit
@@ -860,7 +922,7 @@ type ITrackerEvents =
     abstract CompletedDungeons : bool[] -> unit     // for current shading
     abstract AnnounceFoundDungeonCount : int -> unit
     abstract AnnounceTriforceCount : int -> unit
-    abstract AnnounceTriforceAndGo : int * int -> unit
+    abstract AnnounceTriforceAndGo : int * TriforceAndGoSummary -> unit
     // blockers
     abstract RemindUnblock : DungeonBlocker * seq<int> * seq<CombatUnblockerDetail> -> unit
     // items
@@ -883,43 +945,6 @@ let mutable priorAnyKey = false
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
-let unreachablePossibleDungeonSpotCount() =
-    let mutable count = 0
-    for x = 0 to 15 do
-        for y = 0 to 7 do
-            let cur = overworldMapMarks.[x,y].Current()
-            if cur < 9 then  // it's marked as a dungeon, or it's unmarked so it might be an unfound dungeon
-                if owInstance.Bombable(x,y) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value()) then
-                    count <- count + 1
-                if owInstance.Burnable(x,y) && not(playerComputedStateSummary.CandleLevel>0) then
-                    count <- count + 1
-                if owInstance.Raftable(x,y) && not(playerComputedStateSummary.HaveRaft) then
-                    count <- count + 1
-                if owInstance.Ladderable(x,y) && not(playerComputedStateSummary.HaveLadder) then
-                    count <- count + 1
-                if owInstance.Whistleable(x,y) && not(playerComputedStateSummary.HaveRecorder) then
-                    count <- count + 1
-    count
-let computeTriforceAndGo() =
-    let mutable missing = 0
-    for i = 0 to 8 do
-        if not(GetDungeon(i).HasBeenLocated()) then
-            missing <- missing + 1
-    // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without being able to locate them all   // TODO advanced flags: only need N triforces to enter 9
-    if missing=0 || unreachablePossibleDungeonSpotCount()=0 then 
-        if playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder && playerComputedStateSummary.HaveRecorder then
-            3
-        elif playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 && playerComputedStateSummary.HaveLadder then
-            2
-        elif playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel=2 then
-            1
-        else
-            0   // TODO anything for silvers-in-9, like 'silvers and go'? hmmm
-    elif missing=1 then
-        // TODO missingDungeon+bow+silvers+ladder  "if you find N, you might be triforce and go"
-        0
-    else
-        0
 let allUIEventingLogic(ite : ITrackerEvents) =
     // hearts
     let playerHearts = playerComputedStateSummary.PlayerHearts
@@ -985,25 +1010,25 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             completedDungeons <- completedDungeons + 1
         if GetDungeon(d).HasBeenLocated() then
             locatedDungeons <- locatedDungeons + 1
-    let tagLevel = computeTriforceAndGo()
+    let tagSummary = new TriforceAndGoSummary()
     let mutable justAnnouncedTAG = false
     if triforces > previouslyAnnouncedTriforceCount then
         ite.AnnounceTriforceCount(triforces)
         previouslyAnnouncedTriforceCount <- triforces
-        if completedDungeons <= previousCompletedDungeonCount && tagLevel > 1 then
+        if completedDungeons <= previousCompletedDungeonCount && tagSummary.Level > 101 then
             // just got a new triforce, it did not complete a dungeon, but the player is probably triforce and go, so remind them, so they might abandon rest of dungeon
-            ite.AnnounceTriforceAndGo(triforces, tagLevel)
+            ite.AnnounceTriforceAndGo(triforces, tagSummary)
             justAnnouncedTAG <- true
-    if locatedDungeons > previouslyLocatedDungeonCount && tagLevel > 1 && not justAnnouncedTAG then
+    if locatedDungeons > previouslyLocatedDungeonCount && tagSummary.Level > 101 && not justAnnouncedTAG then
         // just located a new dungeon, the player is probably triforce and go, so remind them
-        ite.AnnounceTriforceAndGo(triforces, tagLevel)
+        ite.AnnounceTriforceAndGo(triforces, tagSummary)
         justAnnouncedTAG <- true
     previousCompletedDungeonCount <- completedDungeons
     previouslyLocatedDungeonCount <- locatedDungeons
-    if tagLevel > previouslyAnnouncedTriforceAndGo then
-        previouslyAnnouncedTriforceAndGo <- tagLevel
+    if tagSummary.Level > previouslyAnnouncedTriforceAndGo then
+        previouslyAnnouncedTriforceAndGo <- tagSummary.Level
         if not justAnnouncedTAG then
-            ite.AnnounceTriforceAndGo(triforces, tagLevel)
+            ite.AnnounceTriforceAndGo(triforces, tagSummary)
     // blockers - COMBAT
     let combatUnblockers = ResizeArray()
     if playerComputedStateSummary.SwordLevel > priorSwordWandLevel then
@@ -1020,7 +1045,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
-            if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
+            if tagSummary.Level < 103 then // no need for blocker-reminder if fully-go-time
                 ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonIdxs, combatUnblockers)
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
@@ -1032,7 +1057,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
-            if tagLevel < 3 then // no need for blocker-reminder if fully-go-time
+            if tagSummary.Level < 103 then // no need for blocker-reminder if fully-go-time
                 ite.RemindUnblock(db, dungeonIdxs, [])
     // blockers - others
     if not priorBombs && playerProgressAndTakeAnyHearts.PlayerHasBombs.Value() then

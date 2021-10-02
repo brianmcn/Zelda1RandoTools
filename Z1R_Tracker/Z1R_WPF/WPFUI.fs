@@ -7,7 +7,10 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
-let SendReminder(category, text:string) =
+
+let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
+let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
+let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     let shouldRemind =
         match category with
         | TrackerModel.ReminderCategory.Blockers -> true // TODO option
@@ -17,7 +20,10 @@ let SendReminder(category, text:string) =
         | TrackerModel.ReminderCategory.RecorderPBSpots -> TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value
         | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
     if shouldRemind then 
-        async { voice.Speak(text) } |> Async.Start
+        reminderAgent.Post(text, icons)
+let ReminderTextBox(txt) : FrameworkElement = 
+    upcast new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., FontWeight=FontWeights.Bold, IsHitTestVisible=false,
+        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
 
 type MapStateProxy(state) =
     static member NumStates = 28
@@ -1339,12 +1345,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         itemProgressCanvas.Children.Clear()
         let mutable x, y = ITEM_PROGRESS_FIRST_ITEM, 3.
         let DX = 30.
-        match TrackerModel.playerComputedStateSummary.SwordLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage (Graphics.greyscale Graphics.magical_sword_bmp), x, y)
-        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.brown_sword_bmp, x, y)
-        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.white_sword_bmp, x, y)
-        | 3 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.magical_sword_bmp, x, y)
-        | _ -> failwith "bad SwordLevel"
+        canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.swordLevelToBmp(TrackerModel.playerComputedStateSummary.SwordLevel)), x, y)
         x <- x + DX
         match TrackerModel.playerComputedStateSummary.CandleLevel with
         | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.red_candle_bmp), x, y)
@@ -1352,11 +1353,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.red_candle_bmp, x, y)
         | _ -> failwith "bad CandleLevel"
         x <- x + DX
-        match TrackerModel.playerComputedStateSummary.RingLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.red_ring_bmp), x, y)
-        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.blue_ring_bmp, x, y)
-        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.red_ring_bmp, x, y)
-        | _ -> failwith "bad RingLevel"
+        canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.ringLevelToBmp(TrackerModel.playerComputedStateSummary.RingLevel)), x, y)
         x <- x + DX
         if TrackerModel.playerComputedStateSummary.HaveBow then
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.bow_bmp, x, y)
@@ -1425,10 +1422,13 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             member _this.AnnounceConsiderSword2() = 
                 let n = TrackerModel.sword2Box.CellCurrent()
                 if n = -1 then
-                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item")
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item", 
+                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP())])
                 else
-                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)))
-            member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword")
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
+                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP()); 
+                                        upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.sword2Box.CellCurrent(), false))])
+            member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
@@ -1482,14 +1482,15 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 else
                     ensureRespectingOwGettableScreensCheckBox()
             member _this.AnnounceCompletedDungeon(i) = 
+                let icons = [upcb(MapStateProxy(i).CurrentInteriorBMP()); upcb(Graphics.iconCheckMark_bmp)]
                 if TrackerModel.IsHiddenDungeonNumbers() then
                     let labelChar = TrackerModel.GetDungeon(i).LabelChar
                     if labelChar <> '?' then
-                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %c is complete" labelChar)
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %c is complete" labelChar, icons)
                     else
-                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "This dungeon is complete")
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "This dungeon is complete", icons)
                 else
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %d is complete" (i+1))
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "Dungeon %d is complete" (i+1), icons)
             member _this.CompletedDungeons(a) =
                 for i = 0 to 7 do
                     // top ui
@@ -1506,62 +1507,85 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             member _this.AnnounceFoundDungeonCount(n) = 
                 if DateTime.Now - mostRecentlyScrolledDungeonIndexTime < TimeSpan.FromSeconds(1.5) then
                     selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
+                let icons = [upcb(Graphics.genericDungeonInterior_bmp); ReminderTextBox(sprintf"%d/9"n)]
                 if n = 1 then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon") 
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon", icons) 
                 elif n = 9 then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons")
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
                 else
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n) 
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n, icons) 
             member _this.AnnounceTriforceCount(n) = 
+                let icons = [upcb(Graphics.fullTriforce_bmp); ReminderTextBox(sprintf"%d/8"n)]
                 if n = 1 then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You now have one triforce")
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You now have one triforce", icons)
                 else
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You now have %d triforces" n)
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You now have %d triforces" n, [yield! icons; if n=8 then yield upcb(Graphics.iconCheckMark_bmp)])
                 if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine")
-            member _this.AnnounceTriforceAndGo(triforces, tagLevel) = 
-                let go = if triforces=8 then "go time" else "triforce and go"
-                match tagLevel with
-                | 1 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You might be "+go)
-                | 2 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are probably "+go)
-                | 3 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are "+go)
-                | _ -> ()
+                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
+            member _this.AnnounceTriforceAndGo(triforceCount, tagSummary) = 
+                let needSomeThingsicons = [
+                    for _i = 1 to tagSummary.MissingDungeonCount do
+                        yield upcb(Graphics.greyscale Graphics.genericDungeonInterior_bmp)
+                    if not tagSummary.HaveBow then
+                        yield upcb(Graphics.greyscale Graphics.bow_bmp)
+                    if not tagSummary.HaveSilvers then
+                        yield upcb(Graphics.greyscale Graphics.silver_arrow_bmp)
+                    ]
+                let triforceAndGoIcons = [
+                    if triforceCount<>8 then
+                        if needSomeThingsicons.Length<>0 then
+                            yield upcb(Graphics.iconRightArrow_bmp)
+                        for _i = 1 to (8-triforceCount) do
+                            yield upcb(Graphics.emptyTriforce_bmp)
+                    yield upcb(Graphics.iconRightArrow_bmp)
+                    yield upcb(Graphics.ganon_bmp)
+                    ]
+                let icons = [yield! needSomeThingsicons; yield! triforceAndGoIcons]
+                let go = if triforceCount=8 then "go time" else "triforce and go"
+                match tagSummary.Level with
+                | 101 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You might be "+go, icons)
+                | 102 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are probably "+go, icons)
+                | 103 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are "+go, icons)
+                | 0 -> ()
+                | _ -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, (sprintf "You need %s to be " (if needSomeThingsicons.Length>1 then "some things" else "something"))+go, icons)
             member _this.RemindUnblock(blockerType, dungeons, detail) =
                 let name(d) =
                     if TrackerModel.IsHiddenDungeonNumbers() then
                         (char(int 'A' + d)).ToString()
                     else
                         (1+d).ToString()
-                let sentence = 
-                    "Now that you have" + 
-                        match blockerType with
-                        | TrackerModel.DungeonBlocker.COMBAT ->
-                            let words = ResizeArray()
-                            for d in detail do
-                                match d with
-                                | TrackerModel.CombatUnblockerDetail.BETTER_SWORD -> words.Add(" a better sword,")
-                                | TrackerModel.CombatUnblockerDetail.BETTER_ARMOR -> words.Add(" better armor,")
-                                | TrackerModel.CombatUnblockerDetail.WAND -> words.Add(" the wand,")
-                            System.String.Concat words
-                        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> " a beau and arrow,"
-                        | TrackerModel.DungeonBlocker.RECORDER -> " the recorder,"
-                        | TrackerModel.DungeonBlocker.LADDER -> " the ladder,"
-                        | TrackerModel.DungeonBlocker.KEY -> " the any key,"
-                        | TrackerModel.DungeonBlocker.BOMB -> " bombs,"
-                        | _ -> " "
-                        + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ") + name(Seq.head dungeons) +
-                        (let mutable s = ""
-                         for d in Seq.tail dungeons do
-                            s <- s + " and " + name(d)
-                         s
-                         )
-                SendReminder(TrackerModel.ReminderCategory.Blockers, sentence)
+                let icons = ResizeArray()
+                let mutable sentence = "Now that you have"
+                match blockerType with
+                | TrackerModel.DungeonBlocker.COMBAT ->
+                    let words = ResizeArray()
+                    for d in detail do
+                        match d with
+                        | TrackerModel.CombatUnblockerDetail.BETTER_SWORD -> words.Add(" a better sword,"); icons.Add(upcb(Graphics.swordLevelToBmp(TrackerModel.playerComputedStateSummary.SwordLevel)))
+                        | TrackerModel.CombatUnblockerDetail.BETTER_ARMOR -> words.Add(" better armor,"); icons.Add(upcb(Graphics.ringLevelToBmp(TrackerModel.playerComputedStateSummary.RingLevel)))
+                        | TrackerModel.CombatUnblockerDetail.WAND -> words.Add(" the wand,"); icons.Add(upcb(Graphics.wand_bmp))
+                    sentence <- sentence + System.String.Concat words
+                | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> sentence <- sentence + " a beau and arrow,"; icons.Add(upcb(Graphics.bow_and_arrow_bmp))
+                | TrackerModel.DungeonBlocker.RECORDER -> sentence <- sentence + " the recorder,"; icons.Add(upcb(Graphics.recorder_bmp))
+                | TrackerModel.DungeonBlocker.LADDER -> sentence <- sentence + " the ladder,"; icons.Add(upcb(Graphics.ladder_bmp))
+                | TrackerModel.DungeonBlocker.KEY -> sentence <- sentence + " the any key,"; icons.Add(upcb(Graphics.key_bmp))
+                | TrackerModel.DungeonBlocker.BOMB -> sentence <- sentence + " bombs,"; icons.Add(upcb(Graphics.bomb_bmp))
+                | _ -> ()
+                sentence <- sentence + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ")
+                icons.Add(upcb(Graphics.iconRightArrow_bmp))
+                let d = Seq.head dungeons
+                sentence <- sentence + name(d)
+                icons.Add(upcb(MapStateProxy(d).CurrentInteriorBMP()))
+                for d in Seq.tail dungeons do
+                    sentence <- sentence + " and " + name(d)
+                    icons.Add(upcb(MapStateProxy(d).CurrentInteriorBMP()))
+                SendReminder(TrackerModel.ReminderCategory.Blockers, sentence, icons)
             member _this.RemindShortly(itemId) = 
-                let f, g, text =
+                let f, g, text, icons =
                     if itemId = TrackerModel.ITEMS.KEY then
-                        (fun() -> TrackerModel.playerComputedStateSummary.HaveAnyKey), (fun() -> TrackerModel.remindedAnyKey <- false), "Don't forget that you have the any key"
+                        (fun() -> TrackerModel.playerComputedStateSummary.HaveAnyKey), (fun() -> TrackerModel.remindedAnyKey <- false), "Don't forget that you have the any key", [upcb(Graphics.key_bmp)]
                     elif itemId = TrackerModel.ITEMS.LADDER then
-                        (fun() -> TrackerModel.playerComputedStateSummary.HaveLadder), (fun() -> TrackerModel.remindedLadder <- false), "Don't forget that you have the ladder"
+                        (fun() -> TrackerModel.playerComputedStateSummary.HaveLadder), (fun() -> TrackerModel.remindedLadder <- false), "Don't forget that you have the ladder", [upcb(Graphics.ladder_bmp)]
                     else
                         failwith "bad reminder"
                 let cxt = System.Threading.SynchronizationContext.Current 
@@ -1569,7 +1593,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     do! Async.Sleep(60000)  // 60s
                     do! Async.SwitchToContext(cxt)
                     if f() then
-                        SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, text) 
+                        SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, text, icons) 
                     else
                         g()
                 } |> Async.Start
@@ -1597,29 +1621,32 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
                     let n = TrackerModel.ladderBox.CellCurrent()
                     if n = -1 then
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder")
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
                     else
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)))
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
+                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.ladderBox.CellCurrent(), false))])
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HaveRecorder then
                 let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
                 if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
+                    let icons = [upcb(Graphics.recorder_bmp); ReminderTextBox(owWhistleSpotsRemain.ToString())]
                     if owWhistleSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one recorder spot")
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one recorder spot", icons)
                     else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d recorder spots" owWhistleSpotsRemain)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
                 recorderTime <- DateTime.Now
                 owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
         // remind power bracelet spots
         if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
             if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
                 if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
+                    let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
                     if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one power bracelet spot")
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, "There is one power bracelet spot", icons)
                     else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain)
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpots, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
                 powerBraceletTime <- DateTime.Now
                 owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
         )
@@ -2032,7 +2059,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
     addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
-    // timeline & options menu
+    // timeline, options menu, reminders
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
 
     let moreOptionsButton = Graphics.makeButton("Options...", Some(12.), Some(Brushes.Orange))
@@ -2077,6 +2104,43 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             CustomComboBoxes.DoModalDocked(cm, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
     let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
+    // reminder display
+    let cxt = System.Threading.SynchronizationContext.Current 
+    let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
+    let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false)
+    let reminderDisplayInnerBorder = new Border(Child=reminderDisplayInnerDockPanel, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, HorizontalAlignment=HorizontalAlignment.Right)
+    DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Top)
+    reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
+    canvasAdd(appMainCanvas, reminderDisplayOuterDockPanel, 0., START_TIMELINE_H)
+    reminderAgent <- MailboxProcessor.Start(fun inbox -> 
+        let rec messageLoop() = async {
+            let! (text,icons) = inbox.Receive()
+            do! Async.SwitchToContext(cxt)
+            let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
+            for i in icons do
+                i.Margin <- Thickness(3.)
+                sp.Children.Add(i) |> ignore
+            let iconCount = sp.Children.Count
+            Graphics.PlaySoundForReminder()
+            reminderDisplayInnerDockPanel.Children.Clear()
+            DockPanel.SetDock(sp, Dock.Right)
+            reminderDisplayInnerDockPanel.Children.Add(sp) |> ignore
+            reminderDisplayOuterDockPanel.Opacity <- 1.
+            do! Async.SwitchToThreadPool()
+            do! Async.Sleep(200) // give reminder clink sound time to play
+            let startSpeakTime = DateTime.Now
+            voice.Speak(text) 
+            let minimumDuration = TimeSpan.FromSeconds(max 3 iconCount |> float)  // ensure at least 1s per icon
+            let elapsed = DateTime.Now - startSpeakTime
+            if elapsed < minimumDuration then
+                let ms = (minimumDuration - elapsed).TotalMilliseconds |> int
+                do! Async.Sleep(ms)   // ensure ui displayed a minimum time
+            do! Async.SwitchToContext(cxt)
+            reminderDisplayOuterDockPanel.Opacity <- 0.
+            return! messageLoop()
+            }
+        messageLoop()
+        )
 
     appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
 

@@ -18,16 +18,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-crawl text as alternative to speech synthesis reminder (for Avalonia and for WPF-alternative) - could maybe go in timeline area?
-Random thought about 'crawl text for reminders' - maybe, rather than a crawl, it should be a message queue?  like, if you have no messages yet, a text reminder becomes a thing that takes a line of screen real estate until you dismiss it with some confirmatory gesture.  and if you get more reminders, it's like a little blinking light 'you have new mail (4)' thingy in the corner, and each time you dismiss a message, the next one rolls in and takes its place, until you are caught up?  maybe?
-and yeah I'm not sure how to grapple with the trade-off of me wanting "please dismiss me to ensure that (A) you have gotten my timely helpful feedback and (B) Brian can see his beautiful timeline in its full splendor once again" and the user wanting to not be disturbed/distracted
-[9:47 PM] Lorgon111: i suppose another alternative is that messages auto-dismiss after some fixed time interval, but are somehow re-playable after dismissal when the seed runner is like, wait, what did it say?
-[7:27 PM] marcmagus: I know whenever there's a new mail (4) badge I feel a pretty strong compulsion to dismiss it immediately; I think I'd find that pretty annoying unless I had, like, a foot pedal to dismiss.
-[12:28 AM] Lorgon111: maybe if the only thing was 'replay previous message'
-[12:28 AM] Lorgon111: as a quiet button somewhere
-[12:31 AM] Lorgon111: but yeah, i guess since they typically trigger 'when you update tracker' then you are probably looking at it then
-[12:32 AM] marcmagus: Could also have some kind of audio chime to get attention if that would be helpful.
-[12:33 AM] marcmagus: [Ding-dong] [Text scrolls] Consider the magical sword
+OptionsMenu for visual notifications of spoken reminders
 
 
 
@@ -43,10 +34,7 @@ timeline & mistakes
 
 when know dungeon number, cross off third box?
 
-reminder, after 6 or 7 or 8 triforces, if not go-mode, voice remind what is missing: 'you still need at least (bow/silver/n triforces) for go mode' (and locating remain dung)
- - or maybe a visual reminder? have icons ?unfound, ?triforce, bow, silver, ladder, recorder in a hover-popup?
-
-if know book shop exist and have wand, periodic reminder (in casse you get rupees, you probably want)
+if know book shop exist and have wand, periodic reminder (in case you get rupees, you probably want)
 
 there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
  - change 9 icon on strip
@@ -68,7 +56,7 @@ some way to project e.g. 6 triforce&boxes onto 6's dungeon area, so not mouse to
 
 factoids for 'loading ui screen':
  -  a room with a gleeok cannot have a push block
- - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's.
+ - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
 
 
 Pie menus for take-any, rupee?

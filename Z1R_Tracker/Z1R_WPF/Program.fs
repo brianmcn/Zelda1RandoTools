@@ -355,6 +355,21 @@ type TerrariaTimerOnlyWindow() as this =
         else
             dayTextBox.Text <- sprintf "Night %d" day
 
+// in order for multiple app windows to not have a forced Z-Order from Owner-Child relationship, need a hidden dummy window to own all the visible windows
+type DummyWindow() as this =
+    inherit Window()
+    do
+        this.ShowInTaskbar <- false
+        this.Title <- "Z-Tracker start-up..."
+        this.Width <- 300.
+        this.Height <- 100.
+        this.Loaded.Add(fun _ ->
+            this.Visibility <- Visibility.Hidden
+            let mainW = new MyWindow()
+            mainW.Owner <- this
+            mainW.Show()
+            )
+    
 
 
 [<STAThread>]
@@ -373,7 +388,7 @@ let main argv =
         elif argv.Length > 0 && argv.[0] = "terraria" then
             app.Run(TerrariaTimerOnlyWindow()) |> ignore
         else
-            app.Run(MyWindow()) |> ignore
+            app.Run(DummyWindow()) |> ignore
 #if DEBUG
 #else
     with e ->

@@ -15,11 +15,17 @@ type Win32() =
         SetCursorPos(int pos.X, int pos.Y) |> ignore
 
 let soundPlayer = new MediaPlayer()
-soundPlayer.Volume <- 0.1
+soundPlayer.Volume <- 0.1   // TODO make this adjustable
 soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
 let PlaySoundForSpeechRecognizedAndUsedToMark() =
     soundPlayer.Position <- TimeSpan(0L)
     soundPlayer.Play()
+let soundPlayer2 = new MediaPlayer()
+soundPlayer2.Volume <- 0.1   // TODO make this adjustable
+soundPlayer2.Open(new Uri("reminder_clink.wav", UriKind.Relative))
+let PlaySoundForReminder() =
+    soundPlayer2.Position <- TimeSpan(0L)
+    soundPlayer2.Play()
 
 
 
@@ -204,7 +210,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
         a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27])
 
-let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp = 
+let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -217,7 +223,7 @@ let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, o
                     r.SetPixel(px, py, color)
             yield r
         |]
-    all.[0], all.[1], all.[2], all.[3], all.[4]
+    all.[0], all.[1], all.[2], all.[3], all.[4], all.[5], all.[6]
 let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
 let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
     let a = [|
@@ -295,9 +301,9 @@ let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, 
 let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |]
 
 let greyscale(bmp:System.Drawing.Bitmap) =
-    let r = new System.Drawing.Bitmap(7*3,7*3)
-    for px = 0 to 7*3-1 do
-        for py = 0 to 7*3-1 do
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
             let c = bmp.GetPixel(px,py)
             let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
             let avg = if avg = 0 then 0 else avg + 20    // never too dark
@@ -369,6 +375,14 @@ let itemBackgroundColor = System.Drawing.Color.FromArgb(0xEF,0x83,0)
 let itemsBMP = 
     let imageStream = GetResourceStream("icons3x7.png")
     new System.Drawing.Bitmap(imageStream)
+
+let genericDungeonInterior_bmp =
+    let bmp = new System.Drawing.Bitmap(5*3,9*3)
+    for px = 0 to 5*3-1 do
+        for py = 0 to 9*3-1 do
+            bmp.SetPixel(px, py, System.Drawing.Color.Yellow)
+    paintAlphanumerics3x5('?', System.Drawing.Color.Black, bmp, 1, 2)
+    bmp
 
 // each overworld map tile may have multiple icons that can represent it (e.g. dungeon 1 versus dungeon A)
 // we store a table, where the array index is the mapSquareChoiceDomain index of the general entry type, and the value there is a list of all possible icons
@@ -487,6 +501,20 @@ do
             newBmp.SetPixel(bmp.Width+i+2, j, bmp37.GetPixel(3*5+i,j))
     newBmp.Save("""C:\Users\Admin1\Source\Repos\Zelda1RandoTools\Z1R_Tracker\Z1R_WPF\tmp.png""")
 *)
+
+let swordLevelToBmp(swordLevel) =
+    match swordLevel with
+    | 0 -> greyscale magical_sword_bmp
+    | 1 -> brown_sword_bmp
+    | 2 -> white_sword_bmp
+    | 3 -> magical_sword_bmp
+    | _ -> failwith "bad SwordLevel"
+let ringLevelToBmp(ringLevel) =
+    match ringLevel with
+    | 0 -> greyscale red_ring_bmp
+    | 1 -> blue_ring_bmp
+    | 2 -> red_ring_bmp
+    | _ -> failwith "bad RingLevel"
 
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)
