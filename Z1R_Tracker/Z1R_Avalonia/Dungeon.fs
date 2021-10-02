@@ -329,12 +329,12 @@ let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, o
         dismiss()
         onClose()
     let extraDecorations = 
-        let warnTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
+        let warnTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., Margin=Thickness(5.),
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
-                                    Text="Don't mark anything other than '?'\nunless you are certain!", Foreground=Brushes.Red, Background=Brushes.Black)
-        let warnBorder = new Border(BorderThickness=Thickness(4.), BorderBrush=Brushes.Gray, Child=warnTB)
+                                    Text="Don't mark anything other than '?'\nunless you are certain!", Foreground=Brushes.OrangeRed, Background=Brushes.Black)
+        let warnBorder = new Border(BorderThickness=Thickness(4.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=warnTB)
 
-        let sp = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+        let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(5.))
         let haves = TrackerModel.GetTriforceHaves()
         let makeTB(text) = new TextBox(Width=TRIFORCE_SIZE*3.8, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
                                         VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
@@ -347,7 +347,7 @@ let HiddenDungeonNumberChooserPopup(appMainCanvas, tileX, tileY, tileW, tileH, o
         sp.Children.Add(makeTB("Second Quest dungeons")) |> ignore
         sp.Children.Add(DrawTriforces2Q(haves)) |> ignore
         sp.Children.Add(makeTB("Note: in Mixed Quest dungeons,\n7 and 8 can be swapped")) |> ignore
-        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Child=sp)
+        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=sp)
         b.PointerPressed.Add(fun ea -> ea.Handled <- true)  // clicking the reference diagram should not close the dialog, people will do it by accident
         [(upcast warnBorder : Control), -137., 284.; (upcast b : Control), 132., -120.]
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()

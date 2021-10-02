@@ -316,13 +316,14 @@ let makeAll(owMapNum, heartShuffle, kind) =
         canvasAdd(innerc, image, 0., 0.)
         let mutable popupIsActive = false
         c.PointerPressed.Add(fun _ -> 
-            TrackerModel.GetDungeon(i).ToggleTriforce()
+            let d = TrackerModel.GetDungeon(i)
+            d.ToggleTriforce()
             updateTriforceDisplay(i)
-            if TrackerModel.GetDungeon(i).PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar='?' then
+            if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
                 // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                 popupIsActive <- true
                 let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas).Value
-                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, true, pos,
+                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, d.Color, d.LabelChar, true, pos,
                     (fun() -> 
                         popupIsActive <- false
                         )) |> ignore
@@ -899,19 +900,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         let tx,ty = lx+15., ly+30.+3.   // +3 so arrowhead does not touch the target box
                         // top middle of the box we are drawing on the coast, as an arrow source
                         let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
-                        // line from source to target
-                        let line = new Shapes.Line(StartPoint=Point(sx,sy), EndPoint=Point(tx,ty), Stroke=Brushes.Yellow, StrokeThickness=3.)
-                        line.StrokeDashArray <- new Collections.AvaloniaList<_>(seq[5.;4.])
-                        // 93% along the line towards the target, for an arrowhead base
-                        let ax,ay = (tx-sx)*0.93+sx, (ty-sy)*0.93+sy
-                        // differential between target and arrowhead base
-                        let dx,dy = tx-ax, ty-ay
-                        // points orthogonal to the line from the base
-                        let p1x,p1y = ax+dy/2., ay-dx/2.
-                        let p2x,p2y = ax-dy/2., ay+dx/2.
-                        // triangle to make arrowhead
-                        let triangle = new Shapes.Polygon(Fill=Brushes.Yellow)
-                        triangle.Points <- [| Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y) |]
+                        let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
                         // rectangle for remote box highlight
                         let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
                         // TODO mirror overworld - maybe TP() relative to owCanvas?
@@ -1752,7 +1741,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()))
+            ), (fun _level -> hideLocator()), isCurrentlyBook, updateTriforceDisplay)
     canvasAdd(appMainCanvas, dungeonTabs , 0., THRU_TIMELINE_H)
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., THRU_TIMELINE_H+float(TH))

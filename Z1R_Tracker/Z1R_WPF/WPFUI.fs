@@ -324,16 +324,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let mutable popupIsActive = false
         c.MouseDown.Add(fun _ -> 
             if not popupIsActive then
-                TrackerModel.GetDungeon(i).ToggleTriforce()
+                let d = TrackerModel.GetDungeon(i)
+                d.ToggleTriforce()
                 updateTriforceDisplay(i)
-                if TrackerModel.GetDungeon(i).PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar='?' then
+                if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
                     // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                     popupIsActive <- true
                     let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas)
-                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, true, pos,
-                        (fun() -> 
-                            popupIsActive <- false
-                            )) |> ignore
+                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, d.Color, d.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
             )
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
@@ -898,19 +896,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         let tx,ty = lx+15., ly+30.+3.   // +3 so arrowhead does not touch the target box
                         // top middle of the box we are drawing on the coast, as an arrow source
                         let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
-                        // line from source to target
-                        let line = new Shapes.Line(X1=sx, Y1=sy, X2=tx, Y2=ty, Stroke=Brushes.Yellow, StrokeThickness=3.)
-                        line.StrokeDashArray <- new DoubleCollection(seq[5.;4.])
-                        // 93% along the line towards the target, for an arrowhead base
-                        let ax,ay = (tx-sx)*0.93+sx, (ty-sy)*0.93+sy
-                        // differential between target and arrowhead base
-                        let dx,dy = tx-ax, ty-ay
-                        // points orthogonal to the line from the base
-                        let p1x,p1y = ax+dy/2., ay-dx/2.
-                        let p2x,p2y = ax-dy/2., ay+dx/2.
-                        // triangle to make arrowhead
-                        let triangle = new Shapes.Polygon(Fill=Brushes.Yellow)
-                        triangle.Points <- new PointCollection([Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y)])
+                        let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
                         // rectangle for remote box highlight
                         let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
                         // TODO mirror overworld - maybe TP() relative to owCanvas?
@@ -1670,7 +1656,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()))
+            ), (fun _level -> hideLocator()), isCurrentlyBook, updateTriforceDisplay)
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))

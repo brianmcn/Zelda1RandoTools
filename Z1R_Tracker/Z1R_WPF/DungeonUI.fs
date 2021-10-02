@@ -58,6 +58,120 @@ let dungeonRoomMouseButtonExplainerDecoration =
         sp.Children.Add(p) |> ignore
     let b:FrameworkElement = upcast new Border(Background=Brushes.Black, BorderThickness=Thickness(ST), BorderBrush=Brushes.DimGray, Child=d)
     b
+let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, isCurrentlyBook, updateTriforceDisplay, level) =
+    let dungeonIndex = level-1
+    let linkCanvas = new Canvas(Width=30., Height=30.)
+    let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
+    link1.Width <- 30.
+    link1.Height <- 30.
+    link1.Stretch <- Stretch.UniformToFill
+    let link2 = Graphics.BMPtoImage Graphics.linkGotTheThing_bmp
+    link2.Width <- 30.
+    link2.Height <- 30.
+    link2.Stretch <- Stretch.UniformToFill
+    link2.Opacity <- 0.
+    linkCanvas.Children.Add(link1) |> ignore
+    linkCanvas.Children.Add(link2) |> ignore
+    let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
+    // draw triforce (or label if 9) and N boxes, populated as now
+    let d = TrackerModel.GetDungeon(dungeonIndex)
+    let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
+    let rec redraw() =
+        sp.Children.Clear()
+        let triforceBmp =
+            if dungeonIndex = 8 then
+                Graphics.foundL9_bmp
+            else
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    if d.PlayerHasTriforce() then
+                        Graphics.fullLetteredTriforce_bmps.[dungeonIndex]
+                    else
+                        Graphics.emptyFoundLetteredTriforce_bmps.[dungeonIndex]
+                else
+                    if d.PlayerHasTriforce() then
+                        Graphics.fullNumberedTriforce_bmps.[dungeonIndex]
+                    else
+                        Graphics.emptyFoundNumberedTriforce_bmps.[dungeonIndex]
+        let triforceIcon = Graphics.BMPtoImage triforceBmp
+        sp.Children.Add(triforceIcon) |> ignore
+        let mutable popupIsActive = false
+        triforceIcon.MouseDown.Add(fun ea ->
+            if not popupIsActive then
+                ea.Handled <- true
+                if dungeonIndex<>8 then
+                    d.ToggleTriforce()
+                    updateTriforceDisplay(dungeonIndex)
+                    if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
+                        // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
+                        popupIsActive <- true
+                        let pos = triforceIcon.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
+                        Dungeon.HiddenDungeonCustomizerPopup(cm, dungeonIndex, d.Color, d.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
+                    redraw()
+            )
+        for box in d.Boxes do
+            let bmp = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), false)
+            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
+            c.Children.Add(rect) |> ignore
+            if bmp <> null then
+                canvasAdd(c, Graphics.BMPtoImage bmp, 4., 4.)
+            match box.PlayerHas() with
+            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
+            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(c)
+            let mutable boxPopupIsActive = false
+            let activateComboBox(activationDelta) =
+                boxPopupIsActive <- true
+                let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
+                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+                    box.Set(newBoxCellValue, newPlayerHas)
+                    redraw()
+                    ), (fun () -> boxPopupIsActive <- false))
+            c.MouseDown.Add(fun ea ->
+                if not boxPopupIsActive then
+                    if ea.ButtonState = Input.MouseButtonState.Pressed &&
+                            (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
+                        ea.Handled <- true
+                        if box.CellCurrent() = -1 then
+                            activateComboBox(0)
+                        else
+                            box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
+                            redraw()
+                )
+            c.MouseWheel.Add(fun x -> if not boxPopupIsActive then activateComboBox(if x.Delta<0 then 1 else -1))
+            sp.Children.Add(c) |> ignore
+        sp.Children.Add(linkCanvas) |> ignore
+    redraw()
+    sp.Margin <- Thickness(6.,3.,6.,3.)
+    let pos = Point(pos.X-3., pos.Y-float(d.Boxes.Length+2)*30.-15.-30.)
+    let border = new Border(Child=sp, BorderThickness=Thickness(3.), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
+    let line,triangle = Graphics.makeArrow(30.*float dungeonIndex+15., 36.+float(d.Boxes.Length+1)*30., pos.X+24., pos.Y-3., yellow)
+    let rect = new Shapes.Rectangle(Width=36., Height=6.+float(d.Boxes.Length+1)*30., Stroke=yellow, StrokeThickness=3.)
+    line.Opacity <- 0.
+    triangle.Opacity <- 0.
+    rect.Opacity <- 0.
+    sp.MouseEnter.Add(fun _ ->
+        link1.Opacity <- 0.
+        link2.Opacity <- 1.
+        line.Opacity <- 1.
+        triangle.Opacity <- 1.
+        rect.Opacity <- 1.
+        border.BorderBrush <- yellow
+        )
+    sp.MouseLeave.Add(fun _ ->
+        link1.Opacity <- 1.
+        link2.Opacity <- 0.
+        line.Opacity <- 0.
+        triangle.Opacity <- 0.
+        rect.Opacity <- 0.
+        border.BorderBrush <- Brushes.DimGray
+        )
+    let c = new Canvas()
+    canvasAdd(c, border, pos.X, pos.Y)
+    canvasAdd(c, line, 0., 0.)
+    canvasAdd(c, triangle, 0., 0.)
+    canvasAdd(c, rect, 30.*float dungeonIndex-3., 27.)
+    c :> FrameworkElement
 
 let makeOutlineShapesImpl(quest:string[]) =
     let outlines = ResizeArray()
@@ -81,7 +195,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, isCurrentlyBook, updateTriforceDisplay) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 27*8 + 12*7))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -326,12 +440,13 @@ For the commonest case of a non-descript room needing no special marker, a quick
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
                         let h = 9.*3.*2.+ST*4.
+                        let tileSunglasses = 0.75
                         CustomComboBoxes.DoModalGridSelect(cm, roomPos.X, roomPos.Y, tileCanvas,
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
                                 let tile = roomBMPpairs(currentState) |> (fun (u,_c) -> u) |> Graphics.BMPtoImage
-                                tile.Opacity <- 0.75
+                                tile.Opacity <- tileSunglasses
                                 canvasAdd(tileCanvas, tile, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->
                                 if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
@@ -343,8 +458,12 @@ For the commonest case of a non-descript room needing no special marker, a quick
                                     dismissPopup()
                                     popupState <- Dungeon.DelayedPopupState.NONE
                                 ),
-                            (fun () -> popupState <- Dungeon.DelayedPopupState.NONE),   // onClose
-                            [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST],
+                            (fun () -> // onClose
+                                let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), cm.AppMainCanvas)
+                                Graphics.WarpMouseCursorTo(pos)
+                                popupState <- Dungeon.DelayedPopupState.NONE),   
+                            [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST
+                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, tileSunglasses, isCurrentlyBook, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
                             (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then

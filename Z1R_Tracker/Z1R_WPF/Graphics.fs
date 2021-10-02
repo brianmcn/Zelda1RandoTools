@@ -52,6 +52,23 @@ let makeGrid(nc, nr, cw, rh) =
     for i = 0 to nr-1 do
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
+let makeArrow(targetX, targetY, sourceX, sourceY, brush) =
+    let tx,ty = targetX, targetY
+    let sx,sy = sourceX, sourceY
+    // line from source to target
+    let line = new Shapes.Line(X1=sx, Y1=sy, X2=tx, Y2=ty, Stroke=brush, StrokeThickness=3.)
+    line.StrokeDashArray <- new DoubleCollection(seq[5.;4.])
+    // 93% along the line towards the target, for an arrowhead base
+    let ax,ay = (tx-sx)*0.93+sx, (ty-sy)*0.93+sy
+    // differential between target and arrowhead base
+    let dx,dy = tx-ax, ty-ay
+    // points orthogonal to the line from the base
+    let p1x,p1y = ax+dy/2., ay-dx/2.
+    let p2x,p2y = ax-dy/2., ay+dx/2.
+    // triangle to make arrowhead
+    let triangle = new Shapes.Polygon(Fill=brush)
+    triangle.Points <- new PointCollection([Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y)])
+    line, triangle
 
 let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 let makeButton(text, fontSizeOpt, fgOpt) =
@@ -471,7 +488,9 @@ let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
             let r = new System.Drawing.Bitmap(16, 16)
             for x = 0 to 15 do
                 for y = 0 to 15 do
-                    r.SetPixel(x, y, bmp.GetPixel(16*i+x, y))
+                    let color = bmp.GetPixel(16*i+x, y)
+                    let color = if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then System.Drawing.Color.Transparent else color
+                    r.SetPixel(x, y, color)
             yield r
         |]
     a.[0], a.[1], a.[2], a.[3]

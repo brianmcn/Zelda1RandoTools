@@ -46,8 +46,6 @@ hotkeys
 SMALL
 
 
-some way to project e.g. 6 triforce&boxes onto 6's dungeon area, so not mouse to top when get?
-
 
 factoids for 'loading ui screen':
  -  a room with a gleeok cannot have a push block
