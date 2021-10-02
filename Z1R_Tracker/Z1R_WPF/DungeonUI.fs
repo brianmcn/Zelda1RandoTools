@@ -36,7 +36,7 @@ let roomBMPpairs(n) =
 let dungeonRoomMouseButtonExplainerDecoration =
     let ST = CustomComboBoxes.borderThickness
     let h = 9.*3.*2.+ST*4.
-    let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black, Opacity=0.6)
+    let d = new DockPanel(Height=h, LastChildFill=true, Background=Brushes.Black, Opacity=0.75)
     let mouseBMP = Graphics.mouseIconButtonColors2BMP
     let mouse = Graphics.BMPtoImage mouseBMP
     mouse.Height <- h
@@ -316,7 +316,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                         let tileCanvas = new Canvas(Width=13.*3., Height=9.*3., Background=Brushes.Black)
                         let originalStateIndex = if roomStates.[i,j] < 10 then roomStates.[i,j] else roomStates.[i,j] - 1
                         let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init (ROOMS-1) (fun n ->
-                            let tweak(im:Image) = im.Opacity <- 0.5; im
+                            let tweak(im:Image) = im.Opacity <- 0.65; im
                             if n < 10 then
                                 upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n)))), not(usedTransports.[n]=2) || n=originalStateIndex, n
                             else
@@ -331,7 +331,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
                                 let tile = roomBMPpairs(currentState) |> (fun (u,_c) -> u) |> Graphics.BMPtoImage
-                                tile.Opacity <- 0.6
+                                tile.Opacity <- 0.75
                                 canvasAdd(tileCanvas, tile, 0., 0.)),
                             (fun (dismissPopup, ea, currentState) ->
                                 if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
