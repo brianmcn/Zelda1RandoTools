@@ -11,16 +11,16 @@ let voice = OptionsMenu.voice
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
-    let shouldRemind =
+    let shouldRemindVoice, shouldRemindVisual =
         match category with
-        | TrackerModel.ReminderCategory.Blockers -> true // TODO option
-        | TrackerModel.ReminderCategory.CoastItem -> TrackerModel.Options.VoiceReminders.CoastItem.Value
-        | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModel.Options.VoiceReminders.DungeonFeedback.Value
-        | TrackerModel.ReminderCategory.HaveKeyLadder -> TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value
-        | TrackerModel.ReminderCategory.RecorderPBSpots -> TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value
-        | TrackerModel.ReminderCategory.SwordHearts -> TrackerModel.Options.VoiceReminders.SwordHearts.Value
-    if shouldRemind then 
-        reminderAgent.Post(text, icons)
+        | TrackerModel.ReminderCategory.Blockers ->        TrackerModel.Options.VoiceReminders.Blockers.Value,        TrackerModel.Options.VisualReminders.Blockers.Value
+        | TrackerModel.ReminderCategory.CoastItem ->       TrackerModel.Options.VoiceReminders.CoastItem.Value,       TrackerModel.Options.VisualReminders.CoastItem.Value
+        | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModel.Options.VoiceReminders.DungeonFeedback.Value, TrackerModel.Options.VisualReminders.DungeonFeedback.Value
+        | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value,   TrackerModel.Options.VisualReminders.HaveKeyLadder.Value
+        | TrackerModel.ReminderCategory.RecorderPBSpots -> TrackerModel.Options.VoiceReminders.RecorderPBSpots.Value, TrackerModel.Options.VisualReminders.RecorderPBSpots.Value
+        | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
+    if shouldRemindVoice || shouldRemindVisual then 
+        reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual)
 let ReminderTextBox(txt) : FrameworkElement = 
     upcast new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., FontWeight=FontWeights.Bold, IsHitTestVisible=false,
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
@@ -2114,29 +2114,35 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, reminderDisplayOuterDockPanel, 0., START_TIMELINE_H)
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
-            let! (text,icons) = inbox.Receive()
+            let! (text,shouldRemindVoice,icons,shouldRemindVisual) = inbox.Receive()
             do! Async.SwitchToContext(cxt)
-            let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
-            for i in icons do
-                i.Margin <- Thickness(3.)
-                sp.Children.Add(i) |> ignore
-            let iconCount = sp.Children.Count
-            Graphics.PlaySoundForReminder()
-            reminderDisplayInnerDockPanel.Children.Clear()
-            DockPanel.SetDock(sp, Dock.Right)
-            reminderDisplayInnerDockPanel.Children.Add(sp) |> ignore
-            reminderDisplayOuterDockPanel.Opacity <- 1.
-            do! Async.SwitchToThreadPool()
-            do! Async.Sleep(200) // give reminder clink sound time to play
-            let startSpeakTime = DateTime.Now
-            voice.Speak(text) 
-            let minimumDuration = TimeSpan.FromSeconds(max 3 iconCount |> float)  // ensure at least 1s per icon
-            let elapsed = DateTime.Now - startSpeakTime
-            if elapsed < minimumDuration then
-                let ms = (minimumDuration - elapsed).TotalMilliseconds |> int
-                do! Async.Sleep(ms)   // ensure ui displayed a minimum time
-            do! Async.SwitchToContext(cxt)
-            reminderDisplayOuterDockPanel.Opacity <- 0.
+            if not(TrackerModel.Options.IsMuted) then
+                let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
+                for i in icons do
+                    i.Margin <- Thickness(3.)
+                    sp.Children.Add(i) |> ignore
+                let iconCount = sp.Children.Count
+                if shouldRemindVisual then
+                    Graphics.PlaySoundForReminder()
+                reminderDisplayInnerDockPanel.Children.Clear()
+                DockPanel.SetDock(sp, Dock.Right)
+                reminderDisplayInnerDockPanel.Children.Add(sp) |> ignore
+                if shouldRemindVisual then
+                    reminderDisplayOuterDockPanel.Opacity <- 1.
+                do! Async.SwitchToThreadPool()
+                if shouldRemindVisual then
+                    do! Async.Sleep(200) // give reminder clink sound time to play
+                let startSpeakTime = DateTime.Now
+                if shouldRemindVoice then
+                    voice.Speak(text) 
+                if shouldRemindVisual then
+                    let minimumDuration = TimeSpan.FromSeconds(max 3 iconCount |> float)  // ensure at least 3s, and at least 1s per icon
+                    let elapsed = DateTime.Now - startSpeakTime
+                    if elapsed < minimumDuration then
+                        let ms = (minimumDuration - elapsed).TotalMilliseconds |> int
+                        do! Async.Sleep(ms)   // ensure ui displayed a minimum time
+                do! Async.SwitchToContext(cxt)
+                reminderDisplayOuterDockPanel.Opacity <- 0.
             return! messageLoop()
             }
         messageLoop()

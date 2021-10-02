@@ -14,20 +14,23 @@ type Win32() =
         let pos = theWindow.PointToScreen(new Point(x,y))
         SetCursorPos(int pos.X, int pos.Y) |> ignore
 
+let volumeChanged = new Event<int>()
 let soundPlayer = new MediaPlayer()
-soundPlayer.Volume <- 0.1   // TODO make this adjustable
+soundPlayer.Volume <- float TrackerModel.Options.Volume / 300.
 soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
 let PlaySoundForSpeechRecognizedAndUsedToMark() =
     soundPlayer.Position <- TimeSpan(0L)
     soundPlayer.Play()
 let soundPlayer2 = new MediaPlayer()
-soundPlayer2.Volume <- 0.1   // TODO make this adjustable
+soundPlayer2.Volume <- float TrackerModel.Options.Volume / 300.
 soundPlayer2.Open(new Uri("reminder_clink.wav", UriKind.Relative))
 let PlaySoundForReminder() =
     soundPlayer2.Position <- TimeSpan(0L)
     soundPlayer2.Play()
-
-
+volumeChanged.Publish.Add(fun v ->
+    soundPlayer.Volume <- float v / 300.
+    soundPlayer2.Volume <- float v / 300.
+    )
 
 
 let GetResourceStream(name) = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name)

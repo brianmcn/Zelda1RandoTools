@@ -267,7 +267,9 @@ SPEECH SYNTHESIS (WPF only)
 
 There are a variety of spoken reminders triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
 You can toggle various categories of voice reminders in the Options menu.
+
 Visual icons representing these spoken reminders appear in the upper right corner of the timeline, both on Windows and on Linux.
+You can toggle various categories of visual reminders in the Options menu.
 
 
 SPEECH RECOGNITION (WPF only)

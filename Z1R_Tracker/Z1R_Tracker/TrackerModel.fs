@@ -15,7 +15,7 @@ type ReminderCategory =
     | CoastItem
     | RecorderPBSpots
     | HaveKeyLadder
-    | Blockers  // TODO make option for it?
+    | Blockers
 
 module Options =
     type Bool(init) =
@@ -31,6 +31,14 @@ module Options =
         let mutable CoastItem = Bool(true)
         let mutable RecorderPBSpots = Bool(true)
         let mutable HaveKeyLadder = Bool(true)
+        let mutable Blockers = Bool(true)
+    module VisualReminders =
+        let mutable DungeonFeedback = Bool(true)
+        let mutable SwordHearts = Bool(true)
+        let mutable CoastItem = Bool(true)
+        let mutable RecorderPBSpots = Bool(true)
+        let mutable HaveKeyLadder = Bool(true)
+        let mutable Blockers = Bool(true)
     let mutable ListenForSpeech = Bool(true)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
@@ -45,11 +53,19 @@ module Options =
         member val HighlightNearby = true with get,set
         member val ShowMagnifier = true with get,set
 
-        member val DungeonFeedback = true with get,set
-        member val SwordHearts = true with get,set
-        member val CoastItem = true with get,set
-        member val RecorderPBSpots = true with get,set
-        member val HaveKeyLadder = true with get,set
+        member val Voice_DungeonFeedback = true with get,set
+        member val Voice_SwordHearts = true with get,set
+        member val Voice_CoastItem = true with get,set
+        member val Voice_RecorderPBSpots = true with get,set
+        member val Voice_HaveKeyLadder = true with get,set
+        member val Voice_Blockers = true with get,set
+
+        member val Visual_DungeonFeedback = true with get,set
+        member val Visual_SwordHearts = true with get,set
+        member val Visual_CoastItem = true with get,set
+        member val Visual_RecorderPBSpots = true with get,set
+        member val Visual_HaveKeyLadder = true with get,set
+        member val Visual_Blockers = true with get,set
         
         member val ListenForSpeech = true with get,set
         member val RequirePTTForSpeech = false with get,set
@@ -71,11 +87,19 @@ module Options =
             Overworld.HighlightNearby.Value <- data.HighlightNearby
             Overworld.ShowMagnifier.Value <- data.ShowMagnifier
 
-            VoiceReminders.DungeonFeedback.Value <- data.DungeonFeedback
-            VoiceReminders.SwordHearts.Value <- data.SwordHearts
-            VoiceReminders.CoastItem.Value <- data.CoastItem
-            VoiceReminders.RecorderPBSpots.Value <- data.RecorderPBSpots
-            VoiceReminders.HaveKeyLadder.Value <- data.HaveKeyLadder
+            VoiceReminders.DungeonFeedback.Value <- data.Voice_DungeonFeedback
+            VoiceReminders.SwordHearts.Value <-     data.Voice_SwordHearts
+            VoiceReminders.CoastItem.Value <-       data.Voice_CoastItem
+            VoiceReminders.RecorderPBSpots.Value <- data.Voice_RecorderPBSpots
+            VoiceReminders.HaveKeyLadder.Value <-   data.Voice_HaveKeyLadder
+            VoiceReminders.Blockers.Value <-        data.Voice_Blockers
+
+            VisualReminders.DungeonFeedback.Value <- data.Visual_DungeonFeedback
+            VisualReminders.SwordHearts.Value <-     data.Visual_SwordHearts
+            VisualReminders.CoastItem.Value <-       data.Visual_CoastItem
+            VisualReminders.RecorderPBSpots.Value <- data.Visual_RecorderPBSpots
+            VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
+            VisualReminders.Blockers.Value <-        data.Visual_Blockers
 
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
@@ -96,11 +120,19 @@ module Options =
         data.HighlightNearby <- Overworld.HighlightNearby.Value
         data.ShowMagnifier <- Overworld.ShowMagnifier.Value
 
-        data.DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
-        data.SwordHearts <- VoiceReminders.SwordHearts.Value
-        data.CoastItem <- VoiceReminders.CoastItem.Value
-        data.RecorderPBSpots <- VoiceReminders.RecorderPBSpots.Value
-        data.HaveKeyLadder <- VoiceReminders.HaveKeyLadder.Value
+        data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
+        data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
+        data.Voice_CoastItem <-       VoiceReminders.CoastItem.Value
+        data.Voice_RecorderPBSpots <- VoiceReminders.RecorderPBSpots.Value
+        data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
+        data.Voice_Blockers <-        VoiceReminders.Blockers.Value
+
+        data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
+        data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
+        data.Visual_CoastItem <-       VisualReminders.CoastItem.Value
+        data.Visual_RecorderPBSpots <- VisualReminders.RecorderPBSpots.Value
+        data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
+        data.Visual_Blockers <-        VisualReminders.Blockers.Value
 
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value

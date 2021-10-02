@@ -136,7 +136,7 @@ type MyWindow() as this =
         let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
-        let options = OptionsMenu.makeOptionsCanvas(0.)
+        let options = OptionsMenu.makeOptionsCanvas()
         stackPanel.Children.Add(options) |> ignore
 
         let tb = dock <| new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)

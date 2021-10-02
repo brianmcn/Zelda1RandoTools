@@ -18,9 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-OptionsMenu for visual notifications of spoken reminders
-
-
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
