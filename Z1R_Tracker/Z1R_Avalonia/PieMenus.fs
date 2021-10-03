@@ -8,6 +8,133 @@ open Avalonia.Layout
 let canvasAdd = Graphics.canvasAdd
 let OMTW = Graphics.OMTW
 
+let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[],onClose) =
+    let c = new Canvas(IsHitTestVisible=true)
+    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-20., Height=h, Background=Brushes.Black, Opacity=0.01)
+    c.Children.Add(someDrawnPixelToSeeMouseMoves)
+    let ps = ResizeArray()
+    let mutable leftPanel,topPanel,rightPanel,bottomPanel = None,None,None,None
+    let selfCleanupFuncs = ResizeArray()    
+    for p, dock, behavior in bordersDocksBehaviors do
+        match dock with
+        | Dock.Left   -> match leftPanel   with | Some _ -> failwith "multiple lefts"   | None -> leftPanel   <- Some(p, behavior)
+        | Dock.Right  -> match rightPanel  with | Some _ -> failwith "multiple rights"  | None -> rightPanel  <- Some(p, behavior)
+        | Dock.Top    -> match topPanel    with | Some _ -> failwith "multiple tops"    | None -> topPanel    <- Some(p, behavior)
+        | Dock.Bottom -> match bottomPanel with | Some _ -> failwith "multiple bottoms" | None -> bottomPanel <- Some(p, behavior)
+        | _ -> failwith "bad Dock value"
+        let dp = new DockPanel(Width=16.*OMTW-20., Height=h, LastChildFill=false)
+        DockPanel.SetDock(p, dock)
+        dp.Children.Add(p) |> ignore
+        selfCleanupFuncs.Add(fun () -> dp.Children.Clear())  // deparent the panels so we can reuse them
+        canvasAdd(c, dp, 10., 10.)
+        ps.Add(p)
+    let onCloseOrDismiss() =
+        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
+        for f in selfCleanupFuncs do f()
+        onClose()
+    let innerH = h - 2.*(let b,_,_ = bordersDocksBehaviors.[0] in b.Height)
+    let g = new Grid(Width=16.*OMTW-20., Height=h)
+    let circle = new Shapes.Ellipse(Width=innerH, Height=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    g.Children.Add(circle) |> ignore
+    //let slash = new Shapes.Line(X1=0., Y1=innerH, X2=innerH, Y2=0., Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    //g.Children.Add(slash) |> ignore
+    let r = innerH/2.
+    let root2 = 1.414
+    let delta = r - r/root2
+    let lineCanvas = new Canvas(Width=innerH, Height=innerH)
+    let slash1 = new Shapes.Line(StartPoint=Point(0., innerH), EndPoint=Point(delta, innerH-delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(slash1) |> ignore
+    let slash2 = new Shapes.Line(StartPoint=Point(innerH-delta, delta), EndPoint=Point(innerH, 0.), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(slash2) |> ignore
+    let backslash1 = new Shapes.Line(StartPoint=Point(0., 0.), EndPoint=Point(delta, delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(backslash1) |> ignore
+    let backslash2 = new Shapes.Line(StartPoint=Point(innerH-delta, innerH-delta), EndPoint=Point(innerH, innerH), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(backslash2) |> ignore
+    g.Children.Add(lineCanvas) |> ignore
+    //let backslash = new Shapes.Line(X1=0., Y1=0., X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    //g.Children.Add(backslash) |> ignore
+    let outerCircle = new Shapes.Ellipse(Width=innerH*1.414, Height=innerH*1.414, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    outerCircle.StrokeDashArray <- new Collections.AvaloniaList<_>([|1.;2.|])
+    g.Children.Add(outerCircle) |> ignore
+    canvasAdd(c, g, 10., 10.)
+    let center = Point(8.*OMTW,h*0.5)
+    let mutable currentSelection = -1
+    c.PointerMoved.Add(fun ea ->
+        let pos = ea.GetPosition(c)
+        let vector = pos - center
+        let distance = sqrt(vector.X*vector.X + vector.Y*vector.Y)
+        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
+        currentSelection <- -1
+        if distance > innerH/2. then
+            if vector.X > 0. && vector.X > abs(vector.Y) then
+                match rightPanel with
+                | Some(p,_) ->
+                    p.BorderBrush <- Brushes.Yellow
+                    currentSelection <- int Dock.Right
+                | None -> currentSelection <- -1
+            elif vector.X < 0. && abs(vector.X) > abs(vector.Y) then
+                match leftPanel with
+                | Some(p,_) ->
+                    p.BorderBrush <- Brushes.Yellow
+                    currentSelection <- int Dock.Left
+                | None -> currentSelection <- -1
+            elif vector.Y < 0. && abs(vector.Y) > abs(vector.X) then
+                match topPanel with
+                | Some(p,_) ->
+                    p.BorderBrush <- Brushes.Yellow
+                    currentSelection <- int Dock.Top
+                | None -> currentSelection <- -1
+            elif vector.Y > 0. && vector.Y > abs(vector.X) then
+                match bottomPanel with
+                | Some(p,_) ->
+                    p.BorderBrush <- Brushes.Yellow
+                    currentSelection <- int Dock.Bottom
+                | None -> currentSelection <- -1
+            else
+                currentSelection <- -1
+        else
+            currentSelection <- -1
+        )
+    let mutable dismiss = fun()->()
+    let click() =
+        if currentSelection=int Dock.Left then
+            match leftPanel with
+            | Some(_,b) -> b()
+            | None -> failwith "impossible"
+        elif currentSelection=int Dock.Top then
+            match topPanel with
+            | Some(_,b) -> b()
+            | None -> failwith "impossible"
+        elif currentSelection=int Dock.Right then
+            match rightPanel with
+            | Some(_,b) -> b()
+            | None -> failwith "impossible"
+        elif currentSelection=int Dock.Bottom then
+            match bottomPanel with
+            | Some(_,b) -> b()
+            | None -> failwith "impossible"
+        else // cancel
+            ()
+    c.PointerPressed.Add(fun ea ->
+        ea.Handled <- true
+        click()
+        dismiss()
+        onCloseOrDismiss()
+        )
+    let mutable isFirstTimeMouseUp = true
+    c.PointerReleased.Add(fun ea ->
+        if isFirstTimeMouseUp && currentSelection = -1 then
+            isFirstTimeMouseUp <- false
+        else
+            ea.Handled <- true
+            click()
+            dismiss()
+            onCloseOrDismiss()
+        )
+    Graphics.WarpMouseCursorTo(center)
+    dismiss <- CustomComboBoxes.DoModal(cm, 0., 0., c, onCloseOrDismiss)
+
+
 let takeAnyW = 270.
 let takeAnyH = 180.
 let BT = 5.
@@ -37,6 +164,9 @@ let makeXtoY(x,y,rightMargin,group:StackPanel) =
     group.Children.Add(row) |> ignore
 
 let TAKE_ANY = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
+let SWORD1 = TrackerModel.MapSquareChoiceDomainHelper.SWORD1
+
+// TAKE ANY ONE YOU WANT
 
 let takeAnyCandlePanel = 
     let c1 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.no)
@@ -80,123 +210,79 @@ let takeAnyLeavePanel =
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     b
 
-let TakeAnyPieMenu(appMainCanvas,h,markTakeAnyAsComplete,onClose) =
-    let c = new Canvas(IsHitTestVisible=true)
-    let ps = ResizeArray()
-    let selfCleanupFuncs = ResizeArray()    
-    for p, dock in [takeAnyCandlePanel,Dock.Top; takeAnyPotionPanel,Dock.Left; takeAnyHeartPanel,Dock.Right; takeAnyLeavePanel,Dock.Bottom] do
-        let dp = new DockPanel(Width=16.*OMTW-20., Height=h, LastChildFill=false)
-        DockPanel.SetDock(p, dock)
-        dp.Children.Add(p) |> ignore
-        selfCleanupFuncs.Add(fun () -> dp.Children.Clear())  // deparent the panels so we can reuse them
-        canvasAdd(c, dp, 10., 10.)
-        ps.Add(p)
-    let onCloseOrDismiss() =
-        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
-        for f in selfCleanupFuncs do f()
-        onClose()
-    let innerH = h - 2.*takeAnyCandlePanel.Height
-    let g = new Grid(Width=16.*OMTW-20., Height=h)
-    let circle = new Shapes.Ellipse(Width=innerH, Height=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    g.Children.Add(circle) |> ignore
-    //let slash = new Shapes.Line(X1=0., Y1=innerH, X2=innerH, Y2=0., Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    //g.Children.Add(slash) |> ignore
-    let r = innerH/2.
-    let root2 = 1.414
-    let delta = r - r/root2
-    let lineCanvas = new Canvas(Width=innerH, Height=innerH)
-    let slash1 = new Shapes.Line(StartPoint=Point(0., innerH), EndPoint=Point(delta, innerH-delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(slash1) |> ignore
-    let slash2 = new Shapes.Line(StartPoint=Point(innerH-delta, delta), EndPoint=Point(innerH, 0.), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(slash2) |> ignore
-    let backslash1 = new Shapes.Line(StartPoint=Point(0., 0.), EndPoint=Point(delta, delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(backslash1) |> ignore
-    let backslash2 = new Shapes.Line(StartPoint=Point(innerH-delta, innerH-delta), EndPoint=Point(innerH, innerH), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(backslash2) |> ignore
-    g.Children.Add(lineCanvas) |> ignore
-    //let backslash = new Shapes.Line(X1=0., Y1=0., X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    //g.Children.Add(backslash) |> ignore
-    let outerCircle = new Shapes.Ellipse(Width=innerH*1.414, Height=innerH*1.414, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    outerCircle.StrokeDashArray <- new Collections.AvaloniaList<_>([|1.;2.|])
-    g.Children.Add(outerCircle) |> ignore
-    canvasAdd(c, g, 10., 10.)
-    let center = Point(8.*OMTW,h*0.5)
-    let mutable currentSelection = -1
-    c.PointerMoved.Add(fun ea ->
-        let pos = ea.GetPosition(c)
-        let vector = pos - center
-        let distance = sqrt(vector.X*vector.X + vector.Y*vector.Y)
-        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
-        currentSelection <- -1
-        if distance > innerH/2. then
-            if vector.X > 0. && vector.X > abs(vector.Y) then
-                ps.[2].BorderBrush <- Brushes.Yellow
-                currentSelection <- 2
-            elif vector.X < 0. && abs(vector.X) > abs(vector.Y) then
-                ps.[1].BorderBrush <- Brushes.Yellow
-                currentSelection <- 1
-            elif vector.Y < 0. && abs(vector.Y) > abs(vector.X) then
-                ps.[0].BorderBrush <- Brushes.Yellow
-                currentSelection <- 0
-            elif vector.Y > 0. && vector.Y > abs(vector.X) then
-                ps.[3].BorderBrush <- Brushes.Yellow
-                currentSelection <- 3
-        )
-    let mutable dismiss = fun()->()
-    let click() =
-        let whichHeart() =
-            if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(0)=0 then 0
-            elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(1)=0 then 1
-            elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(2)=0 then 2
-            elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(3)=0 then 3
-            else 
-//                System.Media.SystemSounds.Asterisk.Play()  // warn the user something is awry
-                -1
-        if currentSelection=0 then // candle
-            let which = whichHeart()
-            if which <> -1 then
-                TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 2)
-            TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Set(true)
-            markTakeAnyAsComplete(true)
-        elif currentSelection=1 then // potion
-            let which = whichHeart()
-            if which <> -1 then
-                TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 2)
-            markTakeAnyAsComplete(true)
-        elif currentSelection=2 then // heart
-            let which = whichHeart()
-            if which <> -1 then
-                TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 1)
-            markTakeAnyAsComplete(true)
-        else // leave or cancel
-            markTakeAnyAsComplete(false)
-    c.PointerPressed.Add(fun ea ->
-        ea.Handled <- true
-        click()
-        dismiss()
-        onCloseOrDismiss()
-        )
-    let mutable isFirstTimeMouseUp = true
-    c.PointerReleased.Add(fun ea ->
-        if isFirstTimeMouseUp && currentSelection = -1 then
-            isFirstTimeMouseUp <- false
-        else
-            ea.Handled <- true
-            click()
-            dismiss()
-            onCloseOrDismiss()
-        )
-    Graphics.WarpMouseCursorTo(center)
-    dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 0., 0., c, onCloseOrDismiss)
-
-let TakeAnyPieMenuAsync(appMainCanvas,h) =
+let TakeAnyPieMenuAsync(cm,h) =
+    let whichHeart() =
+        if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(0)=0 then 0
+        elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(1)=0 then 1
+        elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(2)=0 then 2
+        elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(3)=0 then 3
+        else 
+//            System.Media.SystemSounds.Asterisk.Play()  // warn the user something is awry
+            -1
     let mutable r = false
+    let candleBehavior() =
+        let which = whichHeart()
+        if which <> -1 then
+            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 2)
+        TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Set(true)
+        r <- true
+    let potionBehavior() =
+        let which = whichHeart()
+        if which <> -1 then
+            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 2)
+        r <- true
+    let heartBehavior() =
+        let which = whichHeart()
+        if which <> -1 then
+            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 1)
+        r <- true
+    let bordersDocksBehaviors = [|
+        takeAnyCandlePanel, Dock.Top,    candleBehavior
+        takeAnyPotionPanel, Dock.Left,   potionBehavior
+        takeAnyHeartPanel,  Dock.Right,  heartBehavior
+        takeAnyLeavePanel,  Dock.Bottom, fun()->()
+        |]
     let wh = new System.Threading.ManualResetEvent(false)
     async {
         let cxt = System.Threading.SynchronizationContext.Current
-        TakeAnyPieMenu(appMainCanvas, h, (fun b -> r <- b), (fun() -> wh.Set() |> ignore))
+        FourWayPieMenu(cm, h, bordersDocksBehaviors, (fun() -> wh.Set() |> ignore))
         let! _ = Async.AwaitWaitHandle(wh)
         wh.Close()
         do! Async.SwitchToContext(cxt)
         return r
     }
+
+// IT'S DANGEROUS TO GO ALONE - TAKE THIS
+
+let takeThisCandlePanel = 
+    let c1 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.no)
+    let c2 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.yes)
+    let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+    let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    makeXtoY(c1, c2, rightMarginSize, group)
+    makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
+    col.Children.Add(group) |> ignore
+    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    b
+
+let takeThisWoodSwordPanel = 
+    let c1 = makeItemBox(Graphics.brown_sword_bmp,CustomComboBoxes.no)
+    let c2 = makeItemBox(Graphics.brown_sword_bmp,CustomComboBoxes.yes)
+    let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+    let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    makeXtoY(c1, c2, rightMarginSize, group)
+    makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
+    col.Children.Add(group) |> ignore
+    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    b
+
+let takeThisLeavePanel = 
+    let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+    let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], 0., group)
+    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    col.Children.Add(group) |> ignore
+    let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    b

@@ -37,6 +37,7 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY,
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 666.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
+// TODO add sword1
 
 let GetIconBMP(ms:MapStateProxy,i,j) =
     if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
@@ -67,6 +68,11 @@ let GetIconBMP(ms:MapStateProxy,i,j) =
             Graphics.theFullTileBmpTable.[ms.State].[1]
         else
             Graphics.theFullTileBmpTable.[ms.State].[0]
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+            Graphics.theFullTileBmpTable.[ms.State].[1]
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[0]
     else
         ms.CurrentBMP()
 
@@ -92,6 +98,14 @@ let DoRightClick(msp:MapStateProxy,i,j) =  // returns tuple of two booleans (nee
             TrackerModel.setOverworldMapExtraData(i,j,0)
         else
             TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
+        true, false
+    elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+        // right click the wood sword cave to toggle it 'used'
+        let ex = TrackerModel.getOverworldMapExtraData(i,j)
+        if ex=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+            TrackerModel.setOverworldMapExtraData(i,j,0)
+        else
+            TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SWORD1)
         true, false
     else
         false, false

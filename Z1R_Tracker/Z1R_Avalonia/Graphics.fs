@@ -387,6 +387,7 @@ do
     theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1))
     // 15  sword1
     theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2))
+    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2) |> darken)
     // 16-23  item shops (as single-item icons)
     for i = 0 to TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS-1 do
         let bmp = new System.Drawing.Bitmap(5*3,9*3)
