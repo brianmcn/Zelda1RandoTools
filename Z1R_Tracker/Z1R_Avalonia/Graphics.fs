@@ -8,7 +8,7 @@ open Avalonia
 
 let GetResourceStream(name) =
     let assets = Avalonia.AvaloniaLocator.Current.GetService(typeof<Avalonia.Platform.IAssetLoader>) :?> Avalonia.Platform.IAssetLoader
-    assets.Open(new Uri("resm:Z1R_Avalonia." + name))
+    assets.Open(new Uri("resm:Z1R_Avalonia.icons." + name))
 
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
