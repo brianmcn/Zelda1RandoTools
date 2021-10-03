@@ -334,12 +334,13 @@ let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
     999 // meat shop
     999 // key shop
     999 // shield shop
-    999 // take any
+    4   // take any
     999 // potion shop      // 25
     999 // money
     999 // X (nothing, but visited)
     |])
 type MapSquareChoiceDomainHelper = 
+    // item shop stuff
     static member ARROW = 16
     static member BOMB = 17
     static member BOOK = 18
@@ -351,6 +352,8 @@ type MapSquareChoiceDomainHelper =
     static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
     static member IsItem(state) = state >=16 && state <=23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
+    // other stuff
+    static member TAKE_ANY = 24
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -376,10 +379,17 @@ Model is not enitrely threadsafe; will do all these computations on the UI threa
 
 type BoolProperty(initState,changedFunc) =
     let mutable state = initState
+    let changed = new Event<_>()
+    member _this.Set(b) =
+        state <- b
+        changedFunc()
+        changed.Trigger(state)
     member _this.Toggle() =
         state <- not state
         changedFunc()
+        changed.Trigger(state)
     member _this.Value() = state
+    member _this.Changed = changed.Publish
 let mutable playerProgressLastChangedTime = System.DateTime.Now
 type PlayerProgressAndTakeAnyHearts() =
     // describes the state directly accessible in the upper right portion of the UI
@@ -393,8 +403,13 @@ type PlayerProgressAndTakeAnyHearts() =
     let playerHasDefeatedGanon = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasRescuedZelda  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
     let playerHasBombs         = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
+    let takeAnyHeartChanged = new Event<_>()
     member _this.GetTakeAnyHeart(i) = takeAnyHearts.[i]
-    member _this.SetTakeAnyHeart(i,v) = takeAnyHearts.[i] <- v; playerProgressLastChangedTime <- System.DateTime.Now
+    member _this.SetTakeAnyHeart(i,v) = 
+        takeAnyHearts.[i] <- v
+        playerProgressLastChangedTime <- System.DateTime.Now
+        takeAnyHeartChanged.Trigger(i)
+    member _this.TakeAnyHeartChanged = takeAnyHeartChanged.Publish
     member _this.PlayerHasBoomBook      = playerHasBoomBook
     member _this.PlayerHasWoodSword     = playerHasWoodSword     
     member _this.PlayerHasWoodArrow     = playerHasWoodArrow
@@ -624,7 +639,10 @@ let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST
 
 let mutable mapLastChangedTime = System.DateTime.Now
 let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
-let private overworldMapExtraData = Array2D.create 16 8 0   // extra data, currently only used by 3-item shops to store the second item, where 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
+let private overworldMapExtraData = Array2D.create 16 8 0   
+// extra data, used by 
+//  - 3-item shops to store the second item, where 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
+//  - take any (24), where 24 means 'taken' (dark) and anything else means not yet taken (bright)
 let getOverworldMapExtraData(i,j) = overworldMapExtraData.[i,j]
 let setOverworldMapExtraData(i,j,x) = 
     overworldMapExtraData.[i,j] <- x

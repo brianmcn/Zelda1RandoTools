@@ -1,14 +1,15 @@
 ﻿module PieMenus
 
-open System.Windows.Controls
-open System.Windows.Media
-open System.Windows
+open Avalonia.Controls
+open Avalonia.Media
+open Avalonia
+open Avalonia.Layout
 
 let canvasAdd = Graphics.canvasAdd
 let OMTW = Graphics.OMTW
 
-let takeAnyW = 330.
-let takeAnyH = 220.
+let takeAnyW = 270.
+let takeAnyH = 180.
 let BT = 5.
 
 let makeSkippedHeart() =
@@ -26,12 +27,12 @@ let takeAnyCandlePanel =
     canvasAdd(c2, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,40.,0.))
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,10.,0.))
     row.Children.Add(Graphics.BMPtoImage Graphics.owHeartEmpty_bmp) |> ignore
     row.Children.Add(Graphics.BMPtoImage Graphics.iconRightArrow_bmp) |> ignore
     row.Children.Add(makeSkippedHeart()) |> ignore
     group.Children.Add(row) |> ignore
-    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,40.,0.))
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,10.,0.))
     row.Children.Add(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[24].[0]) |> ignore
     row.Children.Add(Graphics.BMPtoImage Graphics.iconRightArrow_bmp) |> ignore
     row.Children.Add(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[24].[1]) |> ignore
@@ -111,7 +112,7 @@ let takeAnyLeavePanel =
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     b
 
-let TakeAnyPieMenu(cm,h,markTakeAnyAsComplete,onClose) =
+let TakeAnyPieMenu(appMainCanvas,h,markTakeAnyAsComplete,onClose) =
     let c = new Canvas(IsHitTestVisible=true)
     let ps = ResizeArray()
     let selfCleanupFuncs = ResizeArray()    
@@ -136,27 +137,27 @@ let TakeAnyPieMenu(cm,h,markTakeAnyAsComplete,onClose) =
     let root2 = 1.414
     let delta = r - r/root2
     let lineCanvas = new Canvas(Width=innerH, Height=innerH)
-    let slash1 = new Shapes.Line(X1=0., Y1=innerH, X2=delta, Y2=innerH-delta, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let slash1 = new Shapes.Line(StartPoint=Point(0., innerH), EndPoint=Point(delta, innerH-delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     lineCanvas.Children.Add(slash1) |> ignore
-    let slash2 = new Shapes.Line(X1=innerH-delta, Y1=delta, X2=innerH, Y2=0., Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let slash2 = new Shapes.Line(StartPoint=Point(innerH-delta, delta), EndPoint=Point(innerH, 0.), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     lineCanvas.Children.Add(slash2) |> ignore
-    let backslash1 = new Shapes.Line(X1=0., Y1=0., X2=delta, Y2=delta, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let backslash1 = new Shapes.Line(StartPoint=Point(0., 0.), EndPoint=Point(delta, delta), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     lineCanvas.Children.Add(backslash1) |> ignore
-    let backslash2 = new Shapes.Line(X1=innerH-delta, Y1=innerH-delta, X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let backslash2 = new Shapes.Line(StartPoint=Point(innerH-delta, innerH-delta), EndPoint=Point(innerH, innerH), Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     lineCanvas.Children.Add(backslash2) |> ignore
     g.Children.Add(lineCanvas) |> ignore
     //let backslash = new Shapes.Line(X1=0., Y1=0., X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     //g.Children.Add(backslash) |> ignore
     let outerCircle = new Shapes.Ellipse(Width=innerH*1.414, Height=innerH*1.414, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    outerCircle.StrokeDashArray <- new DoubleCollection([|1.;2.|])
+    outerCircle.StrokeDashArray <- new Collections.AvaloniaList<_>([|1.;2.|])
     g.Children.Add(outerCircle) |> ignore
     canvasAdd(c, g, 10., 10.)
     let center = Point(8.*OMTW,h*0.5)
     let mutable currentSelection = -1
-    c.MouseMove.Add(fun ea ->
+    c.PointerMoved.Add(fun ea ->
         let pos = ea.GetPosition(c)
-        let vector = Point.Subtract(pos, center)
-        let distance = vector.Length
+        let vector = pos - center
+        let distance = sqrt(vector.X*vector.X + vector.Y*vector.Y)
         ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
         currentSelection <- -1
         if distance > innerH/2. then
@@ -174,15 +175,14 @@ let TakeAnyPieMenu(cm,h,markTakeAnyAsComplete,onClose) =
                 currentSelection <- 3
         )
     let mutable dismiss = fun()->()
-    let click(ea:Input.MouseEventArgs) =
-        ea.Handled <- true
+    let click() =
         let whichHeart() =
             if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(0)=0 then 0
             elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(1)=0 then 1
             elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(2)=0 then 2
             elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(3)=0 then 3
             else 
-                System.Media.SystemSounds.Asterisk.Play()  // warn the user something is awry
+//                System.Media.SystemSounds.Asterisk.Play()  // warn the user something is awry
                 -1
         if currentSelection=0 then // candle
             let which = whichHeart()
@@ -202,29 +202,31 @@ let TakeAnyPieMenu(cm,h,markTakeAnyAsComplete,onClose) =
             markTakeAnyAsComplete(true)
         else // leave or cancel
             markTakeAnyAsComplete(false)
-    c.MouseDown.Add(fun ea ->
-        click(ea)
+    c.PointerPressed.Add(fun ea ->
+        ea.Handled <- true
+        click()
         dismiss()
         onCloseOrDismiss()
         )
     let mutable isFirstTimeMouseUp = true
-    c.MouseUp.Add(fun ea ->
+    c.PointerReleased.Add(fun ea ->
         if isFirstTimeMouseUp && currentSelection = -1 then
             isFirstTimeMouseUp <- false
         else
-            click(ea)
+            ea.Handled <- true
+            click()
             dismiss()
             onCloseOrDismiss()
         )
     Graphics.WarpMouseCursorTo(center)
-    dismiss <- CustomComboBoxes.DoModal(cm, 0., 0., c, onCloseOrDismiss)
+    dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 0., 0., c, onCloseOrDismiss)
 
-let TakeAnyPieMenuAsync(cm,h) =
+let TakeAnyPieMenuAsync(appMainCanvas,h) =
     let mutable r = false
     let wh = new System.Threading.ManualResetEvent(false)
     async {
         let cxt = System.Threading.SynchronizationContext.Current
-        TakeAnyPieMenu(cm, h, (fun b -> r <- b), (fun() -> wh.Set() |> ignore))
+        TakeAnyPieMenu(appMainCanvas, h, (fun b -> r <- b), (fun() -> wh.Set() |> ignore))
         let! _ = Async.AwaitWaitHandle(wh)
         wh.Close()
         do! Async.SwitchToContext(cxt)

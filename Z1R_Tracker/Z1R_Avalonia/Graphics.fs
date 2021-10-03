@@ -298,6 +298,14 @@ let greyscale(bmp:System.Drawing.Bitmap) =
             let c = System.Drawing.Color.FromArgb(avg, avg, avg)
             r.SetPixel(px, py, c)
     r
+let darken(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(px,py)
+            let c = System.Drawing.Color.FromArgb(int(c.R/2uy), int(c.G/2uy), int(c.B/2uy))
+            r.SetPixel(px, py, c)
+    r
 
 let overworldImage =
     let imageStream = GetResourceStream("s_map_overworld_strip8.png")
@@ -392,6 +400,7 @@ do
         theInteriorBmpTable.[i+16].Add(bmp)
     // 24  take any
     theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3))
+    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3) |> darken)
     // 25  potion shop
     theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4))
     // 26  money
@@ -431,14 +440,22 @@ let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
         |]
     a.[0], a.[1], a.[2], a.[3]
 
-let mouseIconButtonColorsBMP =
-    let imageStream = GetResourceStream("mouse-icon-button-colors.png")
+let loadBMP(filename) = 
+    let imageStream = GetResourceStream(filename)
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
-let mouseIconButtonColors2BMP =
-    let imageStream = GetResourceStream("mouse-icon-button-colors-2.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    bmp
+let mouseIconButtonColorsBMP = loadBMP("mouse-icon-button-colors.png")
+let mouseIconButtonColors2BMP = loadBMP("mouse-icon-button-colors-2.png")
+let clipTakeAny(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(672, 448)
+    for x = 0 to 671 do
+        for y = 0 to 447 do
+            r.SetPixel(x,y,bmp.GetPixel(x+48, y+45))
+    r
+let takeAnyPotionBMP = loadBMP("take-any-potion.png") |> clipTakeAny
+let takeAnyCandleBMP = loadBMP("take-any-candle.png") |> clipTakeAny
+let takeAnyHeartBMP = loadBMP("take-any-heart.png") |> clipTakeAny
+let takeAnyLeaveBMP = loadBMP("take-any-leave.png") |> clipTakeAny
 
 let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
 

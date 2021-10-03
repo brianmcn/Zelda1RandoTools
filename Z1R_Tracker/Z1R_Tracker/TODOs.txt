@@ -18,6 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+factor special redraw behaviors, right-click behaviors, like accelerators are factored?
+If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
+
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
@@ -45,17 +48,14 @@ hotkeys
 
 SMALL
 
+'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
 
 
 factoids for 'loading ui screen':
  -  a room with a gleeok cannot have a push block
  - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
+ - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
 
-
-Pie menus for take-any, rupee?
- - Hold and drag for options
- - Release middle for default icon placement
- - How deal with app/screen edge? Popup always mid-screen with warp back?
 
 Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
 
@@ -65,8 +65,6 @@ Tracker could be smart about https://discord.com/channels/368763663986982912/586
 Get rid of shift-click room state, change behavior to marking 4 red doors? But what if two together… hmmm…. Don’t want to show wall between two adjacent holes, hm.
 
 Crash log write file
-
-If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
 
 HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
 

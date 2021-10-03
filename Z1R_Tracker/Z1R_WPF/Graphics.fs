@@ -330,6 +330,14 @@ let greyscale(bmp:System.Drawing.Bitmap) =
             let c = System.Drawing.Color.FromArgb(avg, avg, avg)
             r.SetPixel(px, py, c)
     r
+let darken(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(px,py)
+            let c = System.Drawing.Color.FromArgb(int(c.R/2uy), int(c.G/2uy), int(c.B/2uy))
+            r.SetPixel(px, py, c)
+    r
 
 let overworldImage =
     let files = [|
@@ -456,6 +464,7 @@ do
         theInteriorBmpTable.[i+16].Add(bmp)
     // 24  take any
     theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3))
+    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3) |> darken)
     // 25  potion shop
     theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4))
     // 26  money

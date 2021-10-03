@@ -480,18 +480,16 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
-        let mutable curState = 0   // 0 empty, 1 full, 2 X
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let redraw() = 
             c.Children.Clear()
+            let curState = TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)
             if curState=0 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.)
             elif curState=1 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartFull_bmp), 0., 0.)
             else canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.); CustomComboBoxes.placeSkippedItemXDecoration(c)
         redraw()
-        let f b =
-            curState <- (curState + (if b then 1 else -1) + 3) % 3
-            redraw()
-            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i,curState)
+        TrackerModel.playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun n -> if n=i then redraw())
+        let f b = TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i, (TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i) + (if b then 1 else -1) + 3) % 3)
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
@@ -526,43 +524,46 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid2 = makeGrid(3, 3, 30, 30)
-    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc) =
+    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, isTimeline, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = System.Windows.Media.Brushes.DarkRed
         let yes = System.Windows.Media.Brushes.LimeGreen 
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=(if startOn then yes else no), StrokeThickness=3.0)
+        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        c.MouseLeftButtonDown.Add(fun _ ->
-            if obj.Equals(rect.Stroke, no) then
+        let redraw() =
+            if prop.Value() then
                 rect.Stroke <- yes
             else
                 rect.Stroke <- no
-            changedFunc(obj.Equals(rect.Stroke, yes))
+        redraw()
+        prop.Changed.Add(fun _ -> redraw())
+        c.MouseLeftButtonDown.Add(fun _ ->
+            prop.Toggle()
         )
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
             timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
         c
-    let basicBoxImpl(tts, img, changedFunc) =
-        let c = veryBasicBoxImpl(img, false, true, changedFunc)
+    let basicBoxImpl(tts, img, prop) =
+        let c = veryBasicBoxImpl(img, true, prop)
         c.ToolTip <- tts
         c
-    gridAdd(owItemGrid2, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle())), 1, 0)
-    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()))
+    gridAdd(owItemGrid2, basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword), 1, 0)
+    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)
     wood_arrow_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, wood_arrow_box, 2, 1)
-    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()))
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)
     blue_candle_box.MouseEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_candle_box, 1, 1)
-    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()))
+    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)
     blue_ring_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_ring_box, 2, 0)
-    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)
     ToolTipService.SetPlacement(mags_box, System.Windows.Controls.Primitives.PlacementMode.Top)
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
@@ -577,15 +578,16 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()))
+    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook)
     boom_book_box.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
     boom_book_box.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, boom_book_box, OFFSET+120., 30.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), 1, 2)
-    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), 1, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda), 2, 2)
+    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
@@ -631,6 +633,20 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    let THRU_MAIN_MAP_H = float(150 + 8*11*3)
+    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
+    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
+    let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
+    let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
+    let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
+    let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
+
+    let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
+    overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (i,j) -> async {
+        let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, START_DUNGEON_AND_NOTES_AREA_H*1.4)
+        TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
+        }))
 
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.55
@@ -952,6 +968,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                         if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                                             tile.SetPixel(px, py, c)
                             Graphics.BMPtoImage tile
+                        elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                            if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                                Graphics.BMPtoImage Graphics.theFullTileBmpTable.[ms.State].[1]
+                            else
+                                Graphics.BMPtoImage Graphics.theFullTileBmpTable.[ms.State].[0]
                         else
                             if ms.CurrentBMP()=null then null else Graphics.BMPtoImage(ms.CurrentBMP())
                     // be sure to draw in appropriate layer
@@ -969,48 +990,56 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
                         drawWarpHighlight(c,0.,0)
-                let updateGridSpot delta phrase =
-                    // figure out what new state we just interacted-to
-                    if delta = 777 then 
-                        let curState = TrackerModel.overworldMapMarks.[i,j].Current()
-                        if curState = -1 then
-                            // if unmarked, use voice to set new state
-                            match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
-                            | Some newState -> 
-                                if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
-                                    if newState >=0 && newState <=8 then
-                                        selectDungeonTabEvent.Trigger(newState)
-                                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
-                            | None -> ()
-                        elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
-                            // if item shop with only one item marked, use voice to set other item
-                            match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
-                            | Some newState -> 
-                                if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
-                                    TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
-                                    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
-                            | None -> ()
-                    elif delta = 1 then
-                        TrackerModel.overworldMapMarks.[i,j].Next()
-                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
-                        if newState >=0 && newState <=7 then
-                            mostRecentlyScrolledDungeonIndex <- newState
-                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
-                    elif delta = -1 then 
-                        TrackerModel.overworldMapMarks.[i,j].Prev() 
-                        let newState = TrackerModel.overworldMapMarks.[i,j].Current()
-                        if newState >=0 && newState <=7 then
-                            mostRecentlyScrolledDungeonIndex <- newState
-                            mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
-                    elif delta = 0 then 
-                        ()
-                    else failwith "bad delta"
-                    let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
-                        secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                    if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
-                        firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                    redrawGridSpot()
+                let updateGridSpot delta phrase = 
+                    async {
+                        // figure out what new state we just interacted-to
+                        if delta = 777 then 
+                            let curState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            if curState = -1 then
+                                // if unmarked, use voice to set new state
+                                match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
+                                | Some newState -> 
+                                    if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
+                                        if newState >=0 && newState <=8 then
+                                            selectDungeonTabEvent.Trigger(newState)
+                                        Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+                                        let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
+                                        match overworldAcceleratorTable.TryGetValue(newState) with
+                                        | (true,f) -> 
+                                            do! f(i,j)
+                                            Graphics.WarpMouseCursorTo(pos)
+                                        | _ -> ()
+                                | None -> ()
+                            elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
+                                // if item shop with only one item marked, use voice to set other item
+                                match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
+                                | Some newState -> 
+                                    if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
+                                        TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
+                                        Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+                                | None -> ()
+                        elif delta = 1 then
+                            TrackerModel.overworldMapMarks.[i,j].Next()
+                            let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            if newState >=0 && newState <=7 then
+                                mostRecentlyScrolledDungeonIndex <- newState
+                                mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
+                        elif delta = -1 then 
+                            TrackerModel.overworldMapMarks.[i,j].Prev() 
+                            let newState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            if newState >=0 && newState <=7 then
+                                mostRecentlyScrolledDungeonIndex <- newState
+                                mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
+                        elif delta = 0 then 
+                            ()
+                        else failwith "bad delta"
+                        let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                        if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
+                            secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
+                        if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
+                            firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
+                        redrawGridSpot()
+                        } |> Async.StartImmediate
                 owUpdateFunctions.[i,j] <- updateGridSpot 
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
@@ -1057,10 +1086,16 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                 TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                                 if currentState >=0 && currentState <=8 then
                                     selectDungeonTabEvent.Trigger(currentState)
-                                redrawGridSpot()
-                                dismissPopup()
-                                if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
-                                popupIsActive <- false),
+                                async {
+                                    match overworldAcceleratorTable.TryGetValue(currentState) with
+                                    | (true,f) -> do! f(i,j)
+                                    | _ -> ()
+                                    redrawGridSpot()
+                                    dismissPopup()
+                                    popupIsActive <- false
+                                    if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                                    } |> Async.StartImmediate
+                                ),
                             (fun () -> popupIsActive <- false),
                             [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                     )
@@ -1071,6 +1106,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         if msp.State = -1 then
                             // right click empty tile changes to 'X'
                             updateGridSpot -1 ""
+                            doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                         elif msp.IsThreeItemShop then
                             // right click a shop cycles down the second item
                             let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
@@ -1080,6 +1116,15 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             let item1 = msp.State - 15  // 1-based
                             let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
                             TrackerModel.setOverworldMapExtraData(i,j,e)
+                            // redraw
+                            redrawGridSpot()
+                        elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                            // right click a take-any to toggle it 'used'
+                            let ex = TrackerModel.getOverworldMapExtraData(i,j)
+                            if ex=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                                TrackerModel.setOverworldMapExtraData(i,j,0)
+                            else
+                                TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
                             // redraw
                             redrawGridSpot()
                     )
@@ -1098,8 +1143,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     let makeStartIcon() = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
     let startIcon = makeStartIcon()
-
-    let THRU_MAIN_MAP_H = float(150 + 8*11*3)
 
     // map legend
     let LEFT_OFFSET = 78.0
@@ -1175,8 +1218,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 )
             dismiss <- CustomComboBoxes.DoModal(cm, 0., 150., element, (fun () -> popupIsActive <- false))
         )
-
-    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
 
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
@@ -1294,8 +1335,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if not popupIsActive then
             popupIsActive <- true
             CustomComboBoxes.DoModal(cm, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
-
-    let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 
     // WANT!
     let kitty = new Image()
@@ -1646,7 +1685,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     timer.Start()
 
     // Dungeon level trackers
-    let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
     let dungeonTabs,grabModeTextBlock = 
         DungeonUI.makeDungeonTabs(cm, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
@@ -1751,8 +1789,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width
     canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
-
-    let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + 27*8 + 12*7 + 3)  // 3 is for a little blank space after this but before timeline
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL, 90.)
@@ -2053,8 +2089,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
     // timeline, options menu, reminders
-    let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
-
     let moreOptionsButton = Graphics.makeButton("Options...", Some(12.), Some(Brushes.Orange))
     moreOptionsButton.MaxHeight <- 25.
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
@@ -2096,7 +2130,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             popupIsActive <- true
             CustomComboBoxes.DoModalDocked(cm, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
-    let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 
     let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
@@ -2274,8 +2307,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             broadcastWindow.Close()
             broadcastWindow <- null
         )
-
-    //PieMenus.makeTakeAnyPieMenu(cm, START_DUNGEON_AND_NOTES_AREA_H*1.4)
 
     TrackerModel.forceUpdate()
     cm, updateTimeline

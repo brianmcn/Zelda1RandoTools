@@ -475,18 +475,16 @@ let makeAll(owMapNum, heartShuffle, kind) =
     // ow 'take any' hearts
     let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
-        let mutable curState = 0   // 0 empty, 1 full, 2 X
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let redraw() = 
             c.Children.Clear()
+            let curState = TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)
             if curState=0 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.)
             elif curState=1 then canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartFull_bmp), 0., 0.)
             else canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.); CustomComboBoxes.placeSkippedItemXDecoration(c)
         redraw()
-        let f b =
-            curState <- (curState + (if b then 1 else -1) + 3) % 3
-            redraw()
-            TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i,curState)
+        TrackerModel.playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun n -> if n=i then redraw())
+        let f b = TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i, (TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i) + (if b then 1 else -1) + 3) % 3)
         c.PointerPressed.Add(fun ea -> f(ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed))
         c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
         gridAdd(owHeartGrid, c, i, 0)
@@ -519,45 +517,48 @@ let makeAll(owMapNum, heartShuffle, kind) =
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
     // brown sword, blue candle, blue ring, magical sword
     let owItemGrid2 = makeGrid(3, 3, 30, 30)
-    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, startOn, isTimeline, changedFunc) =
+    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, isTimeline, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = Brushes.DarkRed
         let yes = Brushes.LimeGreen 
-        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=(if startOn then yes else no), StrokeThickness=3.0)
+        let rect = new Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
+        let redraw() =
+            if prop.Value() then
+                rect.Stroke <- yes
+            else
+                rect.Stroke <- no
+        redraw()
+        prop.Changed.Add(fun _ -> redraw())
         c.PointerPressed.Add(fun ea -> 
             if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
-                if obj.Equals(rect.Stroke, no) then
-                    rect.Stroke <- yes
-                else
-                    rect.Stroke <- no
-                changedFunc(obj.Equals(rect.Stroke, yes))
+                prop.Toggle()
         )
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
             timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
         c
-    let basicBoxImpl(tts, img, changedFunc) =
-        let c = veryBasicBoxImpl(img, false, true, changedFunc)
+    let basicBoxImpl(tts, img, prop) =
+        let c = veryBasicBoxImpl(img, true, prop)
         ToolTip.SetTip(c, tts)
         c
-    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()))
+    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)
     gridAdd(owItemGrid2, wood_sword_box, 1, 0)
-    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()))
+    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)
     wood_arrow_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.PointerLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, wood_arrow_box, 2, 1)
-    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()))
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)
     blue_candle_box.PointerEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.PointerLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_candle_box, 1, 1)
-    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()))
+    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)
     blue_ring_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.PointerLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid2, blue_ring_box, 2, 0)
-    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()))
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)
     ToolTip.SetPlacement(mags_box, PlacementMode.Left)  // Avalonia's tip placement seems awful, at least on Windows
     let magsHintHighlight = makeHintHighlight(30.)
     let redrawMagicalSwordCanvas() =
@@ -572,15 +573,16 @@ let makeAll(owMapNum, heartShuffle, kind) =
     mags_box.PointerLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()))
+    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook)
     boom_book_box.PointerEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
     boom_book_box.PointerLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, boom_book_box, OFFSET+120., 30.)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle())), 1, 2)
-    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, (fun b -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle(); if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)), 2, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), 1, 2)
+    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda), 2, 2)
+    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, false, (fun _ -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()))
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
     bombIcon.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.PointerLeave.Add(fun _ -> hideLocator())
     ToolTip.SetTip(bombIcon, "Player currently has bombs (affects routing)")
@@ -629,6 +631,19 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    let THRU_MAIN_MAP_H = float(150 + 8*11*3)
+    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
+    let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
+    let START_TIMELINE_H = THRU_MAP_H
+    let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
+    let START_DUNGEON_AND_NOTES_AREA_H = THRU_TIMELINE_H
+
+    let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
+    overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (i,j) -> async {
+        let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, THRU_MAP_H*1.2)
+        TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
+        }))
+    
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.55
     let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
@@ -956,6 +971,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                         if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                                             tile.SetPixel(px, py, c)
                             tile
+                        elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                            if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                                Graphics.theFullTileBmpTable.[ms.State].[1]
+                            else
+                                Graphics.theFullTileBmpTable.[ms.State].[0]
                         else
                             ms.CurrentBMP()
                     // be sure to draw in appropriate layer
@@ -1043,10 +1063,16 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                     TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                                     if currentState >=0 && currentState <=8 then
                                         selectDungeonTabEvent.Trigger(currentState)
-                                    redrawGridSpot()
-                                    dismissPopup()
-                                    if originalState = -1 && currentState <> -1 then TrackerModel.forceUpdate()  // immediate update to dismiss green/yellow highlight from current tile
-                                    popupIsActive <- false),
+                                    async {
+                                        match overworldAcceleratorTable.TryGetValue(currentState) with
+                                        | (true,f) -> do! f(i,j)
+                                        | _ -> ()
+                                        redrawGridSpot()
+                                        dismissPopup()
+                                        if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                                        popupIsActive <- false
+                                        } |> Async.StartImmediate
+                                    ),
                                 (fun () -> popupIsActive <- false),
                                 [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                         elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
@@ -1056,6 +1082,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                             if msp.State = -1 then
                                 // right click empty tile changes to 'X'
                                 updateGridSpot -1 ""
+                                doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                             if msp.IsThreeItemShop then
                                 // right click a shop cycles down the second item
                                 // next item
@@ -1064,6 +1091,15 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                 let item1 = msp.State - 15  // 1-based
                                 let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
                                 TrackerModel.setOverworldMapExtraData(i,j,e)
+                                // redraw
+                                redrawGridSpot()
+                            elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                                // right click a take-any to toggle it 'used'
+                                let ex = TrackerModel.getOverworldMapExtraData(i,j)
+                                if ex=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+                                    TrackerModel.setOverworldMapExtraData(i,j,0)
+                                else
+                                    TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
                                 // redraw
                                 redrawGridSpot()
                     )
@@ -1080,8 +1116,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     let makeStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
     let startIcon = makeStartIcon()
-
-    let THRU_MAIN_MAP_H = float(150 + 8*11*3)
 
     // map legend
     let LEFT_OFFSET = 78.0
@@ -1156,8 +1190,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 )
             dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 0., 150., element, (fun () -> popupIsActive <- false))
         )
-
-    let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
 
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
@@ -1290,9 +1322,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
         if not popupIsActive then
             popupIsActive <- true
             CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
-
-    let THRU_MAP_H = THRU_MAP_AND_LEGEND_H + 30.
-    printfn "H thru item prog = %d" (int THRU_MAP_H)
 
     // WANT!
     let kitty = new Image()
@@ -1683,9 +1712,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
             popupIsActive <- true
             CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
-    let THRU_TIMELINE_H = THRU_MAP_H + float TCH + 6.
     // reminder display
-    let START_TIMELINE_H = THRU_MAP_H
     let cxt = System.Threading.SynchronizationContext.Current 
     let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
     let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false)
@@ -1742,9 +1769,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
             ), (fun _level -> hideLocator()), isCurrentlyBook, updateTriforceDisplay)
-    canvasAdd(appMainCanvas, dungeonTabs , 0., THRU_TIMELINE_H)
+    canvasAdd(appMainCanvas, dungeonTabs , 0., START_DUNGEON_AND_NOTES_AREA_H)
     
-    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., THRU_TIMELINE_H+float(TH))
+    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
     // blockers
     let blockerCurrentBMP(current) =
@@ -1819,7 +1846,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
-    canvasAdd(appMainCanvas, blockerGrid, 402., THRU_TIMELINE_H) 
+    canvasAdd(appMainCanvas, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    
     let tb = new TextBox(Width=appMainCanvas.Width-402., Height=dungeonTabs.Height - blockerGrid.Height)
@@ -1830,11 +1857,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
     tb.CaretBrush <- Brushes.LimeGreen 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(appMainCanvas, tb, 402., THRU_TIMELINE_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, tb, 402., START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width
-    canvasAdd(appMainCanvas, grabModeTextBlock, 402., THRU_TIMELINE_H) 
+    canvasAdd(appMainCanvas, grabModeTextBlock, 402., START_DUNGEON_AND_NOTES_AREA_H) 
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL+30., 76.)
