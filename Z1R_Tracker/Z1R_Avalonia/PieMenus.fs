@@ -262,7 +262,7 @@ let takeThisCandlePanel =
     makeXtoY(c1, c2, rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    col.Children.Add(resizeImage Graphics.takeThisCandleBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     b
 
@@ -274,7 +274,7 @@ let takeThisWoodSwordPanel =
     makeXtoY(c1, c2, rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    col.Children.Add(resizeImage Graphics.takeThisWoodSwordBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     b
 
@@ -282,7 +282,30 @@ let takeThisLeavePanel =
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], 0., group)
-    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    col.Children.Add(resizeImage Graphics.takeThisLeaveBMP) |> ignore
     col.Children.Add(group) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     b
+
+let TakeThisPieMenuAsync(cm,h) =
+    let mutable r = false
+    let candleBehavior() =
+        TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Set(true)
+        r <- true
+    let swordBehavior() =
+        TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Set(true)
+        r <- true
+    let bordersDocksBehaviors = [|
+        takeThisWoodSwordPanel, Dock.Top,    swordBehavior
+        takeThisCandlePanel,    Dock.Left,   candleBehavior
+        takeThisLeavePanel,     Dock.Bottom, fun()->()
+        |]
+    let wh = new System.Threading.ManualResetEvent(false)
+    async {
+        let cxt = System.Threading.SynchronizationContext.Current
+        FourWayPieMenu(cm, h, bordersDocksBehaviors, (fun() -> wh.Set() |> ignore))
+        let! _ = Async.AwaitWaitHandle(wh)
+        wh.Close()
+        do! Async.SwitchToContext(cxt)
+        return r
+    }

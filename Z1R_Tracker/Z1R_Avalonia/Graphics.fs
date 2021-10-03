@@ -459,6 +459,9 @@ let takeAnyPotionBMP = loadBMP("take-any-potion.png") |> clipTakeAny
 let takeAnyCandleBMP = loadBMP("take-any-candle.png") |> clipTakeAny
 let takeAnyHeartBMP = loadBMP("take-any-heart.png") |> clipTakeAny
 let takeAnyLeaveBMP = loadBMP("take-any-leave.png") |> clipTakeAny
+let takeThisWoodSwordBMP = loadBMP("take-this-wood-sword.png") |> clipTakeAny
+let takeThisCandleBMP = loadBMP("take-this-candle.png") |> clipTakeAny
+let takeThisLeaveBMP = loadBMP("take-this-leave.png") |> clipTakeAny
 
 let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
 

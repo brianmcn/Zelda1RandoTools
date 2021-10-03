@@ -33,6 +33,9 @@
     <EmbeddedResource Include="..\Z1R_WPF\icons\link_icons.png" Link="icons\link_icons.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\mouse-icon-button-colors.png" Link="icons\mouse-icon-button-colors.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\mouse-icon-button-colors-2.png" Link="icons\mouse-icon-button-colors-2.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons\take-this-candle.png" Link="icons\take-this-candle.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons\take-this-leave.png" Link="icons\take-this-leave.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons\take-this-wood-sword.png" Link="icons\take-this-wood-sword.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\take-any-candle.png" Link="icons\take-any-candle.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\take-any-heart.png" Link="icons\take-any-heart.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\take-any-leave.png" Link="icons\take-any-leave.png" />
@@ -51,6 +54,7 @@
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

@@ -39,6 +39,10 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY,
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (appMainCanvas:Canvas,i,j) -> async {
+    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(appMainCanvas, 666.)
+    TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
+    }))
 
 let GetIconBMP(ms:MapStateProxy,i,j) =
     if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
