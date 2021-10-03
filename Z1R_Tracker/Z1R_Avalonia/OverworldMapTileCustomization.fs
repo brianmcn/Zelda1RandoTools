@@ -36,7 +36,7 @@ type MapStateProxy(state) =
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (appMainCanvas:Canvas,i,j) -> async {
-    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, 666.)
+    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
 

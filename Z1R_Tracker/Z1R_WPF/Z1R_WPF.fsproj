@@ -80,6 +80,8 @@
     <EmbeddedResource Include="icons\take-any-leave.png" />
     <EmbeddedResource Include="icons\take-any-heart.png" />
     <EmbeddedResource Include="icons\take-any-candle.png" />
+    <EmbeddedResource Include="icons\take-this-wood-sword.png" />
+    <EmbeddedResource Include="icons\take-this-leave.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />
@@ -105,6 +107,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
+    <EmbeddedResource Include="icons\take-this-candle.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
