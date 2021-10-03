@@ -325,17 +325,18 @@ let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
     1 // any road 4
     1 // sword 3
     1 // sword 2
-    999 // hint shop        // 15
+    1 // sword 1            // 15
     999 // arrow shop
     999 // bomb shop
     999 // book shop             
-    999 // candle shop
+    999 // candle shop      
     999 // blue ring shop   // 20
     999 // meat shop
     999 // key shop
     999 // shield shop
-    4   // take any
-    999 // potion shop      // 25
+    999 // hint shop        
+    4   // take any         // 25
+    999 // potion shop      
     999 // money
     999 // X (nothing, but visited)
     |])
@@ -350,10 +351,11 @@ type MapSquareChoiceDomainHelper =
     static member KEY = 22
     static member SHIELD = 23
     static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
-    static member IsItem(state) = state >=16 && state <=23
+    static member IsItem(state) = state >= 16 && state <= 23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     // other stuff
-    static member TAKE_ANY = 24
+    static member TAKE_ANY = 25
+    static member DARK_X = 28
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

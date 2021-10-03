@@ -111,16 +111,16 @@ interest that you can't reveal with your current inventory.
 OVERWORLD MAP
 
 16x8 Map Tiles:
-   "icon"     description
- - "1-9"      dungeons
- - "1-4"      any roads (stair warps)
- - "sword3/2" magical sword/white sword item cave
- - "?"        hint shop, or white/magical sword hint
- - (items)    item shop
- - "heart"    cave to "take any one you want"
- - "potion"   potion shop
- - "rupee"    free money, or gambling
- - "dark"     nothing, or don't care
+   "icon"       description
+ - "1-9"        dungeons
+ - "1-4"        any roads (stair warps)
+ - "sword3/2/1" magical sword/white sword/wood sword item cave
+ - "?"          hint shop, or white/magical sword hint
+ - (items)      item shop
+ - "heart"      cave to "take any one you want"
+ - "potion"     potion shop
+ - "rupee"      free money, or gambling
+ - "dark"       nothing, or don't care
 
 To select a map tile, you can either scroll-wheel through the options, or you can left-click a tile to bring up a popup selector, which displays all 
 the options: click on an option to choose it, or click outside the popup to dismiss it without making a change.

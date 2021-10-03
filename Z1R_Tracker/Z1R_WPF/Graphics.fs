@@ -415,7 +415,7 @@ let genericDungeonInterior_bmp =
 // each overworld map tile may have multiple icons that can represent it (e.g. dungeon 1 versus dungeon A)
 // we store a table, where the array index is the mapSquareChoiceDomain index of the general entry type, and the value there is a list of all possible icons
 // MapStateProxy will eventually be responsible for 'decoding' the current tracker state into the appropriate icon
-let theInteriorBmpTable = Array.init 28 (fun _ -> ResizeArray())
+let theInteriorBmpTable = Array.init (TrackerModel.mapSquareChoiceDomain.MaxKey+1) (fun _ -> ResizeArray())
 do
     let imageStream = GetResourceStream("ow_icons5x9.png")
     let interiorIconStrip = new System.Drawing.Bitmap(imageStream)
@@ -449,7 +449,7 @@ do
     theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0))
     // 14  sword2
     theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1))
-    // 15  hint shop
+    // 15  sword1
     theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2))
     // 16-23  item shops (as single-item icons)
     for i = 0 to TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS-1 do
@@ -462,23 +462,25 @@ do
                     if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                         bmp.SetPixel(px, py, c)
         theInteriorBmpTable.[i+16].Add(bmp)
-    // 24  take any
+    // 24  hint shop
     theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3))
-    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3) |> darken)
-    // 25  potion shop
+    // 25  take any
     theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4))
-    // 26  money
+    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4) |> darken)
+    // 26  potion shop
     theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(5))
-    // 27  'X'
+    // 27  money
+    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(6))
+    // 28  'X'
     let bmp = new System.Drawing.Bitmap(5*3,9*3)
     for px = 0 to 5*3-1 do
         for py = 0 to 9*3-1 do
             bmp.SetPixel(px, py, System.Drawing.Color.Black)
-    theInteriorBmpTable.[27].Add(bmp)
+    theInteriorBmpTable.[28].Add(bmp)
 // full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
-let theFullTileBmpTable = Array.init 28 (fun _ -> ResizeArray())
+let theFullTileBmpTable = Array.init theInteriorBmpTable.Length (fun _ -> ResizeArray())
 do
-    for i = 0 to 27 do
+    for i = 0 to theInteriorBmpTable.Length-1 do
         for interiorBmp in theInteriorBmpTable.[i] do
             let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
@@ -486,7 +488,7 @@ do
                     if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
                         fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-5*3, py-1*3))
                     else
-                        fullTileBmp.SetPixel(px, py, if i=27 then System.Drawing.Color.Black else TRANS_BG)
+                        fullTileBmp.SetPixel(px, py, if i=theInteriorBmpTable.Length-1 then System.Drawing.Color.Black else TRANS_BG)
             theFullTileBmpTable.[i].Add(fullTileBmp)
             
 let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =

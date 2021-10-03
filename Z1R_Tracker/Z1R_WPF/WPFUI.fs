@@ -630,7 +630,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = resizeMapTileImage <| Graphics.BMPtoImage(MapStateProxy(27).CurrentBMP()) // "X"
+                let icon = resizeMapTileImage <| Graphics.BMPtoImage(MapStateProxy(TrackerModel.MapSquareChoiceDomainHelper.DARK_X).CurrentBMP()) // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)

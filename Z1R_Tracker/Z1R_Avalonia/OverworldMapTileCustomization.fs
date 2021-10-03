@@ -3,9 +3,9 @@
 open Avalonia.Controls
 
 type MapStateProxy(state) =
-    static member NumStates = 28
+    static member NumStates = Graphics.theInteriorBmpTable.Length
     member this.State = state
-    member this.IsX = state=27
+    member this.IsX = state=MapStateProxy.NumStates-1
     member this.IsDungeon = state >= 0 && state < 9
     member this.IsWarp = state >= 9 && state < 13
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
@@ -42,7 +42,7 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY,
 
 let GetIconBMP(ms:MapStateProxy,i,j) =
     if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
-        let item1 = ms.State - 16  // 0-based
+        let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
         let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
         // cons up a two-item shop image
         let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -83,7 +83,7 @@ let DoRightClick(msp:MapStateProxy,i,j) =  // returns tuple of two booleans (nee
         // next item
         let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
         // skip past duplicates
-        let item1 = msp.State - 15  // 1-based
+        let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW + 1  // 1-based
         let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
         TrackerModel.setOverworldMapExtraData(i,j,e)
         true, false
