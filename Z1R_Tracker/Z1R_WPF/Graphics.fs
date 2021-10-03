@@ -495,14 +495,23 @@ let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
         |]
     a.[0], a.[1], a.[2], a.[3]
     
-let mouseIconButtonColorsBMP =
-    let imageStream = GetResourceStream("mouse-icon-button-colors.png")
+let loadBMP(filename) = 
+    let imageStream = GetResourceStream(filename)
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
-let mouseIconButtonColors2BMP =
-    let imageStream = GetResourceStream("mouse-icon-button-colors-2.png")
-    let bmp = new System.Drawing.Bitmap(imageStream)
-    bmp
+let mouseIconButtonColorsBMP = loadBMP("mouse-icon-button-colors.png")
+let mouseIconButtonColors2BMP = loadBMP("mouse-icon-button-colors-2.png")
+let clipTakeAny(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(672, 448)
+    for x = 0 to 671 do
+        for y = 0 to 447 do
+            r.SetPixel(x,y,bmp.GetPixel(x+48, y+45))
+    r
+let takeAnyPotionBMP = loadBMP("take-any-potion.png") |> clipTakeAny
+let takeAnyCandleBMP = loadBMP("take-any-candle.png") |> clipTakeAny
+let takeAnyHeartBMP = loadBMP("take-any-heart.png") |> clipTakeAny
+let takeAnyLeaveBMP = loadBMP("take-any-leave.png") |> clipTakeAny
+
 
 let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
 (*

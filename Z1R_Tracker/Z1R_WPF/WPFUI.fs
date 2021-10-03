@@ -2275,6 +2275,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             broadcastWindow <- null
         )
 
+    //PieMenus.makeTakeAnyPieMenu(cm, START_DUNGEON_AND_NOTES_AREA_H*1.4)
+
     TrackerModel.forceUpdate()
     cm, updateTimeline
 

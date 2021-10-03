@@ -65,6 +65,7 @@
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="Timeline.fs" />
     <Compile Include="CustomComboBoxes.fs" />
+    <Compile Include="PieMenus.fs" />
     <Compile Include="Dungeon.fs" />
     <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
@@ -72,23 +73,26 @@
     <Compile Include="LinkRouting.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
-    <EmbeddedResource Include="s_map_overworld_vanilla_strip8.png" />
-    <EmbeddedResource Include="s_map_overworld_zones_strip8.png" />
-    <EmbeddedResource Include="s_map_overworld_strip8.png" />
-    <EmbeddedResource Include="s_icon_overworld_strip39.png" />
-    <EmbeddedResource Include="s_btn_tr_dungeon_cell_strip3.png" />
-    <EmbeddedResource Include="s_btn_tr_dungeon_num_strip18.png" />
-    <EmbeddedResource Include="CroppedBrianKitty.png" />
-    <EmbeddedResource Include="icons7x7.png" />
-    <EmbeddedResource Include="icons10x10.png" />
-    <EmbeddedResource Include="icons13x9.png" />
-    <EmbeddedResource Include="icons3x7.png" />
-    <EmbeddedResource Include="icons8x16.png" />
-    <EmbeddedResource Include="ow_icons5x9.png" />
-    <EmbeddedResource Include="alphanumerics3x5.png" />
-    <EmbeddedResource Include="link_icons.png" />
-    <EmbeddedResource Include="mouse-icon-button-colors.png" />
-    <EmbeddedResource Include="mouse-icon-button-colors-2.png" />
+    <EmbeddedResource Include="icons\s_map_overworld_vanilla_strip8.png" />
+    <EmbeddedResource Include="icons\s_map_overworld_zones_strip8.png" />
+    <EmbeddedResource Include="icons\s_map_overworld_strip8.png" />
+    <EmbeddedResource Include="icons\s_icon_overworld_strip39.png" />
+    <EmbeddedResource Include="icons\s_btn_tr_dungeon_cell_strip3.png" />
+    <EmbeddedResource Include="icons\s_btn_tr_dungeon_num_strip18.png" />
+    <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
+    <EmbeddedResource Include="icons\icons7x7.png" />
+    <EmbeddedResource Include="icons\icons10x10.png" />
+    <EmbeddedResource Include="icons\icons13x9.png" />
+    <EmbeddedResource Include="icons\icons3x7.png" />
+    <EmbeddedResource Include="icons\icons8x16.png" />
+    <EmbeddedResource Include="icons\ow_icons5x9.png" />
+    <EmbeddedResource Include="icons\alphanumerics3x5.png" />
+    <EmbeddedResource Include="icons\link_icons.png" />
+    <EmbeddedResource Include="icons\mouse-icon-button-colors.png" />
+    <EmbeddedResource Include="icons\mouse-icon-button-colors-2.png" />
+    <EmbeddedResource Include="icons\take-any-potion.png" />
+    <EmbeddedResource Include="icons\take-any-leave.png" />
+    <EmbeddedResource Include="icons\take-any-heart.png" />
     <Content Include="reminder_clink.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -99,6 +103,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
+    <EmbeddedResource Include="icons\take-any-candle.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

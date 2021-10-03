@@ -111,7 +111,7 @@ let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager,
         for box in d.Boxes do
             let bmp = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), false)
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-            let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
+            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
             c.Children.Add(rect) |> ignore
             if bmp <> null then
                 canvasAdd(c, Graphics.BMPtoImage bmp, 4., 4.)
