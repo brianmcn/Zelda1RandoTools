@@ -92,6 +92,7 @@
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="SpeechRecognition.fs" />
     <Compile Include="LinkRouting.fs" />
+    <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="reminder_clink.wav">

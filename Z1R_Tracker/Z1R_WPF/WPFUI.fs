@@ -5,6 +5,8 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+open OverworldMapTileCustomization
+
 let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
 
@@ -24,38 +26,6 @@ let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
 let ReminderTextBox(txt) : FrameworkElement = 
     upcast new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., FontWeight=FontWeights.Bold, IsHitTestVisible=false,
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
-
-type MapStateProxy(state) =
-    static member NumStates = 28
-    member this.State = state
-    member this.IsX = state=27
-    member this.IsDungeon = state >= 0 && state < 9
-    member this.IsWarp = state >= 9 && state < 13
-    member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
-    member this.IsInteresting = not(state = -1 || this.IsX)
-    member this.CurrentBMP() =
-        if state = -1 then
-            null
-        elif this.IsDungeon then
-            if TrackerModel.IsHiddenDungeonNumbers() then 
-                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                    Graphics.theFullTileBmpTable.[state].[3] 
-                else
-                    Graphics.theFullTileBmpTable.[state].[2] 
-            else 
-                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                    Graphics.theFullTileBmpTable.[state].[1]
-                else
-                    Graphics.theFullTileBmpTable.[state].[0]
-        else
-            Graphics.theFullTileBmpTable.[state].[0]
-    member this.CurrentInteriorBMP() =  // so that the grid popup is unchanging, always choose same representative (e.g. yellow dungeon)
-        if state = -1 then
-            null
-        elif this.IsDungeon then
-            if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theInteriorBmpTable.[state].[2] else Graphics.theInteriorBmpTable.[state].[0]
-        else
-            Graphics.theInteriorBmpTable.[state].[0]
 
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
@@ -642,12 +612,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
     let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
 
-    let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-    overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (i,j) -> async {
-        let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, START_DUNGEON_AND_NOTES_AREA_H*1.4)
-        TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
-        }))
-
     // ow map opaque fixed bottom layer
     let X_OPACITY = 0.55
     let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
@@ -944,39 +908,10 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let icon = 
-                        if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
-                            let item1 = ms.State - 16  // 0-based
-                            let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
-                            // cons up a two-item shop image
-                            let tile = new System.Drawing.Bitmap(16*3,11*3)
-                            for px = 0 to 16*3-1 do
-                                for py = 0 to 11*3-1 do
-                                    // two-icon area
-                                    if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
-                                        tile.SetPixel(px, py, Graphics.itemBackgroundColor)
-                                    else
-                                        tile.SetPixel(px, py, Graphics.TRANS_BG)
-                                    // icon 1
-                                    if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
-                                        let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
-                                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                                            tile.SetPixel(px, py, c)
-                                    // icon 2
-                                    if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
-                                        let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
-                                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                                            tile.SetPixel(px, py, c)
-                            Graphics.BMPtoImage tile
-                        elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-                            if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-                                Graphics.BMPtoImage Graphics.theFullTileBmpTable.[ms.State].[1]
-                            else
-                                Graphics.BMPtoImage Graphics.theFullTileBmpTable.[ms.State].[0]
-                        else
-                            if ms.CurrentBMP()=null then null else Graphics.BMPtoImage(ms.CurrentBMP())
+                    let iconBMP = GetIconBMP(ms,i,j)
                     // be sure to draw in appropriate layer
-                    if icon <> null then 
+                    if iconBMP <> null then 
+                        let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.IsX then
                             icon.Opacity <- X_OPACITY
                             resizeMapTileImage icon |> ignore
@@ -1006,7 +941,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                         let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
                                         match overworldAcceleratorTable.TryGetValue(newState) with
                                         | (true,f) -> 
-                                            do! f(i,j)
+                                            do! f(cm,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
                                 | None -> ()
@@ -1088,7 +1023,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     selectDungeonTabEvent.Trigger(currentState)
                                 async {
                                     match overworldAcceleratorTable.TryGetValue(currentState) with
-                                    | (true,f) -> do! f(i,j)
+                                    | (true,f) -> do! f(cm,i,j)
                                     | _ -> ()
                                     redrawGridSpot()
                                     dismissPopup()
@@ -1103,30 +1038,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     if not popupIsActive then
                         // right click is the 'special interaction'
                         let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        if msp.State = -1 then
-                            // right click empty tile changes to 'X'
-                            updateGridSpot -1 ""
-                            doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
-                        elif msp.IsThreeItemShop then
-                            // right click a shop cycles down the second item
-                            let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
-                            // next item
-                            let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
-                            // skip past duplicates
-                            let item1 = msp.State - 15  // 1-based
-                            let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
-                            TrackerModel.setOverworldMapExtraData(i,j,e)
-                            // redraw
-                            redrawGridSpot()
-                        elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-                            // right click a take-any to toggle it 'used'
-                            let ex = TrackerModel.getOverworldMapExtraData(i,j)
-                            if ex=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-                                TrackerModel.setOverworldMapExtraData(i,j,0)
-                            else
-                                TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
-                            // redraw
-                            redrawGridSpot()
+                        let needRedraw, needUIUpdate = DoRightClick(msp,i,j)
+                        if needRedraw then redrawGridSpot()
+                        if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                     )
                 c.MouseWheel.Add(fun x -> if not popupIsActive then updateGridSpot (if x.Delta<0 then 1 else -1) "")
     speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->

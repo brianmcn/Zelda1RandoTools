@@ -47,10 +47,10 @@
     <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="LinkRouting.fs" />
+    <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

@@ -18,7 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-factor special redraw behaviors, right-click behaviors, like accelerators are factored?
 If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
 
 
