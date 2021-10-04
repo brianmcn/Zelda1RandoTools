@@ -1,6 +1,10 @@
 ﻿module OverworldMapTileCustomization
 
+open Avalonia
 open Avalonia.Controls
+open Avalonia.Media
+
+let OMTW = Graphics.OMTW
 
 type MapStateProxy(state) =
     static member NumStates = Graphics.theInteriorBmpTable.Length
@@ -35,13 +39,44 @@ type MapStateProxy(state) =
             Graphics.theInteriorBmpTable.[state].[0]
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (appMainCanvas:Canvas,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (appMainCanvas:Canvas,_c:Canvas,_isCurrentlyBook,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (appMainCanvas:Canvas,i,j) -> async {
-    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(appMainCanvas, 666.)
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (appMainCanvas:Canvas,_c:Canvas,_isCurrentlyBook,i,j) -> async {
+    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(appMainCanvas, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
+    }))
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (appMainCanvas,c:Canvas,isCurrentlyBook,_i,_j) -> async {
+    let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), appMainCanvas).Value  // place to draw the local box
+    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
+    // in appMainCanvas coordinates:
+    // armosBox position in main canvas
+    let ax,ay = OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+30.
+    // bottom middle of the box, as an arrow target
+    let tx,ty = ax+15., ay+30.+3.   // +3 so arrowhead does not touch the target box
+    // top middle of the box we are drawing on the map, as an arrow source
+    let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
+    let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
+    // rectangle for remote box highlight
+    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
+    let gridX, gridY = -117., -3. 
+    let decoX,decoY = -152., 108.
+    let extraDecorations = [|
+        CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
+        upcast line, -pos.X-3., -pos.Y-3.
+        upcast triangle, -pos.X-3., -pos.Y-3.
+        upcast rect, ax-pos.X-3., ay-pos.Y-3.
+        |]
+    let wh = new System.Threading.ManualResetEvent(false)
+    CustomComboBoxes.DisplayRemoteItemComboBox(appMainCanvas, pos.X, pos.Y, TrackerModel.armosBox.CellCurrent(), 0, isCurrentlyBook, gridX, gridY, 
+            (fun (newBoxCellValue, newPlayerHas) ->
+                TrackerModel.armosBox.Set(newBoxCellValue, newPlayerHas)
+                TrackerModel.forceUpdate()
+                wh.Set() |> ignore
+                ), (fun () -> wh.Set() |> ignore), extraDecorations)
+    let! _ = Async.AwaitWaitHandle(wh)
+    ()
     }))
 
 let GetIconBMP(ms:MapStateProxy,i,j) =

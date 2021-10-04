@@ -101,6 +101,23 @@ let boxCurrentBMP(isCurrentlyBook, boxCellCurrent, isForTimeline) =
 
 ///////////////////////////////////////////////////////////////////
 
+(*
+note: a possible alternate way to 'sunglasses' would be to capture a snapshot as a bitmap, and then place it, here is some code i found that may be relevant
+public void SaveUIElementToImageBMPFile(UIElement VisualElement, string FilePath) {
+System.Windows.Media.Imaging.RenderTargetBitmap targetBitmap =
+      new System.Windows.Media.Imaging.RenderTargetBitmap((int)VisualElement.RenderSize.Width,
+                                                          (int)VisualElement.RenderSize.Height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+VisualElement.Measure(VisualElement.RenderSize);  
+VisualElement.Arrange(new Rect(VisualElement.RenderSize)); 
+targetBitmap.Render(VisualElement);
+System.Windows.Media.Imaging.BmpBitmapEncoder bmpencoder = new System.Windows.Media.Imaging.BmpBitmapEncoder();
+bmpencoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(targetBitmap));
+using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, System.IO.FileMode.Create))
+{
+    bmpencoder.Save(filestream);
+    filestream.Close();
+}
+*)
 type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     do
         if rootCanvas.Width <> appMainCanvas.Width || rootCanvas.Height <> appMainCanvas.Height then
@@ -108,11 +125,11 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
         if not(obj.Equals(appMainCanvas.Parent,rootCanvas)) || not(rootCanvas.Children.Count=1) then
             failwith "rootCanvas must have appMainCanvas as its only child"
     let popupCanvasStack = new System.Collections.Generic.Stack<_>()
-    let sunglassesStack = new System.Collections.Generic.Stack<_>()
     let afterCreatePopupCanvas = new Event<_>()
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
     let height = rootCanvas.Height
+    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false)
     member _this.Width = width
     member _this.Height = height
     member _this.RootCanvas = rootCanvas           // basically, no one should touch this, except to set mainWindow.Content <- cm.RootCanvas
@@ -120,10 +137,12 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     // and down here is where/how the popups should be putting their content
     member _this.PopupCanvasStack = popupCanvasStack
     member _this.CreatePopup(blackSunglassesOpacity) = 
+        sunglasses.Opacity <- blackSunglassesOpacity
+        // remove sunglasses from prior prior layer (if there was one)
+        if sunglasses.Parent <> null then
+            (sunglasses.Parent :?> Canvas).Children.Remove(sunglasses)
         // put the sunglasses over the prior child (appMainCanvas or previous popupCanvas)
-        let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false, Opacity=blackSunglassesOpacity)
         (rootCanvas.Children.[rootCanvas.Children.Count-1] :?> Canvas).Children.Add(sunglasses) |> ignore
-        sunglassesStack.Push(sunglasses)
         // put a new popup canvas in the root
         let popupCanvas = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Transparent, IsHitTestVisible=true, Opacity=1.)
         rootCanvas.Children.Add(popupCanvas) |> ignore
@@ -137,8 +156,10 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
         beforeDismissPopupCanvas.Trigger(pc)
         rootCanvas.Children.Remove(pc)
         // remove the sunglasses from the prior child
-        let sg = sunglassesStack.Pop()
-        (rootCanvas.Children.[rootCanvas.Children.Count-1] :?> Canvas).Children.Remove(sg)
+        (rootCanvas.Children.[rootCanvas.Children.Count-1] :?> Canvas).Children.Remove(sunglasses) |> ignore
+        // place the sunglasses on the prior prior layer (if there is one)
+        if rootCanvas.Children.Count-2 >= 0 then
+            (rootCanvas.Children.[rootCanvas.Children.Count-2] :?> Canvas).Children.Add(sunglasses) |> ignore
     // and here is how the broadcast window can listen for popup activity
     member _this.AfterCreatePopupCanvas = afterCreatePopupCanvas.Publish
     member _this.BeforeDismissPopupCanvas = beforeDismissPopupCanvas.Publish

@@ -334,12 +334,14 @@ let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
     999 // meat shop
     999 // key shop
     999 // shield shop
-    999 // hint shop        
-    4   // take any         // 25
+    1   // armos item
+    999 // hint shop        // 25
+    4   // take any         
     999 // potion shop      
     999 // money
     999 // X (nothing, but visited)
     |])
+// Note: if you make changes to above/below, also check: recomputeMapStateSummary(), Graphics.theInteriorBmpTable, SpeechRecognition, OverworldMapTileCustomization, ui's isLegalHere()
 type MapSquareChoiceDomainHelper = 
     // item shop stuff
     static member ARROW = 16
@@ -355,8 +357,9 @@ type MapSquareChoiceDomainHelper =
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     // other stuff
     static member SWORD1 = 15
-    static member TAKE_ANY = 25
-    static member DARK_X = 28
+    static member ARMOS = 24
+    static member TAKE_ANY = 26
+    static member DARK_X = 29
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -653,10 +656,11 @@ let setOverworldMapExtraData(i,j,x) =
 do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
 let NOTFOUND = (-1,-1)
-type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
+type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
     member _this.DungeonLocations = dungeonLocations
     member _this.AnyRoadLocations = anyRoadLocations
+    member _this.ArmosLocation = armosLocation
     member _this.Sword3Location = sword3Location
     member _this.Sword2Location = sword2Location
     member _this.BoomBookShopLocation = boomBookShopLocation
@@ -667,11 +671,12 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Loca
     member _this.OwRouteworthySpots = owRouteworthySpots
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
-let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
+let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
 let mutable mapStateSummaryLastComputedTime = System.DateTime.Now
 let recomputeMapStateSummary() =
     let dungeonLocations = Array.create 9 NOTFOUND
     let anyRoadLocations = Array.create 4 NOTFOUND
+    let mutable armosLocation = NOTFOUND
     let mutable sword3Location = NOTFOUND
     let mutable sword2Location = NOTFOUND
     let mutable boomBookShopLocation = NOTFOUND  // i think there can be at most one?
@@ -706,6 +711,10 @@ let recomputeMapStateSummary() =
                     sword2Location <- i,j
                     if not playerComputedStateSummary.HaveWhiteSwordItem && playerComputedStateSummary.PlayerHearts >= 4 then
                         owRouteworthySpots.[i,j] <- true
+                | n when n=MapSquareChoiceDomainHelper.ARMOS -> 
+                    armosLocation <- i,j
+                    if armosBox.PlayerHas() = PlayerHas.NO then
+                        owRouteworthySpots.[i,j] <- true
                 | -1 ->
                     owSpotsRemain <- owSpotsRemain + 1
                     if owInstance.Whistleable(i,j) then
@@ -733,7 +742,7 @@ let recomputeMapStateSummary() =
                 if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then 
                     firstQuestOnlyInterestingMarks.[i,j] <- isInteresting 
     owRouteworthySpots.[15,5] <- playerComputedStateSummary.HaveLadder && not playerComputedStateSummary.HaveCoastItem // gettable coast item is routeworthy
-    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
+    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime <- System.DateTime.Now
 
@@ -966,6 +975,7 @@ type ITrackerEvents =
     abstract DungeonLocation : int*int*int*bool*bool -> unit   // number 0-7, x, y, hasTri, isCompleted --- to update triforce color (found), completed shading, recorderable/completed map icon
     abstract AnyRoadLocation : int*int*int -> unit // number 0-3, x, y
     abstract WhistleableLocation : int*int -> unit // x, y
+    abstract Armos : int*int -> unit // x,y
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
     abstract CoastItem : unit -> unit
@@ -1022,6 +1032,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             ite.AnyRoadLocation(a, x, y)
     for x,y in mapStateSummary.OwWhistleSpotsRemain do
         ite.WhistleableLocation(x, y)
+    if mapStateSummary.ArmosLocation <> NOTFOUND then
+        ite.Armos(mapStateSummary.ArmosLocation)
     if mapStateSummary.Sword3Location <> NOTFOUND then
         ite.Sword3(mapStateSummary.Sword3Location)
     if mapStateSummary.Sword2Location <> NOTFOUND then

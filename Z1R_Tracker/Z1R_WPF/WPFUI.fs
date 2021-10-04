@@ -925,6 +925,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
                         drawWarpHighlight(c,0.,0)
+                let isLegalHere(state) = if state = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then owInstance.HasArmos(i,j) else true
                 let updateGridSpot delta phrase = 
                     async {
                         // figure out what new state we just interacted-to
@@ -934,14 +935,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                 // if unmarked, use voice to set new state
                                 match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                                 | Some newState -> 
-                                    if TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
+                                    if isLegalHere(newState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(newState) then
                                         if newState >=0 && newState <=8 then
                                             selectDungeonTabEvent.Trigger(newState)
                                         Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                                         let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
                                         match overworldAcceleratorTable.TryGetValue(newState) with
                                         | (true,f) -> 
-                                            do! f(cm,i,j)
+                                            do! f(cm,c,isCurrentlyBook,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
                                 | None -> ()
@@ -955,12 +956,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                 | None -> ()
                         elif delta = 1 then
                             TrackerModel.overworldMapMarks.[i,j].Next()
+                            while not(isLegalHere(TrackerModel.overworldMapMarks.[i,j].Current())) do TrackerModel.overworldMapMarks.[i,j].Next()
                             let newState = TrackerModel.overworldMapMarks.[i,j].Current()
                             if newState >=0 && newState <=7 then
                                 mostRecentlyScrolledDungeonIndex <- newState
                                 mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
                         elif delta = -1 then 
                             TrackerModel.overworldMapMarks.[i,j].Prev() 
+                            while not(isLegalHere(TrackerModel.overworldMapMarks.[i,j].Current())) do TrackerModel.overworldMapMarks.[i,j].Prev()
                             let newState = TrackerModel.overworldMapMarks.[i,j].Current()
                             if newState >=0 && newState <=7 then
                                 mostRecentlyScrolledDungeonIndex <- newState
@@ -1003,7 +1006,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                             elif n = MapStateProxy.NumStates then
                                 upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
                             else
-                                upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), (n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n), n
+                                let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
+                                upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
                             )
                         let pos = c.TranslatePoint(Point(), appMainCanvas)
                         CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
@@ -1023,7 +1027,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     selectDungeonTabEvent.Trigger(currentState)
                                 async {
                                     match overworldAcceleratorTable.TryGetValue(currentState) with
-                                    | (true,f) -> do! f(cm,i,j)
+                                    | (true,f) -> do! f(cm,c,isCurrentlyBook,i,j)
                                     | _ -> ()
                                     redrawGridSpot()
                                     dismissPopup()
@@ -1380,6 +1384,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
+            member _this.Armos(x,y) = 
+                if TrackerModel.armosBox.PlayerHas() <> TrackerModel.PlayerHas.NO then
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten armos icon
             member _this.Sword3(x,y) = 
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon

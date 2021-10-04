@@ -115,6 +115,7 @@ OVERWORLD MAP
  - "1-9"        dungeons
  - "1-4"        any roads (stair warps)
  - "sword3/2/1" magical sword/white sword/wood sword item cave
+ - "armos"      armos item location (can only be in 5 spots)
  - "?"          hint shop, or white/magical sword hint
  - (items)      item shop
  - "heart"      cave to "take any one you want"
@@ -292,29 +293,29 @@ The list of recognized phrases is below (code from WPFUI.fs).  You can speak a s
 If 'Hide Dungeon Numbers' is enabled, just say "tracker set level" to select the next free dungeon letter A-H; "tracker set level nine" still works.
 
 let wakePhrase = "tracker set"
-let mapStatePhrases = dict [|
-        "level one"         , 0
-        "level two"         , 1
-        "level three"       , 2
-        "level four"        , 3
-        "level five"        , 4
-        "level six"         , 5
-        "level seven"       , 6
-        "level eight"       , 7
-        "level nine"        , 8
-        "any road"          , 12  // 9 10 11 12
-        "sword three"       , 13
-        "sword two"         , 14
-        "hint shop"         , 15
-        "arrow shop"        , 16
-        "bomb shop"         , 17
-        "book shop"         , 18
-        "candle shop"       , 19
-        "blue ring shop"    , 20
-        "meat shop"         , 21
-        "key shop"          , 22
-        "shield shop"       , 23
-        "take any"          , 24
-        "potion shop"       , 25
-        "money"             , 26
-        |]
+                "level one"         , 0
+                "level two"         , 1
+                "level three"       , 2
+                "level four"        , 3
+                "level five"        , 4
+                "level six"         , 5
+                "level seven"       , 6
+                "level eight"       , 7
+                "level nine"        , 8
+                "any road"          , 12  // 9 10 11 12
+                "sword three"       , 13
+                "sword two"         , 14
+                "sword one"         , 15
+                "arrow shop"        , 16
+                "bomb shop"         , 17
+                "book shop"         , 18
+                "candle shop"       , 19
+                "blue ring shop"    , 20
+                "meat shop"         , 21
+                "key shop"          , 22
+                "shield shop"       , 23
+                "arm owes" (*armos*), 24
+                "hint shop"         , 25
+                "take any"          , 26
+                "potion shop"       , 27
+                "money"             , 28

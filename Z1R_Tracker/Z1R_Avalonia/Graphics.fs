@@ -399,21 +399,23 @@ do
                     if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                         bmp.SetPixel(px, py, c)
         theInteriorBmpTable.[i+16].Add(bmp)
-    // 24  hint shop
-    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(3))
-    // 25  take any
-    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4))
-    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(4) |> darken)
-    // 26  potion shop
-    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(5))
-    // 27  money
-    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(6))
-    // 28  'X'
+    // 24  armos
+    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(7))
+    // 25  hint shop
+    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(3))
+    // 26  take any
+    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(4))
+    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(4) |> darken)
+    // 27  potion shop
+    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(5))
+    // 28  money
+    theInteriorBmpTable.[28].Add(getInteriorIconFromStrip(6))
+    // 29  'X'
     let bmp = new System.Drawing.Bitmap(5*3,9*3)
     for px = 0 to 5*3-1 do
         for py = 0 to 9*3-1 do
             bmp.SetPixel(px, py, System.Drawing.Color.Black)
-    theInteriorBmpTable.[28].Add(bmp)
+    theInteriorBmpTable.[29].Add(bmp)
 // full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
 let theFullTileBmpTable = Array.init theInteriorBmpTable.Length (fun _ -> ResizeArray())
 do

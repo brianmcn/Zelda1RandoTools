@@ -18,7 +18,13 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-If I do the take-any accelerator, the next one to do maybe ought to be the wood sword accelerator (add a map icon, have sword/candle option)
+port CanvasManager to Av (no broadcast, but better popups)
+
+ensure speech cannot poke stuff during a modal popup
+
+send Kigalas next 'known good'
+
+sword 2 needs some kind of local interaction, akin to armos item (but trickier, since it can be near either screen edge)
 
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
@@ -54,6 +60,8 @@ factoids for 'loading ui screen':
  -  a room with a gleeok cannot have a push block
  - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
  - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
+ - khanana key explanation
+ - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
 
 
 Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
@@ -158,39 +166,8 @@ show list of remaining box items? if less than N left? - the popup now kinda acc
 
 does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
 
+
 MEDIUM
-
-Currently, when I find a take-any on the overworld, I
- - move the mouse to the top, and either click both candle and heart-X or click heart-gain
- - wander the mouse back down to where I am on overworld (where was it again?) and 'X' that tile
-The mouse-movement is slow and error-prone.  Instead I should scroll tile to take-any and then some nearby-mouse-popup should give me options to take these action-sets:
- - do nothing (leaving decision for later)
- - X spot (I took the potion)
- - gain blue candle, X out a take-any-heart, X out map tile (I took candle)
- - gain take-any-heart, X out map tile (I took heart)
-I don't know the right UI*, but it involves not having the mouse make the long journey from the overworld map to the hearts/candle tracker, and then another long journey back.
-At the same time, need to preserve the simple/intuitive UI that already exists - don't let the advanced user break/clutter the casual user's experience.
-...A similar thing happens when find S2 cave.
-...A vagely similar thing happens when witnessing ladder item (ladder is fixed location on map, so easier to mouse back to un-erroneously).
-...A similar thing happens when finding the ladder in dungeon 6 basement - what could be a good "local UI" there to mark up 6's floor drop and basement drop?
-
-* a possible take-any UI is, once the take-any tile is on the map, middle-clicking that tile brings up some local popup selection of potion/candle/heart and you click which of the 
-  3 options you want, which dismisses the popup and takes the actions.  And for hotkey-guy, simply pressing the hotkey to mark the tile also automatically pops up the local take-any UI 
-  without needing the middle-click, maybe? In that case maybe need 4th option in popup (defer decision until later and leave tile on map)... actually, local popups always need a 
-  'do nothing' option, e.g. for the casual user who accidentally activates the UI and just wants to dismiss it because 'what the heck even is this'
-  (When a local popup-ui makes changes at a distance in other parts of tracker, long duration animations highlighting the changes will help users understand, and undo would be nice)
-
-Given where the overworld-selector API is now (weeks after writing the above), I think the take-any scenario is:
- - use overworld popup selector to choose take-any mark
- - it immediately pops up a second selector with old-man 'take any one you want' decoration and grid choices potion, candle, heart, and below candle some kind of 'leave' option, and 
-   'leave' behaves like an exterior-click-dismiss (and leaves take-any tile on OW map), and the other choices have the expected accelerator effects (map tile X, top-UI hearts/candle update)
-And if there were e.g. a 'got-an-item-here' dungeon room selector or something, it could also have a local popup
- - the 'room' would not even have to be a real room, like maybe selecting that room from the room grid makes no changes to the backing state, but instead just invokes the new popup
- - or it could even be outside the grid, like a decoration, with a click interaction that dismisses the room-selector with no commit, and instead invokes new popup
- - icon should clearly be linkGotTheThing :)
- - popup could somehow offer basement versus floor item choices, and populate top-UI boxes via some logic, guideline-arrow appears while interacting
- - (turning it up to 11, maybe top-ui item boxes should be non-interactive, have all local interactions to set it? probably no, need to correct errors, non-intuitive, etc, but think about)
-
 
 
 homer conversation, he forgot shops could even have second items:

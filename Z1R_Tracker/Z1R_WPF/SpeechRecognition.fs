@@ -16,7 +16,7 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
                 "any road"          , 12  // 9 10 11 12
                 "sword three"       , 13
                 "sword two"         , 14
-                "hint shop"         , 15
+                "sword one"         , 15
                 "arrow shop"        , 16
                 "bomb shop"         , 17
                 "book shop"         , 18
@@ -25,9 +25,11 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
                 "meat shop"         , 21
                 "key shop"          , 22
                 "shield shop"       , 23
-                "take any"          , 24
-                "potion shop"       , 25
-                "money"             , 26
+                "arm owes"          , 24
+                "hint shop"         , 25
+                "take any"          , 26
+                "potion shop"       , 27
+                "money"             , 28
                 |]
         | TrackerModel.DungeonTrackerInstanceKind.DEFAULT ->
             dict [|
@@ -43,7 +45,7 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
                 "any road"          , 12  // 9 10 11 12
                 "sword three"       , 13
                 "sword two"         , 14
-                "hint shop"         , 15
+                "sword one"         , 15
                 "arrow shop"        , 16
                 "bomb shop"         , 17
                 "book shop"         , 18
@@ -52,9 +54,11 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
                 "meat shop"         , 21
                 "key shop"          , 22
                 "shield shop"       , 23
-                "take any"          , 24
-                "potion shop"       , 25
-                "money"             , 26
+                "arm owes" (*armos*), 24
+                "hint shop"         , 25
+                "take any"          , 26
+                "potion shop"       , 27
+                "money"             , 28
                 |]
     do
         speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases.Keys |> Seq.toArray)); gb))
