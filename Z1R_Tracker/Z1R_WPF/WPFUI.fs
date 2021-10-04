@@ -2115,8 +2115,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 canvasAdd(popupCanvasArea, bwRect, 0., topViewboxRelativeToThisBroadcast - topViewboxRelativeToApp)
                 )
             cm.BeforeDismissPopupCanvas.Add(fun _pc ->
-                let bwRect = popups.Pop()
-                popupCanvasArea.Children.Remove(bwRect)
+                if popups.Count > 0 then   // we can underflow if the user turns on the broadcast window mid-game, as the options window was a popup when the broadcast began
+                    let bwRect = popups.Pop()
+                    popupCanvasArea.Children.Remove(bwRect)
                 )
 
         let timeline = makeViewRect(Point(0.,START_TIMELINE_H), Point(W,THRU_TIMELINE_H))
@@ -2170,7 +2171,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let fakeBottomMouse = addFakeMouse(bottomc)
 
         // set up the main broadcast window
-        let H = max top.Height sp.Height
+        let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
         broadcastWindow.Height <- H + 40.
         let dp = new DockPanel()
         DockPanel.SetDock(timeline, Dock.Bottom)
@@ -2195,7 +2196,15 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                         dp.Children.RemoveAt(1)
                         dp.Children.Add(bottomc) |> ignore
                 Canvas.SetLeft(fakeBottomMouse, mousePos.X)
-                Canvas.SetTop(fakeBottomMouse, mousePos.Y - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 180.)
+                if mousePos.Y > START_TIMELINE_H then
+                    // The timeline is docked to the bottom in both the upper and lower views.
+                    // There is 'dead space' below the dungeons area and above the timeline in the broadcast window.
+                    // The fakeMouse should 'jump over' this dead space so that mouse-gestures in the timeline show in the right spot on the timeline.
+                    // This does mean that certain areas of the options-pane popup won't be fakeMouse-displayed correctly, but timeline is more important.
+                    let yDistanceMouseToBottom = appMainCanvas.Height - mousePos.Y
+                    Canvas.SetTop(fakeBottomMouse, H - yDistanceMouseToBottom)
+                else
+                    Canvas.SetTop(fakeBottomMouse, mousePos.Y - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 180.)
             )
         broadcastWindow
     let mutable broadcastWindow = null
