@@ -18,8 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-port CanvasManager to Av (no broadcast, but better popups)
-
 ensure speech cannot poke stuff during a modal popup
 
 send Kigalas next 'known good'

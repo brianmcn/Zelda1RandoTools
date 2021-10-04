@@ -60,7 +60,7 @@ let dungeonRoomMouseButtonExplainerDecoration =
     let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
     b
 
-let dungeonRoomYouGotTheThingDecorationButton(appMainCanvas, pos:Point, sunglasses, isCurrentlyBook, updateTriforceDisplay, level) =
+let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, isCurrentlyBook, updateTriforceDisplay, level) =
     let dungeonIndex = level-1
     let linkCanvas = new Canvas(Width=30., Height=30.)
     let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
@@ -106,8 +106,8 @@ let dungeonRoomYouGotTheThingDecorationButton(appMainCanvas, pos:Point, sunglass
                     if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
                         // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                         popupIsActive <- true
-                        let pos = triforceIcon.TranslatePoint(Point(15., 15.), appMainCanvas).Value
-                        Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, dungeonIndex, d.Color, d.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
+                        let pos = triforceIcon.TranslatePoint(Point(15., 15.), cm.AppMainCanvas).Value
+                        Dungeon.HiddenDungeonCustomizerPopup(cm, dungeonIndex, d.Color, d.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
                     redraw()
             )
         for box in d.Boxes do
@@ -124,8 +124,8 @@ let dungeonRoomYouGotTheThingDecorationButton(appMainCanvas, pos:Point, sunglass
             let mutable boxPopupIsActive = false
             let activateComboBox(activationDelta) =
                 boxPopupIsActive <- true
-                let pos = c.TranslatePoint(Point(),appMainCanvas).Value
-                CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+                let pos = c.TranslatePoint(Point(),cm.AppMainCanvas).Value
+                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
                     box.Set(newBoxCellValue, newPlayerHas)
                     redraw()
                     ), (fun () -> boxPopupIsActive <- false))
@@ -197,7 +197,8 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, isCurrentlyBook, updateTriforceDisplay) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, isCurrentlyBook, updateTriforceDisplay) =
+    let appMainCanvas = cm.AppMainCanvas
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 27*8 + 12*7))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -391,7 +392,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), appMainCanvas).Value
-                                Dungeon.HiddenDungeonColorChooserPopup(appMainCanvas, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
+                                Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
                                     (fun () -> 
                                         Graphics.WarpMouseCursorTo(pos)
                                         popupIsActive <- false)) |> ignore
@@ -449,7 +450,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
                         let h = 9.*3.*2.+ST*4.
-                        CustomComboBoxes.DoModalGridSelect(appMainCanvas, roomPos.X, roomPos.Y, tileCanvas,
+                        CustomComboBoxes.DoModalGridSelect(cm, roomPos.X, roomPos.Y, tileCanvas,
                             gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
                             (fun (currentState) -> 
                                 tileCanvas.Children.Clear()
@@ -471,7 +472,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                                 Graphics.WarpMouseCursorTo(pos)
                                 popupState <- Dungeon.DelayedPopupState.NONE),  
                             [upcast dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST
-                             dungeonRoomYouGotTheThingDecorationButton(appMainCanvas, roomPos, 1.0, isCurrentlyBook, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
+                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, 1.0, isCurrentlyBook, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
                             CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
@@ -753,7 +754,7 @@ let makeDungeonTabs(appMainCanvas, selectDungeonTabEvent:Event<int>, TH, content
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
                 let gridClickDismissalDoesMouseWarpBackToTileCenter = false
                 outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored in onClose()
-                CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                     gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
             )
     else

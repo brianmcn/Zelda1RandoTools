@@ -39,16 +39,16 @@ type MapStateProxy(state) =
             Graphics.theInteriorBmpTable.[state].[0]
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (appMainCanvas:Canvas,_c:Canvas,_isCurrentlyBook,i,j) -> async {
-    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(appMainCanvas, 572.)
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,_isCurrentlyBook,i,j) -> async {
+    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (appMainCanvas:Canvas,_c:Canvas,_isCurrentlyBook,i,j) -> async {
-    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(appMainCanvas, 572.)
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,_isCurrentlyBook,i,j) -> async {
+    let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(cm, 572.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (appMainCanvas,c:Canvas,isCurrentlyBook,_i,_j) -> async {
-    let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), appMainCanvas).Value  // place to draw the local box
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,isCurrentlyBook,_i,_j) -> async {
+    let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas).Value  // place to draw the local box
     let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
     // in appMainCanvas coordinates:
     // armosBox position in main canvas
@@ -69,7 +69,7 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (f
         upcast rect, ax-pos.X-3., ay-pos.Y-3.
         |]
     let wh = new System.Threading.ManualResetEvent(false)
-    CustomComboBoxes.DisplayRemoteItemComboBox(appMainCanvas, pos.X, pos.Y, TrackerModel.armosBox.CellCurrent(), 0, isCurrentlyBook, gridX, gridY, 
+    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, TrackerModel.armosBox.CellCurrent(), 0, isCurrentlyBook, gridX, gridY, 
             (fun (newBoxCellValue, newPlayerHas) ->
                 TrackerModel.armosBox.Set(newBoxCellValue, newPlayerHas)
                 TrackerModel.forceUpdate()

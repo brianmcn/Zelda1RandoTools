@@ -170,7 +170,14 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     let mutable doUIUpdate = fun() -> ()
 
-    let appMainCanvas = new Canvas(Width=16.*OMTW, Background=Brushes.Black)
+    let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
+        //                             items  ow map  prog  timeline  dungeon tabs                
+        let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TCH + 6 + TH + TH + 27*8 + 12*7 + 30)
+        let rootCanvas =    new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+        let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+        canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
+        let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
+        appMainCanvas, cm
 
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
@@ -259,7 +266,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
                     popupIsActive <- true
                     let pos = colorButton.TranslatePoint(Point(15., 15.), appMainCanvas).Value
-                    Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
+                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
                         (fun() -> 
                             popupIsActive <- false
                             )) |> ignore
@@ -293,7 +300,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                 popupIsActive <- true
                 let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas).Value
-                Dungeon.HiddenDungeonCustomizerPopup(appMainCanvas, i, d.Color, d.LabelChar, true, pos,
+                Dungeon.HiddenDungeonCustomizerPopup(cm, i, d.Color, d.LabelChar, true, pos,
                     (fun() -> 
                         popupIsActive <- false
                         )) |> ignore
@@ -333,7 +340,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         let activateComboBox(activationDelta) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(appMainCanvas, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+            CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
                 box.Set(newBoxCellValue, newPlayerHas)
                 popupIsActive <- false
                 ), (fun () -> popupIsActive <- false))
@@ -592,10 +599,10 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 dismiss()
                 popupIsActive <- false
                 )
-            dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 100., 200., secondButton, (fun () -> popupIsActive <- false))
+            dismiss <- CustomComboBoxes.DoModal(cm, 100., 200., secondButton, (fun () -> popupIsActive <- false))
         )
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(appMainCanvas, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
                                                         updateTriforceDisplayImpl, updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl,
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).CurrentInteriorBMP())
 
@@ -891,7 +898,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                             upcast triangle, -pos.X-3., -pos.Y-3.
                             upcast rect, lx-pos.X-3., ly-pos.Y-3.
                             |]
-                        CustomComboBoxes.DisplayRemoteItemComboBox(appMainCanvas, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
+                        CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
                             gridX, gridY, (fun (newBoxCellValue, newPlayerHas) ->
                                 TrackerModel.ladderBox.Set(newBoxCellValue, newPlayerHas)
                                 TrackerModel.forceUpdate()
@@ -986,7 +993,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                     upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
                                 )
                             let pos = c.TranslatePoint(Point(), appMainCanvas).Value
-                            CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.X, pos.Y, tileCanvas,
+                            CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                                 gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                                 (fun (currentState) -> 
                                     tileCanvas.Children.Clear()
@@ -1003,7 +1010,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                         selectDungeonTabEvent.Trigger(currentState)
                                     async {
                                         match overworldAcceleratorTable.TryGetValue(currentState) with
-                                        | (true,f) -> do! f(appMainCanvas,c,isCurrentlyBook,i,j)
+                                        | (true,f) -> do! f(cm,c,isCurrentlyBook,i,j)
                                         | _ -> ()
                                         redrawGridSpot()
                                         dismissPopup()
@@ -1105,7 +1112,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     dismiss()
                     popupIsActive <- false
                 )
-            dismiss <- CustomComboBoxes.DoModal(appMainCanvas, 0., 150., element, (fun () -> popupIsActive <- false))
+            dismiss <- CustomComboBoxes.DoModal(cm, 0., 150., element, (fun () -> popupIsActive <- false))
         )
 
     // item progress
@@ -1218,7 +1225,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 let extraDecorations = []
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
                 let gridClickDismissalDoesMouseWarpBackToTileCenter = false
-                CustomComboBoxes.DoModalGridSelect(appMainCanvas, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                                                     gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
             )
         row <- row + 1
@@ -1238,7 +1245,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
+            CustomComboBoxes.DoModal(cm, 0., THRU_MAP_AND_LEGEND_H + 4., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
 
     // WANT!
     let kitty = new Image()
@@ -1630,7 +1637,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModal(appMainCanvas, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
+            CustomComboBoxes.DoModal(cm, 0., THRU_MAP_H, optionsCanvas, (fun () -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
 
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 
@@ -1680,7 +1687,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     // Dungeon level trackers
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(appMainCanvas, selectDungeonTabEvent, TH, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1728,7 +1735,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
             popupIsActive <- true
             let pc, predraw = make()
             let pos = c.TranslatePoint(Point(), appMainCanvas)
-            CustomComboBoxes.DoModalGridSelect(appMainCanvas, pos.Value.X, pos.Value.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
+            CustomComboBoxes.DoModalGridSelect(cm, pos.Value.X, pos.Value.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                     (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
                     Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
                     (fun (dismissPopup,_ea,db) -> 
@@ -2083,11 +2090,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
 
 
-
-    //                            items  ow map  prog  timeline  dungeon tabs                
-    appMainCanvas.Height <- float(30*5 + 11*3*9 + 30 + TCH + 6 + TH + TH + 27*8 + 12*7 + 30)
-
     TrackerModel.forceUpdate()
-    appMainCanvas, updateTimeline
+    cm, updateTimeline
 
 

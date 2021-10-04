@@ -17,7 +17,7 @@ type MyCommand(f) =
 type MyWindow() as this = 
     inherit Window()
     let mutable startTime = DateTime.Now
-    let mutable canvas, updateTimeline = null, fun _ -> ()
+    let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=32.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                 items  ow map  prog  timeline     dungeon tabs                
@@ -169,12 +169,11 @@ type MyWindow() as this =
                                 TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
                             else
                                 TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                        let c,u = UI.makeAll(i, heartShuffle, kind)
-                        canvas <- c
+                        let cm,u = UI.makeAll(i, heartShuffle, kind)
                         UI.resetTimerEvent.Publish.Add(fun _ -> startTime <- DateTime.Now)
                         updateTimeline <- u
-                        UI.canvasAdd(canvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
-                        this.Content <- canvas
+                        UI.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
+                        this.Content <- cm.RootCanvas
                     })
                 )
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)

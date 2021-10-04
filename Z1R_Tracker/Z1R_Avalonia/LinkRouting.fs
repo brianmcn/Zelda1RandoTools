@@ -13,8 +13,9 @@ type RouteDestination =
     | OW_MAP of int * int
     | HINTZONE of TrackerModel.HintZone * bool  // bool is couldBeLetterDungeon
 
-let SetupLinkRouting(appMainCanvas, offset, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
+let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
                         updateTriforceDisplayImpl, updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl, isMirrored, sword2bmp) =
+    let appMainCanvas = cm.AppMainCanvas
     let OFFSET = offset
     // help the player route to locations
     let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -54,7 +55,7 @@ let SetupLinkRouting(appMainCanvas, offset, changeCurrentRouteTarget, eliminateC
             popupIsActive <- true
             setLinkIcon(3)
             let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
-            let dismissHandle = CustomComboBoxes.DoModalCore(appMainCanvas, 
+            let dismissHandle = CustomComboBoxes.DoModalCore(cm, 
                                                                 (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
                                                                 (fun (c,e) -> c.Children.Remove(e) |> ignore), 
                                                                 wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
