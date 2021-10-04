@@ -1618,7 +1618,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 
     let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
-    let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false)
+    let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false, Background=Brushes.Black)
     let reminderDisplayInnerBorder = new Border(Child=reminderDisplayInnerDockPanel, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, HorizontalAlignment=HorizontalAlignment.Right)
     DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Top)
     reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
