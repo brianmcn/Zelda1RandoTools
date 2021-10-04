@@ -24,8 +24,7 @@ clicking link-got-item inside dungeon room menu should maybe dismiss it - feels 
  - also weird that you have to double-click a room, which has an (unintentional?) effect - how get menu without effect?
 
 
-triforce-and-go: turn off PB/recorder reminders
-zelda: turn off all audio/reminder feedback
+triforce-and-go: turn off PB/recorder reminders   --  or maybe these reminders have outlived their usefulness
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
  - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
