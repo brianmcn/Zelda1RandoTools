@@ -100,8 +100,8 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         for tick = 0 to numTicks do
             if buckets.ContainsKey(tick) then
                 let rowBmps = ResizeArray()
-                let xmin,xmax = x(tick)-iconSize/2. , x(tick)+iconSize/2.
-                let xmin,xmax = max 0 (int xmin), min (int xmax) (int lineWidth)
+                let xminOrig,xmaxOrig = x(tick)-iconSize/2. , x(tick)+iconSize/2.
+                let xmin,xmax = max 0 (int xminOrig), min (int xmaxOrig) (int lineWidth)
                 for bmp in buckets.[tick] do
                     let mutable bestRow, bestPenalty = 0, 99999
                     for row = numRows-1 downto 0 do
@@ -124,4 +124,4 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
                         let img = Graphics.BMPtoImage bmp
                         img.Width <- iconSize
                         img.Height <- iconSize
-                        canvasAdd(itemCanvas, img, float xmin, float row*(iconSize+ICON_SPACING))
+                        canvasAdd(itemCanvas, img, float xminOrig, float row*(iconSize+ICON_SPACING))

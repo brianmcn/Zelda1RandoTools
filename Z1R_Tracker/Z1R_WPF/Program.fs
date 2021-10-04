@@ -64,7 +64,7 @@ type MyWindowBase() as this =
                 //let ctrl_bits = lParam.ToInt32() &&& 0xF  // see WM_HOTKEY docs
                 let key = lParam.ToInt32() >>> 16
                 if key = VK_F10 then
-                    startTime <- DateTime.Now
+                    //startTime <- DateTime.Now
                     this.Update(true)
         IntPtr.Zero
 
@@ -222,7 +222,7 @@ type MyWindow() as this =
                         OptionsMenu.microphoneFailedToInitialize <- true
                     let cm,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
-                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> this.SetStartTime(DateTime.Now))
+                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTime(DateTime.Now))
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans

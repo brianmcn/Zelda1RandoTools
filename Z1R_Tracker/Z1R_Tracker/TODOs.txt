@@ -18,9 +18,35 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+clicking link-got-item inside dungeon room menu should maybe dismiss it - feels weird to need to click again
+ - also weird that you have to double-click a room, which has an (unintentional?) effect - how get menu without effect?
+
 send Kigalas next 'known good'
 
 
+
+triforce-and-go: turn off PB/recorder reminders
+zelda: turn off all audio/reminder feedback
+
+timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
+ - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
+
+red dungeon wall - brighter?
+
+triforce number popup is cutoff when broadcast from dungeon, ugly (see below, maybe broadcast top whenever that popup is up)
+hint decoder always cut off, can i put its button in dungeon pane to broadcast better? or maybe just special case the broadcast if leave where is?
+
+visual reminder green border popup lacks fill background (can see timeline items thru it in margin)
+
+if broadcasting dungeon, mouse in options pane should broadcast mouse in wrong location (mouse should jump across void)
+
+if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
+
+mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
+
+color chooser - choose 'any' color?
+
+consider leaving whitesword/ladder items as interactable boxes on map, so can just click them later, yellow arrow could just popup on hover perhaps
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 

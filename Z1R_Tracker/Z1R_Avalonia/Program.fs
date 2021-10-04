@@ -170,7 +170,7 @@ type MyWindow() as this =
                             else
                                 TrackerModel.DungeonTrackerInstanceKind.DEFAULT
                         let cm,u = UI.makeAll(i, heartShuffle, kind)
-                        UI.resetTimerEvent.Publish.Add(fun _ -> startTime <- DateTime.Now)
+                        UI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); startTime <- DateTime.Now)
                         updateTimeline <- u
                         UI.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
                         this.Content <- cm.RootCanvas
