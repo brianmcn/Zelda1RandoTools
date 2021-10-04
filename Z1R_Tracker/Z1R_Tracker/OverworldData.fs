@@ -1,7 +1,7 @@
 ﻿module OverworldData
 
  // TODO move this elsewhere?
-let VersionString = "0.95"
+let VersionString = "0.96"
 let Website = "https://github.com/brianmcn/Zelda1RandoTools"
 let AboutBody = sprintf "Z-Tracker v%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" VersionString Website
 
