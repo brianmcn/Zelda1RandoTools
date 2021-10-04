@@ -879,35 +879,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
                             else
                                 c.TranslatePoint(Point(OMTW-30.,4.),appMainCanvas)
                         let pos = pos.Value
-                        // in appMainCanvas coordinates:
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
-                        // bottom middle of the box, as an arrow target
-                        let tx,ty = lx+15., ly+30.+3.   // +3 so arrowhead does not touch the target box
-                        // top middle of the box we are drawing on the coast, as an arrow source
-                        let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
-                        let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
-                        // rectangle for remote box highlight
-                        let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
-                        // TODO mirror overworld - maybe TP() relative to owCanvas?
-                        let gridX,gridY = if displayIsCurrentlyMirrored then 27., -3. else -117., -3. 
-                        let decoX,decoY = if displayIsCurrentlyMirrored then 27., 108. else -152., 108.
-                        let extraDecorations = [|
-                            CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
-                            upcast line, -pos.X-3., -pos.Y-3.
-                            upcast triangle, -pos.X-3., -pos.Y-3.
-                            upcast rect, lx-pos.X-3., ly-pos.Y-3.
-                            |]
-                        CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, -1, activationDelta, isCurrentlyBook, 
-                            gridX, gridY, (fun (newBoxCellValue, newPlayerHas) ->
-                                TrackerModel.ladderBox.Set(newBoxCellValue, newPlayerHas)
-                                TrackerModel.forceUpdate()
-                                popupIsActive <- false
-                                ), 
-                            (fun () -> popupIsActive <- false), extraDecorations)
+                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, isCurrentlyBook, (fun() -> popupIsActive <- false))
                     coastBoxOnOwGridRect.PointerPressed.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
                     coastBoxOnOwGridRect.PointerWheelChanged.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta.Y<0. then 1 else -1))
-                    //if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() = -1 then  // dont have, unknown
             else
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas

@@ -356,6 +356,7 @@ type MapSquareChoiceDomainHelper =
     static member IsItem(state) = state >= 16 && state <= 23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     // other stuff
+    static member SWORD2 = 14
     static member SWORD1 = 15
     static member ARMOS = 24
     static member TAKE_ANY = 26

@@ -38,6 +38,32 @@ type MapStateProxy(state) =
         else
             Graphics.theInteriorBmpTable.[state].[0]
 
+let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, trackerModelBoxToUpdate:TrackerModel.Box,
+                            topX,topY,pos:Point,isCurrentlyBook,onCommitOrDismiss) =  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
+    // in appMainCanvas coordinates:
+    // bottom middle of the box, as an arrow target
+    let tx,ty = topX+15., topY+30.+3.   // +3 so arrowhead does not touch the target box
+    // top middle of the box we are drawing on the map, as an arrow source
+    let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
+    let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
+    // rectangle for remote box highlight
+    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
+    let decorationsShouldGoToTheLeft = pos.X > OMTW*8.
+    let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
+    let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
+    let extraDecorations = [|
+        CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
+        upcast line, -pos.X-3., -pos.Y-3.
+        upcast triangle, -pos.X-3., -pos.Y-3.
+        upcast rect, topX-pos.X-3., topY-pos.Y-3.
+        |]
+    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, isCurrentlyBook, gridX, gridY, 
+            (fun (newBoxCellValue, newPlayerHas) ->
+                trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
+                TrackerModel.forceUpdate()
+                onCommitOrDismiss()
+                ), (fun () -> onCommitOrDismiss()), extraDecorations)
+
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,_isCurrentlyBook,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 666.)
@@ -49,32 +75,21 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,isCurrentlyBook,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
-    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
-    // in appMainCanvas coordinates:
     // armosBox position in main canvas
+    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
     let ax,ay = OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+30.
-    // bottom middle of the box, as an arrow target
-    let tx,ty = ax+15., ay+30.+3.   // +3 so arrowhead does not touch the target box
-    // top middle of the box we are drawing on the map, as an arrow source
-    let sx,sy = pos.X+15., pos.Y-3. // -3 so the line base does not touch the target box
-    let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
-    // rectangle for remote box highlight
-    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
-    let gridX, gridY = -117., -3. 
-    let decoX,decoY = -152., 108.
-    let extraDecorations = [|
-        CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
-        upcast line, -pos.X-3., -pos.Y-3.
-        upcast triangle, -pos.X-3., -pos.Y-3.
-        upcast rect, ax-pos.X-3., ay-pos.Y-3.
-        |]
     let wh = new System.Threading.ManualResetEvent(false)
-    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, TrackerModel.armosBox.CellCurrent(), 0, isCurrentlyBook, gridX, gridY, 
-            (fun (newBoxCellValue, newPlayerHas) ->
-                TrackerModel.armosBox.Set(newBoxCellValue, newPlayerHas)
-                TrackerModel.forceUpdate()
-                wh.Set() |> ignore
-                ), (fun () -> wh.Set() |> ignore), extraDecorations)
+    DoRemoteItemComboBox(cm, 0, TrackerModel.armosBox, ax, ay, pos, isCurrentlyBook, (fun() -> wh.Set() |> ignore))
+    let! _ = Async.AwaitWaitHandle(wh)
+    ()
+    }))
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,isCurrentlyBook,_i,_j) -> async {
+    let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
+    // sword2 position in main canvas
+    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
+    let ax,ay = OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+60.
+    let wh = new System.Threading.ManualResetEvent(false)
+    DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, ax, ay, pos, isCurrentlyBook, (fun() -> wh.Set() |> ignore))
     let! _ = Async.AwaitWaitHandle(wh)
     ()
     }))

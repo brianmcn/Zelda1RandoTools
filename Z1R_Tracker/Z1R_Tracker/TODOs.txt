@@ -18,11 +18,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-ensure speech cannot poke stuff during a modal popup
-
 send Kigalas next 'known good'
 
-sword 2 needs some kind of local interaction, akin to armos item (but trickier, since it can be near either screen edge)
 
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
