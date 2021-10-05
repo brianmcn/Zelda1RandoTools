@@ -60,7 +60,7 @@ let dungeonRoomMouseButtonExplainerDecoration =
     let b = new Border(BorderThickness=Thickness(ST), BorderBrush=Brushes.Gray, Child=d)
     b
 
-let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, updateTriforceDisplay, level) =
+let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level) =
     let dungeonIndex = level-1
     let linkCanvas = new Canvas(Width=30., Height=30.)
     let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
@@ -102,7 +102,6 @@ let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager,
                 ea.Handled <- true
                 if dungeonIndex<>8 then
                     d.ToggleTriforce()
-                    updateTriforceDisplay(dungeonIndex)
                     if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
                         // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                         popupIsActive <- true
@@ -197,7 +196,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, updateTriforceDisplay) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let appMainCanvas = cm.AppMainCanvas
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 27*8 + 12*7))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
@@ -472,7 +471,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Eve
                                 Graphics.WarpMouseCursorTo(pos)
                                 popupState <- Dungeon.DelayedPopupState.NONE),  
                             [upcast dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST
-                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, 1.0, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
+                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, 1.0, level), -roomPos.X, -roomPos.Y],
                             CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then

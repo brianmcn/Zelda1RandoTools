@@ -9,6 +9,7 @@ open OverworldMapTileCustomization
 
 let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
+let makeHintHighlight = Views.makeHintHighlight
 
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
@@ -123,12 +124,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     if not heartShuffle then
         for i = 0 to 7 do
             TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
-    let emptyUnfoundTriforce_bmps, emptyFoundTriforce_bmps, fullTriforce_bmps =
-        match dungeonInstance.Kind with
-        | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
-            Graphics.emptyUnfoundLetteredTriforce_bmps, Graphics.emptyFoundLetteredTriforce_bmps, Graphics.fullLetteredTriforce_bmps
-        | TrackerModel.DungeonTrackerInstanceKind.DEFAULT ->
-            Graphics.emptyUnfoundNumberedTriforce_bmps, Graphics.emptyFoundNumberedTriforce_bmps, Graphics.fullNumberedTriforce_bmps
 
     // make the entire UI
     let timelineItems = ResizeArray()
@@ -182,8 +177,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
-    let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
-    let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
     let OFFSET = 280.
     // numbered triforce display
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
@@ -224,23 +217,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             fun () -> ()
     updateNumberedTriforceDisplayIfItExists()
     // triforce
-    let updateTriforceDisplayImpl(innerc:Canvas, i) =
-        innerc.Children.Clear()
-        let found = TrackerModel.GetDungeon(i).HasBeenLocated()
-        if not(TrackerModel.IsHiddenDungeonNumbers()) then
-            if not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN then
-                innerc.Children.Add(makeHintHighlight(30.)) |> ignore
-        else
-            let label = TrackerModel.GetDungeon(i).LabelChar
-            if label >= '1' && label <= '8' then
-                let index = int label - int '1'
-                let hasHint = not(found) && TrackerModel.GetLevelHint(index)<>TrackerModel.HintZone.UNKNOWN
-                if hasHint then
-                    innerc.Children.Add(makeHintHighlight(30.)) |> ignore
-        if not(TrackerModel.GetDungeon(i).PlayerHasTriforce()) then 
-            innerc.Children.Add(Graphics.BMPtoImage(if not(found) then emptyUnfoundTriforce_bmps.[i] else emptyFoundTriforce_bmps.[i])) |> ignore
-        else
-            innerc.Children.Add(Graphics.BMPtoImage(fullTriforce_bmps.[i])) |> ignore 
     let updateLevel9NumeralImpl(level9NumeralCanvas:Canvas) =
         level9NumeralCanvas.Children.Clear()
         let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
@@ -248,11 +224,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
             canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
         canvasAdd(level9NumeralCanvas, img, 0., 0.)
-    let updateTriforceDisplay(i) =
-        let innerc : Canvas = triforceInnerCanvases.[i]
-        updateTriforceDisplayImpl(innerc,i)
     for i = 0 to 7 do
-        let image = Graphics.BMPtoImage emptyUnfoundTriforce_bmps.[i]
         if TrackerModel.IsHiddenDungeonNumbers() then
             // triforce dungeon color
             let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
@@ -284,16 +256,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has triforce drawn on it, not the eventual shading of updateDungeon()
+        let innerc = Views.MakeTriforceDisplayView(i)
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
-        canvasAdd(innerc, image, 0., 0.)
         let mutable popupIsActive = false
         c.MouseDown.Add(fun _ -> 
             if not popupIsActive then
                 let d = TrackerModel.GetDungeon(i)
                 d.ToggleTriforce()
-                updateTriforceDisplay(i)
                 if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
                     // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
                     popupIsActive <- true
@@ -303,7 +273,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforce_bmps.[i]) else None))
+        let fullTriforceBmp =
+            match dungeonInstance.Kind with
+            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
+            | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
@@ -591,7 +565,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         )
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
-                                                        updateTriforceDisplayImpl, updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl,
+                                                        updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl,
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).CurrentInteriorBMP())
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
@@ -1200,7 +1174,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     if i = 0 then
                         b.Background <- Brushes.Black
                     else
-                        b.Background <- hintHighlightBrush
+                        b.Background <- Views.hintHighlightBrush
                     button.Content <- mkTxt(TrackerModel.HintZone.FromIndex(i).ToString())
                     // cleanup
                     dismiss()
@@ -1250,8 +1224,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 for fe in mirrorOverworldFEs do
                     fe.RenderTransform <- null
         // redraw triforce display (some may have located/unlocated/hinted)
-        for i = 0 to 7 do
-            updateTriforceDisplay(i)
         updateNumberedTriforceDisplayIfItExists()
         updateLevel9NumeralImpl(level9NumeralCanvas)
         // redraw white/magical swords (may have located/unlocated/hinted)
@@ -1591,7 +1563,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()), updateTriforceDisplay)
+            ), (fun _level -> hideLocator()))
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))

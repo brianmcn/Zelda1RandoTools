@@ -522,11 +522,15 @@ and Dungeon(id,numBoxes) =
     let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
     let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
     let hiddenDungeonColorLabelChangeEvent = new Event<_>()
-    let triforceChangeEvent = new Event<_>()
+    let playerHasTriforceChangeEvent = new Event<_>()
+    let hasBeenLocatedChangeEvent = new Event<_>()
+    do
+        mapSquareChoiceDomain.Changed.Add(fun (_,key) -> if key=id then hasBeenLocatedChangeEvent.Trigger())
     member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
+    member _this.HasBeenLocatedChanged = hasBeenLocatedChangeEvent.Publish
     member _this.PlayerHasTriforce() = playerHasTriforce
-    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; triforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
-    member _this.TriforceChanged = triforceChangeEvent.Publish
+    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; playerHasTriforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.PlayerHasTriforceChanged = playerHasTriforceChangeEvent.Publish
     member _this.Boxes = 
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes
