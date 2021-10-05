@@ -4,6 +4,7 @@ open Avalonia.Controls
 open Avalonia.Media
 open Avalonia
 
+let canvasAdd = Graphics.canvasAdd
 (*
 This module is for reusable display elements with the following properties:
  - they represent a display of some portion of the TrackerModel
@@ -61,3 +62,52 @@ let MakeTriforceDisplayView(trackerIndex) =
     // redraw if label changed, as that can (un)link an existing hint
     dungeon.HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw())
     innerc
+
+
+let redrawBoxes = ResizeArray()
+TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
+    TrackerModel.forceUpdate()
+    for f in redrawBoxes do
+        f()
+    )
+let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
+    let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
+    c.Children.Add(rect) |> ignore
+    let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
+    c.Children.Add(innerc) |> ignore
+    let redraw() =
+        // redraw inner canvas
+        innerc.Children.Clear()
+        let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
+        if bmp <> null then
+            canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
+        // redraw box outline
+        match box.PlayerHas() with
+        | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
+        | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+        | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
+    box.Changed.Add(fun _ -> redraw())
+    let mutable popupIsActive = false
+    let activateComboBox(activationDelta) =
+        popupIsActive <- true
+        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
+        CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
+            box.Set(newBoxCellValue, newPlayerHas)
+            popupIsActive <- false
+            ), (fun () -> popupIsActive <- false))
+    c.PointerPressed.Add(fun ea -> 
+        if not popupIsActive then
+            let pp = ea.GetCurrentPoint(c)
+            if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                if box.CellCurrent() = -1 then
+                    activateComboBox(0)
+                else
+                    box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
+                    redraw()
+        )
+    // item
+    c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activateComboBox(if x.Delta.Y<0. then 1 else -1))
+    redrawBoxes.Add(fun() -> redraw())
+    redraw()
+    c

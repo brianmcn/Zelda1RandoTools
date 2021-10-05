@@ -127,12 +127,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     // make the entire UI
     let timelineItems = ResizeArray()
-    let redrawBoxes = ResizeArray()
-    TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
-        TrackerModel.forceUpdate()
-        for f in redrawBoxes do
-            f()
-        )
 
     let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
         let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
@@ -287,57 +281,19 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
     let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
-        let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
-        c.Children.Add(rect) |> ignore
-        let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
-        c.Children.Add(innerc) |> ignore
-        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), isForTimeline)
-        let redraw() =
-            // redraw inner canvas
-            innerc.Children.Clear()
-            let bmp = boxCurrentBMP(false)
-            if bmp <> null then
-                canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
-            // redraw box outline
-            match box.PlayerHas() with
-            | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-            | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
-            | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
-        box.Changed.Add(fun _ -> redraw(); if requiresForceUpdate then TrackerModel.forceUpdate())
-        let mutable popupIsActive = false
-        let activateComboBox(activationDelta) =
-            popupIsActive <- true
-            let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
-                box.Set(newBoxCellValue, newPlayerHas)
-                popupIsActive <- false
-                ), (fun () -> popupIsActive <- false))
-        c.MouseDown.Add(fun ea ->
-            if not popupIsActive then
-                if ea.ButtonState = Input.MouseButtonState.Pressed &&
-                        (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
-                    if box.CellCurrent() = -1 then
-                        activateComboBox(0)
-                    else
-                        box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
-            )
-        // item
-        c.MouseWheel.Add(fun x -> if not popupIsActive then activateComboBox(if x.Delta<0 then 1 else -1))
+        let c = Views.MakeBoxItem(cm, box)
+        box.Changed.Add(fun _ -> if requiresForceUpdate then TrackerModel.forceUpdate())
         c.MouseEnter.Add(fun _ -> 
-            if not popupIsActive then
-                match box.CellCurrent() with
-                | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
-                | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
-                | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
-                | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
-                | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
-                | _ -> ()
+            match box.CellCurrent() with
+            | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
+            | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
+            | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
+            | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
+            | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
+            | _ -> ()
             )
-        c.MouseLeave.Add(fun _ -> if not popupIsActive then hideLocator())
-        redrawBoxes.Add(fun() -> redraw())
-        redraw()
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
+        c.MouseLeave.Add(fun _ -> hideLocator())
+        timelineItems.Add(new Timeline.TimelineItem(fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
         c
     // items
     let finalCanvasOf1Or4 = 
