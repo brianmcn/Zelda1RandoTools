@@ -18,13 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-clicking link-got-item inside dungeon room menu should maybe dismiss it - feels weird to need to click again? 
-            oh right, but without that, you dont get nearby feedback that what you did had the intended effect.
-            maybe could auto-dismiss after a second? but that'd be annoying if you were in midst of poking the room you activated it with, hm.
- - also weird that you have to double-click a room, which has an (unintentional?) effect - how get menu without effect?
- - maybe it should just be a permanent fixture to the right of dungeon tabs (but inside the tab, since per-dungeon)
-      - steals space from GRAB textbox, and from Notes, and Avaolia would have to put BLOCKERS atop it, so it could only use bottom part
-
 triforce-and-go: turn off PB/recorder reminders   --  or maybe these reminders have outlived their usefulness
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?

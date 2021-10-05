@@ -14,7 +14,7 @@ type RouteDestination =
     | HINTZONE of TrackerModel.HintZone * bool  // bool is couldBeLetterDungeon
 
 let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
-                        updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl, isMirrored, sword2bmp) =
+                        updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp) =
     let appMainCanvas = cm.AppMainCanvas
     let OFFSET = offset
     // help the player route to locations
@@ -154,9 +154,9 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                         makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i), 0., 0.)), 0.+float i*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(i), false))
             if TrackerModel.GetDungeon(8).HasBeenLocated() then
                 let x,y = TrackerModel.mapStateSummary.DungeonLocations.[8]
-                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.OW_MAP(x,y))
+                makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(), 0., 0.)), 0.+8.*30., 30., RouteDestination.OW_MAP(x,y))
             elif TrackerModel.GetLevelHint(8) <> TrackerModel.HintZone.UNKNOWN then
-                makeIconTarget((fun c -> updateLevel9NumeralImpl(c)), 0.+8.*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(8), false))
+                makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(), 0., 0.)), 0.+8.*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(8), false))
             // swords
             if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.GetLevelHint(9) <> TrackerModel.HintZone.UNKNOWN then
                 let (x,y) as loc = TrackerModel.mapStateSummary.Sword2Location

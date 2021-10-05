@@ -211,13 +211,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             fun () -> ()
     updateNumberedTriforceDisplayIfItExists()
     // triforce
-    let updateLevel9NumeralImpl(level9NumeralCanvas:Canvas) =
-        level9NumeralCanvas.Children.Clear()
-        let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
-        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
-        if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
-            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
-        canvasAdd(level9NumeralCanvas, img, 0., 0.)
     for i = 0 to 7 do
         if TrackerModel.IsHiddenDungeonNumbers() then
             // triforce dungeon color
@@ -264,7 +257,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
-    let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
+    let level9NumeralCanvas = Views.MakeLevel9View()
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
@@ -509,8 +502,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             dismiss <- CustomComboBoxes.DoModal(cm, 100., 200., secondButton, (fun () -> popupIsActive <- false))
         )
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
-                                                        updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl,
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).CurrentInteriorBMP())
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
@@ -1170,7 +1162,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     fe.RenderTransform <- null
         // redraw triforce display (some may have located/unlocated/hinted)
         updateNumberedTriforceDisplayIfItExists()
-        updateLevel9NumeralImpl(level9NumeralCanvas)
         // redraw white/magical swords (may have located/unlocated/hinted)
         redrawWhiteSwordCanvas()
         redrawMagicalSwordCanvas()
@@ -1500,7 +1491,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     // Dungeon level trackers
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, selectDungeonTabEvent, TH, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1513,7 +1504,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
-    let BLOCKERS_AND_NOTES_OFFSET = 402.
+    let BLOCKERS_AND_NOTES_OFFSET = 402. + 42.  // dungeon area and side-tracker-panel
     // blockers
     let blockerCurrentBMP(current) =
         match current with

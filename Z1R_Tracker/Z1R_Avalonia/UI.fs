@@ -211,13 +211,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
             fun () -> ()
     updateNumberedTriforceDisplayIfItExists()
     // triforce
-    let updateLevel9NumeralImpl(level9NumeralCanvas:Canvas) =
-        level9NumeralCanvas.Children.Clear()
-        let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
-        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
-        if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
-            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
-        canvasAdd(level9NumeralCanvas, img, 0., 0.)
     for i = 0 to 7 do
         if TrackerModel.IsHiddenDungeonNumbers() then
             // triforce dungeon color
@@ -264,7 +257,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
-    let level9NumeralCanvas = new Canvas(Width=30., Height=30.)     // dungeon 9 doesn't have triforce, but does have grey/white numeral display
+    let level9NumeralCanvas = Views.MakeLevel9View()
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
@@ -513,8 +506,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
             dismiss <- CustomComboBoxes.DoModal(cm, 100., 200., secondButton, (fun () -> popupIsActive <- false))
         )
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
-                                                        updateNumberedTriforceDisplayImpl, updateLevel9NumeralImpl,
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).CurrentInteriorBMP())
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1155,7 +1147,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     fe.RenderTransform <- null
         // redraw triforce display (some may have located/unlocated/hinted)
         updateNumberedTriforceDisplayIfItExists()
-        updateLevel9NumeralImpl(level9NumeralCanvas)
         // redraw white/magical swords (may have located/unlocated/hinted)
         redrawWhiteSwordCanvas()
         redrawMagicalSwordCanvas()
@@ -1572,7 +1563,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     // Dungeon level trackers
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, selectDungeonTabEvent, TH, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1633,9 +1624,12 @@ let makeAll(owMapNum, heartShuffle, kind) =
         c.PointerPressed.Add(fun _ -> if not popupIsActive then activate(0))
         c
 
-    let BLOCKERS_AND_NOTES_OFFSET = 402.
-    let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
+    //let BLOCKERS_AND_NOTES_OFFSET = 402. + 42.  // dungeon area and side-tracker-panel
+    let BLOCKERS_OFFSET = 402.        // dungeon area, overwriting side-tracker-panel
+    let NOTES_OFFSET    = 402. + 42.  // dungeon area and side-tracker-panel
+    let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
+    blockerGrid.Background <- Brushes.Black
     blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
@@ -1659,10 +1653,10 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
-    canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    
-    let tb = new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)
+    let tb = new TextBox(Width=appMainCanvas.Width-NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)
     notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- Brushes.LimeGreen 
@@ -1670,11 +1664,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
     tb.CaretBrush <- Brushes.LimeGreen 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, tb, NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
-    grabModeTextBlock.Opacity <- 0.
+    grabModeTextBlock.Opacity <- 0. 
     grabModeTextBlock.Width <- tb.Width
-    canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, grabModeTextBlock, NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL+30., 76.)

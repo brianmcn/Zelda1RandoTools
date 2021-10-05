@@ -75,6 +75,23 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
     // redraw if label changed, as that can (un)link an existing hint
     dungeon.HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw())
     innerc
+let MakeLevel9View() =
+    let level9NumeralCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+    let dungeon = TrackerModel.GetDungeon(8)
+    let redraw() =
+        level9NumeralCanvas.Children.Clear()
+        let l9found = dungeon.HasBeenLocated()
+        let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
+        if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
+            canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
+        canvasAdd(level9NumeralCanvas, img, 0., 0.)
+    redraw()
+    // redraw if location changes
+    dungeon.HasBeenLocatedChanged.Add(fun _ -> redraw())
+    // redraw if hinting changes
+    TrackerModel.LevelHintChanged(8).Add(fun _ -> redraw())
+    level9NumeralCanvas
+
 
 
 let redrawBoxes = ResizeArray()
