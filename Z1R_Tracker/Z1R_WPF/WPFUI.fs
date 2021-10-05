@@ -172,7 +172,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
     let OFFSET = 280.
-    // numbered triforce display
+    // numbered triforce display - the extra row of triforce in IsHiddenDungeonNumbers
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
         let level = i+1
         let levelLabel = char(int '0' + level)
@@ -250,20 +250,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = Views.MakeTriforceDisplayView(i)
+        let innerc = Views.MakeTriforceDisplayView(cm,i)
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
-        let mutable popupIsActive = false
-        c.MouseDown.Add(fun _ -> 
-            if not popupIsActive then
-                let d = TrackerModel.GetDungeon(i)
-                d.ToggleTriforce()
-                if d.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && d.LabelChar='?' then
-                    // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
-                    popupIsActive <- true
-                    let pos = c.TranslatePoint(Point(15., 15.), appMainCanvas)
-                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, d.Color, d.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
-            )
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)

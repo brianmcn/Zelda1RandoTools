@@ -29,8 +29,8 @@ let fullTriforce_bmp(i) =
     | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
     | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
 
-let MakeTriforceDisplayView(trackerIndex) =
-    let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)
+let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
+    let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
     let redraw() =
         innerc.Children.Clear()
@@ -49,6 +49,17 @@ let MakeTriforceDisplayView(trackerIndex) =
         else
             innerc.Children.Add(Graphics.BMPtoImage(fullTriforce_bmp(trackerIndex))) |> ignore 
     redraw()
+    // interactions
+    let mutable popupIsActive = false
+    innerc.MouseDown.Add(fun _ -> 
+        if not popupIsActive then
+            dungeon.ToggleTriforce()
+            if dungeon.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && dungeon.LabelChar='?' then
+                // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
+                popupIsActive <- true
+                let pos = innerc.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
+                Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos, (fun() -> popupIsActive <- false)) |> ignore
+        )
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw if location changes
@@ -86,7 +97,8 @@ let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) =
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
         | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
         | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
-    box.Changed.Add(fun _ -> redraw())
+    redraw()
+    // interactions
     let mutable popupIsActive = false
     let activateComboBox(activationDelta) =
         popupIsActive <- true
@@ -104,8 +116,8 @@ let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) =
                 else
                     box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
         )
-    // item
     c.MouseWheel.Add(fun x -> if not popupIsActive then activateComboBox(if x.Delta<0 then 1 else -1))
+    // redraw on changes
     redrawBoxes.Add(fun() -> redraw())
-    redraw()
+    box.Changed.Add(fun _ -> redraw())
     c

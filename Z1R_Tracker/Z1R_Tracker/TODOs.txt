@@ -36,10 +36,9 @@ triforce number popup is cutoff when broadcast from dungeon, ugly (see below, ma
 hint decoder always cut off, can i put its button in dungeon pane to broadcast better? or maybe just special case the broadcast if leave where is?
 
 if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
+  - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
 
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
-
-color chooser - choose 'any' color?
 
 consider leaving whitesword/ladder items as interactable boxes on map, so can just click them later, yellow arrow could just popup on hover perhaps
 
