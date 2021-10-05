@@ -21,10 +21,10 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.PointerPoint) =  // a poor name for
 let no = Brushes.DarkRed
 let yes = Brushes.LimeGreen 
 let skipped = Brushes.MediumPurple
-let boxCurrentBMP(isCurrentlyBook, boxCellCurrent, isForTimeline) =
+let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     match boxCellCurrent with
     | -1 -> null
-    |  0 -> (if !isCurrentlyBook then Graphics.book_bmp else Graphics.magic_shield_bmp)
+    |  0 -> (if TrackerModel.IsCurrentlyBook() then Graphics.book_bmp else Graphics.magic_shield_bmp)
     |  1 -> Graphics.boomerang_bmp
     |  2 -> Graphics.bow_bmp
     |  3 -> Graphics.power_bracelet_bmp
@@ -296,20 +296,20 @@ let itemBoxMouseButtonExplainerDecoration =
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
 
-let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, 
+let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, 
                             commitFunction,  // the user clicked a selection, we're dismissing the modal, this is how we notify you of the final choice
                             onClose) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
-        let bmp = boxCurrentBMP(isCurrentlyBook, n, false)
+        let bmp = boxCurrentBMP(n, false)
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             canvasAdd(innerc, image, 1., 1.)
     redraw(boxCellCurrent)
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 15 do
-            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(isCurrentlyBook, n, false) |> Graphics.BMPtoImage)
+            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, false) |> Graphics.BMPtoImage)
             let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             let ident = if n=15 then -1 else n
             yield fe, isSelectable, ident
@@ -331,18 +331,18 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), -3., 27., 
         redrawTile, onClick, allCleanup, extraDecorations, new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray), true)
 
-let DisplayRemoteItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, isCurrentlyBook, gridX, gridY, commitFunction, onClose, extraDecorations) =
+let DisplayRemoteItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, gridX, gridY, commitFunction, onClose, extraDecorations) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
-        let bmp = boxCurrentBMP(isCurrentlyBook, n, false)
+        let bmp = boxCurrentBMP(n, false)
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             canvasAdd(innerc, image, 1., 1.)
     redraw(boxCellCurrent)
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 15 do
-            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(isCurrentlyBook, n, false) |> Graphics.BMPtoImage)
+            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, false) |> Graphics.BMPtoImage)
             let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             let ident = if n=15 then -1 else n
             yield fe, isSelectable, ident

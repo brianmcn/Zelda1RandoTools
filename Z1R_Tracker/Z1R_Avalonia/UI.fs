@@ -137,13 +137,12 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     // make the entire UI
     let timelineItems = ResizeArray()
-    let isCurrentlyBook = ref true
     let redrawBoxes = ResizeArray()
-    let toggleBookMagicalShield() =
-        isCurrentlyBook := not !isCurrentlyBook
+    TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
         TrackerModel.forceUpdate()
         for f in redrawBoxes do
             f()
+        )
     
     let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
         let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
@@ -324,14 +323,14 @@ let makeAll(owMapNum, heartShuffle, kind) =
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), isForTimeline)
+        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), isForTimeline)
         let redraw() =
             // redraw inner canvas
             innerc.Children.Clear()
             let bmp = boxCurrentBMP(false)
             if bmp <> null then
                 canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
-            // redraw box outline (and atop inner canvas)
+            // redraw box outline
             match box.PlayerHas() with
             | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
             | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
@@ -341,7 +340,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         let activateComboBox(activationDelta) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+            CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
                 box.Set(newBoxCellValue, newPlayerHas)
                 popupIsActive <- false
                 ), (fun () -> popupIsActive <- false))
@@ -570,8 +569,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true, Padding=Thickness(0.)))
     ToolTip.SetTip(toggleBookShieldCheckBox, "Shield item icon instead of book item icon")
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
-    toggleBookShieldCheckBox.Checked.Add(fun _ -> toggleBookMagicalShield())
-    toggleBookShieldCheckBox.Unchecked.Add(fun _ -> toggleBookMagicalShield())
+    toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
+    toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OFFSET+150., 30.)
 
     // overworld map grouping, as main point of support for mirroring
@@ -882,7 +881,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                         let pos = pos.Value
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
-                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, isCurrentlyBook, (fun() -> popupIsActive <- false))
+                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, (fun() -> popupIsActive <- false))
                     coastBoxOnOwGridRect.PointerPressed.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
                     coastBoxOnOwGridRect.PointerWheelChanged.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta.Y<0. then 1 else -1))
             else
@@ -987,7 +986,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                                         selectDungeonTabEvent.Trigger(currentState)
                                     async {
                                         match overworldAcceleratorTable.TryGetValue(currentState) with
-                                        | (true,f) -> do! f(cm,c,isCurrentlyBook,i,j)
+                                        | (true,f) -> do! f(cm,c,i,j)
                                         | _ -> ()
                                         redrawGridSpot()
                                         dismissPopup()
@@ -1284,7 +1283,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
         else
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.wand_bmp), x, y)
         x <- x + DX
-        if !isCurrentlyBook then
+        if TrackerModel.IsCurrentlyBook() then
             // book seed
             if TrackerModel.playerComputedStateSummary.HaveBookOrShield then
                 canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.book_bmp, x, y)
@@ -1338,9 +1337,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item", 
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP())])
                 else
-                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP()); 
-                                        upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.sword2Box.CellCurrent(), false))])
+                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
             member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
             member _this.OverworldSpotsRemaining(remain,gettable) =
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
@@ -1540,8 +1539,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     if n = -1 then
                         SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
                     else
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
-                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.ladderBox.CellCurrent(), false))])
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
+                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
@@ -1672,7 +1671,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()), isCurrentlyBook, updateTriforceDisplay)
+            ), (fun _level -> hideLocator()), updateTriforceDisplay)
     canvasAdd(appMainCanvas, dungeonTabs , 0., START_DUNGEON_AND_NOTES_AREA_H)
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
@@ -1725,7 +1724,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
         c.PointerPressed.Add(fun _ -> if not popupIsActive then activate(0))
         c
 
-    let blockerColumnWidth = int((appMainCanvas.Width-402.)/3.)
+    let BLOCKERS_AND_NOTES_OFFSET = 402.
+    let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
     blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
@@ -1750,10 +1750,10 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
-    canvasAdd(appMainCanvas, blockerGrid, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     // notes    
-    let tb = new TextBox(Width=appMainCanvas.Width-402., Height=dungeonTabs.Height - blockerGrid.Height)
+    let tb = new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)
     notesTextBox <- tb
     tb.FontSize <- 24.
     tb.Foreground <- Brushes.LimeGreen 
@@ -1761,11 +1761,11 @@ let makeAll(owMapNum, heartShuffle, kind) =
     tb.CaretBrush <- Brushes.LimeGreen 
     tb.Text <- "Notes\n"
     tb.AcceptsReturn <- true
-    canvasAdd(appMainCanvas, tb, 402., START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- tb.Width
-    canvasAdd(appMainCanvas, grabModeTextBlock, 402., START_DUNGEON_AND_NOTES_AREA_H) 
+    canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL+30., 76.)

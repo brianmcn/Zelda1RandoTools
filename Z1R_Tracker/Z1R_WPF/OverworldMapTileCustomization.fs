@@ -39,7 +39,7 @@ type MapStateProxy(state) =
             Graphics.theInteriorBmpTable.[state].[0]
 
 let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, trackerModelBoxToUpdate:TrackerModel.Box,
-                            topX,topY,pos:Point,isCurrentlyBook,onCommitOrDismiss) =  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
+                            topX,topY,pos:Point,onCommitOrDismiss) =  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
     // in appMainCanvas coordinates:
     // bottom middle of the box, as an arrow target
     let tx,ty = topX+15., topY+30.+3.   // +3 so arrowhead does not touch the target box
@@ -57,7 +57,7 @@ let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, tra
         upcast triangle, -pos.X-3., -pos.Y-3.
         upcast rect, topX-pos.X-3., topY-pos.Y-3.
         |]
-    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, isCurrentlyBook, gridX, gridY, 
+    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, gridX, gridY, 
             (fun (newBoxCellValue, newPlayerHas) ->
                 trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
                 TrackerModel.forceUpdate()
@@ -65,31 +65,31 @@ let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, tra
                 ), (fun () -> onCommitOrDismiss()), extraDecorations)
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,_isCurrentlyBook,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 666.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,_isCurrentlyBook,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(cm, 666.)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,isCurrentlyBook,_i,_j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
     // armosBox position in main canvas
     let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
     let ax,ay = OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+30.
     let wh = new System.Threading.ManualResetEvent(false)
-    DoRemoteItemComboBox(cm, 0, TrackerModel.armosBox, ax, ay, pos, isCurrentlyBook, (fun() -> wh.Set() |> ignore))
+    DoRemoteItemComboBox(cm, 0, TrackerModel.armosBox, ax, ay, pos, (fun() -> wh.Set() |> ignore))
     let! _ = Async.AwaitWaitHandle(wh)
     ()
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,isCurrentlyBook,_i,_j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
     // sword2 position in main canvas
     let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = 280.,60.  // copied brittle-y from elsewhere
     let ax,ay = OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+60.
     let wh = new System.Threading.ManualResetEvent(false)
-    DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, ax, ay, pos, isCurrentlyBook, (fun() -> wh.Set() |> ignore))
+    DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, ax, ay, pos, (fun() -> wh.Set() |> ignore))
     let! _ = Async.AwaitWaitHandle(wh)
     ()
     }))

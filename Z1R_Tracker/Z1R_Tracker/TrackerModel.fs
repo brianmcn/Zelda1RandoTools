@@ -254,6 +254,14 @@ type Cell(cd:ChoiceDomain) =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged = 
+    let mutable isCurrentlyBook = true   // false if this is a boomstick seed
+    let isCurrentlyBookChangeEvent = new Event<_>()
+    let IsCurrentlyBook() = isCurrentlyBook
+    let ToggleIsCurrentlyBook() = isCurrentlyBook <- not isCurrentlyBook; isCurrentlyBookChangeEvent.Trigger(isCurrentlyBook)
+    let IsCurrentlyBookChanged = isCurrentlyBookChangeEvent.Publish
+    IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged
+
 module ITEMS =
     let BOOKSHIELD = 0
     let BOOMERANG = 1
@@ -270,9 +278,9 @@ module ITEMS =
     let WAND = 12
     let WHITESWORD = 13
     let HEARTCONTAINER = 14
-    let AsPronounceString(n, isbook) =
+    let AsPronounceString(n) =
         match n with
-        | 0 -> if isbook then "book" else "shield"
+        | 0 -> if IsCurrentlyBook() then "book" else "shield"
         | 1 -> "boomerang"
         | 2 -> "beau"
         | 3 -> "power bracelet"
@@ -514,9 +522,11 @@ and Dungeon(id,numBoxes) =
     let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
     let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
     let hiddenDungeonColorLabelChangeEvent = new Event<_>()
+    let triforceChangeEvent = new Event<_>()
     member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
     member _this.PlayerHasTriforce() = playerHasTriforce
-    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; triforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.TriforceChanged = triforceChangeEvent.Publish
     member _this.Boxes = 
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes

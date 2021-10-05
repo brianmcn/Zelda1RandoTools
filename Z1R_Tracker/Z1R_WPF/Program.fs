@@ -99,7 +99,7 @@ type MyWindow() as this =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
             let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
             c.Children.Add(rect) |> ignore
-            let bmp = CustomComboBoxes.boxCurrentBMP(ref false, n, false)
+            let bmp = CustomComboBoxes.boxCurrentBMP(n, false)
             if bmp <> null then
                 let image = Graphics.BMPtoImage(bmp)
                 image.IsHitTestVisible <- false

@@ -58,7 +58,7 @@ let dungeonRoomMouseButtonExplainerDecoration =
         sp.Children.Add(p) |> ignore
     let b:FrameworkElement = upcast new Border(Background=Brushes.Black, BorderThickness=Thickness(ST), BorderBrush=Brushes.DimGray, Child=d)
     b
-let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, isCurrentlyBook, updateTriforceDisplay, level) =
+let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, updateTriforceDisplay, level) =
     let dungeonIndex = level-1
     let linkCanvas = new Canvas(Width=30., Height=30.)
     let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
@@ -109,7 +109,7 @@ let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager,
                     redraw()
             )
         for box in d.Boxes do
-            let bmp = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), false)
+            let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
             c.Children.Add(rect) |> ignore
@@ -123,7 +123,7 @@ let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager,
             let activateComboBox(activationDelta) =
                 boxPopupIsActive <- true
                 let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
                     box.Set(newBoxCellValue, newPlayerHas)
                     redraw()
                     ), (fun () -> boxPopupIsActive <- false))
@@ -195,7 +195,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, isCurrentlyBook, updateTriforceDisplay) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, selectDungeonTabEvent:Event<int>, TH, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc, updateTriforceDisplay) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 27*8 + 12*7))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -463,7 +463,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                                 Graphics.WarpMouseCursorTo(pos)
                                 popupState <- Dungeon.DelayedPopupState.NONE),   
                             [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST
-                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, tileSunglasses, isCurrentlyBook, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
+                             dungeonRoomYouGotTheThingDecorationButton(cm, roomPos, tileSunglasses, updateTriforceDisplay, level), -roomPos.X, -roomPos.Y],
                             (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6), true)
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then

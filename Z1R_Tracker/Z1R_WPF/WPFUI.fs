@@ -132,16 +132,12 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     // make the entire UI
     let timelineItems = ResizeArray()
-    let whichItems = Graphics.allItemsWithHeartShuffle 
-    let bookOrMagicalShieldVB = whichItems.[0].Fill :?> VisualBrush
-    let isCurrentlyBook = ref true
-    let toggleBookMagicalShield() =
-        if !isCurrentlyBook then
-            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.magic_shield_bmp
-        else
-            bookOrMagicalShieldVB.Visual <- Graphics.BMPtoImage Graphics.book_bmp
-        isCurrentlyBook := not !isCurrentlyBook
+    let redrawBoxes = ResizeArray()
+    TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
         TrackerModel.forceUpdate()
+        for f in redrawBoxes do
+            f()
+        )
 
     let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
         let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
@@ -322,17 +318,14 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         c.Children.Add(innerc) |> ignore
-        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, box.CellCurrent(), isForTimeline)
+        let boxCurrentBMP(isForTimeline) = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), isForTimeline)
         let redraw() =
             // redraw inner canvas
             innerc.Children.Clear()
-            let mutable i = box.CellCurrent()
-            // find unique heart FrameworkElement to display
-            while i>=14 && whichItems.[i].Parent<>null do
-                i <- i + 1
-            let fe = if i = -1 then null else whichItems.[i]
-            canvasAdd(innerc, fe, 4., 4.)
-            // redraw box outline (and atop inner canvas)
+            let bmp = boxCurrentBMP(false)
+            if bmp <> null then
+                canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
+            // redraw box outline
             match box.PlayerHas() with
             | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
             | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
@@ -342,7 +335,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         let activateComboBox(activationDelta) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),appMainCanvas)
-            CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, isCurrentlyBook, (fun (newBoxCellValue, newPlayerHas) ->
+            CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
                 box.Set(newBoxCellValue, newPlayerHas)
                 popupIsActive <- false
                 ), (fun () -> popupIsActive <- false))
@@ -368,6 +361,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> if not popupIsActive then hideLocator())
+        redrawBoxes.Add(fun() -> redraw())
         redraw()
         timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,CustomComboBoxes.yes) then Some(boxCurrentBMP(true)) else None))
         c
@@ -470,7 +464,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     // ladder, armos, white sword items
     let owItemGrid = makeGrid(2, 3, 30, 30)
     gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
-    let armos = Graphics.ow_key_armos
+    let armos = Graphics.BMPtoImage Graphics.ow_key_armos_bmp
     armos.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.HasArmos))
     armos.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid, armos, 0, 1)
@@ -568,8 +562,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     toggleBookShieldCheckBox.ToolTip <- "Shield item icon instead of book item icon"
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
-    toggleBookShieldCheckBox.Checked.Add(fun _ -> toggleBookMagicalShield())
-    toggleBookShieldCheckBox.Unchecked.Add(fun _ -> toggleBookMagicalShield())
+    toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
+    toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OFFSET+150., 30.)
 
     // overworld map grouping, as main point of support for mirroring
@@ -872,7 +866,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                 c.TranslatePoint(Point(OMTW-30.,4.),appMainCanvas)
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
-                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, isCurrentlyBook, (fun() -> popupIsActive <- false))
+                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, (fun() -> popupIsActive <- false))
                     coastBoxOnOwGridRect.MouseDown.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
                     coastBoxOnOwGridRect.MouseWheel.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta<0 then 1 else -1))
             else
@@ -919,7 +913,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                         let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
                                         match overworldAcceleratorTable.TryGetValue(newState) with
                                         | (true,f) -> 
-                                            do! f(cm,c,isCurrentlyBook,i,j)
+                                            do! f(cm,c,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
                                 | None -> ()
@@ -1004,7 +998,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                                     selectDungeonTabEvent.Trigger(currentState)
                                 async {
                                     match overworldAcceleratorTable.TryGetValue(currentState) with
-                                    | (true,f) -> do! f(cm,c,isCurrentlyBook,i,j)
+                                    | (true,f) -> do! f(cm,c,i,j)
                                     | _ -> ()
                                     redrawGridSpot()
                                     dismissPopup()
@@ -1296,7 +1290,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         else
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.wand_bmp), x, y)
         x <- x + DX
-        if !isCurrentlyBook then
+        if TrackerModel.IsCurrentlyBook() then
             // book seed
             if TrackerModel.playerComputedStateSummary.HaveBookOrShield then
                 canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.book_bmp, x, y)
@@ -1350,9 +1344,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item", 
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP())])
                 else
-                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
+                    SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP()); 
-                                        upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.sword2Box.CellCurrent(), false))])
+                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
             member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
@@ -1552,8 +1546,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     if n = -1 then
                         SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
                     else
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n, !isCurrentlyBook)),
-                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(isCurrentlyBook, TrackerModel.ladderBox.CellCurrent(), false))])
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
+                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
                     ladderTime <- DateTime.Now
         // remind whistle spots
         if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
@@ -1597,7 +1591,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 // ...and behave like we are moused there
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
                                     if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxYGH else 0)
-            ), (fun _level -> hideLocator()), isCurrentlyBook, updateTriforceDisplay)
+            ), (fun _level -> hideLocator()), updateTriforceDisplay)
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
