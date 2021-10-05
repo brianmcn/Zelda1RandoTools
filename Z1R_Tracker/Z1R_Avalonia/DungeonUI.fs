@@ -124,7 +124,7 @@ let dungeonRoomYouGotTheThingDecorationButton(cm:CustomComboBoxes.CanvasManager,
             let activateComboBox(activationDelta) =
                 boxPopupIsActive <- true
                 let pos = c.TranslatePoint(Point(),cm.AppMainCanvas).Value
-                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
+                CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, [], (fun (newBoxCellValue, newPlayerHas) ->
                     box.Set(newBoxCellValue, newPlayerHas)
                     redraw()
                     ), (fun () -> boxPopupIsActive <- false))

@@ -48,21 +48,17 @@ let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, tra
     let line,triangle = Graphics.makeArrow(tx, ty, sx, sy, Brushes.Yellow)
     // rectangle for remote box highlight
     let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Yellow, StrokeThickness=3.)
-    let decorationsShouldGoToTheLeft = pos.X > OMTW*8.
-    let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
-    let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
-    let extraDecorations = [|
-        CustomComboBoxes.itemBoxMouseButtonExplainerDecoration, decoX, decoY
+    let extraDecorations : (Control*float*float)[] = [|
         upcast line, -pos.X-3., -pos.Y-3.
         upcast triangle, -pos.X-3., -pos.Y-3.
         upcast rect, topX-pos.X-3., topY-pos.Y-3.
         |]
-    CustomComboBoxes.DisplayRemoteItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, gridX, gridY, 
+    CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, extraDecorations,
             (fun (newBoxCellValue, newPlayerHas) ->
                 trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
                 TrackerModel.forceUpdate()
                 onCommitOrDismiss()
-                ), (fun () -> onCommitOrDismiss()), extraDecorations)
+                ), (fun () -> onCommitOrDismiss()))
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {

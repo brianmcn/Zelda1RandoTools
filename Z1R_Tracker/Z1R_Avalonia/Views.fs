@@ -92,7 +92,7 @@ let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) =
     let activateComboBox(activationDelta) =
         popupIsActive <- true
         let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, (fun (newBoxCellValue, newPlayerHas) ->
+        CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, [], (fun (newBoxCellValue, newPlayerHas) ->
             box.Set(newBoxCellValue, newPlayerHas)
             popupIsActive <- false
             ), (fun () -> popupIsActive <- false))

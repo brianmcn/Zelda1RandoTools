@@ -296,7 +296,7 @@ let itemBoxMouseButtonExplainerDecoration =
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
 
-let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, 
+let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, callerExtraDecorations,
                             commitFunction,  // the user clicked a selection, we're dismissing the modal, this is how we notify you of the final choice
                             onClose) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
@@ -327,31 +327,10 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
         // the user clicked outside the modal dialog, it is dismissing itself, do any final cleanup we need to do
         ()
     let allCleanup() = selfCleanup(); onClose()
-    let extraDecorations = [itemBoxMouseButtonExplainerDecoration, -3., 138.]
-    DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), -3., 27., 
+    let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
+    let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
+    let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
+    let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
+    DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
         redrawTile, onClick, allCleanup, extraDecorations, new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray), true)
 
-let DisplayRemoteItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, gridX, gridY, commitFunction, onClose, extraDecorations) =
-    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
-    let redraw(n) =
-        innerc.Children.Clear()
-        let bmp = boxCurrentBMP(n, false)
-        if bmp <> null then
-            let image = Graphics.BMPtoImage(bmp)
-            canvasAdd(innerc, image, 1., 1.)
-    redraw(boxCellCurrent)
-    let gridElementsSelectablesAndIDs = [|
-        for n = 0 to 15 do
-            let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, false) |> Graphics.BMPtoImage)
-            let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
-            let ident = if n=15 then -1 else n
-            yield fe, isSelectable, ident
-        |]
-    let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
-    let onClick(dismissPopup,ea:Input.PointerPressedEventArgs,ident) = 
-        let pp = ea.GetCurrentPoint(cm.AppMainCanvas)
-        dismissPopup()
-        commitFunction(ident, MouseButtonEventArgsToPlayerHas pp)
-    let redrawTile(ident) = redraw(ident)
-    DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-        redrawTile, onClick, onClose, extraDecorations, itemBoxModalGridSelectBrushes, true)
