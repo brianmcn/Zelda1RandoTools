@@ -905,7 +905,13 @@ type HintZone =
         | DEAD_WOODS -> 8
         | NEAR_START -> 9
         | FOREST -> 10
-let levelHints = Array.create 11 HintZone.UNKNOWN   // 0-8 is L1-9, 9 is WS, 10 is MS
+let GetLevelHint, SetLevelHint, LevelHintChanged = 
+    let levelHints = Array.create 11 HintZone.UNKNOWN   // 0-8 is L1-9, 9 is WS, 10 is MS
+    let levelHintChangeEvents = Array.init 11 (fun _ -> new Event<_>())
+    let GetLevelHint(i) = levelHints.[i]
+    let SetLevelHint(i,v) = levelHints.[i] <- v; levelHintChangeEvents.[i].Trigger(v)
+    let LevelHintChanged(i) = levelHintChangeEvents.[i].Publish
+    GetLevelHint, SetLevelHint, LevelHintChanged
 
 let forceUpdate() = 
     // UI can force an update for a few bits that we don't model well yet

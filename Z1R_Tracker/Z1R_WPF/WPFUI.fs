@@ -197,7 +197,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         if index <> -1 then
             found <- TrackerModel.GetDungeon(index).HasBeenLocated()
             hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
-        let hasHint = not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN
+        let hasHint = not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN
         c.Children.Clear()
         if hasHint then
             c.Children.Add(makeHintHighlight(30.)) |> ignore
@@ -228,13 +228,13 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         innerc.Children.Clear()
         let found = TrackerModel.GetDungeon(i).HasBeenLocated()
         if not(TrackerModel.IsHiddenDungeonNumbers()) then
-            if not(found) && TrackerModel.levelHints.[i]<>TrackerModel.HintZone.UNKNOWN then
+            if not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN then
                 innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         else
             let label = TrackerModel.GetDungeon(i).LabelChar
             if label >= '1' && label <= '8' then
                 let index = int label - int '1'
-                let hasHint = not(found) && TrackerModel.levelHints.[index]<>TrackerModel.HintZone.UNKNOWN
+                let hasHint = not(found) && TrackerModel.GetLevelHint(index)<>TrackerModel.HintZone.UNKNOWN
                 if hasHint then
                     innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         if not(TrackerModel.GetDungeon(i).PlayerHasTriforce()) then 
@@ -245,7 +245,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         level9NumeralCanvas.Children.Clear()
         let l9found = TrackerModel.mapStateSummary.DungeonLocations.[8]<>TrackerModel.NOTFOUND 
         let img = Graphics.BMPtoImage(if not(l9found) then Graphics.unfoundL9_bmp else Graphics.foundL9_bmp)
-        if not(l9found) && TrackerModel.levelHints.[8]<>TrackerModel.HintZone.UNKNOWN then
+        if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
             canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
         canvasAdd(level9NumeralCanvas, img, 0., 0.)
     let updateTriforceDisplay(i) =
@@ -474,7 +474,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         white_sword_canvas.Children.Clear()
         if not(TrackerModel.playerComputedStateSummary.HaveWhiteSwordItem) &&           // don't have it yet
                 TrackerModel.mapStateSummary.Sword2Location=TrackerModel.NOTFOUND &&    // have not found cave
-                TrackerModel.levelHints.[9]<>TrackerModel.HintZone.UNKNOWN then         // have a hint
+                TrackerModel.GetLevelHint(9)<>TrackerModel.HintZone.UNKNOWN then         // have a hint
             white_sword_canvas.Children.Add(makeHintHighlight(21.)) |> ignore
         white_sword_canvas.Children.Add(white_sword_image) |> ignore
     redrawWhiteSwordCanvas()
@@ -535,7 +535,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         mags_box.Children.Remove(magsHintHighlight)
         if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) &&   // dont have sword
                 TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
-                TrackerModel.levelHints.[10]<>TrackerModel.HintZone.UNKNOWN then               // have a hint
+                TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then               // have a hint
             mags_box.Children.Insert(0, magsHintHighlight)
     redrawMagicalSwordCanvas()
     gridAdd(owItemGrid2, mags_box, 0, 2)
@@ -1188,13 +1188,13 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     for i = 0 to 10 do
                         yield mkTxt(TrackerModel.HintZone.FromIndex(i).ToString()) :> FrameworkElement, true, i
                     |]
-                let originalStateIndex = TrackerModel.levelHints.[thisRow].ToIndex()
+                let originalStateIndex = TrackerModel.GetLevelHint(thisRow).ToIndex()
                 let activationDelta = 0
                 let (gnc, gnr, gcw, grh) = 1, 11, int HINTGRID_W-6, int HINTGRID_H-6
                 let gx,gy = HINTGRID_W-3., -HINTGRID_H*10.-9.
                 let onClick(dismiss, _ea, i) =
                     // update model
-                    TrackerModel.levelHints.[thisRow] <- TrackerModel.HintZone.FromIndex(i)
+                    TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
                     TrackerModel.forceUpdate()
                     // update view
                     if i = 0 then
@@ -1919,7 +1919,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if TrackerModel.GetDungeon(i).LabelChar = char(int '1' + n) then
                     index <- i
             let showHint() =
-                let hinted_zone = TrackerModel.levelHints.[n]
+                let hinted_zone = TrackerModel.GetLevelHint(n)
                 if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                     showLocatorHintedZone(hinted_zone,true)
             if index <> -1 then
@@ -1939,11 +1939,11 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     let label = TrackerModel.GetDungeon(i).LabelChar
                     if label >= '1' && label <= '8' then
                         let index = int label - int '1'
-                        let hinted_zone = TrackerModel.levelHints.[index]
+                        let hinted_zone = TrackerModel.GetLevelHint(index)
                         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                             showLocatorHintedZone(hinted_zone,true)
                 else
-                    let hinted_zone = TrackerModel.levelHints.[i]
+                    let hinted_zone = TrackerModel.GetLevelHint(i)
                     if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                         showLocatorHintedZone(hinted_zone,false)
         | ShowLocatorDescriptor.Sword2 ->
@@ -1951,7 +1951,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             if loc <> TrackerModel.NOTFOUND then
                 showLocatorExactLocation(loc)
             else
-                let hinted_zone = TrackerModel.levelHints.[9]
+                let hinted_zone = TrackerModel.GetLevelHint(9)
                 if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                     showLocatorHintedZone(hinted_zone,false)
         | ShowLocatorDescriptor.Sword3 ->
@@ -1959,7 +1959,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
             if loc <> TrackerModel.NOTFOUND then
                 showLocatorExactLocation(loc)
             else
-                let hinted_zone = TrackerModel.levelHints.[10]
+                let hinted_zone = TrackerModel.GetLevelHint(10)
                 if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                     showLocatorHintedZone(hinted_zone,false)
         )
