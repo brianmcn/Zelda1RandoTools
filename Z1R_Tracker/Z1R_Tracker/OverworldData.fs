@@ -2,8 +2,9 @@
 
  // TODO move this elsewhere?
 let VersionString = "0.96"
+let ProgramNameString = sprintf "Z-Tracker v%s" VersionString
 let Website = "https://github.com/brianmcn/Zelda1RandoTools"
-let AboutBody = sprintf "Z-Tracker v%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" VersionString Website
+let AboutBody = sprintf "%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" ProgramNameString Website
 
 
 

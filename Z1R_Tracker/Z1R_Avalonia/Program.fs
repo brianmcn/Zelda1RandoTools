@@ -135,7 +135,13 @@ type MyWindow() as this =
 
         let tb = dock <| new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", Margin=spacing)
         stackPanel.Children.Add(tb) |> ignore
+        let mutable settingsWereSuccessfullyRead = false
+        this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
+            if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
+                TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
+            )
         TrackerModel.Options.readSettings()
+        settingsWereSuccessfullyRead <- true
         let options = OptionsMenu.makeOptionsCanvas()
         stackPanel.Children.Add(options) |> ignore
 

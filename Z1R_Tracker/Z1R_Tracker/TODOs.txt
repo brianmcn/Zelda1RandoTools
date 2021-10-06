@@ -18,6 +18,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+maybe remove only-scroll from OW (start a grid scroll)?
+
 triforce-and-go: turn off PB/recorder reminders   --  or maybe these reminders have outlived their usefulness
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
@@ -45,8 +47,6 @@ Kigalas found 'take any' popup confusing first time he saw it, but figured it ou
  - wants 'tracker take candle' speech recognition there
 
 Consider 2/3 app size and 2/3 broadcast window size options?
-
-save option settings to json if they quit app from start screen
 
 
 when know dungeon number, cross off third box?

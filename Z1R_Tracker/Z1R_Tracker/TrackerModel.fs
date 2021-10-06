@@ -17,6 +17,9 @@ type ReminderCategory =
     | HaveKeyLadder
     | Blockers
 
+type IntentionalApplicationShutdown(msg) =
+    inherit System.Exception(msg)
+
 module Options =
     type Bool(init) =
         let mutable v = init
@@ -29,14 +32,14 @@ module Options =
         let mutable DungeonFeedback = Bool(true)
         let mutable SwordHearts = Bool(true)
         let mutable CoastItem = Bool(true)
-        let mutable RecorderPBSpotsAndBoomstickBook = Bool(true)
+        let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
     module VisualReminders =
         let mutable DungeonFeedback = Bool(true)
         let mutable SwordHearts = Bool(true)
         let mutable CoastItem = Bool(true)
-        let mutable RecorderPBSpotsAndBoomstickBook = Bool(true)
+        let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
     let mutable ListenForSpeech = Bool(true)
@@ -79,6 +82,48 @@ module Options =
 
     let mutable private cachedSettingJson = null
 
+    let private writeImpl(filename) =
+        let data = ReadWrite()
+        data.DrawRoutes <- Overworld.DrawRoutes.Value
+        data.HighlightNearby <- Overworld.HighlightNearby.Value
+        data.ShowMagnifier <- Overworld.ShowMagnifier.Value
+
+        data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
+        data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
+        data.Voice_CoastItem <-       VoiceReminders.CoastItem.Value
+        data.Voice_RecorderPBSpotsAndBoomstickBook <- VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value
+        data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
+        data.Voice_Blockers <-        VoiceReminders.Blockers.Value
+
+        data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
+        data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
+        data.Visual_CoastItem <-       VisualReminders.CoastItem.Value
+        data.Visual_RecorderPBSpotsAndBoomstickBook <- VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
+        data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
+        data.Visual_Blockers <-        VisualReminders.Blockers.Value
+
+        data.ListenForSpeech <- ListenForSpeech.Value
+        data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
+        data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
+        data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.MirrorOverworld <- MirrorOverworld.Value
+        data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
+        data.IsMuted <- IsMuted
+        data.Volume <- Volume
+
+        let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
+        if json <> cachedSettingJson then
+            cachedSettingJson <- json
+            System.IO.File.WriteAllText(filename, cachedSettingJson)
+
+    let private write(filename) =
+        try
+            writeImpl(filename)
+        with e ->
+            printfn "failed to write settings file '%s':" filename
+            printfn "%s" (e.ToString())
+            printfn ""
+
     let private read(filename) =
         try
             cachedSettingJson <- System.IO.File.ReadAllText(filename)
@@ -110,48 +155,33 @@ module Options =
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
         with e ->
-            printfn "failed to read settings file '%s':" filename 
-            printfn "%s" (e.ToString())
-            printfn ""
-
-    let private write(filename) =
-        let data = ReadWrite()
-        data.DrawRoutes <- Overworld.DrawRoutes.Value
-        data.HighlightNearby <- Overworld.HighlightNearby.Value
-        data.ShowMagnifier <- Overworld.ShowMagnifier.Value
-
-        data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
-        data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
-        data.Voice_CoastItem <-       VoiceReminders.CoastItem.Value
-        data.Voice_RecorderPBSpotsAndBoomstickBook <- VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value
-        data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
-        data.Voice_Blockers <-        VoiceReminders.Blockers.Value
-
-        data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
-        data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
-        data.Visual_CoastItem <-       VisualReminders.CoastItem.Value
-        data.Visual_RecorderPBSpotsAndBoomstickBook <- VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
-        data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
-        data.Visual_Blockers <-        VisualReminders.Blockers.Value
-
-        data.ListenForSpeech <- ListenForSpeech.Value
-        data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
-        data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
-        data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
-        data.MirrorOverworld <- MirrorOverworld.Value
-        data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
-        data.IsMuted <- IsMuted
-        data.Volume <- Volume
-
-        try
-            let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
-            if json <> cachedSettingJson then
-                cachedSettingJson <- json
-                System.IO.File.WriteAllText(filename, cachedSettingJson)
-        with e ->
-            printfn "failed to write settings file '%s':" filename
-            printfn "%s" (e.ToString())
-            printfn ""
+            cachedSettingJson <- null
+            printfn "Unable to read settings file '%s':" filename 
+            if System.IO.File.Exists(filename) then
+                printfn "That file does exist on disk, but could not be read.  Here is the error detail:"
+                printfn "%s" (e.ToString())
+                printfn ""
+                printfn "If you were intentionally hand-editing the .json settings file, you may have made a mistake that must be corrected."
+                printfn ""
+                printfn "The application will shut down now. If you want to discard the broken settings file and start %s fresh with some default settings, then simply delete the file:" OverworldData.ProgramNameString
+                printfn ""
+                printfn "%s" filename
+                printfn ""
+                printfn "from disk before starting the application again."
+                printfn ""
+                raise <| IntentionalApplicationShutdown "Intentional application shutdown: failed to read settings file data."
+            else
+                printfn "Perhaps this is your first time using '%s' on this machine?" OverworldData.ProgramNameString
+                printfn "A default settings file will be created for you..."
+                try
+                    writeImpl(filename)
+                    printfn "... The settings file has been successfully created."
+                with e ->
+                    printfn "... Failed to write settings file.  Perhaps there is an issue with the file location?"
+                    printfn "'Filename'='%s'" filename
+                    printfn "Here is more information about the problem:"
+                    printfn "%s" (e.ToString())
+                    printfn ""
 
     let mutable private settingsFile = null
     

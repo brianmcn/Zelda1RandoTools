@@ -37,7 +37,8 @@ type MyWindowBase() as this =
         source.AddHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
         this.RegisterHotKey()
     override this.OnClosed(e) =
-        source.RemoveHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
+        if source <> null then
+            source.RemoveHook(System.Windows.Interop.HwndSourceHook(fun a b c d e -> this.HwndHook(a,b,c,d,&e)))
         source <- null
         this.UnregisterHotKey()
         base.OnClosed(e)
@@ -77,6 +78,28 @@ type MyWindow() as this =
     let HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
     do
+        let handle(ex:System.Exception) =
+            match ex with
+            | :? TrackerModel.IntentionalApplicationShutdown as ias ->
+                printfn "%s" ias.Message
+            | _ ->
+                printfn "%s" (ex.ToString())
+        System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
+            let ex = e.Exception
+            printfn "An unhandled exception from UI thread:"
+            handle(ex)
+            e.Handled <- true
+            Application.Current.Shutdown()
+            )
+        System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
+            match e.ExceptionObject with
+            | :? System.Exception as ex ->
+                printfn "An unhandled exception from background thread:"
+                handle(ex)
+            | _ ->
+                printfn "An unhandled exception from background thread occurred."
+            )
+
         Graphics.theWindow <- this
         WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
@@ -177,6 +200,11 @@ type MyWindow() as this =
         stackPanel.Children.Add(tb) |> ignore
 
         let mutable startButtonHasBeenClicked = false
+        let mutable settingsWereSuccessfullyRead = false
+        this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
+            if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
+                TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
+            )
         let quests = [|
             0, "First Quest Overworld"
             1, "Second Quest Overworld"
@@ -227,20 +255,6 @@ type MyWindow() as this =
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans
                     this.Content <- cm.RootCanvas
-                    System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
-                        let ex = e.Exception
-                        printfn "An unhandled exception from UI thread:"
-                        printfn "%s" (ex.ToString())
-                        printfn "press Enter to end"
-                        System.Console.ReadLine() |> ignore
-                        )
-                    System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
-                        let ex = e.ExceptionObject
-                        printfn "An unhandled exception from background thread:"
-                        printfn "%s" (ex.ToString())
-                        printfn "press Enter to end"
-                        System.Console.ReadLine() |> ignore
-                        )
                 })
             )
 
@@ -251,6 +265,7 @@ type MyWindow() as this =
                                 Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
         TrackerModel.Options.readSettings()
+        settingsWereSuccessfullyRead <- true
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
         let options = OptionsMenu.makeOptionsCanvas(float(16*16*3))
         bottomSP.Children.Add(options) |> ignore
@@ -397,6 +412,6 @@ let main argv =
 #endif
     
     
-    printfn "press enter to end"
+    printfn "press Enter to end"
     System.Console.ReadLine() |> ignore
     0
