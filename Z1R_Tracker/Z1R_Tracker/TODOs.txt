@@ -27,9 +27,6 @@ timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only 
  - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
    rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
 
-triforce number popup is cutoff when broadcast from dungeon, ugly (see below, maybe broadcast top whenever that popup is up)
-hint decoder always cut off, can i put its button in dungeon pane to broadcast better? or maybe just special case the broadcast if leave where is?
-
 if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
   - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
 

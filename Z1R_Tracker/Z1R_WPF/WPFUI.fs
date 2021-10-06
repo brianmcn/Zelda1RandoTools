@@ -1102,7 +1102,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 let originalStateIndex = TrackerModel.GetLevelHint(thisRow).ToIndex()
                 let activationDelta = 0
                 let (gnc, gnr, gcw, grh) = 1, 11, int HINTGRID_W-6, int HINTGRID_H-6
-                let gx,gy = HINTGRID_W-3., -HINTGRID_H*10.-9.
+                let gx,gy = HINTGRID_W-3., -HINTGRID_H*float(thisRow)-9.
                 let onClick(dismiss, _ea, i) =
                     // update model
                     TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
@@ -1139,7 +1139,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModal(cm, 0., THRU_MAP_AND_LEGEND_H + 6., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
+            CustomComboBoxes.DoModal(cm, 0., 0., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
 
     // WANT!
     let kitty = new Image()

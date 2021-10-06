@@ -430,7 +430,7 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
     let popupCanvas = new Canvas()
     canvasAdd(popupCanvas, theBorder, 0., 0.)
     
-    let mainX,mainY = 24.,165.
+    let mainX,mainY = 24.,(if warpReturn.Y > 400. then 325. else 165.)   // if this originated from the lower half, move the popups down some, so they fit better in the broadcast window
 
     let dungeonColorCanvas = new Canvas(Width=30., Height=30.)
     canvasAdd(popupCanvas, dungeonColorCanvas, float dungeonIndex*30. - mainX, 0. - mainY)
