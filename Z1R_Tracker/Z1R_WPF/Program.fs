@@ -112,22 +112,28 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         this.FontSize <- 18.
 
+        let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
+            //                             items  ow map  prog  dungeon tabs                timeline
+            let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6)
+            let rootCanvas =    new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+            let appMainCanvas = new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+            let style = new Style(typeof<ToolTip>)
+            style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
+            style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
+            rootCanvas.Resources.Add(typeof<ToolTip>, style)
+            WPFUI.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
+            let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
+            appMainCanvas, cm
+        this.Content <- cm.RootCanvas
+        let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
+        appMainCanvas.Children.Add(mainDock) |> ignore
+
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
 
         let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore
-
-        let box(n) = 
-            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
-            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
-            c.Children.Add(rect) |> ignore
-            let bmp = CustomComboBoxes.boxCurrentBMP(n, false)
-            if bmp <> null then
-                let image = Graphics.BMPtoImage(bmp)
-                image.IsHitTestVisible <- false
-                Graphics.canvasAdd(c, image, 4., 4.)
-            c
 
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
@@ -152,29 +158,14 @@ type MyWindow() as this =
             for b in triforcesLettered do
                 b.Opacity <- 0.
         turnHideDungeonNumbersOff()
-        let row1BoxesHearts = ResizeArray()
-        let row1BoxesEmpty = ResizeArray()
+        let row1boxes = Array.init 3 (fun _ -> new TrackerModel.Box())
         for i = 0 to 2 do
-            let pict = box(14)
-            row1BoxesHearts.Add(pict)
-            Graphics.gridAdd(hsGrid, pict, i, 1)
-            let pict = box(-1)
-            row1BoxesEmpty.Add(pict)
-            Graphics.gridAdd(hsGrid, pict, i, 1)
-            let pict = box(-1)
-            Graphics.gridAdd(hsGrid, pict, i, 2)
-        let turnHeartShuffleOn() =
-            for b in row1BoxesHearts do
-                b.Opacity <- 0.
-            for b in row1BoxesEmpty do
-                b.Opacity <- 1.
-        let turnHeartShuffleOff() =
-            for b in row1BoxesHearts do
-                b.Opacity <- 1.
-            for b in row1BoxesEmpty do
-                b.Opacity <- 0.
+            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, row1boxes.[i]), i, 1)
+            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, new TrackerModel.Box()), i, 2)
+        let turnHeartShuffleOn() = for b in row1boxes do b.Set(-1, TrackerModel.PlayerHas.NO)
+        let turnHeartShuffleOff() = for b in row1boxes do b.Set(14, TrackerModel.PlayerHas.NO)
         turnHeartShuffleOn()
-        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true)
+        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true, IsHitTestVisible=false)
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
 
@@ -219,6 +210,7 @@ type MyWindow() as this =
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
                 startButtonHasBeenClicked <- true
+                turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
                 let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
                 stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
@@ -248,17 +240,16 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                    let cm,u = WPFUI.makeAll(n, heartShuffle, kind, speechRecognitionInstance)
+                    appMainCanvas.Children.Remove(mainDock)
+                    let u = WPFUI.makeAll(cm, n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTime(DateTime.Now))
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
                     //canvas.RenderTransform <- trans
-                    this.Content <- cm.RootCanvas
                 })
             )
 
-        let mainDock = new DockPanel()
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
@@ -290,8 +281,6 @@ type MyWindow() as this =
         style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
         style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
         mainDock.Resources.Add(typeof<ToolTip>, style)
-
-        this.Content <- mainDock
         
     override this.Update(f10Press) =
         base.Update(f10Press)

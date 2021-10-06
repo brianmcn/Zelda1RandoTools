@@ -58,8 +58,10 @@ let makeArrow(targetX, targetY, sourceX, sourceY, brush) =
     // line from source to target
     let line = new Shapes.Line(X1=sx, Y1=sy, X2=tx, Y2=ty, Stroke=brush, StrokeThickness=3.)
     line.StrokeDashArray <- new DoubleCollection(seq[5.;4.])
-    // 93% along the line towards the target, for an arrowhead base
-    let ax,ay = (tx-sx)*0.93+sx, (ty-sy)*0.93+sy
+    let sq(x) = x*x
+    let pct = 1. - 15./sqrt(sq(tx-sx)+sq(ty-sy))   // arrowhead base ideally 15 pixels down the line
+    let pct = max pct 0.93                         // but at most 93% towards the target, for small lines
+    let ax,ay = (tx-sx)*pct+sx, (ty-sy)*pct+sy
     // differential between target and arrowhead base
     let dx,dy = tx-ax, ty-ay
     // points orthogonal to the line from the base

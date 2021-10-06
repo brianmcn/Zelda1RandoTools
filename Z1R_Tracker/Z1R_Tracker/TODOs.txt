@@ -32,8 +32,6 @@ if you get a 'meet' hint about white/magic sword cave location, could/should the
 
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
 
-consider leaving whitesword/ladder items as interactable boxes on map, so can just click them later, yellow arrow could just popup on hover perhaps
-
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
 timeline & mistakes

@@ -37,7 +37,7 @@ let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
-let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.4 else 0.3), IsHitTestVisible=false))
 let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
@@ -110,7 +110,7 @@ type ShowLocatorDescriptor =
     | DungeonIndex of int    // 0-8 means 123456789 or ABCDEFGH9 in top-left-ui presentation order
     | Sword2
     | Sword3
-let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) =
+let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) =
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
         match owMapNum with
@@ -154,20 +154,7 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
 
     let mutable doUIUpdate = fun() -> ()
 
-    let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
-        //                             items  ow map  prog  dungeon tabs                timeline
-        let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TH + 30 + 27*8 + 12*7 + 3 + TCH + 6)
-        let rootCanvas =    new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
-        let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
-        let style = new Style(typeof<ToolTip>)
-        style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
-        style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
-        rootCanvas.Resources.Add(typeof<ToolTip>, style)
-        canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
-        let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
-        appMainCanvas, cm
-
+    let appMainCanvas = cm.AppMainCanvas
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
@@ -403,8 +390,8 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
     let owItemGrid2 = makeGrid(3, 3, 30, 30)
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, isTimeline, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let no = System.Windows.Media.Brushes.DarkRed
-        let yes = System.Windows.Media.Brushes.LimeGreen 
+        let no = CustomComboBoxes.no
+        let yes = CustomComboBoxes.yes
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -757,29 +744,21 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     let image = Graphics.BMPtoImage Graphics.fairy_bmp
                     canvasAdd(c, image, OMTW/2.-8., 1.)
                 if i=15 && j=5 then // ladder spot
-                    let coastBoxOnOwGridRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Red, StrokeThickness=3., Fill=Graphics.overworldCommonestFloorColorBrush)
-                    canvasAdd(c, coastBoxOnOwGridRect, OMTW-30., 1.)
-                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
-                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO && TrackerModel.ladderBox.CellCurrent() = -1 then
-                            coastBoxOnOwGridRect.Opacity <- 1.
-                            coastBoxOnOwGridRect.IsHitTestVisible <- true
-                        else
-                            coastBoxOnOwGridRect.Opacity <- 0.
-                            coastBoxOnOwGridRect.IsHitTestVisible <- false
-                        )
-                    let mutable popupIsActive = false
-                    let activateLadderSpotPopup(activationDelta) =
-                        popupIsActive <- true
-                        let pos = 
-                            if displayIsCurrentlyMirrored then
-                                c.TranslatePoint(Point(OMTW,4.),appMainCanvas)
-                            else
-                                c.TranslatePoint(Point(OMTW-30.,4.),appMainCanvas)
+                    let extraDecorationsF(boxPos:Point) =
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
-                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, (fun() -> popupIsActive <- false))
-                    coastBoxOnOwGridRect.MouseDown.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
-                    coastBoxOnOwGridRect.MouseWheel.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta<0 then 1 else -1))
+                        OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos)
+                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, extraDecorationsF)
+                    mirrorOverworldFEs.Add(coastBoxOnOwGrid)
+                    canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
+                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
+                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO then
+                            coastBoxOnOwGrid.Opacity <- 1.
+                            coastBoxOnOwGrid.IsHitTestVisible <- true
+                        else
+                            coastBoxOnOwGrid.Opacity <- 0.
+                            coastBoxOnOwGrid.IsHitTestVisible <- false
+                        )
             else
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
@@ -790,19 +769,19 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let iconBMP = GetIconBMP(ms,i,j)
+                    let iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
                     if iconBMP <> null then 
                         let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.IsX then
                             icon.Opacity <- X_OPACITY
-                            resizeMapTileImage icon |> ignore
                             canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         else
                             icon.Opacity <- 1.0
                             drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)     // darken below icon and routing marks
-                            resizeMapTileImage icon |> ignore
                             canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
+                            for fe,x,y in extraDecorations do
+                                canvasAdd(c, fe, x, y)
                     if ms.IsDungeon then
                         drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
@@ -1275,32 +1254,9 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
-                if (TrackerModel.sword2Box.PlayerHas() = TrackerModel.PlayerHas.NO) && (TrackerModel.sword2Box.CellCurrent() <> -1) then
-                    // display known-but-ungotten item on the map
-                    let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
-                    itemImage.Width <- 21.
-                    itemImage.Height <- 21.
-                    if displayIsCurrentlyMirrored then 
-                        itemImage.RenderTransform <- new ScaleTransform(-1., 1., itemImage.Width/2., 0.)
-                    itemImage.Opacity <- 1.0
-                    let color = Brushes.Black
-                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.7)
-                    let diff = if displayIsCurrentlyMirrored then -4. else OMTW - 19.
-                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+diff, float(y*11*3)+4.)
+                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
                 if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon
-            member _this.CoastItem() =
-                if TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO then
-                    let x,y = 15,5
-                    if TrackerModel.ladderBox.CellCurrent() <> -1 then
-                        // display known-but-ungotten item on the map
-                        let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.ladderBox.CellCurrent()]
-                        if displayIsCurrentlyMirrored then 
-                            itemImage.RenderTransform <- new ScaleTransform(-1., 1., OMTW/4., 30.)
-                        itemImage.Opacity <- 1.0
-                        let color = Brushes.Black
-                        let border = new Border(BorderThickness=Thickness(3.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
-                        canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW - 24., float(y*11*3)+1.)
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
@@ -2123,6 +2079,6 @@ let makeAll(owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecogn
         )
 
     TrackerModel.forceUpdate()
-    cm, updateTimeline
+    updateTimeline
 
 

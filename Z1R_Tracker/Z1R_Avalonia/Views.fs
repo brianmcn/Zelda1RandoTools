@@ -100,7 +100,7 @@ TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
     for f in redrawBoxes do
         f()
     )
-let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
+let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOver) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
     c.Children.Add(rect) |> ignore
@@ -111,18 +111,26 @@ let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) =
         innerc.Children.Clear()
         let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
         if bmp <> null then
-            canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
+            if box.PlayerHas() = TrackerModel.PlayerHas.NO then
+                let image = Graphics.BMPtoImage(bmp)
+                image.Stretch <- Stretch.Uniform
+                image.Width <- 14.
+                image.Height <- 14.
+                canvasAdd(innerc, image, 8., 8.)
+            else
+                canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-        | TrackerModel.PlayerHas.NO -> rect.Stroke <- CustomComboBoxes.no
+        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp<>null then Brushes.Red else upcast CustomComboBoxes.no
         | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
     box.Changed.Add(fun _ -> redraw())
     let mutable popupIsActive = false
     let activateComboBox(activationDelta) =
         popupIsActive <- true
-        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        CustomComboBoxes.DisplayItemComboBox(cm, pos.Value.X, pos.Value.Y, box.CellCurrent(), activationDelta, [], (fun (newBoxCellValue, newPlayerHas) ->
+        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas).Value
+        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
+        CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, extraDecorations, (fun (newBoxCellValue, newPlayerHas) ->
             box.Set(newBoxCellValue, newPlayerHas)
             popupIsActive <- false
             ), (fun () -> popupIsActive <- false))
@@ -130,14 +138,35 @@ let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) =
         if not popupIsActive then
             let pp = ea.GetCurrentPoint(c)
             if pp.Properties.IsLeftButtonPressed || pp.Properties.IsMiddleButtonPressed || pp.Properties.IsRightButtonPressed then 
+                ea.Handled <- true
                 if box.CellCurrent() = -1 then
                     activateComboBox(0)
                 else
                     box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
                     redraw()
         )
+    if accelerateIntoComboBox then
+        c.LayoutUpdated.Add(fun _ -> activateComboBox(0))
+    // hover behavior
+    let hoverCanvas = new Canvas()
+    c.PointerEnter.Add(fun _ ->
+        cm.AppMainCanvas.Children.Remove(hoverCanvas) |> ignore  // safeguard, in case MouseEnter/MouseLeave parity is broken
+        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas).Value
+        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
+        hoverCanvas.Children.Clear()
+        for fe, x, y in extraDecorations do
+            canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
+        canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
+        )
+    c.PointerLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas) |> ignore)
     // item
-    c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activateComboBox(if x.Delta.Y<0. then 1 else -1))
+    c.PointerWheelChanged.Add(fun ea -> 
+        if not popupIsActive then 
+            ea.Handled <- true
+            activateComboBox(if ea.Delta.Y<0. then 1 else -1)
+        )
     redrawBoxes.Add(fun() -> redraw())
     redraw()
     c
+let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
+    MakeBoxItemWithExtraDecorations(cm, box, false, fun(_)->[])

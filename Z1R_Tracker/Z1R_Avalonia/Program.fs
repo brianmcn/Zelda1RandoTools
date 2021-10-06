@@ -25,6 +25,20 @@ type MyWindow() as this =
     let WIDTH = 16.*OverworldRouteDrawing.OMTW
     do
         printfn "W,H = %d,%d" (int WIDTH) (int HEIGHT)
+
+        let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
+            //                             items  ow map  prog  dungeon tabs                timeline
+            let rootCanvas =    new Canvas(Width=WIDTH, Height=HEIGHT, Background=Brushes.Black)
+            let appMainCanvas = new Canvas(Width=WIDTH, Height=HEIGHT, Background=Brushes.Black)
+            UI.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
+            let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
+            appMainCanvas, cm
+        this.Content <- cm.RootCanvas
+        let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        appMainCanvas.Children.Add(hstackPanel) |> ignore
+
+
+
         UI.timeTextBox <- hmsTimeTextBox
         this.Width <- WIDTH + 30. // TODO fudging it
         this.Height <- HEIGHT
@@ -55,16 +69,6 @@ type MyWindow() as this =
         let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
-        let box(n) = 
-            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
-            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0, IsHitTestVisible=false)
-            c.Children.Add(rect) |> ignore
-            let bmp = CustomComboBoxes.boxCurrentBMP(n, false)
-            if bmp <> null then
-                let image = Graphics.BMPtoImage(bmp)
-                image.IsHitTestVisible <- false
-                Graphics.canvasAdd(c, image, 4., 4.)
-            c
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         let hsGrid = Graphics.makeGrid(3, 3, 30, 30)
         hsGrid.Background <- Brushes.Black
@@ -88,29 +92,14 @@ type MyWindow() as this =
             for b in triforcesLettered do
                 b.Opacity <- 0.
         turnHideDungeonNumbersOff()
-        let row1boxesHearts = ResizeArray()
-        let row1BoxesEmpty = ResizeArray()
+        let row1boxes = Array.init 3 (fun _ -> new TrackerModel.Box())
         for i = 0 to 2 do
-            let pict = box(14)
-            row1boxesHearts.Add(pict)
-            Graphics.gridAdd(hsGrid, pict, i, 1)
-            let pict = box(-1)
-            row1BoxesEmpty.Add(pict)
-            Graphics.gridAdd(hsGrid, pict, i, 1)
-            let pict = box(-1)
-            Graphics.gridAdd(hsGrid, pict, i, 2)
-        let tunrHeartShuffleOn() =
-            for b in row1boxesHearts do
-                b.Opacity <- 0.
-            for b in row1BoxesEmpty do
-                b.Opacity <- 1.
-        let turnHeartShuffleOff() =
-            for b in row1boxesHearts do
-                b.Opacity <- 1.
-            for b in row1BoxesEmpty do
-                b.Opacity <- 0.
-        tunrHeartShuffleOn()
-        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true)
+            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, row1boxes.[i]), i, 1)
+            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, new TrackerModel.Box()), i, 2)
+        let turnHeartShuffleOn() = for b in row1boxes do b.Set(-1, TrackerModel.PlayerHas.NO)
+        let turnHeartShuffleOff() = for b in row1boxes do b.Set(14, TrackerModel.PlayerHas.NO)
+        turnHeartShuffleOn()
+        let cutoffCanvas = new Canvas(Width=85., Height=85., ClipToBounds=true, IsHitTestVisible=false)
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
 
@@ -118,7 +107,7 @@ type MyWindow() as this =
 
         let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true), Margin=Thickness(10.))
         hscb.IsChecked <- System.Nullable.op_Implicit true
-        hscb.Checked.Add(fun _ -> tunrHeartShuffleOn())
+        hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
         checkboxSP.Children.Add(hscb) |> ignore
 
@@ -160,6 +149,7 @@ type MyWindow() as this =
             startButton.Click.Add(fun _ ->
                     if startButtonHasBeenClicked then () else
                     startButtonHasBeenClicked <- true
+                    turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
                     let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, MaxWidth=300.)
                     stackPanel.Children.Add(tb) |> ignore
                     let ctxt = System.Threading.SynchronizationContext.Current
@@ -175,16 +165,15 @@ type MyWindow() as this =
                                 TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
                             else
                                 TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                        let cm,u = UI.makeAll(i, heartShuffle, kind)
+                        appMainCanvas.Children.Remove(hstackPanel) |> ignore
+                        let u = UI.makeAll(cm, i, heartShuffle, kind)
                         UI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); startTime <- DateTime.Now)
                         updateTimeline <- u
                         UI.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
                         this.Content <- cm.RootCanvas
                     })
                 )
-        let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
         hstackPanel.Children.Add(stackPanel) |> ignore
-        this.Content <- hstackPanel
     member this.Update(f10Press) =
         // update time
         let ts = DateTime.Now - startTime

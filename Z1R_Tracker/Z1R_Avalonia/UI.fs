@@ -37,7 +37,7 @@ let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
-let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.5 else 0.4), IsHitTestVisible=false))
+let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.4 else 0.3), IsHitTestVisible=false))
 let currentHeartsTextBox = new TextBox(Width=200., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Current Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts, Padding=Thickness(0.))
 let owRemainingScreensTextBox = new TextBox(Width=110., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain, Padding=Thickness(0.))
 let owGettableScreensTextBox = new TextBox(Width=150., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Show %d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count, Padding=Thickness(0.))
@@ -115,7 +115,7 @@ type ShowLocatorDescriptor =
     | DungeonIndex of int    // 0-8 means 123456789 or ABCDEFGH9 in top-left-ui presentation order
     | Sword2
     | Sword3
-let makeAll(owMapNum, heartShuffle, kind) =
+let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
         match owMapNum with
@@ -159,15 +159,7 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
     let mutable doUIUpdate = fun() -> ()
 
-    let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
-        //                             items  ow map  prog  timeline  dungeon tabs                
-        let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + TCH + 6 + TH + TH + 27*8 + 12*7 + 30)
-        let rootCanvas =    new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
-        let appMainCanvas = new Canvas(Width=16.*OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
-        canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
-        let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
-        appMainCanvas, cm
-
+    let appMainCanvas = cm.AppMainCanvas
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
@@ -400,8 +392,8 @@ let makeAll(owMapNum, heartShuffle, kind) =
     let owItemGrid2 = makeGrid(3, 3, 30, 30)
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, isTimeline, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-        let no = Brushes.DarkRed
-        let yes = Brushes.LimeGreen 
+        let no = CustomComboBoxes.no
+        let yes = CustomComboBoxes.yes
         let rect = new Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -763,30 +755,21 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     let image = Graphics.BMPtoImage Graphics.fairy_bmp
                     canvasAdd(c, image, OMTW/2.-8., 1.)
                 if i=15 && j=5 then // ladder spot
-                    let coastBoxOnOwGridRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Red, StrokeThickness=3., Fill=Graphics.overworldCommonestFloorColorBrush)
-                    canvasAdd(c, coastBoxOnOwGridRect, OMTW-30., 1.)
-                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
-                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO && TrackerModel.ladderBox.CellCurrent() = -1 then
-                            coastBoxOnOwGridRect.Opacity <- 1.
-                            coastBoxOnOwGridRect.IsHitTestVisible <- true
-                        else
-                            coastBoxOnOwGridRect.Opacity <- 0.
-                            coastBoxOnOwGridRect.IsHitTestVisible <- false
-                        )
-                    let mutable popupIsActive = false
-                    let activateLadderSpotPopup(activationDelta) =
-                        popupIsActive <- true
-                        let pos =
-                            if displayIsCurrentlyMirrored then
-                                c.TranslatePoint(Point(OMTW,4.),appMainCanvas)
-                            else
-                                c.TranslatePoint(Point(OMTW-30.,4.),appMainCanvas)
-                        let pos = pos.Value
+                    let extraDecorationsF(boxPos:Point) =
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
-                        OverworldMapTileCustomization.DoRemoteItemComboBox(cm, activationDelta, TrackerModel.ladderBox, lx, ly, pos, (fun() -> popupIsActive <- false))
-                    coastBoxOnOwGridRect.PointerPressed.Add(fun _ -> if not popupIsActive then activateLadderSpotPopup(0))
-                    coastBoxOnOwGridRect.PointerWheelChanged.Add(fun ea -> if not popupIsActive then activateLadderSpotPopup(if ea.Delta.Y<0. then 1 else -1))
+                        OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos)
+                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, extraDecorationsF)
+                    mirrorOverworldFEs.Add(coastBoxOnOwGrid)
+                    canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
+                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
+                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO then
+                            coastBoxOnOwGrid.Opacity <- 1.
+                            coastBoxOnOwGrid.IsHitTestVisible <- true
+                        else
+                            coastBoxOnOwGrid.Opacity <- 0.
+                            coastBoxOnOwGrid.IsHitTestVisible <- false
+                        )
             else
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
@@ -797,19 +780,19 @@ let makeAll(owMapNum, heartShuffle, kind) =
                     image.Opacity <- 0.0
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let iconBMP = GetIconBMP(ms,i,j)
+                    let iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
                     if iconBMP <> null then 
                         let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
                         if ms.IsX then
                             icon.Opacity <- X_OPACITY
-                            resizeMapTileImage icon |> ignore
                             canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         else
                             icon.Opacity <- 1.0
                             drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)     // darken below icon and routing marks
-                            resizeMapTileImage icon |> ignore
                             canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
+                            for fe,x,y in extraDecorations do
+                                canvasAdd(c, fe, x, y)
                     if ms.IsDungeon then
                         drawDungeonHighlight(c,0.,0)
                     if ms.IsWarp then
@@ -1260,31 +1243,9 @@ let makeAll(owMapNum, heartShuffle, kind) =
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
-                if (TrackerModel.sword2Box.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.sword2Box.CellCurrent() <> -1 then
-                    // display known-but-ungotten item on the map
-                    let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.sword2Box.CellCurrent()]
-                    if displayIsCurrentlyMirrored then 
-                        itemImage.RenderTransform <- new ScaleTransform(-1., 1.)
-                    itemImage.Opacity <- 1.0
-                    itemImage.Width <- OMTW/2.
-                    let color = Brushes.Black
-                    let border = new Border(BorderThickness=Thickness(1.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.5)
-                    let diff = if displayIsCurrentlyMirrored then 0. else OMTW/2.
-                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+diff, float(y*11*3)+4.)
+                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
                 if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon
-            member _this.CoastItem() =
-                if (TrackerModel.ladderBox.PlayerHas()=TrackerModel.PlayerHas.NO) && TrackerModel.ladderBox.CellCurrent() <> -1 then
-                    // display known-but-ungotten item on the map
-                    let x,y = 15,5
-                    let itemImage = Graphics.BMPtoImage Graphics.allItemBMPsWithHeartShuffle.[TrackerModel.ladderBox.CellCurrent()]
-                    if displayIsCurrentlyMirrored then 
-                        itemImage.RenderTransform <- new ScaleTransform(-1., 1.)
-                    itemImage.Opacity <- 1.0
-                    itemImage.Width <- OMTW/2.2
-                    let color = Brushes.Black
-                    let border = new Border(BorderThickness=Thickness(3.), BorderBrush=color, Background=color, Child=itemImage, Opacity=0.6)
-                    canvasAdd(recorderingCanvas, border, OMTW*float(x)+OMTW/2., float(y*11*3)+1.)
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
@@ -1971,6 +1932,6 @@ let makeAll(owMapNum, heartShuffle, kind) =
 
 
     TrackerModel.forceUpdate()
-    cm, updateTimeline
+    updateTimeline
 
 

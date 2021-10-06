@@ -139,9 +139,8 @@ window and warps your mouse cursor to the center, so you can quickly make a sele
 selection, your mouse cursor is warped back to the overworld tile you started at.  Using the accelerators is simple and intuitive; reading this
 paragraph was comparably more difficult and time-consuming.
 
-An unclaimed-but-known White-Sword- or Coast- Item (as marked in the upper portion of UI) will appear on Sword2 and Coast map tiles, for convenience.
-When there is an unclaimed, unknown Coast Item (e.g. at the start), an item box you can interact with appears on the Coast man tile, so that when 
-you first visit the tile, you can manipulate the ladder box without having to move your mouse to the top of the UI.
+An unclaimed White-Sword- or Coast- Item will appear on Sword2 and Coast map tiles, for convenience.
+You can interact with these item boxes on their map tiles, rather than having to move your mouse to the top-tracker to interact with them.
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
 

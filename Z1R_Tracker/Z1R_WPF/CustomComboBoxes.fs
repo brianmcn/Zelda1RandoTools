@@ -8,68 +8,6 @@ let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
 
-(*
- 
-A possible way to 'save the UI' is to get rid of scrolling
- - a custom combo-box selector lets you click a box to reveal a set of selections, and click again to select
-    - the modality is not as UI-ugly as modal windows are
-    - the modality prevents the 'unknown intention' issue of not knowing if the user is mid-scroll or done-scrolling, to know when to take semantic action
-
-Item-box-color is a somewhat (but not entirely) orthogonal issue
- - ZHelper and lazy/speedy folks won't want to set the box color
- - setting green-by-default on scroll creates semantic-ambiguity issues
- - setting green-by-default on hotkey/combobox select is better, except the person who learns an item via hint might not realize semantics of 'green box' (or existence of red/purple populated box)
- - a possible solution is to cause first-edit of an item box to set it to the 'blinking yellow' state, which can then be resolved green/red/purple by left/right/middle clicking, as before
-    - people will hate blinking yellow, and do whatever they can to get rid of it, which helps with green/red state discovery
-    - muscle memory will soon kick in to do the right thing
-
-
-
-[3:48 PM] Lorgon111: Actually, having drawn a state-transition diagram on paper, I realize the the Grid/Radial menu popup is actually orthogonal to the 'solve the scroll crisis for item boxes' issue.  
-I can remove the popup menu entirely and it still would behave the same:
- - when you click or scroll an empty item box, it puts you into a modal UI.  I'd probably put a black canvas with 50% opacity over the whole UI, except the item box (and its popup, if doing that)
- - while in the modal UI, the box outline color is bright yellow, which is 'indeterminate state'.  This is View only, the TrackerModel is unaware that anything is changing.
- - if you click outside the item box (or its popup, if doing that), then this gets treated as a 'dismiss modal dialog and undo'.  You revert to the pre-modal state and exit the mode.
- - if you scroll wheel (or click a grid item in the popup), it changes the View to display the newly selected item in the box (and highlight the new grid square in the popup), but keeps the yellow outline & modality, and still does not update TrackerModel
- - at any time, if you click inside the item box itself (or click a currently highlighted grid item (which would often be a second consecutive click inside the popup)), it behaves as a 'commit'
-       - the type of final click (left, right, middle) determines the committed box outline color (green, red, purple)
-
-Now here is the series of gestures for common interactions:
- - "I got the ladder from dungeon 4": (1) hover the D4 item box (2) scroll to the ladder (3) left click it - this is the exact same set of interactions as today
- - "I got a hint the ladder is in D4": (1) hover the D4 item box (2) scroll to the ladder (3) right click it - this has one extra step (#3) from today
- - "After the prior hint, I went to D4 and got that ladder": (1) hover D4 box with ladder (2) click it (3) left click it again - this has one extra step (#3) from today
-Could argue that non-empty boxes should be non-modal for clicks, as today, hm.(edited)
-
-[3:56 PM] Lorgon111: I guess for non-empty boxes, there are two classes of reasons to interact with them:
- - (1) it was a previously hinted item, it is currently a red box, and now I intend to make it green (or purple) because I got (intentionally avoided) the item
- - (2) the previous mark is erroneous:
-       - (a) I selected and committed the wrong item, and need to change it.  Scrolling will clearly put you back in the modal state and you can apply a fix
-       - (b) I used the wrong click to commit and the box is the wrong color and I want to change it
-Based on looking at those, it feels like for both (1) and (2b) it would be fine for clicks to be non-modal and behave as today.  The only time a click would put you in a mode is if you click an 
-empty item box, as clicking an empty item box is kind of non-sensical so it makes sense to ask you to do the extra effort of dealing with the mode.
-
-These interactions would not need to prevent you from creating green or purple empty boxes.  I do not know why you would want to do this, but I don't think it's worth extra edge case behavior 
-to try to exclude it, and maybe folks will give such marks an ad-hoc meaning.(edited)
-
-[4:08 PM] Lorgon111: The advantage of the popup is that having scrolling cause "modal black out" of almost the entire UI will be jarring.  The popup kind of adds context, especially for the 
-first-time user, about what just happened.  The main purpose of the popup might be to 'teach the mode' and the expectation would be most users will hate it and go look for the option to turn 
-the popup off.  But they will have learned the mode in the process.
-
-The key design issue for me, I think, is if I can make the mode sufficiently obvious and non-jarring.  If you don't 'black out' the rest of the UI enough, then the naive user may not notice 
-the mode, click elsewhere, not notice the 'dismiss-undo', and later wonder what happened to their scroll mark.  But if you do black out the rest of the UI enough, it's a bit jarring and 
-screen-flashy maybe?  I guess I need to try it out with different opacities to understand.  And this is also the reason to consider 'blinking yellow' for the modal/indeterminate itemBox 
-border color - the blinking makes it clearer that 'you still have business here to finish' even if the subtle-blackout of the remaining UI didn't clue it.
-
-Just got to mock it up and see how it looks.(edited)
-
-[4:13 PM] Lorgon111: I think I will implement the popup, regardless, for those who may prefer "click-move-click-click" to "click-scroooooollllllll-click". But there will be an option to not 
-display the popup, for those who find it distracting.(edited)
-
-[4:16 PM] Lorgon111: The previous paragraphs are entirely about the item boxes.  The design may inform the design for overworld tiles and dungeon boxes, but those elements are different, in that
-overworld tiles do not have a click behavior, and dungeon boxes do not have TrackerModel semantics.
-
-*)
-
 ////////////////////////////////////////////////////////////
 // ItemComboBox
 
@@ -77,8 +15,8 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.MouseButtonEventArgs) =
     if ea.ChangedButton = Input.MouseButton.Left then TrackerModel.PlayerHas.YES
     elif ea.ChangedButton = Input.MouseButton.Right then TrackerModel.PlayerHas.NO
     else TrackerModel.PlayerHas.SKIPPED
-let no = Brushes.DarkRed
-let yes = Brushes.LimeGreen 
+let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy))
+let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy))
 let skipped = Brushes.MediumPurple
 let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     match boxCellCurrent with

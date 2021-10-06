@@ -18,8 +18,8 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.PointerPoint) =  // a poor name for
     if ea.Properties.IsLeftButtonPressed then TrackerModel.PlayerHas.YES
     elif ea.Properties.IsRightButtonPressed then TrackerModel.PlayerHas.NO
     else TrackerModel.PlayerHas.SKIPPED
-let no = Brushes.DarkRed
-let yes = Brushes.LimeGreen 
+let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy)) :> ISolidColorBrush
+let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy)) :> ISolidColorBrush
 let skipped = Brushes.MediumPurple
 let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     match boxCellCurrent with
