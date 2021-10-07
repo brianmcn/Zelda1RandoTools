@@ -5,15 +5,18 @@ open Avalonia.Media
 open Avalonia
 open Avalonia.Layout
 
-let link(cb:CheckBox, b:TrackerModel.Options.Bool) =
+let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
+    let effect() = if needFU then TrackerModel.forceUpdate()
     cb.IsChecked <- System.Nullable.op_Implicit b.Value
-    cb.Checked.Add(fun _ -> b.Value <- true)
-    cb.Unchecked.Add(fun _ -> b.Value <- false)
+    cb.Checked.Add(fun _ -> b.Value <- true; effect())
+    cb.Unchecked.Add(fun _ -> b.Value <- false; effect())
 
 let data1 = [|
-    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes
-    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby
-    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier
+    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false
+    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false
+    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false
+    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true
+    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked (starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false
     |]
 let data2 = [|
     "Dungeon feedback", "Note when dungeons are located/completed, triforces obtained, and go-time", 
@@ -38,10 +41,10 @@ let makeOptionsCanvas() =
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
     let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, FontWeight=FontWeight.Bold, BorderBrush=Brushes.Transparent, IsHitTestVisible=false) |> header
     options1sp.Children.Add(tb) |> ignore
-    for text,tip,b in data1 do
+    for text,tip,b,needFU in data1 do
         let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true, BorderBrush=Brushes.Transparent, IsHitTestVisible=false))
         ToolTip.SetTip(cb,tip)
-        link(cb, b)
+        link(cb, b, needFU)
         options1sp.Children.Add(cb) |> ignore
     let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(2.))
     optionsAllsp.Children.Add(options1sp) |> ignore
@@ -92,10 +95,10 @@ let makeOptionsCanvas() =
             Graphics.gridAdd(options2Grid, backgroundColor(), 1, row)
             Graphics.gridAdd(options2Grid, backgroundColor(), 2, row)
         let cbVoice = new CheckBox(HorizontalAlignment=HorizontalAlignment.Center)
-        link(cbVoice, bVoice)
+        link(cbVoice, bVoice, false)
         Graphics.gridAdd(options2Grid, cbVoice, 0, row)
         let cbVisual = new CheckBox(HorizontalAlignment=HorizontalAlignment.Center)
-        link(cbVisual, bVisual)
+        link(cbVisual, bVisual, false)
         Graphics.gridAdd(options2Grid, cbVisual, 1, row)
         let tb = new TextBox(Text=text,IsReadOnly=true, Background=Brushes.Transparent)
         ToolTip.SetTip(tb, tip)
@@ -111,16 +114,8 @@ let makeOptionsCanvas() =
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeight.Bold, BorderBrush=Brushes.Transparent, IsHitTestVisible=false) |> header
     options3sp.Children.Add(tb) |> ignore
     let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true, BorderBrush=Brushes.Transparent, IsHitTestVisible=false))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- true; TrackerModel.forceUpdate())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; TrackerModel.forceUpdate())
+    link(cb, TrackerModel.Options.IsSecondQuestDungeons, true)
     ToolTip.SetTip(cb,"Check this if dungeon 4, rather than dungeon 1, has 3 items")
-    options3sp.Children.Add(cb) |> ignore
-    let cb = new CheckBox(Content=new TextBox(Text="Mirror overworld",IsReadOnly=true, BorderBrush=Brushes.Transparent, IsHitTestVisible=false))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.MirrorOverworld.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- true; TrackerModel.forceUpdate())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.MirrorOverworld.Value <- false; TrackerModel.forceUpdate())
-    ToolTip.SetTip(cb,"Flip the overworld map East<->West")
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore

@@ -186,7 +186,7 @@ Above the timeline, there is a button labeled "Options..."
 Clicking this button causes the timeline pane to be replaced by the options menu.  
 A variety of tracker features can be turned on and off here; mouse-hover the text for a detailed description.
 Some randomizer flag settings are also featured here, notably 'Second quest dungeons' and 'Mirror overworld'.
-The options pane automatically closes when you click outside the pane, revealing the timeline once again.
+The options pane automatically saves & closes when you click outside the pane, revealing the timeline once again.
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
 
@@ -257,7 +257,7 @@ Unlike e.g. scrap paper on your desk, these notes are visible to stream viewers.
 
 HOTKEYS
 
-There is no support for hotkeys yet; this is a priority on the to-do list.
+There is no support for hotkeys yet; this feature is on the to-do list.
 
 
 SAVE STATE

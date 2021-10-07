@@ -18,8 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-change tile grid order, per marc conversation (make it an option; experts who dont want to mark shops etc may prefer dungeons on top)
-
 Crash log write file
 
 maybe remove only-scroll from OW (start a grid scroll)?

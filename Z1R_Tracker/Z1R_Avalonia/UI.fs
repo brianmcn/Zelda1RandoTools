@@ -832,11 +832,13 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                         if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
                             // left click activates the popup selector
                             popupIsActive <- true
+                            let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
+                            let state(n) = if shopsOnTop then (n+16) % 32 else n
                             let ST = CustomComboBoxes.borderThickness
                             let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                             let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
-                            let originalStateIndex = if originalState = -1 then MapStateProxy.NumStates else originalState
+                            let originalStateIndex = state <| if originalState = -1 then MapStateProxy.NumStates else originalState
                             let activationDelta = if originalState = -1 then -1 else 0  // accelerator so 'click' means 'X'
                             let gridxPosition = 
                                 if (displayIsCurrentlyMirrored && i>13) || (not displayIsCurrentlyMirrored && i<2) then 
@@ -845,11 +847,14 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                                     OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
                                 else
                                     (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
-                            let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init (MapStateProxy.NumStates+1) (fun n ->
+                            let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init 32 (fun n ->
+                                let n = state n
                                 if MapStateProxy(n).IsX then
                                     upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, n
                                 elif n = MapStateProxy.NumStates then
                                     upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
+                                elif n > MapStateProxy.NumStates then
+                                    null, false, -999  // null asks selector to 'leave a hole' here
                                 else
                                     let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
                                     upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
@@ -1119,7 +1124,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
 
     let blockerDungeonSunglasses : Visual[] = Array.zeroCreate 8
     doUIUpdate <- (fun () ->
-        if displayIsCurrentlyMirrored <> TrackerModel.Options.MirrorOverworld.Value then
+        if displayIsCurrentlyMirrored <> TrackerModel.Options.Overworld.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
             if displayIsCurrentlyMirrored then

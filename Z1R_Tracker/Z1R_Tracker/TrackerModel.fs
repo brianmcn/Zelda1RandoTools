@@ -28,6 +28,8 @@ module Options =
         let mutable DrawRoutes = Bool(true)
         let mutable HighlightNearby = Bool(true)
         let mutable ShowMagnifier = Bool(true)
+        let mutable MirrorOverworld = Bool(false)
+        let mutable ShopsFirst = Bool(true)
     module VoiceReminders =
         let mutable DungeonFeedback = Bool(true)
         let mutable SwordHearts = Bool(true)
@@ -46,7 +48,6 @@ module Options =
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
     let mutable IsSecondQuestDungeons = Bool(false)
-    let mutable MirrorOverworld = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
@@ -55,6 +56,8 @@ module Options =
         member val DrawRoutes = true with get,set
         member val HighlightNearby = true with get,set
         member val ShowMagnifier = true with get,set
+        member val MirrorOverworld = false with get,set
+        member val ShopsFirst = false with get,set
 
         member val Voice_DungeonFeedback = true with get,set
         member val Voice_SwordHearts = true with get,set
@@ -74,7 +77,6 @@ module Options =
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
         member val IsSecondQuestDungeons = false with get,set
-        member val MirrorOverworld = false with get,set
         member val ShowBroadcastWindow = false with get,set
 
         member val IsMuted = false with get, set
@@ -87,6 +89,8 @@ module Options =
         data.DrawRoutes <- Overworld.DrawRoutes.Value
         data.HighlightNearby <- Overworld.HighlightNearby.Value
         data.ShowMagnifier <- Overworld.ShowMagnifier.Value
+        data.MirrorOverworld <- Overworld.MirrorOverworld.Value
+        data.ShopsFirst <- Overworld.ShopsFirst.Value
 
         data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
         data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
@@ -106,7 +110,6 @@ module Options =
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
-        data.MirrorOverworld <- MirrorOverworld.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
@@ -131,6 +134,8 @@ module Options =
             Overworld.DrawRoutes.Value <- data.DrawRoutes
             Overworld.HighlightNearby.Value <- data.HighlightNearby
             Overworld.ShowMagnifier.Value <- data.ShowMagnifier
+            Overworld.MirrorOverworld.Value <- data.MirrorOverworld
+            Overworld.ShopsFirst.Value <- data.ShopsFirst    
 
             VoiceReminders.DungeonFeedback.Value <- data.Voice_DungeonFeedback
             VoiceReminders.SwordHearts.Value <-     data.Voice_SwordHearts
@@ -150,7 +155,6 @@ module Options =
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
-            MirrorOverworld.Value <- data.MirrorOverworld
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
