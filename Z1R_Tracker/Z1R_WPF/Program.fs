@@ -77,16 +77,26 @@ type MyWindow() as this =
     //                 items  ow map  prog  dungeon tabs                      timeline   
     let HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
     let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
+    let mutable loggedAnyCrash = false
+    let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
     do
+        let logCrashInfo(s:string) =
+            printfn "%s" s
+            try
+                if not loggedAnyCrash then
+                    loggedAnyCrash <- true
+                    System.IO.File.AppendAllText(crashLogFilename, sprintf "BEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss")))
+                System.IO.File.AppendAllText(crashLogFilename, sprintf "%s\n" s)
+            with _ -> ()
         let handle(ex:System.Exception) =
             match ex with
             | :? TrackerModel.IntentionalApplicationShutdown as ias ->
-                printfn "%s" ias.Message
+                logCrashInfo <| sprintf "%s" ias.Message
             | _ ->
-                printfn "%s" (ex.ToString())
+                logCrashInfo <| sprintf "%s" (ex.ToString())
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
             let ex = e.Exception
-            printfn "An unhandled exception from UI thread:"
+            logCrashInfo <| sprintf "An unhandled exception from UI thread:"
             handle(ex)
             e.Handled <- true
             Application.Current.Shutdown()
@@ -94,10 +104,10 @@ type MyWindow() as this =
         System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
             match e.ExceptionObject with
             | :? System.Exception as ex ->
-                printfn "An unhandled exception from background thread:"
+                logCrashInfo <| sprintf "An unhandled exception from background thread:"
                 handle(ex)
             | _ ->
-                printfn "An unhandled exception from background thread occurred."
+                logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
             )
 
         Graphics.theWindow <- this
