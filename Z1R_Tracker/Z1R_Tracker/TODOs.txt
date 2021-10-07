@@ -18,33 +18,27 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+change tile grid order, per marc conversation (make it an option; experts who dont want to mark shops etc may prefer dungeons on top)
+
+Crash log write file
+
 maybe remove only-scroll from OW (start a grid scroll)?
 
-triforce-and-go: turn off PB/recorder reminders   --  or maybe these reminders have outlived their usefulness
+timeline & mistakes
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
  - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
  - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
    rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
 
-if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
-  - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
-
-mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
-
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
-timeline & mistakes
-
 second shop item, click click click whoops missed it, 7 more clicks... better interface?
+ - the obvious interface is right-click popups up a second-item-chooser with 8 entries (possibly one of which is not allowed? maybe just allow dups)
+ - shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
 Kigalas found 'take any' popup confusing first time he saw it, but figured it out
  - wants 'tracker take candle' speech recognition there
-
-Consider 2/3 app size and 2/3 broadcast window size options?
-
-
-when know dungeon number, cross off third box?
 
 there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
  - change 9 icon on strip
@@ -61,38 +55,51 @@ hotkeys
 
 SMALL
 
+Consider 2/3 app size and 2/3 broadcast window size options?
+
 'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
+ - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
+
+if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
+  - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
+        - could make populateOverworldAcceratorTable() method to pass in some values more easily maybe
+
+mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
 
 
 factoids for 'loading ui screen':
- -  a room with a gleeok cannot have a push block
+ - a room with a gleeok cannot have a push block
  - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
  - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
  - khanana key explanation
  - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
 
 
-Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
-
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - Yellow percentage, count DRCs, etc
 
 Get rid of shift-click room state, change behavior to marking 4 red doors? But what if two together… hmmm…. Don’t want to show wall between two adjacent holes, hm.
 
-Crash log write file
-
 HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
+ - maybe reincarnate this feature as a routing-rectangles filter, e.g. mid-game you set the 'only route me to 1Q rooms' or something? hmm
 
 
 hide dungeon numbers:
  - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should 'own' tracker marks, it should only suggest?
- - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hm (eventually, save/load state might help)
+        - or it could be another popup, highlight final number, say it must be N by process of elimination, player can confirm or cancel?
+ - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hmm (eventually, save/load state might help)
  - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
  - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
+      - gleeok lurks with the magic key: today, in non-HDN, I mark an un-got key in 4 manually - if can move this into hint decoder, then HDN can apply some logics (immediate or later)
+        similar, even in non-HDN: Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
  - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
- - Is my completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them.
+ - Is my completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them. Should I cross off third box?
 
 draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+ - maybe can draw it on magnifier?
+i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
+ - river, NW corner, south bomb coast, mid-candle-row, any others?
+
 
 I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
 
@@ -101,25 +108,12 @@ should link keep routing you until you dismiss him (with a click?)
 should there be a separate gesture for 'timeout in 10s mode' versus 'keep it until you dismiss' mode?
 
 
-Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
-
 
 accidental double-click on Avalonia-Linux: maybe redraw() causes new element to see MouseDown and repeat-get input? pin this down
- - after that, see if still need rework dungeons, maybe always select to 'uncomplete', and click (right click?) outside popup marks complete
 
 
 Kigalas:
 Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
-
-
-
-i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
-
-
-in progress:
-maybe, if you right click sword2 tile or coast tile, it brings up the item selector popup right by your mouse, while also yellow-border-highlighting the 
-white-sword-box/ladder-box way up top, and you can change the item 'from there' rather than taking the long mouse journey to the top of the screen
- - if i rewrite the item box to use my abstractions, the the 'extra decoration' could be a guide-line connecting the selection-grid to the actual item box-up-top
 
 
 
@@ -131,13 +125,10 @@ my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
 I could not worry about that, or apply some ad-hoc fixes for the common case, but in general it seems non-trivial
 
 
-dungeon room marks, key/bomb on floor? orthogonal to other marks? hm, middle-click cycle thru circle colors? who would ever leave a key?
-   maybe middle click is sufficient - you can remember one thing apart from the room type and the completed state, use it for floor bombs or whatever
-
 given how shops work now, one could imagine dealing with the various money icons thusly:
  - rupee tile can be customized to show additional detail
  - details might be: ?, small, med, large, door repair, etc
- - right click could cycle through the options
+ - right click could cycle through the options, or give a popup accelerator (and then would surely need options to disable accelerators on a per-map-tile basis, yes?)
  - hotkey could set directly the state and the extraData
  - (implementation detail: be careful that extraData is exclusive, e.g. don't have a rupee-state translate into a second-shop-icon-state, or vice versa)
 
@@ -151,6 +142,7 @@ consider controller-button push-to-talk to explicitly activate speech recognitio
  - if ship PTT feature, need a gamepad button chooser binding thingy, even if e.g. ask them to go to gamepad-tester.com and then select a number 0-9
      - and probably also want keyboard bind like left shift, if can figure out
 
+Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
 select item box via voice?  select dungeon room via voice?
 
 (Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
@@ -171,8 +163,6 @@ yellow door state? (maybe left/right rotate forward/reverse thru unknown->green-
 show list of remaining box items? if less than N left? - the popup now kinda accomplishes this
 
 (start screen eventually have start OR load old data)
-
-does there need to be a voice optionMenu for dungeon blockers? you can always choose not to use it
 
 
 MEDIUM
@@ -216,8 +206,6 @@ review other common flagsets from rando, what works, what could work, etc
     - (reminders/display) 3 starting hearts
     - (reminders) level 9 requires 8 triforces, go-time needs silvers
 
-
-size options were common requests for zhelper – can I scale? consider 2/3 size or something.
 
 
 hotkeys as scroll-macros (e.g. immediately mark S3, or a dungeon room, or an item box)
@@ -268,7 +256,7 @@ auto-tracking (link to emulator)
 
 comparisons to ZHelper
 
-ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, ...) and uses less screen real estate.
+ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, hotkeys, ...) and uses less screen real estate.
 
 That said, I think this tracker has a number of advantages in usability, both in design and feature set:
 
@@ -277,16 +265,17 @@ That said, I think this tracker has a number of advantages in usability, both in
  - More consistent use of color: as things are completed (overworld 'X' spot, completed dungeon/room), they get 'dimmer' coloration, to fade somewhat into the background.
    As a result, the eye is drawn to the bright spots, which are where the remaining work is and where the player needs to focus.
 
- - Less scrolling: 
+ - Less scrolling & mousing: 
      - you can populate most icon boxes without any scrolling due to local popup menu showing all the item choices
      - you can populate most overworld tiles without any scrolling via speech recognition
-     - when an item or dungeon location is found, it gets removed from the 'scroll wheel pool', which means that as the game progresses, you need fewer scrolls to find the remaining mark you need.
+     - local item popups and accelerators mean you rarely ever need to move the mouse to the top portion of the tracker
 
  - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.
 
  - More information in fewer clicks: mouse hovering can show the area zone overlay, helpful hint locations, dungeon locations, and all kinds of other contextual information, with no switching tabs.
 
  - Quick after-the-fact dungeon markup: if you play half a dungeon without mapping, and then decide you need to map it, drag gestures can quickly 'paint out' the already-explored portions.
+   Or if you have a book-atlas, you can 'paint out' the dungeon map of uncompleted rooms before starting it.
 
 This tracker also has a number of attractive added features, including:
 
@@ -294,7 +283,7 @@ This tracker also has a number of attractive added features, including:
 
  - ability to correct mistakes in dungeon markup (e.g. when you put a bunch of rooms in the wrong column) by cut&pasting a segment
 
- - full support for 'hide dungeon numbers' - no more needing to move all your marks from one column to another after discovering you guessed the dungeon number wrong
+ - full support for 'hide dungeon numbers' flag - no more needing to move all your marks from one column to another after discovering you guessed the dungeon number wrong
 
  - a note-taking text area to type ad-hoc reminders to yourself (e.g. "L5 bomb upgrade 106"), and an area to mark dungeon blockers via icons (e.g. 4 needs ladder, 7 needs bow&arrow)
 
@@ -302,7 +291,9 @@ This tracker also has a number of attractive added features, including:
 
  - a timeline which displays the 'history' of when you got key items, to orient latecomer stream viewers, or to help you replay the seed in your head in the post-game recap analysis
 
- - speech synthesis features for voice reminders, and speech recognition features for marking bits of the overworld without any scrolling or clicking
+ - a sophisticated system for offering timely, useful reminders, via speech synthesis (voice reminders) and/or icon popups
+ 
+ - speech recognition features for marking bits of the overworld without any scrolling or clicking
 
- - richer dungeon mapping: ability to mark each dungeon room as 'cleared' or not, independent of the room icon; also, ability to 'circle' key rooms in dungeons
+ - richer dungeon mapping: ability to mark each dungeon room as 'cleared' or not, independent of the room icon; also, ability to 'circle' rooms in dungeons
 

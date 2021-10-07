@@ -209,6 +209,7 @@ Double-clicking or scrolling brings up the room selector popup, where you can ch
   left (right) click will commit that selection as a(n) (un)completed room.
 
 You can 'circle' a room with a yellow dashed line by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
+(I often use this to mark rooms where I left a bomb pack drop to return to later; you can use however you like.)
 
 If you click-and-drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
