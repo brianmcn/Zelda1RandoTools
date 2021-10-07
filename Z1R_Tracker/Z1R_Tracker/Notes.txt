@@ -41,6 +41,18 @@ The Color marks are for the player's reference, and have no semantic meaning to 
 The Number marks have semantics that interact with a number of tracker features, you should set it once known.
 
 
+POPUPS
+
+Z-Tracker uses popups extensively.  Many types of elements (items, map tiles, dungeon rooms, ...) have lots of possible choices to scroll through; 
+to better visualize all the options, scrolling the mouse-wheel instantly brings up the popup to see all the choices.  You can either just continue 
+scrolling, and then click once you have reached your desired choice, or you can mouse over the grid of choices and click the one you want (mousing 
+is often faster when there is a very long list of choices, such as the overworld map tiles).  Clicking outside of a popup will cancel the popup 
+and abort making any changes to the element.
+
+When mouse-hovering an element with choices, scroll-wheel always activates the popup.  In certain cases notes below, clicking or double-clicking
+may also activate the popup.
+
+
 DUNGEON ITEM AREA
 
 Triforces:
@@ -52,13 +64,11 @@ Triforce display suggests if dungeon has been located on overworld map:
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
 
 Items:
-Scroll to change item in a dungeon, then click it to commit the change:
+The list of possible items (book, boomerang, ...) appears in a popup.  Choose the item to populate a box, and
  - left click marks it green, to denote that you have this item in your inventory
  - right click marks it red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
  - middle click marks it purple (with X), to denote you intentionally are skipping this item (see below)
-Scrolling (or clicking an empty item box) also brings up a popup menu, which is an alternative UI to choose the item.  You can either ignore 
-the popup and scroll+click as above, or you can simply use the mouse to choose an item from the popup, using the appropriate click on that item 
-to commit the selection.
+In addition to scrolling, clicking an empty item box will activate the popup.
 
 The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
 boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.
@@ -123,13 +133,11 @@ OVERWORLD MAP
  - "rupee"      free money, or gambling
  - "dark"       nothing, or don't care
 
-To select a map tile, you can either scroll-wheel through the options, or you can left-click a tile to bring up a popup selector, which displays all 
-the options: click on an option to choose it, or click outside the popup to dismiss it without making a change.
-A double-click (two clicks) of an unmarked overworld tile is a shorthand way to mark it "dark" (nothing/don't care).
+The list of all these possible map tile icons appears in a popup.  In addition to scrolling, left-clicking an unmarked map tile will activate the popup.
 
 Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
 Right-clicking an item shop will cycle through choices of a second item to display in the shop (max of 2 items can be displayed on a tile).
-Right-clicking a take-any heart will toggle if it is bright (un-taken) or dark (taken).
+Right-clicking a take-any heart or the wood-sword cave will toggle if it is bright (un-taken) or dark (taken).
 
 Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
 accelerator will pop up, with 4 choices (take potion, take candle, take heart, take nothing).  Your selection may have multiple effects, for 
@@ -202,11 +210,11 @@ Rooms can be marked as:
  - special markers for certain rooms (digdogger+recorder; bow+arrow for gohma; gleeok+wand; blue bubble)
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
  - grey box (typical non-descript room)
-Left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten);
-   right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do.
-Single-clicking an unmarked room transforms it into the default, non-descript room.
-Double-clicking or scrolling brings up the room selector popup, where you can choose among all the different room types; after selecting, the final 
-  left (right) click will commit that selection as a(n) (un)completed room.
+The list of all these rooms appears in a popup.  In addition to scrolling, double-clicking a room will activate the popup.  
+In the popup:
+ - left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten)
+ - right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do
+Single-clicking an unmarked room transforms it into the default, non-descript room (dark or light, depending on left- or right- click).
 
 You can 'circle' a room with a yellow dashed line by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
 (I often use this to mark rooms where I left a bomb pack drop to return to later; you can use however you like.)
@@ -214,8 +222,9 @@ You can 'circle' a room with a yellow dashed line by middle-clicking it (middle 
 If you click-and-drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
+Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
 
-Shift-clicking a room will black it out, as well as nearby doors; this is useful mostly for Shapes 9 when you have the map, to immediately mark off the 'holes'.
+Shift-clicking a room will black it out, as well as nearby doors; this is rarely useful except for Shapes 9 with a map, to immediately mark off the 'holes'.
 
 Doors between rooms have three states:
  - dark grey is unknown (default)
@@ -237,22 +246,27 @@ When your mouse is inside the dungeon map area, the location of that dungeon wil
 
 BLOCKERS
 
-This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon and need to return later.
+This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
 You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
- - Sword: you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
+ - Sword:       you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
  - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
- - Recorder: you are blocked by Digdogger
- - Ladder: there's a ladder block (moat)
- - Bait: there's a hungry Goriya blocking you
- - Key: you need more keys
- - Bomb: you need to find more explosion walls
-(WPF Only) When possible, the tracker will give a voice reminder when you may be unblocked, e.g. "Now that you have the ladder, consider dungeon 5"
+ - Recorder:    you are blocked by Digdogger
+ - Ladder:      there's a ladder block (moat)
+ - Bait:        there's a hungry Goriya blocking you
+ - Key:         you need more keys
+ - Bomb:        you need to find more explosion walls
+The list of all these icons appears in a popup.  In addition to scrolling, clicking a blocker box will activate the popup.  
+
+When possible, the tracker will give a reminder when you may be unblocked, for example, if you marked 5 with a ladder block, then when you obtain the ladder:
+    (WPF Only)  voice reminder:   "Now that you have the ladder, consider dungeon 5" 
+                visual reminder:  (ladder icon) (right-arrow) (dungeon 5 icon)
+You can toggle whether you get these reminders in the Options Menu.
 
 
 NOTES
 
-This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 with 128 rupees to buy a Bomb Upgrade).
-Unlike e.g. scrap paper on your desk, these notes are visible to stream viewers.
+This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 to buy a Bomb Upgrade for 128 rupees).
+Unlike scrap paper on your desk, these notes are visible to stream viewers.
 
 
 HOTKEYS
