@@ -18,6 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+
+
+
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
 timeline & mistakes
@@ -67,6 +70,16 @@ factoids for 'loading ui screen':
  - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
 
 
+ maybe make separate project for generation-tools, e.g.
+ - make magnifier bmps offline, save to a resource file, then load resource
+ - would also allow me to draw on the generated ones for e.g.
+        draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+         - maybe can draw it on magnifier?
+        i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
+         - river, NW corner, south bomb coast, mid-candle-row, any others?
+
+
+
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - Yellow percentage, count DRCs, etc
 
@@ -86,11 +99,6 @@ hide dungeon numbers:
         similar, even in non-HDN: Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
  - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
  - Is my completion logic ok? I just 'let there be' an extra box, but deduce completion if its a two-boxer and you have two of them. Should I cross off third box?
-
-draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
- - maybe can draw it on magnifier?
-i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
- - river, NW corner, south bomb coast, mid-candle-row, any others?
 
 
 I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
@@ -220,6 +228,9 @@ Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
 
 
 check for memory leaks
+startup performance
+https://github.com/microsoft/perfview
+
 
 
 BIG

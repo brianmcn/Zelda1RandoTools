@@ -494,6 +494,19 @@ let loadBMP(filename) =
     bmp
 let mouseIconButtonColorsBMP = loadBMP("mouse-icon-button-colors.png")
 let mouseIconButtonColors2BMP = loadBMP("mouse-icon-button-colors-2.png")
+
+
+let takeAnyPotionBMP = loadBMP("take-any-potion.png")
+let takeAnyCandleBMP = loadBMP("take-any-candle.png")
+let takeAnyHeartBMP = loadBMP("take-any-heart.png")
+let takeAnyLeaveBMP = loadBMP("take-any-leave.png")
+let takeThisWoodSwordBMP = loadBMP("take-this-wood-sword.png")
+let takeThisCandleBMP = loadBMP("take-this-candle.png")
+let takeThisLeaveBMP = loadBMP("take-this-leave.png")
+
+(*
+code for clipping screenshots to same size
+
 let clipTakeAny(bmp:System.Drawing.Bitmap) =
     let r = new System.Drawing.Bitmap(672, 448)
     for x = 0 to 671 do
@@ -508,6 +521,15 @@ let takeThisWoodSwordBMP = loadBMP("take-this-wood-sword.png") |> clipTakeAny
 let takeThisCandleBMP = loadBMP("take-this-candle.png") |> clipTakeAny
 let takeThisLeaveBMP = loadBMP("take-this-leave.png") |> clipTakeAny
 
+do
+    takeAnyPotionBMP.Save("takeAnyPotionBMP.png")
+    takeAnyCandleBMP.Save("takeAnyCandleBMP.png")
+    takeAnyHeartBMP.Save("takeAnyHeartBMP.png")
+    takeAnyLeaveBMP.Save("takeAnyLeaveBMP.png")
+    takeThisWoodSwordBMP.Save("takeThisWoodSwordBMP.png")
+    takeThisCandleBMP.Save("takeThisCandleBMP.png")
+    takeThisLeaveBMP.Save("takeThisLeaveBMP.png")
+*)
 
 let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
 (*
