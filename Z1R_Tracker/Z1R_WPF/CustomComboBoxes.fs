@@ -102,40 +102,43 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     member _this.AfterCreatePopupCanvas = afterCreatePopupCanvas.Publish
     member _this.BeforeDismissPopupCanvas = beforeDismissPopupCanvas.Publish
 
-let DoModalCore(cm:CanvasManager, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity, onClose) =
+// TODO rename DoModals
+let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity) = async {
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = cm.CreatePopup(blackSunglassesOpacity)
     // place the element
     placeElementOntoCanvas(c, element)
-    let dismiss() =
-        removeElementFromCanvas(c, element)
-        cm.DismissPopup()
     // catch mouse clicks outside the element
     c.MouseDown.Add(fun ea ->
         let pos = ea.GetPosition(element)
         if (pos.X < 0. || pos.X > element.ActualWidth) || (pos.Y < 0. || pos.Y > element.ActualHeight) then
             if ea.ButtonState = Input.MouseButtonState.Pressed &&
                     (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
-                onClose()
-                dismiss()
+                ea.Handled <- true
+                wh.Set() |> ignore
         )
-    dismiss // return a dismissal handle, which the caller can use to dismiss the dialog based on their own criteria; note that onClose() is not called by the dismissal handle
+    let ctxt = System.Threading.SynchronizationContext.Current
+    let! _ = Async.AwaitWaitHandle(wh)
+    do! Async.SwitchToContext(ctxt)
+    removeElementFromCanvas(c, element)
+    cm.DismissPopup()
+    }
 
-let DoModal(cm:CanvasManager, x, y, element, onClose) =
-    DoModalCore(cm, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, 0.5, onClose)
+let DoModal(cm:CanvasManager, wh:System.Threading.ManualResetEvent, x, y, element) =
+    DoModalCore(cm, wh, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, 0.5)
 
-let DoModalDocked(cm:CanvasManager, dock, element, onClose) =
+let DoModalDocked(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, element) =
     let d = new DockPanel(Width=cm.Width, Height=cm.Height, LastChildFill=false)
-    DoModalCore(cm, 
+    DoModalCore(cm, wh,
                     (fun (c,e) -> 
                         DockPanel.SetDock(e, dock)
                         d.Children.Add(e) |> ignore
                         canvasAdd(c, d, 0., 0.)),
-                    (fun (_c,e) -> d.Children.Remove(e)), element, 0.5, onClose)
+                    (fun (_c,e) -> d.Children.Remove(e)), element, 0.5)
 
 /////////////////////////////////////////
 
-let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>, onResult) =  // calls onResult(buttonText) if a button was pressed, or onResult(null) if dismissed
+let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>) = async { // returns buttonText if a button was pressed, or null if dismissed
     let grid = new Grid()
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(1.0, GridUnitType.Star)))
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength.Auto))
@@ -153,7 +156,8 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     grid.Children.Add(mainDock) |> ignore
     Grid.SetRow(mainDock, 0)
 
-    let mutable dismiss = fun()->()
+    let wh = new System.Threading.ManualResetEvent(false)
+    let mutable result = null
     let buttonDock = new DockPanel(Margin=Thickness(5.,0.,0.,0.))
     let mutable first = true
     for bt in buttonTexts |> Seq.rev do
@@ -165,7 +169,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
         buttonDock.Children.Add(b) |> ignore
         b.Content <- new TextBox(Text=bt, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), FontSize=16.,
                                     Background=Graphics.almostBlack, Margin=Thickness(0.))
-        b.Click.Add(fun _ -> dismiss(); onResult(bt))
+        b.Click.Add(fun _ -> result <- bt; wh.Set() |> ignore)
     grid.Children.Add(buttonDock) |> ignore
     Grid.SetRow(buttonDock, 1)
 
@@ -180,7 +184,9 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
     b.Resources.Add(typeof<Button>, style)
 
-    dismiss <- DoModal(cm, 150., 200., b, (fun () -> onResult(null)))
+    do! DoModal(cm, wh, 150., 200., b)
+    return result
+    }
 
 /////////////////////////////////////////
 
@@ -230,23 +236,30 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
 
 let borderThickness = 3.  // TODO should this be a param?
 
+type PopupClickBehavior<'a> =
+    | DismissPopupWithResult of 'a     // return result
+    | DismissPopupWithNoResult         // tear down popup as though user clicked outside it
+    | StayPoppedUp                     // keep awaiting more clicks
+
 (*
 CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-    gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
 *)
-let DoModalGridSelect<'a>(cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
-                            gridElementsSelectablesAndIDs:(FrameworkElement*bool*'a)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
-                            originalStateIndex:int, // originalStateIndex is array index into the array
-                            activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
-                            (gnc, gnr, gcw, grh),   // grid: numCols, numRows, colWidth, rowHeight (heights of elements; this control will add border highlight)
-                            gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
-                            redrawTile,  // we pass you currentStateID
-                            onClick,  // called on tile click or selectable grid click, you choose what to do:   (dismissPopupFunc, mousebuttonEA, currentStateID) -> unit
-                            onClose,  // called when user clicks outside modal, and it dismisses itself
-                            extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
-                            brushes:ModalGridSelectBrushes,
-                            gridClickDismissalDoesMouseWarpBackToTileCenter
-                            ) =
+let DoModalGridSelect<'State,'Result>
+        (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
+                gridElementsSelectablesAndIDs:(FrameworkElement*bool*'State)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
+                originalStateIndex:int, // originalStateIndex is array index into the array
+                activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
+                (gnc, gnr, gcw, grh),   // grid: numCols, numRows, colWidth, rowHeight (heights of elements; this control will add border highlight)
+                gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
+                redrawTile,  // we pass you currentStateID
+                onClick,  // called on tile click or selectable grid click, you choose what to do:   (mousebuttonEA, currentStateID) -> PopupClickBehavior<'Result>
+                extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
+                brushes:ModalGridSelectBrushes,
+                gridClickDismissalDoesMouseWarpBackToTileCenter
+                ) = async {
+    let wh = new System.Threading.ManualResetEvent(false)
+    let mutable result = None
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
     let ST = borderThickness
@@ -256,13 +269,12 @@ let DoModalGridSelect<'a>(cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // 
     let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
     grid.Background <- Brushes.Black
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
-    let mutable dismissDoModalPopup = fun () -> ()
     let selfCleanup() =
         for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
     let dismiss() =
-        dismissDoModalPopup()
         selfCleanup()
+        wh.Set() |> ignore
     let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
     let stateID() = let _,_,x = gridElementsSelectablesAndIDs.[currentState] in x
     let redrawGridFuncs = ResizeArray()
@@ -286,7 +298,10 @@ let DoModalGridSelect<'a>(cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // 
     tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
     tileCanvas.MouseDown.Add(fun ea -> 
         ea.Handled <- true
-        onClick(dismiss, ea, stateID())
+        match onClick(ea, stateID()) with
+        | DismissPopupWithResult(r:'Result) -> result <- Some(r); dismiss()
+        | DismissPopupWithNoResult -> dismiss()
+        | StayPoppedUp -> ()
         )
     tileCanvas.MouseLeave.Add(fun _ -> snapBack())
     // grid of choices
@@ -306,13 +321,16 @@ let DoModalGridSelect<'a>(cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // 
                 redraw()
                 let mouseWarpDismiss() =
                     let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), cm.AppMainCanvas)
-                    dismiss()
                     Graphics.WarpMouseCursorTo(pos)
+                    dismiss()
                 b.MouseDown.Add(fun ea -> 
                     ea.Handled <- true
                     if isSelectable then
                         let dismisser = if gridClickDismissalDoesMouseWarpBackToTileCenter then mouseWarpDismiss else dismiss
-                        onClick(dismisser, ea, stateID())
+                        match onClick(ea, stateID()) with
+                        | DismissPopupWithResult(r) -> result <- Some(r); dismisser()
+                        | DismissPopupWithNoResult -> dismisser()
+                        | StayPoppedUp -> ()
                     )
                 gridAdd(grid, b, x, y)
             else
@@ -332,7 +350,9 @@ let DoModalGridSelect<'a>(cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // 
     |  1 -> next()
     | _ -> failwith "bad activationDelta"
     // activate the modal
-    dismissDoModalPopup <- DoModal(cm, tileX, tileY, popupCanvas, (fun () -> onClose(); selfCleanup()))
+    do! DoModal(cm, wh, tileX, tileY, popupCanvas)
+    return result
+    }
 
 ////////////////////////////////
 
@@ -367,9 +387,7 @@ let itemBoxMouseButtonExplainerDecoration =
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
 
-let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, callerExtraDecorations,
-                        commitFunction,  // the user clicked a selection, we're dismissing the modal, this is how we notify you of the final choice
-                        onClose) =
+let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, callerExtraDecorations) = async {
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
@@ -386,20 +404,16 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             yield fe, isSelectable, ident
         |]
     let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
-    let onClick(dismissPopup,ea,ident) =
+    let onClick(ea,ident) =
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
-        dismissPopup()
-        commitFunction(ident, MouseButtonEventArgsToPlayerHas ea)
+        DismissPopupWithResult(ident, MouseButtonEventArgsToPlayerHas ea)
     let redrawTile(ident) =
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         redraw(ident)
-    let selfCleanup() =
-        // the user clicked outside the modal dialog, it is dismissing itself, do any final cleanup we need to do
-        ()
-    let allCleanup() = selfCleanup(); onClose()
     let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
     let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
     let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
-    DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-        redrawTile, onClick, allCleanup, extraDecorations, itemBoxModalGridSelectBrushes, true)
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
+                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true)
+    }

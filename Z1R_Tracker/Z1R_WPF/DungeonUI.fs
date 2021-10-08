@@ -339,10 +339,11 @@ For the commonest case of a non-descript room needing no special marker, a quick
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), cm.AppMainCanvas)
-                                Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1, 
-                                    (fun () -> 
-                                        Graphics.WarpMouseCursorTo(pos)
-                                        popupIsActive <- false)) |> ignore
+                                async {
+                                    do! Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1)
+                                    Graphics.WarpMouseCursorTo(pos)
+                                    popupIsActive <- false
+                                    } |> Async.StartImmediate
                             )
                 else
                     let TEXT = sprintf "LEVEL-%d " level
@@ -397,29 +398,34 @@ For the commonest case of a non-descript room needing no special marker, a quick
                         let gridxPosition = 13.*3. + ST
                         let gridYPosition = 0.-5.*9.*3.-ST
                         let h = 9.*3.*2.+ST*4.
-                        CustomComboBoxes.DoModalGridSelect(cm, roomPos.X, roomPos.Y, tileCanvas,
-                            gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
-                            (fun (currentState) -> 
-                                tileCanvas.Children.Clear()
-                                let tile = roomBMPpairs(currentState) |> (fun (u,_c) -> u) |> Graphics.BMPtoImage
-                                tile.Opacity <- tileSunglasses
-                                canvasAdd(tileCanvas, tile, 0., 0.)),
-                            (fun (dismissPopup, ea, currentState) ->
-                                if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
-                                    usedTransportsRemoveState(roomStates.[i,j])
-                                    roomStates.[i,j] <- currentState
-                                    usedTransportsAddState(roomStates.[i,j])
-                                    roomCompleted.[i,j] <- ea.ChangedButton = Input.MouseButton.Left
-                                    redraw()
-                                    dismissPopup()
-                                    popupState <- Dungeon.DelayedPopupState.NONE
-                                ),
-                            (fun () -> // onClose
-                                let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), cm.AppMainCanvas)
-                                Graphics.WarpMouseCursorTo(pos)
-                                popupState <- Dungeon.DelayedPopupState.NONE),   
-                            [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST],
-                            (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6), true)
+                        async {
+                            let pos = Point(roomPos.X+tileCanvas.Width/2., roomPos.Y+tileCanvas.Height/2.)
+                            let! r = CustomComboBoxes.DoModalGridSelect(cm, roomPos.X, roomPos.Y, tileCanvas,
+                                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (5, 5, 13*3, 9*3), gridxPosition, gridYPosition,
+                                        (fun (currentState) -> 
+                                            tileCanvas.Children.Clear()
+                                            let tile = roomBMPpairs(currentState) |> (fun (u,_c) -> u) |> Graphics.BMPtoImage
+                                            tile.Opacity <- tileSunglasses
+                                            canvasAdd(tileCanvas, tile, 0., 0.)),
+                                        (fun (ea, currentState) ->
+                                            if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
+                                                CustomComboBoxes.DismissPopupWithResult(currentState, ea.ChangedButton = Input.MouseButton.Left)
+                                            else
+                                                CustomComboBoxes.StayPoppedUp
+                                            ),
+                                        [dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST],
+                                        (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6), true)
+                            match r with
+                            | Some(currentState, isLeft) ->
+                                usedTransportsRemoveState(roomStates.[i,j])
+                                roomStates.[i,j] <- currentState
+                                usedTransportsAddState(roomStates.[i,j])
+                                roomCompleted.[i,j] <- isLeft
+                                redraw()
+                            | None -> ()
+                            Graphics.WarpMouseCursorTo(pos)
+                            popupState <- Dungeon.DelayedPopupState.NONE
+                            } |> Async.StartImmediate
                     let now(ad) =
                         if not(popupState=Dungeon.DelayedPopupState.ACTIVE_NOW) then
                             popupState <- Dungeon.DelayedPopupState.SOON
@@ -673,17 +679,7 @@ For the commonest case of a non-descript room needing no special marker, a quick
                 let gx, gy = tileCanvas.Width + ST, 0.
                 let redrawTile(state) = 
                     doRedraw(tileCanvas, state)
-                let onClick(dismiss, _ea, state) =
-                    // model
-                    currentDisplayState.[SI] <- state
-                    // view
-                    doRedraw(outlineDrawingCanvases.[SI], state)
-                    // popup
-                    dismiss()
-                    popupIsActive <- false
-                let onClose() =
-                    doRedraw(outlineDrawingCanvases.[SI], currentDisplayState.[SI])
-                    popupIsActive <- false
+                let onClick(_ea, state) = CustomComboBoxes.DismissPopupWithResult(state)
                 let extraDecorations = [|
                     (upcast new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=
                         new TextBox(FontSize=15., Foreground=Brushes.Orange, Background=Brushes.Black, IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(3.),
@@ -693,9 +689,16 @@ For the commonest case of a non-descript room needing no special marker, a quick
                     |]
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
                 let gridClickDismissalDoesMouseWarpBackToTileCenter = false
-                outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored in onClose()
-                CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                    gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored later
+                async {
+                    let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                    match r with
+                    | Some(state) -> currentDisplayState.[SI] <- state
+                    | None -> ()
+                    doRedraw(outlineDrawingCanvases.[SI], currentDisplayState.[SI])
+                    popupIsActive <- false
+                    } |> Async.StartImmediate
             )
     else
         let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))

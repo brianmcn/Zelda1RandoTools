@@ -59,37 +59,36 @@ let armosX, armosY, sword2x,sword2y = // armos/sword2 box position in main canva
     OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+30., OW_ITEM_GRID_OFFSET_X+30., OW_ITEM_GRID_OFFSET_Y+60.
 
 let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, trackerModelBoxToUpdate:TrackerModel.Box,
-                            topX,topY,pos:Point,onCommitOrDismiss) =  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
+                            topX,topY,pos:Point) = async {  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
     let extraDecorations = computeExtraDecorationArrow(topX, topY, pos)
-    CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, extraDecorations,
-            (fun (newBoxCellValue, newPlayerHas) ->
-                trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
-                TrackerModel.forceUpdate()
-                onCommitOrDismiss()
-                ), (fun () -> onCommitOrDismiss()))
+    let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, extraDecorations)
+    match r with
+    | Some(newBoxCellValue, newPlayerHas) ->
+        trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
+        TrackerModel.forceUpdate()
+    | None -> ()
+    }
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,i,j) -> async {
+    let pos = c.TranslatePoint(Point(OMTW/2.,float(11*3)/2.), cm.AppMainCanvas).Value
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 572.)
+    Graphics.WarpMouseCursorTo(pos)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,i,j) -> async {
+    let pos = c.TranslatePoint(Point(OMTW/2.,float(11*3)/2.), cm.AppMainCanvas).Value
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(cm, 572.)
+    Graphics.WarpMouseCursorTo(pos)
     TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas).Value  // place to draw the local box
-    let wh = new System.Threading.ManualResetEvent(false)
-    DoRemoteItemComboBox(cm, 0, TrackerModel.armosBox, armosX, armosY, pos, (fun() -> wh.Set() |> ignore))
-    let! _ = Async.AwaitWaitHandle(wh)
-    ()
+    do! DoRemoteItemComboBox(cm, 0, TrackerModel.armosBox, armosX, armosY, pos)
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas).Value  // place to draw the local box
-    let wh = new System.Threading.ManualResetEvent(false)
-    DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, sword2x, sword2y, pos, (fun() -> wh.Set() |> ignore))
-    let! _ = Async.AwaitWaitHandle(wh)
-    ()
+    do! DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, sword2x, sword2y, pos)
     }))
 
 let sword2LeftSideFullTileBmp =
@@ -103,29 +102,35 @@ let sword2LeftSideFullTileBmp =
                 fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
     fullTileBmp
 
-let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
-    if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
-        let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
-        let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
-        // cons up a two-item shop image
-        let tile = new System.Drawing.Bitmap(16*3,11*3)
-        for px = 0 to 16*3-1 do
-            for py = 0 to 11*3-1 do
-                // two-icon area
-                if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
-                    tile.SetPixel(px, py, Graphics.itemBackgroundColor)
-                else
-                    tile.SetPixel(px, py, Graphics.TRANS_BG)
+let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
+    // cons up a two-item shop image
+    let tile = new System.Drawing.Bitmap(16*3,11*3)
+    for px = 0 to 16*3-1 do
+        for py = 0 to 11*3-1 do
+            // two-icon area
+            if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
+                tile.SetPixel(px, py, Graphics.itemBackgroundColor)
+            else
+                tile.SetPixel(px, py, Graphics.TRANS_BG)
+            if item1 >=0 then
                 // icon 1
                 if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
                     let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
                     if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                         tile.SetPixel(px, py, c)
+            if item2 >= 0 then
                 // icon 2
                 if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
                     let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
                     if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                         tile.SetPixel(px, py, c)
+    tile
+
+let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
+    if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
+        let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
+        let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
+        let tile = makeTwoItemShopBmp(item1, item2)
         tile, []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
         if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then

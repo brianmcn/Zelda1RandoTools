@@ -18,6 +18,15 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+in progress...
+second shop item, click click click whoops missed it, 7 more clicks... better interface?
+ - the obvious interface is right-click popups up a second-item-chooser with 8 entries (possibly one of which is not allowed? maybe just allow dups)
+ - shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
+
+wpf move hint decoder popup down a little so can see triforce hint halos added
+
+package Notes.txt with distribution
+
 timeline & mistakes
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
@@ -26,10 +35,6 @@ timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only 
    rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
-
-second shop item, click click click whoops missed it, 7 more clicks... better interface?
- - the obvious interface is right-click popups up a second-item-chooser with 8 entries (possibly one of which is not allowed? maybe just allow dups)
- - shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
 Kigalas found 'take any' popup confusing first time he saw it, but figured it out
  - wants 'tracker take candle' speech recognition there

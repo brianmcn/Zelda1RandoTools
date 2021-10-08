@@ -209,10 +209,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
                     popupIsActive <- true
                     let pos = colorButton.TranslatePoint(Point(15., 15.), appMainCanvas)
-                    Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos,
-                        (fun() -> 
-                            popupIsActive <- false
-                            )) |> ignore
+                    async {
+                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos)
+                        popupIsActive <- false
+                        } |> Async.StartImmediate
                 )
             gridAdd(mainTracker, colorButton, i, 0)
             TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
@@ -480,13 +480,15 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         if not popupIsActive then
             popupIsActive <- true
             let secondButton = Graphics.makeButton("Click here to confirm you want to Reset the timer,\nor click anywhere else to cancel", Some(16.), Some(Brushes.Orange))
-            let mutable dismiss = fun()->()
+            let wh = new System.Threading.ManualResetEvent(false)
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
-                dismiss()
-                popupIsActive <- false
+                wh.Set() |> ignore
                 )
-            dismiss <- CustomComboBoxes.DoModal(cm, 100., 200., secondButton, (fun () -> popupIsActive <- false))
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 100., 200., secondButton)
+                popupIsActive <- false
+                } |> Async.StartImmediate
         )
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
@@ -874,33 +876,33 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
                         )
                     let pos = c.TranslatePoint(Point(), appMainCanvas)
-                    CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
-                        gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
-                        (fun (currentState) -> 
-                            tileCanvas.Children.Clear()
-                            canvasAdd(tileCanvas, tileImage, 0., 0.)
-                            let bmp = MapStateProxy(currentState).CurrentBMP()
-                            if bmp <> null then
-                                let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
-                                if MapStateProxy(currentState).IsX then
-                                    icon.Opacity <- X_OPACITY
-                                canvasAdd(tileCanvas, icon, 0., 0.)),
-                        (fun (dismissPopup, _ea, currentState) ->
+                    async {
+                        let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
+                                    gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                                    (fun (currentState) -> 
+                                        tileCanvas.Children.Clear()
+                                        canvasAdd(tileCanvas, tileImage, 0., 0.)
+                                        let bmp = MapStateProxy(currentState).CurrentBMP()
+                                        if bmp <> null then
+                                            let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
+                                            if MapStateProxy(currentState).IsX then
+                                                icon.Opacity <- X_OPACITY
+                                            canvasAdd(tileCanvas, icon, 0., 0.)),
+                                    (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                        match r with
+                        | Some(currentState) ->
                             TrackerModel.overworldMapMarks.[i,j].Set(currentState)
                             if currentState >=0 && currentState <=8 then
                                 selectDungeonTabEvent.Trigger(currentState)
-                            async {
-                                match overworldAcceleratorTable.TryGetValue(currentState) with
-                                | (true,f) -> do! f(cm,c,i,j)
-                                | _ -> ()
-                                redrawGridSpot()
-                                dismissPopup()
-                                popupIsActive <- false
-                                if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
-                                } |> Async.StartImmediate
-                            ),
-                        (fun () -> popupIsActive <- false),
-                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                            match overworldAcceleratorTable.TryGetValue(currentState) with
+                            | (true,f) -> do! f(cm,c,i,j)
+                            | _ -> ()
+                            redrawGridSpot()
+                            if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                        | None -> ()
+                        popupIsActive <- false
+                        } |> Async.StartImmediate
                 c.MouseLeftButtonDown.Add(fun _ -> 
                     if not popupIsActive then
                         activatePopup(0)
@@ -908,8 +910,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 c.MouseRightButtonDown.Add(fun _ -> 
                     if not popupIsActive then
                         // right click is the 'special interaction'
+                        let pos = c.TranslatePoint(Point(), appMainCanvas)
                         let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        let needRedraw, needUIUpdate = DoRightClick(msp,i,j)
+                        let needRedraw, needUIUpdate = DoRightClick(msp,i,j,pos,&popupIsActive)
                         if needRedraw then redrawGridSpot()
                         if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                     )
@@ -994,7 +997,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 element.Children.Remove(hoverIcon)
                 canvasAdd(element, hoverIcon, float i*OMTW + 8.5*OMTW/48., float(j*11*3))
                 )
-            let mutable dismiss = fun()->()
+            let wh = new System.Threading.ManualResetEvent(false)
             element.MouseDown.Add(fun ea ->
                 let mousePos = ea.GetPosition(element)
                 let i = int(mousePos.X / OMTW)
@@ -1003,10 +1006,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     TrackerModel.startIconX <- i
                     TrackerModel.startIconY <- j
                     doUIUpdate()
-                    dismiss()
-                    popupIsActive <- false
+                    wh.Set() |> ignore
                 )
-            dismiss <- CustomComboBoxes.DoModal(cm, 0., 150., element, (fun () -> popupIsActive <- false))
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 0., 150., element)
+                popupIsActive <- false
+                } |> Async.StartImmediate
         )
 
     // item progress
@@ -1034,11 +1039,15 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     // Version
     let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
+    let mutable popupIsActive = false
     vb.Click.Add(fun _ ->
-        CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"], (fun r ->
-            if r = "Go to website" then
-                System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
-            ))
+        if not popupIsActive then
+            async {
+                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+                popupIsActive <- false
+                if r = "Go to website" then
+                    System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+            } |> Async.StartImmediate
         )
 
     let HINTGRID_W, HINTGRID_H = 180., 36.
@@ -1086,25 +1095,27 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             let originalStateIndex = TrackerModel.GetLevelHint(thisRow).ToIndex()
             let (gnc, gnr, gcw, grh) = 1, 11, int HINTGRID_W-6, int HINTGRID_H-6
             let gx,gy = HINTGRID_W-3., -HINTGRID_H*float(thisRow)-9.
-            let onClick(dismiss, _ea, i) =
-                // update model
-                TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
-                TrackerModel.forceUpdate()
-                // update view
-                if i = 0 then
-                    b.Background <- Brushes.Black
-                else
-                    b.Background <- Views.hintHighlightBrush
-                button.Content <- mkTxt(TrackerModel.HintZone.FromIndex(i).ToString())
-                // cleanup
-                dismiss()
-                popupIsActive <- false
-            let onClose() = popupIsActive <- false
+            let onClick(_ea, i) = CustomComboBoxes.DismissPopupWithResult(i)
             let extraDecorations = []
             let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
             let gridClickDismissalDoesMouseWarpBackToTileCenter = false
-            CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                gx, gy, redrawTile, onClick, onClose, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+            async {
+                let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                match r with
+                | Some(i) ->
+                    // update model
+                    TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
+                    TrackerModel.forceUpdate()
+                    // update view
+                    if i = 0 then
+                        b.Background <- Brushes.Black
+                    else
+                        b.Background <- Views.hintHighlightBrush
+                    button.Content <- mkTxt(TrackerModel.HintZone.FromIndex(i).ToString())
+                | None -> ()
+                popupIsActive <- false
+                } |> Async.StartImmediate
         button.Click.Add(fun _ -> if not popupIsActive then activatePopup(0))
         button.MouseWheel.Add(fun x -> if not popupIsActive then activatePopup(if x.Delta>0 then -1 else 1))
         row <- row + 1
@@ -1123,7 +1134,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModal(cm, 0., 0., hintBorder, (fun () -> popupIsActive <- false)) |> ignore)
+            let wh = new System.Threading.ManualResetEvent(false)
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 0., 0., hintBorder)
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
 
     // WANT!
     let kitty = new Image()
@@ -1501,15 +1517,19 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             popupIsActive <- true
             let pc, predraw = make()
             let pos = c.TranslatePoint(Point(), appMainCanvas)
-            CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                    (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
-                    Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
-                    (fun (dismissPopup,_ea,db) -> 
-                        current <- db
-                        redraw(db)
-                        TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
-                        dismissPopup()
-                        popupIsActive <- false), (fun()-> popupIsActive <- false), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+            async {
+                let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
+                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
+                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                match r with
+                | Some(db) ->
+                    current <- db
+                    redraw(db)
+                    TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
+                | None -> () 
+                popupIsActive <- false
+                } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
         c
@@ -1894,7 +1914,13 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
-            CustomComboBoxes.DoModalDocked(cm, Dock.Bottom, optionsCanvas, (fun() -> TrackerModel.Options.writeSettings(); popupIsActive <- false)) |> ignore)
+            let wh = new System.Threading.ManualResetEvent(false)
+            async {
+                do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, optionsCanvas)
+                TrackerModel.Options.writeSettings()
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
 
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 

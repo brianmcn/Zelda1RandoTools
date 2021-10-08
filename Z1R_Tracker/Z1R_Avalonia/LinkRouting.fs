@@ -51,15 +51,12 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                 setLinkIcon(1)
     do   // scope for local variable names to not leak out
         let mutable popupIsActive = false
-        let activatePopup() =
+        let activatePopup() = async {
             popupIsActive <- true
             setLinkIcon(3)
             let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
-            let dismissHandle = CustomComboBoxes.DoModalCore(cm, 
-                                                                (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
-                                                                (fun (c,e) -> c.Children.Remove(e) |> ignore), 
-                                                                wholeAppCanvas, 0.01, (fun () -> popupIsActive <- false))
-            let dismiss() = dismissHandle(); setLinkIcon(1); popupIsActive <- false
+            let wh = new System.Threading.ManualResetEvent(false)
+            let dismiss() = setLinkIcon(1); wh.Set() |> ignore  // TODO rename to dismissWithTarget or something
     
             let fakeSunglassesOverTopThird = new Canvas(Width=16.*OMTW, Height=150., Background=Brushes.Black, Opacity=0.50)
             canvasAdd(wholeAppCanvas, fakeSunglassesOverTopThird, 0., 0.)
@@ -92,9 +89,9 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                 c.PointerPressed.Add(fun ea -> 
                     ea.Handled <- true  // so it doesn't bubble up to wholeAppCanvas, which would treat it as an outside-region click and eliminate-target-and-dismiss
                     changeCurrentRouteTarget(routeDest)
-                    dismiss()
                     currentTargetIcon.Children.Clear()
                     drawLinkTarget(currentTargetIcon)
+                    dismiss()
                     )
             let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(draw, draw, x, y, routeDest)
             let makeShopIconTarget(draw, x, y, shopDest) =
@@ -189,11 +186,17 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                 else
                     // they clicked elsewhere
                     eliminateCurrentRouteTarget()
-                    dismiss()
                     setLinkIcon(0)
+                    wh.Set() |> ignore
                 )
+            do! CustomComboBoxes.DoModalCore(cm, wh,
+                                                (fun (c,e) -> canvasAdd(c,e,0.,0.)), 
+                                                (fun (c,e) -> c.Children.Remove(e) |> ignore), 
+                                                wholeAppCanvas, 0.01)
+            popupIsActive <- false
+            }
         linkIcon.PointerPressed.Add(fun _ ->
             if not popupIsActive then
-                activatePopup()
+                activatePopup() |> Async.StartImmediate
             )
     stepAnimateLink

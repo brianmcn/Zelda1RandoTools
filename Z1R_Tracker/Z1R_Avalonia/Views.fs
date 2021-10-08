@@ -58,10 +58,10 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
             // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
             popupIsActive <- true
             let pos = innerc.TranslatePoint(Point(15., 15.), cm.AppMainCanvas).Value
-            Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos,
-                (fun() -> 
-                    popupIsActive <- false
-                    )) |> ignore
+            async {
+                do! Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos)
+                popupIsActive <- false
+                } |> Async.StartImmediate
         )
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
@@ -130,10 +130,13 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         popupIsActive <- true
         let pos = c.TranslatePoint(Point(),cm.AppMainCanvas).Value
         let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
-        CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, extraDecorations, (fun (newBoxCellValue, newPlayerHas) ->
-            box.Set(newBoxCellValue, newPlayerHas)
+        async {
+            let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, extraDecorations)
+            match r with
+            | Some(newBoxCellValue, newPlayerHas) -> box.Set(newBoxCellValue, newPlayerHas)
+            | None -> ()
             popupIsActive <- false
-            ), (fun () -> popupIsActive <- false))
+            } |> Async.StartImmediate
     c.PointerPressed.Add(fun ea -> 
         if not popupIsActive then
             let pp = ea.GetCurrentPoint(c)

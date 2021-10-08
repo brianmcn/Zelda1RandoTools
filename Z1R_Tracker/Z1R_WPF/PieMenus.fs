@@ -7,7 +7,8 @@ open System.Windows
 let canvasAdd = Graphics.canvasAdd
 let OMTW = Graphics.OMTW
 
-let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[],onClose) =
+let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
+    let wh = new System.Threading.ManualResetEvent(false)
     let c = new Canvas(IsHitTestVisible=true)
     let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-20., Height=h, Background=Brushes.Black, Opacity=0.01)
     c.Children.Add(someDrawnPixelToSeeMouseMoves) |> ignore
@@ -30,7 +31,6 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[],onClose) =
     let onCloseOrDismiss() =
         ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
         for f in selfCleanupFuncs do f()
-        onClose()
     let innerH = h - 2.*(let b,_,_ = bordersDocksBehaviors.[0] in b.Height)
     let g = new Grid(Width=16.*OMTW-20., Height=h)
     let circle = new Shapes.Ellipse(Width=innerH, Height=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
@@ -94,7 +94,6 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[],onClose) =
         else
             currentSelection <- -1
         )
-    let mutable dismiss = fun()->()
     let click(ea:Input.MouseEventArgs) =
         ea.Handled <- true
         if currentSelection=int Dock.Left then
@@ -116,22 +115,23 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[],onClose) =
         else // cancel
             ()
     c.MouseDown.Add(fun ea ->
+        ea.Handled <- true
         click(ea)
-        dismiss()
-        onCloseOrDismiss()
+        wh.Set() |> ignore
         )
     let mutable isFirstTimeMouseUp = true
     c.MouseUp.Add(fun ea ->
         if isFirstTimeMouseUp && currentSelection = -1 then
             isFirstTimeMouseUp <- false
         else
+            ea.Handled <- true
             click(ea)
-            dismiss()
-            onCloseOrDismiss()
+            wh.Set() |> ignore
         )
     Graphics.WarpMouseCursorTo(center)
-    dismiss <- CustomComboBoxes.DoModal(cm, 0., 0., c, onCloseOrDismiss)
-
+    do! CustomComboBoxes.DoModal(cm, wh, 0., 0., c)
+    onCloseOrDismiss()
+    }
 
 let takeAnyW = 330.
 let takeAnyH = 220.
@@ -240,13 +240,8 @@ let TakeAnyPieMenuAsync(cm,h) =
         takeAnyHeartPanel,  Dock.Right,  heartBehavior
         takeAnyLeavePanel,  Dock.Bottom, fun()->()
         |]
-    let wh = new System.Threading.ManualResetEvent(false)
     async {
-        let cxt = System.Threading.SynchronizationContext.Current
-        FourWayPieMenu(cm, h, bordersDocksBehaviors, (fun() -> wh.Set() |> ignore))
-        let! _ = Async.AwaitWaitHandle(wh)
-        wh.Close()
-        do! Async.SwitchToContext(cxt)
+        do! FourWayPieMenu(cm, h, bordersDocksBehaviors)
         return r
     }
 
@@ -298,12 +293,7 @@ let TakeThisPieMenuAsync(cm,h) =
         takeThisCandlePanel,    Dock.Left,   candleBehavior
         takeThisLeavePanel,     Dock.Bottom, fun()->()
         |]
-    let wh = new System.Threading.ManualResetEvent(false)
     async {
-        let cxt = System.Threading.SynchronizationContext.Current
-        FourWayPieMenu(cm, h, bordersDocksBehaviors, (fun() -> wh.Set() |> ignore))
-        let! _ = Async.AwaitWaitHandle(wh)
-        wh.Close()
-        do! Async.SwitchToContext(cxt)
+        do! FourWayPieMenu(cm, h, bordersDocksBehaviors)
         return r
     }
