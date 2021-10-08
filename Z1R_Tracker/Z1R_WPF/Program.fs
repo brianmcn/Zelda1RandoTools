@@ -255,8 +255,8 @@ type MyWindow() as this =
                     updateTimeline <- u
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTime(DateTime.Now))
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
-                    //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful
-                    //canvas.RenderTransform <- trans
+                    //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful, but mouse warping does not account for change
+                    //cm.RootCanvas.RenderTransform <- trans
                 })
             )
 

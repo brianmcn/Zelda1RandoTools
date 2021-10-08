@@ -273,7 +273,6 @@ let DoModalGridSelect<'State,'Result>
         for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
     let dismiss() =
-        selfCleanup()
         wh.Set() |> ignore
     let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
     let stateID() = let _,_,x = gridElementsSelectablesAndIDs.[currentState] in x
@@ -351,6 +350,7 @@ let DoModalGridSelect<'State,'Result>
     | _ -> failwith "bad activationDelta"
     // activate the modal
     do! DoModal(cm, wh, tileX, tileY, popupCanvas)
+    selfCleanup()
     return result
     }
 
