@@ -10,7 +10,8 @@ let OMTW = Graphics.OMTW
 let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
     let wh = new System.Threading.ManualResetEvent(false)
     let c = new Canvas(IsHitTestVisible=true)
-    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-20., Height=h, Background=Brushes.Black, Opacity=0.01)
+    let MARGIN = 10.
+    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-2.*MARGIN, Height=h, Background=Brushes.Black, Opacity=0.01)
     c.Children.Add(someDrawnPixelToSeeMouseMoves) |> ignore
     let ps = ResizeArray()
     let mutable leftPanel,topPanel,rightPanel,bottomPanel = None,None,None,None
@@ -22,41 +23,40 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         | Dock.Top    -> match topPanel    with | Some _ -> failwith "multiple tops"    | None -> topPanel    <- Some(p, behavior)
         | Dock.Bottom -> match bottomPanel with | Some _ -> failwith "multiple bottoms" | None -> bottomPanel <- Some(p, behavior)
         | _ -> failwith "bad Dock value"
-        let dp = new DockPanel(Width=16.*OMTW-20., Height=h, LastChildFill=false)
+        let dp = new DockPanel(Width=16.*OMTW-2.*MARGIN, Height=h, LastChildFill=false)
         DockPanel.SetDock(p, dock)
         dp.Children.Add(p) |> ignore
         selfCleanupFuncs.Add(fun () -> dp.Children.Clear())  // deparent the panels so we can reuse them
-        canvasAdd(c, dp, 10., 10.)
+        canvasAdd(c, dp, MARGIN, MARGIN)
         ps.Add(p)
     let onCloseOrDismiss() =
         ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
         for f in selfCleanupFuncs do f()
+    let targetBrush = Brushes.Gray
     let innerH = h - 2.*(let b,_,_ = bordersDocksBehaviors.[0] in b.Height)
-    let g = new Grid(Width=16.*OMTW-20., Height=h)
-    let circle = new Shapes.Ellipse(Width=innerH, Height=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let g = new Grid(Width=16.*OMTW-2.*MARGIN, Height=h)
+    let circle = new Shapes.Ellipse(Width=innerH/1.5, Height=innerH/1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     g.Children.Add(circle) |> ignore
-    //let slash = new Shapes.Line(X1=0., Y1=innerH, X2=innerH, Y2=0., Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    //g.Children.Add(slash) |> ignore
-    let r = innerH/2.
-    let root2 = 1.414
-    let delta = r - r/root2
-    let lineCanvas = new Canvas(Width=innerH, Height=innerH)
-    let slash1 = new Shapes.Line(X1=0., Y1=innerH, X2=delta, Y2=innerH-delta, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(slash1) |> ignore
-    let slash2 = new Shapes.Line(X1=innerH-delta, Y1=delta, X2=innerH, Y2=0., Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(slash2) |> ignore
-    let backslash1 = new Shapes.Line(X1=0., Y1=0., X2=delta, Y2=delta, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(backslash1) |> ignore
-    let backslash2 = new Shapes.Line(X1=innerH-delta, Y1=innerH-delta, X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    lineCanvas.Children.Add(backslash2) |> ignore
-    g.Children.Add(lineCanvas) |> ignore
-    //let backslash = new Shapes.Line(X1=0., Y1=0., X2=innerH, Y2=innerH, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    //g.Children.Add(backslash) |> ignore
-    let outerCircle = new Shapes.Ellipse(Width=innerH*1.414, Height=innerH*1.414, Stroke=Brushes.LightGray, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    let outerCircle = new Shapes.Ellipse(Width=innerH*1.5, Height=innerH*1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     outerCircle.StrokeDashArray <- new DoubleCollection([|1.;2.|])
     g.Children.Add(outerCircle) |> ignore
-    canvasAdd(c, g, 10., 10.)
-    let center = Point(8.*OMTW,h*0.5)
+    let innerR = circle.Width/2.
+    let outerR = outerCircle.Width/2.
+    let root2 = 1.414
+    let delta = outerR/root2 - innerR/root2
+    let w = 2.*outerR/root2
+    let lineCanvas = new Canvas(Width=w, Height=w)   // inscribed in the outer circle
+    let slash1 = new Shapes.Line(X1=0., Y1=w, X2=delta, Y2=w-delta, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(slash1) |> ignore
+    let slash2 = new Shapes.Line(X1=w-delta, Y1=delta, X2=w, Y2=0., Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(slash2) |> ignore
+    let backslash1 = new Shapes.Line(X1=0., Y1=0., X2=delta, Y2=delta, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(backslash1) |> ignore
+    let backslash2 = new Shapes.Line(X1=w-delta, Y1=w-delta, X2=w, Y2=w, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+    lineCanvas.Children.Add(backslash2) |> ignore
+    g.Children.Add(lineCanvas) |> ignore
+    canvasAdd(c, g, MARGIN, MARGIN)
+    let center = Point(8.*OMTW,h*0.5+MARGIN)
     let mutable currentSelection = -1
     c.MouseMove.Add(fun ea ->
         let pos = ea.GetPosition(c)
@@ -64,7 +64,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         let distance = vector.Length
         ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
         currentSelection <- -1
-        if distance > innerH/2. then
+        if distance > innerR then
             if vector.X > 0. && vector.X > abs(vector.Y) then
                 match rightPanel with
                 | Some(p,_) ->
@@ -129,6 +129,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
             wh.Set() |> ignore
         )
     Graphics.WarpMouseCursorTo(center)
+    do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly
     do! CustomComboBoxes.DoModal(cm, wh, 0., 0., c)
     onCloseOrDismiss()
     }

@@ -54,7 +54,11 @@
     <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
+    <Content Include="..\Z1R_Tracker\Notes.txt" Link="Notes.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

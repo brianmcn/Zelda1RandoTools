@@ -99,6 +99,10 @@
     <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
+    <Content Include="..\Z1R_Tracker\Notes.txt">
+      <Link>Notes.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="reminder_clink.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

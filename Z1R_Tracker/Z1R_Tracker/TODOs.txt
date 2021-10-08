@@ -20,10 +20,6 @@ CURRENT PRIORITIES
 
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
-wpf move hint decoder popup down a little so can see triforce hint halos added
-
-package Notes.txt with distribution
-
 timeline & mistakes
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?

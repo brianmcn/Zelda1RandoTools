@@ -1134,7 +1134,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             popupIsActive <- true
             let wh = new System.Threading.ManualResetEvent(false)
             async {
-                do! CustomComboBoxes.DoModal(cm, wh, 0., 0., hintBorder)
+                do! CustomComboBoxes.DoModal(cm, wh, 0., 65., hintBorder)
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
