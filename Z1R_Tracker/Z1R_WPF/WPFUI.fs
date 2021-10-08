@@ -98,12 +98,8 @@ let RIGHT_COL = 440.
 let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 let TCH = 123  // timeline height
 let TH = DungeonUI.TH // text height
-let resizeMapTileImage(image:Image) =
-    image.Width <- OMTW
-    image.Height <- float(11*3)
-    image.Stretch <- Stretch.Fill
-    image.StretchDirection <- StretchDirection.Both
-    image
+let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
+
 [<RequireQualifiedAccess>]
 type ShowLocatorDescriptor =
     | DungeonNumber of int   // 0-7 means dungeon 1-8
@@ -845,21 +841,22 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let mutable popupIsActive = false
+                let popupIsActive = ref false
                 let activatePopup(activationDelta) =
-                    popupIsActive <- true
+                    popupIsActive := true
                     // left click activates the popup selector
                     let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
                     let state(n) = if shopsOnTop then (n+16) % 32 else n
+                    let pos = c.TranslatePoint(Point(), appMainCanvas)
                     let ST = CustomComboBoxes.borderThickness
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let originalStateIndex = state <| if originalState = -1 then MapStateProxy.NumStates else originalState
                     let gridxPosition = 
-                        if (displayIsCurrentlyMirrored && i>13) || (not displayIsCurrentlyMirrored && i<2) then 
+                        if pos.X < OMTW*2. then 
                             -ST // left align
-                        elif (displayIsCurrentlyMirrored && i<2) || (not displayIsCurrentlyMirrored && i>13) then 
+                        elif pos.X > OMTW*13. then 
                             OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
                         else
                             (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
@@ -875,7 +872,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
                             upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
                         )
-                    let pos = c.TranslatePoint(Point(), appMainCanvas)
                     async {
                         let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                                     gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
@@ -901,22 +897,24 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             redrawGridSpot()
                             if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                         | None -> ()
-                        popupIsActive <- false
+                        popupIsActive := false
                         } |> Async.StartImmediate
                 c.MouseLeftButtonDown.Add(fun _ -> 
-                    if not popupIsActive then
+                    if not !popupIsActive then
                         activatePopup(0)
                     )
                 c.MouseRightButtonDown.Add(fun _ -> 
-                    if not popupIsActive then
+                    if not !popupIsActive then
                         // right click is the 'special interaction'
                         let pos = c.TranslatePoint(Point(), appMainCanvas)
                         let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        let needRedraw, needUIUpdate = DoRightClick(msp,i,j,pos,&popupIsActive)
-                        if needRedraw then redrawGridSpot()
-                        if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                        async {
+                            let! needRedraw, needUIUpdate = DoRightClick(cm,msp,i,j,pos,popupIsActive)
+                            if needRedraw then redrawGridSpot()
+                            if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                        } |> Async.StartImmediate
                     )
-                c.MouseWheel.Add(fun x -> if not popupIsActive then activatePopup(if x.Delta<0 then 1 else -1))
+                c.MouseWheel.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta<0 then 1 else -1))
     speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                                     let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]

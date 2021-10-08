@@ -96,12 +96,8 @@ let H = 30
 let RIGHT_COL = 440.
 let TCH = 123  // timeline height
 let TH = DungeonUI.TH // text height
-let resizeMapTileImage(image:Image) =
-    image.Width <- OMTW
-    image.Height <- float(11*3)
-    image.Stretch <- Stretch.Fill
-    image.StretchDirection <- StretchDirection.Both
-    image
+let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
+
 let trimNumeralBmpToImage(iconBMP:System.Drawing.Bitmap) =
     let trimmedBMP = new System.Drawing.Bitmap(int OMTW, iconBMP.Height)
     let offset = int((48.-OMTW)/2.)
@@ -828,20 +824,21 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let mutable popupIsActive = false
+                let popupIsActive = ref false
                 let activatePopup(activationDelta) =
-                    popupIsActive <- true
+                    popupIsActive := true
                     let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
                     let state(n) = if shopsOnTop then (n+16) % 32 else n
+                    let pos = c.TranslatePoint(Point(), appMainCanvas).Value
                     let ST = CustomComboBoxes.borderThickness
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let originalStateIndex = state <| if originalState = -1 then MapStateProxy.NumStates else originalState
                     let gridxPosition = 
-                        if (displayIsCurrentlyMirrored && i>13) || (not displayIsCurrentlyMirrored && i<2) then 
+                        if pos.X < OMTW*2. then 
                             -ST // left align
-                        elif (displayIsCurrentlyMirrored && i<2) || (not displayIsCurrentlyMirrored && i>13) then 
+                        elif pos.X > OMTW*13. then 
                             OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
                         else
                             (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
@@ -883,21 +880,24 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                             redrawGridSpot()
                             if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
                         | None -> ()
-                        popupIsActive <- false
+                        popupIsActive := false
                         } |> Async.StartImmediate
                 c.PointerPressed.Add(fun ea -> 
-                    if not popupIsActive then
+                    if not !popupIsActive then
                         if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
                             // left click activates the popup selector
                             activatePopup(0)
                         elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
                             // right click is the 'special interaction'
+                            let pos = c.TranslatePoint(Point(), appMainCanvas).Value
                             let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                            let needRedraw, needUIUpdate = DoRightClick(msp,i,j)
-                            if needRedraw then redrawGridSpot()
-                            if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                            async {
+                                let! needRedraw, needUIUpdate = DoRightClick(cm,msp,i,j,pos,popupIsActive)
+                                if needRedraw then redrawGridSpot()
+                                if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                            } |> Async.StartImmediate
                     )
-                c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activatePopup(if x.Delta.Y<0. then 1 else -1))
+                c.PointerWheelChanged.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta.Y<0. then 1 else -1))
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     owMapGrid.PointerLeave.Add(fun _ -> ensureRespectingOwGettableScreensCheckBox())
 

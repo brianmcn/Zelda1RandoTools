@@ -5,6 +5,7 @@ open Avalonia.Controls
 open Avalonia.Media
 
 let OMTW = Graphics.OMTW
+let canvasAdd = Graphics.canvasAdd
 
 type MapStateProxy(state) =
     static member NumStates = Graphics.theInteriorBmpTable.Length
@@ -38,6 +39,13 @@ type MapStateProxy(state) =
         else
             Graphics.theInteriorBmpTable.[state].[0]
 
+let resizeMapTileImage(image:Image) =
+    image.Width <- OMTW
+    image.Height <- float(11*3)
+    image.Stretch <- Stretch.Fill
+    image.StretchDirection <- StretchDirection.Both
+    image
+            
 let computeExtraDecorationArrow(topX, topY, pos:Point) =
     // in appMainCanvas coordinates:
     // bottom middle of the box, as an arrow target
@@ -103,28 +111,32 @@ let sword2LeftSideFullTileBmp =
     fullTileBmp
 
 let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
-    // cons up a two-item shop image
-    let tile = new System.Drawing.Bitmap(16*3,11*3)
-    for px = 0 to 16*3-1 do
-        for py = 0 to 11*3-1 do
-            // two-icon area
-            if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
-                tile.SetPixel(px, py, Graphics.itemBackgroundColor)
-            else
-                tile.SetPixel(px, py, Graphics.TRANS_BG)
-            if item1 >=0 then
-                // icon 1
-                if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
-                    let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
-                    if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                        tile.SetPixel(px, py, c)
-            if item2 >= 0 then
-                // icon 2
-                if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
-                    let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
-                    if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                        tile.SetPixel(px, py, c)
-    tile
+    if item1 = item2 then
+        let state = item1 + TrackerModel.MapSquareChoiceDomainHelper.ARROW
+        MapStateProxy(state).CurrentBMP()
+    else
+        // cons up a two-item shop image
+        let tile = new System.Drawing.Bitmap(16*3,11*3)
+        for px = 0 to 16*3-1 do
+            for py = 0 to 11*3-1 do
+                // two-icon area
+                if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
+                    tile.SetPixel(px, py, Graphics.itemBackgroundColor)
+                else
+                    tile.SetPixel(px, py, Graphics.TRANS_BG)
+                if item1 >=0 then
+                    // icon 1
+                    if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
+                        let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
+                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                            tile.SetPixel(px, py, c)
+                if item2 >= 0 then
+                    // icon 2
+                    if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
+                        let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
+                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                            tile.SetPixel(px, py, c)
+        tile
 
 let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
     if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
@@ -153,21 +165,49 @@ let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
     else
         ms.CurrentBMP(), []
 
-let DoRightClick(msp:MapStateProxy,i,j) =  // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
+let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async {  // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
     if msp.State = -1 then
         // right click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 
-        true, true
+        return true, true
     elif msp.IsThreeItemShop then
-        // right click a shop cycles down the second item
-        let MODULO = TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS+1
-        // next item
-        let e = (TrackerModel.getOverworldMapExtraData(i,j) - 1 + MODULO) % MODULO
-        // skip past duplicates
-        let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW + 1  // 1-based
-        let e = if e = item1 then (e - 1 + MODULO) % MODULO else e
-        TrackerModel.setOverworldMapExtraData(i,j,e)
-        true, false
+        popupIsActive := true
+        let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
+        let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
+        let ST = CustomComboBoxes.borderThickness
+        let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
+        let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
+        canvasAdd(tileCanvas, tileImage, 0., 0.)
+        let originalState = if item2 = -1 then item1 else item2
+        let originalStateIndex = originalState
+        let gridxPosition = 
+            if pos.X < OMTW*2. then 
+                -ST // left align
+            elif pos.X > OMTW*13. then 
+                OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
+            else
+                (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
+        let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init 8 (fun n ->
+            let i = n + TrackerModel.MapSquareChoiceDomainHelper.ARROW
+            upcast Graphics.BMPtoImage(MapStateProxy(i).CurrentInteriorBMP()), true, n
+            )
+        let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
+                        gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                        (fun (currentState) -> 
+                            tileCanvas.Children.Clear()
+                            let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))
+                            canvasAdd(tileCanvas, tileImage, 0., 0.)
+                            ),
+                        (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
+                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+        let r =
+            match g with
+            | Some(currentState) ->
+                TrackerModel.setOverworldMapExtraData(i,j,currentState+1)  // extraData is 1-based
+                true, (originalState = -1 && currentState <> -1)
+            | None -> false, false
+        popupIsActive := false
+        return r
     elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
         // right click a take-any to toggle it 'used'
         let ex = TrackerModel.getOverworldMapExtraData(i,j)
@@ -175,7 +215,7 @@ let DoRightClick(msp:MapStateProxy,i,j) =  // returns tuple of two booleans (nee
             TrackerModel.setOverworldMapExtraData(i,j,0)
         else
             TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
-        true, false
+        return true, false
     elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
         // right click the wood sword cave to toggle it 'used'
         let ex = TrackerModel.getOverworldMapExtraData(i,j)
@@ -183,7 +223,8 @@ let DoRightClick(msp:MapStateProxy,i,j) =  // returns tuple of two booleans (nee
             TrackerModel.setOverworldMapExtraData(i,j,0)
         else
             TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SWORD1)
-        true, false
+        return true, false
     else
-        false, false
+        return false, false
+    }
 

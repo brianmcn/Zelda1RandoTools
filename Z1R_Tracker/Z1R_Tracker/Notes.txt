@@ -136,7 +136,7 @@ OVERWORLD MAP
 The list of all these possible map tile icons appears in a popup.  In addition to scrolling, left-clicking an unmarked map tile will activate the popup.
 
 Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
-Right-clicking an item shop will cycle through choices of a second item to display in the shop (max of 2 items can be displayed on a tile).
+Right-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  Left click to change the first item (whole tile popup).
 Right-clicking a take-any heart or the wood-sword cave will toggle if it is bright (un-taken) or dark (taken).
 
 Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
