@@ -110,6 +110,8 @@ type MyWindow() as this =
                 logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
             )
 
+        HotKeys.InitializeWindow(this)
+
         Graphics.theWindow <- this
         WPFUI.timeTextBox <- hmsTimeTextBox
         // full window

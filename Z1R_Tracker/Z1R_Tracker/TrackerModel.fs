@@ -301,6 +301,23 @@ let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged =
     IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged
 
 module ITEMS =
+    let itemNamesAndCounts = [|
+        "BookOrShield"      , 1
+        "Boomerang"         , 1
+        "Bow"               , 1
+        "PowerBracelet"     , 1
+        "Ladder"            , 1
+        "MagicBoomerang"    , 1
+        "AnyKey"            , 1
+        "Raft"              , 1
+        "Recorder"          , 1
+        "RedCandle"         , 1
+        "RedRing"           , 1
+        "SilverArrow"       , 1
+        "Wand"              , 1
+        "WhiteSword"        , 1
+        "HeartContainer"    , 9
+        |]
     let BOOKSHIELD = 0
     let BOOMERANG = 1
     let BOW = 2
@@ -334,61 +351,67 @@ module ITEMS =
         | 13 -> "white sword"
         | 14 -> "heart container"
         | _ -> failwith "bad ITEMS id"
-
-let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle", [|
-    1 // book 
-    1 // boomerang
-    1 // bow
-    1 // power_bracelet
-    1 // ladder
-    1 // magic_boomerang
-    1 // key
-    1 // raft 
-    1 // recorder
-    1 // red_candle
-    1 // red_ring
-    1 // silver_arrow
-    1 // wand
-    1 // white_sword
-    9 // heart_container
-    |])
+    let AsHotKeyName(n) =
+        if n>=0 && n<itemNamesAndCounts.Length then
+            fst(itemNamesAndCounts.[n])
+        else
+            failwith "bad ITEMS id"
+let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle", ITEMS.itemNamesAndCounts |> Array.map snd)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-let mapSquareChoiceDomain = ChoiceDomain("mapSquare", [|
-    1 // dungeon 1          // 0
-    1 // dungeon 2
-    1 // dungeon 3
-    1 // dungeon 4
-    1 // dungeon 5
-    1 // dungeon 6          // 5
-    1 // dungeon 7
-    1 // dungeon 8
-    1 // dungeon 9
-    1 // any road 1
-    1 // any road 2         // 10 
-    1 // any road 3
-    1 // any road 4
-    1 // sword 3
-    1 // sword 2
-    1 // sword 1            // 15
-    999 // arrow shop
-    999 // bomb shop
-    999 // book shop             
-    999 // candle shop      
-    999 // blue ring shop   // 20
-    999 // meat shop
-    999 // key shop
-    999 // shield shop
-    1   // armos item
-    999 // hint shop        // 25
-    4   // take any         
-    999 // potion shop      
-    999 // money
-    999 // X (nothing, but visited)
-    |])
+let overworldTiles = [|
+    "Level1"           , 1
+    "Level2"           , 1
+    "Level3"           , 1
+    "Level4"           , 1
+    "Level5"           , 1
+    "Level6"           , 1
+    "Level7"           , 1
+    "Level8"           , 1
+    "Level9"           , 1
+    "AnyRoad1"         , 1
+    "AnyRoad2"         , 1
+    "AnyRoad3"         , 1
+    "AnyRoad4"         , 1
+    "Sword3"           , 1
+    "Sword2"           , 1
+    "Sword1"           , 1
+    "ArrowShop"        , 999
+    "BombShop"         , 999
+    "BookShop"         , 999
+    "CandleShop"       , 999
+    "BlueRingShop"     , 999
+    "MeatShop"         , 999
+    "KeyShop"          , 999
+    "ShieldShop"       , 999
+    "Armos"            , 1
+    "HintShop"         , 999
+    "TakeAny"          , 4
+    "PotionShop"       , 999
+    "Money"            , 999
+    "DarkX"            , 999
+    |]
+
+let mapSquareChoiceDomain = ChoiceDomain("mapSquare", overworldTiles |> Array.map snd)
 // Note: if you make changes to above/below, also check: recomputeMapStateSummary(), Graphics.theInteriorBmpTable, SpeechRecognition, OverworldMapTileCustomization, ui's isLegalHere()
 type MapSquareChoiceDomainHelper = 
+    static member DUNGEON_1 = 0
+    static member DUNGEON_2 = 1
+    static member DUNGEON_3 = 2
+    static member DUNGEON_4 = 3
+    static member DUNGEON_5 = 4
+    static member DUNGEON_6 = 5
+    static member DUNGEON_7 = 6
+    static member DUNGEON_8 = 7
+    static member DUNGEON_9 = 8
+    static member WARP_1 = 9
+    static member WARP_2 = 10
+    static member WARP_3 = 11
+    static member WARP_4 = 12
+    static member SWORD3 = 13
+    static member SWORD2 = 14
+    static member SWORD1 = 15
     // item shop stuff
     static member ARROW = 16
     static member BOMB = 17
@@ -402,11 +425,18 @@ type MapSquareChoiceDomainHelper =
     static member IsItem(state) = state >= 16 && state <= 23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     // other stuff
-    static member SWORD2 = 14
-    static member SWORD1 = 15
     static member ARMOS = 24
+    static member HINT_SHOP = 25
     static member TAKE_ANY = 26
+    static member POTION_SHOP = 27
+    static member MONEY = 28
     static member DARK_X = 29
+    static member AsHotKeyName(n) =
+        if n>=0 && n<overworldTiles.Length then
+            fst(overworldTiles.[n])
+        else
+            failwith "bad overworld tile id"
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

@@ -18,10 +18,14 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+link inset in dungeon should carry down a visual of the number (for HDN)
+
+pause timer (while reset timer is modal?)
+
+hotkeys
+ - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
 
-
-shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
 timeline & mistakes
 
@@ -42,13 +46,13 @@ there might be at most 6 transports per dungeon, I have used 7 before, but take 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
 
-hotkeys
- - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
 
 
 
 SMALL
+
+shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
 Consider 2/3 app size options
 

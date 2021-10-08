@@ -85,6 +85,7 @@
     <EmbeddedResource Include="icons\take-this-candle.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
+    <Compile Include="HotKeys.fs" />
     <Compile Include="CustomMessageBox.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="Timeline.fs" />

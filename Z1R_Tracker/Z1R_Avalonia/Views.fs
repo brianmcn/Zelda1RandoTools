@@ -122,7 +122,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp<>null then Brushes.Red else upcast CustomComboBoxes.no
+        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp<>null then Brushes.Red else CustomComboBoxes.no
         | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
     box.Changed.Add(fun _ -> redraw())
     let mutable popupIsActive = false

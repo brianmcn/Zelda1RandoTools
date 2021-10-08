@@ -6,6 +6,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 open OverworldMapTileCustomization
+open HotKeys.MyKey
 
 let canvasAdd = Graphics.canvasAdd
 let voice = OptionsMenu.voice
@@ -1530,6 +1531,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
+//        c.MyKeyAdd(fun _ -> printfn "got it")
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
@@ -1964,7 +1966,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         messageLoop()
         )
 
-    appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
+    appMainCanvas.MouseDown.Add(fun _ -> 
+        let w = Window.GetWindow(appMainCanvas)
+        Input.Keyboard.ClearFocus()                // ensure that clicks outside the Notes area de-focus it, by clearing keyboard focus...
+        Input.FocusManager.SetFocusedElement(w, null)  // ... and by removing its logical mouse focus
+        Input.Keyboard.Focus(w) |> ignore  // refocus keyboard to main window so MyKey still works
+        )  
 
     // broadcast window
     let makeBroadcastWindow(twoThirdsSize) =

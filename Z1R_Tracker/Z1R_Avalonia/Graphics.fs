@@ -1,10 +1,11 @@
 ﻿module Graphics
 
 open System
-open System.Windows
 open Avalonia.Media
 open Avalonia.Controls
 open Avalonia
+
+let mutable curMouse = Point(0., 0.)
 
 let GetResourceStream(name) =
     let assets = Avalonia.AvaloniaLocator.Current.GetService(typeof<Avalonia.Platform.IAssetLoader>) :?> Avalonia.Platform.IAssetLoader

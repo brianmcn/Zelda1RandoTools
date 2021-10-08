@@ -7,6 +7,7 @@ open Avalonia.Media
 open Avalonia.Layout
 
 open OverworldMapTileCustomization
+open HotKeys.MyKey
 
 let canvasAdd = Graphics.canvasAdd
 let makeHintHighlight = Views.makeHintHighlight
@@ -1611,6 +1612,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 } |> Async.StartImmediate
         c.PointerWheelChanged.Add(fun x -> if not popupIsActive then activate(if x.Delta.Y<0. then 1 else -1))
         c.PointerPressed.Add(fun _ -> if not popupIsActive then activate(0))
+//        c.MyKeyAdd(fun ea -> printfn "got it: %c" ea.Key)
         c
 
     //let BLOCKERS_AND_NOTES_OFFSET = 402. + 42.  // dungeon area and side-tracker-panel

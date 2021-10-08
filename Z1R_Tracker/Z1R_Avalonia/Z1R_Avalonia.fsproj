@@ -41,6 +41,7 @@
     <EmbeddedResource Include="..\Z1R_WPF\icons\take-any-leave.png" Link="icons\take-any-leave.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\take-any-potion.png" Link="icons\take-any-potion.png" />
     <Compile Include="Graphics.fs" />
+    <Compile Include="HotKeys.fs" />
     <Compile Include="CustomMessageBox.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="Timeline.fs" />
@@ -58,7 +59,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.3" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.3" />

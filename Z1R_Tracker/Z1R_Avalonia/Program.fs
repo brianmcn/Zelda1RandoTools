@@ -38,6 +38,7 @@ type MyWindow() as this =
         appMainCanvas.Children.Add(hstackPanel) |> ignore
 
 
+        HotKeys.InitializeWindow(this, cm.RootCanvas)
 
         UI.timeTextBox <- hmsTimeTextBox
         this.Width <- WIDTH + 30. // TODO fudging it
@@ -195,6 +196,8 @@ type App() =
             new Avalonia.Markup.Xaml.Styling.StyleInclude(baseUri=null, Source = Uri("resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"))
             new Avalonia.Markup.Xaml.Styling.StyleInclude(baseUri=null, Source = Uri("resm:Avalonia.Themes.Default.Accents.BaseDark.xaml?assembly=Avalonia.Themes.Default"))
         ]
+        //UI.mouseDevice <- new Input.MouseDevice(new Input.Pointer(0, Input.PointerType.Mouse, true))
+        //AvaloniaLocator.CurrentMutable.Bind<Input.IMouseDevice>().ToConstant(UI.mouseDevice) |> ignore
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime as desktop ->
