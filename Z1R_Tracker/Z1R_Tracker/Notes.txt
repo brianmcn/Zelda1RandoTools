@@ -288,6 +288,8 @@ lower portion of the main Z-Tracker window.  The broadcast window is not interac
 use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main interactive Z-Tracker window, you instead 
 capture the smaller broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
 
+The broadcast window also has an option to be 2/3 size (512 pixels wide, rather than 768 pixels wide).
+
 
 SPEECH SYNTHESIS (WPF only)
 

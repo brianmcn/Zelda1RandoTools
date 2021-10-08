@@ -49,6 +49,7 @@ module Options =
     let mutable PlaySoundWhenUseSpeech = Bool(true)
     let mutable IsSecondQuestDungeons = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
+    let mutable SmallerBroadcastWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
 
@@ -78,6 +79,7 @@ module Options =
         member val PlaySoundWhenUseSpeech = true with get,set
         member val IsSecondQuestDungeons = false with get,set
         member val ShowBroadcastWindow = false with get,set
+        member val SmallerBroadcastWindow = false with get,set
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
@@ -111,6 +113,7 @@ module Options =
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
+        data.SmallerBroadcastWindow <- SmallerBroadcastWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
 
@@ -156,6 +159,7 @@ module Options =
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
+            SmallerBroadcastWindow.Value <- data.SmallerBroadcastWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
         with e ->

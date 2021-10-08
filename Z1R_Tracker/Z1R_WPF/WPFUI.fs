@@ -1967,7 +1967,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     appMainCanvas.MouseDown.Add(fun _ -> System.Windows.Input.Keyboard.ClearFocus())  // ensure that clicks outside the Notes area de-focus it
 
     // broadcast window
-    let makeBroadcastWindow() =
+    let makeBroadcastWindow(twoThirdsSize) =
         let W = 768.
         let broadcastWindow = new Window()
         broadcastWindow.Title <- "Z-Tracker broadcast"
@@ -1975,7 +1975,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
         broadcastWindow.Left <- 0.0
         broadcastWindow.Top <- 0.0
-        broadcastWindow.Width <- W + 16.
+        broadcastWindow.Width <- (if twoThirdsSize then 512. else 768.) + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
 
@@ -2060,11 +2060,17 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         // set up the main broadcast window
         let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
         broadcastWindow.Height <- H + 40.
-        let dp = new DockPanel()
+        let dp = new DockPanel(Width=W)
         DockPanel.SetDock(timeline, Dock.Bottom)
         dp.Children.Add(timeline) |> ignore
         dp.Children.Add(topc) |> ignore
+        
+        let trans = new ScaleTransform(0.666666, 0.666666)
+        if twoThirdsSize then
+            dp.LayoutTransform <- trans
+            broadcastWindow.Height <- H*0.666666 + 40.
         broadcastWindow.Content <- dp
+        
         let mutable isUpper = true
         cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
             let mousePos = ea.GetPosition(appMainCanvas)
@@ -2096,11 +2102,11 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         broadcastWindow
     let mutable broadcastWindow = null
     if TrackerModel.Options.ShowBroadcastWindow.Value then
-        broadcastWindow <- makeBroadcastWindow()
+        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.SmallerBroadcastWindow.Value)
         broadcastWindow.Show()
     OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun show ->
         if show && broadcastWindow=null then
-            broadcastWindow <- makeBroadcastWindow()
+            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.SmallerBroadcastWindow.Value)
             broadcastWindow.Show()
         if not(show) && broadcastWindow<>null then
             broadcastWindow.Close()

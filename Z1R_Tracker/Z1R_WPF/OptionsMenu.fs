@@ -181,6 +181,18 @@ let makeOptionsCanvas(width) =
     cb.ToolTip <- "Open a separate, smaller window, for stream capture.\nYou still interact with the original large window,\nbut the smaller window will focus the view on either the overworld or\nthe dungeon tabs, based on your mouse position."
     options3sp.Children.Add(cb) |> ignore
 
+    let maybeRestartBroadcast() =
+        broadcastWindowOptionChanged.Trigger(false)            // shutdown current window, if it's on
+        if TrackerModel.Options.ShowBroadcastWindow.Value then
+            broadcastWindowOptionChanged.Trigger(true)         // restart if the display setting is turned on
+    let cb = new CheckBox(Content=new TextBox(Text="2/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    link(cb, TrackerModel.Options.SmallerBroadcastWindow, true)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SmallerBroadcastWindow.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.SmallerBroadcastWindow.Value <- true; maybeRestartBroadcast())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SmallerBroadcastWindow.Value <- false; maybeRestartBroadcast())
+    cb.ToolTip <- "Makes the broadcast window only two-thirds as large as normal (512 rather than 768 pixels wide)"
+    options3sp.Children.Add(cb) |> ignore
+
     optionsAllsp.Children.Add(options3sp) |> ignore
     let all = new Border(Child=optionsAllsp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray)
     all

@@ -50,7 +50,7 @@ hotkeys
 
 SMALL
 
-Consider 2/3 app size and 2/3 broadcast window size options?
+Consider 2/3 app size options
 
 'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
  - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
