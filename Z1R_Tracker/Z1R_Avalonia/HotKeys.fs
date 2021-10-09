@@ -95,6 +95,61 @@ let convertAlpha_NumToKey(ch) =
 
 ////////////////////////////////////////////////////////////
 
+module DungeonHelper = 
+    let ROOMS = 26 // how many types
+    let roomIsEmpty(n) = (n=0 || n=10)
+    let roomBMPpairs(n) =
+        match n with
+        | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
+        | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
+        | 11 -> Graphics.cdungeonDoubleMoatBMP
+        | 12 -> Graphics.cdungeonChevyBMP
+        | 13 -> Graphics.cdungeonVMoatBMP
+        | 14 -> Graphics.cdungeonHMoatBMP
+        | 15 -> Graphics.cdungeonVChuteBMP
+        | 16 -> Graphics.cdungeonHChuteBMP
+        | 17 -> Graphics.cdungeonTeeBMP
+        | 18 -> Graphics.cdungeonNeedWand
+        | 19 -> Graphics.cdungeonBlueBubble
+        | 20 -> Graphics.cdungeonNeedRecorder
+        | 21 -> Graphics.cdungeonNeedBow
+        | 22 -> Graphics.cdungeonTriforceBMP 
+        | 23 -> Graphics.cdungeonPrincessBMP 
+        | 24 -> Graphics.cdungeonStartBMP 
+        | 25 -> Graphics.cdungeonExploredRoomBMP 
+        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+    let RoomNames = [|
+        "Nothing"
+        "Transport1"
+        "Transport2"
+        "Transport3"
+        "Transport4"
+        "Transport5"
+        "Transport6"
+        "Transport7"
+        "Transport8"
+        "Transport9"
+        "ShiftClickedAwayDontUseThis"
+        "DoubleHorizontalMoat"
+        "Chevy"
+        "VerticalMoat"
+        "HorizontalMoat"
+        "VerticalChute"
+        "HorizontalChute"
+        "Tee"
+        "GleeokNeedWand"
+        "BlueBubble"
+        "DigdoggerNeedRecorder"
+        "NeedBow"
+        "Yellow"
+        "Red"
+        "Green"
+        "DefaultExploredRoom"
+        |]
+    let AsHotKeyName(n) = RoomNames.[n]
+
+////////////////////////////////////////////////////////////
+
 type UserError(msg) =
     inherit System.Exception(msg)
 
@@ -136,6 +191,11 @@ let MakeDefaultHotKeyFile(filename:string) =
     lines.Add("Blocker_Bomb = ")
     lines.Add("Blocker_Nothing = ")
     lines.Add("")
+    // dungeon rooms
+    lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
+    for i = 0 to DungeonHelper.RoomNames.Length-1 do
+        lines.Add("DungeonRoom_" + DungeonHelper.AsHotKeyName(i) + " = ")
+    lines.Add("")
     System.IO.File.WriteAllLines(filename, lines)
 
 let ParseHotKeyDataFile(filename:string) =
@@ -176,9 +236,10 @@ type HotKeyProcessor<'v>(contextName) =
             table.Add(k,v)
             true
 
-let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
+let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
+let DungeonRoomHotKeyProcessor = new HotKeyProcessor<int>("DungeonRoom")
 
 let PopulateHotKeyTables() =
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
@@ -214,6 +275,11 @@ let PopulateHotKeyTables() =
                 for i = 0 to TrackerModel.overworldTiles.Length-1 do
                     if name = "Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) then
                         Add(OverworldHotKeyProcessor, chOpt, i)
+                        found <- true
+            if not found then
+                for i = 0 to DungeonHelper.RoomNames.Length-1 do
+                    if name = "DungeonRoom_" + DungeonHelper.AsHotKeyName(i) then
+                        Add(DungeonRoomHotKeyProcessor, chOpt, i)
                         found <- true
             if not found then
                 raise <| new UserError(sprintf "Bad name '%s' specified in '%s', line %d" name filename lineNumber)

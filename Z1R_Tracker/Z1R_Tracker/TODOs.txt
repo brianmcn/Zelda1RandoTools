@@ -18,8 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-hotkeys (in progress)
- - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
+hotkey testing, hotkey writeup in Notes
+
+Text="GRAB" in DungeonUI is a mess, why not a button
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
 
@@ -29,6 +30,8 @@ link inset in dungeon should carry down a visual of the number (for HDN)
 
 pause timer (while reset timer is modal?)
 
+
+distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up
 
 
 timeline & mistakes

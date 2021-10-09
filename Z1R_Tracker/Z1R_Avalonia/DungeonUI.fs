@@ -12,28 +12,9 @@ let canvasAdd = Graphics.canvasAdd
 
 let TH = 24 // text height
 
-let ROOMS = 26 // how many types
-let roomIsEmpty(n) = (n=0 || n=10)
-let roomBMPpairs(n) =
-    match n with
-    | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
-    | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
-    | 11 -> Graphics.cdungeonDoubleMoatBMP
-    | 12 -> Graphics.cdungeonChevyBMP
-    | 13 -> Graphics.cdungeonVMoatBMP
-    | 14 -> Graphics.cdungeonHMoatBMP
-    | 15 -> Graphics.cdungeonVChuteBMP
-    | 16 -> Graphics.cdungeonHChuteBMP
-    | 17 -> Graphics.cdungeonTeeBMP
-    | 18 -> Graphics.cdungeonNeedWand
-    | 19 -> Graphics.cdungeonBlueBubble
-    | 20 -> Graphics.cdungeonNeedRecorder
-    | 21 -> Graphics.cdungeonNeedBow
-    | 22 -> Graphics.cdungeonTriforceBMP 
-    | 23 -> Graphics.cdungeonPrincessBMP 
-    | 24 -> Graphics.cdungeonStartBMP 
-    | 25 -> Graphics.cdungeonExploredRoomBMP 
-    | n  -> Graphics.cdungeonNumberBMPs.[n-1]
+open HotKeys.DungeonHelper
+open HotKeys.MyKey
+
 let dungeonRoomMouseButtonExplainerDecoration =
     let ST = CustomComboBoxes.borderThickness
     let h = 9.*3.*2.+ST*4.
@@ -388,6 +369,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     // note any new transports
                     if [1..9] |> List.contains roomState then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
+                let SetNewValue(n, isLeft) =
+                    let originalState = roomStates.[i,j]
+                    let isLegal = not(n < 10 && usedTransports.[n]=2) || n=originalState
+                    if isLegal then
+                        usedTransportsRemoveState(roomStates.[i,j])
+                        roomStates.[i,j] <- n
+                        usedTransportsAddState(roomStates.[i,j])
+                        roomCompleted.[i,j] <- isLeft
+                        redraw()
+                    else
+                        () //System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
                 let immediateActivatePopup, delayedActivatePopup =
                     let activatePopup(activationDelta) =
                         if not(popupState=Dungeon.DelayedPopupState.SOON) then () (*printfn "witness self canceled"*) else   // if we are cancelled, do nothing
@@ -425,12 +417,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         [upcast dungeonRoomMouseButtonExplainerDecoration, gridxPosition, gridYPosition-h-ST],
                                         CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                             match r with
-                            | Some(currentState, isLeft) ->
-                                usedTransportsRemoveState(roomStates.[i,j])
-                                roomStates.[i,j] <- currentState
-                                usedTransportsAddState(roomStates.[i,j])
-                                roomCompleted.[i,j] <- isLeft
-                                redraw()
+                            | Some(currentState, isLeft) -> SetNewValue(currentState, isLeft)
                             | None -> ()
                             Graphics.WarpMouseCursorTo(pos)
                             popupState <- Dungeon.DelayedPopupState.NONE
@@ -456,6 +443,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 let r = new Shapes.Rectangle(Width=float(13*3 + 12), Height=float(9*3 + 12), Fill=brush, Opacity=0.4, IsHitTestVisible=false)  // TODO creating lots of garbage
                                 canvasAdd(canvas, r, float(x*51 - 6), float(TH+y*39 - 6))
                 let highlight(contiguous:_[,], brush) = highlightImpl(dungeonHighlightCanvas,contiguous,brush)
+                c.MyKeyAdd(fun ea ->
+                    if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
+                        if not grabHelper.IsGrabMode then
+                            match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
+                            | Some(state) -> 
+                                ea.Handled <- true
+                                if roomStates.[i,j] = state then
+                                    // if this room is already the hotkey'd room, then the hotkey toggles completedness
+                                    SetNewValue(state, not(roomCompleted.[i,j]))
+                                else
+                                    // changing room type always defaults to uncomplete on first hotkey press
+                                    SetNewValue(state, false)
+                            | None -> ()
+                    )
                 c.PointerEnter.Add(fun _ ->
                     if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
                         if grabHelper.IsGrabMode then
