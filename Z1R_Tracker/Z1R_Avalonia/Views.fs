@@ -4,6 +4,8 @@ open Avalonia.Controls
 open Avalonia.Media
 open Avalonia
 
+open HotKeys.MyKey
+
 let canvasAdd = Graphics.canvasAdd
 (*
 This module is for reusable display elements with the following properties:
@@ -147,6 +149,22 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
                 else
                     box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas pp)
                     redraw()
+        )
+    c.MyKeyAdd(fun ea -> 
+        match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
+        | Some(i) ->
+            if box.CellCurrent() = i then
+                // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
+                if box.PlayerHas() = TrackerModel.PlayerHas.NO then
+                    box.Set(i, TrackerModel.PlayerHas.YES)
+                elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
+                    box.Set(i, TrackerModel.PlayerHas.SKIPPED)
+                else
+                    box.Set(i, TrackerModel.PlayerHas.NO)
+            else
+                // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
+                box.Set(i, TrackerModel.PlayerHas.NO)
+        | None -> ()
         )
     if accelerateIntoComboBox then
         c.LayoutUpdated.Add(fun _ -> activateComboBox(0))

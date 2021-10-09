@@ -23,26 +23,129 @@ open MyKey
 let InitializeWindow(w:Window) =
     w.Focusable <- true
     w.PreviewKeyDown.Add(fun ea ->
-        //printfn "keydown"
-        Input.Mouse.DirectlyOver.RaiseEvent(new MyKeyRoutedEventArgs(ea.Key))
+        let keycode = int ea.Key
+        if keycode >=34 && keycode <=69 || ea.Key=Input.Key.OemMinus then  // 0-9a-z_ are all the hotkeys I bind
+            Input.Mouse.DirectlyOver.RaiseEvent(new MyKeyRoutedEventArgs(ea.Key))
         )
+
+let convertAlpha_NumToKey(ch) =
+    if ch >= 'a' && ch <= 'z' then
+        enum<Input.Key>(int ch - int 'a' + 44)
+    elif ch >= 'A' && ch <= 'Z' then
+        enum<Input.Key>(int ch - int 'A' + 44)
+    elif ch = '_' then
+        Input.Key.OemMinus  // Minus and Underscore on same key on typical keyboard; only handling this as _ is part of \w regex
+    elif ch >= '0' && ch <= '9' then
+        enum<Input.Key>(int ch - int '0' + 34)
+    else
+        failwith "bad input to convertAlpha_NumToKey"
+
 
 ////////////////////////////////////////////////////////////
 
-(*
+let MakeDefaultHotKeyFile(filename:string) =
+    let lines = ResizeArray()
+    (sprintf """# %s HotKeys
 
-// hot keys
+# General form is 'SelectorName = key'
+#  - key can be 0-9 or a-z
+#  - SelectorName can be any of the list below
+# You can leave the key blank to not bind a hotkey to that selector
 
-Item.Book=b
-...
-Overworld.Level1=1
-...
-Blocker.Combat=c
-...
-DungeonRoom.Transport1=1
-...
-whatever.Nothing=x
+# Blank lines, or lines that start with '#', are comments and are ignored by the parser
+# All other lines must have the 'General form' syntax, though whitespace is optional and ignored
 
+    """ OverworldData.ProgramNameString).Split('\n') |> Array.iter (fun line -> lines.Add(line.Replace("\r","")))
+    // items
+    lines.Add("# ITEMS - these hotkey bindings take effect when mouse-hovering an item box")
+    lines.Add("# Note that BookOrShield refers to Book in a non-boomstick-seed, and Shield in a boomstick seed")
+    for i = 0 to 14 do
+        lines.Add("Item_" + TrackerModel.ITEMS.AsHotKeyName(i) + " = ")
+    lines.Add("Item_Nothing = ")
+    lines.Add("")
+    // blockers
+    lines.Add("# BLOCKERS - these hotkey bindings take effect when mouse-hovering a blocker box")
+    lines.Add("Blocker_Combat = ")
+    lines.Add("Blocker_Bow_And_Arrow = ")
+    lines.Add("Blocker_Recorder = ")
+    lines.Add("Blocker_Ladder = ")
+    lines.Add("Blocker_Bait = ")
+    lines.Add("Blocker_Key = ")
+    lines.Add("Blocker_Bomb = ")
+    lines.Add("Blocker_Nothing = ")
+    lines.Add("")
+    System.IO.File.WriteAllLines(filename, lines)
 
-*)
-        
+let ParseHotKeyDataFile(filename:string) =
+    let lines = System.IO.File.ReadAllLines(filename)
+    let commentRegex = new System.Text.RegularExpressions.Regex("^#.*$", System.Text.RegularExpressions.RegexOptions.None)
+    let emptyLineRegex = new System.Text.RegularExpressions.Regex("^\s*$", System.Text.RegularExpressions.RegexOptions.None)
+    let dataRegex = new System.Text.RegularExpressions.Regex("^\s*(\w+)\s*=\s*(\w)?\s*$", System.Text.RegularExpressions.RegexOptions.None)
+    let data = ResizeArray()
+    let mutable lineNumber = 1
+    for line in lines do
+        if commentRegex.IsMatch(line) || emptyLineRegex.IsMatch(line) then
+            () // skip
+        else
+            let m = dataRegex.Match(line)
+            if not m.Success then
+                failwithf "Error parsing '%s', line %d" filename lineNumber
+            else
+                // Groups.[0] is the whole match
+                let name = m.Groups.[1].Value
+                let value = if m.Groups.Count > 2 && m.Groups.[2].Value.Length > 0 then Some(m.Groups.[2].Value.[0]) else None
+                data.Add(name, value, (lineNumber, filename))
+        lineNumber <- lineNumber + 1
+    data
+
+////////////////////////////////////////////////////////////
+
+type HotKeyProcessor<'v>(contextName) =
+    let table = new System.Collections.Generic.Dictionary<Input.Key,'v>()
+    member this.ContextName = contextName
+    member this.TryGetValue(k) = 
+        match table.TryGetValue(k) with
+        | true, v -> Some(v)
+        | _ -> None
+    member this.TryAdd(k,v) =
+        if table.ContainsKey(k) then
+            false
+        else
+            table.Add(k,v)
+            true
+
+let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blockers")
+let ItemHotKeyProcessor = new HotKeyProcessor<int>("Items")
+
+let PopulateHotKeyTables() =
+    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
+    if not(System.IO.File.Exists(filename)) then
+        MakeDefaultHotKeyFile(filename)
+    let data = ParseHotKeyDataFile(filename)
+    for name, chOpt, (lineNumber, filename) in data do
+        match chOpt with
+        | None -> ()  // Foo=    means Foo is not bound to a hotkey on this line
+        | Some ch ->
+            let Add(hkp:HotKeyProcessor<_>, ch, x) =
+                let key = convertAlpha_NumToKey ch
+                if not(hkp.TryAdd(key,x)) then
+                    failwithf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename
+            match name with
+            | "Blocker_Combat"        -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.COMBAT)
+            | "Blocker_Bow_And_Arrow" -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BOW_AND_ARROW)
+            | "Blocker_Recorder"      -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.RECORDER)
+            | "Blocker_Ladder"        -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.LADDER)
+            | "Blocker_Bait"          -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BAIT)
+            | "Blocker_Key"           -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.KEY)
+            | "Blocker_Bomb"          -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BOMB)
+            | "Blocker_Nothing"       -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.NOTHING)
+            
+            | "Item_Nothing"       -> Add(ItemHotKeyProcessor, ch, -1)
+            | _ -> 
+                let mutable found = false
+                for i = 0 to 14 do
+                    if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then
+                        Add(ItemHotKeyProcessor, ch, i)
+                        found <- true
+                if not found then
+                    failwithf "Bad name '%s' specified in '%s', line %d" name filename lineNumber

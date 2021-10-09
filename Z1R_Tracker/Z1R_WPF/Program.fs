@@ -267,6 +267,7 @@ type MyWindow() as this =
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
                                 Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
+        HotKeys.PopulateHotKeyTables()
         TrackerModel.Options.readSettings()
         settingsWereSuccessfullyRead <- true
         WPFUI.voice.Volume <- TrackerModel.Options.Volume

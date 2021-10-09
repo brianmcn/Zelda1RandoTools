@@ -130,6 +130,7 @@ type MyWindow() as this =
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
                 TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
             )
+        HotKeys.PopulateHotKeyTables()
         TrackerModel.Options.readSettings()
         settingsWereSuccessfullyRead <- true
         let options = OptionsMenu.makeOptionsCanvas()

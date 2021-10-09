@@ -4,6 +4,8 @@ open System.Windows.Controls
 open System.Windows.Media
 open System.Windows
 
+open HotKeys.MyKey
+
 let canvasAdd = Graphics.canvasAdd
 
 (*
@@ -151,6 +153,22 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         if not popupIsActive then 
             ea.Handled <- true
             activateComboBox(if ea.Delta<0 then 1 else -1)
+        )
+    c.MyKeyAdd(fun ea -> 
+        match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
+        | Some(i) ->
+            if box.CellCurrent() = i then
+                // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
+                if box.PlayerHas() = TrackerModel.PlayerHas.NO then
+                    box.Set(i, TrackerModel.PlayerHas.YES)
+                elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
+                    box.Set(i, TrackerModel.PlayerHas.SKIPPED)
+                else
+                    box.Set(i, TrackerModel.PlayerHas.NO)
+            else
+                // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
+                box.Set(i, TrackerModel.PlayerHas.NO)
+        | None -> ()
         )
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))

@@ -18,12 +18,13 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+hotkeys (in progress)
+ - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
+
+
 link inset in dungeon should carry down a visual of the number (for HDN)
 
 pause timer (while reset timer is modal?)
-
-hotkeys
- - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
 
 
@@ -72,6 +73,7 @@ factoids for 'loading ui screen':
  - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
  - khanana key explanation
  - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
+ - if a room has a shutter door, the push block cannot reveal a staircase (just will open the shutter if pushable)
 
 
  maybe make separate project for generation-tools, e.g.

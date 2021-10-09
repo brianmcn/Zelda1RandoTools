@@ -149,7 +149,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
-    let mutable doUIUpdate = fun() -> ()
+    let doUIUpdateEvent = new Event<unit>()
 
     let appMainCanvas = cm.AppMainCanvas
     let mainTracker = makeGrid(9, 5, H, H)
@@ -750,7 +750,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, extraDecorationsF)
                     mirrorOverworldFEs.Add(coastBoxOnOwGrid)
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
-                    TrackerModel.ladderBox.Changed.Add(fun _ ->  
+                    //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got
+                    doUIUpdateEvent.Publish.Add(fun _ ->          // this waits a second, which gives visual feeback when left-clicked & allows hotkeys to skip it via multi-hotkey
                         if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO then
                             coastBoxOnOwGrid.Opacity <- 1.
                             coastBoxOnOwGrid.IsHitTestVisible <- true
@@ -896,7 +897,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             | (true,f) -> do! f(cm,c,i,j)
                             | _ -> ()
                             redrawGridSpot()
-                            if originalState = -1 && currentState <> -1 then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                            if originalState = -1 && currentState <> -1 then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
                         | None -> ()
                         popupIsActive := false
                         } |> Async.StartImmediate
@@ -912,7 +913,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                         async {
                             let! needRedraw, needUIUpdate = DoRightClick(cm,msp,i,j,pos,popupIsActive)
                             if needRedraw then redrawGridSpot()
-                            if needUIUpdate then doUIUpdate()  // immediate update to dismiss green/yellow highlight from current tile
+                            if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
                         } |> Async.StartImmediate
                     )
                 c.MouseWheel.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta<0 then 1 else -1))
@@ -1004,7 +1005,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 if i>=0 && i<=15 && j>=0 && j<=7 then
                     TrackerModel.startIconX <- i
                     TrackerModel.startIconY <- j
-                    doUIUpdate()
+                    doUIUpdateEvent.Trigger()
                     wh.Set() |> ignore
                 )
             async {
@@ -1149,7 +1150,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
-    doUIUpdate <- (fun () ->
+    doUIUpdateEvent.Publish.Add(fun () ->
         if displayIsCurrentlyMirrored <> TrackerModel.Options.Overworld.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
@@ -1419,7 +1420,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         if hasUISettledDown then
             let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
             if hasTheModelChanged then
-                doUIUpdate()
+                doUIUpdateEvent.Trigger()
         // link animation
         stepAnimateLink()
         // remind ladder
@@ -1512,6 +1513,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
         redraw(current)
         let mutable popupIsActive = false
+        let SetNewValue(db) =
+            current <- db
+            redraw(db)
+            TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
         let activate(activationDelta) =
             popupIsActive <- true
             let pc, predraw = make()
@@ -1522,16 +1527,17 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                 Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with
-                | Some(db) ->
-                    current <- db
-                    redraw(db)
-                    TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
+                | Some(db) -> SetNewValue(db)
                 | None -> () 
                 popupIsActive <- false
                 } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
-//        c.MyKeyAdd(fun _ -> printfn "got it")
+        c.MyKeyAdd(fun ea -> 
+            match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(db) -> SetNewValue(db)
+            | None -> ()
+            )
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
