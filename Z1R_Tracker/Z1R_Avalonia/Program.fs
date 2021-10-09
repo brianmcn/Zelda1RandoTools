@@ -38,10 +38,11 @@ type MyWindow() as this =
         appMainCanvas.Children.Add(hstackPanel) |> ignore
 
 
-        HotKeys.InitializeWindow(this, cm.RootCanvas)
+        let FUDGE = 30.
+        HotKeys.InitializeWindow(this, cm.RootCanvas, FUDGE/2.)
 
         UI.timeTextBox <- hmsTimeTextBox
-        this.Width <- WIDTH + 30. // TODO fudging it
+        this.Width <- WIDTH  + FUDGE
         this.Height <- HEIGHT
         // TODO ideally this should be a free font included in the assembly
         this.FontFamily <- FontFamily("Segoe UI")

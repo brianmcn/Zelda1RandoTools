@@ -908,6 +908,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                     if not !popupIsActive then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
                         | Some(state) -> 
+                            ea.Handled <- true
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                             Async.StartImmediate <| SetNewValue(state, originalState)
                         | None -> ()
@@ -1629,7 +1630,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
-                | Some(db) -> SetNewValue(db)
+                | Some(db) -> ea.Handled <- true; SetNewValue(db)
                 | None -> ()
             )
         c

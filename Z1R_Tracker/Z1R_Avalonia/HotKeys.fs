@@ -20,7 +20,7 @@ module MyKey =
 
 open MyKey
 
-let InitializeWindow(w:Window, rootCanvas) =
+let InitializeWindow(w:Window, rootCanvas, xOffset) =
     w.PointerMoved.Add(fun ea ->
         let p = ea.GetPosition(rootCanvas)
         Graphics.curMouse <- p
@@ -28,9 +28,37 @@ let InitializeWindow(w:Window, rootCanvas) =
     w.KeyDown.Add(fun ea ->
         let keycode = int ea.Key
         if keycode >=34 && keycode <=69 || ea.Key=Input.Key.OemMinus then  // 0-9a-z_ are all the hotkeys I bind
+            let rec finalOpacity(viz:Avalonia.VisualTree.IVisual) =
+                if viz.VisualParent = null then
+                    viz.Opacity
+                else
+                    viz.Opacity * finalOpacity(viz.VisualParent)
+            let unfudgedMouse = Graphics.curMouse.WithX(Graphics.curMouse.X + xOffset)
+            let sortedControls = w.Renderer.HitTest(unfudgedMouse, rootCanvas, (fun iv -> match iv with | :? Control -> true | _ -> false))
+            //for s in sortedControls do
+            //    printfn "%A" s
+            let mutable found = false
+            for c in sortedControls do
+                if not found then
+                    if finalOpacity(c) > 0. then
+                        let control = (c :?> Control)
+                        if control.IsHitTestVisible then
+                            let ea = new MyKeyRoutedEventArgs(ea.Key)
+                            control.RaiseEvent(ea)
+                            if ea.Handled then
+                                found <- true
+            (*
+            let sorted = w.Renderer.HitTest(Graphics.curMouse, rootCanvas, (fun iv -> match iv with | :? Control -> true | _ -> false))
+            printfn "======="
+            for s in sorted do
+                printfn "%A" s
+            printfn "-------"
             //printfn "sending A at (%A)" Graphics.curMouse
             let all = Avalonia.VisualTree.VisualExtensions.GetVisualsAt(rootCanvas, Graphics.curMouse)
             let sorted = Avalonia.VisualTree.VisualExtensions.SortByZIndex(all) |> Seq.rev
+            for s in sorted do
+                printfn "%A" s
+            printfn "======="
             let mutable ok = false
             for viz in sorted do
                 if not ok then
@@ -49,6 +77,7 @@ let InitializeWindow(w:Window, rootCanvas) =
                             () //printfn "walking past %A" viz
                     | _ -> 
                         () //printfn "walking past %A" viz
+            *)
         )
 
 let convertAlpha_NumToKey(ch) =

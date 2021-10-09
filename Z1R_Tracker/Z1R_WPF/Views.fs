@@ -158,6 +158,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         if not popupIsActive then
             match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(i) ->
+                ea.Handled <- true
                 if box.CellCurrent() = i then
                     // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
                     if box.PlayerHas() = TrackerModel.PlayerHas.NO then

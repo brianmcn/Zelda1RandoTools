@@ -23,6 +23,8 @@ hotkeys (in progress)
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
 
+marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
+
 link inset in dungeon should carry down a visual of the number (for HDN)
 
 pause timer (while reset timer is modal?)
