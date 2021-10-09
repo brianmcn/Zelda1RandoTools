@@ -43,6 +43,9 @@ let convertAlpha_NumToKey(ch) =
 
 ////////////////////////////////////////////////////////////
 
+type UserError(msg) =
+    inherit System.Exception(msg)
+
 let MakeDefaultHotKeyFile(filename:string) =
     let lines = ResizeArray()
     (sprintf """# %s HotKeys
@@ -62,6 +65,13 @@ let MakeDefaultHotKeyFile(filename:string) =
     for i = 0 to 14 do
         lines.Add("Item_" + TrackerModel.ITEMS.AsHotKeyName(i) + " = ")
     lines.Add("Item_Nothing = ")
+    lines.Add("")
+    // overworld map tiles
+    lines.Add("# OVERWORLD - these hotkey bindings take effect when mouse-hovering an overworld map tile")
+    lines.Add("# Note that Level1-Level8 refer to dungeons A-H if using the 'Hide Dungeon Numbers' flag setting")
+    for i = 0 to TrackerModel.overworldTiles.Length-1 do
+        lines.Add("Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) + " = ")
+    lines.Add("Overworld_Nothing = ")
     lines.Add("")
     // blockers
     lines.Add("# BLOCKERS - these hotkey bindings take effect when mouse-hovering a blocker box")
@@ -89,7 +99,7 @@ let ParseHotKeyDataFile(filename:string) =
         else
             let m = dataRegex.Match(line)
             if not m.Success then
-                failwithf "Error parsing '%s', line %d" filename lineNumber
+                raise <| new UserError(sprintf "Error parsing '%s', line %d" filename lineNumber)
             else
                 // Groups.[0] is the whole match
                 let name = m.Groups.[1].Value
@@ -114,8 +124,9 @@ type HotKeyProcessor<'v>(contextName) =
             table.Add(k,v)
             true
 
-let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blockers")
-let ItemHotKeyProcessor = new HotKeyProcessor<int>("Items")
+let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
+let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
+let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 
 let PopulateHotKeyTables() =
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
@@ -123,29 +134,34 @@ let PopulateHotKeyTables() =
         MakeDefaultHotKeyFile(filename)
     let data = ParseHotKeyDataFile(filename)
     for name, chOpt, (lineNumber, filename) in data do
-        match chOpt with
-        | None -> ()  // Foo=    means Foo is not bound to a hotkey on this line
-        | Some ch ->
-            let Add(hkp:HotKeyProcessor<_>, ch, x) =
+        let Add(hkp:HotKeyProcessor<_>, chOpt, x) =
+            match chOpt with
+            | None -> ()  // Foo=    means Foo is not bound to a hotkey on this line
+            | Some ch ->
                 let key = convertAlpha_NumToKey ch
                 if not(hkp.TryAdd(key,x)) then
                     failwithf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename
-            match name with
-            | "Blocker_Combat"        -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.COMBAT)
-            | "Blocker_Bow_And_Arrow" -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BOW_AND_ARROW)
-            | "Blocker_Recorder"      -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.RECORDER)
-            | "Blocker_Ladder"        -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.LADDER)
-            | "Blocker_Bait"          -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BAIT)
-            | "Blocker_Key"           -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.KEY)
-            | "Blocker_Bomb"          -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.BOMB)
-            | "Blocker_Nothing"       -> Add(BlockerHotKeyProcessor, ch, TrackerModel.DungeonBlocker.NOTHING)
-            
-            | "Item_Nothing"       -> Add(ItemHotKeyProcessor, ch, -1)
-            | _ -> 
-                let mutable found = false
-                for i = 0 to 14 do
-                    if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then
-                        Add(ItemHotKeyProcessor, ch, i)
+        match name with
+        | "Blocker_Combat"        -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.COMBAT)
+        | "Blocker_Bow_And_Arrow" -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BOW_AND_ARROW)
+        | "Blocker_Recorder"      -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.RECORDER)
+        | "Blocker_Ladder"        -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.LADDER)
+        | "Blocker_Bait"          -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BAIT)
+        | "Blocker_Key"           -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.KEY)
+        | "Blocker_Bomb"          -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BOMB)
+        | "Blocker_Nothing"       -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.NOTHING)
+        | "Item_Nothing"          -> Add(ItemHotKeyProcessor, chOpt, -1)
+        | "Overworld_Nothing"     -> Add(OverworldHotKeyProcessor, chOpt, -1)
+        | _ -> 
+            let mutable found = false
+            for i = 0 to 14 do
+                if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then
+                    Add(ItemHotKeyProcessor, chOpt, i)
+                    found <- true
+            if not found then
+                for i = 0 to TrackerModel.overworldTiles.Length-1 do
+                    if name = "Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) then
+                        Add(OverworldHotKeyProcessor, chOpt, i)
                         found <- true
-                if not found then
-                    failwithf "Bad name '%s' specified in '%s', line %d" name filename lineNumber
+            if not found then
+                raise <| new UserError(sprintf "Bad name '%s' specified in '%s', line %d" name filename lineNumber)

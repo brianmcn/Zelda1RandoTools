@@ -21,6 +21,7 @@ CURRENT PRIORITIES
 hotkeys (in progress)
  - ensure existing System.Windows.Input.Keyboard.ClearFocus() call does not interfere
 
+marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
 
 link inset in dungeon should carry down a visual of the number (for HDN)
 

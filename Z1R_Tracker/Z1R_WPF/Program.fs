@@ -92,6 +92,15 @@ type MyWindow() as this =
             match ex with
             | :? TrackerModel.IntentionalApplicationShutdown as ias ->
                 logCrashInfo <| sprintf "%s" ias.Message
+            | :? HotKeys.UserError as hue ->
+                logCrashInfo ""
+                logCrashInfo "Error parsing HotKeys.txt:"
+                logCrashInfo ""
+                logCrashInfo <| sprintf "%s" hue.Message
+                logCrashInfo ""
+                logCrashInfo "You should fix this error by editing the text file."
+                logCrashInfo "Or you can delete it, and an empty hotkeys template file will be created in its place."
+                logCrashInfo ""
             | _ ->
                 logCrashInfo <| sprintf "%s" (ex.ToString())
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 

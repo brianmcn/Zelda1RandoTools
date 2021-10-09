@@ -155,20 +155,22 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
             activateComboBox(if ea.Delta<0 then 1 else -1)
         )
     c.MyKeyAdd(fun ea -> 
-        match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
-        | Some(i) ->
-            if box.CellCurrent() = i then
-                // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
-                if box.PlayerHas() = TrackerModel.PlayerHas.NO then
-                    box.Set(i, TrackerModel.PlayerHas.YES)
-                elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
-                    box.Set(i, TrackerModel.PlayerHas.SKIPPED)
+        if not popupIsActive then
+            match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(i) ->
+                if box.CellCurrent() = i then
+                    // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
+                    if box.PlayerHas() = TrackerModel.PlayerHas.NO then
+                        box.Set(i, TrackerModel.PlayerHas.YES)
+                    elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
+                        box.Set(i, TrackerModel.PlayerHas.SKIPPED)
+                    else
+                        box.Set(i, TrackerModel.PlayerHas.NO)
                 else
-                    box.Set(i, TrackerModel.PlayerHas.NO)
-            else
-                // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
-                box.Set(i, TrackerModel.PlayerHas.NO)
-        | None -> ()
+                    // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
+                    if not(box.AttemptToSet(i, TrackerModel.PlayerHas.NO)) then
+                        System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this box to Bow when another box already has 'Bow'
+            | None -> ()
         )
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))

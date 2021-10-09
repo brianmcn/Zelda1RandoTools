@@ -533,6 +533,14 @@ type Box() =
         playerHas <- ph
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
         changed.Trigger()
+    member _this.AttemptToSet(v,ph) = 
+        if cell.AttemptToSet(v) then
+            playerHas <- ph
+            dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+            changed.Trigger()
+            true
+        else
+            false
     member _this.SetPlayerHas(v) = 
         playerHas <- v
         dungeonsAndBoxesLastChangedTime <- System.DateTime.Now

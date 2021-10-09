@@ -678,7 +678,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Yellow)
     let drawCompletedIconHighlight(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=15.0*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4)
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
         let diff = if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.
         canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
     let drawCompletedDungeonHighlight(c,x,y) =
@@ -701,9 +701,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         for j = 0 to 7 do
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owMapGrid, c, i, j)
-            // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
+            // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
             let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
-            image.Opacity <- 0.0
+            image.Opacity <- 0.001
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
             let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
@@ -764,9 +764,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     // cant remove-by-identity because of non-uniques; remake whole canvas
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
-                    // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at 0 opacity
+                    // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
                     let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
-                    image.Opacity <- 0.0
+                    image.Opacity <- 0.001
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
@@ -844,6 +844,18 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 let popupIsActive = ref false
+                let SetNewValue(currentState, originalState) = async {
+                    if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
+                        if currentState >=0 && currentState <=8 then
+                            selectDungeonTabEvent.Trigger(currentState)
+                        match overworldAcceleratorTable.TryGetValue(currentState) with
+                        | (true,f) -> do! f(cm,c,i,j)
+                        | _ -> ()
+                        redrawGridSpot()
+                        if originalState = -1 && currentState <> -1 then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
+                    else
+                        System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
+                }
                 let activatePopup(activationDelta) =
                     popupIsActive := true
                     // left click activates the popup selector
@@ -889,15 +901,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
                                     [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                         match r with
-                        | Some(currentState) ->
-                            TrackerModel.overworldMapMarks.[i,j].Set(currentState)
-                            if currentState >=0 && currentState <=8 then
-                                selectDungeonTabEvent.Trigger(currentState)
-                            match overworldAcceleratorTable.TryGetValue(currentState) with
-                            | (true,f) -> do! f(cm,c,i,j)
-                            | _ -> ()
-                            redrawGridSpot()
-                            if originalState = -1 && currentState <> -1 then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
+                        | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
                         popupIsActive := false
                         } |> Async.StartImmediate
@@ -917,6 +921,14 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                         } |> Async.StartImmediate
                     )
                 c.MouseWheel.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta<0 then 1 else -1))
+                c.MyKeyAdd(fun ea ->
+                    if not !popupIsActive then
+                        match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
+                        | Some(state) -> 
+                            let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            Async.StartImmediate <| SetNewValue(state, originalState)
+                        | None -> ()
+                    )
     speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                                     let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
@@ -1534,9 +1546,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
         c.MyKeyAdd(fun ea -> 
-            match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
-            | Some(db) -> SetNewValue(db)
-            | None -> ()
+            if not popupIsActive then
+                match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(db) -> SetNewValue(db)
+                | None -> ()
             )
         c
 
@@ -1613,7 +1626,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         for j = 0 to 7 do
             let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),  // may change with OMTW and overall layout
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
-                                    FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold)
+                                    FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
             mirrorOverworldFEs.Add(tb)
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
