@@ -20,8 +20,6 @@ CURRENT PRIORITIES
 
 hotkey testing, hotkey writeup in Notes
 
-Text="GRAB" in DungeonUI is a mess, why not a button
-
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
 
 marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2

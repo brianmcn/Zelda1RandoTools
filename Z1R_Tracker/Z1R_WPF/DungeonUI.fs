@@ -268,8 +268,12 @@ For the commonest case of a non-descript room needing no special marker, a quick
             for f in roomRedrawFuncs do
                 f()
         // grab button for this tab
-        let grabTB = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=true,
-                                Text="GRAB", BorderThickness=Thickness(0.))
+        let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                Text="GRAB", BorderThickness=Thickness(0.), Margin=Thickness(0.), Padding=Thickness(0.),
+                                HorizontalContentAlignment=HorizontalAlignment.Center, VerticalContentAlignment=VerticalAlignment.Center)
+        let grabButton = new Button(Width=float(13*3), Height=float(TH), Content=grabTB, Background=Brushes.Black, BorderThickness=Thickness(2.), 
+                                    Margin=Thickness(0.), Padding=Thickness(0.),
+                                    HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
         let grabRedraw() =
             if grabHelper.IsGrabMode then
                 grabTB.Foreground <- Brushes.White
@@ -284,8 +288,8 @@ For the commonest case of a non-descript room needing no special marker, a quick
                 grabTB.Background <- Brushes.Black
                 dungeonTabs.Cursor <- null
                 grabModeTextBlock.Opacity <- 0.
-        canvasAdd(dungeonCanvas, grabTB, float(7*51)+1., 0.)
-        grabTB.PreviewMouseLeftButtonDown.Add(fun _ ->
+        canvasAdd(dungeonCanvas, grabButton, float(7*51)+1., 0.)
+        grabButton.Click.Add(fun _ ->
             grabHelper.ToggleGrabMode()
             grabRedraw()
             )

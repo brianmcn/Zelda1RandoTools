@@ -274,27 +274,28 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for f in roomRedrawFuncs do
                 f()
         // grab button for this tab
-        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=true,
-                                Text="GRAB", BorderThickness=Thickness(0.))
+        let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                Text="GRAB", BorderThickness=Thickness(0.), Margin=Thickness(0.), Padding=Thickness(0.))
+        let grabButton = new Button(Width=float(13*3), Height=float(TH), Content=grabTB, Background=Brushes.Black, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
         let grabRedraw() =
             if grabHelper.IsGrabMode then
-                tb.Foreground <- Brushes.White
-                tb.Background <- Brushes.Red
+                grabTB.Foreground <- Brushes.White
+                grabTB.Background <- Brushes.Red
                 //dungeonTabs.Cursor <- Avalonia.Input.Cursor.Default // TODO other cursor?
                 grabModeTextBlock.Opacity <- 1.
             else
                 grabHelper.Abort()
                 dungeonHighlightCanvas.Children.Clear()
                 dungeonSourceHighlightCanvas.Children.Clear()
-                tb.Foreground <- Brushes.Gray
-                tb.Background <- Brushes.Black
+                grabTB.Foreground <- Brushes.Gray
+                grabTB.Background <- Brushes.Black
                 //dungeonTabs.Cursor <- null
                 grabModeTextBlock.Opacity <- 0.
-        canvasAdd(dungeonCanvas, tb, float(7*51)+1., 0.)
-        tb.AddHandler<_>(Avalonia.Input.InputElement.PointerPressedEvent, new EventHandler<_>(fun _ _ ->
+        canvasAdd(dungeonCanvas, grabButton, float(7*51)+1., 0.)
+        grabButton.Click.Add(fun _ ->
                 grabHelper.ToggleGrabMode()
                 grabRedraw()
-            ), Avalonia.Interactivity.RoutingStrategies.Tunnel)
+            )
         dungeonTabs.SelectionChanged.Add(fun _ -> 
             // the tab has already changed, kill the current grab
             if grabHelper.IsGrabMode then 
