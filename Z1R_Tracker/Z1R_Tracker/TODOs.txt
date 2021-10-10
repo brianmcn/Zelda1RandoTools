@@ -26,8 +26,6 @@ marc note about bow dungeon room and bow blocker via dungeon-mouse-location-cont
 
 marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
-link inset in dungeon should carry down a visual of the number (for HDN)
-
 pause timer (while reset timer is modal?)
 
 
@@ -271,7 +269,7 @@ auto-tracking (link to emulator)
 
 comparisons to ZHelper
 
-ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, hotkeys, ...) and uses less screen real estate.
+ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, ...) and uses less screen real estate.
 
 That said, I think this tracker has a number of advantages in usability, both in design and feature set:
 

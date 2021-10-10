@@ -55,8 +55,20 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     linkCanvas.Children.Add(link2) |> ignore
     let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
     // draw triforce (or label if 9) and N boxes, populated as now
-    let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex) else Views.MakeLevel9View()
     let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+        let d = TrackerModel.GetDungeon(dungeonIndex)
+        let redraw(color,labelChar) =
+            colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            colorCanvas.Children.Clear()
+            let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
+            if d.LabelChar <> '?' then
+                colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(labelChar, color, 28, 28, 3, 2))) |> ignore
+        redraw(d.Color, d.LabelChar)
+        d.HiddenDungeonColorOrLabelChanged.Add(redraw)
+        sp.Children.Add(colorCanvas) |> ignore
+    let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex) else Views.MakeLevel9View()
     sp.Children.Add(dungeonView) |> ignore
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
@@ -66,14 +78,14 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     let border = new Border(Child=sp, BorderThickness=Thickness(3.), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
     // dynamic highlight
     let line,triangle = Graphics.makeArrow(30.*float dungeonIndex+15., 36.+float(d.Boxes.Length+1)*30., pos.X+21., pos.Y-3., yellow)
-    let rect = new Shapes.Rectangle(Width=36., Height=6.+float(d.Boxes.Length+1)*30., Stroke=yellow, StrokeThickness=3.)
+    let rect = new Shapes.Rectangle(Width=36., Height=6.+float(d.Boxes.Length+1+if TrackerModel.IsHiddenDungeonNumbers()then 1 else 0)*30., Stroke=yellow, StrokeThickness=3.)
     line.Opacity <- 0.
     triangle.Opacity <- 0.
     rect.Opacity <- 0.
     let c = new Canvas()
     canvasAdd(c, line, 0., 0.)
     canvasAdd(c, triangle, 0., 0.)
-    canvasAdd(c, rect, 30.*float dungeonIndex-3., 27.)
+    canvasAdd(c, rect, 30.*float dungeonIndex-3., 27. - if TrackerModel.IsHiddenDungeonNumbers() then 30. else 0.)
     let highlight() =
         if c.Parent = null then
             canvasAdd(cm.AppMainCanvas, c, 0., 0.)
