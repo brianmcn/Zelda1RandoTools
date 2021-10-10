@@ -19,14 +19,14 @@ type MyWindowBase() as this =
     let VK_F5 = 0x74
     let VK_F10 = 0x79
     let MOD_NONE = 0u
-    let mutable startTime = DateTime.Now
+    let startTime = new TrackerModel.LastChangedTime()
     do
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
-        timer.Interval <- TimeSpan.FromSeconds(1.0)
+        timer.Interval <- TimeSpan.FromSeconds(0.1)
         timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
-    member this.SetStartTime(x) = startTime <- x
+    member this.SetStartTimeToNow() = startTime.SetNow()
     member this.StartTime = startTime
     abstract member Update : bool -> unit
     default this.Update(_f10Press) = ()
@@ -264,7 +264,7 @@ type MyWindow() as this =
                     appMainCanvas.Children.Remove(mainDock)
                     let u = WPFUI.makeAll(cm, n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
-                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTime(DateTime.Now))
+                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                     //let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful, but mouse warping does not account for change
                     //cm.RootCanvas.RenderTransform <- trans
@@ -307,7 +307,7 @@ type MyWindow() as this =
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time
-        let ts = DateTime.Now - this.StartTime
+        let ts = DateTime.Now - this.StartTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
         // update timeline
@@ -334,7 +334,7 @@ type TimerOnlyWindow() as this =
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time
-        let ts = DateTime.Now - this.StartTime
+        let ts = DateTime.Now - this.StartTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
 
@@ -361,7 +361,7 @@ type TerrariaTimerOnlyWindow() as this =
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update hms time
-        let mutable ts = DateTime.Now - this.StartTime
+        let mutable ts = DateTime.Now - this.StartTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
         // update terraria time

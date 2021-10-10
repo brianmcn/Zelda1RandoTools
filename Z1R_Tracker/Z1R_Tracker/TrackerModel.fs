@@ -440,6 +440,56 @@ type MapSquareChoiceDomainHelper =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// not threadsafe
+type LastChangedTime(intervalHowFarInThePast) as this =
+    static let mutable pause = None
+    static let allInstances = ResizeArray()
+    let mutable stamp = System.DateTime.Now - intervalHowFarInThePast
+    let mutable isFuture = None  // if Some(interval), interval is how far in past upon waking
+    do
+        allInstances.Add(this)
+    static member private CurrentPause = pause
+    static member IsPaused = pause.IsSome
+    static member PauseAll() = 
+        match pause with
+        | Some _ -> ()
+        | None -> pause <- Some(System.DateTime.Now)
+    static member ResumeAll() =
+        match pause with
+        | None -> ()
+        | Some whenPaused ->
+            let now = System.DateTime.Now
+            let interval = now - whenPaused
+            for lct in allInstances do
+                lct.AddTime(interval, now)
+            pause <- None
+    new() = LastChangedTime(System.TimeSpan.Zero)
+    member this.SetNow() = 
+        stamp <- System.DateTime.Now
+        match LastChangedTime.CurrentPause with
+        | None -> ()
+        | Some _ -> isFuture <- Some(System.TimeSpan.Zero)
+    member this.SetAgo(interval) = 
+        stamp <- System.DateTime.Now - interval
+        match LastChangedTime.CurrentPause with
+        | None -> ()
+        | Some _ -> isFuture <- Some(interval)
+    member private this.AddTime(interval, now) =
+        match isFuture with
+        | None -> stamp <- stamp + interval
+        | Some(howFarToGoBack) ->
+            stamp <- now - howFarToGoBack
+            isFuture <- None
+    member this.Time = 
+        match LastChangedTime.CurrentPause with
+        | None -> stamp
+        | Some whenPaused -> 
+            match isFuture with
+            | Some(interval) -> System.DateTime.Now - interval
+            | None -> stamp + (System.DateTime.Now - whenPaused)
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 (*
 Two main kinds of UI changes can occur:
  - user can scroll/change a Cell or click a Box, which requires immediate visual feedback
@@ -473,24 +523,24 @@ type BoolProperty(initState,changedFunc) =
         changed.Trigger(state)
     member _this.Value() = state
     member _this.Changed = changed.Publish
-let mutable playerProgressLastChangedTime = System.DateTime.Now
+let playerProgressLastChangedTime = new LastChangedTime()
 type PlayerProgressAndTakeAnyHearts() =
     // describes the state directly accessible in the upper right portion of the UI
     let takeAnyHearts = [| 0; 0; 0; 0 |]   // 0 = untaken (open heart on UI), 1 = taken heart (red heart on UI), 2 = taken potion/candle (X out empty heart on UI)
-    let playerHasBoomBook      = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasWoodSword     = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasWoodArrow     = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasBlueRing      = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasBlueCandle    = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasMagicalSword  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasDefeatedGanon = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasRescuedZelda  = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
-    let playerHasBombs         = BoolProperty(false,fun()->playerProgressLastChangedTime <- System.DateTime.Now)
+    let playerHasBoomBook      = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasWoodSword     = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasWoodArrow     = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasBlueRing      = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasBlueCandle    = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasMagicalSword  = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasDefeatedGanon = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasRescuedZelda  = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
+    let playerHasBombs         = BoolProperty(false,fun()->playerProgressLastChangedTime.SetNow())
     let takeAnyHeartChanged = new Event<_>()
     member _this.GetTakeAnyHeart(i) = takeAnyHearts.[i]
     member _this.SetTakeAnyHeart(i,v) = 
         takeAnyHearts.[i] <- v
-        playerProgressLastChangedTime <- System.DateTime.Now
+        playerProgressLastChangedTime.SetNow()
         takeAnyHeartChanged.Trigger(i)
     member _this.TakeAnyHeartChanged = takeAnyHeartChanged.Publish
     member _this.PlayerHasBoomBook      = playerHasBoomBook
@@ -507,7 +557,7 @@ let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeons and Boxes
 
-let mutable dungeonsAndBoxesLastChangedTime = System.DateTime.Now
+let dungeonsAndBoxesLastChangedTime = new LastChangedTime()
 [<RequireQualifiedAccess>]
 type PlayerHas = | YES | NO | SKIPPED
 type Box() =
@@ -521,29 +571,29 @@ type Box() =
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
         cell.Prev()
-        dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
     member _this.CellNext() = 
         cell.Next()
-        dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
     member _this.CellCurrent() = cell.Current()
     member _this.Set(v,ph) = 
         cell.Set(v)
         playerHas <- ph
-        dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
     member _this.AttemptToSet(v,ph) = 
         if cell.AttemptToSet(v) then
             playerHas <- ph
-            dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+            dungeonsAndBoxesLastChangedTime.SetNow()
             changed.Trigger()
             true
         else
             false
     member _this.SetPlayerHas(v) = 
         playerHas <- v
-        dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+        dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
 
 let ladderBox = Box()
@@ -605,7 +655,7 @@ and Dungeon(id,numBoxes) =
     member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
     member _this.HasBeenLocatedChanged = hasBeenLocatedChangeEvent.Publish
     member _this.PlayerHasTriforce() = playerHasTriforce
-    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; playerHasTriforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; playerHasTriforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime.SetNow()
     member _this.PlayerHasTriforceChanged = playerHasTriforceChangeEvent.Publish
     member _this.Boxes = 
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
@@ -631,7 +681,7 @@ and Dungeon(id,numBoxes) =
             playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
     // for Hidden Dungeon Numbers
     member _this.Color with get() = color and set(x) = color <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
-    member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime <- System.DateTime.Now
+    member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime.SetNow()
     member _this.HiddenDungeonColorOrLabelChanged = hiddenDungeonColorLabelChangeEvent.Publish
 
 let GetDungeon(i) = DungeonTrackerInstance.TheDungeonTrackerInstance.Dungeons(i)
@@ -672,7 +722,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveBookOrShield = haveBook
     member _this.BoomerangLevel = boomerangLevel
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
-let mutable playerComputedStateSummaryLastComputedTime = System.DateTime.Now
+let playerComputedStateSummaryLastComputedTime = new LastChangedTime()
 let recomputePlayerStateSummary() =
     let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
     let mutable swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel = 0,0,0,false,0,false,false,0
@@ -727,14 +777,14 @@ let recomputePlayerStateSummary() =
             playerHearts <- playerHearts + 1
     playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
                                                                 swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
-    playerComputedStateSummaryLastComputedTime <- System.DateTime.Now
+    playerComputedStateSummaryLastComputedTime.SetNow()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Map
 
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
-let mutable mapLastChangedTime = System.DateTime.Now
+let mapLastChangedTime = new LastChangedTime()
 let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
 let private overworldMapExtraData = Array2D.create 16 8 0   
 // extra data, used by 
@@ -743,9 +793,9 @@ let private overworldMapExtraData = Array2D.create 16 8 0
 let getOverworldMapExtraData(i,j) = overworldMapExtraData.[i,j]
 let setOverworldMapExtraData(i,j,x) = 
     overworldMapExtraData.[i,j] <- x
-    mapLastChangedTime <- System.DateTime.Now
+    mapLastChangedTime.SetNow()
 do
-    mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime <- System.DateTime.Now)
+    mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
 let NOTFOUND = (-1,-1)
 type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
@@ -763,7 +813,7 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Locat
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
 let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
-let mutable mapStateSummaryLastComputedTime = System.DateTime.Now
+let mapStateSummaryLastComputedTime = new LastChangedTime()
 let recomputeMapStateSummary() =
     let dungeonLocations = Array.create 9 NOTFOUND
     let anyRoadLocations = Array.create 4 NOTFOUND
@@ -835,7 +885,7 @@ let recomputeMapStateSummary() =
     owRouteworthySpots.[15,5] <- playerComputedStateSummary.HaveLadder && not playerComputedStateSummary.HaveCoastItem // gettable coast item is routeworthy
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
-    mapStateSummaryLastComputedTime <- System.DateTime.Now
+    mapStateSummaryLastComputedTime.SetNow()
 
 let initializeAll(instance:OverworldData.OverworldInstance, dungeonTrackerInstance) =
     DungeonTrackerInstance.TheDungeonTrackerInstance <- dungeonTrackerInstance
@@ -903,12 +953,12 @@ let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.N
 
 let recomputeWhatIsNeeded() =
     let mutable changed = false
-    if playerProgressLastChangedTime > playerComputedStateSummaryLastComputedTime ||
-        dungeonsAndBoxesLastChangedTime > playerComputedStateSummaryLastComputedTime then
+    if playerProgressLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time ||
+        dungeonsAndBoxesLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time then
         recomputePlayerStateSummary()
         changed <- true
-    if playerComputedStateSummaryLastComputedTime > mapStateSummaryLastComputedTime ||
-        mapLastChangedTime > mapStateSummaryLastComputedTime then
+    if playerComputedStateSummaryLastComputedTime.Time > mapStateSummaryLastComputedTime.Time ||
+        mapLastChangedTime.Time > mapStateSummaryLastComputedTime.Time then
         recomputeMapStateSummary()
         changed <- true
     changed
@@ -996,7 +1046,7 @@ let GetLevelHint, SetLevelHint, LevelHintChanged =
 let forceUpdate() = 
     // UI can force an update for a few bits that we don't model well yet
     // TODO ideally dont want this, feels like kludge?
-    mapLastChangedTime <- System.DateTime.Now
+    mapLastChangedTime.SetNow()
                 
 //////////////////////////////////////////////////////////////////////////////////////////
 

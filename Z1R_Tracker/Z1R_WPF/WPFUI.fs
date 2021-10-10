@@ -126,9 +126,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     let timelineItems = ResizeArray()
 
     let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
-        let mutable routeTargetLastClickedTime = DateTime.Now - TimeSpan.FromMinutes(10.)
+        let routeTargetLastClickedTime = new TrackerModel.LastChangedTime(TimeSpan.FromMinutes(10.))
         let mutable routeTarget = None
-        let isSpecificRouteTargetActive() = DateTime.Now - routeTargetLastClickedTime < TimeSpan.FromSeconds(10.)
+        let isSpecificRouteTargetActive() = DateTime.Now - routeTargetLastClickedTime.Time < TimeSpan.FromSeconds(10.)
         let currentRouteTarget() =
             if isSpecificRouteTargetActive() then
                 routeTarget
@@ -136,9 +136,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 None
         let eliminateCurrentRouteTarget() =
             routeTarget <- None
-            routeTargetLastClickedTime <- DateTime.Now - TimeSpan.FromMinutes(10.)
+            routeTargetLastClickedTime.SetAgo(TimeSpan.FromMinutes(10.))
         let changeCurrentRouteTarget(newTarget) =
-            routeTargetLastClickedTime <- DateTime.Now
+            routeTargetLastClickedTime.SetNow()
             routeTarget <- Some(newTarget)
         isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget
     
@@ -470,20 +470,22 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     mirrorOverworldFEs.Add(overworldCanvas)
 
     // timer reset
-    let timerResetButton = Graphics.makeButton("Reset timer", Some(16.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, timerResetButton, 13.*OMTW, 65.)
+    let timerResetButton = Graphics.makeButton("Pause/Reset timer", Some(16.), Some(Brushes.Orange))
+    canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 65.)
     let mutable popupIsActive = false
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
-            let secondButton = Graphics.makeButton("Click here to confirm you want to Reset the timer,\nor click anywhere else to cancel", Some(16.), Some(Brushes.Orange))
+            let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
             let wh = new System.Threading.ManualResetEvent(false)
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
                 wh.Set() |> ignore
                 )
             async {
+                TrackerModel.LastChangedTime.PauseAll()
                 do! CustomComboBoxes.DoModal(cm, wh, 100., 200., secondButton)
+                TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
@@ -646,7 +648,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()
     let mutable mostRecentlyScrolledDungeonIndex = -1
-    let mutable mostRecentlyScrolledDungeonIndexTime = DateTime.Now
+    let mostRecentlyScrolledDungeonIndexTime = new TrackerModel.LastChangedTime()
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -696,7 +698,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let drawDungeonRecorderWarpHighlight(c,x,y) =
         drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
-    let mutable mostRecentMouseEnterTime = DateTime.Now 
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=OMTW, Height=float(11*3))
@@ -730,7 +731,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
-                                        mostRecentMouseEnterTime <- DateTime.Now)
+                                        )
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
                                       dungeonTabsOverlayContent.Children.Clear()
                                       dungeonTabsOverlay.Opacity <- 0.
@@ -821,14 +822,14 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             let newState = TrackerModel.overworldMapMarks.[i,j].Current()
                             if newState >=0 && newState <=7 then
                                 mostRecentlyScrolledDungeonIndex <- newState
-                                mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
+                                mostRecentlyScrolledDungeonIndexTime.SetNow()
                         elif delta = -1 then 
                             TrackerModel.overworldMapMarks.[i,j].Prev() 
                             while not(isLegalHere(TrackerModel.overworldMapMarks.[i,j].Current())) do TrackerModel.overworldMapMarks.[i,j].Prev()
                             let newState = TrackerModel.overworldMapMarks.[i,j].Current()
                             if newState >=0 && newState <=7 then
                                 mostRecentlyScrolledDungeonIndex <- newState
-                                mostRecentlyScrolledDungeonIndexTime <- DateTime.Now
+                                mostRecentlyScrolledDungeonIndexTime.SetNow()
                         elif delta = 0 then 
                             ()
                         else failwith "bad delta"
@@ -1163,6 +1164,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
+    let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
         if displayIsCurrentlyMirrored <> TrackerModel.Options.Overworld.MirrorOverworld.Value then
             // model changed, align the view
@@ -1325,7 +1327,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
-                if DateTime.Now - mostRecentlyScrolledDungeonIndexTime < TimeSpan.FromSeconds(1.5) then
+                if DateTime.Now - mostRecentlyScrolledDungeonIndexTime.Time < TimeSpan.FromSeconds(1.5) then
                     selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
                 let icons = [upcb(Graphics.genericDungeonInterior_bmp); ReminderTextBox(sprintf"%d/9"n)]
                 if n = 1 then
@@ -1401,81 +1403,94 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     icons.Add(upcb(MapStateProxy(d).CurrentInteriorBMP()))
                 SendReminder(TrackerModel.ReminderCategory.Blockers, sentence, icons)
             member _this.RemindShortly(itemId) = 
-                let f, g, text, icons =
-                    if itemId = TrackerModel.ITEMS.KEY then
-                        (fun() -> TrackerModel.playerComputedStateSummary.HaveAnyKey), (fun() -> TrackerModel.remindedAnyKey <- false), "Don't forget that you have the any key", [upcb(Graphics.key_bmp)]
-                    elif itemId = TrackerModel.ITEMS.LADDER then
-                        (fun() -> TrackerModel.playerComputedStateSummary.HaveLadder), (fun() -> TrackerModel.remindedLadder <- false), "Don't forget that you have the ladder", [upcb(Graphics.ladder_bmp)]
-                    else
-                        failwith "bad reminder"
-                let cxt = System.Threading.SynchronizationContext.Current 
-                async { 
-                    do! Async.Sleep(60000)  // 60s
-                    do! Async.SwitchToContext(cxt)
-                    if f() then
-                        SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, text, icons) 
-                    else
-                        g()
-                } |> Async.Start
+                if itemId = TrackerModel.ITEMS.KEY then
+                    oneTimeRemindAnyKey <- Some(new TrackerModel.LastChangedTime(), (fun() ->
+                        oneTimeRemindAnyKey <- None
+                        if TrackerModel.playerComputedStateSummary.HaveAnyKey then
+                            SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, "Don't forget that you have the any key", [upcb(Graphics.key_bmp)])
+                        else
+                            TrackerModel.remindedAnyKey <- false))
+                elif itemId = TrackerModel.ITEMS.LADDER then
+                    oneTimeRemindLadder <- Some(new TrackerModel.LastChangedTime(), (fun() ->
+                        oneTimeRemindLadder <- None
+                        if TrackerModel.playerComputedStateSummary.HaveLadder then
+                            SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, "Don't forget that you have the ladder", [upcb(Graphics.ladder_bmp)])
+                        else
+                            TrackerModel.remindedLadder <- false))
+                else
+                    failwith "bad reminder"
             })
         )
     let threshold = TimeSpan.FromMilliseconds(500.0)
-    let recently = DateTime.Now - TimeSpan.FromMinutes(3.0)
-    let mutable ladderTime, recorderTime, powerBraceletTime, boomstickTime = recently,recently,recently,recently
+    let recentlyAgo = TimeSpan.FromMinutes(3.0)
+    let ladderTime, recorderTime, powerBraceletTime, boomstickTime = 
+        new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo)
     let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0, 0
     let timer = new System.Windows.Threading.DispatcherTimer()
     timer.Interval <- TimeSpan.FromSeconds(1.0)
     timer.Tick.Add(fun _ -> 
-        let hasUISettledDown = 
-            DateTime.Now - TrackerModel.playerProgressLastChangedTime > threshold &&
-            DateTime.Now - TrackerModel.dungeonsAndBoxesLastChangedTime > threshold &&
-            DateTime.Now - TrackerModel.mapLastChangedTime > threshold
-        if hasUISettledDown then
-            let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
-            if hasTheModelChanged then
-                doUIUpdateEvent.Trigger()
-        // link animation
-        stepAnimateLink()
-        // remind ladder
-        if (DateTime.Now - ladderTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HaveLadder then
-                if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
-                    let n = TrackerModel.ladderBox.CellCurrent()
-                    if n = -1 then
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
-                    else
-                        SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
-                                        [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
-                    ladderTime <- DateTime.Now
-        // remind whistle spots
-        if (DateTime.Now - recorderTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HaveRecorder then
-                let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
-                if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
-                    let icons = [upcb(Graphics.recorder_bmp); ReminderTextBox(owWhistleSpotsRemain.ToString())]
-                    if owWhistleSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one recorder spot", icons)
-                    else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
-                recorderTime <- DateTime.Now
-                owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
-        // remind power bracelet spots
-        if (DateTime.Now - powerBraceletTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
-                if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
-                    let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
-                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one power bracelet spot", icons)
-                    else
-                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
-                powerBraceletTime <- DateTime.Now
-                owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
-        // remind boomstick book
-        if (DateTime.Now - boomstickTime).Minutes > 2 then  // every 3 mins
-            if TrackerModel.playerComputedStateSummary.HaveWand then
-                if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
-                    SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
-                    boomstickTime <- DateTime.Now
+        if not(TrackerModel.LastChangedTime.IsPaused) then
+            let hasUISettledDown = 
+                DateTime.Now - TrackerModel.playerProgressLastChangedTime.Time > threshold &&
+                DateTime.Now - TrackerModel.dungeonsAndBoxesLastChangedTime.Time > threshold &&
+                DateTime.Now - TrackerModel.mapLastChangedTime.Time > threshold
+            if hasUISettledDown then
+                let hasTheModelChanged = TrackerModel.recomputeWhatIsNeeded()  
+                if hasTheModelChanged then
+                    doUIUpdateEvent.Trigger()
+            // link animation
+            stepAnimateLink()
+            // remind ladder
+            if (DateTime.Now - ladderTime.Time).Minutes > 2 then  // every 3 mins
+                if TrackerModel.playerComputedStateSummary.HaveLadder then
+                    if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
+                        let n = TrackerModel.ladderBox.CellCurrent()
+                        if n = -1 then
+                            SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
+                        else
+                            SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
+                                            [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
+                        ladderTime.SetNow()
+            // remind whistle spots
+            if (DateTime.Now - recorderTime.Time).Minutes > 2 then  // every 3 mins
+                if TrackerModel.playerComputedStateSummary.HaveRecorder then
+                    let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
+                    if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
+                        let icons = [upcb(Graphics.recorder_bmp); ReminderTextBox(owWhistleSpotsRemain.ToString())]
+                        if owWhistleSpotsRemain = 1 then
+                            SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one recorder spot", icons)
+                        else
+                            SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
+                    recorderTime.SetNow()
+                    owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
+            // remind power bracelet spots
+            if (DateTime.Now - powerBraceletTime.Time).Minutes > 2 then  // every 3 mins
+                if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
+                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
+                        let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
+                        if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
+                            SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one power bracelet spot", icons)
+                        else
+                            SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
+                    powerBraceletTime.SetNow()
+                    owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
+            // remind boomstick book
+            if (DateTime.Now - boomstickTime.Time).Minutes > 2 then  // every 3 mins
+                if TrackerModel.playerComputedStateSummary.HaveWand then
+                    if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
+                        boomstickTime.SetNow()
+            // one-time reminders
+            match oneTimeRemindAnyKey with
+            | None -> ()
+            | Some(lct, thunk) ->
+                if (DateTime.Now - lct.Time).Minutes > 0 then  // 1 min
+                    thunk()
+            match oneTimeRemindLadder with
+            | None -> ()
+            | Some(lct, thunk) ->
+                if (DateTime.Now - lct.Time).Minutes > 0 then  // 1 min
+                    thunk()
         )
     timer.Start()
 

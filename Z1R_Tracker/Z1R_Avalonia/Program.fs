@@ -16,7 +16,7 @@ type MyCommand(f) =
 
 type MyWindow() as this = 
     inherit Window()
-    let mutable startTime = DateTime.Now
+    let startTime = new TrackerModel.LastChangedTime()
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=32.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
@@ -47,7 +47,7 @@ type MyWindow() as this =
         // TODO ideally this should be a free font included in the assembly
         this.FontFamily <- FontFamily("Segoe UI")
         let timer = new Avalonia.Threading.DispatcherTimer()
-        timer.Interval <- TimeSpan.FromSeconds(1.0)
+        timer.Interval <- TimeSpan.FromSeconds(0.1)
         timer.Tick.Add(fun _ -> this.Update(false))
         timer.Start()
         (*
@@ -170,7 +170,7 @@ type MyWindow() as this =
                                 TrackerModel.DungeonTrackerInstanceKind.DEFAULT
                         appMainCanvas.Children.Remove(hstackPanel) |> ignore
                         let u = UI.makeAll(cm, i, heartShuffle, kind)
-                        UI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); startTime <- DateTime.Now)
+                        UI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); startTime.SetNow())
                         updateTimeline <- u
                         UI.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)
                         this.Content <- cm.RootCanvas
@@ -179,7 +179,7 @@ type MyWindow() as this =
         hstackPanel.Children.Add(stackPanel) |> ignore
     member this.Update(f10Press) =
         // update time
-        let ts = DateTime.Now - startTime
+        let ts = DateTime.Now - startTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
         hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
         // update timeline

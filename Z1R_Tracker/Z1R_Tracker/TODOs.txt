@@ -20,13 +20,16 @@ CURRENT PRIORITIES
 
 hotkey testing, hotkey writeup in Notes
 
+there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
+ - change 9 icon on strip
+ - make it not participate in usedTransports
+
 Text="GRAB" in DungeonUI is a mess, why not a button
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
 
 marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
-pause timer (while reset timer is modal?)
 
 
 distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up
@@ -43,10 +46,6 @@ I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
 Kigalas found 'take any' popup confusing first time he saw it, but figured it out
  - wants 'tracker take candle' speech recognition there
-
-there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
- - change 9 icon on strip
- - make it not participate in usedTransports
 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
