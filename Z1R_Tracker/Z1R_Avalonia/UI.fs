@@ -869,8 +869,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                             yield typicalGESAI(n)
                         yield null, false, -999  // null asks selector to 'leave a hole' here
                         // other row
-                        yield null, false, -999  // null asks selector to 'leave a hole' here
-                        for n = 30 to 33 do
+                        for n = 30 to 34 do
                             yield typicalGESAI(n)
                         yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, 34
                         yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1

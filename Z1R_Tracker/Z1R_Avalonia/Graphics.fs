@@ -424,18 +424,21 @@ do
     theInteriorBmpTable.[28].Add(getInteriorIconFromStrip(12) |> darkenImpl 0.7)
     // 29 money making game
     theInteriorBmpTable.[29].Add(getInteriorIconFromStrip(10))
-    // 30  armos
-    theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(7))
-    // 31  hint shop
-    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(3))
-    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(3) |> darkenImpl 0.7)
-    // 32  take any
-    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(4))
-    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(4) |> darken)
-    // 33  potion shop
-    theInteriorBmpTable.[33].Add(getInteriorIconFromStrip(5))
-    // 34  'X'
-    theInteriorBmpTable.[34].Add(darkxbmp)
+    // 30  letter
+    theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(13))
+    theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(13) |> darkenImpl 0.7)
+    // 31  armos
+    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(7))
+    // 32  hint shop
+    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3))
+    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3) |> darkenImpl 0.7)
+    // 33  take any
+    theInteriorBmpTable.[33].Add(getInteriorIconFromStrip(4))
+    theInteriorBmpTable.[33].Add(getInteriorIconFromStrip(4) |> darken)
+    // 34  potion shop
+    theInteriorBmpTable.[34].Add(getInteriorIconFromStrip(5))
+    // 35  'X'
+    theInteriorBmpTable.[35].Add(darkxbmp)
 // full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
 let theFullTileBmpTable = Array.init theInteriorBmpTable.Length (fun _ -> ResizeArray())
 do

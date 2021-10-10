@@ -146,8 +146,10 @@ let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
             Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[1], []
-    // door repair always dark (but light in the grid selector)
+    // door repair & potion letter always dark (but light in the grid selector)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+        Graphics.theFullTileBmpTable.[ms.State].[1], []
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
         Graphics.theFullTileBmpTable.[ms.State].[1], []
     // take any and sword1 default to being light (accelerators often darken them)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
