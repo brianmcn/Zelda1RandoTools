@@ -28,10 +28,11 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
             "small secret"      , 27
             "door repair"       , 28
             "money making game" , 29
-            "arm owes" (*armos*), 30
-            "hint shop"         , 31
-            "take any"          , 32
-            "potion shop"       , 33
+            "the letter"        , 30
+            "arm owes" (*armos*), 31
+            "hint shop"         , 32
+            "take any"          , 33
+            "potion shop"       , 34
             |]
         match kind with
         | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->

@@ -391,6 +391,7 @@ let overworldTiles = [|
     "SmallSecret"      , 999
     "DoorRepairCharge" , 999
     "MoneyMakingGame"  , 999
+    "Letter"           , 1
     "Armos"            , 1
     "HintShop"         , 4       // white/magical sword cave hint may also be marked, so 4 rather than 2
     "TakeAny"          , 4
@@ -437,11 +438,12 @@ type MapSquareChoiceDomainHelper =
     static member SMALL_SECRET = 27
     static member DOOR_REPAIR_CHARGE = 28
     static member MONEY_MAKING_GAME = 29
-    static member ARMOS = 30
-    static member HINT_SHOP = 31
-    static member TAKE_ANY = 32
-    static member POTION_SHOP = 33
-    static member DARK_X = 34
+    static member THE_LETTER = 30
+    static member ARMOS = 31
+    static member HINT_SHOP = 32
+    static member TAKE_ANY = 33
+    static member POTION_SHOP = 34
+    static member DARK_X = 35
     static member AsHotKeyName(n) =
         if n>=0 && n<overworldTiles.Length then
             fst(overworldTiles.[n])

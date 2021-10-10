@@ -134,6 +134,7 @@ OVERWORLD MAP
  - "door"       door repair charge
  - "dice"       money making game
    ---------------------------
+ - "letter"     the potion letter cave
  - "armos"      armos item location (can only be in 5 spots)
  - "purple?"    hint shop, or white/magical sword hint
  - "heart"      cave to "take any one you want"
@@ -345,7 +346,8 @@ let wakePhrase = "tracker set"
                 "small secret"      , 27
                 "door repair"       , 28
                 "money making game" , 29
-                "arm owes" (*armos*), 30
-                "hint shop"         , 31
-                "take any"          , 32
-                "potion shop"       , 33
+                "the letter"        , 30
+                "arm owes" (*armos*), 31
+                "hint shop"         , 32
+                "take any"          , 33
+                "potion shop"       , 34
