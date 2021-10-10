@@ -356,7 +356,7 @@ let genericDungeonInterior_bmp =
 // each overworld map tile may have multiple icons that can represent it (e.g. dungeon 1 versus dungeon A)
 // we store a table, where the array index is the mapSquareChoiceDomain index of the general entry type, and the value there is a list of all possible icons
 // MapStateProxy will eventually be responsible for 'decoding' the current tracker state into the appropriate icon
-let theInteriorBmpTable = Array.init (TrackerModel.mapSquareChoiceDomain.MaxKey+1) (fun _ -> ResizeArray())
+let theInteriorBmpTable = Array.init (TrackerModel.dummyOverworldTiles.Length) (fun _ -> ResizeArray())
 do
     let imageStream = GetResourceStream("ow_icons5x9.png")
     let interiorIconStrip = new System.Drawing.Bitmap(imageStream)

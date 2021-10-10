@@ -18,33 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-get counts for MMG etc, make choice domains depending upon overworld instance
-Both quests have 7 medium secrets
-1Q has 4 small and 3 large
-2Q has 6 small and 1 large
-gambling: 5, 6
-potions: 7, 9
-shops: 12, 15
-DRC: 9, 10
-1Q shops ?,?,3,1
-2Q shops 6,4,4,1 ?
-
-
-I think I know that 1Q has 73 spots and 2Q has 80.
-Both have 9 dungeons, 4 any-roads, 4 take-anys, 3 sword caves, 2 hint shops, and 2 'meet...' clues, 1 potion letter, and 1 armos item, so that's 26 spots taken. 
-
-1Q: 26, 14, 5, 7, 12, 9 
-2Q: 26, 14, 6, 9, 15, 10 
-
-
-door repair, money, etc...
-could imagine money pops up 'pay me for door repair'/'MMG'/'secret to everyone' and secret could even have small/med/big/unknown 2nd accelerator...
- - would need some kind of icon for each (only MMG needs to be distinct, perhaps, as others never need to return to, other than retrospective, but see below)
- - would want to hotkey into the final icon/state, rather than have to work through the accelerators...
- - ... or maybe the thing is, the model is wrong, and these should all be separate overworld map tiles (which gives them separate hotkeys, and choiceDomain counts)
- - ... and if they are tiles, the choiceDomainCountRemaining could be interesting to display, e.g. for DRC, TAH, large secrets, etc
-         - can imagine icon for DRC/TAH/large in upper right with remain-count displayed, and hovering shows where you found them so far
-               - or maybe hovering secret/take-any-heart should instead highlight those you left behind to take later
+and if they are tiles, the choiceDomainCountRemaining could be interesting to display, e.g. for DRC, TAH, large secrets, etc
+ - can imagine icon for DRC/TAH/large in upper right with remain-count displayed, and hovering shows where you found them so far
+    - or maybe hovering secret/take-any-heart should instead highlight those you left behind to take later
 
 hotkey testing, hotkey writeup in Notes
 

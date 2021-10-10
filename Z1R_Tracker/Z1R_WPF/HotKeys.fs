@@ -124,7 +124,7 @@ let MakeDefaultHotKeyFile(filename:string) =
     // overworld map tiles
     lines.Add("# OVERWORLD - these hotkey bindings take effect when mouse-hovering an overworld map tile")
     lines.Add("# Note that Level1-Level8 refer to dungeons A-H if using the 'Hide Dungeon Numbers' flag setting")
-    for i = 0 to TrackerModel.overworldTiles.Length-1 do
+    for i = 0 to TrackerModel.dummyOverworldTiles.Length-1 do
         lines.Add("Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) + " = ")
     lines.Add("Overworld_Nothing = ")
     lines.Add("")
@@ -220,7 +220,7 @@ let PopulateHotKeyTables() =
                     Add(ItemHotKeyProcessor, chOpt, i)
                     found <- true
             if not found then
-                for i = 0 to TrackerModel.overworldTiles.Length-1 do
+                for i = 0 to TrackerModel.dummyOverworldTiles.Length-1 do
                     if name = "Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) then
                         Add(OverworldHotKeyProcessor, chOpt, i)
                         found <- true

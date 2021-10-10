@@ -205,6 +205,7 @@ module Options =
 ///////////////////////////////////////////////////////////////////////////
 
 // abstraction for a set of scrollable choices
+[<AllowNullLiteral>]
 type ChoiceDomain(name:string,maxUsesArray:int[]) =
     // index keys are integers used as identifiers, values are max number of times it can appear among a set of cells
     // examples: ladder has max use of 1, heart container has max use of 9 in heartShuffle mode, bomb shop has max use of 999 (infinity)
@@ -360,7 +361,7 @@ let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-let overworldTiles = [|
+let overworldTiles(isFirstQuestOverworld) = [|
     "Level1"           , 1
     "Level2"           , 1
     "Level3"           , 1
@@ -377,7 +378,7 @@ let overworldTiles = [|
     "Sword3"           , 1
     "Sword2"           , 1
     "Sword1"           , 1
-    "ArrowShop"        , 999
+    "ArrowShop"        , 999   // 1Q has 12 shops, distributed ?,?,3,1     2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)
     "BombShop"         , 999
     "BookShop"         , 999
     "CandleShop"       , 999
@@ -386,20 +387,21 @@ let overworldTiles = [|
     "KeyShop"          , 999
     "ShieldShop"       , 999
     "UnknownSecret"    , 999
-    "LargeSecret"      , 999
-    "MediumSecret"     , 999
-    "SmallSecret"      , 999
-    "DoorRepairCharge" , 999
-    "MoneyMakingGame"  , 999
+    "LargeSecret"      , if isFirstQuestOverworld then 3 else 1
+    "MediumSecret"     , if isFirstQuestOverworld then 7 else 7
+    "SmallSecret"      , if isFirstQuestOverworld then 4 else 6
+    "DoorRepairCharge" , if isFirstQuestOverworld then 9 else 10
+    "MoneyMakingGame"  , if isFirstQuestOverworld then 5 else 6
     "Letter"           , 1
     "Armos"            , 1
     "HintShop"         , 4       // white/magical sword cave hint may also be marked, so 4 rather than 2
     "TakeAny"          , 4
-    "PotionShop"       , 999
+    "PotionShop"       , if isFirstQuestOverworld then 7 else 9
     "DarkX"            , 999
-    |]
+    |]   // 1Q has 73 total spots, 2Q has 80
+let dummyOverworldTiles = overworldTiles(true)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
 
-let mapSquareChoiceDomain = ChoiceDomain("mapSquare", overworldTiles |> Array.map snd)
+let mutable mapSquareChoiceDomain = null : ChoiceDomain
 // Note: if you make changes to above/below, also check: recomputeMapStateSummary(), Graphics.theInteriorBmpTable, SpeechRecognition, OverworldMapTileCustomization, ui's isLegalHere()
 type MapSquareChoiceDomainHelper = 
     static member DUNGEON_1 = 0
@@ -445,8 +447,8 @@ type MapSquareChoiceDomainHelper =
     static member POTION_SHOP = 34
     static member DARK_X = 35
     static member AsHotKeyName(n) =
-        if n>=0 && n<overworldTiles.Length then
-            fst(overworldTiles.[n])
+        if n>=0 && n<dummyOverworldTiles.Length then
+            fst(dummyOverworldTiles.[n])
         else
             failwith "bad overworld tile id"
 
@@ -618,7 +620,7 @@ type DungeonTrackerInstanceKind =
     | DEFAULT
 
 type DungeonTrackerInstance(kind) =
-    static let mutable theInstance = DungeonTrackerInstance(DungeonTrackerInstanceKind.DEFAULT)
+    static let mutable theInstance = None
     let finalBoxOf1Or4 = new Box()  // only relevant in DEFAULT
     let dungeons = 
         match kind with
@@ -652,7 +654,10 @@ type DungeonTrackerInstance(kind) =
         yield armosBox
         yield sword2Box
         |]
-    static member TheDungeonTrackerInstance with get() = theInstance and set(x) = theInstance <- x
+    static member TheDungeonTrackerInstance 
+        with get() = 
+            match theInstance with | Some i -> i | _ -> failwith "uninitialized TheDungeonTrackerInstance" 
+        and set(x:DungeonTrackerInstance) = theInstance <- Some(x)
 
 and Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
@@ -797,7 +802,7 @@ let recomputePlayerStateSummary() =
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
 let mapLastChangedTime = new LastChangedTime()
-let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
+let mutable overworldMapMarks : Cell[,] = null
 let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate MapSquareChoiceDomainHelper.DARK_X)
 // extra data key-value store, used by 
 //  - 3-item shops to store the second item, key for all shops is SHOP, value 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
@@ -814,8 +819,6 @@ let getOverworldMapExtraData(i,j,k) =
 let setOverworldMapExtraData(i,j,k,v) = 
     overworldMapExtraData.[i,j].[k] <- v
     mapLastChangedTime.SetNow()
-do
-    mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
 let NOTFOUND = (-1,-1)
 type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
@@ -907,15 +910,6 @@ let recomputeMapStateSummary() =
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime.SetNow()
-
-let initializeAll(instance:OverworldData.OverworldInstance, dungeonTrackerInstance) =
-    DungeonTrackerInstance.TheDungeonTrackerInstance <- dungeonTrackerInstance
-    owInstance <- instance
-    for i = 0 to 15 do
-        for j = 0 to 7 do
-            if owInstance.AlwaysEmpty(i,j) then
-                overworldMapMarks.[i,j].Prev()   // set to 'X'
-    recomputeMapStateSummary()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeon blockers
@@ -1321,11 +1315,26 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.RemindShortly(ITEMS.KEY)
         remindedAnyKey <- true
 
+ ///////////////////////////////////////////////////////
+
+let initializeAll(instance:OverworldData.OverworldInstance, kind) =
+    let isFirstQuestOverworld = (instance.Quest = OverworldData.OWQuest.FIRST) || (instance.Quest = OverworldData.OWQuest.MIXED_FIRST)
+
+    if mapSquareChoiceDomain = null then
+        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(isFirstQuestOverworld) |> Array.map snd)
+        mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
+        overworldMapMarks <- Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
+    else
+        failwith "cannot initialize mapSquareChoiceDomain twice"
+
+    let dungeonInstance = new DungeonTrackerInstance(kind)
+
+    DungeonTrackerInstance.TheDungeonTrackerInstance <- dungeonInstance
+    owInstance <- instance
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            if owInstance.AlwaysEmpty(i,j) then
+                overworldMapMarks.[i,j].Prev()   // set to 'X'
+    recomputeMapStateSummary()
 
         
-
-
-
-
-
-

@@ -228,7 +228,8 @@ let owMapSquaresFirstQuestOnly = [|
         yield s
     |]
 
-type OverworldInstance(quest) =  // TODO figure out where mirror overworld layer should go, and right translation between screen coords and map coords
+type OverworldInstance(quest) =
+    member this.Quest = quest
     member this.AlwaysEmpty(x,y) =
         match quest with
         | FIRST ->        PrivateInternals.owMapSquaresFirstQuestAlwaysEmpty.[y].Chars(x) = 'X'
