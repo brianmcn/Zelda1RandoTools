@@ -303,7 +303,7 @@ let fairy_bmp =
 
 let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, cdungeonChevyBMP, cdungeonVMoatBMP, cdungeonHMoatBMP, 
         cdungeonVChuteBMP, cdungeonHChuteBMP, cdungeonTeeBMP, cdungeonNeedWand, cdungeonBlueBubble, cdungeonNeedRecorder, cdungeonNeedBow, cdungeonTriforceBMP, cdungeonPrincessBMP, cdungeonStartBMP,
-        cdn1bmp, cdn2bmp, cdn3bmp, cdn4bmp, cdn5bmp, cdn6bmp, cdn7bmp, cdn8bmp, cdn9bmp) =
+        cdn1bmp, cdn2bmp, cdn3bmp, cdn4bmp, cdn5bmp, cdn6bmp, cdn7bmp, cdn8bmp, cdnQbmp) =
     let imageStream = GetResourceStream("icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -320,7 +320,7 @@ let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, 
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
         a.[20], a.[21], a.[22], a.[23], a.[24])
 
-let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdn9bmp |]
+let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdnQbmp |]
 
 let greyscale(bmp:System.Drawing.Bitmap) =
     let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)

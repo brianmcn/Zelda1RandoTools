@@ -265,10 +265,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     elif ea.GetCurrentPoint(appMainCanvas).Properties.IsRightButtonPressed then (right()))
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
-        let roomStates = masterRoomStates.[level-1] // 1-9 = transports, see roomBMPpairs() for rest
+        let roomStates = masterRoomStates.[level-1] // see HotKeys.DungeonHelper.roomBMPpairs() for what each state integer maps to
         let roomIsCircled = Array2D.zeroCreate 8 8
         let roomCompleted = Array2D.zeroCreate 8 8 
-        let usedTransports = Array.zeroCreate 10 // slot 0 unused
+        let usedTransports = Array.zeroCreate 9 // slot 0 unused
         let roomRedrawFuncs = ResizeArray()
         let redrawAllRooms() =
             for f in roomRedrawFuncs do
@@ -375,15 +375,15 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let usedTransportsRemoveState(roomState) =
                     // track transport being changed away from
-                    if [1..9] |> List.contains roomState then
+                    if [1..8] |> List.contains roomState then
                         usedTransports.[roomState] <- usedTransports.[roomState] - 1
                 let usedTransportsAddState(roomState) =
                     // note any new transports
-                    if [1..9] |> List.contains roomState then
+                    if [1..8] |> List.contains roomState then
                         usedTransports.[roomStates.[i,j]] <- usedTransports.[roomStates.[i,j]] + 1
                 let SetNewValue(n, isLeft) =
                     let originalState = roomStates.[i,j]
-                    let isLegal = not(n < 10 && usedTransports.[n]=2) || n=originalState
+                    let isLegal = not(n>=1 && n<=8 && usedTransports.[n]=2) || n=originalState
                     if isLegal then
                         usedTransportsRemoveState(roomStates.[i,j])
                         roomStates.[i,j] <- n
@@ -403,7 +403,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init (ROOMS-1) (fun n ->
                             let tweak(im:Image) = im.Opacity <- 0.8; im
                             if n < 10 then
-                                upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n)))), not(usedTransports.[n]=2) || n=originalStateIndex, n
+                                upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n)))), not(n>=1 && n<=8 && usedTransports.[n]=2) || n=originalStateIndex, n
                             else
                                 upcast tweak(Graphics.BMPtoImage(fst(roomBMPpairs(n+1)))), true, n+1
                             )
@@ -473,7 +473,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if popupState <> Dungeon.DelayedPopupState.ACTIVE_NOW then
                         if grabHelper.IsGrabMode then
                             if not grabHelper.HasGrab then
-                                if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
+                                if not(roomIsEmpty(roomStates.[i,j])) then
                                     dungeonHighlightCanvas.Children.Clear() // clear old preview
                                     let contiguous = grabHelper.PreviewGrab(i,j,roomStates)
                                     highlight(contiguous, Brushes.Lime)
@@ -503,7 +503,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         if ea.InitialPressMouseButton = Input.MouseButton.Left then
                             if grabHelper.IsGrabMode then
                                 if not grabHelper.HasGrab then
-                                    if roomStates.[i,j] <> 0 && roomStates.[i,j] <> 10 then
+                                    if not(roomIsEmpty(roomStates.[i,j])) then
                                         dungeonHighlightCanvas.Children.Clear() // clear preview
                                         let contiguous = grabHelper.StartGrab(i,j,roomStates,roomIsCircled,roomCompleted,horizontalDoors,verticalDoors)
                                         highlightImpl(dungeonSourceHighlightCanvas, contiguous, Brushes.Pink)  // this highlight stays around until completed/aborted

@@ -20,10 +20,6 @@ CURRENT PRIORITIES
 
 hotkey testing, hotkey writeup in Notes
 
-there might be at most 6 transports per dungeon, I have used 7 before, but take 9 out of the icon pool, but add '?' transport for unknown stair
- - change 9 icon on strip
- - make it not participate in usedTransports
-
 Text="GRAB" in DungeonUI is a mess, why not a button
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
