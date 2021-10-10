@@ -51,8 +51,8 @@
     <Compile Include="Views.fs" />
     <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
-    <Compile Include="LinkRouting.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />
+    <Compile Include="LinkRouting.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\Notes.txt" Link="Notes.txt">

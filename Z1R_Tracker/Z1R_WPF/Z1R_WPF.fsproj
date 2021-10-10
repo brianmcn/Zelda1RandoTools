@@ -96,8 +96,8 @@
     <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="SpeechRecognition.fs" />
-    <Compile Include="LinkRouting.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />
+    <Compile Include="LinkRouting.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\Notes.txt">

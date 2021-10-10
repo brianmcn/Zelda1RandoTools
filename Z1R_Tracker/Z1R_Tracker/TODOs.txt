@@ -18,7 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-fix TODOs in OverworldMapTileCustomization
 get counts for MMG etc, make choice domains depending upon overworld instance
 
 door repair, money, etc...

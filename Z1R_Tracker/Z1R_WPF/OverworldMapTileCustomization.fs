@@ -15,25 +15,7 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
     member this.IsInteresting = not(state = -1 || this.IsX)
-// TODO get rid of this method, move main code down to other func, fix up remaining callsites
-    member this.CurrentBMP() =
-        if state = -1 then
-            null
-        elif this.IsDungeon then
-            if TrackerModel.IsHiddenDungeonNumbers() then 
-                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                    Graphics.theFullTileBmpTable.[state].[3] 
-                else
-                    Graphics.theFullTileBmpTable.[state].[2] 
-            else 
-                if TrackerModel.GetDungeon(state).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                    Graphics.theFullTileBmpTable.[state].[1]
-                else
-                    Graphics.theFullTileBmpTable.[state].[0]
-        else
-            Graphics.theFullTileBmpTable.[state].[0]
-// TODO rename DefaultInteriorBmp - used by grid popup, reminders, and Link destination icons
-    member this.CurrentInteriorBMP() =  // so that the grid popup is unchanging, always choose same representative (e.g. yellow dungeon)
+    member this.DefaultInteriorBmp() =  // used by grid popup, reminders, and Link destination icons; unchanging so e.g. dungeons in popup are always yellow
         if state = -1 then
             null
         elif this.IsDungeon then
@@ -84,13 +66,13 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY,
     let pos = c.TranslatePoint(Point(OMTW/2.,float(11*3)/2.), cm.AppMainCanvas)  
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 666.)
     Graphics.WarpMouseCursorTo(pos)
-    TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
+    TrackerModel.setOverworldMapExtraData(i, j, TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,i,j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.,float(11*3)/2.), cm.AppMainCanvas)  
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(cm, 666.)
     Graphics.WarpMouseCursorTo(pos)
-    TrackerModel.setOverworldMapExtraData(i, j, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
+    TrackerModel.setOverworldMapExtraData(i, j, TrackerModel.MapSquareChoiceDomainHelper.SWORD1, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
@@ -115,7 +97,7 @@ let sword2LeftSideFullTileBmp =
 let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
     if item1 = item2 then
         let state = item1 + TrackerModel.MapSquareChoiceDomainHelper.ARROW
-        MapStateProxy(state).CurrentBMP()
+        Graphics.theFullTileBmpTable.[state].[0]
     else
         // cons up a two-item shop image
         let tile = new System.Drawing.Bitmap(16*3,11*3)
@@ -141,24 +123,26 @@ let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
         tile
 
 let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
-    if ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j) <> 0 then
+    if ms.State = -1 then
+        null, []
+    elif ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) <> 0 then
         let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
-        let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
+        let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let tile = makeTwoItemShopBmp(item1, item2)
         tile, []
     // secrets default to being dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
             Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
             Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
             Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[1], []
@@ -167,18 +151,18 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         Graphics.theFullTileBmpTable.[ms.State].[1], []
     // take any and sword1 default to being light (accelerators often darken them)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
             Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
             Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     // hint shop default to being light, user can darken if bought all, or if was white/magic sword hint they already saw
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
-        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
             Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
@@ -190,8 +174,19 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
             sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, extraDecorationsF), OMTW-30., 1.]
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
+    elif ms.IsDungeon then
+        if TrackerModel.IsHiddenDungeonNumbers() then 
+            if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
+                Graphics.theFullTileBmpTable.[ms.State].[3], []
+            else
+                Graphics.theFullTileBmpTable.[ms.State].[2], []
+        else 
+            if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
+                Graphics.theFullTileBmpTable.[ms.State].[1], []
+            else
+                Graphics.theFullTileBmpTable.[ms.State].[0], []
     else
-        ms.CurrentBMP(), []
+        Graphics.theFullTileBmpTable.[ms.State].[0], []
 
 let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async { // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
     if msp.State = -1 then
@@ -201,7 +196,7 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
     elif msp.IsThreeItemShop then
         popupIsActive := true
         let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
-        let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
+        let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let ST = CustomComboBoxes.borderThickness
         let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
         let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
@@ -217,7 +212,7 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
                 (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
         let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = Array.init 8 (fun n ->
             let i = n + TrackerModel.MapSquareChoiceDomainHelper.ARROW
-            upcast Graphics.BMPtoImage(MapStateProxy(i).CurrentInteriorBMP()), true, n
+            upcast Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp()), true, n
             )
         let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                         gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
@@ -231,7 +226,7 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
         let r =
             match g with
             | Some(currentState) ->
-                TrackerModel.setOverworldMapExtraData(i,j,currentState+1)  // extraData is 1-based
+                TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP,currentState+1)  // extraData is 1-based
                 true, (originalState = -1 && currentState <> -1)
             | None -> false, false
         popupIsActive := false
@@ -259,11 +254,11 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
             |]
         if toggleables |> Array.contains msp.State then
             // right click to toggle it 'used'
-            let ex = TrackerModel.getOverworldMapExtraData(i,j)
+            let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
             if ex=msp.State then
-                TrackerModel.setOverworldMapExtraData(i,j,0)
+                TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)
             else
-                TrackerModel.setOverworldMapExtraData(i,j,msp.State)
+                TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
             return true, false
         else
             return false, false

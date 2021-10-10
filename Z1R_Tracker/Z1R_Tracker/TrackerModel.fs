@@ -426,6 +426,7 @@ type MapSquareChoiceDomainHelper =
     static member MEAT = 21
     static member KEY = 22
     static member SHIELD = 23
+    static member SHOP = MapSquareChoiceDomainHelper.ARROW  // key into extra-data store for all shops
     static member NUM_ITEMS = 8 // 8 possible types of items can be tracked, listed above
     static member IsItem(state) = state >= 16 && state <= 23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
@@ -795,13 +796,21 @@ let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST
 
 let mapLastChangedTime = new LastChangedTime()
 let overworldMapMarks = Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
-let private overworldMapExtraData = Array2D.create 16 8 0   
-// extra data, used by 
-//  - 3-item shops to store the second item, where 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
-//  - take any (24), where 24 means 'taken' (dark) and anything else means not yet taken (bright)
-let getOverworldMapExtraData(i,j) = overworldMapExtraData.[i,j]
-let setOverworldMapExtraData(i,j,x) = 
-    overworldMapExtraData.[i,j] <- x
+let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate MapSquareChoiceDomainHelper.DARK_X)
+// extra data key-value store, used by 
+//  - 3-item shops to store the second item, key for all shops is SHOP, value 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
+//  - various others store a brightness toggle, key is <mapstate>, value is 0 or <mapstate>
+let getOverworldMapExtraData(i,j,k) = 
+#if DEBUG
+    let cur = overworldMapMarks.[i,j].Current()
+    if cur=k || (MapSquareChoiceDomainHelper.IsItem(cur) && k=MapSquareChoiceDomainHelper.SHOP) then
+        () // ok
+    else
+        printfn "dodgy, but there are legal times to be here, e.g. popup redrawing-on-hover when changing from non-shop to shop"  // put a breakpoint here for debugging
+#endif
+    overworldMapExtraData.[i,j].[k]
+let setOverworldMapExtraData(i,j,k,v) = 
+    overworldMapExtraData.[i,j].[k] <- v
     mapLastChangedTime.SetNow()
 do
     mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
@@ -884,7 +893,8 @@ let recomputeMapStateSummary() =
                 | _ -> () // shop or whatnot
                 let cur = overworldMapMarks.[i,j].Current()
                 if MapSquareChoiceDomainHelper.IsItem(cur) then
-                    if cur = MapSquareChoiceDomainHelper.BOOK || (getOverworldMapExtraData(i,j) = MapSquareChoiceDomainHelper.ToItem(MapSquareChoiceDomainHelper.BOOK)) then
+                    if cur = MapSquareChoiceDomainHelper.BOOK || 
+                            (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(MapSquareChoiceDomainHelper.BOOK)) then
                         boomBookShopLocation <- i,j
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 

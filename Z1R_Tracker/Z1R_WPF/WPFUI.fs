@@ -72,7 +72,7 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
         for x = 0 to 15 do
             for y = 0 to 7 do
                 let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                if msp.State = targetItem || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItem)) then
+                if msp.State = targetItem || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItem)) then
                     owTargetworthySpots.[x,y] <- true
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxYellowGreenHighlights)
     | Some(RouteDestination.OW_MAP(x,y)) ->
@@ -491,7 +491,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         )
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
-                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).CurrentInteriorBMP())
+                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp())
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
     canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
@@ -524,7 +524,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = resizeMapTileImage <| Graphics.BMPtoImage(MapStateProxy(TrackerModel.MapSquareChoiceDomainHelper.DARK_X).CurrentBMP()) // "X"
+                let icon = resizeMapTileImage <| Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0]) // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)
@@ -808,12 +808,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
                                 | None -> ()
-                            elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j)=0 then
+                            elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP)=0 then
                                 // if item shop with only one item marked, use voice to set other item
                                 match speechRecognitionInstance.ConvertSpokenPhraseToMapCell(phrase) with
                                 | Some newState -> 
                                     if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
-                                        TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
+                                        TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
                                         Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                                 | None -> ()
                         elif delta = 1 then
@@ -876,7 +876,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                             (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
                     let typicalGESAI(n) : FrameworkElement*_*_ =
                         let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
-                        upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
+                        upcast Graphics.BMPtoImage(MapStateProxy(n).DefaultInteriorBmp()), isSelectable, n
                     let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = [|
                         // three full rows
                         for n = 0 to 23 do
@@ -906,7 +906,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                     (fun (currentState) -> 
                                         tileCanvas.Children.Clear()
                                         canvasAdd(tileCanvas, tileImage, 0., 0.)
-                                        let bmp = MapStateProxy(currentState).CurrentBMP()    // TODO this should repaint it 'for realsies' via the other call, i think
+                                        let bmp,_ = GetIconBMPAndExtraDecorations(cm, MapStateProxy(currentState), i, j)
                                         if bmp <> null then
                                             let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
                                             if MapStateProxy(currentState).IsX then
@@ -995,7 +995,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink(MapStateProxy(9).CurrentBMP()), 7.1*OMTW, 0.)
+    canvasAdd(legendCanvas, shrink(Graphics.theFullTileBmpTable.[9].[0]), 7.1*OMTW, 0.)
     drawWarpHighlight(legendCanvas,7.1,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
@@ -1278,10 +1278,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 let n = TrackerModel.sword2Box.CellCurrent()
                 if n = -1 then
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item", 
-                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP())])
+                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp())])
                 else
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
-                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).CurrentInteriorBMP()); 
+                                    [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp()); 
                                         upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
             member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
             member _this.OverworldSpotsRemaining(remain,gettable) = 
@@ -1317,7 +1317,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 else
                     ensureRespectingOwGettableScreensCheckBox()
             member _this.AnnounceCompletedDungeon(i) = 
-                let icons = [upcb(MapStateProxy(i).CurrentInteriorBMP()); upcb(Graphics.iconCheckMark_bmp)]
+                let icons = [upcb(MapStateProxy(i).DefaultInteriorBmp()); upcb(Graphics.iconCheckMark_bmp)]
                 if TrackerModel.IsHiddenDungeonNumbers() then
                     let labelChar = TrackerModel.GetDungeon(i).LabelChar
                     if labelChar <> '?' then
@@ -1410,10 +1410,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 icons.Add(upcb(Graphics.iconRightArrow_bmp))
                 let d = Seq.head dungeons
                 sentence <- sentence + name(d)
-                icons.Add(upcb(MapStateProxy(d).CurrentInteriorBMP()))
+                icons.Add(upcb(MapStateProxy(d).DefaultInteriorBmp()))
                 for d in Seq.tail dungeons do
                     sentence <- sentence + " and " + name(d)
-                    icons.Add(upcb(MapStateProxy(d).CurrentInteriorBMP()))
+                    icons.Add(upcb(MapStateProxy(d).DefaultInteriorBmp()))
                 SendReminder(TrackerModel.ReminderCategory.Blockers, sentence, icons)
             member _this.RemindShortly(itemId) = 
                 if itemId = TrackerModel.ITEMS.KEY then
@@ -1845,7 +1845,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                if cur = item || (TrackerModel.getOverworldMapExtraData(i,j) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item)) then
+                if MapStateProxy(cur).IsThreeItemShop && 
+                        (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
                     owLocatorTilesZone.[i,j].MakeGreen()
         )
     showLocator <- (fun sld ->
