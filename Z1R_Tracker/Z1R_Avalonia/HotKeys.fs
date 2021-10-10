@@ -23,7 +23,7 @@ open MyKey
 let InitializeWindow(w:Window, rootCanvas, xOffset) =
     w.PointerMoved.Add(fun ea ->
         let p = ea.GetPosition(rootCanvas)
-        Graphics.curMouse <- p
+        Graphics.curFudgeMouse <- p
         )
     w.KeyDown.Add(fun ea ->
         let keycode = int ea.Key
@@ -33,7 +33,7 @@ let InitializeWindow(w:Window, rootCanvas, xOffset) =
                     viz.Opacity
                 else
                     viz.Opacity * finalOpacity(viz.VisualParent)
-            let unfudgedMouse = Graphics.curMouse.WithX(Graphics.curMouse.X + xOffset)
+            let unfudgedMouse = Graphics.curFudgeMouse.WithX(Graphics.curFudgeMouse.X + xOffset)
             let sortedControls = w.Renderer.HitTest(unfudgedMouse, rootCanvas, (fun iv -> match iv with | :? Control -> true | _ -> false))
             //for s in sortedControls do
             //    printfn "%A" s

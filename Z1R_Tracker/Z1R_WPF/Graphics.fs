@@ -332,14 +332,16 @@ let greyscale(bmp:System.Drawing.Bitmap) =
             let c = System.Drawing.Color.FromArgb(avg, avg, avg)
             r.SetPixel(px, py, c)
     r
-let darken(bmp:System.Drawing.Bitmap) =
+let darkenImpl pct (bmp:System.Drawing.Bitmap) =
     let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
     for px = 0 to bmp.Width-1 do
         for py = 0 to bmp.Height-1 do
             let c = bmp.GetPixel(px,py)
-            let c = System.Drawing.Color.FromArgb(int(c.R/2uy), int(c.G/2uy), int(c.B/2uy))
+            let c = System.Drawing.Color.FromArgb(int(float c.R * pct), int(float c.G * pct), int(float c.B * pct))
             r.SetPixel(px, py, c)
     r
+let darken(bmp:System.Drawing.Bitmap) =
+    darkenImpl 0.5 bmp
 
 let overworldImage =
     let files = [|
@@ -398,6 +400,10 @@ let theInteriorBmpTable = Array.init (TrackerModel.mapSquareChoiceDomain.MaxKey+
 do
     let imageStream = GetResourceStream("ow_icons5x9.png")
     let interiorIconStrip = new System.Drawing.Bitmap(imageStream)
+    let darkxbmp = new System.Drawing.Bitmap(5*3,9*3)
+    for px = 0 to 5*3-1 do
+        for py = 0 to 9*3-1 do
+            darkxbmp.SetPixel(px, py, System.Drawing.Color.Black)
     let getInteriorIconFromStrip(i) = 
         let bmp = new System.Drawing.Bitmap(5*3,9*3)
         for px = 0 to 5*3-1 do
@@ -442,23 +448,34 @@ do
                     if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
                         bmp.SetPixel(px, py, c)
         theInteriorBmpTable.[i+16].Add(bmp)
-    // 24  armos
-    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(7))
-    // 25  hint shop
-    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(3))
-    // 26  take any
-    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(4))
-    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(4) |> darken)
-    // 27  potion shop
-    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(5))
-    // 28  money
-    theInteriorBmpTable.[28].Add(getInteriorIconFromStrip(6))
-    // 29  'X'
-    let bmp = new System.Drawing.Bitmap(5*3,9*3)
-    for px = 0 to 5*3-1 do
-        for py = 0 to 9*3-1 do
-            bmp.SetPixel(px, py, System.Drawing.Color.Black)
-    theInteriorBmpTable.[29].Add(bmp)
+    // 24 unknown money secret
+    theInteriorBmpTable.[24].Add(getInteriorIconFromStrip(11))
+    // 25 large secret
+    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(8))
+    theInteriorBmpTable.[25].Add(getInteriorIconFromStrip(8) |> darken)
+    // 26 medium secret
+    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(6))
+    theInteriorBmpTable.[26].Add(getInteriorIconFromStrip(6) |> darken)
+    // 27 small secret
+    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(9))
+    theInteriorBmpTable.[27].Add(getInteriorIconFromStrip(9) |> darken)
+    // 28 door repair charge
+    theInteriorBmpTable.[28].Add(getInteriorIconFromStrip(12))
+    theInteriorBmpTable.[28].Add(getInteriorIconFromStrip(12) |> darkenImpl 0.7)
+    // 29 money making game
+    theInteriorBmpTable.[29].Add(getInteriorIconFromStrip(10))
+    // 30  armos
+    theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(7))
+    // 31  hint shop
+    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(3))
+    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(3) |> darkenImpl 0.7)
+    // 32  take any
+    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(4))
+    theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(4) |> darken)
+    // 33  potion shop
+    theInteriorBmpTable.[33].Add(getInteriorIconFromStrip(5))
+    // 34  'X'
+    theInteriorBmpTable.[34].Add(darkxbmp)
 // full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
 let theFullTileBmpTable = Array.init theInteriorBmpTable.Length (fun _ -> ResizeArray())
 do

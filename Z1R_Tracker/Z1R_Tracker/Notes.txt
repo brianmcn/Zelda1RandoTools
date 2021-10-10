@@ -121,23 +121,31 @@ interest that you can't reveal with your current inventory.
 OVERWORLD MAP
 
 16x8 Map Tiles:
+
    "icon"       description
+   ---------------------------
  - "1-9"        dungeons
  - "1-4"        any roads (stair warps)
  - "sword3/2/1" magical sword/white sword/wood sword item cave
- - "armos"      armos item location (can only be in 5 spots)
- - "?"          hint shop, or white/magical sword hint
+   ---------------------------
  - (items)      item shop
+   ---------------------------
+ - "green"      secrets: "?" unknown, "$" large, "rupee" medium, "¢" small
+ - "door"       door repair charge
+ - "dice"       money making game
+   ---------------------------
+ - "armos"      armos item location (can only be in 5 spots)
+ - "purple?"    hint shop, or white/magical sword hint
  - "heart"      cave to "take any one you want"
  - "potion"     potion shop
- - "rupee"      free money, or gambling
  - "dark"       nothing, or don't care
 
 The list of all these possible map tile icons appears in a popup.  In addition to scrolling, left-clicking an unmarked map tile will activate the popup.
 
 Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
 Right-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  Left click to change the first item (whole tile popup).
-Right-clicking a take-any heart or the wood-sword cave will toggle if it is bright (un-taken) or dark (taken).
+Right-clicking toggles the brightness of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
+ - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
 Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
 accelerator will pop up, with 4 choices (take potion, take candle, take heart, take nothing).  Your selection may have multiple effects, for 
@@ -331,8 +339,13 @@ let wakePhrase = "tracker set"
                 "meat shop"         , 21
                 "key shop"          , 22
                 "shield shop"       , 23
-                "arm owes" (*armos*), 24
-                "hint shop"         , 25
-                "take any"          , 26
-                "potion shop"       , 27
-                "money"             , 28
+                "unknown secret"    , 24
+                "large secret"      , 25
+                "medium secret"     , 26
+                "small secret"      , 27
+                "door repair"       , 28
+                "money making game" , 29
+                "arm owes" (*armos*), 30
+                "hint shop"         , 31
+                "take any"          , 32
+                "potion shop"       , 33

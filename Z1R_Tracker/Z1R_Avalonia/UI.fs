@@ -842,14 +842,13 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 }
                 let activatePopup(activationDelta) =
                     popupIsActive := true
-                    let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
-                    let state(n) = if shopsOnTop then (n+16) % 32 else n
+                    let GCOL,GROW = 8,5
+                    let GCOUNT = GCOL*GROW
                     let pos = c.TranslatePoint(Point(), appMainCanvas).Value
                     let ST = CustomComboBoxes.borderThickness
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
-                    let originalStateIndex = state <| if originalState = -1 then MapStateProxy.NumStates else originalState
                     let gridxPosition = 
                         if pos.X < OMTW*2. then 
                             -ST // left align
@@ -857,22 +856,36 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                             OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
                         else
                             (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
-                    let gridElementsSelectablesAndIDs : (Control*bool*int)[] = Array.init 32 (fun n ->
-                        let n = state n
-                        if MapStateProxy(n).IsX then
-                            upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, n
-                        elif n = MapStateProxy.NumStates then
-                            upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
-                        elif n > MapStateProxy.NumStates then
-                            null, false, -999  // null asks selector to 'leave a hole' here
-                        else
-                            let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
-                            upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
-                        )
+                    let typicalGESAI(n) : Control*_*_ =
+                        let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
+                        upcast Graphics.BMPtoImage(MapStateProxy(n).CurrentInteriorBMP()), isSelectable, n
+                    let gridElementsSelectablesAndIDs : (Control*bool*int)[] = [|
+                        // three full rows
+                        for n = 0 to 23 do
+                            yield typicalGESAI(n)
+                        // money row
+                        yield null, false, -999  // null asks selector to 'leave a hole' here
+                        for n = 24 to 29 do
+                            yield typicalGESAI(n)
+                        yield null, false, -999  // null asks selector to 'leave a hole' here
+                        // other row
+                        yield null, false, -999  // null asks selector to 'leave a hole' here
+                        for n = 30 to 33 do
+                            yield typicalGESAI(n)
+                        yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, 34
+                        yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
+                        yield null, false, -999  // null asks selector to 'leave a hole' here
+                        |]
+                    let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
+                    let gridElementsSelectablesAndIDs = 
+                        if shopsOnTop then [| yield! gridElementsSelectablesAndIDs.[16..]; yield! gridElementsSelectablesAndIDs.[..15] |] else gridElementsSelectablesAndIDs
+                    let originalStateIndex = gridElementsSelectablesAndIDs |> Array.findIndex (fun (_,_,s) -> s = originalState)
+                    if gridElementsSelectablesAndIDs.Length <> GCOUNT then
+                        failwith "bad ow grid tile layout"
                     let pos = c.TranslatePoint(Point(), appMainCanvas).Value
                     async {
                         let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
-                                    gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (8, 4, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                                    gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (GCOL, GROW, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                                     (fun (currentState) -> 
                                         tileCanvas.Children.Clear()
                                         canvasAdd(tileCanvas, tileImage, 0., 0.)

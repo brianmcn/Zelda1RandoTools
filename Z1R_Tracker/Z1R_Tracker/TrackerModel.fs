@@ -385,11 +385,16 @@ let overworldTiles = [|
     "MeatShop"         , 999
     "KeyShop"          , 999
     "ShieldShop"       , 999
+    "UnknownSecret"    , 999
+    "LargeSecret"      , 999
+    "MediumSecret"     , 999
+    "SmallSecret"      , 999
+    "DoorRepairCharge" , 999
+    "MoneyMakingGame"  , 999
     "Armos"            , 1
-    "HintShop"         , 999
+    "HintShop"         , 4       // white/magical sword cave hint may also be marked, so 4 rather than 2
     "TakeAny"          , 4
     "PotionShop"       , 999
-    "Money"            , 999
     "DarkX"            , 999
     |]
 
@@ -425,18 +430,22 @@ type MapSquareChoiceDomainHelper =
     static member IsItem(state) = state >= 16 && state <= 23
     static member ToItem(state) = if MapSquareChoiceDomainHelper.IsItem(state) then state-15 else 0   // format used by TrackerModel.overworldMapExtraData
     // other stuff
-    static member ARMOS = 24
-    static member HINT_SHOP = 25
-    static member TAKE_ANY = 26
-    static member POTION_SHOP = 27
-    static member MONEY = 28
-    static member DARK_X = 29
+    static member UNKNOWN_SECRET = 24
+    static member LARGE_SECRET = 25
+    static member MEDIUM_SECRET = 26
+    static member SMALL_SECRET = 27
+    static member DOOR_REPAIR_CHARGE = 28
+    static member MONEY_MAKING_GAME = 29
+    static member ARMOS = 30
+    static member HINT_SHOP = 31
+    static member TAKE_ANY = 32
+    static member POTION_SHOP = 33
+    static member DARK_X = 34
     static member AsHotKeyName(n) =
         if n>=0 && n<overworldTiles.Length then
             fst(overworldTiles.[n])
         else
             failwith "bad overworld tile id"
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

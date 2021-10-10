@@ -8,57 +8,48 @@ let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
     let wakePhrase = "tracker set"
     let mapStatePhrases = 
+        let coda = [|
+            "level nine"        , 8
+            "any road"          , 12  // 9 10 11 12
+            "sword three"       , 13
+            "sword two"         , 14
+            "sword one"         , 15
+            "arrow shop"        , 16
+            "bomb shop"         , 17
+            "book shop"         , 18
+            "candle shop"       , 19
+            "blue ring shop"    , 20
+            "meat shop"         , 21
+            "key shop"          , 22
+            "shield shop"       , 23
+            "unknown secret"    , 24
+            "large secret"      , 25
+            "medium secret"     , 26
+            "small secret"      , 27
+            "door repair"       , 28
+            "money making game" , 29
+            "arm owes" (*armos*), 30
+            "hint shop"         , 31
+            "take any"          , 32
+            "potion shop"       , 33
+            |]
         match kind with
         | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
             dict [|
-                "level"             , 0   // 0 1 2 3 4 5 6 7
-                "level nine"        , 8
-                "any road"          , 12  // 9 10 11 12
-                "sword three"       , 13
-                "sword two"         , 14
-                "sword one"         , 15
-                "arrow shop"        , 16
-                "bomb shop"         , 17
-                "book shop"         , 18
-                "candle shop"       , 19
-                "blue ring shop"    , 20
-                "meat shop"         , 21
-                "key shop"          , 22
-                "shield shop"       , 23
-                "arm owes"          , 24
-                "hint shop"         , 25
-                "take any"          , 26
-                "potion shop"       , 27
-                "money"             , 28
+                yield "level"             , 0   // 0 1 2 3 4 5 6 7
+                yield! coda
                 |]
         | TrackerModel.DungeonTrackerInstanceKind.DEFAULT ->
             dict [|
-                "level one"         , 0
-                "level two"         , 1
-                "level three"       , 2
-                "level four"        , 3
-                "level five"        , 4
-                "level six"         , 5
-                "level seven"       , 6
-                "level eight"       , 7
-                "level nine"        , 8
-                "any road"          , 12  // 9 10 11 12
-                "sword three"       , 13
-                "sword two"         , 14
-                "sword one"         , 15
-                "arrow shop"        , 16
-                "bomb shop"         , 17
-                "book shop"         , 18
-                "candle shop"       , 19
-                "blue ring shop"    , 20
-                "meat shop"         , 21
-                "key shop"          , 22
-                "shield shop"       , 23
-                "arm owes" (*armos*), 24
-                "hint shop"         , 25
-                "take any"          , 26
-                "potion shop"       , 27
-                "money"             , 28
+                yield "level one"         , 0
+                yield "level two"         , 1
+                yield "level three"       , 2
+                yield "level four"        , 3
+                yield "level five"        , 4
+                yield "level six"         , 5
+                yield "level seven"       , 6
+                yield "level eight"       , 7
+                yield! coda
                 |]
     do
         speechRecognizer.LoadGrammar(new System.Speech.Recognition.Grammar(let gb = new System.Speech.Recognition.GrammarBuilder(wakePhrase) in gb.Append(new System.Speech.Recognition.Choices(mapStatePhrases.Keys |> Seq.toArray)); gb))

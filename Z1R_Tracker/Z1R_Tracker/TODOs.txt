@@ -18,13 +18,19 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+fix TODOs in OverworldMapTileCustomization
+get counts for MMG etc, make choice domains depending upon overworld instance
+
+door repair, money, etc...
+could imagine money pops up 'pay me for door repair'/'MMG'/'secret to everyone' and secret could even have small/med/big/unknown 2nd accelerator...
+ - would need some kind of icon for each (only MMG needs to be distinct, perhaps, as others never need to return to, other than retrospective, but see below)
+ - would want to hotkey into the final icon/state, rather than have to work through the accelerators...
+ - ... or maybe the thing is, the model is wrong, and these should all be separate overworld map tiles (which gives them separate hotkeys, and choiceDomain counts)
+ - ... and if they are tiles, the choiceDomainCountRemaining could be interesting to display, e.g. for DRC, TAH, large secrets, etc
+         - can imagine icon for DRC/TAH/large in upper right with remain-count displayed, and hovering shows where you found them so far
+               - or maybe hovering secret/take-any-heart should instead highlight those you left behind to take later
+
 hotkey testing, hotkey writeup in Notes
-
-marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context
-
-marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
-
-
 
 distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up
 
@@ -38,17 +44,20 @@ timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only 
 
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
 
+
+
+
+
+SMALL
+
 Kigalas found 'take any' popup confusing first time he saw it, but figured it out
  - wants 'tracker take candle' speech recognition there
 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
 
-
-
-
-
-SMALL
+marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context - imagine if Blocker_Bow was listened for in dungeon area after rooms and hooked to next free blocker box
+marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 

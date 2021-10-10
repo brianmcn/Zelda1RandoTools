@@ -15,6 +15,7 @@ type MapStateProxy(state) =
     member this.IsWarp = state >= 9 && state < 13
     member this.IsThreeItemShop = TrackerModel.MapSquareChoiceDomainHelper.IsItem(state)
     member this.IsInteresting = not(state = -1 || this.IsX)
+// TODO get rid of this method, move main code down to other func, fix up remaining callsites
     member this.CurrentBMP() =
         if state = -1 then
             null
@@ -31,6 +32,7 @@ type MapStateProxy(state) =
                     Graphics.theFullTileBmpTable.[state].[0]
         else
             Graphics.theFullTileBmpTable.[state].[0]
+// TODO rename DefaultInteriorBmp - used by grid popup, reminders, and Link destination icons
     member this.CurrentInteriorBMP() =  // so that the grid popup is unchanging, always choose same representative (e.g. yellow dungeon)
         if state = -1 then
             null
@@ -144,6 +146,26 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         let item2 = TrackerModel.getOverworldMapExtraData(i,j) - 1   // 0-based
         let tile = makeTwoItemShopBmp(item1, item2)
         tile, []
+    // secrets default to being dark
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
+            Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+            Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
+        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
+            Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
+    // door repair always dark (but light in the grid selector)
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+        Graphics.theFullTileBmpTable.[ms.State].[1], []
+    // take any and sword1 default to being light (accelerators often darken them)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
         if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
             Graphics.theFullTileBmpTable.[ms.State].[1], []
@@ -151,6 +173,12 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
         if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[0], []
+    // hint shop default to being light, user can darken if bought all, or if was white/magic sword hint they already saw
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
+        if TrackerModel.getOverworldMapExtraData(i,j)=TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
             Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
@@ -220,23 +248,23 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
                 item2 <- i           
                 DismissPopupWithResult(item1, item2)
 *)
-
-    elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-        // right click a take-any to toggle it 'used'
-        let ex = TrackerModel.getOverworldMapExtraData(i,j)
-        if ex=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-            TrackerModel.setOverworldMapExtraData(i,j,0)
-        else
-            TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY)
-        return true, false
-    elif msp.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
-        // right click the wood sword cave to toggle it 'used'
-        let ex = TrackerModel.getOverworldMapExtraData(i,j)
-        if ex=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
-            TrackerModel.setOverworldMapExtraData(i,j,0)
-        else
-            TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SWORD1)
-        return true, false
     else
-        return false, false
+        let toggleables = [| 
+            TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
+            TrackerModel.MapSquareChoiceDomainHelper.SWORD1
+            TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP
+            TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
+            TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
+            TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
+            |]
+        if toggleables |> Array.contains msp.State then
+            // right click to toggle it 'used'
+            let ex = TrackerModel.getOverworldMapExtraData(i,j)
+            if ex=msp.State then
+                TrackerModel.setOverworldMapExtraData(i,j,0)
+            else
+                TrackerModel.setOverworldMapExtraData(i,j,msp.State)
+            return true, false
+        else
+            return false, false
     }
