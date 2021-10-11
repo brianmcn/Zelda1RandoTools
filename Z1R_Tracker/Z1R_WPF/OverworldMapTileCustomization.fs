@@ -453,7 +453,7 @@ let MakeRemainderSummaryDisplay() =
     let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     for x in foundShopRepresentatives do
         row.Children.Add(b(Graphics.BMPtoImage(MapStateProxy(x).DefaultInteriorBmp()))) |> ignore
-    for i = 0 to shopCount-foundShopRepresentatives.Count do
+    for _i = 0 to shopCount-foundShopRepresentatives.Count-1 do
         let icon = Graphics.BMPtoImage(Graphics.greyscale(MapStateProxy(TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP).DefaultInteriorBmp()))
         icon.Opacity <- OPA
         row.Children.Add(b icon) |> ignore

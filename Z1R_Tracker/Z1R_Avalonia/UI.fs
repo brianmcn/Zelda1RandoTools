@@ -497,6 +497,16 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    // spot summary
+    let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
+                                    BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
+    let spotSummaryCanvas = new Canvas()
+    spotSummaryTB.PointerEnter.Add(fun _ ->
+        spotSummaryCanvas.Children.Clear()
+        spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
+        )   
+    spotSummaryTB.PointerLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
+    canvasAdd(appMainCanvas, spotSummaryTB, 13.8*OMTW, 128.)
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp())
@@ -2029,7 +2039,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
     addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
 
-
+    canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)
 
     TrackerModel.forceUpdate()
     updateTimeline

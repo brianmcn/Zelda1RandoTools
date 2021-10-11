@@ -22,8 +22,6 @@ get feedback on whether folks find the choicedomain limits constraining (or usef
 
 disambiguate hint shop versus unknown money icons, ideally
 
-finish 'remaindersummary' currently in bottom of OMTC.fs
-
 hotkey testing, hotkey writeup in Notes
 
 distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up

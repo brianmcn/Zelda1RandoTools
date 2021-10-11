@@ -105,6 +105,10 @@ Mouse-hovering the armos icon will highlight any armos locations you have not ye
 Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar will 
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
+Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.  
+This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
+you have been marking those diligently.
+
 
 LINK (Specific routing)
 
@@ -218,7 +222,7 @@ Rooms can be marked as:
  - special room shapes (moats, chutes, tee, etc.)
  - special markers for certain rooms (digdogger+recorder; bow+arrow for gohma; gleeok+wand; blue bubble)
  - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
- - grey box (typical non-descript room)
+ - gray box (typical non-descript room)
 The list of all these rooms appears in a popup.  In addition to scrolling, double-clicking a room will activate the popup.  
 In the popup:
  - left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten)
@@ -236,7 +240,7 @@ Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the u
 Shift-clicking a room will black it out, as well as nearby doors; this is rarely useful except for Shapes 9 with a map, to immediately mark off the 'holes'.
 
 Doors between rooms have three states:
- - dark grey is unknown (default)
+ - dark gray is unknown (default)
  - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
 

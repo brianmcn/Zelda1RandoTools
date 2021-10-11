@@ -491,12 +491,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     // spot summary
     let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
                                     BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
-    let tmpCanvas = new Canvas()
+    let spotSummaryCanvas = new Canvas()
     spotSummaryTB.MouseEnter.Add(fun _ ->
-        tmpCanvas.Children.Clear()
-        tmpCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
+        spotSummaryCanvas.Children.Clear()
+        spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
         )   
-    spotSummaryTB.MouseLeave.Add(fun _ -> tmpCanvas.Children.Clear())
+    spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
     canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
@@ -2201,7 +2201,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             broadcastWindow <- null
         )
 
-    canvasAdd(appMainCanvas, tmpCanvas, 50., 50.)
+    canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
 
     TrackerModel.forceUpdate()
     updateTimeline
