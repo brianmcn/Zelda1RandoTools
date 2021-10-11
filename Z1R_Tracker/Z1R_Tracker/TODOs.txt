@@ -18,15 +18,11 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-if right click purple hint ?, auto-open hint decoder (you got white/mag sword cave hint... but maybe you already found them, hm)
-
-need mid-game way to highlight & route 'open caves' despite your candle/bombs
+need mid-game way to highlight & route 'open caves' despite your candle/bombs  (can imagine tiny icon of green with black cave hole and yellow sand like start screen)
 
 like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
 meat-block icon as a dungeon room?  or is 'red' good enough? still can sacrifice T7 and T8 if want two more
-
-program icon for windows
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
