@@ -236,6 +236,8 @@ If you click-and-drag with left mouse button, you can 'paint' a bunch of complet
 Same with right mouse button, but for uncompleted rooms.  
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
+Mouse-hovering the little blue bars in the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
+easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.
 
 Shift-clicking a room will black it out, as well as nearby doors; this is rarely useful except for Shapes 9 with a map, to immediately mark off the 'holes'.
 

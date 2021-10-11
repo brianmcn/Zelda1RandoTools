@@ -440,3 +440,142 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
     do! CustomComboBoxes.DoModal(cm, wh, mainX, mainY, popupCanvas)
     Graphics.WarpMouseCursorTo(warpReturn)
     }
+
+// Zelda-like minimap
+
+let BLUE = System.Drawing.Color.FromArgb(71, 47, 228)
+let MakeMiniMiniMapBmp() =
+    let bmp = new System.Drawing.Bitmap(8, 8)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            bmp.SetPixel(x,y,System.Drawing.Color.Black)
+    for x = 0 to 6 do
+        for y = 0 to 2 do
+            bmp.SetPixel(x,y,BLUE)
+        for y = 4 to 6 do
+            bmp.SetPixel(x,y,BLUE)
+    bmp
+let MakeLoZMinimapDisplayBmp(rooms:bool[,], letter) =
+    let YELLOW = System.Drawing.Color.FromArgb(215, 152, 42)
+    let bmp = new System.Drawing.Bitmap(80, 40)
+    for x = 0 to 79 do
+        for y = 0 to 39 do
+            bmp.SetPixel(x,y,System.Drawing.Color.Black)
+    let mutable xoff = 0
+    let w(x,y) = bmp.SetPixel(xoff+x,y,System.Drawing.Color.White)
+    // L
+    for x = 1 to 3 do
+        for y = 0 to 6 do
+            w(x,y)
+    for x = 4 to 6 do
+        w(x,6)
+    xoff <- 8
+    // E
+    for x = 0 to 6 do
+        w(x,0)
+        w(x,6)
+    for x = 0 to 5 do
+        w(x,3)
+    for x = 0 to 1 do
+        for y = 0 to 6 do
+            w(x,y)
+    xoff <- 16
+    // V
+    for y = 0 to 3 do
+        w(0,y)
+        w(1,y)
+        w(5,y)
+        w(6,y)
+    for y = 3 to 4 do
+        w(1,y)
+        w(2,y)
+        w(4,y)
+        w(5,y)
+    w(3,4)
+    for x = 2 to 4 do
+        w(x,5)
+    w(3,6)
+    xoff <- 24
+    // E
+    for x = 0 to 6 do
+        w(x,0)
+        w(x,6)
+    for x = 0 to 5 do
+        w(x,3)
+    for x = 0 to 1 do
+        for y = 0 to 6 do
+            w(x,y)
+    xoff <- 32
+    // L
+    for x = 1 to 3 do
+        for y = 0 to 6 do
+            w(x,y)
+    for x = 4 to 6 do
+        w(x,6)
+    xoff <- 40
+    // -
+    for x = 0 to 5 do
+        w(x,3)
+    xoff <- 48
+    // todo
+    ignore(letter)
+    // _
+    for x = 0 to 6 do
+        w(x,6)
+    for i = 0 to 7 do
+        for j = 0 to 7 do
+            if rooms.[i,j] then
+                let x = i*8
+                let y = j*4 + 8
+                for dx = 0 to 6 do
+                    for dy = 0 to 2 do
+                        bmp.SetPixel(x+dx, y+dy, BLUE)
+    // rupee
+    xoff <- 72
+    let mutable yoff = 8
+    let pattern = """
+...XXXXX
+..XXXX.X
+.XXXXX.X
+XXXXXX.X
+XXXXX...
+XXXX.XX.
+X...XX..
+XXX.X..."""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let b(x,y) = bmp.SetPixel(xoff+x,yoff+y,YELLOW)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if pattern.[y].Chars(x)='X' then b(x,y)
+    // key
+    yoff <- 24
+    let pattern = """
+....XXX.
+...X..XX
+...X...X
+....X..X
+...X.XX.
+..X.....
+.X.X....
+X.X....."""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if pattern.[y].Chars(x)='X' then b(x,y)
+    // bomb
+    yoff <- 32
+    let pattern = """
+.......o
+..XXXX.o
+.XoXXXX.
+XoXXXXXX
+XoXXXXXX
+XXXXXXXX
+.XXXXXX.
+..XXXX.."""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let w(x,y) = bmp.SetPixel(xoff+x,yoff+y,System.Drawing.Color.White)
+    let b(x,y) = bmp.SetPixel(xoff+x,yoff+y,BLUE)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if pattern.[y].Chars(x)='X' then b(x,y)
+            elif pattern.[y].Chars(x)='o' then w(x,y)
+    bmp
+    

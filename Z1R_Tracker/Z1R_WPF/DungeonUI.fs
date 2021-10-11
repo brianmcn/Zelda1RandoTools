@@ -267,6 +267,29 @@ For the commonest case of a non-descript room needing no special marker, a quick
         let redrawAllRooms() =
             for f in roomRedrawFuncs do
                 f()
+        // minimap-draw-er
+        let hoverCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black, IsHitTestVisible=true)
+        let minimini = Dungeon.MakeMiniMiniMapBmp() |> Graphics.BMPtoImage
+        minimini.Width <- 24.
+        minimini.Height <- 24.
+        minimini.Stretch <- Stretch.UniformToFill
+        minimini.Margin <- Thickness(2.)
+        let miniBorder = new Border(Child=minimini, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
+        canvasAdd(hoverCanvas, miniBorder, 0., 0.)
+        canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+200.)
+        hoverCanvas.MouseEnter.Add(fun _ ->
+            let markedRooms = roomStates |> Array2D.map (fun s -> not(roomIsEmpty(s)))
+            let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms,'?') // todo
+            let i = Graphics.BMPtoImage bmp
+            i.Width <- 240.
+            i.Height <- 120.
+            i.Stretch <- Stretch.UniformToFill
+            let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
+            Canvas.SetBottom(b, 0.)
+            Canvas.SetLeft(b, -260.)
+            hoverCanvas.Children.Add(b) |> ignore
+            )
+        hoverCanvas.MouseLeave.Add(fun _ -> hoverCanvas.Children.Clear(); canvasAdd(hoverCanvas, miniBorder, 0., 0.))
         // grab button for this tab
         let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
                                 Text="GRAB", BorderThickness=Thickness(0.), Margin=Thickness(0.), Padding=Thickness(0.),

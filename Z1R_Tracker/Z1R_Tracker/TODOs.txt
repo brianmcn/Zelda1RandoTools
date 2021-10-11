@@ -26,10 +26,6 @@ like 'start spot', could have other overworld decorations (e.g. to mark bomb dro
 
 meat-block icon as a dungeon room?  or is 'red' good enough? still can sacrifice T7 and T8 if want two more
 
-make a 'your dungeon markup as Zelda would display it', so that after 'painting out' a map, I can more easily spot the error I made
- - icon in bottom corner you can hover, which pops up the 'zelda view' of your marks
- - should probably include LEVEL-N text and bomb/rupee/key
-
 program icon for windows
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
