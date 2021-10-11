@@ -18,12 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-random flash of insight - it should totally say 'any road 4/4' above the tile here, and more generally, as you scroll or mouse-hover, the quick explainer-summary of 
-the icon should appear above the tile in the popup, whereas the grid is below (for every popup)
- - can use Canvas.Bottom to abut above, i expect
- - "Medium Secret (25-40 rupees)" implcit teaching!   "Blue Candle 40-80 rupees" (as costs are vanilla +/- 20)
- - (could even have an option 'hide extra popup tutorial decoration' for those who hate them, if anyone asks)
-
 allow people to mark secrets as they want (999 their choicedomain), have summary be smarter, e.g
     [7:51 PM] Lorgon111: I suppose the summary could do something like, have a row of 'here is the official secret list' and then below it have 'here is what you marked' and 
     sort the person's marks so that they will 'naturally' align if the person is true-tracking but still give gist if person is willy-nilly

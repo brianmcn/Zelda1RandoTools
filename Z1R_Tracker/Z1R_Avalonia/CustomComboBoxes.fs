@@ -321,7 +321,8 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             canvasAdd(innerc, image, 1., 1.)
-    redraw(boxCellCurrent)
+        innerc
+    redraw(boxCellCurrent) |> ignore
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 15 do
             let fe:Control = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, false) |> Graphics.BMPtoImage)
@@ -334,12 +335,27 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
         let pp = ea.GetCurrentPoint(cm.AppMainCanvas)
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
         DismissPopupWithResult(ident, MouseButtonEventArgsToPlayerHas pp)
-    let redrawTile(ident) =
-        // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
-        redraw(ident)
     let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
     let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
     let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
+    let redrawTile(ident) =
+        // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
+        redraw(ident) |> ignore
+        let s = if ident = -1 then "Unmarked" else TrackerModel.ITEMS.AsDisplayDescription(ident)
+        let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                    FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
+        let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
+        let dp = new DockPanel(LastChildFill=false)
+        dp.Children.Add(textBorder) |> ignore
+        innerc.Children.Add(dp) |> ignore
+        if decorationsShouldGoToTheLeft then
+            DockPanel.SetDock(textBorder, Dock.Right)
+            Canvas.SetTop(dp, -3.)
+            Canvas.SetRight(dp, 138.)
+        else
+            DockPanel.SetDock(textBorder, Dock.Right)
+            Canvas.SetTop(dp, -3.)
+            Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
                 redrawTile, onClick, extraDecorations, new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray), true)

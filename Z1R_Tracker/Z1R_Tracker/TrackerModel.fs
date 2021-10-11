@@ -357,6 +357,24 @@ module ITEMS =
             fst(itemNamesAndCounts.[n])
         else
             failwith "bad ITEMS id"
+    let AsDisplayDescription(n) =
+        match n with
+        | 0 -> if IsCurrentlyBook() then "Book" else "Magical Shield"
+        | 1 -> "Wooden Boomerang"
+        | 2 -> "Bow"
+        | 3 -> "Power Bracelet"
+        | 4 -> "Ladder"
+        | 5 -> "Magic Boomerang"
+        | 6 -> "Any Key"
+        | 7 -> "Raft"
+        | 8 -> "Recorder"
+        | 9 -> "Red Candle"
+        | 10 -> "Red Ring"
+        | 11 -> "Silver Arrow"
+        | 12 -> "Wand"
+        | 13 -> "White Sword"
+        | 14 -> "Heart Container"
+        | _ -> failwith "bad ITEMS id"
 let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle", ITEMS.itemNamesAndCounts |> Array.map snd)
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -381,14 +399,14 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "Sword1"           , 1                                                  , "Wood Sword Cave"
     // 1Q has 12 shops, distributed 4,4,3,1                                
     // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         
-    "ArrowShop"        , 999                                                , "Wood Arrows\n(60-100 rupees)"
-    "BombShop"         , 999                                                , "4 Bomb Pack\n(1-40 rupees)"
-    "BookShop"         , 999                                                , "(Boomstick) Book\n(180-220 rupees)"
-    "CandleShop"       , 999                                                , "Blue Candle\n(40-80 rupees)"
-    "BlueRingShop"     , 999                                                , "Blue Ring\n(230-255 rupees)"
-    "MeatShop"         , 999                                                , "Meat\n(40-120 rupees)"
-    "KeyShop"          , 999                                                , "Key\n(60-120 rupees)"
-    "ShieldShop"       , 999                                                , "Magical Shield\n(70-180 rupees)"
+    "ArrowShop"        , 999                                                , "Shop with\nWood Arrows\n(60-100 rupees)"
+    "BombShop"         , 999                                                , "Shop with\n4 Bomb Pack\n(1-40 rupees)"
+    "BookShop"         , 999                                                , "Shop with\n(Boomstick) Book\n(180-220 rupees)"
+    "CandleShop"       , 999                                                , "Shop with\nBlue Candle\n(40-80 rupees)"
+    "BlueRingShop"     , 999                                                , "Shop with\nBlue Ring\n(230-255 rupees)"
+    "MeatShop"         , 999                                                , "Shop with\nMeat\n(40-120 rupees)"
+    "KeyShop"          , 999                                                , "Shop with\nKey\n(60-120 rupees)"
+    "ShieldShop"       , 999                                                , "Shop with\nMagical Shield\n(70-180 rupees)"
     "UnknownSecret"    , 999                                                , "Unknown Secret"
     "LargeSecret"      , 999 (*if isFirstQuestOverworld then 3 else 1*)     , "Large Secret\n(50-150 rupees)"
     "MediumSecret"     , 999 (*if isFirstQuestOverworld then 7 else 7*)     , "Medium Secret\n(25-40 rupees)"
@@ -399,7 +417,7 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "Armos"            , 1                                                  , "Armos Item"
     // white/magical sword cave hint may also be marked as                 
     // a free hint 'shop', so 4 rather than 2                              
-    "HintShop"         , 4                                                  , "Hint Shop\n(10-60 rupees each)"
+    "HintShop"         , 4                                                  , "Hint Shop\n(10-60 rupees each)\nor free hint for\nwhite/magical\nsword cave"
     "TakeAny"          , 4                                                  , "Take Any One\nYou Want"
     "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop\n(20-60, 48-88 rupees)"
     "DarkX"            , 999                                                , "Don't Care"
