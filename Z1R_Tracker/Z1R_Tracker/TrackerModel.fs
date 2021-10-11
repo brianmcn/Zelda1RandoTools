@@ -378,7 +378,8 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "Sword3"           , 1
     "Sword2"           , 1
     "Sword1"           , 1
-    "ArrowShop"        , 999   // 1Q has 12 shops, distributed ?,?,3,1     2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)
+    // 1Q has 12 shops, distributed 4,4,3,1     2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)    
+    "ArrowShop"        , 999   
     "BombShop"         , 999
     "BookShop"         , 999
     "CandleShop"       , 999
@@ -394,7 +395,8 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "MoneyMakingGame"  , if isFirstQuestOverworld then 5 else 6
     "Letter"           , 1
     "Armos"            , 1
-    "HintShop"         , 4       // white/magical sword cave hint may also be marked, so 4 rather than 2
+    // white/magical sword cave hint may also be marked as a free hint 'shop', so 4 rather than 2
+    "HintShop"         , 4       
     "TakeAny"          , 4
     "PotionShop"       , if isFirstQuestOverworld then 7 else 9
     "DarkX"            , 999
@@ -1318,10 +1320,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
  ///////////////////////////////////////////////////////
 
 let initializeAll(instance:OverworldData.OverworldInstance, kind) =
-    let isFirstQuestOverworld = (instance.Quest = OverworldData.OWQuest.FIRST) || (instance.Quest = OverworldData.OWQuest.MIXED_FIRST)
-
     if mapSquareChoiceDomain = null then
-        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(isFirstQuestOverworld) |> Array.map snd)
+        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(instance.Quest.IsFirstQuestOW) |> Array.map snd)
         mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
         overworldMapMarks <- Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
     else

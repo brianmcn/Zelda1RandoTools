@@ -27,6 +27,7 @@ type OWQuest =
     | SECOND
     | MIXED_FIRST
     | MIXED_SECOND
+    member this.IsFirstQuestOW = match this with |FIRST|MIXED_FIRST -> true | _ -> false
 
 let owMapZone = [|
     "MMMMMMMMMMLHHHCC"

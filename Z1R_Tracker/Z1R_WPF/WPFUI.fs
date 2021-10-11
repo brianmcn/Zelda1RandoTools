@@ -470,7 +470,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
 
     // timer reset
     let timerResetButton = Graphics.makeButton("Pause/Reset timer", Some(16.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 65.)
+    canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
     let mutable popupIsActive = false
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
@@ -488,6 +488,16 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    // spot summary
+    let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
+                                    BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
+    let tmpCanvas = new Canvas()
+    spotSummaryTB.MouseEnter.Add(fun _ ->
+        tmpCanvas.Children.Clear()
+        tmpCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
+        )   
+    spotSummaryTB.MouseLeave.Add(fun _ -> tmpCanvas.Children.Clear())
+    canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp())
@@ -2166,6 +2176,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             broadcastWindow.Close()
             broadcastWindow <- null
         )
+
+    canvasAdd(appMainCanvas, tmpCanvas, 50., 50.)
 
     TrackerModel.forceUpdate()
     updateTimeline

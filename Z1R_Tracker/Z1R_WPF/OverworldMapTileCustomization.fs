@@ -265,3 +265,73 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
         else
             return false, false
     }
+
+let MakeRemainderSummaryDisplay() =
+    let sp = new StackPanel(Orientation=Orientation.Vertical)
+    let b x = new Border(Child=x, BorderThickness=Thickness(3.), BorderBrush=Brushes.Black)
+
+    let OPA = 0.4
+
+//    todo // maybe text with e.g. dungeons 6/9 found, other uniques 5/9 found, secrets 7/14 found ... grid to the left
+
+    // uniques
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    for i = 0 to 8 do
+        let icon = Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp())
+        if not(TrackerModel.mapSquareChoiceDomain.CanAddUse(i)) then
+            icon.Opacity <- OPA
+        row.Children.Add(b icon) |> ignore
+    sp.Children.Add(row) |> ignore
+
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    for i = 9 to 12 do
+        let icon = Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp())
+        if not(TrackerModel.mapSquareChoiceDomain.CanAddUse(i)) then
+            icon.Opacity <- OPA
+        row.Children.Add(b icon) |> ignore
+    sp.Children.Add(row) |> ignore
+
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    for i in [13;14;15;30;31] do
+        let icon = Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp())
+        if not(TrackerModel.mapSquareChoiceDomain.CanAddUse(i)) then
+            icon.Opacity <- OPA
+        row.Children.Add(b icon) |> ignore
+    sp.Children.Add(row) |> ignore
+
+    sp.Children.Add(new Canvas(Height=5., Background=Brushes.Gray, Margin=Thickness(3.))) |> ignore
+
+    // multis
+    for multi in [25; 26; 27; 28; 29; 32; 33; 34] do
+        let leftrow = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Left)
+        let rightrow = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Right)
+        for i = 0 to TrackerModel.mapSquareChoiceDomain.MaxUses(multi)-1 do
+            let icon = Graphics.BMPtoImage(MapStateProxy(multi).DefaultInteriorBmp())
+            if not(i >= TrackerModel.mapSquareChoiceDomain.NumUses(multi)) then
+                icon.Opacity <- OPA
+                rightrow.Children.Add(b icon) |> ignore
+            else
+                leftrow.Children.Add(b icon) |> ignore
+        let d = new DockPanel(HorizontalAlignment=HorizontalAlignment.Stretch)
+        DockPanel.SetDock(leftrow, Dock.Left)
+        DockPanel.SetDock(rightrow, Dock.Right)
+        d.Children.Add(leftrow) |> ignore
+        d.Children.Add(rightrow) |> ignore
+        sp.Children.Add(d) |> ignore
+
+    let shopCount = if TrackerModel.owInstance.Quest.IsFirstQuestOW then 12 else 15
+    let foundShopRepresentativeBmps = ResizeArray()
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let cur = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+            if cur.IsThreeItemShop then
+                foundShopRepresentativeBmps.Add(cur.DefaultInteriorBmp())
+    for i = 0 to shopCount-foundShopRepresentativeBmps.Count do
+        foundShopRepresentativeBmps.Add(Graphics.greyscale(MapStateProxy(TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP).DefaultInteriorBmp()))
+    let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    for icon in foundShopRepresentativeBmps do
+        row.Children.Add(b(Graphics.BMPtoImage icon)) |> ignore
+    sp.Children.Add(row) |> ignore
+
+    sp.Margin <- Thickness(3.)
+    new Border(Child=sp, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray, Background=Brushes.Black)

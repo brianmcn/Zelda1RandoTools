@@ -18,13 +18,29 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+random flash of insight - it should totally say 'any road 4/4' above the tile here, and more generally, as you scroll or mouse-hover, the quick explainer-summary of 
+the icon should appear above the tile in the popup, whereas the grid is below (for every popup)
+ - can use Canvas.Bottom to abut above, i expect
+ - "Medium Secret (25-40 rupees)" implcit teaching!   "Blue Candle 40-80 rupees" (as costs are vanilla +/- 20)
+ - (could even have an option 'hide extra popup tutorial decoration' for those who hate them, if anyone asks)
+
+allow people to mark secrets as they want (999 their choicedomain), have summary be smarter, e.g
+    [7:51 PM] Lorgon111: I suppose the summary could do something like, have a row of 'here is the official secret list' and then below it have 'here is what you marked' and 
+    sort the person's marks so that they will 'naturally' align if the person is true-tracking but still give gist if person is willy-nilly
+    [7:54 PM] Lorgon111: like if the icons are just docked left/center/right if large/med/small, then person who marks all medium would see e.g. a line of 14 actuals and 
+    then his line of 10 gotten centered below it, and get the info they want perhaps
+    [7:58 PM] Lorgon111: ... the ? could just go in the 'most probable' hole.
+
+get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
+
+disambiguate hint shop versus unknown money icons, ideally
+
+finish 'remaindersummary' currently in bottom of OMTC.fs
 and if they are tiles, the choiceDomainCountRemaining could be interesting to display, e.g. for DRC, TAH, large secrets, etc
  - can imagine icon for DRC/TAH/large in upper right with remain-count displayed, and hovering shows where you found them so far
     - or maybe hovering secret/take-any-heart should instead highlight those you left behind to take later
 
 hotkey testing, hotkey writeup in Notes
-
-icon-explainer button on startup page?
 
 distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up
 
@@ -67,13 +83,15 @@ if you get a 'meet' hint about white/magic sword cave location, could/should the
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
 
 
-factoids for 'loading ui screen':
+factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
  - a room with a gleeok cannot have a push block
  - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
  - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
  - khanana key explanation
  - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
  - if a room has a shutter door, the push block cannot reveal a staircase (just will open the shutter if pushable)
+ - each seed has its own three fixed small/medium/large secret values, where the possible ranges are 1-20/25-40/50-150 rupees
+ - when playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with bomb explosions (is this true?)
 
 
  maybe make separate project for generation-tools, e.g.
