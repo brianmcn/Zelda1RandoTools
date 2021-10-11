@@ -931,6 +931,16 @@ type DungeonBlocker =
     | BOMB
 //    | MONEY     // money or life room? bomb upgrade?
     | NOTHING
+    member this.DisplayDescription() =
+        match this with
+        | DungeonBlocker.COMBAT -> "Need better\nweapon/armor"
+        | DungeonBlocker.BOW_AND_ARROW -> "Need bow&arrow"
+        | DungeonBlocker.RECORDER -> "Need recorder"
+        | DungeonBlocker.LADDER -> "Need ladder"
+        | DungeonBlocker.BAIT -> "Need meat"
+        | DungeonBlocker.KEY -> "Need keys"
+        | DungeonBlocker.BOMB -> "Need bombs"
+        | DungeonBlocker.NOTHING -> "Unmarked"
     member this.Next() =
         match this with
         | DungeonBlocker.COMBAT -> DungeonBlocker.BOW_AND_ARROW

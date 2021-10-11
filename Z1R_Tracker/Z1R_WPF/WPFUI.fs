@@ -1569,23 +1569,35 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     let image = Graphics.BMPtoImage(bmp)
                     image.IsHitTestVisible <- false
                     canvasAdd(innerc, image, 4., 4.)
+                innerc
             c, redraw
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
-        redraw(current)
+        redraw(current) |> ignore
         let mutable popupIsActive = false
         let SetNewValue(db) =
             current <- db
-            redraw(db)
+            redraw(db) |> ignore
             TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
         let activate(activationDelta) =
             popupIsActive <- true
             let pc, predraw = make()
+            let popupRedraw(n) =
+                let innerc = predraw(n)
+                let text = new TextBox(Text=n.DisplayDescription(), Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                            FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
+                let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
+                let dp = new DockPanel(LastChildFill=false)
+                DockPanel.SetDock(textBorder, Dock.Right)
+                dp.Children.Add(textBorder) |> ignore
+                Canvas.SetTop(dp, 30.)
+                Canvas.SetRight(dp, 90.)
+                innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                                 (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
-                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., predraw,
+                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with
                 | Some(db) -> SetNewValue(db)
@@ -1611,7 +1623,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 let d = new DockPanel(LastChildFill=false, Background=Brushes.Black)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth, IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
-                d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome voice reminders will trigger when you get the item that may unblock you."
+                d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome reminders will trigger when you get the item that may unblock you."
                 d.Children.Add(tb) |> ignore
                 gridAdd(blockerGrid, d, i, j)
             else
