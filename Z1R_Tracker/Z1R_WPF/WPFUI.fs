@@ -876,13 +876,14 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
+                    let gridWidth = float(GCOL*(5*3+2*int ST)+int ST)
                     let gridxPosition = 
                         if pos.X < OMTW*2. then 
                             -ST // left align
                         elif pos.X > OMTW*13. then 
-                            OMTW - float(8*(5*3+2*int ST)+int ST)  // right align
+                            OMTW - gridWidth  // right align
                         else
-                            (OMTW - float(8*(5*3+2*int ST)+int ST))/2.  // center align
+                            (OMTW - gridWidth)/2.  // center align
                     let typicalGESAI(n) : FrameworkElement*_*_ =
                         let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
                         upcast Graphics.BMPtoImage(MapStateProxy(n).DefaultInteriorBmp()), isSelectable, n
@@ -919,7 +920,18 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                                             let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
                                             if MapStateProxy(currentState).IsX then
                                                 icon.Opacity <- X_OPACITY
-                                            canvasAdd(tileCanvas, icon, 0., 0.)),
+                                            canvasAdd(tileCanvas, icon, 0., 0.)
+                                        let s = if currentState = -1 then "Unmarked" else let _,_,s = TrackerModel.dummyOverworldTiles.[currentState] in s
+                                        let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                                                    FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
+                                        let textBorder = new Border(BorderThickness=Thickness(ST), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
+                                        let dp = new DockPanel(LastChildFill=false, Width=gridWidth)
+                                        DockPanel.SetDock(textBorder, Dock.Bottom)
+                                        dp.Children.Add(textBorder) |> ignore
+                                        Canvas.SetBottom(dp, 33.)
+                                        Canvas.SetLeft(dp, gridxPosition)
+                                        tileCanvas.Children.Add(dp) |> ignore
+                                        ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
                                     [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                         match r with

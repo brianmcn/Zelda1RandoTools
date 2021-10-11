@@ -362,44 +362,47 @@ let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle
 //////////////////////////////////////////////////////////////////////////////////////////
 
 let overworldTiles(isFirstQuestOverworld) = [|
-    "Level1"           , 1
-    "Level2"           , 1
-    "Level3"           , 1
-    "Level4"           , 1
-    "Level5"           , 1
-    "Level6"           , 1
-    "Level7"           , 1
-    "Level8"           , 1
-    "Level9"           , 1
-    "AnyRoad1"         , 1
-    "AnyRoad2"         , 1
-    "AnyRoad3"         , 1
-    "AnyRoad4"         , 1
-    "Sword3"           , 1
-    "Sword2"           , 1
-    "Sword1"           , 1
-    // 1Q has 12 shops, distributed 4,4,3,1     2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)    
-    "ArrowShop"        , 999   
-    "BombShop"         , 999
-    "BookShop"         , 999
-    "CandleShop"       , 999
-    "BlueRingShop"     , 999
-    "MeatShop"         , 999
-    "KeyShop"          , 999
-    "ShieldShop"       , 999
-    "UnknownSecret"    , 999
-    "LargeSecret"      , if isFirstQuestOverworld then 3 else 1
-    "MediumSecret"     , if isFirstQuestOverworld then 7 else 7
-    "SmallSecret"      , if isFirstQuestOverworld then 4 else 6
-    "DoorRepairCharge" , if isFirstQuestOverworld then 9 else 10
-    "MoneyMakingGame"  , if isFirstQuestOverworld then 5 else 6
-    "Letter"           , 1
-    "Armos"            , 1
-    // white/magical sword cave hint may also be marked as a free hint 'shop', so 4 rather than 2
-    "HintShop"         , 4       
-    "TakeAny"          , 4
-    "PotionShop"       , if isFirstQuestOverworld then 7 else 9
-    "DarkX"            , 999
+    // hotkey name       maxuses                                              popup display text
+    "Level1"           , 1                                                  , "Dungeon"
+    "Level2"           , 1                                                  , "Dungeon"
+    "Level3"           , 1                                                  , "Dungeon"
+    "Level4"           , 1                                                  , "Dungeon"
+    "Level5"           , 1                                                  , "Dungeon"
+    "Level6"           , 1                                                  , "Dungeon"
+    "Level7"           , 1                                                  , "Dungeon"
+    "Level8"           , 1                                                  , "Dungeon"
+    "Level9"           , 1                                                  , "Final Dungeon"
+    "AnyRoad1"         , 1                                                  , "Any Road 1/4"
+    "AnyRoad2"         , 1                                                  , "Any Road 2/4"
+    "AnyRoad3"         , 1                                                  , "Any Road 3/4"
+    "AnyRoad4"         , 1                                                  , "Any Road 4/4"
+    "Sword3"           , 1                                                  , "Magical Sword Cave"
+    "Sword2"           , 1                                                  , "White Sword Cave"
+    "Sword1"           , 1                                                  , "Wood Sword Cave"
+    // 1Q has 12 shops, distributed 4,4,3,1                                
+    // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         
+    "ArrowShop"        , 999                                                , "Wood Arrows\n(60-100 rupees)"
+    "BombShop"         , 999                                                , "4 Bomb Pack\n(1-40 rupees)"
+    "BookShop"         , 999                                                , "(Boomstick) Book\n(180-220 rupees)"
+    "CandleShop"       , 999                                                , "Blue Candle\n(40-80 rupees)"
+    "BlueRingShop"     , 999                                                , "Blue Ring\n(230-255 rupees)"
+    "MeatShop"         , 999                                                , "Meat\n(40-120 rupees)"
+    "KeyShop"          , 999                                                , "Key\n(60-120 rupees)"
+    "ShieldShop"       , 999                                                , "Magical Shield\n(70-180 rupees)"
+    "UnknownSecret"    , 999                                                , "Unknown Secret"
+    "LargeSecret"      , 999 (*if isFirstQuestOverworld then 3 else 1*)     , "Large Secret\n(50-150 rupees)"
+    "MediumSecret"     , 999 (*if isFirstQuestOverworld then 7 else 7*)     , "Medium Secret\n(25-40 rupees)"
+    "SmallSecret"      , 999 (*if isFirstQuestOverworld then 4 else 6*)     , "Small Secret\n(1-20 rupees)"
+    "DoorRepairCharge" , (if isFirstQuestOverworld then 9 else 10)          , "Door Repair Charge\n(15-25 rupees)"
+    "MoneyMakingGame"  , (if isFirstQuestOverworld then 5 else 6)           , "Money Making Game\n(gambling)"
+    "Letter"           , 1                                                  , "The Letter\n(for buying potions)"
+    "Armos"            , 1                                                  , "Armos Item"
+    // white/magical sword cave hint may also be marked as                 
+    // a free hint 'shop', so 4 rather than 2                              
+    "HintShop"         , 4                                                  , "Hint Shop\n(10-60 rupees each)"
+    "TakeAny"          , 4                                                  , "Take Any One\nYou Want"
+    "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop\n(20-60, 48-88 rupees)"
+    "DarkX"            , 999                                                , "Don't Care"
     |]   // 1Q has 73 total spots, 2Q has 80
 let dummyOverworldTiles = overworldTiles(true)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
 
@@ -450,7 +453,7 @@ type MapSquareChoiceDomainHelper =
     static member DARK_X = 35
     static member AsHotKeyName(n) =
         if n>=0 && n<dummyOverworldTiles.Length then
-            fst(dummyOverworldTiles.[n])
+            let r,_,_ = dummyOverworldTiles.[n] in r
         else
             failwith "bad overworld tile id"
 
@@ -1321,7 +1324,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
 
 let initializeAll(instance:OverworldData.OverworldInstance, kind) =
     if mapSquareChoiceDomain = null then
-        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(instance.Quest.IsFirstQuestOW) |> Array.map snd)
+        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(instance.Quest.IsFirstQuestOW) |> Array.map (fun (_,x,_) -> x))
         mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
         overworldMapMarks <- Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
     else
