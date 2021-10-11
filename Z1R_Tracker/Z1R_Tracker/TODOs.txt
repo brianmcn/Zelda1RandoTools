@@ -18,21 +18,11 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-allow people to mark secrets as they want (999 their choicedomain), have summary be smarter, e.g
-    [7:51 PM] Lorgon111: I suppose the summary could do something like, have a row of 'here is the official secret list' and then below it have 'here is what you marked' and 
-    sort the person's marks so that they will 'naturally' align if the person is true-tracking but still give gist if person is willy-nilly
-    [7:54 PM] Lorgon111: like if the icons are just docked left/center/right if large/med/small, then person who marks all medium would see e.g. a line of 14 actuals and 
-    then his line of 10 gotten centered below it, and get the info they want perhaps
-    [7:58 PM] Lorgon111: ... the ? could just go in the 'most probable' hole.
-
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
 disambiguate hint shop versus unknown money icons, ideally
 
 finish 'remaindersummary' currently in bottom of OMTC.fs
-and if they are tiles, the choiceDomainCountRemaining could be interesting to display, e.g. for DRC, TAH, large secrets, etc
- - can imagine icon for DRC/TAH/large in upper right with remain-count displayed, and hovering shows where you found them so far
-    - or maybe hovering secret/take-any-heart should instead highlight those you left behind to take later
 
 hotkey testing, hotkey writeup in Notes
 
