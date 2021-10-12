@@ -30,7 +30,21 @@ disambiguate hint shop versus unknown money icons, ideally
 
 hotkey testing, hotkey writeup in Notes
 
-distributing version process, e.g. making blank hotkeys/settings, removing crash log, etc, before zipping up
+check source code for TODOs
+
+start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN
+
+distributing version process
+ - delete entire Relase directory
+     - get rid of hotkeys/settings/crash log
+ - run the program once
+     - creates hotkeys/settings/crash log/ZTracker.lnk
+ - delete ZTracker.lnk (has my machine's paths hardcoded)
+ - zip up directory
+then users can
+ - unzip folder somewhere
+ - run Z1R_WPF.exe once
+ - copy ZTracker.lnk shortcut wherever they like
 
 
 timeline & mistakes

@@ -12,9 +12,10 @@ type RouteDestination =
     | SHOP of int
     | OW_MAP of int * int
     | HINTZONE of TrackerModel.HintZone * bool  // bool is couldBeLetterDungeon
+    | UNMARKEDINSTANCEFUNC of (int*int -> bool)
 
 let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
-                        updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp) =
+                        updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp, owInstance:OverworldData.OverworldInstance) =
     let appMainCanvas = cm.AppMainCanvas
     let OFFSET = offset
     // help the player route to locations
@@ -63,13 +64,14 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             let fakeSunglassesOverBottomThird = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Black, Opacity=0.50)
             canvasAdd(wholeAppCanvas, fakeSunglassesOverBottomThird, 0., 150.+8.*11.*3.)
             let explanation = 
-                new TextBox(Background=Brushes.Black, Foreground=Brushes.Orange, FontSize=18.,
+                new TextBox(Background=Brushes.Black, Foreground=Brushes.Orange, FontSize=16.,
                             Text="--Temporarily show routing only to a specific destination--\n"+
                                     "Choose a route destination:\n"+
                                     " - click an overworld map tile to route to that tile\n"+
                                     " - click a highlighted shop icon to route to any shops you've marked with that item\n"+
                                     " - click a highlighted triforce to route to that dungeon if location known or hinted\n"+
                                     " - click highlighted white/magical sword to route to that cave, if location known or hinted\n"+
+                                    " - click highlighted open-cave icon to route to all unmarked open caves\n"+
                                     " - click anywhere else to cancel temporary routing\n"+
                                     "Link will 'chase' an icon in upper right while this is active")
                                     // TODO item progress, route to all burnables/powerbraceletables/etc?
@@ -80,11 +82,11 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 60.)
             setLinkIconImpl(3,duplicateLinkIcon)
-            let makeIconTargetImpl(draw, drawLinkTarget, x, y, routeDest) =
-                let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            let makeIconTargetImpl(w, h, draw, drawLinkTarget, x, y, routeDest) =
+                let c = new Canvas(Width=w, Height=h, Background=Brushes.Black)
                 draw(c)
                 canvasAdd(wholeAppCanvas, c, x, y)
-                let borderRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=1.)
+                let borderRect = new Shapes.Rectangle(Width=w, Height=h, Stroke=Brushes.White, StrokeThickness=1.)
                 canvasAdd(c, borderRect, 0., 0.)
                 c.PointerPressed.Add(fun ea -> 
                     ea.Handled <- true  // so it doesn't bubble up to wholeAppCanvas, which would treat it as an outside-region click and eliminate-target-and-dismiss
@@ -93,7 +95,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                     drawLinkTarget(currentTargetIcon)
                     dismiss()
                     )
-            let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(draw, draw, x, y, routeDest)
+            let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, x, y, routeDest)
             let makeShopIconTarget(draw, x, y, shopDest) =
                 let mutable found = false
                 for i = 0 to 15 do
@@ -110,6 +112,9 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), OFFSET+120., 60., TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), OFFSET+120., 90., TrackerModel.MapSquareChoiceDomainHelper.ARROW)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), OFFSET+90., 90., TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
+            // open caves
+            let openCave(c:Canvas) = canvasAdd(c, Graphics.BMPtoImage Graphics.openCaveIconBmp, 0., 0.)
+            makeIconTargetImpl(20., 20., openCave, openCave, 245., 125., RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))
             // triforces
             if TrackerModel.IsHiddenDungeonNumbers() then
                 // letters
@@ -159,7 +164,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.GetLevelHint(9) <> TrackerModel.HintZone.UNKNOWN then
                 let (x,y) as loc = TrackerModel.mapStateSummary.Sword2Location
                 let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(9), false)
-                makeIconTargetImpl((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)), 
+                makeIconTargetImpl(30., 30., (fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)), 
                     (fun c -> 
                         // white sword seems dodgy for link to chase, since it's actually the cave which likely has something else, so draw the map marker instead
                         let image = sword2bmp |> Graphics.BMPtoImage

@@ -193,6 +193,7 @@ type MyWindow() as this =
             //                             items  ow map  prog  dungeon tabs                timeline
             let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6)
             let rootCanvas =    new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+            rootCanvas.UseLayoutRounding <- true
             let appMainCanvas = new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
             let style = new Style(typeof<ToolTip>)
             style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))

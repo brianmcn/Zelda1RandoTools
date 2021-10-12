@@ -81,6 +81,12 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
     | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
         processHint(hz,couldBeLetterDungeon)
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 128)
+    | Some(RouteDestination.UNMARKEDINSTANCEFUNC(f)) ->
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                if unmarked.[x,y] && f(x,y) then
+                    owTargetworthySpots.[x,y] <- true
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 128)
     | None ->
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxYellowGreenHighlights)
     for i,j in interestingButInaccesible do
@@ -465,6 +471,11 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OFFSET+150., 30.)
 
+    let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
+    highlightOpenCaves.PointerEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
+    highlightOpenCaves.PointerLeave.Add(fun _ -> hideLocator())
+    canvasAdd(appMainCanvas, highlightOpenCaves, 245., 125.)
+
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<Visual>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let mutable displayIsCurrentlyMirrored = false
@@ -509,7 +520,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     canvasAdd(appMainCanvas, spotSummaryTB, 13.8*OMTW, 128.)
 
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
-                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp())
+                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

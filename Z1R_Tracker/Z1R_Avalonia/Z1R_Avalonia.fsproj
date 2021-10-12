@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\Z1R_WPF\icons\CroppedBrianKitty.png" Link="icons\CroppedBrianKitty.png" />
+    <EmbeddedResource Include="..\Z1R_WPF\icons\open_cave20x20.png" Link="icons\open_cave20x20.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\icons10x10.png" Link="icons\icons10x10.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\icons13x9.png" Link="icons\icons13x9.png" />
     <EmbeddedResource Include="..\Z1R_WPF\icons\icons7x7.png" Link="icons\icons7x7.png" />

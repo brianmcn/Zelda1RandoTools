@@ -105,6 +105,7 @@ Mouse-hovering blue_candle icon will highlight all its shop locations on the map
 Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
 Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar will 
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
+Mouse-hovering the open-cave icon will highlight any open cave locations you have not yet marked up.
 
 Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.  
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if

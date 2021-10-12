@@ -213,6 +213,11 @@ let alphaNumOnTransparentBmp(ch, color, w:int, h:int, x, y) =
     paintAlphanumerics3x5(ch, color, r, x, y)
     r
 
+let openCaveIconBmp = 
+    let imageStream = GetResourceStream("open_cave20x20.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    bmp
+
 let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder_bmp, wand_bmp, red_candle_bmp, book_bmp, key_bmp, 
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
