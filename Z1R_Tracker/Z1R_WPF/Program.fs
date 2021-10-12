@@ -12,6 +12,40 @@ module Winterop =
     extern bool UnregisterHotKey(IntPtr hWnd,int id)
 
     let HOTKEY_ID = 9000
+
+    (*
+    [<ComImport>]
+    [<Guid("00021401-0000-0000-C000-000000000046")>]
+    internal type ShellLink
+
+    let shellLink = 
+        let ty = System.Type.GetTypeFromCLSID (System.Guid "00021401-0000-0000-C000-000000000046")
+        Activator.CreateInstance ty
+    *)
+
+    [<ComImport>]
+    [<InterfaceType(ComInterfaceType.InterfaceIsIUnknown)>]
+    [<Guid("000214F9-0000-0000-C000-000000000046")>]
+    type IShellLink =
+        abstract member GetPath : [<Out; MarshalAs(UnmanagedType.LPWStr)>] pszFile:System.Text.StringBuilder * cchMaxPath:int * [<Out>]pfd:IntPtr * fFlags:int -> unit
+        abstract member GetIDList : [<Out>]ppidl:IntPtr -> unit
+        abstract member SetIDList : pidl:IntPtr -> unit
+        abstract member GetDescription : [<Out; MarshalAs(UnmanagedType.LPWStr)>] pszName:System.Text.StringBuilder * cchMaxName:int -> unit
+        abstract member SetDescription : [<MarshalAs(UnmanagedType.LPWStr)>] pszName:string -> unit
+        abstract member GetWorkingDirectory : [<Out; MarshalAs(UnmanagedType.LPWStr)>] pszDir:System.Text.StringBuilder * cchMaxPath:int -> unit
+        abstract member SetWorkingDirectory : [<MarshalAs(UnmanagedType.LPWStr)>] pszDir:string -> unit
+        abstract member GetArguments : [<Out; MarshalAs(UnmanagedType.LPWStr)>] pszArgs:System.Text.StringBuilder * cchMaxPath:int -> unit
+        abstract member SetArguments : [<MarshalAs(UnmanagedType.LPWStr)>] pszArgs:string -> unit
+        abstract member GetHotkey : [<Out>] pwHotkey:int16 -> unit
+        abstract member SetHotkey : wHotkey:int16 -> unit 
+        abstract member GetShowCmd : [<Out>] piShowCmd:int -> unit
+        abstract member SetShowCmd : iShowCmd:int -> unit
+        abstract member GetIconLocation : [<Out; MarshalAs(UnmanagedType.LPWStr)>] pszIconPath:System.Text.StringBuilder * cchIconPath:int * [<Out>]piIcon:int -> unit
+        abstract member SetIconLocation : [<MarshalAs(UnmanagedType.LPWStr)>] pszIconPath:string * iIcon:int -> unit
+        abstract member SetRelativePath : [<MarshalAs(UnmanagedType.LPWStr)>] pszPathRel:string * dwReserved:int -> unit
+        abstract member Resolve : hwnd:IntPtr * fFlags:int -> unit
+        abstract member SetPath : [<MarshalAs(UnmanagedType.LPWStr)>] pszFile:string -> unit
+
     
 type MyWindowBase() as this = 
     inherit Window()
@@ -120,6 +154,28 @@ type MyWindow() as this =
             )
 
         HotKeys.InitializeWindow(this)
+        
+        do
+            (*
+            use writer = new System.IO.StreamWriter("ZTracker.url")
+            writer.WriteLine("[InternetShortcut]")
+            writer.WriteLine("WorkingDirectory=.")
+            writer.WriteLine("URL=file://Z1R_WPF.exe")
+            writer.WriteLine("IconIndex=0")
+            writer.WriteLine("IconFile=icons/ztlogo64x64.ico")
+            *)
+            let shellLink = 
+                let ty = System.Type.GetTypeFromCLSID (System.Guid "00021401-0000-0000-C000-000000000046")
+                Activator.CreateInstance ty
+            let isl = shellLink :?> Winterop.IShellLink
+            let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
+            isl.SetDescription("Launch Z-Tracker")
+            //isl.SetRelativePath("Z1R_WPF.exe", 0)
+            isl.SetPath(System.IO.Path.Combine(cwd, "Z1R_WPF.exe"))
+            isl.SetWorkingDirectory(cwd)
+            isl.SetIconLocation(System.IO.Path.Combine(cwd, "icons/ztlogo64x64.ico"), 0)
+            let ipf = isl :?> System.Runtime.InteropServices.ComTypes.IPersistFile
+            ipf.Save(System.IO.Path.Combine(cwd, "ZTracker.lnk"), false)
 
         Graphics.theWindow <- this
         WPFUI.timeTextBox <- hmsTimeTextBox

@@ -39,7 +39,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\Z1R_WPF.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <OtherFlags>--warnon:1182 --win32icon:icons\ztlogo.ico</OtherFlags>
+    <OtherFlags>--warnon:1182</OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
@@ -65,6 +65,9 @@
     <EmbeddedResource Include="icons\s_icon_overworld_strip39.png" />
     <EmbeddedResource Include="icons\s_btn_tr_dungeon_cell_strip3.png" />
     <EmbeddedResource Include="icons\s_btn_tr_dungeon_num_strip18.png" />
+    <Content Include="icons\ztlogo64x64.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
     <EmbeddedResource Include="icons\icons7x7.png" />
     <EmbeddedResource Include="icons\icons10x10.png" />

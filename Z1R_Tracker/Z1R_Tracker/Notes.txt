@@ -94,8 +94,9 @@ Zones - click or hover to show overworld map zones, as hinted by randomizer NPCs
 Coords - click or hover to show a coordinate overlay
 HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
 
-(WPF only) the upper right area of the tracker, containing only the HFQ/HSQ buttons and the timer (and Link) is 'boxed off', so that streamers with
-  their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. (Send Brian feedback if you use this.)
+(WPF only) the upper right area of the tracker, containing only the HFQ/HSQ buttons, the spot summary, and the timer (and Link) is 'boxed off', 
+  so that streamers with their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. 
+  (Send Brian feedback if you use this.)
 
 Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
