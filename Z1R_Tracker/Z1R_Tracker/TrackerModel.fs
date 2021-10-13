@@ -859,6 +859,7 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Locat
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
 let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
+let mapStateSummaryComputedEvent = new Event<_>()
 let mapStateSummaryLastComputedTime = new LastChangedTime()
 let recomputeMapStateSummary() =
     let dungeonLocations = Array.create 9 NOTFOUND
@@ -933,6 +934,7 @@ let recomputeMapStateSummary() =
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime.SetNow()
+    mapStateSummaryComputedEvent.Trigger()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeon blockers

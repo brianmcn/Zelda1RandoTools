@@ -62,6 +62,8 @@ Triforce display suggests if dungeon has been located on overworld map:
  - white numeral means location known
  - highlighted background means have helpful location hint (see below)
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
+If the dungeon location is known to be an overworld spot blocked by raft/powerBracelet/raft/recorder, a tiny icon of that blocker appears in its 
+upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
 
 Items:
 The list of possible items (book, boomerang, ...) appears in a popup.  Choose the item to populate a box, and
@@ -78,7 +80,9 @@ Most item progress has semantic meaning to the tracker with regards to routing/r
 
 OTHER ITEM AREA
 
-coast item, armos item, white sword item - just like dungeon item boxes
+Coast Item, Armos Item, White Sword Item - just like dungeon item boxes
+  If the white sword cave location is known to be an overworld spot blocked by raft/powerBracelet/raft/recorder, a tiny icon of that blocker appears 
+  in its upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
 4 take-any hearts - click or scroll to say you took a heart container (red heart) or chose another option (X)
 wood sword, blue ring, blue candle, wood arrow, magic sword - click these when you get them, so they appear on the Timeline (see below)
 bombs - click when you get bombs, to have map routing send you to bombable locations (see below)

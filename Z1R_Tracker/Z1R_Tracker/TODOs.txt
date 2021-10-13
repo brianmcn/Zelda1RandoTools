@@ -18,10 +18,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-accomodate 
- -  Added "Force Overworld Block".  At least one dungeon (or the white sword cave) is blocked by the raft, power bracelet, ladder, or recorder.
-by maybe placing a tiny (raft, power bracelet, ladder, recorder) icon over corner of triforce or white sword cave? or in spot summary? how to track...
-maybe upper right of the icon area, and re-work the upper right area, moving hearts to bottom so white sword can be atop just right of 9? then easy to 'scan'?
+re-work the upper right area, moving hearts to bottom so white sword can be atop just right of 9? then easy to 'scan' Force Overworld Block?
 
 I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
 I don't love it because it's not a room type. 

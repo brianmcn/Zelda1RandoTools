@@ -86,6 +86,7 @@
     <EmbeddedResource Include="icons\take-this-wood-sword.png" />
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
+    <EmbeddedResource Include="icons\open_cave20x20.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="HotKeys.fs" />
@@ -117,7 +118,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <EmbeddedResource Include="icons\open_cave20x20.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

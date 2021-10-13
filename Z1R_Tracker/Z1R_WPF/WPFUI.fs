@@ -232,7 +232,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = Views.MakeTriforceDisplayView(cm,i)
+        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance))
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
@@ -246,7 +246,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
-    let level9NumeralCanvas = Views.MakeLevel9View()
+    let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
@@ -369,16 +369,21 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     armos.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.HasArmos))
     armos.MouseLeave.Add(fun _ -> hideLocator())
     gridAdd(owItemGrid, armos, 0, 1)
-    let white_sword_image = Graphics.BMPtoImage Graphics.white_sword_bmp
-    let white_sword_canvas = new Canvas(Width=21., Height=21.)
-    let redrawWhiteSwordCanvas() =
-        white_sword_canvas.Children.Clear()
+    let white_sword_canvas = new Canvas(Width=30., Height=30.)
+    let redrawWhiteSwordCanvas(c:Canvas) =
+        c.Children.Clear()
         if not(TrackerModel.playerComputedStateSummary.HaveWhiteSwordItem) &&           // don't have it yet
                 TrackerModel.mapStateSummary.Sword2Location=TrackerModel.NOTFOUND &&    // have not found cave
-                TrackerModel.GetLevelHint(9)<>TrackerModel.HintZone.UNKNOWN then         // have a hint
-            white_sword_canvas.Children.Add(makeHintHighlight(21.)) |> ignore
-        white_sword_canvas.Children.Add(white_sword_image) |> ignore
-    redrawWhiteSwordCanvas()
+                TrackerModel.GetLevelHint(9)<>TrackerModel.HintZone.UNKNOWN then        // have a hint
+            canvasAdd(c, makeHintHighlight(21.), 4., 4.)
+        canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)
+        Views.drawTinyIconIfLocationIsOverworldBlock(c, Some(owInstance), TrackerModel.mapStateSummary.Sword2Location)
+    redrawWhiteSwordCanvas(white_sword_canvas)
+    (*  don't need to do this, as redrawWhiteSwordCanvas() is currently called every doUIUpdate, heh
+    // redraw after we can look up its new location coordinates
+    let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
+    newLocation.Add(fun _ -> redrawWhiteSwordCanvas())
+    *)
     gridAdd(owItemGrid, white_sword_canvas, 0, 2)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), 1, 0)
     gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), 1, 1)
@@ -431,14 +436,15 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     gridAdd(owItemGrid2, blue_ring_box, 2, 0)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)
     ToolTipService.SetPlacement(mags_box, System.Windows.Controls.Primitives.PlacementMode.Top)
-    let magsHintHighlight = makeHintHighlight(30.)
-    let redrawMagicalSwordCanvas() =
-        mags_box.Children.Remove(magsHintHighlight)
+    let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
+    let redrawMagicalSwordCanvas(c:Canvas) =
+        c.Children.Clear()
         if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) &&   // dont have sword
                 TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
-                TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then               // have a hint
-            mags_box.Children.Insert(0, magsHintHighlight)
-    redrawMagicalSwordCanvas()
+                TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then              // have a hint
+            canvasAdd(c, makeHintHighlight(21.), 4., 4.)
+        canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)
+    redrawMagicalSwordCanvas(mags_canvas)
     gridAdd(owItemGrid2, mags_box, 0, 2)
     mags_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
@@ -510,8 +516,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
     canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
-                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance)
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl,
+                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
     canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
@@ -1222,8 +1228,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         // redraw triforce display (some may have located/unlocated/hinted)
         updateNumberedTriforceDisplayIfItExists()
         // redraw white/magical swords (may have located/unlocated/hinted)
-        redrawWhiteSwordCanvas()
-        redrawMagicalSwordCanvas()
+        redrawWhiteSwordCanvas(white_sword_canvas)
+        redrawMagicalSwordCanvas(mags_canvas)
 
         recorderingCanvas.Children.Clear()
         RedrawForSecondQuestDungeonToggle()

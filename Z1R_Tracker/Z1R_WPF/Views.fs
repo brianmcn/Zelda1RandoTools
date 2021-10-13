@@ -31,7 +31,43 @@ let fullTriforce_bmp(i) =
     | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
     | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
 
-let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
+let drawTinyIconIfLocationIsOverworldBlock(c:Canvas, owInstanceOpt:OverworldData.OverworldInstance option, location) =
+    match owInstanceOpt with
+    | Some owInstance ->
+        if location<>TrackerModel.NOTFOUND then
+            // mark overworld block in the upper right corner
+            let icon =
+                if owInstance.Raftable(location) then
+                    Graphics.BMPtoImage Graphics.raft_bmp
+                elif owInstance.PowerBraceletable(location) then
+                    Graphics.BMPtoImage Graphics.power_bracelet_bmp
+                elif owInstance.Ladderable(location) then
+                    Graphics.BMPtoImage Graphics.ladder_bmp
+                elif owInstance.Whistleable(location) then
+                    Graphics.BMPtoImage Graphics.recorder_bmp
+                else
+                    null
+            if icon <> null then
+                icon.Width <- 7.
+                icon.Height <- 7.
+                canvasAdd(c, icon, 21., 3.)
+    | None -> ()
+let SynthesizeANewLocationKnownEvent(mapChoiceDomainChangePublished:IEvent<_>) =
+    let resultEvent = new Event<_>()
+    // if location changes...
+    let mutable needDetailAboutNewLocation = false
+    mapChoiceDomainChangePublished.Add(fun _ -> 
+        needDetailAboutNewLocation <- true
+        )
+    // ... Trigger after we can look up its new location coordinates
+    TrackerModel.mapStateSummaryComputedEvent.Publish.Add(fun _ ->
+        if needDetailAboutNewLocation then
+            resultEvent.Trigger()
+            needDetailAboutNewLocation <- false
+        )
+    resultEvent.Publish
+
+let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt) =
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
     let redraw() =
@@ -50,6 +86,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
             innerc.Children.Add(Graphics.BMPtoImage(if not(found) then emptyUnfoundTriforce_bmp(trackerIndex) else emptyFoundTriforce_bmp(trackerIndex))) |> ignore
         else
             innerc.Children.Add(Graphics.BMPtoImage(fullTriforce_bmp(trackerIndex))) |> ignore 
+        drawTinyIconIfLocationIsOverworldBlock(innerc, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[trackerIndex])
     redraw()
     // interactions
     let mutable popupIsActive = false
@@ -67,8 +104,9 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
         )
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
-    // redraw if location changes
-    dungeon.HasBeenLocatedChanged.Add(fun _ -> redraw())
+    // redraw after we can look up its new location coordinates
+    let newLocation = SynthesizeANewLocationKnownEvent(dungeon.HasBeenLocatedChanged)
+    newLocation.Add(fun _ -> redraw())
     // redraw if hinting changes
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         TrackerModel.LevelHintChanged(trackerIndex).Add(fun _ -> redraw())
@@ -77,7 +115,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex) =
     // redraw if label changed, as that can (un)link an existing hint
     dungeon.HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw())
     innerc
-let MakeLevel9View() =
+let MakeLevel9View(owInstanceOpt) =
     let level9NumeralCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(8)
     let redraw() =
@@ -87,9 +125,11 @@ let MakeLevel9View() =
         if not(l9found) && TrackerModel.GetLevelHint(8)<>TrackerModel.HintZone.UNKNOWN then
             canvasAdd(level9NumeralCanvas, makeHintHighlight(30.), 0., 0.)
         canvasAdd(level9NumeralCanvas, img, 0., 0.)
+        drawTinyIconIfLocationIsOverworldBlock(level9NumeralCanvas, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[8])
     redraw()
-    // redraw if location changes
-    dungeon.HasBeenLocatedChanged.Add(fun _ -> redraw())
+    // redraw after we can look up its new location coordinates
+    let newLocation = SynthesizeANewLocationKnownEvent(dungeon.HasBeenLocatedChanged)
+    newLocation.Add(fun _ -> redraw())
     // redraw if hinting changes
     TrackerModel.LevelHintChanged(8).Add(fun _ -> redraw())
     level9NumeralCanvas

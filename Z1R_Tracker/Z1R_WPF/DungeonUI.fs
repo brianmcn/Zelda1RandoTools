@@ -68,7 +68,7 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         redraw(d.Color, d.LabelChar)
         d.HiddenDungeonColorOrLabelChanged.Add(redraw)
         sp.Children.Add(colorCanvas) |> ignore
-    let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex) else Views.MakeLevel9View()
+    let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex, None) else Views.MakeLevel9View(None)
     sp.Children.Add(dungeonView) |> ignore
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
