@@ -6,11 +6,14 @@ Notes about overall UI & behavior
 (Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
 
 
-STARTUP OPTIONS
+STARTUP OPTION - Heart Shuffle: 
 
-Heart Shuffle: Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
+Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
 
-Hide Dungeon Numbers: (if this is your first time reading this document, skip this section and return to it later)
+
+STARTUP OPTION - Hide Dungeon Numbers: 
+
+(if this is your first time reading this document, skip this section and return to it later)
 
 Enabling this option causes a number of changes in the tracker to help the player deal with this randomizer feature:
  - top area:
@@ -39,6 +42,21 @@ The workflow for the player then becomes:
 
 The Color marks are for the player's reference, and have no semantic meaning to the tracker.
 The Number marks have semantics that interact with a number of tracker features, you should set it once known.
+
+
+STARTUP OPTION - Start _____ Overworld:
+
+Choose your overworld quest before you begin.  This chooses the correct overworld map drawing & the sets of coordinates that may have locations.
+It also populates the 'Spot Summary' (see below) with the appropriate set of locations you will eventually find.
+
+If you don't know which overworld quest it will be, due to the rando flagset, then select "Mixed - Second Quest".  
+You may need to compensate a small bit if you discover you are in a different quest:
+ - coordinate locations A12, D13, and H5 may look different in a non-mixed quest
+ - if the seed is actually first-quest, then the Spot Summary...
+      ...will have 1 extra Door Repair, 1 extra Money Making Game, 2 extra Potion Shops, and 3 extra item shops, and
+      ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
+ - if you discover you are in (unmixed) first quest, consider clicking the HSQ button (see below)
+ - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see below)
 
 
 POPUPS
@@ -96,7 +114,7 @@ ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clickin
   un-gettable (given the player's current inventory)
 Zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
 Coords - click or hover to show a coordinate overlay
-HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed at start, and Hide First Quest or Hide Second Quest if later helpful
+HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed-2nd at start, and Hide First Quest or Hide Second Quest if later helpful
 
 (WPF only) the upper right area of the tracker, containing only the HFQ/HSQ buttons, the spot summary, and the timer (and Link) is 'boxed off', 
   so that streamers with their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. 

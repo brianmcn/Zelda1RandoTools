@@ -32,8 +32,6 @@ I am probably going to add 'Meat Block' as a room.  Bomb Upgrade and Money-or-Li
 consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
  - might want middle click to cycle blue, yellow, nothing, for e.g. bomb drop, key drop, nothing 
 
-unknown overworld quest, spot summary (show 2, one for each?)
-
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
 hotkey testing, hotkey writeup in Notes

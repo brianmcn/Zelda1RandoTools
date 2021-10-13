@@ -278,7 +278,7 @@ type MyWindow() as this =
             0, "First Quest Overworld"
             1, "Second Quest Overworld"
             2, "Mixed - First Quest Overworld"
-            3, "Mixed - Second Quest Overworld"
+            3, "Mixed - Second Quest Overworld\n(or randomized quest)"
             |]
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)

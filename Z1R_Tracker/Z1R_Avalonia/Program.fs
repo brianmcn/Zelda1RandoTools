@@ -143,7 +143,7 @@ type MyWindow() as this =
                 "First Quest Overworld"
                 "Second Quest Overworld"
                 "Mixed - First Quest Overworld"
-                "Mixed - Second Quest Overworld"
+                "Mixed - Second Quest Overworld\n(or randomized quest)"
             |]
         let mutable startButtonHasBeenClicked = false
         for i = 0 to 3 do
