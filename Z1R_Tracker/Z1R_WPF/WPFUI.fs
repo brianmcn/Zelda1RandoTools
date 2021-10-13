@@ -2160,6 +2160,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
         broadcastWindow.Height <- H + 40.
         let dp = new DockPanel(Width=W)
+        dp.UseLayoutRounding <- true
         DockPanel.SetDock(timeline, Dock.Bottom)
         dp.Children.Add(timeline) |> ignore
         dp.Children.Add(topc) |> ignore

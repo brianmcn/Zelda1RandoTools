@@ -58,7 +58,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             setLinkIcon(3)
             let wholeAppCanvas = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Transparent, IsHitTestVisible=true)  // TODO right height? I guess too big is ok
             let wh = new System.Threading.ManualResetEvent(false)
-            let dismiss() = setLinkIcon(1); wh.Set() |> ignore  // TODO rename to dismissWithTarget or something
+            let dismissHavingChosenATarget() = setLinkIcon(1); wh.Set() |> ignore
         
             let fakeSunglassesOverTopThird = new Canvas(Width=16.*OMTW, Height=150., Background=Brushes.Black, Opacity=0.50)
             canvasAdd(wholeAppCanvas, fakeSunglassesOverTopThird, 0., 0.)
@@ -94,7 +94,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                     changeCurrentRouteTarget(routeDest)
                     currentTargetIcon.Children.Clear()
                     drawLinkTarget(currentTargetIcon)
-                    dismiss()
+                    dismissHavingChosenATarget()
                     )
             let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, x, y, routeDest)
             let makeShopIconTarget(draw, x, y, shopDest) =
@@ -189,7 +189,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                     canvasAdd(currentTargetIcon, tb, 7., 1.)
                     let borderRect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=1.)
                     canvasAdd(currentTargetIcon, borderRect, 0., 0.)
-                    dismiss()
+                    dismissHavingChosenATarget()
                 else
                     // they clicked elsewhere
                     eliminateCurrentRouteTarget()

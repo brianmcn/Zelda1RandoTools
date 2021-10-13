@@ -18,21 +18,34 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-need mid-game way to highlight & route 'open caves' despite your candle/bombs  (can imagine tiny icon of green with black cave hole and yellow sand like start screen)
+accomodate 
+ -  Added "Force Overworld Block".  At least one dungeon (or the white sword cave) is blocked by the raft, power bracelet, ladder, or recorder.
+by maybe placing a tiny (raft, power bracelet, ladder, recorder) icon over corner of triforce or white sword cave? or in spot summary? how to track...
+maybe upper right of the icon area, and re-work the upper right area, moving hearts to bottom so white sword can be atop just right of 9? then easy to 'scan'?
 
-like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
+I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
+I don't love it because it's not a room type. 
+Maybe I need more 'decorations' like the middle-click that I can add to an existing room that is independent of its 'room type' or 'completedness value'... hm... 
+like a 'got the item floor drop in this room' and 'got the item from a basement in this room' are useful decorations that you might want to hang, independently, off a 
+Digdigger-Recorder marked room, e.g. if the room has a digdogger and an open stairway.  
+Coming up with suitable icons, finding places to draw them, and finding gestures for the player to add them are all challenges, though.  I'll think about it.
+ - could have double-left-click and double-right-click do stuff, and have scroll-wheel be only way to activate dungeon room popup, hmm...
+ - could maybe have like up-arrow-point-at-I on left side of room for floor drop, down-arrow-point-at-I on right side for basement drop? 
+   they should be loud and pop, could even draw out of bounds a little.  maybe Link YouGotTheThing?
 
-meat-block icon as a dungeon room?  or is 'red' good enough? still can sacrifice T7 and T8 if want two more
+I am probably going to add 'Meat Block' as a room.  Bomb Upgrade and Money-or-Life are also actual 'rooms' that Z-Tracker doesn't currently have, that may be useful to mark.
+consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
+ - might want middle click to cycle blue, yellow, nothing, for e.g. bomb drop, key drop, nothing 
+
+unknown overworld quest, spot summary (show 2, one for each?)
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
-
-disambiguate hint shop versus unknown money icons, ideally
 
 hotkey testing, hotkey writeup in Notes
 
 check source code for TODOs
 
-start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN
+start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
 
 distributing version process
  - delete entire Relase directory
@@ -47,20 +60,29 @@ then users can
  - copy ZTracker.lnk shortcut wherever they like
 
 
-timeline & mistakes
-
-timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
- - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
- - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
-   rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
-
 I should try 'painting out unmarked rooms' if map/atlas, to experience it
+
+factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
+ - a room with a gleeok cannot have a push block
+ - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
+ - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
+ - khanana key explanation
+ - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
+ - if a room has a shutter door, the push block cannot reveal a staircase (just will open the shutter if pushable)
+ - each seed has its own three fixed small/medium/large secret values, where the possible ranges are 1-20/25-40/50-150 rupees
+ - when playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with bomb explosions (is this true?)
+ - room 'five pairs' only drops in dungeon 1 in 1Q Shapes
+ - sometimes 2 blue potions is cheaper than a red one. buying a blue when you have a blue turns it red
 
 
 
 
 
 SMALL
+
+sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
+
+like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
 Kigalas found 'take any' popup confusing first time he saw it, but figured it out
  - wants 'tracker take candle' speech recognition there
@@ -69,6 +91,7 @@ possible reminder: 'there is only 1 remaining location that XXX can be, hover it
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context - imagine if Blocker_Bow was listened for in dungeon area after rooms and hooked to next free blocker box
+ - kigalas also suggested auto-blocker-ing based on dungeon markup, and I explained my misgivings
 marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
@@ -81,22 +104,12 @@ Consider 2/3 app size options
 if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
   - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
         - could make populateOverworldAcceratorTable() method to pass in some values more easily maybe
+    ah, but hint shop already has a right click action, which is bright->dark toggle, and is 'needed' e.g. for sword cave hints or hint shops you bought out
+    and you can't assume the user wants to mark a hint
 
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
 
-
-factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
- - a room with a gleeok cannot have a push block
- - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
- - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
- - khanana key explanation
- - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
- - if a room has a shutter door, the push block cannot reveal a staircase (just will open the shutter if pushable)
- - each seed has its own three fixed small/medium/large secret values, where the possible ranges are 1-20/25-40/50-150 rupees
- - when playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with bomb explosions (is this true?)
-
-
- maybe make separate project for generation-tools, e.g.
+maybe make separate project for generation-tools, e.g.
  - make magnifier bmps offline, save to a resource file, then load resource
  - would also allow me to draw on the generated ones for e.g.
         draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
@@ -105,9 +118,10 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
          - river, NW corner, south bomb coast, mid-candle-row, any others?
 
 
-
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - Yellow percentage, count DRCs, etc
+ - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
+
 
 Get rid of shift-click room state, change behavior to marking 4 red doors? But what if two together… hmmm…. Don’t want to show wall between two adjacent holes, hm.
 
@@ -192,6 +206,14 @@ show list of remaining box items? if less than N left? - the popup now kinda acc
 
 
 MEDIUM
+
+timeline & mistakes
+
+timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
+ - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
+ - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
+   rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
+
 
 
 homer conversation, he forgot shops could even have second items:

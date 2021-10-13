@@ -80,7 +80,7 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.ARMOS, (f
     }))
 overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,_i,_j) -> async {
     let pos = c.TranslatePoint(Point(OMTW/2.-15.,1.), cm.AppMainCanvas)  // place to draw the local box
-    do! DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, sword2x, sword2y, pos)   // TODO
+    do! DoRemoteItemComboBox(cm, 0, TrackerModel.sword2Box, sword2x, sword2y, pos)
     }))
 
 let sword2LeftSideFullTileBmp =

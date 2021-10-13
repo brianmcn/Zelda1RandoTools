@@ -476,7 +476,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     for x = 0 to 7 do
                         for y = 0 to 7 do
                             if contiguous.[x,y] then
-                                let r = new Shapes.Rectangle(Width=float(13*3 + 12), Height=float(9*3 + 12), Fill=brush, Opacity=0.4, IsHitTestVisible=false)  // TODO creating lots of garbage
+                                let r = new Shapes.Rectangle(Width=float(13*3 + 12), Height=float(9*3 + 12), Fill=brush, Opacity=0.4, IsHitTestVisible=false)
                                 canvasAdd(canvas, r, float(x*51 - 6), float(TH+y*39 - 6))
                 let highlight(contiguous:_[,], brush) = highlightImpl(dungeonHighlightCanvas,contiguous,brush)
                 c.MyKeyAdd(fun ea ->
