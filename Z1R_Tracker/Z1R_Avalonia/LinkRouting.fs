@@ -4,6 +4,8 @@ open Avalonia
 open Avalonia.Controls 
 open Avalonia.Media
 
+open OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
+
 let canvasAdd = Graphics.canvasAdd
 let OMTW = OverworldRouteDrawing.OMTW
 
@@ -14,10 +16,9 @@ type RouteDestination =
     | HINTZONE of TrackerModel.HintZone * bool  // bool is couldBeLetterDungeon
     | UNMARKEDINSTANCEFUNC of (int*int -> bool)
 
-let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
+let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
                         updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp, owInstance:OverworldData.OverworldInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas) =
     let appMainCanvas = cm.AppMainCanvas
-    let OFFSET = offset
     // help the player route to locations
     let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let mutable linkIconN = 0
@@ -82,7 +83,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
             let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 60.)
             setLinkIconImpl(3,duplicateLinkIcon)
-            let makeIconTargetImpl(w, h, draw, drawLinkTarget, x, y, routeDest) =
+            let makeIconTargetImpl(w, h, draw, drawLinkTarget, (x, y), routeDest) =
                 let c = new Canvas(Width=w, Height=h, Background=Brushes.Black)
                 draw(c)
                 canvasAdd(wholeAppCanvas, c, x, y)
@@ -95,8 +96,8 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                     drawLinkTarget(currentTargetIcon)
                     dismissHavingChosenATarget()
                     )
-            let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, x, y, routeDest)
-            let makeShopIconTarget(draw, x, y, shopDest) =
+            let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, (x, y), routeDest)
+            let makeShopIconTarget(draw, (x, y), shopDest) =
                 let mutable found = false
                 for i = 0 to 15 do
                     for j = 0 to 7 do
@@ -107,14 +108,14 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                 if found then
                     makeIconTarget(draw, x, y, RouteDestination.SHOP(shopDest))
             // shops
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), OFFSET+160., 60., TrackerModel.MapSquareChoiceDomainHelper.BOMB)
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.boom_book_bmp, 4., 4.)), OFFSET+120., 30., TrackerModel.MapSquareChoiceDomainHelper.BOOK)
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), OFFSET+120., 60., TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), OFFSET+120., 90., TrackerModel.MapSquareChoiceDomainHelper.ARROW)
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), OFFSET+90., 90., TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), LocateBomb(), TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.boom_book_bmp, 4., 4.)), Locate(BOOMSTICK_BOX), TrackerModel.MapSquareChoiceDomainHelper.BOOK)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), Locate(BLUE_RING_BOX), TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), Locate(WOOD_ARROW_BOX), TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), Locate(BLUE_CANDLE_BOX), TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
             // open caves
             let openCave(c:Canvas) = canvasAdd(c, Graphics.BMPtoImage Graphics.openCaveIconBmp, 0., 0.)
-            makeIconTargetImpl(20., 20., openCave, openCave, 245., 125., RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))
+            makeIconTargetImpl(20., 20., openCave, openCave, (245., 125.), RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))
             // triforces
             if TrackerModel.IsHiddenDungeonNumbers() then
                 // letters
@@ -168,11 +169,11 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, offset, changeCurrentRou
                     (fun c -> 
                         // white sword seems dodgy for link to chase, since it's actually the cave which likely has something else, so draw the map marker instead
                         let image = sword2bmp |> Graphics.BMPtoImage
-                        canvasAdd(c, image, 7., 1.)), OFFSET, 120., dest)
+                        canvasAdd(c, image, 7., 1.)), Locate(WHITE_SWORD_ICON), dest)
             if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND || TrackerModel.GetLevelHint(10) <> TrackerModel.HintZone.UNKNOWN then
                 let (x,y) as loc = TrackerModel.mapStateSummary.Sword3Location
                 let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(10), false)
-                makeIconTarget(redrawMagicalSwordCanvas, OFFSET+60., 120., dest)
+                makeIconTarget(redrawMagicalSwordCanvas, fst(Locate(MAGS_BOX)), snd(Locate(MAGS_BOX)), dest)
             wholeAppCanvas.PointerPressed.Add(fun ea ->
                 let pos = ea.GetPosition(wholeAppCanvas)
                 if pos.Y > 150. && pos.Y < 150.+8.*11.*3. then

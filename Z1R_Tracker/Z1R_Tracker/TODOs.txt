@@ -18,8 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-re-work the upper right area, moving hearts to bottom so white sword can be atop just right of 9? then easy to 'scan' Force Overworld Block?
-
 I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
 I don't love it because it's not a room type. 
 Maybe I need more 'decorations' like the middle-click that I can add to an existing room that is independent of its 'room type' or 'completedness value'... hm... 

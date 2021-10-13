@@ -9,6 +9,8 @@ open Avalonia.Layout
 open OverworldMapTileCustomization
 open HotKeys.MyKey
 
+module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
+
 let canvasAdd = Graphics.canvasAdd
 let makeHintHighlight = Views.makeHintHighlight
 
@@ -31,6 +33,7 @@ let ReminderTextBox(txt) : Control =
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
 
 let gridAdd = Graphics.gridAdd
+let gridAddTuple(g,e,(x,y)) = gridAdd(g,e,x,y)
 let makeGrid = Graphics.makeGrid
 
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
@@ -165,7 +168,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
-    let OFFSET = 280.
     // numbered triforce display - the extra row of triforce in IsHiddenDungeonNumbers
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
         let level = i+1
@@ -194,7 +196,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
             for i = 0 to 7 do
                 let c = numberedTriforceCanvases.[i]
-                canvasAdd(appMainCanvas, c, OFFSET+30.*float i, 0.)
+                canvasAdd(appMainCanvas, c, OW_ITEM_GRID_LOCATIONS.OFFSET+30.*float i, 0.)
                 c.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonNumber i))
                 c.PointerLeave.Add(fun _ -> hideLocator())
             let update() =
@@ -344,11 +346,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OFFSET + 195., 54.) 
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OFFSET + 245., 54.) 
+        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  OW_ITEM_GRID_LOCATIONS.OFFSET + 195., 54.) 
+        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET + 245., 54.)
 
+    let owItemGrid = makeGrid(5, 4, 30, 30)
+    canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
     // ow 'take any' hearts
-    let owHeartGrid = makeGrid(4, 1, 30, 30)
     for i = 0 to 3 do
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let redraw() = 
@@ -362,16 +365,15 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         let f b = TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(i, (TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i) + (if b then 1 else -1) + 3) % 3)
         c.PointerPressed.Add(fun ea -> f(ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed))
         c.PointerWheelChanged.Add(fun x -> f (x.Delta.Y<0.))
-        gridAdd(owHeartGrid, c, i, 0)
+        let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
+        gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
-    canvasAdd(appMainCanvas, owHeartGrid, OFFSET, 30.)
     // ladder, armos, white sword items
-    let owItemGrid = makeGrid(2, 3, 30, 30)
-    gridAdd(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, 0, 0)
+    gridAddTuple(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, OW_ITEM_GRID_LOCATIONS.LADDER_ICON)
     let armos = Graphics.BMPtoImage Graphics.ow_key_armos_bmp
     armos.PointerEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.HasArmos))
     armos.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid, armos, 0, 1)
+    gridAddTuple(owItemGrid, armos, OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
     let white_sword_canvas = new Canvas(Width=30., Height=30.)
     let redrawWhiteSwordCanvas(c:Canvas) =
         c.Children.Clear()
@@ -387,16 +389,13 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
     newLocation.Add(fun _ -> redrawWhiteSwordCanvas())
     *)
-    gridAdd(owItemGrid, white_sword_canvas, 0, 2)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), 1, 0)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), 1, 1)
-    gridAdd(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), 1, 2)
+    gridAddTuple(owItemGrid, white_sword_canvas, OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
+    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), OW_ITEM_GRID_LOCATIONS.ARMOS_ITEM_BOX)
+    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ITEM_BOX)
     white_sword_canvas.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword2))
     white_sword_canvas.PointerLeave.Add(fun _ -> hideLocator())
-    let OW_ITEM_GRID_OFFSET_X,OW_ITEM_GRID_OFFSET_Y = OFFSET,60.
-    canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_OFFSET_X, OW_ITEM_GRID_OFFSET_Y)
     // brown sword, blue candle, blue ring, magical sword
-    let owItemGrid2 = makeGrid(3, 3, 30, 30)
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, isTimeline, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = CustomComboBoxes.no
@@ -425,19 +424,19 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         ToolTip.SetTip(c, tts)
         c
     let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)",    Graphics.brown_sword_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)
-    gridAdd(owItemGrid2, wood_sword_box, 1, 0)
+    gridAddTuple(owItemGrid, wood_sword_box, OW_ITEM_GRID_LOCATIONS.WOOD_SWORD_BOX)
     let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)",    Graphics.wood_arrow_bmp   , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)
     wood_arrow_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid2, wood_arrow_box, 2, 1)
+    gridAddTuple(owItemGrid, wood_arrow_box, OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
     let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)",   Graphics.blue_candle_bmp  , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)
     blue_candle_box.PointerEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid2, blue_candle_box, 1, 1)
+    gridAddTuple(owItemGrid, blue_candle_box, OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
     let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)",     Graphics.blue_ring_bmp    , TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)
     blue_ring_box.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.PointerLeave.Add(fun _ -> hideLocator())
-    gridAdd(owItemGrid2, blue_ring_box, 2, 0)
+    gridAddTuple(owItemGrid, blue_ring_box, OW_ITEM_GRID_LOCATIONS.BLUE_RING_BOX)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)
     ToolTip.SetPlacement(mags_box, PlacementMode.Left)  // Avalonia's tip placement seems awful, at least on Windows
     let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
@@ -449,25 +448,25 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             canvasAdd(c, makeHintHighlight(21.), 4., 4.)
         canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)
     redrawMagicalSwordCanvas(mags_canvas)
-    gridAdd(owItemGrid2, mags_box, 0, 2)
+    gridAddTuple(owItemGrid, mags_box, OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
     mags_box.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.PointerLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, owItemGrid2, OFFSET+60., 60.)
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
     let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook)
     boom_book_box.PointerEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
     boom_book_box.PointerLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, boom_book_box, OFFSET+120., 30.)
+    gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAdd(owItemGrid2, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), 1, 2)
-    gridAdd(owItemGrid2, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda), 2, 2)
+    gridAddTuple(owItemGrid, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
+    gridAddTuple(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda),  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
     bombIcon.PointerEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.PointerLeave.Add(fun _ -> hideLocator())
     ToolTip.SetTip(bombIcon, "Player currently has bombs (affects routing)")
-    canvasAdd(appMainCanvas, bombIcon, OFFSET+160., 60.)
+    let BOMBX, BOMBY = OW_ITEM_GRID_LOCATIONS.LocateBomb()
+    canvasAdd(appMainCanvas, bombIcon, BOMBX, BOMBY)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true, Padding=Thickness(0.)))
@@ -475,7 +474,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
-    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OFFSET+150., 30.)
+    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+150., 30.)
 
     let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
     highlightOpenCaves.PointerEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
@@ -525,7 +524,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     spotSummaryTB.PointerLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
     canvasAdd(appMainCanvas, spotSummaryTB, 13.8*OMTW, 128.)
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, OFFSET, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl, 
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -783,7 +782,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 if i=15 && j=5 then // ladder spot
                     let extraDecorationsF(boxPos:Point) =
                         // ladderBox position in main canvas
-                        let lx,ly = OW_ITEM_GRID_OFFSET_X + 30., OW_ITEM_GRID_OFFSET_Y
+                        let lx,ly = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
                         OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos)
                     let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, extraDecorationsF)
                     mirrorOverworldFEs.Add(coastBoxOnOwGrid)
