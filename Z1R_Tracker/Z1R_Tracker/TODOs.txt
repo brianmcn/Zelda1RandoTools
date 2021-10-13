@@ -18,6 +18,10 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+homer: blockers.. love this section, might want to add Rupees (ex. you hit a mugger early on, don't want to give up a max bomb so youll come back with 67 rupees or whatever) Or maybe make it mugger block?
+homer: purple X for skip:  I don't like how covered it gets, it starts to get a little hard to read here. I'm thinking especially for viewers on a stream
+
+
 I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
 I don't love it because it's not a room type. 
 Maybe I need more 'decorations' like the middle-click that I can add to an existing room that is independent of its 'room type' or 'completedness value'... hm... 
