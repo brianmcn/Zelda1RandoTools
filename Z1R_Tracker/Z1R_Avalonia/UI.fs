@@ -239,7 +239,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance))
+        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance), true)
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         c.PointerEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))

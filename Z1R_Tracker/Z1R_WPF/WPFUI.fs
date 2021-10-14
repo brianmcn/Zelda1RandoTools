@@ -234,7 +234,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance))
+        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance), true)
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
@@ -434,7 +434,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     blue_ring_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, blue_ring_box, OW_ITEM_GRID_LOCATIONS.BLUE_RING_BOX)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)
-    ToolTipService.SetPlacement(mags_box, System.Windows.Controls.Primitives.PlacementMode.Top)
     let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
     let redrawMagicalSwordCanvas(c:Canvas) =
         c.Children.Clear()
@@ -473,6 +472,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+150., 30.)
 
     let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
+    highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
+    ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
     highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)

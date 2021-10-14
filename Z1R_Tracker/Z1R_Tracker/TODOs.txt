@@ -18,9 +18,29 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+crashes
+ - linkroute dung in HDN changes triforce popups modal forever
+ - link route triforce then unlocate crashes locator
+        anti-pattern:
+                     if TrackerModel.GetDungeon(i).HasBeenLocated() then                 // changes synchronously when user updates map
+                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]      // changes asynchronously like a second after user updates map and it recomputes everything
+
+abraxas can't fit it on screen: Consider 2/3 app size options, or separate windows for top and bottom half
+ - expected ladder-hover to highlight ladder spot
+ - start spot doesnt respect mirror overworld
+ - fq/sq checkboxes might make sense per-tab rather than global maybe
+ - 'get the coast item with the ladder' could maybe, rather than be on timer, happen when your mouse-routing nearish there on overworld? hmmm
+ - possible mouse-hover a dungeon number, it switches to that tab (or hover-previews it), though competes with magnifier... hm...
+ - one-way walk thru walls or shutter doors (arrow icon)
+ - hover wood sword icon should show wood sword cave location
+ - should make clear on options & start screen that dismissing menu saves&applies options
+ - really consider save/load
+
+
 homer: blockers.. love this section, might want to add Rupees (ex. you hit a mugger early on, don't want to give up a max bomb so youll come back with 67 rupees or whatever) Or maybe make it mugger block?
 homer: purple X for skip:  I don't like how covered it gets, it starts to get a little hard to read here. I'm thinking especially for viewers on a stream
 
+is there a way to get magnifier in broadcast? would really help making videos...
 
 I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
 I don't love it because it's not a room type. 
@@ -31,6 +51,7 @@ Coming up with suitable icons, finding places to draw them, and finding gestures
  - could have double-left-click and double-right-click do stuff, and have scroll-wheel be only way to activate dungeon room popup, hmm...
  - could maybe have like up-arrow-point-at-I on left side of room for floor drop, down-arrow-point-at-I on right side for basement drop? 
    they should be loud and pop, could even draw out of bounds a little.  maybe Link YouGotTheThing?
+abraxas: I can't remember if there was a push-block in that digdogger room - maybe bosses should not be rooms, but decorations?
 
 I am probably going to add 'Meat Block' as a room.  Bomb Upgrade and Money-or-Life are also actual 'rooms' that Z-Tracker doesn't currently have, that may be useful to mark.
 consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
@@ -70,6 +91,7 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
  - when playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with bomb explosions (is this true?)
  - room 'five pairs' only drops in dungeon 1 in 1Q Shapes
  - sometimes 2 blue potions is cheaper than a red one. buying a blue when you have a blue turns it red
+ - if a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not enough space on A15 to land.
 
 
 
@@ -92,8 +114,6 @@ marc note about bow dungeon room and bow blocker via dungeon-mouse-location-cont
 marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
-
-Consider 2/3 app size options
 
 'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
  - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms

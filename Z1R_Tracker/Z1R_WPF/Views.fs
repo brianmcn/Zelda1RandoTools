@@ -67,7 +67,7 @@ let SynthesizeANewLocationKnownEvent(mapChoiceDomainChangePublished:IEvent<_>) =
         )
     resultEvent.Publish
 
-let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt) =
+let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt, makeInteractive) =
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
     let redraw() =
@@ -89,19 +89,20 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
         drawTinyIconIfLocationIsOverworldBlock(innerc, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[trackerIndex])
     redraw()
     // interactions
-    let mutable popupIsActive = false
-    innerc.MouseDown.Add(fun _ -> 
-        if not popupIsActive then
-            dungeon.ToggleTriforce()
-            if dungeon.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && dungeon.LabelChar='?' then
-                // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
-                popupIsActive <- true
-                let pos = innerc.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
-                async {
-                    do! Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos)
-                    popupIsActive <- false
-                    } |> Async.StartImmediate
-        )
+    if makeInteractive then
+        let mutable popupIsActive = false
+        innerc.MouseDown.Add(fun _ -> 
+            if not popupIsActive then
+                dungeon.ToggleTriforce()
+                if dungeon.PlayerHasTriforce() && TrackerModel.IsHiddenDungeonNumbers() && dungeon.LabelChar='?' then
+                    // if it's hidden dungeon numbers, the player just got a triforce, and the player has not yet set the dungeon number, then popup the number chooser
+                    popupIsActive <- true
+                    let pos = innerc.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
+                    async {
+                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos)
+                        popupIsActive <- false
+                        } |> Async.StartImmediate
+            )
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw after we can look up its new location coordinates
