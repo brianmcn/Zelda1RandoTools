@@ -2084,6 +2084,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         let W = 768.
         let broadcastWindow = new Window()
         broadcastWindow.Title <- "Z-Tracker broadcast"
+        broadcastWindow.ResizeMode <- ResizeMode.NoResize
         broadcastWindow.SizeToContent <- SizeToContent.Manual
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
         broadcastWindow.Left <- 0.0

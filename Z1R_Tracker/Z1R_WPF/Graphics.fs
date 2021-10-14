@@ -11,8 +11,7 @@ type Win32() =
     static extern bool SetCursorPos(int X, int Y)
     
     static member SetCursor(x,y) = 
-//        let transformedPoint = Point(x*0.666666,y*0.666666)
-        let transformedPoint = Point(x,y)
+        let transformedPoint = if TrackerModel.Options.SmallerAppWindow.Value then Point(x*0.666666,y*0.666666) else Point(x,y)
         let pos = theWindow.PointToScreen(transformedPoint)
         SetCursorPos(int pos.X, int pos.Y) |> ignore
 

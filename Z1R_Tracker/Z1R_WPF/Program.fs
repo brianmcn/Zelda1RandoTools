@@ -108,9 +108,12 @@ type MyWindow() as this =
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
-    //                 items  ow map  prog  dungeon tabs                      timeline   
-    let HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6 + 40) // (what is the final 40?)
-    let WIDTH = float(16*16*3 + 16)  // ow map width (what is the final 16?)
+    //                             items  ow map  prog  dungeon tabs                      timeline   
+    let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6)
+    let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
+    let CHROME_WIDTH, CHROME_HEIGHT = 16., 40.  // Windows app border
+    let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
+    let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
     do
@@ -154,23 +157,19 @@ type MyWindow() as this =
             )
 
         HotKeys.InitializeWindow(this)
+        HotKeys.PopulateHotKeyTables()
+        let mutable settingsWereSuccessfullyRead = false
+        TrackerModel.Options.readSettings()
+        settingsWereSuccessfullyRead <- true
+        WPFUI.voice.Volume <- TrackerModel.Options.Volume
         
         do
-            (*
-            use writer = new System.IO.StreamWriter("ZTracker.url")
-            writer.WriteLine("[InternetShortcut]")
-            writer.WriteLine("WorkingDirectory=.")
-            writer.WriteLine("URL=file://Z1R_WPF.exe")
-            writer.WriteLine("IconIndex=0")
-            writer.WriteLine("IconFile=icons/ztlogo64x64.ico")
-            *)
             let shellLink = 
                 let ty = System.Type.GetTypeFromCLSID (System.Guid "00021401-0000-0000-C000-000000000046")
                 Activator.CreateInstance ty
             let isl = shellLink :?> Winterop.IShellLink
             let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
             isl.SetDescription("Launch Z-Tracker")
-            //isl.SetRelativePath("Z1R_WPF.exe", 0)
             isl.SetPath(System.IO.Path.Combine(cwd, "Z1R_WPF.exe"))
             isl.SetWorkingDirectory(cwd)
             isl.SetIconLocation(System.IO.Path.Combine(cwd, "icons/ztlogo64x64.ico"), 0)
@@ -181,12 +180,19 @@ type MyWindow() as this =
         WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
+        this.ResizeMode <- ResizeMode.NoResize
         this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- System.Windows.SystemParameters.PrimaryScreenWidth - WIDTH
+        let APP_WIDTH, APP_HEIGHT = 
+            if TrackerModel.Options.SmallerAppWindow.Value then 
+                round(WIDTH_SANS_CHROME*0.666666 + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*0.666666 + CHROME_HEIGHT)
+            else 
+                WIDTH, HEIGHT
+        //printfn "%f, %f" APP_WIDTH APP_HEIGHT
+        this.Left <- System.Windows.SystemParameters.PrimaryScreenWidth - APP_WIDTH
         this.Top <- 0.0
-        this.Width <- WIDTH
-        this.Height <- HEIGHT
+        this.Width <- APP_WIDTH
+        this.Height <- APP_HEIGHT
         this.FontSize <- 18.
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
@@ -203,6 +209,9 @@ type MyWindow() as this =
             WPFUI.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
+        if TrackerModel.Options.SmallerAppWindow.Value then 
+            let trans = new ScaleTransform(0.666666, 0.666666)
+            cm.RootCanvas.RenderTransform <- trans
         this.Content <- cm.RootCanvas
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
         appMainCanvas.Children.Add(mainDock) |> ignore
@@ -269,7 +278,6 @@ type MyWindow() as this =
         stackPanel.Children.Add(tb) |> ignore
 
         let mutable startButtonHasBeenClicked = false
-        let mutable settingsWereSuccessfullyRead = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
                 TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
@@ -323,8 +331,6 @@ type MyWindow() as this =
                     updateTimeline <- u
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
-//                    let trans = new ScaleTransform(0.666666, 0.666666)   // does not look awful, but mouse warping does not account for change
-//                    cm.RootCanvas.RenderTransform <- trans
                 })
             )
 
@@ -333,10 +339,6 @@ type MyWindow() as this =
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
                                 Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
-        HotKeys.PopulateHotKeyTables()
-        TrackerModel.Options.readSettings()
-        settingsWereSuccessfullyRead <- true
-        WPFUI.voice.Volume <- TrackerModel.Options.Volume
         let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), false)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore

@@ -18,7 +18,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-abraxas can't fit it on screen: Consider 2/3 app size options, or separate windows for top and bottom half
+abraxas
  - expected ladder-hover to highlight ladder spot
  - fq/sq checkboxes might make sense per-tab rather than global maybe
  - 'get the coast item with the ladder' could maybe, rather than be on timer, happen when your mouse-routing nearish there on overworld? hmmm
