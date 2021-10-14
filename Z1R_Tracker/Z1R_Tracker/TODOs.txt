@@ -18,13 +18,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-crashes
- - linkroute dung in HDN changes triforce popups modal forever
- - link route triforce then unlocate crashes locator
-        anti-pattern:
-                     if TrackerModel.GetDungeon(i).HasBeenLocated() then                 // changes synchronously when user updates map
-                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]      // changes asynchronously like a second after user updates map and it recomputes everything
-
 abraxas can't fit it on screen: Consider 2/3 app size options, or separate windows for top and bottom half
  - expected ladder-hover to highlight ladder spot
  - start spot doesnt respect mirror overworld

@@ -121,8 +121,8 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                 // letters
                 for i = 0 to 7 do
                     // located, letters
-                    if TrackerModel.GetDungeon(i).HasBeenLocated() then
-                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                    let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                    if (x,y) <> TrackerModel.NOTFOUND then
                         makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
                     else
                         // hint letter due to numbered hint
@@ -151,13 +151,13 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                         hint()
             else
                 for i = 0 to 7 do
-                    if TrackerModel.GetDungeon(i).HasBeenLocated() then
-                        let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                    let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
+                    if (x,y) <> TrackerModel.NOTFOUND then
                         makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
                     elif TrackerModel.GetLevelHint(i) <> TrackerModel.HintZone.UNKNOWN then
                         makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(i), false))
-            if TrackerModel.GetDungeon(8).HasBeenLocated() then
-                let x,y = TrackerModel.mapStateSummary.DungeonLocations.[8]
+            let x,y = TrackerModel.mapStateSummary.DungeonLocations.[8]
+            if (x,y) <> TrackerModel.NOTFOUND then
                 makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(Some(owInstance)), 0., 0.)), 0.+8.*30., 30., RouteDestination.OW_MAP(x,y))
             elif TrackerModel.GetLevelHint(8) <> TrackerModel.HintZone.UNKNOWN then
                 makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(Some(owInstance)), 0., 0.)), 0.+8.*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(8), false))

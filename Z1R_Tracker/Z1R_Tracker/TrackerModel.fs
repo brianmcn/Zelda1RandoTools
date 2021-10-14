@@ -692,7 +692,7 @@ and Dungeon(id,numBoxes) =
     let hasBeenLocatedChangeEvent = new Event<_>()
     do
         mapSquareChoiceDomain.Changed.Add(fun (_,key) -> if key=id then hasBeenLocatedChangeEvent.Trigger())
-    member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1
+    member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1   // WARNING: this being true does NOT mean TrackerModel.mapStateSummary.DungeonLocations.[i] has a legal (non-NOTFOUND) value
     member _this.HasBeenLocatedChanged = hasBeenLocatedChangeEvent.Publish
     member _this.PlayerHasTriforce() = playerHasTriforce
     member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; playerHasTriforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime.SetNow()
