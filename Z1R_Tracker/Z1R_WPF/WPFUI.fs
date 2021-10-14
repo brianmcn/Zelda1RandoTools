@@ -1985,7 +1985,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     moreOptionsButton.MaxHeight <- 25.
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width)
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width, true)
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 

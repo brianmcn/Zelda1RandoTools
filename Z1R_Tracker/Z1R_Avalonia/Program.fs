@@ -134,7 +134,7 @@ type MyWindow() as this =
         HotKeys.PopulateHotKeyTables()
         TrackerModel.Options.readSettings()
         settingsWereSuccessfullyRead <- true
-        let options = OptionsMenu.makeOptionsCanvas()
+        let options = OptionsMenu.makeOptionsCanvas(false)
         stackPanel.Children.Add(options) |> ignore
 
         let tb = dock <| new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)

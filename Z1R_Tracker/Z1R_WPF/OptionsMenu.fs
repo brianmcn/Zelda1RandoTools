@@ -39,7 +39,8 @@ let data2 = [|
         TrackerModel.Options.VoiceReminders.Blockers,        TrackerModel.Options.VisualReminders.Blockers
     |]
 
-let makeOptionsCanvas(width) = 
+let makeOptionsCanvas(width, includePopupExplainer) = 
+    let all = new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black)
     let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Width=width, Background=Brushes.Black)
     let style = new Style(typeof<TextBox>)
     style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
@@ -47,10 +48,10 @@ let makeOptionsCanvas(width) =
     style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
     style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
     style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
-    optionsAllsp.Resources.Add(typeof<TextBox>, style)
+    all.Resources.Add(typeof<TextBox>, style)
     let style = new Style(typeof<CheckBox>)
     style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
-    optionsAllsp.Resources.Add(typeof<CheckBox>, style)
+    all.Resources.Add(typeof<CheckBox>, style)
 
     let header(tb:TextBox) = 
         tb.Margin <- Thickness(0., 0., 0., 6.)
@@ -194,5 +195,17 @@ let makeOptionsCanvas(width) =
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
-    let all = new Border(Child=optionsAllsp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray)
+
+    let total = new StackPanel(Orientation=Orientation.Vertical)
+    if includePopupExplainer then
+        let tb1 = new TextBox(Text="Options Menu", IsReadOnly=true, FontWeight=FontWeights.Bold, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb2 = new TextBox(Text="options are automatically applied and saved when dismissing this popup (by clicking outside it)", 
+                                IsReadOnly=true, Margin=Thickness(0.,0.,0.,6.), HorizontalAlignment=HorizontalAlignment.Center)
+        total.Children.Add(tb1) |> ignore
+        total.Children.Add(tb2) |> ignore
+        total.Children.Add(new DockPanel(Height=2.,Background=Brushes.Gray)) |> ignore
+
+    total.Children.Add(optionsAllsp) |> ignore
+
+    all.Child <- total
     all

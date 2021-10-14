@@ -33,7 +33,7 @@ let data2 = [|
         TrackerModel.Options.VoiceReminders.Blockers,        TrackerModel.Options.VisualReminders.Blockers
     |]
 
-let makeOptionsCanvas() = 
+let makeOptionsCanvas(includePopupExplainer) = 
     let header(tb:TextBox) = 
         tb.Margin <- Thickness(0., 0., 0., 6.)
         tb.BorderThickness <- Thickness(0., 0., 0., 1.)
@@ -120,4 +120,14 @@ let makeOptionsCanvas() =
 
     optionsAllsp.Children.Add(options3sp) |> ignore
 
-    optionsAllsp
+    let total = new StackPanel(Orientation=Orientation.Vertical)
+    if includePopupExplainer then
+        let tb1 = new TextBox(Text="Options Menu", IsReadOnly=true, FontWeight=FontWeight.Bold, BorderBrush=Brushes.Transparent, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb2 = new TextBox(Text="options are automatically applied and saved when dismissing this popup (by clicking outside it)", 
+                                IsReadOnly=true, BorderBrush=Brushes.Transparent, Margin=Thickness(0.,0.,0.,6.), HorizontalAlignment=HorizontalAlignment.Center)
+        total.Children.Add(tb1) |> ignore
+        total.Children.Add(tb2) |> ignore
+        total.Children.Add(new DockPanel(Height=2.,Background=Brushes.Gray)) |> ignore
+    total.Children.Add(optionsAllsp) |> ignore
+    let all = new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Child=total)
+    all

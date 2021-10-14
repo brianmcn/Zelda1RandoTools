@@ -1538,7 +1538,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     // timeline, options menu, reminders
     let moreOptionsLabel = new TextBox(Text="Options...", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Margin=Thickness(0.), Padding=Thickness(0.), BorderThickness=Thickness(0.), IsReadOnly=true, IsHitTestVisible=false)
     let moreOptionsButton = new Button(MaxHeight=25., Content=moreOptionsLabel, BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
-    let optionsCanvas = new Border(Child=OptionsMenu.makeOptionsCanvas(),
+    let optionsCanvas = new Border(Child=OptionsMenu.makeOptionsCanvas(true),
                                    Background=SolidColorBrush(0xFF282828u), BorderBrush=Brushes.Gray, BorderThickness=Thickness(2.),
                                    ZIndex=111, IsVisible=true)
     moreOptionsButton.ZIndex <- optionsCanvas.ZIndex+1

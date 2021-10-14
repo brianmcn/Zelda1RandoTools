@@ -337,7 +337,7 @@ type MyWindow() as this =
         TrackerModel.Options.readSettings()
         settingsWereSuccessfullyRead <- true
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3))
+        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), false)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)
