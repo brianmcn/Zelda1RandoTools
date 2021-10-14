@@ -114,6 +114,7 @@ let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
 type ShowLocatorDescriptor =
     | DungeonNumber of int   // 0-7 means dungeon 1-8
     | DungeonIndex of int    // 0-8 means 123456789 or ABCDEFGH9 in top-left-ui presentation order
+    | Sword1
     | Sword2
     | Sword3
 let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) =
@@ -420,7 +421,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         let c = veryBasicBoxImpl(img, true, prop)
         c.ToolTip <- tts
         c
-    gridAddTuple(owItemGrid, basicBoxImpl("Acquired wood sword (mark timeline)", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword), OW_ITEM_GRID_LOCATIONS.WOOD_SWORD_BOX)
+    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)    
+    wood_sword_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword1))
+    wood_sword_box.MouseLeave.Add(fun _ -> hideLocator())
+    gridAddTuple(owItemGrid, wood_sword_box, OW_ITEM_GRID_LOCATIONS.WOOD_SWORD_BOX)
     let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)
     wood_arrow_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.MouseLeave.Add(fun _ -> hideLocator())
@@ -1933,6 +1937,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                     let hinted_zone = TrackerModel.GetLevelHint(i)
                     if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                         showLocatorHintedZone(hinted_zone,false)
+        | ShowLocatorDescriptor.Sword1 ->
+            let loc = TrackerModel.mapStateSummary.Sword1Location
+            if loc <> TrackerModel.NOTFOUND then
+                showLocatorExactLocation(loc)
         | ShowLocatorDescriptor.Sword2 ->
             let loc = TrackerModel.mapStateSummary.Sword2Location
             if loc <> TrackerModel.NOTFOUND then

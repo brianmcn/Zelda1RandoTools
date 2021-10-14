@@ -24,7 +24,6 @@ abraxas can't fit it on screen: Consider 2/3 app size options, or separate windo
  - 'get the coast item with the ladder' could maybe, rather than be on timer, happen when your mouse-routing nearish there on overworld? hmmm
  - possible mouse-hover a dungeon number, it switches to that tab (or hover-previews it), though competes with magnifier... hm...
  - one-way walk thru walls or shutter doors (arrow icon)
- - hover wood sword icon should show wood sword cave location
  - should make clear on options & start screen that dismissing menu saves&applies options
  - really consider save/load
 

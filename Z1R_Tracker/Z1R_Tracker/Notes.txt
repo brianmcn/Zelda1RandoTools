@@ -120,7 +120,7 @@ HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed-2nd 
   so that streamers with their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. 
   (Send Brian feedback if you use this.)
 
-Mouse-hovering the white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
+Mouse-hovering the wood/white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
 Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
 Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
 Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle, otherwise it highlights burnable trees.
