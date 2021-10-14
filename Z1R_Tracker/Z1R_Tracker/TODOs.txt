@@ -20,7 +20,6 @@ CURRENT PRIORITIES
 
 abraxas can't fit it on screen: Consider 2/3 app size options, or separate windows for top and bottom half
  - expected ladder-hover to highlight ladder spot
- - start spot doesnt respect mirror overworld
  - fq/sq checkboxes might make sense per-tab rather than global maybe
  - 'get the coast item with the ladder' could maybe, rather than be on timer, happen when your mouse-routing nearish there on overworld? hmmm
  - possible mouse-hover a dungeon number, it switches to that tab (or hover-previews it), though competes with magnifier... hm...

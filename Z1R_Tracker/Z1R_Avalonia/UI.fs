@@ -1041,7 +1041,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 let i = int(mousePos.X / OMTW)
                 let j = int(mousePos.Y / (11.*3.))
                 if i>=0 && i<=15 && j>=0 && j<=7 then
-                    TrackerModel.startIconX <- i
+                    TrackerModel.startIconX <- if displayIsCurrentlyMirrored then (15-i) else i
                     TrackerModel.startIconY <- j
                     doUIUpdateEvent.Trigger()
                     wh.Set() |> ignore
