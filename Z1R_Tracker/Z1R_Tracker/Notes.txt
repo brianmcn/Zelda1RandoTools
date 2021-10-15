@@ -318,7 +318,7 @@ SAVE STATE
 There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
 
 
-BROADCAST WINDOW (WPF only) - experimental feature
+BROADCAST WINDOW (WPF only)
 
 On the options menu, you can opt into a 'broadcast window'.  This causes a separate, smaller window to appear; the new window is designed for stream-capture, 
 for streamers who think the Z-Tracker app is too large for their stream layout.  The broadcast window has two possible displays: one is overworld-focused, and
@@ -328,6 +328,14 @@ use the main Z-Tracker window exactly as your normally would, but rather than ha
 capture the smaller broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
 
 The broadcast window also has an option to be 2/3 size (512 pixels wide, rather than 768 pixels wide).
+
+
+WINDOW SIZE (WPF only)
+
+The Z-Tracker application is somewhat large (the window content is 768x963), designed to make all of the important information available to the player on-screen 
+at once.  However some users may need or desire a smaller application.  You can make the application window 2/3 size by editing the file 
+"Z1R_Tracker_settings.json" in a text editor, and changing "SmallerAppWindow" from 'false' to 'true'.  A few of the elements may not look as good at this size,
+but most of the app's graphics are in multiples of 3 pixels, so this still looks decent and can make the app usable on machines with smaller display resolutions.
 
 
 SPEECH SYNTHESIS (WPF only)
