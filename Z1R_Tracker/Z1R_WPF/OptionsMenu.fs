@@ -9,6 +9,7 @@ let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
 let broadcastWindowOptionChanged = new Event<bool>()
+let secondQuestDungeonsOptionChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
     let effect() = if needFU then TrackerModel.forceUpdate()
@@ -132,6 +133,13 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options3sp.Children.Add(tb) |> ignore
 
+    let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- true; secondQuestDungeonsOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; secondQuestDungeonsOptionChanged.Trigger())
+    cb.ToolTip <- "Check this if dungeon 4, rather than dungeon 1, has 3 items"
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false
@@ -154,6 +162,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech, false)
     options3sp.Children.Add(cb) |> ignore
 
+(*  // this is not (yet) a fully supported feature, so don't publish it on the options menu
     let cb = new CheckBox(Content=new TextBox(Text="Require PTT",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false
@@ -169,11 +178,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         link(cb, TrackerModel.Options.RequirePTTForSpeech, false)
         cb.ToolTip <- "Only listen for speech when Push-To-Talk button is held (SNES gamepad left shoulder button)"
     options3sp.Children.Add(cb) |> ignore
-
-    let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true))
-    link(cb, TrackerModel.Options.IsSecondQuestDungeons, true)
-    cb.ToolTip <- "Check this if dungeon 4, rather than dungeon 1, has 3 items"
-    options3sp.Children.Add(cb) |> ignore
+*)
 
     let cb = new CheckBox(Content=new TextBox(Text="Broadcast window",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.ShowBroadcastWindow.Value

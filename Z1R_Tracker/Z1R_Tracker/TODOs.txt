@@ -113,6 +113,7 @@ abraxas
  - one-way walk thru walls or shutter doors (arrow icon)
  - really consider save/load
  - consider left-click an already-got-item-box brings up popup (rather than do nothing; scroll hard to 'find' to fix mistake), review other idempotent gestures, re-write POPUPS in Notes.txt
+ - behavior of routing across river sans ladder didn't match expectations (mouse into left, mouse into right)
 
 homer: blockers.. love this section, might want to add Rupees (ex. you hit a mugger early on, don't want to give up a max bomb so youll come back with 67 rupees or whatever) Or maybe make it mugger block?
 homer: purple X for skip:  I don't like how covered it gets, it starts to get a little hard to read here. I'm thinking especially for viewers on a stream

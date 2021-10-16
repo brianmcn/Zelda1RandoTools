@@ -291,15 +291,17 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
                 if j=0 || j=1 || i=7 then
                     canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
-    let RedrawForSecondQuestDungeonToggle() =
-        if not(TrackerModel.IsHiddenDungeonNumbers()) then
-            mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
-            mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
-            if TrackerModel.Options.IsSecondQuestDungeons.Value then
-                canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
-            else
-                canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
-    RedrawForSecondQuestDungeonToggle()
+    do 
+        let RedrawForSecondQuestDungeonToggle() =
+            if not(TrackerModel.IsHiddenDungeonNumbers()) then
+                mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
+                mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
+                if TrackerModel.Options.IsSecondQuestDungeons.Value then
+                    canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
+                else
+                    canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
+        RedrawForSecondQuestDungeonToggle()
+        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> RedrawForSecondQuestDungeonToggle())
 
     // in mixed quest, buttons to hide first/second quest
     let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
@@ -1236,7 +1238,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         redrawMagicalSwordCanvas(mags_canvas)
 
         recorderingCanvas.Children.Clear()
-        RedrawForSecondQuestDungeonToggle()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         itemProgressCanvas.Children.Clear()
         let mutable x, y = ITEM_PROGRESS_FIRST_ITEM, 3.

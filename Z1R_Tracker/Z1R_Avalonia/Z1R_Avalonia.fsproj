@@ -50,8 +50,8 @@
     <Compile Include="PieMenus.fs" />
     <Compile Include="Dungeon.fs" />
     <Compile Include="Views.fs" />
-    <Compile Include="DungeonUI.fs" />
     <Compile Include="OptionsMenu.fs" />
+    <Compile Include="DungeonUI.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="LinkRouting.fs" />
     <Compile Include="UI.fs" />

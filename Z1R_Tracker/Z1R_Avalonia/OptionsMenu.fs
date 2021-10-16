@@ -5,6 +5,8 @@ open Avalonia.Media
 open Avalonia
 open Avalonia.Layout
 
+let secondQuestDungeonsOptionChanged = new Event<unit>()
+
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
     let effect() = if needFU then TrackerModel.forceUpdate()
     cb.IsChecked <- System.Nullable.op_Implicit b.Value
@@ -114,7 +116,9 @@ let makeOptionsCanvas(includePopupExplainer) =
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeight.Bold, BorderBrush=Brushes.Transparent, IsHitTestVisible=false) |> header
     options3sp.Children.Add(tb) |> ignore
     let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true, BorderBrush=Brushes.Transparent, IsHitTestVisible=false))
-    link(cb, TrackerModel.Options.IsSecondQuestDungeons, true)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- true; secondQuestDungeonsOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; secondQuestDungeonsOptionChanged.Trigger())
     ToolTip.SetTip(cb,"Check this if dungeon 4, rather than dungeon 1, has 3 items")
     options3sp.Children.Add(cb) |> ignore
 

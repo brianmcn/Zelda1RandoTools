@@ -180,9 +180,18 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let contentCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, blockerGridHeight - float(TH) - 3.
         let pos = Point(0. + LD_X, posY + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
-        let localDungeonTrackerPanel,unhighlight = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level)
-        canvasAdd(contentCanvas, localDungeonTrackerPanel, LD_X, LD_Y)
-        dungeonTabs.SelectionChanged.Add(fun _ -> unhighlight())  // an extra safeguard, since the highlight is not a popup, but just a crazy mark over the main canvas
+        let mutable localDungeonTrackerPanel = null
+        do
+            let PopulateLocalDungeonTrackerPanel() =
+                let ldtp,unhighlight = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level)
+                if localDungeonTrackerPanel<> null then
+                    contentCanvas.Children.Remove(localDungeonTrackerPanel) |> ignore  // remove old one
+                localDungeonTrackerPanel <- ldtp
+                canvasAdd(contentCanvas, localDungeonTrackerPanel, LD_X, LD_Y) // add new one
+                // don't remove the old 'unhighlight' event listener - this is technically a leak, but unless you toggle '2nd quest dungeons' button a million times in one session, it won't matter
+                dungeonTabs.SelectionChanged.Add(fun _ -> unhighlight())  // an extra safeguard, since the highlight is not a popup, but just a crazy mark over the main canvas
+            PopulateLocalDungeonTrackerPanel()
+            OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> PopulateLocalDungeonTrackerPanel())
         // main dungeon content
         contentCanvas.PointerEnter.Add(fun _ -> contentCanvasMouseEnterFunc(level))
         contentCanvas.PointerLeave.Add(fun _ea -> contentCanvasMouseLeaveFunc(level))
