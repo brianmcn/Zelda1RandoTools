@@ -226,9 +226,9 @@ let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
     else
         Graphics.theFullTileBmpTable.[ms.State].[0], []
 
-let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async {  // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
+let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async {  // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
     if msp.State = -1 then
-        // right click empty tile changes to 'X'
+        // left click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 
         return true, true
     elif msp.IsThreeItemShop then
@@ -279,7 +279,7 @@ let DoRightClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = a
             TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
             |]
         if toggleables |> Array.contains msp.State then
-            // right click to toggle it 'used'
+            // left click to toggle it 'used'
             let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
             if ex=msp.State then
                 TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)

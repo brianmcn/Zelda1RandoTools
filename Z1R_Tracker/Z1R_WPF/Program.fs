@@ -138,6 +138,11 @@ type MyWindow() as this =
                 logCrashInfo "You should fix this error by editing the text file."
                 logCrashInfo "Or you can delete it, and an empty hotkeys template file will be created in its place."
                 logCrashInfo ""
+                System.Threading.Thread.Sleep(2000)
+                let fileToSelect = HotKeys.HotKeyFilename
+                let args = sprintf "/Select, \"%s\"" fileToSelect
+                let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
+                System.Diagnostics.Process.Start(psi) |> ignore
             | _ ->
                 logCrashInfo <| sprintf "%s" (ex.ToString())
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
@@ -448,6 +453,7 @@ type DummyWindow() as this =
         this.Title <- "Z-Tracker start-up..."
         this.Width <- 300.
         this.Height <- 100.
+        this.WindowState <- WindowState.Minimized
         this.Loaded.Add(fun _ ->
             this.Visibility <- Visibility.Hidden
             let mainW = new MyWindow()

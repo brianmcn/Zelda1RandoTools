@@ -11,6 +11,10 @@ let GetResourceStream(name) =
     let assets = Avalonia.AvaloniaLocator.Current.GetService(typeof<Avalonia.Platform.IAssetLoader>) :?> Avalonia.Platform.IAssetLoader
     assets.Open(new Uri("resm:Z1R_Avalonia.icons." + name))
 
+let unparent(fe:Control) =
+    if fe.Parent<> null then
+        (fe.Parent :?> Panel).Children.Remove(fe) |> ignore
+
 let canvasAdd(c:Canvas, item, left, top) =
     if item <> null then
         c.Children.Add(item) |> ignore
@@ -27,6 +31,15 @@ let makeGrid(nc, nr, cw, rh) =
     for i = 0 to nr-1 do
         grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
     grid
+let center(e, w, h) =
+    let g = makeGrid(1, 1, w, h)
+    gridAdd(g, e, 0, 0)
+    g
+let dock(e, dock) =
+    let d = new DockPanel(LastChildFill=false)
+    DockPanel.SetDock(e, dock)
+    d.Children.Add(e) |> ignore
+    d
 let makeArrow(targetX, targetY, sourceX, sourceY, brush) =
     let tx,ty = targetX, targetY
     let sx,sy = sourceX, sourceY
@@ -66,6 +79,44 @@ let isBlackGoodContrast(rgb) =
     let l = 0.2126 * r*r + 0.7152 * g*g + 0.0722 * b*b
     let use_black = l > 0.5*0.5
     use_black  // else use white
+
+let transformColor(bmp:System.Drawing.Bitmap, f) =
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(px,py)
+            r.SetPixel(px, py, f c)
+    r
+
+let greyscale(bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(px,py)
+            let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
+            let avg = if avg = 0 then 0 else avg + 20    // never too dark
+            let c = System.Drawing.Color.FromArgb(avg, avg, avg)
+            r.SetPixel(px, py, c)
+    r
+let desaturateColor(c:System.Drawing.Color, pct) =
+    let f = pct   // 0.60 // desaturate by 60%
+    let L = 0.3*float c.R + 0.6*float c.G + 0.1*float c.B
+    let newR = float c.R + f * (L - float c.R)
+    let newG = float c.G + f * (L - float c.G)
+    let newB = float c.B + f * (L - float c.B)
+    System.Drawing.Color.FromArgb(int newR, int newG, int newB)
+let desaturate(bmp:System.Drawing.Bitmap, pct) = transformColor(bmp, (fun c -> desaturateColor(c,pct)))
+let darkenImpl pct (bmp:System.Drawing.Bitmap) =
+    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
+    for px = 0 to bmp.Width-1 do
+        for py = 0 to bmp.Height-1 do
+            let c = bmp.GetPixel(px,py)
+            let c = System.Drawing.Color.FromArgb(int(float c.R * pct), int(float c.G * pct), int(float c.B * pct))
+            r.SetPixel(px, py, c)
+    r
+let darken(bmp:System.Drawing.Bitmap) =
+    darkenImpl 0.5 bmp
+
 
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
@@ -188,7 +239,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
         brown_sword_bmp, magical_sword_bmp, blue_candle_bmp, blue_ring_bmp,
-        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp) =
+        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp) =
     let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -201,9 +252,9 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
-        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27])
+        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28])
 
-let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp = 
+let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -216,14 +267,18 @@ let emptyTriforce_bmp, fullTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, o
                     r.SetPixel(px, py, color)
             yield r
         |]
-    all.[0], all.[1], all.[2], all.[3], all.[4], all.[5], all.[6]
+    transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then System.Drawing.Color.LightGray else c)), 
+        all.[1],
+        transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then desaturateColor(c, 0.25) else c)), 
+        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6]
 let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
+let FOUND_NUMERAL_COLOR = System.Drawing.Color.White
 let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
     let a = [|
         for ch in ['1'; 'A'] do
             yield [|
             for i = 0 to 7 do
-                let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                let bmp = greyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
                 paintAlphanumerics3x5(char(int ch + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
                 yield bmp
             |] |]
@@ -233,8 +288,8 @@ let emptyFoundNumberedTriforce_bmps, emptyFoundLetteredTriforce_bmps =
         for ch in ['1'; 'A'] do
             yield [|
             for i = 0 to 7 do
-                let bmp = emptyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-                paintAlphanumerics3x5(char(int ch + i), System.Drawing.Color.White, bmp, 4, 4)
+                let bmp = greyTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), FOUND_NUMERAL_COLOR, bmp, 4, 4)
                 yield bmp
             |] |]
     a.[0], a.[1]
@@ -243,13 +298,13 @@ let fullNumberedTriforce_bmps, fullLetteredTriforce_bmps =
         for ch in ['1'; 'A'] do
             yield [|
             for i = 0 to 7 do
-                let bmp = fullTriforce_bmp.Clone() :?> System.Drawing.Bitmap
-                paintAlphanumerics3x5(char(int ch + i), System.Drawing.Color.White, bmp, 4, 4)
+                let bmp = fullOrangeTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), FOUND_NUMERAL_COLOR, bmp, 4, 4)
                 yield bmp
             |] |]
     a.[0], a.[1]
 let unfoundL9_bmp,foundL9_bmp =
-    let unfoundTriforceColor = emptyTriforce_bmp.GetPixel(15, 28)
+    let unfoundTriforceColor = emptyUnfoundNumberedTriforce_bmps.[0].GetPixel(15, 28)
     let u = new System.Drawing.Bitmap(10*3,10*3)
     let f = new System.Drawing.Bitmap(10*3,10*3)
     // make a rectangle 'shield' to draw the 9 on, so that a hint halo does not wash out the '9'
@@ -258,7 +313,7 @@ let unfoundL9_bmp,foundL9_bmp =
             u.SetPixel(i,j,unfoundTriforceColor)
             f.SetPixel(i,j,unfoundTriforceColor)
     paintAlphanumerics3x5('9', UNFOUND_NUMERAL_COLOR, u, 4, 4)
-    paintAlphanumerics3x5('9', System.Drawing.Color.White, f, 4, 4)
+    paintAlphanumerics3x5('9', FOUND_NUMERAL_COLOR, f, 4, 4)
     u, f
     
 let fairy_bmp =
@@ -275,10 +330,8 @@ let fairy_bmp =
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]
 
-let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, cdungeonChevyBMP, cdungeonVMoatBMP, cdungeonHMoatBMP, 
-        cdungeonVChuteBMP, cdungeonHChuteBMP, cdungeonTeeBMP, cdungeonNeedWand, cdungeonBlueBubble, cdungeonNeedRecorder, cdungeonNeedBow, cdungeonTriforceBMP, cdungeonPrincessBMP, cdungeonStartBMP,
-        cdn1bmp, cdn2bmp, cdn3bmp, cdn4bmp, cdn5bmp, cdn6bmp, cdn7bmp, cdn8bmp, cdnQbmp) =
-    let imageStream = GetResourceStream("icons13x9.png")
+let dungeonRoomBmpPairs =
+    let imageStream = GetResourceStream("new_icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
         for i = 0 to bmp.Width/13 - 1 do
@@ -286,36 +339,36 @@ let (cdungeonUnexploredRoomBMP, cdungeonExploredRoomBMP, cdungeonDoubleMoatBMP, 
             let ur = new System.Drawing.Bitmap(13*3,9*3)
             for px = 0 to 13*3-1 do
                 for py = 0 to 9*3-1 do
-                    ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,    py/3))
-                    cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,  9+py/3))
+                    ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,   py/3))
+                    cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, 9+py/3))
             yield (ur,cr)
     |]
-    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],
-        a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
-        a.[20], a.[21], a.[22], a.[23], a.[24])
-
-let cdungeonNumberBMPs = [| cdn1bmp; cdn2bmp; cdn3bmp; cdn4bmp; cdn5bmp; cdn6bmp; cdn7bmp; cdn8bmp; cdnQbmp |]
-
-let greyscale(bmp:System.Drawing.Bitmap) =
-    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
-    for px = 0 to bmp.Width-1 do
-        for py = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(px,py)
-            let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
-            let avg = if avg = 0 then 0 else avg + 20    // never too dark
-            let c = System.Drawing.Color.FromArgb(avg, avg, avg)
-            r.SetPixel(px, py, c)
-    r
-let darkenImpl pct (bmp:System.Drawing.Bitmap) =
-    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
-    for px = 0 to bmp.Width-1 do
-        for py = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(px,py)
-            let c = System.Drawing.Color.FromArgb(int(float c.R * pct), int(float c.G * pct), int(float c.B * pct))
-            r.SetPixel(px, py, c)
-    r
-let darken(bmp:System.Drawing.Bitmap) =
-    darkenImpl 0.5 bmp
+    a
+let dungeonRoomFloorDrops, dungeonRoomMonsters =
+    let imageStream = GetResourceStream("icons3x3.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|  
+        for i = 0 to bmp.Width/3 - 1 do
+            let r = new System.Drawing.Bitmap(5*3,5*3)
+            let b = new System.Drawing.Bitmap(8*3,8*3)
+            // black border around them
+            for x = 0 to 14 do
+                for y = 0 to 14 do
+                    r.SetPixel(x,y,System.Drawing.Color.Black)
+            for x = 0 to 23 do
+                for y = 0 to 23 do
+                    b.SetPixel(x,y,System.Drawing.Color.Black)
+            // the icon in the middle
+            for px = 0 to 3*3-1 do
+                for py = 0 to 3*3-1 do
+                    r.SetPixel(px+3, py+3, bmp.GetPixel(px/3 + i*3,   py/3))
+                    b.SetPixel(2*px+3, 2*py+3, bmp.GetPixel(px/3 + i*3,   py/3))
+                    b.SetPixel(2*px+1+3, 2*py+3, bmp.GetPixel(px/3 + i*3,   py/3))
+                    b.SetPixel(2*px+3, 2*py+1+3, bmp.GetPixel(px/3 + i*3,   py/3))
+                    b.SetPixel(2*px+1+3, 2*py+1+3, bmp.GetPixel(px/3 + i*3,   py/3))
+            yield r, b
+    |]
+    a.[0..7], a.[8..]
 
 let overworldImage =
     let imageStream = GetResourceStream("s_map_overworld_strip8.png")

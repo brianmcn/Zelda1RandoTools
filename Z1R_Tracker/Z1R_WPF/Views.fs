@@ -155,12 +155,13 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         if bmp <> null then
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
                 let image = Graphics.BMPtoImage(bmp)
+                canvasAdd(innerc, image, 4., 4.)
+            else
+                let image = Graphics.BMPtoImage(Graphics.desaturate(bmp,0.60))
                 image.Stretch <- Stretch.Uniform
                 image.Width <- 14.
                 image.Height <- 14.
                 canvasAdd(innerc, image, 8., 8.)
-            else
-                canvasAdd(innerc, Graphics.BMPtoImage(bmp), 4., 4.)
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
@@ -188,7 +189,11 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
                 if box.CellCurrent() = -1 then
                     activateComboBox(0)
                 else
-                    box.SetPlayerHas(CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea)
+                    let desire = CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea
+                    if desire = box.PlayerHas() then
+                        activateComboBox(0) // rather than idempotent gesture doing nothing, a second try (e.g. left click and already-have item) reactivates popup (easier to discover than scroll)
+                    else
+                        box.SetPlayerHas(desire)
         )
     c.MouseWheel.Add(fun ea -> 
         if not popupIsActive then 

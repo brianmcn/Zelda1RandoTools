@@ -49,6 +49,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
         if not(obj.Equals(appMainCanvas.Parent,rootCanvas)) || not(rootCanvas.Children.Count=1) then
             failwith "rootCanvas must have appMainCanvas as its only child"
     let popupCanvasStack = new System.Collections.Generic.Stack<_>()
+    let opacityStack = new System.Collections.Generic.Stack<_>()
     let afterCreatePopupCanvas = new Event<_>()
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
@@ -61,7 +62,8 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     // and down here is where/how the popups should be putting their content
     member _this.PopupCanvasStack = popupCanvasStack
     member _this.CreatePopup(blackSunglassesOpacity) = 
-        sunglasses.Opacity <- blackSunglassesOpacity
+        opacityStack.Push(blackSunglassesOpacity)
+        sunglasses.Opacity <- opacityStack |> Seq.max
         // remove sunglasses from prior prior layer (if there was one)
         if sunglasses.Parent <> null then
             (sunglasses.Parent :?> Canvas).Children.Remove(sunglasses) |> ignore
@@ -79,10 +81,12 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
         let pc = popupCanvasStack.Pop()
         beforeDismissPopupCanvas.Trigger(pc)
         rootCanvas.Children.Remove(pc) |> ignore
+        opacityStack.Pop() |> ignore
         // remove the sunglasses from the prior child
         (rootCanvas.Children.[rootCanvas.Children.Count-1] :?> Canvas).Children.Remove(sunglasses) |> ignore
         // place the sunglasses on the prior prior layer (if there is one)
         if rootCanvas.Children.Count-2 >= 0 then
+            sunglasses.Opacity <- opacityStack |> Seq.max
             (rootCanvas.Children.[rootCanvas.Children.Count-2] :?> Canvas).Children.Add(sunglasses)
     // and here is how the broadcast window can listen for popup activity
     member _this.AfterCreatePopupCanvas = afterCreatePopupCanvas.Publish
@@ -163,6 +167,12 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
     member _this.GridSelectableHighlightBrush = gridSelectableHighlightBrush
     member _this.GridNotSelectableHighlightBrush = gridNotSelectableHighlightBrush
     member _this.BorderBrush = borderBrush
+    member this.Dim(opacity) =
+        let dim(scb:ISolidColorBrush) =
+            let c = scb.Color
+            let nc = Color.FromArgb(byte(255.*opacity), c.R, c.G, c.B)
+            new SolidColorBrush(nc) :> ISolidColorBrush
+        new ModalGridSelectBrushes(dim(this.OriginalTileHighlightBrush), dim(this.GridSelectableHighlightBrush), dim(this.GridNotSelectableHighlightBrush), dim(this.BorderBrush))
     static member Defaults() =
         new ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)
 let borderThickness = 3.  // TODO should this be a param?

@@ -67,8 +67,8 @@ scrolling, and then click once you have reached your desired choice, or you can 
 is often faster when there is a very long list of choices, such as the overworld map tiles).  Clicking outside of a popup will cancel the popup 
 and abort making any changes to the element.
 
-When mouse-hovering an element with choices, scroll-wheel always activates the popup.  In certain cases notes below, clicking or double-clicking
-may also activate the popup.
+When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
+In certain cases noted below, clicking also activates the popup.
 
 
 DUNGEON ITEM AREA
@@ -85,10 +85,12 @@ upper right.  This is to help keep track of things if playing using the "Force O
 
 Items:
 The list of possible items (book, boomerang, ...) appears in a popup.  Choose the item to populate a box, and
- - left click marks it green, to denote that you have this item in your inventory
- - right click marks it red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
- - middle click marks it purple (with X), to denote you intentionally are skipping this item (see below)
-In addition to scrolling, clicking an empty item box will activate the popup.
+ - left click marks it Green, to denote that you have this item in your inventory
+ - right click marks it Red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
+ - middle click marks it Purple (with X), to denote you intentionally are skipping this item (see below)
+Green, already-gotten items appear smaller and desaturated, to help ensure your attention stays focused on the Red boxes, which are remaining work.
+In addition to scrolling, clicking an empty item box will activate the popup.  Repeat-clicking (e.g. left-click a box you have, or right-click a
+box you don't have) a non-empty item box will also activate the popup.
 
 The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
 boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.
@@ -169,11 +171,12 @@ OVERWORLD MAP
  - "potion"     potion shop
  - "dark"       nothing, or don't care
 
-The list of all these possible map tile icons appears in a popup.  In addition to scrolling, left-clicking an unmarked map tile will activate the popup.
+The list of all these possible map tile icons appears in a popup.  In addition to scrolling, right-clicking an unmarked map tile will activate 
+the popup.  Left-clicking a "dark" tile will also activate the popup.
 
-Right-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
-Right-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  Left click to change the first item (whole tile popup).
-Right-clicking toggles the brightness of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
+Left-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
+Left-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  Right click to change the first item (whole tile popup).
+Left-clicking toggles the brightness of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
  - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
 Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
@@ -241,34 +244,19 @@ There are 9 tabs for the 9 dungeons.
 
 The right column of each tab has an area with this dungeon's triforce and items, so you can edit them without having to mouse all the way to the top of the app.
 
-Rooms can be marked as:
- - stairway transports 1-8, '?'
- - special room shapes (moats, chutes, tee, etc.)
- - special markers for certain rooms (digdogger+recorder; bow+arrow for gohma; gleeok+wand; blue bubble)
- - ad-hoc color markers (red/yellow/green) the player can use as they see fit (e.g. boss/triforce/bomb)
- - gray box (typical non-descript room)
-The list of all these rooms appears in a popup.  In addition to scrolling, double-clicking a room will activate the popup.  
-In the popup:
- - left-clicking a room selection darkens the room (especially the outline), intended to mark it 'complete' (e.g. floor drop (if any) has been gotten)
- - right-clicking marks it uncomplete (lighter), thus uncompleted rooms stand out brighter to the eye, reminding you what is left to do
-Single-clicking an unmarked room transforms it into the default, non-descript room (dark or light, depending on left- or right- click).
+Doors between rooms are simple, and have three states:
+ - dark gray is unknown (default)
+ - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
+ - red (right click) is "cannot go" (e.g. unbombable wall)
 
-You can 'circle' a room with a yellow dashed line by middle-clicking it (middle click again to toggle).  This is just an ad-hoc mark to make a room stand out.
-(I often use this to mark rooms where I left a bomb pack drop to return to later; you can use however you like.)
+Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in DUNGEON ROOMS section below.
 
-If you click-and-drag with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
+If you click-and-drag the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
 Mouse-hovering the little blue bars in the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
 easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.
-
-Shift-clicking a room will black it out, as well as nearby doors; this is rarely useful except for Shapes 9 with a map, to immediately mark off the 'holes'.
-
-Doors between rooms have three states:
- - dark gray is unknown (default)
- - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
- - red (right click) is "cannot go" (e.g. unbombable wall)
 
 Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
@@ -281,6 +269,65 @@ Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape out
 Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
 
 When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+
+
+DUNGEON ROOMS
+
+Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
+
+To motivate Z-Tracker's feature set, consider a dungeon room with a Digdogger, a floor drop of a bomb pack, and a push-block leading to a staircase basement
+containing a key item like the Ladder.  Should this room be marked as a Digdogger room? A bomb pack room? An item staircase?  The salient information may change
+over time, e.g.
+ - you walk into the room the first time, and see Digdogger, a bomb pack on the floor, and a possible push block
+ - you might want to leave the bomb pack, spend some bombs in adjoining rooms, and then return 90 seconds later to pick up the bomb pack
+ - you might have to come back in 10 minutes with a recorder to defeat Digdogger, and try pushing the block, revealing the item staircase
+ - you might be walking back through the room a couple minutes after that, and not be sure if you already tried pushing the pushblock
+
+Z-Tracker supports four independent aspects of a given dungeon room:
+ - RoomType          - the 'shape' or 'staircase info' of a room, examples including:
+                            'empty room', 'room with possible pushblock', 'room with transport staircase 2', 'old man hint', 'hungry Goriya', 'chevy moat', ...
+ - MonsterDetail     - information about boss monsters or bubbles in the room
+ - FloorDropDetail   - what floor drop the room has, and whether you have already gotten it
+ - Completedness     - are you 'done' with this room
+
+As a result, in the scenario described before, you could mark up the room thusly:
+ - upon entering the room, mark it as RoomType='possible pushblock', MonsterDetail=Digdogger, FloorDropDetail='bomb pack (ungotten)', Completed=no
+ - after returning to grab bombs, you can toggle the 'gotten' of the FloorDropDetail
+ - later when you kill Digdogger, you can mark the room Complete
+ - upon discovering the item staircase, you could change the RoomType to 'item staircase'
+How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
+
+If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
+ - left-clicking an unmarked room to mark it as the default-RoomType, completed room - completed rooms have a dark outline
+ - left-clicking a marked room toggles its 'completedness' - uncompleted rooms have a bright outline, to make them noticeable as a place to return to later
+
+If you want to change a RoomType (to mark a transport staircase, hungry Goriya, chevy moat, ...), then right-click the room to bring up the RoomType popup:
+ - a grid of 30 possible types of rooms appear
+ - choose the one you want with your mouse, and left-click it
+
+If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
+but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Left-click on details in the grids to apply them
+to the current room's "preview" tile.  Once you are done, click the preview tile to save your edits to the dungeon map; a left-click marks the room completed,
+and a right-click marks it uncompleted.
+
+If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' the floor drop by middle-clicking the room on the map.  Un-gotten floor drops
+appear as a bright icon, and gotten floor drops appear darkened.
+
+If a room does not have a FloorDropDetail, then middle-clicking will toggle a yellow 'circle' around the room.  This is an ad-hoc mark which you can use 
+however you like, but the suggested use is to mark an un-gotten, unspecified floor drop item.  In my experience, it is very rare to intentionally "leave
+behind" a floor drop to come back to later - the main exception is bomb packs.  As a result, if I leave a bomb pack behind, I'll just middle-click-
+yellow-circle a room to quickly mark it, rather than go through the more cumbersome FloorDropDetail UI.  In the rare case where I leave something else behind,
+such as an unreachable key in the middle of a circle-moat room when I don't have the ladder, then I use the FloorDropDetail UI to capture that specific bit
+of information.
+
+The MonsterDetail and FloorDropDetail information appear as tiny icons in the corners of rooms on the map.  If you want to briefly make these icons larger 
+and see a legend, you can mouse-hover the checkbox in the very bottom right of the dungeon tab.  If you want to permanently keep the icons on their larger
+size, click that checkbox.
+
+While the vast majority of RoomType choices represent staircases (e.g. transport 2, item basement), NPCs (e.g. bomb ugrade, hungry Goriya), or geometry-
+blockers (e.g. chutes, moats), there are also four special RoomTypes to mark the entrance to the dungeon, along with which direction you entered from.
+As a convenience, the very first room you click on in the dungeon will automatically popup the RoomType chooser, with the mouse pre-positioned on the
+'Dungeon entrance (from south)' tile, as this is the most common entrance direction.
 
 
 BLOCKERS

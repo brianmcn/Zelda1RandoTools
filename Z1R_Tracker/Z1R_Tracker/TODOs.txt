@@ -18,59 +18,18 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-I don't think I'll add 'item stair' unless I get more confirming feedback of its value... hm, I suppose it's also useful both in retrospective as well as replay-seed... 
-I don't love it because it's not a room type. 
-Maybe I need more 'decorations' like the middle-click that I can add to an existing room that is independent of its 'room type' or 'completedness value'... hm... 
-like a 'got the item floor drop in this room' and 'got the item from a basement in this room' are useful decorations that you might want to hang, independently, off a 
-Digdigger-Recorder marked room, e.g. if the room has a digdogger and an open stairway.  
-Coming up with suitable icons, finding places to draw them, and finding gestures for the player to add them are all challenges, though.  I'll think about it.
- - could have double-left-click and double-right-click do stuff, and have scroll-wheel be only way to activate dungeon room popup, hmm...
- - could maybe have like up-arrow-point-at-I on left side of room for floor drop, down-arrow-point-at-I on right side for basement drop? 
-   they should be loud and pop, could even draw out of bounds a little.  maybe Link YouGotTheThing?
-abraxas: I can't remember if there was a push-block in that digdogger room - maybe bosses should not be rooms, but decorations?
 imagine if could add blue wiz or blue darknut or blue lanmo decoration
-what if left click toggles completedness (and on-empty accelerates to default nondescript), and right click activates popup?
- - stairway: xport1-N/xport-?/item/unknown(possiblepushblock)/none   (unknownpossiblepushblock maybe appears as yellowcircle decoration?)    <--- scrollwheel would probably be bound to this region
- - geometry: moats/chutes/tee/(add:turnstile-rotary)/(add:meat/BU/moneylife/advice)/none
- - monster: bowarrow/gleeokwand/digrecorder/bluebubble/maybeothers/none    (maybe a tiny superscript says decoration exists, hover-spot below inset makes monsters appear over rooms?)
- - drop:bomb/key/floorKeyItem/floorHeartContainer/fiver/map/compass/triforce/  (tiny subscript that 'reads' for all these?)
-an advantage of the 5-dimensional breakdown is we can analyze for e.g. the only-a-basement-item-remains highlight
-actually, it's not 5-D, it's 4-D, because none of the 'geometry' bits are compatible with stairways, so those two can be folded into a single category
-suppose each 13x9room were divided into multiple areas: geometry-or-staircase, monster, drop, and completedness
-(how easy is it to 'undo' an accidental room mark, bring back to 'unmarked'?)
+
+(how easy is it to 'undo' an accidental room mark, bring back to 'unmarked'?  clear all marks versus clear the room type?)
+
 which rooms visually pop? uncompleted and left-floor-drop-behind?
 
-I am probably going to add 'Meat Block' as a room.  Bomb Upgrade and Money-or-Life are also actual 'rooms' that Z-Tracker doesn't currently have, that may be useful to mark.
-Start Room should have its own colorful icon.  Old Man Hint can also be a room (implies no-bomb-north, may have routing effect in routers relish to avoid its slow text)
 consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
- - might want middle click to cycle blue, yellow, nothing, for e.g. bomb drop, key drop, nothing 
 
-Get rid of shift-click room state. (change behavior to marking 4 red doors? But what if two together… hmmm…. Ideally don’t want to show wall between two adjacent holes, hm.)
+Got rid of shift-click room state, any replace? (change behavior to marking 4 red doors? But what if two together… hmmm…. Ideally don’t want to show wall between two adjacent holes, hm.)
 
-from marc discussion, summary:
- - the design space pivots are
-     - full popup for all rooms, decoration-then-click-to-commit-geometry as I was imagining, for router/completionist scenario, versus
-     - just geometries as default for popup, need explicit action to opt into decorations for this room (how visualize that opt-in in the popup ui)
-          - marc also suggested second-invocation-of-popup as possible opt-in
-     - in the middle, for selecting decorations, can either
-          - have nested popups of change room geometry, change monster deco, change drop deco - intuitive, but more clicks
-          - have the DontPanic4DConglomerator, where it's all onscreen at once and is more complex but fewer clicks
-          - have a sequence where it just asks all three questions in a row, every time (with current state being default, to click-thru easily when unchanging)
-          - probably lean into 'easier to understand and more clicks' given that hotkeys exist for veteran players or routers-relish scenario
-               - geometry potion of popup looks similar to today
-               - off to the right, has room-with-decorations, with large corner mouse targets 'click here to add/change monster deco' and 'click here to add/change floor drop deco'
-               - still a key issue is whether 'click room geometry' dismisses the entire popup
-                     - possibly could when no decorations exist, but if any decor, popup layout changes and is modal until full-commit is chosen (may want 'remove all decorations' accelerator)
-               - or
-               - geometry potion of popup looks similar to today, but has 'decorations mode' button to side
-               - clicking that changes view to deco mode, with three mouse targets for 3 nested popups, and a commit button, and a 'remove all decos and change back to default mode' button
-               - or
-               - similar to above 'decoration mode', except 
-                   - (1) it's the only mode and 
-                   - (2) the geometry popup starts revealed and interactable, but deco popups can nest a popup, and 
-                   - (3) geometry click commits
-               - this is very intuitive, need to maybe just optimize screen layout both for mouse-travel and to induce 'sequencing' so that people naturally geometry-commit last
- - no need for 'big icons' of monsters and drops, the small corner decos are sufficient, especially given text descriptions in deco popup to learn meaning
+
+New Dungeon UI:
  - completedness can mean different things to different folks, it will probably always be imprecise, but
       - greying out a room should also grey out the decos in the corners, this is the 95% case, and also see below
  - middle-click circle might still be the best way to mark 'floor drop that remains to be gotten', distinct from completedness (circle/unreachable moat scenario, intentional bomb pack left)
@@ -79,25 +38,6 @@ from marc discussion, summary:
  - while the UI will strongly suggest a use/meaning for each icon, they can still be non-semantic
       - e.g. red bubble could just be a 'stop, just dont go in this room again, for some reason' icon
       - marc suggested some semantics, e.g. 'now that you have the ladder, consider the circle moat room with the triforce' but I choose not to go there because it seems marginal utility
-popup invocation:
-    I'm considering the popup behavior maybe should be:
-     - left click toggles completedness
-     - right click invokes the popup
-     - scrollwheel invokes the popup (as it does every popup)
-     - (accelerator) left click an unmarked room changes state to unknown-pushblock and marks complete
-hotkeys:
- - is possible and probably desirable to have e.g. 'b' mean both 'bomb pack' and 'empty room geometry'
- - desirable because geom/monster/drop can all bind to the same hotkey context, as it's hard to 'target' the context separately via mouse-location or whatnot
- - should second invocation be idempotent, or toggle?  g=gleeok, g again = ?  i think second should clear, as accelerator for 'fix accident'
-implementation details:
- - when i change room state model, will need to carefully reimplement GRAB and transports (use choicedomain?)
-writeup:
- - walkthru scenario of problem domain
-    - diggdogger room with initially visible bomb drop, 2-dots push block
-    - you may want to come back in 90s after spending bombs to grab more (middle click)
-    - you may have to come back in 10 mins with recorder to kill and see if stairway
-    - if item stair, you may want to mark as such, so in 3 mins more you don't come back thru room and wonder if you tried pushing block here
- - then discuss ui
 test & evaluate:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of specturm
 
@@ -112,14 +52,37 @@ abraxas
  - possible mouse-hover a dungeon number, it switches to that tab (or hover-previews it), though competes with magnifier... hm...
  - one-way walk thru walls or shutter doors (arrow icon)
  - really consider save/load
- - consider left-click an already-got-item-box brings up popup (rather than do nothing; scroll hard to 'find' to fix mistake), review other idempotent gestures, re-write POPUPS in Notes.txt
  - behavior of routing across river sans ladder didn't match expectations (mouse into left, mouse into right)
 
 homer: blockers.. love this section, might want to add Rupees (ex. you hit a mugger early on, don't want to give up a max bomb so youll come back with 67 rupees or whatever) Or maybe make it mugger block?
-homer: purple X for skip:  I don't like how covered it gets, it starts to get a little hard to read here. I'm thinking especially for viewers on a stream
+homer:
+ - if gettables is clicked, then e.g. hovering bombs is not useful to locate shops
+ - in sprite shuffle, might want to mark 2 white sword caves because cant tell
+ - OBS has to reattach each time start tracker, figure that out or give advice in Notes.txt
+ - homer found A, then 9, then went into A, mapped inside 9, made a mess, hm
+ - triforce decoder diagram - he read the final 'Note:' as applying to bottom diagram, rather than whole thing
+     - probably an asterisk at the top heading and bottom heading and then an asterisk before  "7 and 8..."  would be easy enough to understand
+ - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
+[10:27 AM] homerjsmash: ha yes, but if one were to look at the pretty art and see a gohma one would know def blocked there vs maybe blocked there. But i understand your point
+[10:27 AM] Lorgon111: (so i guess, is maybe possible to 'write' both 'hard' and 'soft' into the UI, if you want to track them differentially, but at some point, just do whatever)
+[10:28 AM] Lorgon111: i think it lets you place 2 bow&arrow, so you could do that.  i do have an extra slot, so i could also add a '?' icon maybe, and then you could mark 1st box bow-arrow and 2nd box '?', would that be useful?
+[10:30 AM] Lorgon111: or perhaps you have joined the evil side who wants left click versus right click to put the blocker in a green v red box outline >:)
+[11:32 AM] homerjsmash: So for the blockers square I would want something more bolded or highlighted that tells me I NEED this to finish the seed, vs I came here early got the tri didn't get stuff saw a ladder block
+[11:36 AM] Lorgon111: but yeah, i grok that the 'soft' versus 'hard' blocker is useful distinguish
+
+lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
+lorgon: mark screens with bomb droppers
+lorgon: like imagine middle click from dungeons
+
+homer: Not sure my time because i've reset my timer twice 
+[11:22 AM] Lorgon111: I tried to make 'accidental timer reset' unlikely by making it two different clicks that were far away from one another... 
+is the bright text on the screen so alluring that you accidentally click it? 
+I could add a second bright target that is like 'click here to unpause the timer' if that would help.
+
 
 is there a way to get magnifier in broadcast? would really help making videos...
 
+Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map
 
 must add reload-kotkeys in options menu (maybe also a test hotkeys UI)
 
@@ -174,6 +137,8 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
  - something explaining 'whittling' rooms and enemies
  - if you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (traps & bubbles are considered enemies)
  - continue during fairy refill returns to start screen with full health
+ - bomb upgrade dude never has a bombable north wall
+ - Random 9 entry seeds: if you find 9 and the old man at the door tells you some nonsense that means you need all 8 tris to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc. 
 
 
 review other common flagsets from rando, what works, what could work, etc
@@ -299,7 +264,7 @@ remove-item-from-scrollwheel-pool (a la ZHelper) - pairs well with hotkeys, as c
 should first dungeon room click default to green? any way to mark entry doorway?
 
 
-
+other possible hotkey stuff?  (start/stop timer, got mags, ... ?)  other possible keys (shift/ctrl, thumb button, gamepad, remap left/right click in various contexts, ...?)
 
 
 decide about PTT functionality

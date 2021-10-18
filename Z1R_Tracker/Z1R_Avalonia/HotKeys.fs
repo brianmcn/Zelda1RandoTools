@@ -95,63 +95,17 @@ let convertAlpha_NumToKey(ch) =
 
 ////////////////////////////////////////////////////////////
 
-module DungeonHelper = 
-    let ROOMS = 26 // how many types
-    let roomIsEmpty(n) = (n=0 || n=10)
-    let roomBMPpairs(n) =
-        match n with
-        | 0  -> (fst Graphics.cdungeonUnexploredRoomBMP), (fst Graphics.cdungeonUnexploredRoomBMP)
-        | 10 -> (snd Graphics.cdungeonUnexploredRoomBMP), (snd Graphics.cdungeonUnexploredRoomBMP)
-        | 11 -> Graphics.cdungeonDoubleMoatBMP
-        | 12 -> Graphics.cdungeonChevyBMP
-        | 13 -> Graphics.cdungeonVMoatBMP
-        | 14 -> Graphics.cdungeonHMoatBMP
-        | 15 -> Graphics.cdungeonVChuteBMP
-        | 16 -> Graphics.cdungeonHChuteBMP
-        | 17 -> Graphics.cdungeonTeeBMP
-        | 18 -> Graphics.cdungeonNeedWand
-        | 19 -> Graphics.cdungeonBlueBubble
-        | 20 -> Graphics.cdungeonNeedRecorder
-        | 21 -> Graphics.cdungeonNeedBow
-        | 22 -> Graphics.cdungeonTriforceBMP 
-        | 23 -> Graphics.cdungeonPrincessBMP 
-        | 24 -> Graphics.cdungeonStartBMP 
-        | 25 -> Graphics.cdungeonExploredRoomBMP 
-        | n  -> Graphics.cdungeonNumberBMPs.[n-1]
-    let RoomNames = [|
-        "Nothing"
-        "Transport1"
-        "Transport2"
-        "Transport3"
-        "Transport4"
-        "Transport5"
-        "Transport6"
-        "Transport7"
-        "Transport8"
-        "TransportQuestionMark"
-        "ShiftClickedAwayDontUseThis"
-        "DoubleHorizontalMoat"
-        "Chevy"
-        "VerticalMoat"
-        "HorizontalMoat"
-        "VerticalChute"
-        "HorizontalChute"
-        "Tee"
-        "GleeokNeedWand"
-        "BlueBubble"
-        "DigdoggerNeedRecorder"
-        "NeedBow"
-        "Yellow"
-        "Red"
-        "Green"
-        "DefaultExploredRoom"
-        |]
-    let AsHotKeyName(n) = RoomNames.[n]
-
-////////////////////////////////////////////////////////////
-
 type UserError(msg) =
     inherit System.Exception(msg)
+
+let AllDungeonRoomNames = [|
+    for x in DungeonRoomState.RoomType.All() do
+        yield "DungeonRoom_" + x.AsHotKeyName()
+    for x in DungeonRoomState.MonsterDetail.All() do
+        yield "DungeonRoom_" + x.AsHotKeyName()
+    for x in DungeonRoomState.FloorDropDetail.All() do
+        yield "DungeonRoom_" + x.AsHotKeyName()
+    |]
 
 let MakeDefaultHotKeyFile(filename:string) =
     let lines = ResizeArray()
@@ -193,8 +147,8 @@ let MakeDefaultHotKeyFile(filename:string) =
     lines.Add("")
     // dungeon rooms
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
-    for i = 0 to DungeonHelper.RoomNames.Length-1 do
-        lines.Add("DungeonRoom_" + DungeonHelper.AsHotKeyName(i) + " = ")
+    for x in AllDungeonRoomNames do
+        lines.Add(x + " = ")
     lines.Add("")
     System.IO.File.WriteAllLines(filename, lines)
 
@@ -239,10 +193,11 @@ type HotKeyProcessor<'v>(contextName) =
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
-let DungeonRoomHotKeyProcessor = new HotKeyProcessor<int>("DungeonRoom")
+let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail> >("DungeonRoom")
 
+let HotKeyFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
 let PopulateHotKeyTables() =
-    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
+    let filename = HotKeyFilename
     if not(System.IO.File.Exists(filename)) then
         MakeDefaultHotKeyFile(filename)
     let data = ParseHotKeyDataFile(filename)
@@ -253,7 +208,7 @@ let PopulateHotKeyTables() =
             | Some ch ->
                 let key = convertAlpha_NumToKey ch
                 if not(hkp.TryAdd(key,x)) then
-                    failwithf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename
+                    raise <| new UserError(sprintf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename)
         match name with
         | "Blocker_Combat"        -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.COMBAT)
         | "Blocker_Bow_And_Arrow" -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BOW_AND_ARROW)
@@ -277,9 +232,17 @@ let PopulateHotKeyTables() =
                         Add(OverworldHotKeyProcessor, chOpt, i)
                         found <- true
             if not found then
-                for i = 0 to DungeonHelper.RoomNames.Length-1 do
-                    if name = "DungeonRoom_" + DungeonHelper.AsHotKeyName(i) then
-                        Add(DungeonRoomHotKeyProcessor, chOpt, i)
+                for x in DungeonRoomState.RoomType.All() do
+                    if name = "DungeonRoom_" + x.AsHotKeyName() then
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice1Of3 x)
+                        found <- true
+                for x in DungeonRoomState.MonsterDetail.All() do
+                    if name = "DungeonRoom_" + x.AsHotKeyName() then
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice2Of3 x)
+                        found <- true
+                for x in DungeonRoomState.FloorDropDetail.All() do
+                    if name = "DungeonRoom_" + x.AsHotKeyName() then
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice3Of3 x)
                         found <- true
             if not found then
                 raise <| new UserError(sprintf "Bad name '%s' specified in '%s', line %d" name filename lineNumber)

@@ -945,18 +945,21 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                         } |> Async.StartImmediate
                 c.PointerPressed.Add(fun ea -> 
                     if not !popupIsActive then
-                        if ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
-                            // left click activates the popup selector
+                        if ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
+                            // right click activates the popup selector
                             activatePopup(0)
-                        elif ea.GetCurrentPoint(c).Properties.IsRightButtonPressed then 
-                            // right click is the 'special interaction'
+                        elif ea.GetCurrentPoint(c).Properties.IsLeftButtonPressed then 
+                            // left click is the 'special interaction'
                             let pos = c.TranslatePoint(Point(), appMainCanvas).Value
                             let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                            async {
-                                let! needRedraw, needUIUpdate = DoRightClick(cm,msp,i,j,pos,popupIsActive)
-                                if needRedraw then redrawGridSpot()
-                                if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
-                            } |> Async.StartImmediate
+                            if msp.IsX then
+                                activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
+                            else
+                                async {
+                                    let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActive)
+                                    if needRedraw then redrawGridSpot()
+                                    if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
+                                } |> Async.StartImmediate
                     )
                 c.PointerWheelChanged.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta.Y<0. then 1 else -1))
                 c.MyKeyAdd(fun ea ->
@@ -1379,7 +1382,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 else
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n, icons) 
             member _this.AnnounceTriforceCount(n) =
-                let icons = [upcb(Graphics.fullTriforce_bmp); ReminderTextBox(sprintf"%d/8"n)]
+                let icons = [upcb(Graphics.fullOrangeTriforce_bmp); ReminderTextBox(sprintf"%d/8"n)]
                 if n = 1 then
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You now have one triforce", icons)
                 else
@@ -1400,7 +1403,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                         if needSomeThingsicons.Length<>0 then
                             yield upcb(Graphics.iconRightArrow_bmp)
                         for _i = 1 to (8-triforceCount) do
-                            yield upcb(Graphics.emptyTriforce_bmp)
+                            yield upcb(Graphics.greyTriforce_bmp)
                     yield upcb(Graphics.iconRightArrow_bmp)
                     yield upcb(Graphics.ganon_bmp)
                     ]
@@ -1630,8 +1633,9 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         )
 
     // Dungeon level trackers
+    let rightwardCanvas = new Canvas()
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, rightwardCanvas, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1715,8 +1719,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             )
         c
 
-    let BLOCKERS_OFFSET = 402.        // dungeon area, overwriting side-tracker-panel
-    let NOTES_OFFSET    = 402. + 42.  // dungeon area and side-tracker-panel
+    let BLOCKERS_OFFSET = 408.        // dungeon area, overwriting side-tracker-panel
+    let NOTES_OFFSET    = 408. + 42.  // dungeon area and side-tracker-panel
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
     blockerGrid.Background <- Brushes.Black
@@ -1759,6 +1763,8 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     grabModeTextBlock.Opacity <- 0. 
     grabModeTextBlock.Width <- tb.Width
     canvasAdd(appMainCanvas, grabModeTextBlock, NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
+
+    canvasAdd(appMainCanvas, rightwardCanvas, NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H)  // extra place for dungeonTabs to draw atop blockers/notes
 
     // remaining OW spots
     canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL+30., 76.)
