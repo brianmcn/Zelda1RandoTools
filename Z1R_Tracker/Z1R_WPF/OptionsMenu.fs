@@ -191,13 +191,20 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         broadcastWindowOptionChanged.Trigger(false)            // shutdown current window, if it's on
         if TrackerModel.Options.ShowBroadcastWindow.Value then
             broadcastWindowOptionChanged.Trigger(true)         // restart if the display setting is turned on
-    let cb = new CheckBox(Content=new TextBox(Text="2/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-    link(cb, TrackerModel.Options.SmallerBroadcastWindow, true)
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SmallerBroadcastWindow.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.SmallerBroadcastWindow.Value <- true; maybeRestartBroadcast())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SmallerBroadcastWindow.Value <- false; maybeRestartBroadcast())
-    cb.ToolTip <- "Makes the broadcast window only two-thirds as large as normal (512 rather than 768 pixels wide)"
-    options3sp.Children.Add(cb) |> ignore
+    let rb3 = new RadioButton(Content=new TextBox(Text="Full size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    let rb2 = new RadioButton(Content=new TextBox(Text="2/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    let rb1 = new RadioButton(Content=new TextBox(Text="1/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    match TrackerModel.Options.BroadcastWindowSize with
+    | 3 -> rb3.IsChecked <- System.Nullable.op_Implicit true
+    | 2 -> rb2.IsChecked <- System.Nullable.op_Implicit true
+    | 1 -> rb1.IsChecked <- System.Nullable.op_Implicit true
+    | _ -> failwith "impossible BroadcastWindowSize"
+    rb3.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 3; maybeRestartBroadcast())
+    rb2.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 2; maybeRestartBroadcast())
+    rb1.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 1; maybeRestartBroadcast())
+    options3sp.Children.Add(rb3) |> ignore
+    options3sp.Children.Add(rb2) |> ignore
+    options3sp.Children.Add(rb1) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
 

@@ -2090,7 +2090,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         )  
 
     // broadcast window
-    let makeBroadcastWindow(twoThirdsSize) =
+    let makeBroadcastWindow(size) =
         let W = 768.
         let broadcastWindow = new Window()
         broadcastWindow.Title <- "Z-Tracker broadcast"
@@ -2099,7 +2099,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
         broadcastWindow.Left <- 0.0
         broadcastWindow.Top <- 0.0
-        broadcastWindow.Width <- (if twoThirdsSize then 512. else 768.) + 16.
+        broadcastWindow.Width <- (if size=1 then 256. elif size=2 then 512. else 768.) + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
 
@@ -2190,10 +2190,11 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         dp.Children.Add(timeline) |> ignore
         dp.Children.Add(topc) |> ignore
         
-        let trans = new ScaleTransform(0.666666, 0.666666)
-        if twoThirdsSize then
+        if size=1 || size=2 then
+            let factor = if size=1 then 0.333333 else 0.666666
+            let trans = new ScaleTransform(factor, factor)
             dp.LayoutTransform <- trans
-            broadcastWindow.Height <- H*0.666666 + 40.
+            broadcastWindow.Height <- H*factor + 40.
         broadcastWindow.Content <- dp
         
         let mutable isUpper = true
@@ -2227,11 +2228,11 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         broadcastWindow
     let mutable broadcastWindow = null
     if TrackerModel.Options.ShowBroadcastWindow.Value then
-        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.SmallerBroadcastWindow.Value)
+        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize)
         broadcastWindow.Show()
     OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun show ->
         if show && broadcastWindow=null then
-            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.SmallerBroadcastWindow.Value)
+            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize)
             broadcastWindow.Show()
         if not(show) && broadcastWindow<>null then
             broadcastWindow.Close()

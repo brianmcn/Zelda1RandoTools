@@ -6,6 +6,13 @@ Notes about overall UI & behavior
 (Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
 
 
+CAPTURING WITH OBS
+
+You should use 'Window Capture' to capture the Z-Tracker window for streaming.  
+For best results, set the 'Window Match Priority' to 'Window title must match'.
+See also the BROADCAST WINDOW section below for more capture and sizing options.
+
+
 STARTUP OPTION - Heart Shuffle: 
 
 Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
@@ -378,7 +385,9 @@ lower portion of the main Z-Tracker window.  The broadcast window is not interac
 use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main interactive Z-Tracker window, you instead 
 capture the smaller broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
 
-The broadcast window also has an option to be 2/3 size (512 pixels wide, rather than 768 pixels wide).
+The broadcast window also has an option to be 2/3 size or 1/3 size (512 or 256 pixels wide, rather than 768 pixels wide).  
+Using this exact size ratio can help keep a bit of the pixel art 'crisp' in a smaller area, and may look better than using OBS to downscale your screen capture 
+to some arbitrary but similar size.  
 
 
 WINDOW SIZE (WPF only)

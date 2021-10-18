@@ -13,7 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
- - OBS has to reattach each time start tracker, figure that out or give advice in Notes.txt
  - is there a way to get magnifier in broadcast? would really help making videos...
 
 
@@ -32,8 +31,6 @@ Consider turning Notes.txt into a README.md extension for web-docs, where can ad
 
 
 must add reload-hotkeys in options menu (maybe also a test hotkeys UI)
-
-consider 1/3 broadcast as well, rather than have players willy-nilly shrink more
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
