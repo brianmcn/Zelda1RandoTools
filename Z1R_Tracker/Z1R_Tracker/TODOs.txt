@@ -14,12 +14,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 CURRENT PRIORITIES
 
 
-homer: Not sure my time because i've reset my timer twice 
-[11:22 AM] Lorgon111: I tried to make 'accidental timer reset' unlikely by making it two different clicks that were far away from one another... 
-is the bright text on the screen so alluring that you accidentally click it? 
-I could add a second bright target that is like 'click here to unpause the timer' if that would help.
-
-
 
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum

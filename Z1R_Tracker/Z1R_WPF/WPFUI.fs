@@ -498,15 +498,23 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
+            let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
             let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
+            let sp = new StackPanel(Orientation=Orientation.Vertical)
+            sp.Children.Add(firstButton) |> ignore
+            sp.Children.Add(new DockPanel(Height=300.)) |> ignore
+            sp.Children.Add(secondButton) |> ignore
             let wh = new System.Threading.ManualResetEvent(false)
+            firstButton.Click.Add(fun _ ->
+                wh.Set() |> ignore
+                )
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
                 wh.Set() |> ignore
                 )
             async {
                 TrackerModel.LastChangedTime.PauseAll()
-                do! CustomComboBoxes.DoModal(cm, wh, 100., 200., secondButton)
+                do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)
                 TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
                 } |> Async.StartImmediate

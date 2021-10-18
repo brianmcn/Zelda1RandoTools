@@ -502,18 +502,29 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
+            let firstButton = 
+                new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
+                                                Text="Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)"), 
+                                BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
             let secondButton = 
                 new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
                                                 Text="Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume."), 
                                 BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Padding=Thickness(0.))
+            let sp = new StackPanel(Orientation=Orientation.Vertical)
+            sp.Children.Add(firstButton) |> ignore
+            sp.Children.Add(new DockPanel(Height=300.)) |> ignore
+            sp.Children.Add(secondButton) |> ignore
             let wh = new System.Threading.ManualResetEvent(false)
+            firstButton.Click.Add(fun _ ->
+                wh.Set() |> ignore
+                )
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
                 wh.Set() |> ignore
                 )
             async {
                 TrackerModel.LastChangedTime.PauseAll()
-                do! CustomComboBoxes.DoModal(cm, wh, 100., 200., secondButton)
+                do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)
                 TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
                 } |> Async.StartImmediate
