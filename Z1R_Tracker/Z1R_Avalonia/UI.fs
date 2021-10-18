@@ -1956,6 +1956,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
+        routeDrawingCanvas.Children.Clear()
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
             // have hint, so draw that zone...
             if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
@@ -1978,12 +1979,14 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                                     owLocatorTilesZone.[i,j].MakeRed()
         )
     showLocatorInstanceFunc <- (fun f ->
+        routeDrawingCanvas.Children.Clear()
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
                     owLocatorTilesZone.[i,j].MakeGreen()
         )
     showShopLocatorInstanceFunc <- (fun item ->
+        routeDrawingCanvas.Children.Clear()
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
@@ -2053,6 +2056,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             for j = 0 to 7 do
                 owLocatorTilesZone.[i,j].Hide()
         owLocatorCanvas.Children.Clear()
+        ensureRespectingOwGettableScreensCheckBox()
         )
 
     addZoneName(TrackerModel.HintZone.DEATH_MOUNTAIN, "DEATH\nMOUNTAIN", 2.5, 0.3)

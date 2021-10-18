@@ -13,7 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
- - if gettables is clicked, then e.g. hovering bombs is not useful to locate shops
  - OBS has to reattach each time start tracker, figure that out or give advice in Notes.txt
  - is there a way to get magnifier in broadcast? would really help making videos...
 
