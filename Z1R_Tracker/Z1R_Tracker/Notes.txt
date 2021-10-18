@@ -298,7 +298,7 @@ As a result, in the scenario described before, you could mark up the room thusly
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
- - left-clicking an unmarked room to mark it as the default-RoomType, completed room - completed rooms have a dark outline
+ - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
  - left-clicking a marked room toggles its 'completedness' - uncompleted rooms have a bright outline, to make them noticeable as a place to return to later
 
 If you want to change a RoomType (to mark a transport staircase, hungry Goriya, chevy moat, ...), then right-click the room to bring up the RoomType popup:
@@ -357,7 +357,11 @@ Unlike scrap paper on your desk, these notes are visible to stream viewers.
 
 HOTKEYS
 
-There is no support for hotkeys yet; this feature is on the to-do list.
+You can bind hotkeys (keyboard keys 0-9 or a-z) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
+
+There are four 'contexts' for hotkeys: item boxes, overworld tiles, blockers, and dungeon rooms.  So for example 'b' could be set up to mean 'bow' when the
+mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when
+the mouse is over a dungeon room.
 
 
 SAVE STATE

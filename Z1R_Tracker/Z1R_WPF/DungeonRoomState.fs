@@ -123,7 +123,7 @@ type RoomType =
     // staircase types
     | MaybePushBlock
     | ItemBasement
-    | UnknownTransportNumber
+    | StaircaseToUnknown
     | Transport1
     | Transport2
     | Transport3
@@ -159,7 +159,7 @@ type RoomType =
         | NonDescript             -> "RoomType_NonDescript"
         | MaybePushBlock          -> "RoomType_MaybePushBlock"
         | ItemBasement            -> "RoomType_ItemBasement"
-        | UnknownTransportNumber  -> "RoomType_UnknownTransportNumber"
+        | StaircaseToUnknown      -> "RoomType_StaircaseToUnknown"
         | Transport1              -> "RoomType_Transport1"
         | Transport2              -> "RoomType_Transport2"
         | Transport3              -> "RoomType_Transport3"
@@ -203,7 +203,7 @@ type RoomType =
         | NonDescript             -> "Empty/non-descript room"
         | MaybePushBlock          -> "Room which might have a staircase"
         | ItemBasement            -> "Room whose staircase leads to a basement item"
-        | UnknownTransportNumber  -> "Transport staircase (unknown destination)"
+        | StaircaseToUnknown      -> "Room with staircase (unknown destination)"
         | Transport1              -> "Transport staircase #1 (one of a matched pair)"
         | Transport2              -> "Transport staircase #2 (one of a matched pair)"
         | Transport3              -> "Transport staircase #3 (one of a matched pair)"
@@ -235,7 +235,7 @@ type RoomType =
         | NonDescript             -> Graphics.dungeonRoomBmpPairs.[1]
         | MaybePushBlock          -> Graphics.dungeonRoomBmpPairs.[10]
         | ItemBasement            -> Graphics.dungeonRoomBmpPairs.[11]
-        | UnknownTransportNumber  -> Graphics.dungeonRoomBmpPairs.[25]
+        | StaircaseToUnknown      -> Graphics.dungeonRoomBmpPairs.[25]
         | Transport1              -> Graphics.dungeonRoomBmpPairs.[17]
         | Transport2              -> Graphics.dungeonRoomBmpPairs.[18]
         | Transport3              -> Graphics.dungeonRoomBmpPairs.[19]
@@ -267,7 +267,7 @@ type RoomType =
         RoomType.NonDescript
         RoomType.MaybePushBlock
         RoomType.ItemBasement
-        RoomType.UnknownTransportNumber
+        RoomType.StaircaseToUnknown
         RoomType.Transport1
         RoomType.Transport2
         RoomType.Transport3
@@ -297,7 +297,7 @@ type RoomType =
         |]
 
 let entranceRoomArrowColorBrush = 
-    let c = (Graphics.dungeonRoomBmpPairs.[27] |> snd).GetPixel(18, 24)
+    let c = (Graphics.dungeonRoomBmpPairs.[28] |> snd).GetPixel(18, 24)
     new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B))
 
 let scale(bmp, scale) = 
@@ -434,13 +434,6 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             tb.TextAlignment <- TextAlignment.Center
         tb
     let SCALE = 3.
-    let scaleAndSunglasses(bmp) = 
-        if bmp = null then
-            null
-        else
-            let icon = scale(bmp, SCALE)
-            icon.Opacity <- tileSunglasses
-            icon
     
     // FIRST choose a room type, accelerate into the popup selector
     let tileX,tileY = 535., 730.
@@ -448,11 +441,14 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
     let ST = CustomComboBoxes.borderThickness
     let! allDone = async {
         let tileCanvas = new Canvas(Width=float(13*3)*SCALE, Height=float(9*3)*SCALE)
+        let extra = 30.
+        let tileSurroundingCanvas = new Canvas(Width=float(13*3)*SCALE+extra, Height=float(9*3)*SCALE+extra, Background=Brushes.DarkOliveGreen)
+        canvasAdd(popupCanvas, tileSurroundingCanvas, tileX-extra/2., tileY-extra/2.)
         let grid = [|
                 RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.BombUpgrade; RoomType.HungryGoriyaMeatBlock; RoomType.StartEnterFromE;
                 RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN;
                 RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS;
-                RoomType.ItemBasement; RoomType.UnknownTransportNumber; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
+                RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
                 RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile;
             |]
         let gridElementsSelectablesAndIDs : (FrameworkElement*_*_)[] = grid |> Array.mapi (fun _i rt ->
@@ -465,10 +461,17 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
         let totalGridWidth = float gnc*(float gcw + 2.*ST)
         let totalGridHeight = float gnr*(float grh + 2.*ST)
         let gx,gy = -78.,-50.-totalGridHeight
+        let fullRoom = originalRoomState.Clone()  // a copy with the original decorations, used for redrawTile display
+        fullRoom.IsComplete <- false
         let redrawTile(curState:RoomType) =
             Graphics.unparent(dungeonRoomMouseButtonExplainerDecoration2)
             tileCanvas.Children.Clear()
-            canvasAdd(tileCanvas, scaleAndSunglasses(curState.UncompletedBmp()), 0., 0.)
+            fullRoom.RoomType <- curState
+            let fullRoomDisplay = fullRoom.CurrentDisplay(false)
+            fullRoomDisplay.RenderTransform <- new ScaleTransform(SCALE, SCALE)
+            RenderOptions.SetBitmapScalingMode(fullRoomDisplay, BitmapScalingMode.NearestNeighbor)
+            fullRoomDisplay.Opacity <- tileSunglasses
+            canvasAdd(tileCanvas, fullRoomDisplay, 0., 0.)
             let textWidth = 340.
             let topText = Graphics.center(makeCaption("Select a room type", true), int textWidth, 24)
             let bottomText = Graphics.center(makeCaption(curState.DisplayDescription, true), int textWidth, 24)
@@ -503,6 +506,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
         let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                                                     gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
         workingCopy.IsComplete <- true
+        popupCanvas.Children.Remove(tileSurroundingCanvas)
         match r with
         | None -> return true
         | Some(curState, allDone) -> 
@@ -529,6 +533,12 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
         drmbed.BorderBrush <- Brushes.Gray
         let mre = new System.Threading.ManualResetEvent(false)
         let cleanupAndUnblock() = cleanup(); mre.Set() |> ignore
+        let handlePossibleConfirmAndDismiss(ea:Input.MouseButtonEventArgs) =
+            ea.Handled <- true
+            if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
+                snapBackWorkingCopy.IsComplete <- ea.ChangedButton = Input.MouseButton.Left
+                setNewValue(snapBackWorkingCopy)
+                cleanupAndUnblock()
         let mutable workingCopyDisplay = null
         popupCanvas.MouseDown.Add(fun _ -> cleanupAndUnblock())
         let redrawWorkingCopy() =
@@ -539,13 +549,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             RenderOptions.SetBitmapScalingMode(workingCopyDisplay, BitmapScalingMode.NearestNeighbor)
             workingCopyDisplay.IsHitTestVisible <- true
             makeBorderMouseOverBehavior(workingCopyDisplay, (fun () -> drmbed.BorderBrush <- Brushes.Lime), (fun () -> drmbed.BorderBrush <- Brushes.Gray))
-            workingCopyDisplay.MouseDown.Add(fun ea -> 
-                ea.Handled <- true
-                if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
-                    snapBackWorkingCopy.IsComplete <- ea.ChangedButton = Input.MouseButton.Left
-                    setNewValue(snapBackWorkingCopy)
-                    cleanupAndUnblock()
-            )
+            workingCopyDisplay.MouseDown.Add(fun ea -> handlePossibleConfirmAndDismiss(ea))
             Canvas.SetLeft(workingCopyDisplay, tileX)
             Canvas.SetTop(workingCopyDisplay, tileY)
             popupCanvas.Children.Insert(0, workingCopyDisplay)  // add to front, so draw under dashes and corner decos
@@ -588,6 +592,8 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
                 )
             monsterPanel.Children.Add(b) |> ignore
         let b = new Border(BorderThickness=Thickness(0.), Background=Brushes.Black, Child=monsterPanel)
+        // just after the user clicking a selection, during the 'cooldown', don't want a click to cancel the whole popup; let it be accelerator for confirm & dismiss, like clicking preview tile
+        b.MouseDown.Add(fun ea -> handlePossibleConfirmAndDismiss(ea))   
         Canvas.SetLeft(b, 406.)
         Canvas.SetBottom(b, popupCanvas.Height - tileY + 20.)
         popupCanvas.Children.Add(b) |> ignore
@@ -616,6 +622,8 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
                 )
             floorDropPanel.Children.Add(b) |> ignore
         let b = new Border(BorderThickness=Thickness(0.), Background=Brushes.Black, Child=floorDropPanel)
+        // just after the user clicking a selection, during the 'cooldown', don't want a click to cancel the whole popup; let it be accelerator for confirm & dismiss, like clicking preview tile
+        b.MouseDown.Add(fun ea -> handlePossibleConfirmAndDismiss(ea))   
         Canvas.SetRight(b, 0.)
         Canvas.SetBottom(b, popupCanvas.Height - tileY + 20.)
         popupCanvas.Children.Add(b) |> ignore

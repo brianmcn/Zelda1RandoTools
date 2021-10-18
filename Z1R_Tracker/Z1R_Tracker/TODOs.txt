@@ -18,6 +18,9 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+
+
+
 imagine if could add blue wiz or blue darknut or blue lanmo decoration
 
 (how easy is it to 'undo' an accidental room mark, bring back to 'unmarked'?  clear all marks versus clear the room type?)
