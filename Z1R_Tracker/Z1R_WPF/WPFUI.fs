@@ -2090,7 +2090,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         )  
 
     // broadcast window
-    let makeBroadcastWindow(size) =
+    let makeBroadcastWindow(size, showOverworldMagnifier) =
         let W = 768.
         let broadcastWindow = new Window()
         broadcastWindow.Title <- "Z-Tracker broadcast"
@@ -2136,13 +2136,18 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         // construct the top broadcast canvas (topc)
         let notesY = START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height
         let top = makeViewRect(Point(0.,0.), Point(W,notesY))
-        let topc = new Canvas()
+        let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
+        let topc = new Canvas(Height=H)
         canvasAdd(topc, top, 0., 0.)
         let notes = makeViewRect(Point(BLOCKERS_AND_NOTES_OFFSET,notesY), Point(W,notesY+blockerGrid.Height))
         canvasAdd(topc, notes, 0., START_DUNGEON_AND_NOTES_AREA_H)
         let blackArea = new Canvas(Width=BLOCKERS_AND_NOTES_OFFSET*2.-W, Height=blockerGrid.Height, Background=Brushes.Black)
         canvasAdd(topc, blackArea, W-BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H)
-        // TODO consider how to make smaller magnifier work? over notes/blockers?
+        if showOverworldMagnifier then
+            let magnifierView = new Canvas(Width=DTOCW, Height=DTOCH, Background=new VisualBrush(dungeonTabsOverlayContent))
+            Canvas.SetLeft(magnifierView, 0.)
+            Canvas.SetBottom(magnifierView, 0.)
+            topc.Children.Add(magnifierView) |> ignore
         dealWithPopups(0., 0., topc)
 
         // construct the bottom broadcast canvas (bottomc)
@@ -2182,7 +2187,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         let fakeBottomMouse = addFakeMouse(bottomc)
 
         // set up the main broadcast window
-        let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
         broadcastWindow.Height <- H + 40.
         let dp = new DockPanel(Width=W)
         dp.UseLayoutRounding <- true
@@ -2228,15 +2232,17 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
         broadcastWindow
     let mutable broadcastWindow = null
     if TrackerModel.Options.ShowBroadcastWindow.Value then
-        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize)
+        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize, TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value)
         broadcastWindow.Show()
-    OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun show ->
-        if show && broadcastWindow=null then
-            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize)
-            broadcastWindow.Show()
-        if not(show) && broadcastWindow<>null then
+    OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun () ->
+        // close existing
+        if broadcastWindow<>null then
             broadcastWindow.Close()
             broadcastWindow <- null
+        // maybe restart
+        if TrackerModel.Options.ShowBroadcastWindow.Value then
+            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize, TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value)
+            broadcastWindow.Show()
         )
 
     canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable

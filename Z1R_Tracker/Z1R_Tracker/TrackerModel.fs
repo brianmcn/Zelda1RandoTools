@@ -50,6 +50,7 @@ module Options =
     let mutable IsSecondQuestDungeons = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
+    let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
     let mutable SmallerAppWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
@@ -81,6 +82,7 @@ module Options =
         member val IsSecondQuestDungeons = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
+        member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
         member val SmallerAppWindow = false with get,set
 
         member val IsMuted = false with get, set
@@ -116,6 +118,7 @@ module Options =
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
+        data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
         data.SmallerAppWindow <- SmallerAppWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
@@ -163,6 +166,7 @@ module Options =
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
+            BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
             SmallerAppWindow.Value <- data.SmallerAppWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)

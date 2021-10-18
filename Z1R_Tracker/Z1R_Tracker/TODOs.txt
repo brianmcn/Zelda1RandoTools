@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
- - is there a way to get magnifier in broadcast? would really help making videos...
-
 
 homer: Not sure my time because i've reset my timer twice 
 [11:22 AM] Lorgon111: I tried to make 'accidental timer reset' unlikely by making it two different clicks that were far away from one another... 

@@ -8,7 +8,7 @@ let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
-let broadcastWindowOptionChanged = new Event<bool>()
+let broadcastWindowOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
@@ -182,15 +182,11 @@ let makeOptionsCanvas(width, includePopupExplainer) =
 
     let cb = new CheckBox(Content=new TextBox(Text="Broadcast window",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.ShowBroadcastWindow.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger(true))
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger(false))
+    cb.Checked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Open a separate, smaller window, for stream capture.\nYou still interact with the original large window,\nbut the smaller window will focus the view on either the overworld or\nthe dungeon tabs, based on your mouse position."
     options3sp.Children.Add(cb) |> ignore
 
-    let maybeRestartBroadcast() =
-        broadcastWindowOptionChanged.Trigger(false)            // shutdown current window, if it's on
-        if TrackerModel.Options.ShowBroadcastWindow.Value then
-            broadcastWindowOptionChanged.Trigger(true)         // restart if the display setting is turned on
     let rb3 = new RadioButton(Content=new TextBox(Text="Full size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
     let rb2 = new RadioButton(Content=new TextBox(Text="2/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
     let rb1 = new RadioButton(Content=new TextBox(Text="1/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
@@ -199,12 +195,19 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     | 2 -> rb2.IsChecked <- System.Nullable.op_Implicit true
     | 1 -> rb1.IsChecked <- System.Nullable.op_Implicit true
     | _ -> failwith "impossible BroadcastWindowSize"
-    rb3.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 3; maybeRestartBroadcast())
-    rb2.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 2; maybeRestartBroadcast())
-    rb1.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 1; maybeRestartBroadcast())
+    rb3.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 3; broadcastWindowOptionChanged.Trigger())
+    rb2.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 2; broadcastWindowOptionChanged.Trigger())
+    rb1.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 1; broadcastWindowOptionChanged.Trigger())
     options3sp.Children.Add(rb3) |> ignore
     options3sp.Children.Add(rb2) |> ignore
     options3sp.Children.Add(rb1) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Include overworld magnifier",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- true; broadcastWindowOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- false; broadcastWindowOptionChanged.Trigger())
+    cb.ToolTip <- "Whether to include the overworld magnifier when it is on-screen, which will obscure some other elements"
+    options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore
 
