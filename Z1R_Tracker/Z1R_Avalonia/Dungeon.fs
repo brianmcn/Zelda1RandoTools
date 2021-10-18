@@ -327,13 +327,13 @@ let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, ti
                                         VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
                                         Text=text, Foreground=Brushes.Orange, Background=Brushes.Black)
         sp.Children.Add(makeTB("Reference diagram - don't click here")) |> ignore
+        sp.Children.Add(makeTB("(Note: in Mixed Quest dungeons,\n7 and 8 can be swapped)")) |> ignore
         sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
         sp.Children.Add(makeTB("First Quest or Shapes dungeons")) |> ignore
         sp.Children.Add(DrawTriforces1Q(haves)) |> ignore
         sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
         sp.Children.Add(makeTB("Second Quest dungeons")) |> ignore
         sp.Children.Add(DrawTriforces2Q(haves)) |> ignore
-        sp.Children.Add(makeTB("Note: in Mixed Quest dungeons,\n7 and 8 can be swapped")) |> ignore
         let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=sp)
         b.PointerPressed.Add(fun ea -> ea.Handled <- true)  // clicking the reference diagram should not close the dialog, people will do it by accident
         [(upcast warnBorder : Control), -137., 284.; (upcast b : Control), 132., -120.]
