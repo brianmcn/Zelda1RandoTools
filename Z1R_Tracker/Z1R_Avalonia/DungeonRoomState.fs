@@ -187,6 +187,13 @@ type RoomType =
         | StartEnterFromN         -> "RoomType_StartEnterFromN"
         | StartEnterFromS         -> "RoomType_StartEnterFromS"
     member this.IsNotMarked = this = RoomType.Unmarked
+    member this.NextEntranceRoom() = 
+        match this with
+        | RoomType.StartEnterFromS -> Some(RoomType.StartEnterFromW)
+        | RoomType.StartEnterFromW -> Some(RoomType.StartEnterFromN)
+        | RoomType.StartEnterFromN -> Some(RoomType.StartEnterFromE) 
+        | RoomType.StartEnterFromE -> Some(RoomType.StartEnterFromS) 
+        | _ -> None
     member this.KnownTransportNumber =
         match this with
         | Transport1 -> Some(1)

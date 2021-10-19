@@ -13,15 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-start spot hotkey?
-key for 'next dungeon' or 'next any road'?
-
-if hotkey a dungeon room, then first click ought not be start room? (general start issues)
-
-should marking triforce toggle any triforce floordropdetails? (porbably no)
-
-shop1 hotkey, shop2 hotkey, overwrites rather than adds
-
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
@@ -127,6 +118,8 @@ lorgon: mark screens with bomb droppers
 lorgon: like imagine middle click from dungeons
 
 Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map
+
+start spot hotkey?
 
 
 

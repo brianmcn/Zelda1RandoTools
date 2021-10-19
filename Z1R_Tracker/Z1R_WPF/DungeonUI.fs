@@ -454,6 +454,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 c.MyKeyAdd(fun ea ->
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then
+                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness
                             match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
                             | Some(Choice1Of3(roomType)) -> 
@@ -548,11 +549,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             roomStates.[i,j].IsComplete <- true
                                         else
                                             if isFirstTimeClickingAnyRoomInThisDungeonTab then
-                                                do! activatePopup(true)
+                                                //do! activatePopup(true)  // old behavior
+                                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.StartEnterFromS
+                                                roomStates.[i,j].IsComplete <- true
                                                 isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                                             else
-                                                // toggle completedness
-                                                roomStates.[i,j].IsComplete <- not roomStates.[i,j].IsComplete
+                                                match roomStates.[i,j].RoomType.NextEntranceRoom() with
+                                                | Some(next) -> roomStates.[i,j].RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                                | None ->
+                                                    // toggle completedness
+                                                    roomStates.[i,j].IsComplete <- not roomStates.[i,j].IsComplete
                                         redraw()
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
@@ -583,6 +589,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 c.DragOver.Add(fun ea ->
                     if not popupIsActive then
                         if roomStates.[i,j].RoomType.IsNotMarked then
+                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
                                 roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
                                 roomStates.[i,j].IsComplete <- true
