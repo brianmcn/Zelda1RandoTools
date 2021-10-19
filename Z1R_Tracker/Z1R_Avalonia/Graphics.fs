@@ -96,7 +96,7 @@ let greyscale(bmp:System.Drawing.Bitmap) =
         for py = 0 to bmp.Height-1 do
             let c = bmp.GetPixel(px,py)
             let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
-            let avg = if avg = 0 then 0 else avg + 20    // never too dark
+            let avg = if avg = 0 then 0 else avg + 60    // never too dark
             let c = System.Drawing.Color.FromArgb(avg, avg, avg)
             r.SetPixel(px, py, c)
     r

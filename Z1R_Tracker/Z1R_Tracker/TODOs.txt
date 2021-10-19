@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-consider only desaturate but not smallerize gotten items
-
 start spot hotkey?
 key for 'next dungeon' or 'next any road'?
 

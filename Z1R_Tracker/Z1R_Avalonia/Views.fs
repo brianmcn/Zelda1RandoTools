@@ -155,14 +155,15 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
         if bmp <> null then
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
-                let image = Graphics.BMPtoImage(bmp)
+                let image = Graphics.BMPtoImage(Graphics.greyscale bmp)
                 canvasAdd(innerc, image, 4., 4.)
             else
-                let image = Graphics.BMPtoImage(Graphics.desaturate(bmp,0.60))
-                image.Stretch <- Stretch.Uniform
-                image.Width <- 14.
-                image.Height <- 14.
-                canvasAdd(innerc, image, 8., 8.)
+                let image = Graphics.BMPtoImage(bmp) //Graphics.desaturate(bmp,0.60))
+                canvasAdd(innerc, image, 4., 4.)
+                //image.Stretch <- Stretch.Uniform
+                //image.Width <- 14.
+                //image.Height <- 14.
+                //canvasAdd(innerc, image, 8., 8.)
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
