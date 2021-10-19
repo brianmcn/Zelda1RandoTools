@@ -226,6 +226,23 @@ let GetIconBMPAndExtraDecorations(cm,ms:MapStateProxy,i,j) =
     else
         Graphics.theFullTileBmpTable.[ms.State].[0], []
 
+let toggleables = [| 
+    TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
+    TrackerModel.MapSquareChoiceDomainHelper.SWORD1
+    TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP
+    TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
+    TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
+    TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
+    |]
+let ToggleOverworldTileIfItIsToggleable(i, j, state) =
+    if toggleables |> Array.contains state then
+        // left click to toggle it 'used'
+        let ex = TrackerModel.getOverworldMapExtraData(i,j,state)
+        if ex=state then
+            TrackerModel.setOverworldMapExtraData(i,j,state,0)
+        else
+            TrackerModel.setOverworldMapExtraData(i,j,state,state)
+
 let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async {  // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
     if msp.State = -1 then
         // left click empty tile changes to 'X'
@@ -270,25 +287,47 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
         popupIsActive := false
         return r
     else
-        let toggleables = [| 
-            TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
-            TrackerModel.MapSquareChoiceDomainHelper.SWORD1
-            TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP
-            TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
-            TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
-            TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
-            |]
         if toggleables |> Array.contains msp.State then
             // left click to toggle it 'used'
-            let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
-            if ex=msp.State then
-                TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)
-            else
-                TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
+            ToggleOverworldTileIfItIsToggleable(i, j, msp.State)
             return true, false
         else
             return false, false
     }
+
+///////////////////////////////////////////////////
+
+let DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState) =
+    // rather than have many idempotent keys, turn some of them into useful actions
+    let orig = MapStateProxy(originalState)
+    if orig.IsThreeItemShop then
+        let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
+        let item2AsState = item2 + TrackerModel.MapSquareChoiceDomainHelper.ARROW
+        if hotKeyedState = originalState then           // pressed same key as left item
+            if item2 = -1 then
+                -1   // no second item, so turn back to empty tile
+            else
+                item2AsState   // change first item to second item
+        elif MapStateProxy(hotKeyedState).IsThreeItemShop then
+            // first item is a different shop, is hotkey the second item? if so can manipulate
+            if item2AsState = hotKeyedState then        // pressed same key as right item
+                TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP, 0)  // remove item2
+                originalState   // tell caller not to change item1, despite the hotkey
+            elif item2 = -1 then
+                let v = hotKeyedState - TrackerModel.MapSquareChoiceDomainHelper.ARROW + 1
+                TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP, v)  // add as item2
+                originalState   // tell caller not to change item1, despite the hotkey
+            else
+                hotKeyedState
+        else
+            hotKeyedState
+    elif hotKeyedState=originalState && toggleables |> Array.contains originalState then
+        ToggleOverworldTileIfItIsToggleable(i, j, originalState)
+        hotKeyedState
+    else
+        hotKeyedState
+
+///////////////////////////////////////////////////
 
 let MakeRemainderSummaryDisplay() =
     let sp = new StackPanel(Orientation=Orientation.Vertical)

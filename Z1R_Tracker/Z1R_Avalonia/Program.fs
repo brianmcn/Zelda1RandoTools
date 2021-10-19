@@ -46,6 +46,13 @@ type MyWindow() as this =
         this.Height <- HEIGHT
         // TODO ideally this should be a free font included in the assembly
         this.FontFamily <- FontFamily("Segoe UI")
+        let mutable firstTimeLayoutUpdatedWhichMeansLoaded = true
+        this.LayoutUpdated.Add(fun _ -> 
+            if firstTimeLayoutUpdatedWhichMeansLoaded then
+                firstTimeLayoutUpdatedWhichMeansLoaded <- false
+                this.Focus()  // help ensure hotkeys work
+            )
+
         let timer = new Avalonia.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(0.1)
         timer.Tick.Add(fun _ -> this.Update(false))
@@ -169,7 +176,7 @@ type MyWindow() as this =
                             else
                                 TrackerModel.DungeonTrackerInstanceKind.DEFAULT
                         appMainCanvas.Children.Remove(hstackPanel) |> ignore
-                        let u = UI.makeAll(cm, i, heartShuffle, kind)
+                        let u = UI.makeAll(this, cm, i, heartShuffle, kind)
                         UI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); startTime.SetNow())
                         updateTimeline <- u
                         UI.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, UI.RIGHT_COL+80., 0.)

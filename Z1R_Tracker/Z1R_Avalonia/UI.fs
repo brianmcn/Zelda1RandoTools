@@ -122,7 +122,14 @@ type ShowLocatorDescriptor =
     | Sword1
     | Sword2
     | Sword3
-let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
+let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
+    let refocusMainWindow() =   // keep hotkeys working
+        async {
+            let ctxt = System.Threading.SynchronizationContext.Current
+            do! Async.Sleep(500)  // give new window time to pop up
+            do! Async.SwitchToContext(ctxt)
+            mainWindow.Focus() |> ignore
+        } |> Async.StartImmediate
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance =
         match owMapNum with
@@ -976,9 +983,10 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
                 c.MyKeyAdd(fun ea ->
                     if not !popupIsActive then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
-                        | Some(state) -> 
+                        | Some(hotKeyedState) -> 
                             ea.Handled <- true
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
+                            let state = OverworldMapTileCustomization.DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState)
                             Async.StartImmediate <| SetNewValue(state, originalState)
                         | None -> ()
                     )
@@ -1228,10 +1236,13 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
         w.Title <- "Z-Tracker HotKeys"
+        //w.Owner <- Application.Current.MainWindow
         w.Content <- p
         p.Measure(Size(1280., 720.))
         w.Width <- p.DesiredSize.Width + 16.
         w.Height <- p.DesiredSize.Height + 40.
+        w.EffectiveViewportChanged.Add(fun _ -> refocusMainWindow())
+        w.PositionChanged.Add(fun _ -> refocusMainWindow())
         w.Show()
         )
 
@@ -1730,7 +1741,12 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
-                | Some(db) -> ea.Handled <- true; SetNewValue(db)
+                | Some(db) -> 
+                    ea.Handled <- true
+                    if current = db then
+                        SetNewValue(TrackerModel.DungeonBlocker.NOTHING)    // idempotent hotkeys behave as a toggle
+                    else
+                        SetNewValue(db)
                 | None -> ()
             )
         c

@@ -380,6 +380,19 @@ window at any time when you are done with it.
 Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window to ensure that window 
 has focus, and then try again to hover an empty item/overworld/blocker/dungeon box and press a keyboard hotkey.
 
+Hotkeys have some 'smarts' in addition to just 'setting the state you pressed':
+ - item boxes
+    - repeat presses of the same item will cycle the red-green-purple of the box outline, so for example is 'b' is bow, then 'bbbb' on an empty box would go
+      empty box -> red bow -> green bow -> purple bow -> red bow
+ - overworld
+    - on an item shop, pressing a hotkey of an item already-in-a-shop will remove that item from the shop
+    - on an item shop, pressing a hotkey of a different item, when the shop has an extra space, will add that item to the shop
+    - on an item shop, if the shop is filled with two items, pressing a third item's hotkey will replace the first item
+    - on tiles with a brightness toggle, repeat hotkeys will toggle between "bright" and "dark" versions of the tile icon
+ - blockers
+    - a repeat hotkey toggles a blocker box back to empty
+
+
 
 SAVE STATE
 

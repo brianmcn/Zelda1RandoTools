@@ -199,6 +199,7 @@ type MyWindow() as this =
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
+        this.Loaded.Add(fun _ -> this.Focus() |> ignore)
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
             //                             items  ow map  prog  dungeon tabs                timeline
@@ -332,7 +333,7 @@ type MyWindow() as this =
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
                     appMainCanvas.Children.Remove(mainDock)
-                    let u = WPFUI.makeAll(cm, n, heartShuffle, kind, speechRecognitionInstance)
+                    let u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, speechRecognitionInstance)
                     updateTimeline <- u
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
