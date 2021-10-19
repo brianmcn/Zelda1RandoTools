@@ -1230,6 +1230,21 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
     kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
     canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
 
+    // show hotkeys button
+    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show\nHotKeys", IsHitTestVisible=false)
+    let showHotKeysButton = new Button(Content=showHotKeysTB)
+    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 60., THRU_MAIN_MAP_H)
+    showHotKeysButton.Click.Add(fun _ ->
+        let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
+        let w = new Window()
+        w.Title <- "Z-Tracker HotKeys"
+        w.Content <- p
+        p.Measure(Size(1280., 720.))
+        w.Width <- p.DesiredSize.Width + 16.
+        w.Height <- p.DesiredSize.Height + 40.
+        w.Show()
+        )
+
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
@@ -1577,17 +1592,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
 
     let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
     // blockers
-    let blockerCurrentBMP(current) =
-        match current with
-        | TrackerModel.DungeonBlocker.COMBAT -> Graphics.white_sword_bmp
-        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> Graphics.bow_and_arrow_bmp
-        | TrackerModel.DungeonBlocker.RECORDER -> Graphics.recorder_bmp
-        | TrackerModel.DungeonBlocker.LADDER -> Graphics.ladder_bmp
-        | TrackerModel.DungeonBlocker.BAIT -> Graphics.bait_bmp
-        | TrackerModel.DungeonBlocker.KEY -> Graphics.key_bmp
-        | TrackerModel.DungeonBlocker.BOMB -> Graphics.bomb_bmp
-        | TrackerModel.DungeonBlocker.NOTHING -> null
-
     let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
@@ -1597,7 +1601,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             c.Children.Add(innerc) |> ignore
             let redraw(n) =
                 innerc.Children.Clear()
-                let bmp = blockerCurrentBMP(n)
+                let bmp = Graphics.blockerCurrentBMP(n)
                 if bmp <> null then
                     let image = Graphics.BMPtoImage(bmp)
                     image.IsHitTestVisible <- false
@@ -1629,7 +1633,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, spe
             let pos = c.TranslatePoint(Point(), appMainCanvas)
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(Graphics.blockerCurrentBMP(db))), true, db), 
                                 Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with

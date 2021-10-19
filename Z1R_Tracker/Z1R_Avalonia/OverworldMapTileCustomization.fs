@@ -485,3 +485,68 @@ let MakeRemainderSummaryDisplay() =
 
     sp.Margin <- Thickness(3.)
     new Border(Child=sp, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray, Background=Brushes.Black)
+
+//////////////////////////////////////////////////
+
+let MakeMappedHotKeysDisplay() =
+    let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
+    let mutable total = 0
+    let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->Control, iconW, header) =
+        let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical, Margin=Thickness(3., 3., 13., 3.))
+        let stateToKey = new System.Collections.Generic.Dictionary<_,_>()
+        for state in states do
+            stateToKey.Add(state, ResizeArray())
+        for k in keyUniverse do
+            match hkp.TryGetValue(HotKeys.convertAlpha_NumToKey k) with
+            | Some x -> stateToKey.[x].Add(k)
+            | None -> ()
+        let bucket = ResizeArray()
+        for state in states do
+            if stateToKey.[state].Count > 0 then
+                let keys = stateToKey.[state] |> Seq.fold (fun s c -> s + c.ToString()) ""
+                let icon = mkIcon(state)
+                icon.Width <- float iconW
+                let border = new Border(BorderBrush=Brushes.DimGray, BorderThickness=Thickness(1.), Child=icon)
+                border.Margin <- Thickness(3.)
+                let txt = DungeonRoomState.mkTxt(keys)
+                txt.TextAlignment <- TextAlignment.Left
+                txt.Width <- 20.
+                let sp = new StackPanel(Orientation=Orientation.Horizontal)
+                sp.Children.Add(border) |> ignore
+                sp.Children.Add(txt) |> ignore
+                bucket.Add(keys, sp)
+                total <- total + 1
+        //for _,sp in bucket |> Seq.sortBy fst do   // sort by alphabetical of key
+        for _,sp in bucket do            // "logical" order
+            panel.Children.Add(sp) |> ignore
+        if panel.Children.Count > 0 then
+            panel.Children.Insert(0, DungeonRoomState.mkTxt(header))
+        panel
+    let bmpElseSize (w, h) bmp =
+        let icon : Control = if bmp = null then upcast new DockPanel(Width=float w, Height=float h) else upcast Graphics.BMPtoImage bmp
+        icon
+    let itemPanel = makePanel([-1..14], HotKeys.ItemHotKeyProcessor, (fun item -> CustomComboBoxes.boxCurrentBMP(item, false) |> bmpElseSize(21,21)), 21, "ITEMS")
+    let overworldPanel = makePanel([-1..TrackerModel.dummyOverworldTiles.Length-1], HotKeys.OverworldHotKeyProcessor, (fun state ->
+        MapStateProxy(state).DefaultInteriorBmp() |> bmpElseSize(15,27)), 15, "OVERWORLD")
+    let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 
+        Graphics.blockerCurrentBMP(state) |> bmpElseSize(21,21)), 21, "BLOCKERS")
+    let thingies = [| 
+        yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of3
+        yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of3
+        yield! DungeonRoomState.FloorDropDetail.All() |> Seq.map Choice3Of3
+        |]
+    let dungeonRoomPanel = makePanel(thingies, HotKeys.DungeonRoomHotKeyProcessor, (fun c ->
+        match c with 
+        | Choice1Of3 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
+        | Choice2Of3 md -> (let i = md.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
+        | Choice3Of3 fd -> (let i = fd.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
+        ), 39, "DUNGEON")
+    let all = new StackPanel(Orientation=Orientation.Horizontal)
+    all.Children.Add(itemPanel) |> ignore
+    all.Children.Add(overworldPanel) |> ignore
+    all.Children.Add(blockerPanel) |> ignore
+    all.Children.Add(dungeonRoomPanel) |> ignore
+    if total = 0 then
+        all.Children.Add(DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")) |> ignore  // Note: not full filename, don't want to leak PII (e.g. C:\Users\YourRealName\...) on-stream
+    new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
+

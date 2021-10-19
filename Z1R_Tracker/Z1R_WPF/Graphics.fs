@@ -53,9 +53,11 @@ let gridAdd(g:Grid, x, c, r) =
 let makeGrid(nc, nr, cw, rh) =
     let grid = new Grid()
     for i = 0 to nc-1 do
-        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=GridLength(float cw)))
+        let w = if cw = -1 then GridLength.Auto else GridLength(float cw)
+        grid.ColumnDefinitions.Add(new ColumnDefinition(Width=w))
     for i = 0 to nr-1 do
-        grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(float rh)))
+        let h = if rh = -1 then GridLength.Auto else GridLength(float rh)
+        grid.RowDefinitions.Add(new RowDefinition(Height=h))
     grid
 let center(e, w, h) =
     let g = makeGrid(1, 1, w, h)
@@ -657,6 +659,17 @@ let ringLevelToBmp(ringLevel) =
     | 1 -> blue_ring_bmp
     | 2 -> red_ring_bmp
     | _ -> failwith "bad RingLevel"
+
+let blockerCurrentBMP(current) =
+    match current with
+    | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
+    | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> bow_and_arrow_bmp
+    | TrackerModel.DungeonBlocker.RECORDER -> recorder_bmp
+    | TrackerModel.DungeonBlocker.LADDER -> ladder_bmp
+    | TrackerModel.DungeonBlocker.BAIT -> bait_bmp
+    | TrackerModel.DungeonBlocker.KEY -> key_bmp
+    | TrackerModel.DungeonBlocker.BOMB -> bomb_bmp
+    | TrackerModel.DungeonBlocker.NOTHING -> null
 
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)

@@ -90,7 +90,7 @@ let convertAlpha_NumToKey(ch) =
     elif ch >= '0' && ch <= '9' then
         enum<Input.Key>(int ch - int '0' + 34)
     else
-        failwith "bad input to convertAlpha_NumToKey"
+        failwithf "bad input to convertAlpha_NumToKey '%c'" ch
 
 
 ////////////////////////////////////////////////////////////

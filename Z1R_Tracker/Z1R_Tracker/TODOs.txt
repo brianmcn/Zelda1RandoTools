@@ -13,7 +13,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-
+shop1 hotkey, shop2 hotkey, overwrites rather than adds
 
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
@@ -21,8 +21,6 @@ test & evaluate new dungeon room ui:
 Consider turning Notes.txt into a README.md extension for web-docs, where can add screenshots
  - might need 'versioning'... figure out what is best
 
-
-must add reload-hotkeys in options menu (maybe also a test hotkeys UI)
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
@@ -32,8 +30,6 @@ hotkey testing, hotkey writeup in Notes
  - any consideration of spacebar or capital-letter-distiguishing?
 
 credits to helpers
-
-check source code for TODOs
 
 distributing version process
  - delete entire Relase directory

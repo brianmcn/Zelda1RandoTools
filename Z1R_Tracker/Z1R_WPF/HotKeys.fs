@@ -2,7 +2,6 @@
 
 open System.Windows
 
-
 ////////////////////////////////////////////////////////////
 // Main Window listens for KeyDown, then sends RoutedEvent to element under the mouse
 
@@ -40,7 +39,7 @@ let convertAlpha_NumToKey(ch) =
     elif ch >= '0' && ch <= '9' then
         enum<Input.Key>(int ch - int '0' + 34)
     else
-        failwith "bad input to convertAlpha_NumToKey"
+        failwithf "bad input to convertAlpha_NumToKey '%c'" ch
 
 
 ////////////////////////////////////////////////////////////
@@ -197,3 +196,4 @@ let PopulateHotKeyTables() =
                         found <- true
             if not found then
                 raise <| new UserError(sprintf "Bad name '%s' specified in '%s', line %d" name filename lineNumber)
+

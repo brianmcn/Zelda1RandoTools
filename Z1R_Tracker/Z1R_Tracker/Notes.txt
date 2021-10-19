@@ -313,9 +313,11 @@ If you want to change a RoomType (to mark a transport staircase, hungry Goriya, 
  - choose the one you want with your mouse, and left-click it
 
 If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
-but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Left-click on details in the grids to apply them
+but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
 to the current room's "preview" tile.  Once you are done, click the preview tile to save your edits to the dungeon map; a left-click marks the room completed,
-and a right-click marks it uncompleted.
+and a right-click marks it uncompleted.  (After clicking a detail, its grid briefly goes half-transparent, as visual feedback that your detail has been applied
+to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, double-
+right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
 
 If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' the floor drop by middle-clicking the room on the map.  Un-gotten floor drops
 appear as a bright icon, and gotten floor drops appear darkened.
@@ -366,9 +368,17 @@ HOTKEYS
 
 You can bind hotkeys (keyboard keys 0-9 or a-z) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
 
-There are four 'contexts' for hotkeys: item boxes, overworld tiles, blockers, and dungeon rooms.  So for example 'b' could be set up to mean 'bow' when the
-mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when
-the mouse is over a dungeon room.
+There are four mouse-hover 'contexts' for hotkeys: item boxes, overworld tiles, blockers, and dungeon rooms.  So for example 'b' could be set up to mean 'bow' 
+when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade 
+room' when the mouse is over a dungeon room.
+
+While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide a way to display your current hotkey
+information.  Click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
+mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
+window at any time when you are done with it.
+
+Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window to ensure that window 
+has focus, and then try again to hover an empty item/overworld/blocker/dungeon box and press a keyboard hotkey.
 
 
 SAVE STATE

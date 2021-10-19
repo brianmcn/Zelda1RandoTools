@@ -996,7 +996,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     let startIcon = makeStartIcon()
 
     // map legend
-    let LEFT_OFFSET = 78.0
+    let LEFT_OFFSET = 68.0
     let legendCanvas = new Canvas()
     canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
 
@@ -1007,36 +1007,36 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 0., 0.)
     drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon", Padding=Thickness(0.))
-    canvasAdd(legendCanvas, tb, OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 0.9*OMTW, 0.)
 
     let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
-    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 2.3*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.3,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.3,0)
-    canvasAdd(legendCanvas, trimNumeralBmpToImage firstGreenDungeonBMP, 2.7*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.7,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.7,0)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstDungeonBMP, 2.2*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.2,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.2,0)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage firstGreenDungeonBMP, 2.6*OMTW, 0.)
+    drawDungeonHighlight(legendCanvas,2.6,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.6,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon", Padding=Thickness(0.))
-    canvasAdd(legendCanvas, tb, 3.5*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 3.4*OMTW, 0.)
 
     canvasAdd(legendCanvas, trimNumeralBmpToImage firstGreenDungeonBMP, 5.*OMTW, 0.)
     drawDungeonHighlight(legendCanvas,5.,0)
     drawDungeonRecorderWarpHighlight(legendCanvas,5.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination", Padding=Thickness(0.))
-    canvasAdd(legendCanvas, tb, 6.*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 5.8*OMTW, 0.)
 
-    canvasAdd(legendCanvas, trimNumeralBmpToImage (Graphics.theFullTileBmpTable.[9].[0]), 7.5*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.5,0)
+    canvasAdd(legendCanvas, trimNumeralBmpToImage (Graphics.theFullTileBmpTable.[9].[0]), 7.3*OMTW, 0.)
+    drawWarpHighlight(legendCanvas,7.3,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)", Padding=Thickness(0.))
-    canvasAdd(legendCanvas, tb, 8.5*OMTW, 0.)
+    canvasAdd(legendCanvas, tb, 8.2*OMTW, 0.)
 
-    let legendStartIconButtonCanvas = new Canvas(Background=Brushes.Black, Width=OMTW*1.9, Height=11.*3.)
+    let legendStartIconButtonCanvas = new Canvas(Background=Brushes.Black, Width=OMTW*1.85, Height=11.*3.)
     let legendStartIcon = makeStartIcon()
     canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.*OMTW+8.5*OMTW/48., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", Padding=Thickness(0.), IsHitTestVisible=false)
     canvasAdd(legendStartIconButtonCanvas, tb, 1.*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas, BorderThickness=Thickness(1.), Padding=Thickness(0.))
-    canvasAdd(legendCanvas, legendStartIconButton, 10.*OMTW, 0.)
+    canvasAdd(legendCanvas, legendStartIconButton, 9.7*OMTW, 0.)
     let mutable popupIsActive = false
     legendStartIconButton.Click.Add(fun _ ->
         if not popupIsActive then
@@ -1218,6 +1218,22 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     kitty.Width <- THRU_MAP_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAP_H - THRU_MAIN_MAP_H
     canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
+
+    // show hotkeys button
+    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, 
+                                    Padding=Thickness(0.), BorderThickness=Thickness(0.), Text="Hot\nKeys", IsHitTestVisible=false)
+    let showHotKeysButton = new Button(Content=showHotKeysTB, Padding=Thickness(0.))
+    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 35., THRU_MAIN_MAP_H)
+    showHotKeysButton.Click.Add(fun _ ->
+        let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
+        let w = new Window()
+        w.Title <- "Z-Tracker HotKeys"
+        w.Content <- p
+        p.Measure(Size(1280., 720.))
+        w.Width <- p.DesiredSize.Width + 16.
+        w.Height <- p.DesiredSize.Height + 40.
+        w.Show()
+        )
 
     let blockerDungeonSunglasses : Visual[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -1660,17 +1676,6 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
     // blockers
-    let blockerCurrentBMP(current) =
-        match current with
-        | TrackerModel.DungeonBlocker.COMBAT -> Graphics.white_sword_bmp
-        | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> Graphics.bow_and_arrow_bmp
-        | TrackerModel.DungeonBlocker.RECORDER -> Graphics.recorder_bmp
-        | TrackerModel.DungeonBlocker.LADDER -> Graphics.ladder_bmp
-        | TrackerModel.DungeonBlocker.BAIT -> Graphics.bait_bmp
-        | TrackerModel.DungeonBlocker.KEY -> Graphics.key_bmp
-        | TrackerModel.DungeonBlocker.BOMB -> Graphics.bomb_bmp
-        | TrackerModel.DungeonBlocker.NOTHING -> null
-
     let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
@@ -1680,7 +1685,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             c.Children.Add(innerc) |> ignore
             let redraw(n) =
                 innerc.Children.Clear()
-                let bmp = blockerCurrentBMP(n)
+                let bmp = Graphics.blockerCurrentBMP(n)
                 if bmp <> null then
                     let image = Graphics.BMPtoImage(bmp)
                     image.IsHitTestVisible <- false
@@ -1712,7 +1717,7 @@ let makeAll(cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind) =
             let pos = c.TranslatePoint(Point(), appMainCanvas).Value
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(blockerCurrentBMP(db))), true, db), 
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(Graphics.blockerCurrentBMP(db))), true, db), 
                                 Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with
