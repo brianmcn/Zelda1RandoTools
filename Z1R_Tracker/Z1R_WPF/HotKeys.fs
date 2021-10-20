@@ -26,7 +26,8 @@ let InitializeWindow(w:Window) =
         if keycode >=34 && keycode <=69 || ea.Key=Input.Key.OemMinus then  // 0-9a-z_ are all the hotkeys I bind
             let x = Input.Mouse.DirectlyOver
             if x <> null then
-                x.RaiseEvent(new MyKeyRoutedEventArgs(ea.Key))
+                let ea = new MyKeyRoutedEventArgs(ea.Key)
+                x.RaiseEvent(ea)
         )
 
 let convertAlpha_NumToKey(ch) =

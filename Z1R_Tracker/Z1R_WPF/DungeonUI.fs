@@ -156,7 +156,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             if (pos.X < 0. || pos.X > contentCanvas.ActualWidth) || (pos.Y < 0. || pos.Y > contentCanvas.ActualHeight) then
                 contentCanvasMouseLeaveFunc(level)
             )
-        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
+        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  
+        let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
+        dungeonBodyCanvas.ClipToBounds <- true
+        canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
         canvasAdd(contentCanvas, dungeonCanvas, 3., 3.)
@@ -186,7 +189,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 horizontalDoors.[i,j] <- door
-                canvasAdd(dungeonCanvas, d, float(i*(39+12)+39), float(TH+j*(27+12)+6))
+                canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 let left _ =        
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
                         if door.State <> Dungeon.DoorState.YES then
@@ -216,7 +219,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 verticalDoors.[i,j] <- door
-                canvasAdd(dungeonCanvas, d, float(i*(39+12)+8), float(TH+j*(27+12)+27))
+                canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 let left _ =
                     if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
                         if door.State <> Dungeon.DoorState.YES then
@@ -393,7 +396,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             // room map
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))
-                canvasAdd(dungeonCanvas, c, float(i*51), float(TH+j*39))
+                canvasAdd(dungeonBodyCanvas, c, float(i*51), float(j*39))
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =

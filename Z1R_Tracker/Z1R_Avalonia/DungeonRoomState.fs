@@ -154,6 +154,8 @@ type RoomType =
     | StartEnterFromW
     | StartEnterFromN
     | StartEnterFromS
+    // off the map
+    | OffTheMap
     member this.AsHotKeyName() =
         match this with
         | Unmarked                -> "RoomType_Unmarked"
@@ -186,6 +188,7 @@ type RoomType =
         | StartEnterFromW         -> "RoomType_StartEnterFromW"
         | StartEnterFromN         -> "RoomType_StartEnterFromN"
         | StartEnterFromS         -> "RoomType_StartEnterFromS"
+        | OffTheMap               -> "RoomType_OffTheMap"
     member this.IsNotMarked = this = RoomType.Unmarked
     member this.NextEntranceRoom() = 
         match this with
@@ -237,6 +240,7 @@ type RoomType =
         | StartEnterFromW         -> "Dungeon entrance (from west)"
         | StartEnterFromN         -> "Dungeon entrance (from north)"
         | StartEnterFromS         -> "Dungeon entrance (from south)"
+        | OffTheMap               -> "(Off the map)"
     member private this.BmpPair() =
         match this with
         | Unmarked                -> fst Graphics.dungeonRoomBmpPairs.[0], fst Graphics.dungeonRoomBmpPairs.[0]
@@ -269,6 +273,7 @@ type RoomType =
         | StartEnterFromW         -> Graphics.dungeonRoomBmpPairs.[26]
         | StartEnterFromN         -> Graphics.dungeonRoomBmpPairs.[27]
         | StartEnterFromS         -> Graphics.dungeonRoomBmpPairs.[28]
+        | OffTheMap               -> Graphics.dungeonRoomBmpPairs.[30]
     member this.CompletedBmp()   = this.BmpPair() |> snd
     member this.UncompletedBmp() = this.BmpPair() |> fst
     static member All() = [|
@@ -301,6 +306,7 @@ type RoomType =
         RoomType.StartEnterFromW
         RoomType.StartEnterFromN
         RoomType.StartEnterFromS
+        RoomType.OffTheMap
         RoomType.Unmarked
         |]
 
@@ -337,8 +343,12 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.CurrentDisplay(bigIcons) =
         let K = if bigIcons then 24. else 15.
         let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
-        let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
-        canvasAdd(c, roomIcon, 0., 0.)
+        match roomType with
+        | RoomType.OffTheMap ->
+            canvasAdd(c, new Canvas(Width=float(21*3), Height=float(17*3), Background=Brushes.Black, Opacity=0.6), -12., -12.)
+        | _ ->
+            let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
+            canvasAdd(c, roomIcon, 0., 0.)
         match roomType with
         | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
         | RoomType.StartEnterFromW -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), -1.*3., 3.*3.)
@@ -463,7 +473,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             let isLegal = (rt = originalRoomState.RoomType) || (match rt.KnownTransportNumber with | None -> true | Some n -> usedTransports.[n]<>2)
             upcast tweak(Graphics.BMPtoImage(rt.UncompletedBmp())), isLegal, rt
             )
-        let originalStateIndex = grid |> Array.findIndex (fun x -> x = originalRoomState.RoomType)
+        let originalStateIndex = match (grid |> Array.tryFindIndex (fun x -> x = originalRoomState.RoomType)) with Some x -> x | _ -> grid |> Array.findIndex (fun x -> x = RoomType.Unmarked)
         let activationDelta = 0
         let (gnc, gnr, gcw, grh) = 6, 5, 13*3, 9*3
         let totalGridWidth = float gnc*(float gcw + 2.*ST)
@@ -504,9 +514,6 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
         if positionAtEntranceRoomIcons then
             // position mouse on entrance icons
             Graphics.WarpMouseCursorTo(Point(tileX+gx+5.5*(float gcw + ST*2.), tileY+gy+totalGridHeight/2.))
-        elif originalRoomState.RoomType.IsNotMarked then
-            // position mouse on center room (MaybePushBlock)
-            Graphics.WarpMouseCursorTo(Point(tileX+gx+2.5*(float gcw + ST*2.), tileY+gy+totalGridHeight/2.))
         else
             // position moude on existing RoomType
             let x = originalStateIndex % gnc
@@ -547,6 +554,8 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             let pp = ea.GetCurrentPoint(popupCanvas)
             if pp.Properties.IsLeftButtonPressed || pp.Properties.IsRightButtonPressed then 
                 snapBackWorkingCopy.IsComplete <- pp.Properties.IsLeftButtonPressed
+                if not(snapBackWorkingCopy.IsComplete) && snapBackWorkingCopy.RoomType.IsNotMarked then
+                    snapBackWorkingCopy.RoomType <- RoomType.OffTheMap   // ad-hoc way to mark this RoomType, since it doesn't fit in the grid (Unmarked right-click in the detail menu)
                 setNewValue(snapBackWorkingCopy)
                 cleanupAndUnblock()
         let mutable workingCopyDisplay = null

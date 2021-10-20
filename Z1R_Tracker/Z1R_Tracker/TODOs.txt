@@ -90,7 +90,6 @@ imagine if could add blue wiz or blue darknut or blue lanmo decoration
 (how easy is it to 'undo' an accidental room mark, bring back to 'unmarked'?  clear all marks versus clear the room type?)
 which rooms visually pop? uncompleted and left-floor-drop-behind?
 consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
-Got rid of shift-click room state, any replace? (change behavior to marking 4 red doors? But what if two together… hmmm…. Ideally don’t want to show wall between two adjacent holes, hm.)
 
 abraxas
  - 'get the coast item with the ladder' could maybe, rather than be on timer, happen when your mouse-routing nearish there on overworld? hmmm
@@ -122,6 +121,11 @@ Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highli
 start spot hotkey?
 
 
+'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
+ - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
+ - related: where can zelda fit (some explicit mark for shutter doors?)
+ - gesture could be hover-ganon and hover-zelda, and there is room to bring those icons down into inset, i think
+
 
 
 sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
@@ -140,17 +144,13 @@ marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2]
 
 shops should maybe also have accelerators for buying items (marking top-right tracker without having to mouse to the top right)
 
-'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
- - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
- - related: where can zelda fit (some explicit mark for shutter doors?)
-
 if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
   - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
         - could make populateOverworldAcceratorTable() method to pass in some values more easily maybe
     ah, but hint shop already has a right click action, which is bright->dark toggle, and is 'needed' e.g. for sword cave hints or hint shops you bought out
     and you can't assume the user wants to mark a hint
 
-mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? or like the shift-click thing? thumb button must be live-without-able
+mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? thumb button must be live-without-able
 
 maybe make separate project for generation-tools, e.g.
  - make magnifier bmps offline, save to a resource file, then load resource

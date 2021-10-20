@@ -404,7 +404,6 @@ let dungeonRoomFloorDrops, dungeonRoomMonsters =
     |]
     a.[0..7], a.[8..]
 
-
 let overworldImage =
     let files = [|
 //        "s_map_overworld_strip8.png"

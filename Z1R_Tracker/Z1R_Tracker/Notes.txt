@@ -335,10 +335,16 @@ size, click that checkbox.
 
 While the vast majority of RoomType choices represent staircases (e.g. transport 2, item basement), NPCs (e.g. bomb ugrade, hungry Goriya), or geometry-
 blockers (e.g. chutes, moats), there are also four special RoomTypes to mark the entrance to the dungeon, along with which direction you entered from.
-As a convenience, the very first room you click on in the dungeon will automatically become the 'Dungeon entrance (from south)' tile, as this is the most 
+As a convenience, the very first room you left-click on in the dungeon will automatically become the 'Dungeon entrance (from south)' tile, as this is the most 
 common entrance direction, and furthermore, left-clicking any of the four 'entrance' tiles 'rotates the arrow' to the next cardinal direction, rather than
 the usual left-click behavior of toggling completedness.  This way you can immediately mark the entrance tile and direction with some left clicks and
 zero extra mousing.
+
+There is one special RoomType, called OffTheMap.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
+dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
+on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap is not available in the room selection popup.  You can either use 
+it by mapping a hotkey, or you can also select it by right clicking a room to bring up the popup, right clicking the Unmarked tile in the grid, and then 
+right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.
 
 
 BLOCKERS
@@ -395,7 +401,7 @@ Hotkeys have some 'smarts' in addition to just 'setting the state you pressed':
     - a repeat hotkey toggles a blocker box back to empty
  - dungeon rooms
     - a repeat hotkey toggles a RoomType, MonsterDetail, or FloorDropDetail back to Unmarked
-These ad-hoc behaviors are design either to make common cases fast and easy, or to make it easy to correct mismarks from 'fat fingering'.
+These ad-hoc behaviors are designed either to make common cases fast and easy, or to make it easy to correct mismarks from 'fat fingering'.
 
 
 SAVE STATE
