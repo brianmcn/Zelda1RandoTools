@@ -13,6 +13,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+some known good to Bogie
+
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
@@ -47,6 +49,7 @@ review other common flagsets from rando, what works, what could work, etc
     - (reminders) change sword hearts
     - (reminders/display) 3 starting hearts
     - (reminders) level 9 requires 8 triforces, go-time needs silvers
+    - not 'Make Important Items Drops' (dunno how to track when a monster drops the red ring and ladder)
  - lack of money/life UI means need to use take-any to adjust hearts (reminders/display)
 Write this all up in Notes.txt
 
