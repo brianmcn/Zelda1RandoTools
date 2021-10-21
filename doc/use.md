@@ -18,9 +18,7 @@ Contents of this document:
   - [Green-Yellow-Red Highlights ("GYR")](#general-gyr)
 
 - [Main Z-Tracker Window](#main)
-
-![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
-
+  - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
   - [Dungeon Item Area](#main-dia)
   - [Other Item Area](#main-oia)
   - [Link (specific routing)](#main-link)
