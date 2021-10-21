@@ -12,11 +12,13 @@ Contents of this document:
   - [Hide Dungeon Numbers option](#startup-hdn)
   - [Start buttons (choose overworld quest)](#startup-coq)
   - [Options](#startup-o)
-- Popups
-- Main Z-Tracker Window
-![Main Z-Tracker Window screenshot](screenshots/overview.png)
-  - Dungeon Item Area
-  - Other Item Area
+- [General Features](#general)
+  - [Popups](#general-popups)
+  - [Green-Yellow-Red Highlights ("GYR")](#general-gyr)
+- [Main Z-Tracker Window](#main)
+![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
+  - [Dungeon Item Area](#main-dia)
+  - [Other Item Area](#main-oia)
   - Link (specific routing)
   - Overworld Map
   - Dungeon Tracker
@@ -28,13 +30,13 @@ Contents of this document:
 - Speech Synthesis (voice reminders)
 - Speech Recognition
 
-### <a id="startup"></a> Startup Page
+## <a id="startup"></a> Startup Page
 
-##### <a id="startup-hs"></a> Heart Shuffle option
+### <a id="startup-hs"></a> Heart Shuffle option
 
 Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
 
-##### <a id="startup-hdn"></a> Hide Dungeon Numbers option
+### <a id="startup-hdn"></a> Hide Dungeon Numbers option
 
 (if this is your first time reading this document, skip this section and return to it later)
 
@@ -67,7 +69,7 @@ The Color marks are for the player's reference, and have no semantic meaning to 
 The Number marks have semantics that interact with a number of tracker features, you should set it once known.
 
 
-##### <a id="startup-coq"></a> Start buttons (choose overworld quest)
+### <a id="startup-coq"></a> Start buttons (choose overworld quest)
 
 Choose your overworld quest before you begin.  This chooses the correct overworld map drawing & the sets of coordinates that may have locations.
 It also populates the 'Spot Summary' (see below) with the appropriate set of locations you will eventually find.
@@ -82,16 +84,18 @@ You may need to compensate a small bit if you discover you are in a different qu
  - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see below)
 
 
-##### <a id="startup-o"></a> Options
+### <a id="startup-o"></a> Options
 
 The options menu appears on the startup page, but most options can be changed later by bringing up the Options Menu while the application is running.
 The only option you need to do beforehand is Listen for Speech 
 TODO
 
 
+## <a id="general"></a> General Features
 
+A few commonly-recurring features used throughout the tracker are explained here.
 
-POPUPS
+### <a id="general-popups"></a> Popups
 
 Z-Tracker uses popups extensively.  Many types of elements (items, map tiles, dungeon rooms, ...) have lots of possible choices to scroll through; 
 to better visualize all the options, scrolling the mouse-wheel instantly brings up the popup to see all the choices.  You can either just continue 
@@ -102,70 +106,114 @@ and abort making any changes to the element.
 When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
 In certain cases noted below, clicking also activates the popup.
 
+### <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
 
-DUNGEON ITEM AREA
+A number of features will highlight tiles on the overworld map to help you quickly visualize locations.  The highlights appear as rectangles around
+overworld map tiles, and they come in three colors:
 
-Triforces:
-Click to toggle having triforce.  
-Triforce display suggests if dungeon has been located on overworld map: 
- - dark numeral means un-found
+ - A **green** rectangle highlights a location the player can access now, based on their current inventory.  For example, if Recorder Lake were
+   being highlighted, it would be highlighted green if the player currently has the Recorder.
+
+ - A **yellow** rectangle highlights a location the player can access now, based on the current inventory, however it may not actually house an 
+   entrance in this seed (mixed overworld quest).  For example, while the screen West of the vanilla start spot can always be bombed to reveal a cave
+   entrance, the screen North of the vanilla start spot sometimes will and sometimes will not be bombable (in mixed overworld quest).
+
+ - A **red** rectangle highlights a location the player cannot access now, based on their current inventory.
+
+To illustrate, here is how the tiles near the vanilla start spot appear, in a mixed overworld quest, when the player has marked that they have bombs
+but do not yet have a candle, and the "OW spots left" is mouse-hovered to highlight remaining spots:
+
+![GYR screenshot](screenshots/gyr-highlights)
+
+## <a id="main"></a> Main Z-Tracker Window
+
+### <a id="main-dia"></a> Dungeon Item Area
+
+![Dungeon Item Area screenshot](screenshots/dungeon-item-area.png)
+**Triforces:** Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
+
+The triforce display suggests if dungeon has been located on overworld map: 
+
+ - gray numeral means un-found
  - white numeral means location known
- - highlighted background means have helpful location hint (see below)
+ - highlighted background means have helpful location hint (see below TODO)
+
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
-If the dungeon location is known to be an overworld spot blocked by raft/powerBracelet/raft/recorder, a tiny icon of that blocker appears in its 
+
+If the dungeon location is known to be an overworld spot blocked by Raft/PowerBracelet/Ladder/Recorder, a tiny icon of that blocker appears in its 
 upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
 
-Items:
-The list of possible items (book, boomerang, ...) appears in a popup.  Choose the item to populate a box, and
+**Items:** The list of possible items (Book, Boomerang, ...) appears in a popup.  
+![Item popup](screenshots/item-popup.png)
+
+Choose the item to populate a box, and
+
  - left click marks it Green, to denote that you have this item in your inventory
- - right click marks it Red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the red ring is in 6)
+ - right click marks it Red, to denote that you do NOT yet have this item (e.g. you got a helpful hint that the Book is in 6)
  - middle click marks it Purple (with X), to denote you intentionally are skipping this item (see below)
+
 Red-boxed, not-yet-gotten items appear in grayscale, to help emphasize that they are missing and constitute remaining work.
-In addition to scrolling, clicking an empty item box will activate the popup.  Repeat-clicking (e.g. left-click a box you have, or right-click a
-box you don't have) a non-empty item box will also activate the popup.
+
+In addition to scrolling, clicking an empty item box will activate the popup.  Repeat-clicks (e.g. a left-click on a box you have, or a right-click 
+on a box you don't have) on a non-empty item box will also activate the popup.
 
 The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
 boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 
+### <a id="main-oia"></a> Other Item Area
 
-OTHER ITEM AREA
+![Other Item Area screenshot](screenshots/other-item-area.png)
 
-White Sword Item, Coast Item, Armos Item - just like dungeon item boxes
-  If the white sword cave location is known to be an overworld spot blocked by raft/powerBracelet/raft/recorder, a tiny icon of that blocker appears 
+**White Sword Item, Coast Item, Armos Item** - just like dungeon item boxes
+
+- If the white sword cave location is known to be an overworld spot blocked by Raft/PowerBracelet/Ladder/Recorder, a tiny icon of that blocker appears 
   in its upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
-magic sword, wood sword, blue candle, wood arrow, blue ring - click these when you get them, so they appear on the Timeline (see below)
-bombs - click when you get bombs, to have map routing send you to bombable locations (see below)
-boomstick book - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
-ganon/zelda - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section
-4 take-any hearts - click or scroll to say you took a heart container (red heart) or chose another option (X)
 
-(timer, current max hearts - just for display)
-'N' gettable - click or hover to highlight all the remaining overworld tiles you could uncover given your current item set; color will be 
-  greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
-'N' OW spots left - count of all remaining spots, hovering shows them all with green/yellow highlights as with 'gettable' spots above, and red for 
-  un-gettable (given the player's current inventory)
-Zones - click or hover to show overworld map zones, as hinted by randomizer NPCs for locations
-Coords - click or hover to show a coordinate overlay
-HFQ/HSQ - if flagsset not known to be 1st/2nd/mixed overworld, select mixed-2nd at start, and Hide First Quest or Hide Second Quest if later helpful
+**Magical Sword, Wood Sword, Blue Candle, Wood Arrow, Blue Ring** - click these when you get them, so they appear on the Timeline (see below TODO)
 
-(WPF only) the upper right area of the tracker, containing only the HFQ/HSQ buttons, the spot summary, and the timer (and Link) is 'boxed off', 
-  so that streamers with their own timers can choose to use this 16x9 (4x3) area for a webcam, or a branding image, or whatnot. 
-  (Send Brian feedback if you use this.)
+**Bombs** - click when you get bombs, to have map routing send you to bombable locations (see below TODO)
 
-Mouse-hovering the wood/white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
-Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
-Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
-Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle, otherwise it highlights burnable trees.
-Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
-Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar will 
-  highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
-Mouse-hovering the open-cave icon will highlight any open cave locations you have not yet marked up.
+**Boomstick Book** - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 
-Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.  
+**Ganon/Zelda** - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section
+
+**4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X)
+
+**Zones** - click checkbox or mouse-hover to show overworld map zones, as hinted by randomizer NPCs for locations
+
+**Coords** - click checkbox or mouse-hover to show a coordinate overlay
+
+'N' OW spots left - Displays a count of all remaining, unmarked spots.  Mouse-hovering shows them all with [GYR highlights](#general-gyr).
+
+'N' gettable - Displays a count of how many of the remaining unmarked spots are 'gettable' based on the player's current inventory.  Click the checkbox 
+or mouse-hover to show all the remaining unmarked overworld tiles you could uncover given your current item set, using [GYR highlights](#general-gyr).
+
+Max Hearts: 'N' - Displays the current number of heart containers the player has.  (Useful as a double-check that you have correctly been marking take-any
+hearts and heart containers found in the world.)
+
+Open Cave Icon - Mouse-hovering the open-cave icon will highlight any open cave locations you have not yet marked, using green [GYR highlights](#general-gyr).
+
+Timer - Displays the amount of time you have spent on the seed
+
+'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on to either resume or reset the timer.
+
+'Spot Summary' - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.  
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
 you have been marking those diligently.
+
+HFQ/HSQ buttons - If the rando flagsset is not known a priori to be 1st/2nd/mixed overworld, you should select mixed-2nd at startup, and then use the
+Hide First Quest or Hide Second Quest buttons later if later helpful.
+
+Many of the items in this area have behaviors when hovered with the mouse:
+- Mouse-hovering the wood/white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
+- Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
+- Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
+- Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle; otherwise it highlights burnable trees.
+- Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
+- Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar (see below TODO) will 
+  highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
 LINK (Specific routing)

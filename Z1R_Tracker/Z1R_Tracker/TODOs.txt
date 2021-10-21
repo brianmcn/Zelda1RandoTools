@@ -60,6 +60,8 @@ Write this all up in Notes.txt
 
 SMALL
 
+should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
+
 consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
 
 start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
