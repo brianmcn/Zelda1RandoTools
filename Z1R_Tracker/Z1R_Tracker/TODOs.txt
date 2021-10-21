@@ -13,7 +13,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-OffTheMap counts as marked room on blue-bars level popup (surely wrong), and probably also GRAB (wrong? right? ...), check other uses of IsNotMarked
+OffTheMap counts as marked room on blue-bars level popup (surely wrong - maybe if any, soft-assume all the rest are rooms? or publish both?), and probably also GRAB (wrong? right? ...), check other uses of IsNotMarked
 
 [1:16 AM] abraxas86: lol, for some reason the TTS keeps telling me to consider buying the boomstick book... but I've got it flagged as an item I have
 
