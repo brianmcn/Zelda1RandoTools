@@ -39,7 +39,7 @@ Contents of this document:
 
 ### <a id="startup-hs"></a> Heart Shuffle option
 
-Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
+Turning this option off will just cause the first item box of each dungeon to be pre-populated with a Heart Container.
 
 ### <a id="startup-hdn"></a> Hide Dungeon Numbers option
 
@@ -83,17 +83,17 @@ If you don't know which overworld quest it will be, due to the rando flagset, th
 You may need to compensate a small bit if you discover you are in a different quest:
  - coordinate locations A12, D13, and H5 may look different in a non-mixed quest
  - if the seed is actually first-quest, then the Spot Summary...
-      ...will have 1 extra Door Repair, 1 extra Money Making Game, 2 extra Potion Shops, and 3 extra item shops, and
-      ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
- - if you discover you are in (unmixed) first quest, consider clicking the HSQ button (see below)
- - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see below)
+    - ...will have 1 extra Door Repair, 1 extra Money Making Game, 2 extra Potion Shops, and 3 extra item shops, and
+    - ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
+ - if you discover you are in (unmixed) first quest, consider clicking the HSQ button (see [below](#hfq-hsq))
+ - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see [below](#hfq-hsq))
 
 
 ### <a id="startup-o"></a> Options
 
 The options menu appears on the startup page, but most options can be changed later by bringing up the [Options Menu](#main-om) while the application is running.
 
-The only option you need to setup beforehand on the startup screen is Listen for Speech, see [Speech Recognition](#speech-recognition).
+The only option you need to setup beforehand on the startup screen is Listen for Speech; see [Speech Recognition](#speech-recognition).
 
 
 ## <a id="general"></a> General Features
@@ -203,13 +203,15 @@ Open Cave Icon - Mouse-hovering the open-cave icon will highlight any open cave 
 
 Timer - Displays the amount of time you have spent on the seed
 
-'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on to either resume or reset the timer.
+'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.
 
-'Spot Summary' - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.  
+'Spot Summary' - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
 you have been marking those diligently.
 
-HFQ/HSQ buttons - If the rando flagsset is not known a priori to be 1st/2nd/mixed overworld, you should select mixed-2nd at startup, and then use the
+![Spot Summary screenshot](screenshots/spot-summary-example.png)
+
+<a id="hfq-hsq">HFQ/HSQ buttons</a> - If the rando flagsset is not known a priori to be 1st/2nd/mixed overworld, you should select mixed-2nd at startup, and then use the
 Hide First Quest or Hide Second Quest buttons later if later helpful.
 
 Many of the items in this area have behaviors when hovered with the mouse:
@@ -310,7 +312,7 @@ you can still click on [Link](#main-link) to get the temporary, specific routing
 "The LEGEND of Z-Tracker" displays a map legend for dungeon and any-road icons, but mostly exists because Brian thinks this is hilarious to display on a 
 tracker for "The Legend of Zelda" randomizer.
 
-<a id="item-progress>"Item progress" bar</a> lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
+<a id="item-progress">"Item progress" bar</a> lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
 
 You can click the 'Start Spot' button in the legend to mark your starting screen on the overworld map.
 
@@ -428,7 +430,8 @@ There is one special RoomType, called OffTheMap.  This RoomType is displayed as 
 dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
 on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap is not available in the room selection popup.  You can either use 
 it by mapping a hotkey, or you can also select it by right clicking a room to bring up the popup, right clicking the Unmarked tile in the grid, and then 
-right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.
+right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.  An example of 
+marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
@@ -466,7 +469,9 @@ The timeline is an affordance, for e.g. viewers who watch a stream and arrive la
 Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
 This makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
 
-The timeline is non-interactive, it is just a display for capturing progress-over-time.
+The timeline is non-interactive, it is just a display for capturing progress-over-time.  Here is a sample of how it appears:
+
+![Timeline screenshot](screenshots/timeline-example.png)
 
 
 ### <a id="main-om"></a> Options Menu
@@ -503,6 +508,7 @@ This option must be enabled when first starting the tracker on the startup scree
 The list of recognized phrases is below (code from WPFUI.fs).  You can speak a second shop item phrase to set a second item of a shop.
 If 'Hide Dungeon Numbers' is enabled, just say "tracker set level" to select the next free dungeon letter A-H; "tracker set level nine" still works.
 
+```
 let wakePhrase = "tracker set"
                 "level one"         , 0
                 "level two"         , 1
@@ -536,3 +542,4 @@ let wakePhrase = "tracker set"
                 "hint shop"         , 32
                 "take any"          , 33
                 "potion shop"       , 34
+```

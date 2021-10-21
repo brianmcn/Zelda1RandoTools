@@ -13,6 +13,8 @@ information.  Click the button 'Show HotKeys' to the right of the overworld map 
 mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
 display window at any time when you are done with it.
 
+![screenshot](screenshots/hotkey-cheat-sheet-example.png)
+
 Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window to ensure that window 
 has focus, and then try again to mouse hover an empty item/overworld/blocker/dungeon box and press a keyboard hotkey.
 
@@ -51,11 +53,17 @@ lower portion of the main Z-Tracker window.  The broadcast window is not interac
 use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main interactive Z-Tracker window, you instead 
 capture the smaller broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
 
+when mouse in upper portion:
+
+![Broadcast overworld screenshot](screenshots/broadcast-overworld.png) 
+
+when mouse in lower portion:
+
+![Broadcast dungeon screenshot](screenshots/broadcast-dungeon.png)
+
 The broadcast window also has an option to be 2/3 size or 1/3 size (512 or 256 pixels wide, rather than 768 pixels wide).  
 Using this exact size ratio can help keep a bit of the pixel art 'crisp' in a smaller area, and may look better than using OBS to downscale your screen capture 
 to some arbitrary-but-similar size.
-
-![Broadcast overworld screenshot](screenshots/broadcast-overworld.png) ![Broadcast dungeon screenshot](screenshots/broadcast-dungeon.png)
 
 ## <a id="window-size"></a> Window Size (WPF only)
 

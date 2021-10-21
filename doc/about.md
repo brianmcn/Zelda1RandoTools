@@ -73,7 +73,7 @@ Path drawing, like on the overworld?
 
 ![screenshot](screenshots/lost-in-9-2.png)
 
-I want to actual dungeon-map-topology to pop, what about red lines against walls to visualize no-can-go?
+I want the actual dungeon-map-topology to visually "pop"", what about red lines against walls to visualize no-can-go?
 
 ![screenshot](screenshots/lost-in-9-3.png)
 
@@ -87,7 +87,9 @@ Marc suggests the final tweak that makes the topology really pop:
 
 (In retrospect, odd that I didn't think of the 'draw red walls' solution, when it was literally the first thing I made the tracker do in the overworld many months before!)
 
-Another month of adding more features, iterating, and polishing, and the tracker finally feels 'ready for the world' as I wrote this (2021-Oct-21).
+And so it went.  Another month of adding more features, iterating, and polishing, and the tracker finally feels 'ready for the world' as I wrote this (2021-Oct-21).  I hope you 
+(and your viewers) enjoy using (watching) it!  --Brian
+
 
 
 
