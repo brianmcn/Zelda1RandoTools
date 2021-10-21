@@ -1,24 +1,40 @@
-﻿
+# Using Z-Tracker
 
-Notes about overall UI & behavior
+This document has detailed notes about the main UI features of Z-Tracker.
 
+Z-Tracker has two versions - one runs on Windows and one runs on Linux.  The two versions are very similar, but have some minor differences.  
+Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
 
-(Some features work only in the Windows version, but not in the Linux version; these are marked 'WPF only'.)
+Contents of this document:
 
+- [Startup Page](#startup)
+  - [Heart Shuffle option](#startup-hs)
+  - [Hide Dungeon Numbers option](#startup-hdn)
+  - [Start buttons (choose overworld quest)](#startup-coq)
+  - [Options](#startup-o)
+- Popups
+- Main Z-Tracker Window
+![Main Z-Tracker Window screenshot](screenshots/overview.png)
+  - Dungeon Item Area
+  - Other Item Area
+  - Link (specific routing)
+  - Overworld Map
+  - Dungeon Tracker
+    - Dungeon Rooms
+  - Blockers
+  - Notes
+  - Timeline
+  - Options Menu
+- Speech Synthesis (voice reminders)
+- Speech Recognition
 
-CAPTURING WITH OBS
+### <a id="startup"></a> Startup Page
 
-You should use 'Window Capture' to capture the Z-Tracker window for streaming.  
-For best results, set the 'Window Match Priority' to 'Window title must match'.
-See also the BROADCAST WINDOW section below for more capture and sizing options.
-
-
-STARTUP OPTION - Heart Shuffle: 
+##### <a id="startup-hs"></a> Heart Shuffle option
 
 Turning this option off will just cause the first item box of each dungeon to be pre-populated with a heart container.
 
-
-STARTUP OPTION - Hide Dungeon Numbers: 
+##### <a id="startup-hdn"></a> Hide Dungeon Numbers option
 
 (if this is your first time reading this document, skip this section and return to it later)
 
@@ -51,7 +67,7 @@ The Color marks are for the player's reference, and have no semantic meaning to 
 The Number marks have semantics that interact with a number of tracker features, you should set it once known.
 
 
-STARTUP OPTION - Start _____ Overworld:
+##### <a id="startup-coq"></a> Start buttons (choose overworld quest)
 
 Choose your overworld quest before you begin.  This chooses the correct overworld map drawing & the sets of coordinates that may have locations.
 It also populates the 'Spot Summary' (see below) with the appropriate set of locations you will eventually find.
@@ -64,6 +80,15 @@ You may need to compensate a small bit if you discover you are in a different qu
       ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
  - if you discover you are in (unmixed) first quest, consider clicking the HSQ button (see below)
  - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see below)
+
+
+##### <a id="startup-o"></a> Options
+
+The options menu appears on the startup page, but most options can be changed later by bringing up the Options Menu while the application is running.
+The only option you need to do beforehand is Listen for Speech 
+TODO
+
+
 
 
 POPUPS
@@ -167,7 +192,7 @@ OVERWORLD MAP
    ---------------------------
  - (items)      item shop
    ---------------------------
- - "green"      secrets: "?" unknown, "$" large, "rupee" medium, "¢" small
+ - "green"      secrets: "?" unknown, "$" large, "rupee" medium, "�" small
  - "door"       door repair charge
  - "dice"       money making game
    ---------------------------
@@ -224,6 +249,8 @@ shows the possible locations for that dungeon or sword cave.  Hint-halo-highligh
 "Item progress" bar lights up items as you get them or upgrade them, as a quick display summary of the player state.
 
 You can click the 'Start Spot' icon in the legend to mark your starting screen on the overworld map.
+
+show hotkeys
 
 
 TIMELINE

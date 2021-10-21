@@ -20,6 +20,7 @@ test & evaluate new dungeon room ui:
 
 Consider turning Notes.txt into a README.md extension for web-docs, where can add screenshots
  - might need 'versioning'... figure out what is best
+ - hyperlink table of contents would probably help
 
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
@@ -41,7 +42,9 @@ distributing version process
 then users can
  - unzip folder somewhere
  - run Z1R_WPF.exe once
- - copy ZTracker.lnk shortcut wherever they like
+ - copy ZTracker.lnk shortcut wherever you like
+ - Notes.txt enclosed has detailed information about how it all works, you are welcome to read it or not, feedback both ways is useful, to find out what makes sense versus what is hard to figure out.
+    - actually, link to web docs
 
 review other common flagsets from rando, what works, what could work, etc
  - currently assumes these rando flags:
@@ -86,6 +89,7 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
  - bomb upgrade dude never has a bombable north wall
  - Random 9 entry seeds: if you find 9 and the old man at the door tells you some nonsense that means you need all 8 tris to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc. 
  - For making Z-Tracker, send Brian some love on twitch (lorgon) or on twitter (@lorgon111)
+ - In 1QL5, the floor drop spawn for 'tee' room is on the island
 
 
 dungeon room ui:
