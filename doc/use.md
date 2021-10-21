@@ -32,8 +32,8 @@ Contents of this document:
   - [Timeline](#main-timeline)
   - [Options Menu](#main-om)
 
-- Speech Synthesis (voice reminders)
-- Speech Recognition
+- [Speech Synthesis (voice reminders)](#speech-synthesis)
+- [Speech Recognition](#speech-recognition)
 
 ## <a id="startup"></a> Startup Page
 
@@ -91,9 +91,9 @@ You may need to compensate a small bit if you discover you are in a different qu
 
 ### <a id="startup-o"></a> Options
 
-The options menu appears on the startup page, but most options can be changed later by bringing up the Options Menu while the application is running.
-The only option you need to do beforehand is Listen for Speech 
-TODO
+The options menu appears on the startup page, but most options can be changed later by bringing up the [Options Menu](#main-om) while the application is running.
+
+The only option you need to setup beforehand on the startup screen is Listen for Speech, see [Speech Recognition](#speech-recognition).
 
 
 ## <a id="general"></a> General Features
@@ -142,7 +142,7 @@ The triforce display suggests if dungeon has been located on overworld map:
 
  - gray numeral means un-found
  - white numeral means location known
- - highlighted background means have helpful location hint (see below TODO)
+ - highlighted background means have [helpful location hint](#helpful-hint)
 
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
 
@@ -177,9 +177,9 @@ Most item progress has semantic meaning to the tracker with regards to routing/r
 - If the white sword cave location is known to be an overworld spot blocked by Raft/PowerBracelet/Ladder/Recorder, a tiny icon of that blocker appears 
   in its upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
 
-**Magical Sword, Wood Sword, Blue Candle, Wood Arrow, Blue Ring** - click these when you get them, so they appear on the Timeline (see below TODO)
+**Magical Sword, Wood Sword, Blue Candle, Wood Arrow, Blue Ring** - click these when you get them, so they appear on the [Timeline](#main-timeline)
 
-**Bombs** - click when you get bombs, to have map routing send you to bombable locations (see below TODO)
+**Bombs** - click when you get bombs, to have map [routing](#routing) send you to bombable locations
 
 **Boomstick Book** - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 
@@ -218,7 +218,7 @@ Many of the items in this area have behaviors when hovered with the mouse:
 - Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
 - Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle; otherwise it highlights burnable trees.
 - Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
-- Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the 'item progress' bar (see below TODO) will 
+- Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the ['item progress' bar](#item-progress) will 
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
@@ -272,7 +272,7 @@ Left-clicking an item shop pops up choices for a second item in the shop (max of
 
 Right click a shop to change the first item (whole tile popup).
 
-Left-clicking toggles the brightness of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
+Left-clicking toggles the <a id="ow-map-tile-brightness">brightness</a> of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
  - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
 Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
@@ -292,7 +292,7 @@ Hovering an overworld map tile shows a magnified version of nearby tiles, to mak
 
 ![Magnifier screenshot](screenshots/magnifier.png)
 
-Mouse-hover for routing from the current tile: (generalized routing)
+<a id="routing">Mouse-hover for routing from the current tile: (generalized routing)</a>
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
     - unmarked overworld spots
     - uncompleted dungeons
@@ -304,19 +304,19 @@ Mouse-hover for routing from the current tile: (generalized routing)
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
 The routeworthy spots nearest the mouse cursor will be highlighted using [GYR highlights](#general-gyr).
-You can turn off these routing and highlighting marks if you find them distracting (options menu TODO).  Even if you turn off these generalized routing marks, 
+You can turn off these routing and highlighting marks if you find them distracting, using the [Options Menu](#main-om).  Even if you turn off these generalized routing marks, 
 you can still click on [Link](#main-link) to get the temporary, specific routing marks on-demand.
 
 "The LEGEND of Z-Tracker" displays a map legend for dungeon and any-road icons, but mostly exists because Brian thinks this is hilarious to display on a 
 tracker for "The Legend of Zelda" randomizer.
 
-"Item progress" bar lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
+<a id="item-progress>"Item progress" bar</a> lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
 
 You can click the 'Start Spot' button in the legend to mark your starting screen on the overworld map.
 
-You can click the 'Show HotKeys' button in the legend to pop out a resizable window with a 'cheat sheet' of your hotkey mappings (see below TODO).
+You can click the 'Show HotKeys' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
 
-Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
+<a id="helpful-hint">Clicking the 'Hint decoder' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
 shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).
 
@@ -332,7 +332,7 @@ Doors between rooms are simple, and have three states:
  - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
 
-Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in DUNGEON ROOMS section below. TODO
+Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).
 
 If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
@@ -482,17 +482,19 @@ The options pane automatically saves & closes when you click outside the pane, r
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
 
+## <a id="speech-synthesis"></a> Speech Synthesis (voice reminders)
 
-SPEECH SYNTHESIS (WPF only)
+(WPF Only)
 
-There are a variety of spoken reminders triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
-You can toggle various categories of voice reminders in the Options menu.
+There are a variety of spoken reminders, which can be triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
+You can toggle various categories of voice reminders in the [Options Menu](#main-om).
 
 Visual icons representing these spoken reminders appear in the upper right corner of the timeline, both on Windows and on Linux.
-You can toggle various categories of visual reminders in the Options menu.
+You can toggle various categories of visual reminders in the [Options Menu](#main-om).
 
+## <a id="speech-recognition"></a> Speech Recognition
 
-SPEECH RECOGNITION (WPF only)
+(WPF only)
 
 When hovering over a blank overworld map tile, with a microphone equipped, you can speak aloud e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
 
