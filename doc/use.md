@@ -12,21 +12,26 @@ Contents of this document:
   - [Hide Dungeon Numbers option](#startup-hdn)
   - [Start buttons (choose overworld quest)](#startup-coq)
   - [Options](#startup-o)
+
 - [General Features](#general)
   - [Popups](#general-popups)
   - [Green-Yellow-Red Highlights ("GYR")](#general-gyr)
+
 - [Main Z-Tracker Window](#main)
+
 ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
+
   - [Dungeon Item Area](#main-dia)
   - [Other Item Area](#main-oia)
-  - Link (specific routing)
-  - Overworld Map
-  - Dungeon Tracker
-    - Dungeon Rooms
+  - [Link (specific routing)](#main-link)
+  - [Overworld Map](#main-owm)
+  - [Dungeon Tracker](#main-dt)
+  - [Dungeon Rooms](#main-dr)
   - Blockers
   - Notes
   - Timeline
   - Options Menu
+
 - Speech Synthesis (voice reminders)
 - Speech Recognition
 
@@ -123,13 +128,14 @@ overworld map tiles, and they come in three colors:
 To illustrate, here is how the tiles near the vanilla start spot appear, in a mixed overworld quest, when the player has marked that they have bombs
 but do not yet have a candle, and the "OW spots left" is mouse-hovered to highlight remaining spots:
 
-![GYR screenshot](screenshots/gyr-highlights)
+![GYR screenshot](screenshots/gyr-highlights.png)
 
 ## <a id="main"></a> Main Z-Tracker Window
 
 ### <a id="main-dia"></a> Dungeon Item Area
 
 ![Dungeon Item Area screenshot](screenshots/dungeon-item-area.png)
+
 **Triforces:** Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
 
 The triforce display suggests if dungeon has been located on overworld map: 
@@ -216,46 +222,56 @@ Many of the items in this area have behaviors when hovered with the mouse:
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
-LINK (Specific routing)
+### <a id="main-link"></a> Link (specific routing)
 
 Link is here to help guide you on your quest!  Click on Link, select a destination, and the best path(s) from your mouse cursor to the destination
 will be shown on the screen for the next ten seconds.
 
+Link's possible destinations include:
+ - a specific overworld tile
+ - shops of a certain type (e.g. any bomb shops you have marked)
+ - dungeons
+ - white/magical sword cave
+ - remaining open caves (typically for a "wood-sword hunt")
+
 Link can even deal with ambiguous locations, for example, if dungeon 3 was hinted to be 'by a lake', you can have Link route you there, and he will
 show routes to all the remaining accessible lake destinations, as well as highlighting other inaccessible locations (e.g. because you don't have 
-the raft and can't reach the middle of the lake).  Link's highlight colors are: green for accessible destinations that always have an entrance,
-yellow for accessible destinations that only sometimes have an entrance (e.g. mixed quest, some map tiles don't bomb), and red for map tiles of 
-interest that you can't reveal with your current inventory.
+the raft and can't reach the middle of the lake) using [GYR highlights](#general-gyr).
 
 
-OVERWORLD MAP
+### <a id="main-owm"></a> Overworld Map
 
-16x8 Map Tiles:
+The overworld is a 16x8 grid of overworld map tiles.  You can choose a mark for each tile using the popup.  In addition to scrolling, right-clicking 
+an unmarked map tile will activate the popup.  Left-clicking a "dark" tile will also activate the popup.  Here is a screenshot of the tile icons:
 
-   "icon"       description
-   ---------------------------
- - "1-9"        dungeons
- - "1-4"        any roads (stair warps)
- - "sword3/2/1" magical sword/white sword/wood sword item cave
-   ---------------------------
- - (items)      item shop
-   ---------------------------
- - "green"      secrets: "?" unknown, "$" large, "rupee" medium, "¢" small
- - "door"       door repair charge
- - "dice"       money making game
-   ---------------------------
- - "letter"     the potion letter cave
- - "armos"      armos item location (can only be in 5 spots)
- - "purple?"    hint shop, or white/magical sword hint
- - "heart"      cave to "take any one you want"
- - "potion"     potion shop
- - "dark"       nothing, or don't care
+![Overworld Tile Icons screenshot](screenshots/overworld-tile-icons.png)
 
-The list of all these possible map tile icons appears in a popup.  In addition to scrolling, right-clicking an unmarked map tile will activate 
-the popup.  Left-clicking a "dark" tile will also activate the popup.
+and here are their meanings:
+
+ "icon"       | description
+ ---------------------------
+ "1-9"        | dungeons
+ "1-4"        | any roads (stair warps)
+ "sword3/2/1" | magical sword/white sword/wood sword item cave
+ (items)      | item shop
+ "green"      | secrets: "?" unknown, "$" large, "rupee" medium, "¢" small
+ "door"       | door repair charge
+ "dice"       | money making game
+ "letter"     | the potion letter cave
+ "armos"      | armos item location (can only be in 5 spots)
+ "purple?"    | hint shop, or white/magical sword hint
+ "heart"      | cave to "take any one you want"
+ "potion"     | potion shop
+ "dark"       | nothing, or don't care
 
 Left-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
-Left-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  Right click to change the first item (whole tile popup).
+
+Left-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  
+
+![Shop with two items screenshot](screenshots/second-shop-item.png)
+
+Right click a shop to change the first item (whole tile popup).
+
 Left-clicking toggles the brightness of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
  - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
@@ -267,10 +283,14 @@ window and warps your mouse cursor to the center, so you can quickly make a sele
 selection, your mouse cursor is warped back to the overworld tile you started at.  Using the accelerators is simple and intuitive; reading this
 paragraph was comparably more difficult and time-consuming.
 
+![Take Any screenshot](screenshots/take-any-pie-menu.png)
+
 An unclaimed White-Sword- or Coast- Item will appear on Sword2 and Coast map tiles, for convenience.
 You can interact with these item boxes on their map tiles, rather than having to move your mouse to the top-tracker to interact with them.
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
+
+![Magnifier screenshot](screenshots/magnifier.png)
 
 Mouse-hover for routing from the current tile: (generalized routing)
  - a path will be drawn from the currently mouse location to all "routeworthy" locations, e.g.
@@ -283,61 +303,42 @@ Mouse-hover for routing from the current tile: (generalized routing)
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
-The routeworthy spots nearest the mouse cursor will be highlighted: greenish if guaranteed to yield a location, yellowish (mixed quest) if maybe empty.
-You can turn off these routing and highlighting marks if you find them distracting (options menu).  Even if you turn off these generalized routing marks, 
-you can still click on Link to get the temporary, specific routing marks on-demand.
+The routeworthy spots nearest the mouse cursor will be highlighted using [GYR highlights](#general-gyr).
+You can turn off these routing and highlighting marks if you find them distracting (options menu TODO).  Even if you turn off these generalized routing marks, 
+you can still click on [Link](#main-link) to get the temporary, specific routing marks on-demand.
+
+"The LEGEND of Z-Tracker" displays a map legend for dungeon and any-road icons, but mostly exists because Brian thinks this is hilarious to display on a 
+tracker for "The Legend of Zelda" randomizer.
+
+"Item progress" bar lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
+
+You can click the 'Start Spot' button in the legend to mark your starting screen on the overworld map.
+
+You can click the 'Show HotKeys' button in the legend to pop out a resizable window with a 'cheat sheet' of your hotkey mappings (see below TODO).
 
 Clicking the 'Hint decoder' button in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
-shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map will be colored:
-  green:   if it's a location you can uncover with your current inventory, and is guaranteed to yield a location
-  yellow:  if it's a location you can uncover with your current inventory, but is not guaranteed to yield a location (mixed quest)
-  red:     if it's a location you can't uncover yet (e.g. a push-block spot when you don't yet have the power bracelet)
-
-"Item progress" bar lights up items as you get them or upgrade them, as a quick display summary of the player state.
-
-You can click the 'Start Spot' icon in the legend to mark your starting screen on the overworld map.
-
-show hotkeys
+shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).
 
 
-TIMELINE
-
-The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
-Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
-This makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
-
-The timeline is non-interactive, it is just a display for capturing progress-over-time.
-
-
-OPTIONS MENU
-
-Above the timeline, there is a button labeled "Options..."  
-Clicking this button causes the timeline pane to be replaced by the options menu.  
-A variety of tracker features can be turned on and off here; mouse-hover the text for a detailed description.
-Some randomizer flag settings are also featured here, notably 'Second quest dungeons' and 'Mirror overworld'.
-The options pane automatically saves & closes when you click outside the pane, revealing the timeline once again.
-Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
-
-
-DUNGEON TRACKER
+### <a id="main-dt"></a> Dungeon Tracker
 
 There are 9 tabs for the 9 dungeons.
 
-The right column of each tab has an area with this dungeon's triforce and items, so you can edit them without having to mouse all the way to the top of the app.
+The right column of each tab has an inset with this dungeon's triforce and items, so you can edit them without having to mouse all the way to the top of the app.
 
 Doors between rooms are simple, and have three states:
  - dark gray is unknown (default)
  - green (left click) is "can go" (used for all kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
 
-Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in DUNGEON ROOMS section below.
+Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in DUNGEON ROOMS section below. TODO
 
-If you click-and-drag the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
+If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
-Mouse-hovering the little blue bars in the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
+Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
 easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.
 
 Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
@@ -352,8 +353,7 @@ Dungeon tracking has no semantic meaning to the tracker, and can be used by the 
 
 When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
 
-
-DUNGEON ROOMS
+### <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
 
@@ -377,15 +377,22 @@ As a result, in the scenario described before, you could mark up the room thusly
  - after returning to grab bombs, you can toggle the 'gotten' of the FloorDropDetail
  - later when you kill Digdogger, you can mark the room Complete
  - upon discovering the item staircase, you could change the RoomType to 'item staircase'
+
+![Dungeon room example screenshot](screenshots/dungeon-room-example-scenario.png)
+
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
  - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
  - left-clicking a marked room toggles its 'completedness' - uncompleted rooms have a bright outline, to make them noticeable as a place to return to later
 
+![Dungeon room completed example screenshot](screenshots/dungeon-room-completed-example.png)
+
 If you want to change a RoomType (to mark a transport staircase, hungry Goriya, chevy moat, ...), then right-click the room to bring up the RoomType popup:
  - a grid of 30 possible types of rooms appear
  - choose the one you want with your mouse, and left-click it
+
+![Dungeon room chooser screenshot](screenshots/dungeon-room-chooser.png)
 
 If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
 but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
@@ -394,15 +401,17 @@ and a right-click marks it uncompleted.  (After clicking a detail, its grid brie
 to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, double-
 right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
 
+![Dungeon room detail screenshot](screenshots/dungeon-room-detail.png)
+
 If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' the floor drop by middle-clicking the room on the map.  Un-gotten floor drops
 appear as a bright icon, and gotten floor drops appear darkened.
 
 If a room does not have a FloorDropDetail, then middle-clicking will toggle a yellow 'circle' around the room.  This is an ad-hoc mark which you can use 
-however you like, but the suggested use is to mark an un-gotten, unspecified floor drop item.  In my experience, it is very rare to intentionally "leave
+however you like, but one suggested use is to mark an un-gotten, unspecified floor drop item.  In my experience, it is very rare to intentionally "leave
 behind" a floor drop to come back to later - the main exception is bomb packs.  As a result, if I leave a bomb pack behind, I'll just middle-click-
 yellow-circle a room to quickly mark it, rather than go through the more cumbersome FloorDropDetail UI.  In the rare case where I leave something else behind,
 such as an unreachable key in the middle of a circle-moat room when I don't have the ladder, then I use the FloorDropDetail UI to capture that specific bit
-of information.
+of information.  Another suggested use for the middle-click yellow circle is to mark rooms in 9 where you think Zelda or Ganon might be.
 
 The MonsterDetail and FloorDropDetail information appear as tiny icons in the corners of rooms on the map.  If you want to briefly make these icons larger 
 and see a legend, you can mouse-hover the checkbox in the very bottom right of the dungeon tab.  If you want to permanently keep the icons on their larger
@@ -421,6 +430,7 @@ on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType
 it by mapping a hotkey, or you can also select it by right clicking a room to bring up the popup, right clicking the Unmarked tile in the grid, and then 
 right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.
 
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
 BLOCKERS
 
@@ -445,6 +455,25 @@ NOTES
 
 This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 to buy a Bomb Upgrade for 128 rupees).
 Unlike scrap paper on your desk, these notes are visible to stream viewers.
+
+
+TIMELINE
+
+The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
+Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
+This makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
+
+The timeline is non-interactive, it is just a display for capturing progress-over-time.
+
+
+OPTIONS MENU
+
+Above the timeline, there is a button labeled "Options..."  
+Clicking this button causes the timeline pane to be replaced by the options menu.  
+A variety of tracker features can be turned on and off here; mouse-hover the text for a detailed description.
+Some randomizer flag settings are also featured here, notably 'Second quest dungeons' and 'Mirror overworld'.
+The options pane automatically saves & closes when you click outside the pane, revealing the timeline once again.
+Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
 
 HOTKEYS
