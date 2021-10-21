@@ -62,6 +62,11 @@ Write this all up in Notes.txt
 
 SMALL
 
+Marc: It occurs to me that with popup choosers now easy, an option for the future might be to put door details on scroll/middle-click, preserving the current UI 
+for the common cases but allowing to mark wild details for people who really want to. Obviously that would require design in how to represent them visually.
+ - left click a non-green could still always mean green, right click a non-red could still always mean red
+ - scrollwheel could popup (middle click could maybe cycle thru all, but does not seem very useful compared to scroll/popup)
+
 should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
 
 consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
@@ -234,6 +239,9 @@ yellow door state? (maybe left/right rotate forward/reverse thru unknown->green-
 MEDIUM
 
 timeline & mistakes
+ - ""The timeline is non-interactive, it is just a display for capturing progress-over-time.""
+   Should it be possible to click (right-click?) a timeline item to remove it from the timeline to correct misclicks?
+   This (as a way to remove an erroneously posted item and its timestamp), coupled with changing-item-box-content-after-post being reflected on the timeline, would address it?
 
 timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
  - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird

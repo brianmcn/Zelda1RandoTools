@@ -168,11 +168,14 @@ boomerang you intentionally left behind on the coast), while still accurately ca
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 
+Note: while you can interact with Triforces and Items in the Dungeon Item Area, in practice you will instead typically interact with these in 
+the [dungeon inset](#dungeon-inset), which provides a duplicate view of each column.
+
 ### <a id="main-oia"></a> Other Item Area
 
 ![Other Item Area screenshot](screenshots/other-item-area.png)
 
-**White Sword Item, Coast Item, Armos Item** - just like dungeon item boxes
+**White Sword Item, Coast Item, Armos Item** - behave just like dungeon item boxes, and are typically interacted with [from the overworld map](#item-box-on-ow-map)
 
 - If the white sword cave location is known to be an overworld spot blocked by Raft/PowerBracelet/Ladder/Recorder, a tiny icon of that blocker appears 
   in its upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
@@ -185,7 +188,8 @@ Most item progress has semantic meaning to the tracker with regards to routing/r
 
 **Ganon/Zelda** - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section
 
-**4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X)
+**4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X); rather than mark these directly, these are 
+typically interacted with via the [take any accelerator](#take-any-accelerator) on the overworld map
 
 **Zones** - click checkbox or mouse-hover to show overworld map zones, as hinted by randomizer NPCs for locations
 
@@ -277,7 +281,7 @@ Right click a shop to change the first item (whole tile popup).
 Left-clicking toggles the <a id="ow-map-tile-brightness">brightness</a> of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
  - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
-Some map tiles have accelerators.  For example, when selecting the 'take any heart' map tile from the popup grid (or via speech), the take-any
+Some map tiles have accelerators.  For example, <a id="take-any-accelerator">when selecting the 'take any heart' map tile</a> from the popup grid (or via speech), the take-any
 accelerator will pop up, with 4 choices (take potion, take candle, take heart, take nothing).  Your selection may have multiple effects, for 
 example, choosing the candle will (1) 'X' out one of the take-any hearts in the top of the tracker, (2) mark that you have a blue candle in the top 
 of the tracker, and (3) mark the overworld map tile as a 'taken' take-any-heart.  The accelerator is a pie menu that pops up in the middle of the
@@ -287,8 +291,9 @@ paragraph was comparably more difficult and time-consuming.
 
 ![Take Any screenshot](screenshots/take-any-pie-menu.png)
 
-An unclaimed White-Sword- or Coast- Item will appear on Sword2 and Coast map tiles, for convenience.
-You can interact with these item boxes on their map tiles, rather than having to move your mouse to the top-tracker to interact with them.
+<a id="item-box-on-ow-map">An unclaimed</a> White-Sword- or Coast- Item will appear on Sword2 and Coast map tiles, for convenience.  Marking the Armos tile provides an instant
+accelerator on the tile as well.  As a result, you typically interact with these item boxes on their map tiles, rather than having to move your mouse 
+to the top-tracker to interact with them.
 
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
 
@@ -327,7 +332,9 @@ shows the possible locations for that dungeon or sword cave.  Hint-halo-highligh
 
 There are 9 tabs for the 9 dungeons.
 
-The right column of each tab has an inset with this dungeon's triforce and items, so you can edit them without having to mouse all the way to the top of the app.
+<a id="dungeon-inset">The right column of each tab has an inset with this dungeon's triforce and items</a>, so you can edit them without having to mouse all the way to the top of the app.
+
+![Dungeon inset screenshot](screenshots/dungeon-inset.png)
 
 Doors between rooms are simple, and have three states:
  - dark gray is unknown (default)
