@@ -87,8 +87,8 @@ Marc suggests the final tweak that makes the topology really pop:
 
 (In retrospect, odd that I didn't think of the 'draw red walls' solution, when it was literally the first thing I made the tracker do in the overworld many months before!)
 
-And so it went.  Another month of adding more features, iterating, and polishing, and the tracker finally feels 'ready for the world' as I wrote this (2021-Oct-21).  I hope you 
-(and your viewers) enjoy using (watching) it!  --Brian
+And so it went.  Another month of adding more features, iterating, and polishing, and the tracker finally feels 'ready for the world' as I write this (2021-Oct-21).  I hope you 
+(and your viewers) enjoy using (and watching) it!  --Brian
 
 
 
