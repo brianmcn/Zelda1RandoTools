@@ -336,7 +336,7 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.Clone() = new DungeonRoomState(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright)
     member this.IsComplete with get() = isCompleted and set(x) = isCompleted <- x
     member this.RoomType with get() = roomType and set(x) = roomType <- x
-    member this.IsEmpty = roomType.IsNotMarked
+    member this.IsEmpty = roomType.IsNotMarked || (roomType = RoomType.OffTheMap)
     member this.MonsterDetail with get() = monsterDetail and set(x) = monsterDetail <- x
     member this.FloorDropDetail with get() = floorDropDetail and set(x) = floorDropDetail <- x
     member this.ToggleFloorDropBrightness() = floorDropShouldAppearBright <- not floorDropShouldAppearBright

@@ -13,17 +13,10 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-OffTheMap counts as marked room on blue-bars level popup (surely wrong - maybe if any, soft-assume all the rest are rooms? or publish both?), and probably also GRAB (wrong? right? ...), check other uses of IsNotMarked
-
 [1:16 AM] abraxas86: lol, for some reason the TTS keeps telling me to consider buying the boomstick book... but I've got it flagged as an item I have
 
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
-
-Consider turning Notes.txt into a README.md extension for web-docs, where can add screenshots
- - might need 'versioning'... figure out what is best
- - hyperlink table of contents would probably help
-
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
@@ -31,8 +24,6 @@ hotkey testing, hotkey writeup in Notes
  - test two different keyboard keys map to same value
  - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
  - any consideration of spacebar or capital-letter-distiguishing?
-
-credits to helpers
 
 distributing version process
  - delete entire Relase directory
