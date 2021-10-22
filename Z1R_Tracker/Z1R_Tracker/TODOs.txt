@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-[1:16 AM] abraxas86: lol, for some reason the TTS keeps telling me to consider buying the boomstick book... but I've got it flagged as an item I have
-
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
