@@ -1,4 +1,4 @@
-# Using Z-Tracker
+# Main gameplay features of Z-Tracker
 
 This document has detailed notes about the main UI features of Z-Tracker.
 
@@ -6,12 +6,6 @@ Z-Tracker has two versions - one runs on Windows and one runs on Linux.  The two
 Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
 
 Contents of this document:
-
-- [Startup Page](#startup)
-  - [Heart Shuffle option](#startup-hs)
-  - [Hide Dungeon Numbers option](#startup-hdn)
-  - [Start buttons (choose overworld quest)](#startup-coq)
-  - [Options](#startup-o)
 
 - [General Features](#general)
   - [Popups](#general-popups)
@@ -33,72 +27,12 @@ Contents of this document:
 - [Speech Synthesis (voice reminders)](#speech-synthesis)
 - [Speech Recognition](#speech-recognition)
 
-## <a id="startup"></a> Startup Page
 
-### <a id="startup-hs"></a> Heart Shuffle option
-
-Turning this option off will just cause the first item box of each dungeon to be pre-populated with a Heart Container.
-
-### <a id="startup-hdn"></a> Hide Dungeon Numbers option
-
-(if this is your first time reading this document, skip this section and return to it later)
-
-Enabling this option causes a number of changes in the tracker to help the player deal with this randomizer feature:
- - top area:
-   - the dungeon triforces in the top of the tracker will be labeled ABCDEFGH instead of 12345678
-   - a button above each triforce can be clicked to select that dungeon's Color and Number, once known
-   - clicking the triforce to mark it gotten automatically pops up the Number chooser (and displays the 'triforce decoder diagram')
-   - each dungeon has 3 boxes (some will go unused)
-   - an additional 'triforce summary' appears in the upper right
-      - triforces appear in 1-8 order, this helps the player see the numeric order e.g. when they are trying to recorder-to-next-dungeon 
-      - hint 'halo's are associated with triforce numbers (not letters) and thus appear here by default
- - dungeon area:
-   - the dungeon tabs are labeled ABCDEFGH9
-   - the dungeon tabs and LEVEL- text get the Color of the dungeon
-   - LEVEL-N becomes LEVEL-?, and the rainbow question mark is a button to select a Color for the dungeon
- - other:
-   - the overworld map tiles for dungeons are labeled A-H
-   - the blockers labels are A-H
-   - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
-
-The workflow for the player then becomes:
- - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon
-    - optionally, mark the floor color of the dungeon, by clicking either the '?' in the dungeon tab or the button above that letter's triforce
- - as you get items from the dungeon, mark them in that letter's column
- - when you get the triforce, set the dungeon Number (the Number chooser pops up automatically when you mark the triforce gotten)
- - if you can otherwise deduce with certainty the dungeon Number, set the dungeon number by clicking the button above the triforce
-
-The Color marks are for the player's reference, and have no semantic meaning to the tracker.
-The Number marks have semantics that interact with a number of tracker features, you should set it once known.
-
-
-### <a id="startup-coq"></a> Start buttons (choose overworld quest)
-
-Choose your overworld quest before you begin.  This chooses the correct overworld map drawing & the sets of coordinates that may have locations.
-It also populates the 'Spot Summary' (see below) with the appropriate set of locations you will eventually find.
-
-If you don't know which overworld quest it will be, due to the rando flagset, then select "Mixed - Second Quest".  
-You may need to compensate a small bit if you discover you are in a different quest:
- - coordinate locations A12, D13, and H5 may look different in a non-mixed quest
- - if the seed is actually first-quest, then the Spot Summary...
-    - ...will have 1 extra Door Repair, 1 extra Money Making Game, 2 extra Potion Shops, and 3 extra item shops, and
-    - ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
- - if you discover you are in (unmixed) first quest, consider clicking the HSQ button (see [below](#hfq-hsq))
- - if you discover you are in (unmixed) second quest, consider clicking the HFQ button (see [below](#hfq-hsq))
-
-
-### <a id="startup-o"></a> Options
-
-The options menu appears on the startup page, but most options can be changed later by bringing up the [Options Menu](#main-om) while the application is running.
-
-The only option you need to setup beforehand on the startup screen is Listen for Speech; see [Speech Recognition](#speech-recognition).
-
-
-## <a id="general"></a> General Features
+# <a id="general"></a> General Features
 
 A few commonly-recurring features used throughout the tracker are explained here.
 
-### <a id="general-popups"></a> Popups
+## <a id="general-popups"></a> Popups
 
 Z-Tracker uses popups extensively.  Many types of elements (items, map tiles, dungeon rooms, ...) have lots of possible choices to scroll through; 
 to better visualize all the options, scrolling the mouse-wheel instantly brings up the popup to see all the choices.  You can either just continue 
@@ -109,7 +43,7 @@ and abort making any changes to the element.
 When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
 In certain cases noted below, clicking also activates the popup.
 
-### <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
+## <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
 
 A number of features will highlight tiles on the overworld map to help you quickly visualize locations.  The highlights appear as rectangles around
 overworld map tiles, and they come in three colors:
@@ -128,9 +62,9 @@ but do not yet have a candle, and the "OW spots left" is mouse-hovered to highli
 
 ![GYR screenshot](screenshots/gyr-highlights.png)
 
-## <a id="main"></a> Main Z-Tracker Window
+# <a id="main"></a> Main Z-Tracker Window
 
-### <a id="main-dia"></a> Dungeon Item Area
+## <a id="main-dia"></a> Dungeon Item Area
 
 ![Dungeon Item Area screenshot](screenshots/dungeon-item-area.png)
 
@@ -169,7 +103,7 @@ Most item progress has semantic meaning to the tracker with regards to routing/r
 Note: while you can interact with Triforces and Items in the Dungeon Item Area, in practice you will instead typically interact with these in 
 the [dungeon inset](#dungeon-inset), which provides a duplicate view of each column.
 
-### <a id="main-oia"></a> Other Item Area
+## <a id="main-oia"></a> Other Item Area
 
 ![Other Item Area screenshot](screenshots/other-item-area.png)
 
@@ -226,7 +160,7 @@ Many of the items in this area have behaviors when hovered with the mouse:
   highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
-### <a id="main-link"></a> Link (specific routing)
+## <a id="main-link"></a> Link (specific routing)
 
 Link is here to help guide you on your quest!  Click on Link, select a destination, and the best path(s) from your mouse cursor to the destination
 will be shown on the screen for the next ten seconds.
@@ -243,7 +177,7 @@ show routes to all the remaining accessible lake destinations, as well as highli
 the raft and can't reach the middle of the lake) using [GYR highlights](#general-gyr).
 
 
-### <a id="main-owm"></a> Overworld Map
+## <a id="main-owm"></a> Overworld Map
 
 The overworld is a 16x8 grid of overworld map tiles.  You can choose a mark for each tile using the popup.  In addition to scrolling, right-clicking 
 an unmarked map tile will activate the popup.  Left-clicking a "dark" tile will also activate the popup.  Here is a screenshot of the tile icons:
@@ -326,7 +260,7 @@ Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce
 shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).
 
 
-### <a id="main-dt"></a> Dungeon Tracker
+## <a id="main-dt"></a> Dungeon Tracker
 
 There are 9 tabs for the 9 dungeons.
 
@@ -360,7 +294,7 @@ Dungeon tracking has no semantic meaning to the tracker, and can be used by the 
 
 When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
 
-### <a id="main-dr"></a> Dungeon Rooms
+## <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
 
@@ -441,7 +375,7 @@ marking eight OffTheMap spots appears in this screenshot:
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
 
-### <a id="main-blockers"></a> Blockers
+## <a id="main-blockers"></a> Blockers
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
 You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
@@ -462,13 +396,13 @@ When possible, the tracker will give a reminder when you may be unblocked, for e
 You can toggle whether you get these reminders in the [Options Menu](#main-om).
 
 
-### <a id="main-notes"></a> Notes
+## <a id="main-notes"></a> Notes
 
 This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 to buy a Bomb Upgrade for 128 rupees).
 Unlike scrap paper on your desk, these notes are visible to stream viewers.
 
 
-### <a id="main-timeline"></a> Timeline
+## <a id="main-timeline"></a> Timeline
 
 The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
 Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
@@ -479,7 +413,7 @@ The timeline is non-interactive, it is just a display for capturing progress-ove
 ![Timeline screenshot](screenshots/timeline-example.png)
 
 
-### <a id="main-om"></a> Options Menu
+## <a id="main-om"></a> Options Menu
 
 Above the timeline, there is a button labeled "Options..."  Clicking this button the options menu to popup.
 
@@ -492,7 +426,7 @@ The options pane automatically saves & closes when you click outside the pane, r
 Options are saved automatically to a JSON file, so that next time you use the tracker, it remembers your settings.
 
 
-## <a id="speech-synthesis"></a> Speech Synthesis (voice reminders)
+# <a id="speech-synthesis"></a> Speech Synthesis (voice reminders)
 
 (WPF Only)
 
@@ -502,7 +436,7 @@ You can toggle various categories of voice reminders in the [Options Menu](#main
 Visual icons representing these spoken reminders appear in the upper right corner of the timeline, both on Windows and on Linux.
 You can toggle various categories of visual reminders in the [Options Menu](#main-om).
 
-## <a id="speech-recognition"></a> Speech Recognition
+# <a id="speech-recognition"></a> Speech Recognition
 
 (WPF only)
 

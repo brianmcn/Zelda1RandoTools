@@ -37,17 +37,6 @@ then users can
  - Notes.txt enclosed has detailed information about how it all works, you are welcome to read it or not, feedback both ways is useful, to find out what makes sense versus what is hard to figure out.
     - actually, link to web docs
 
-review other common flagsets from rando, what works, what could work, etc
- - currently assumes these rando flags:
-    - (routing, map legend) whistle to new dungeons & not recorder-to-unbeaten
-    - (reminders) change sword hearts
-    - (reminders/display) 3 starting hearts
-    - (reminders) level 9 requires 8 triforces, go-time needs silvers
-    - not 'Make Important Items Drops' (dunno how to track when a monster drops the red ring and ladder)
- - lack of money/life UI means need to use take-any to adjust hearts (reminders/display)
-Write this all up in Notes.txt
-
-
 
 SMALL
 
