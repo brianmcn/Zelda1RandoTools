@@ -14,35 +14,40 @@ Z-Tracker is designed to work with most of the myriad flags and options availabl
 a few of the more rarely used flags will result in a somewhat degraded experience.
 
 **Flags** that need to be specified at startup time:
+
  - [**Heart Shuffle**](#startup-hs)
  - [**Hide Dungeon Numbers**](#startup-hdn)
  - [**Overworld Quest**](#startup-coq)
-Each is described in more detail in the linked sections below.  Note that **Mirror Overworld** and **Second Quest Dungeons** are supported in the Options Menu, but those options 
+
+Each is described in more detail in the linked sections below.  Note that "**Mirror Overworld**" and "**Second Quest Dungeons**" are supported in the Options Menu, but those options 
 can be changed at any time in the middle of the game, not just at startup.
 
 **Flags** that are not directly supported, and may result in a minor degradation of the experience:
+
  - **Whistle To New Dungeons** is assumed to be checked and **Recorder to Unbeaten Dungeons** is assumed to be un-checked.  If your flags don't meet these conditions, then 
-     - some aspects of [Routing](use.md#routing) will not work properly, consider turning off 'Draw Routes' in the [Options Menu](#startup-o) and avoid using [Link Routing](use.md#main-link)
+     - some aspects of [Routing](use.md#routing) will not work properly: consider turning off 'Draw Routes' in the [Options Menu](#startup-o) and avoid using [Link Routing](use.md#main-link)
      - the map legend and green dungeon icons will suggest the wrong things
  - **Change Sword Hearts** is assumed to be checked, but if it's not checked in your flagset, the only bad side-effect is that you may get e.g. a spurious reminder to "Consider the magical sword"
    when you have 10 hearts, even though you actually need 12 hearts
- - **Starting Hearts** are assumed to be 3; if it's another value, the "Max Hearts" display may be incorrect, and reminders may trigger at the wrong time, as with the previouw bullet
+ - **Starting Hearts** are assumed to be 3; if it's another value, the "Max Hearts" display may be incorrect, and reminders may trigger at the wrong time, as with the previous bullet
  - **Add Money or Life Rooms** is assumed to be un-checked; if you pay to exit such a room with a Heart Container, then the "Max Hearts" display may be wrong, as with the previous bullet
- - **Level 9 Entry** is assumed to be 8 triforces; if it's something else, various "go-time" reminders may not trigger, or trigger incorrectly
+ - **Level 9 Entry** is assumed to be 8 triforces; if it's something else, various "go-time" reminders may not trigger, or may trigger incorrectly
  - **Force Ganon Fight** is assumed to be checked; if not, then "go-time" reminders will erroneously think you need the Silver Arrows
  - **Shuffle Minor Dungeon Drops** and **Make Important Items Drops** are assumed to be un-checked; if they are checked, a single dungeon may yield many key items, and you'll have to distribute 
-   them among the various dungeon's item boxes in the [Dungeon Item Area](use.md#main-dia) however you see fit
+   them among the various dungeon's item boxes in the [Dungeon Item Area](use.md#main-dia) as you see fit
+
 None of these are sufficiently "breaking" to advise against using Z-Tracker, but be aware of the limitations.
 
 
 ## <a id="startup-hs"></a> Heart Shuffle option
 
-Turning this option off will just cause the first item box of each dungeon to be pre-populated with a Heart Container.
+Turning this option off will just cause the first item box of each of the first eight dungeons to be pre-populated with a Heart Container.
 
 
 ## <a id="startup-hdn"></a> Hide Dungeon Numbers option
 
-(if this is your first time reading this document, skip this section and return to it later)
+(If this is your first time reading the Z-Tracker documentation, skip this section and return to it after reading the main [gameplay](use.md) documentation, or after having already 
+used Z-Tracker at least once.)
 
 Enabling this option causes a number of changes in the tracker to help the player deal with this randomizer feature:
  - top area:
@@ -75,8 +80,8 @@ The Number marks have semantics that interact with a number of tracker features,
 
 ## <a id="startup-coq"></a> Start buttons (choose overworld quest)
 
-Choose your overworld quest before you begin.  This chooses the correct overworld map drawing & the sets of coordinates that may have locations.
-It also populates the 'Spot Summary' (see below) with the appropriate set of locations you will eventually find.
+Choose your overworld quest before you begin.  This chooses both the correct overworld map drawing as well as the sets of coordinates that may have entrance locations.
+It also populates the [Spot Summary](use.md#spot-summary) with the appropriate set of locations you will eventually find.
 
 If you don't know which overworld quest it will be, due to the rando flagset, then select "Mixed - Second Quest".  
 You may need to compensate a small bit if you discover you are in a different quest:
@@ -85,7 +90,7 @@ You may need to compensate a small bit if you discover you are in a different qu
     - ...will have 1 extra Door Repair, 1 extra Money Making Game, 2 extra Potion Shops, and 3 extra item shops, and
     - ...will report 1 large and 6 small secrets, when actually there will be 3 large and 4 small secrets
  - if you discover you are in (unmixed) first quest, consider clicking the [HSQ button](use.md#hfq-hsq)
- - if you discover you are in (unmixed) second quest, consider clicking the [HFQ button](use.md#hfq-hsq))
+ - if you discover you are in (unmixed) second quest, consider clicking the [HFQ button](use.md#hfq-hsq)
 
 
 ## <a id="startup-o"></a> Options
