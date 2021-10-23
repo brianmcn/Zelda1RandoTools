@@ -13,6 +13,20 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+should s2/s3 popup description say 4-6/10-14 hearts?
+
+yeff accidentally click white sword cave box, ended up with green empty box, should this state be disallowed?
+
+waterfall should have a minimap marker, for new folks to know how to enter it
+
+weff could not figure out Link (the 10s timeout and not knowing his own location interfered) general routing trouble
+
+weff never used magnifier and kept missing bomb spots
+
+weff tried to click the explainer decoration for 'dont have it'
+
+
+
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
@@ -77,6 +91,7 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
  - Random 9 entry seeds: if you find 9 and the old man at the door tells you some nonsense that means you need all 8 tris to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc. 
  - For making Z-Tracker, send Brian some love on twitch (lorgon) or on twitter (@lorgon111)
  - In 1QL5, the floor drop spawn for 'tee' room is on the island
+ - any roads - 3 staircase go +1/+2/+3 mod 4, if you mark 1-2-3-4 as all lefts
 
 
 dungeon room ui:

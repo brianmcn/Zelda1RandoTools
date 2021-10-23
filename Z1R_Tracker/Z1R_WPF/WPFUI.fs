@@ -1761,42 +1761,39 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, cb, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
 
     // zone overlay
-    let owMapZoneBmps =
+    let owMapZoneColorCanvases, owMapZoneBlackCanvases =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
+        let toBrush(c:System.Drawing.Color) = new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B))
         let colors = 
             dict [
-                'M', avg(System.Drawing.Color.Pink, System.Drawing.Color.Crimson)
-                'L', System.Drawing.Color.BlueViolet 
-                'R', System.Drawing.Color.LightSeaGreen 
-                'H', System.Drawing.Color.Gray
-                'C', System.Drawing.Color.LightBlue 
-                'G', avg(System.Drawing.Color.LightSteelBlue, System.Drawing.Color.SteelBlue)
-                'D', System.Drawing.Color.Orange 
-                'F', System.Drawing.Color.LightGreen 
-                'S', System.Drawing.Color.DarkGray 
-                'W', System.Drawing.Color.Brown
+                'M', avg(System.Drawing.Color.Pink, System.Drawing.Color.Crimson) |> toBrush
+                'L', System.Drawing.Color.BlueViolet |> toBrush
+                'R', System.Drawing.Color.LightSeaGreen |> toBrush
+                'H', System.Drawing.Color.Gray |> toBrush
+                'C', System.Drawing.Color.LightBlue |> toBrush
+                'G', avg(System.Drawing.Color.LightSteelBlue, System.Drawing.Color.SteelBlue) |> toBrush
+                'D', System.Drawing.Color.Orange |> toBrush
+                'F', System.Drawing.Color.LightGreen |> toBrush
+                'S', System.Drawing.Color.DarkGray |> toBrush
+                'W', System.Drawing.Color.Brown |> toBrush
             ]
-        let imgs = Array2D.zeroCreate 16 8
+        let imgs,darks = Array2D.zeroCreate 16 8, Array2D.zeroCreate 16 8
         for x = 0 to 15 do
             for y = 0 to 7 do
-                let tile = new System.Drawing.Bitmap(int OMTW,11*3)
-                for px = 0 to int OMTW-1 do
-                    for py = 0 to 11*3-1 do
-                        tile.SetPixel(px, py, colors.Item(OverworldData.owMapZone.[y].[x]))
-                imgs.[x,y] <- tile
-        imgs
-
+                imgs.[x,y] <- new Canvas(Width=OMTW, Height=float(11*3), Background=colors.Item(OverworldData.owMapZone.[y].[x]), IsHitTestVisible=false)
+                darks.[x,y] <- new Canvas(Width=OMTW, Height=float(11*3), Background=Brushes.Black, IsHitTestVisible=false)
+        imgs, darks
     let owMapZoneGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let allOwMapZoneImages = Array2D.zeroCreate 16 8
+    let allOwMapZoneColorCanvases,allOwMapZoneBlackCanvases = Array2D.zeroCreate 16 8, Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage owMapZoneBmps.[i,j]
-            image.Opacity <- 0.0
-            image.IsHitTestVisible <- false // transparent to mouse
-            allOwMapZoneImages.[i,j] <- image
-            let c = new Canvas(Width=OMTW, Height=float(11*3))
-            canvasAdd(c, image, 0., 0.)
-            gridAdd(owMapZoneGrid, c, i, j)
+            let zcc,zbc = owMapZoneColorCanvases.[i,j], owMapZoneBlackCanvases.[i,j]
+            zcc.Opacity <- 0.0
+            zbc.Opacity <- 0.0
+            allOwMapZoneColorCanvases.[i,j] <- zcc
+            allOwMapZoneBlackCanvases.[i,j] <- zbc
+            gridAdd(owMapZoneGrid, zcc, i, j)
+            gridAdd(owMapZoneGrid, zbc, i, j)
     canvasAdd(overworldCanvas, owMapZoneGrid, 0., 0.)
 
     let owMapZoneBoundaries = ResizeArray()
@@ -1860,11 +1857,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
         if show then
             if noZone then 
-                allOwMapZoneImages |> Array2D.iteri (fun _x _y image -> image.Opacity <- 0.3)
+                allOwMapZoneColorCanvases |> Array2D.iteri (fun _x _y zcc -> zcc.Opacity <- 0.3)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
             zoneNames |> Seq.iter (fun (hz,textbox) -> if noZone || hz=hintZone then textbox.Opacity <- 0.6)
         else
-            allOwMapZoneImages |> Array2D.iteri (fun _x _y image -> image.Opacity <- 0.0)
+            allOwMapZoneColorCanvases |> Array2D.iteri (fun _x _y zcc -> zcc.Opacity <- 0.0)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
             zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -1904,7 +1901,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         routeDrawingCanvas.Children.Clear()
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
             // have hint, so draw that zone...
-            if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(hinted_zone,true)
+            let inZone = Array2D.init 16 8 (fun x y -> OverworldData.owMapZone.[y].[x] = hinted_zone.AsDataChar())
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    if not(inZone.[x,y]) then
+                        allOwMapZoneBlackCanvases.[x,y].Opacity <- 0.7
+            let isZone(x,y) = inZone.[max 0 (min 15 x), max 0 (min 7 y)]  // if x or y out of bounds, grab nearby in-bounds value
+            let ST, OFF, COLOR = 3., 3./2., Brushes.LightGray
+            for x = 0 to 15 do
+                for y = 0 to 7 do
+                    let mkLine(x1,y1,x2,y2) = 
+                        let line = new Shapes.Line(X1=x1, Y1=y1, X2=x2, Y2=y2, Stroke=COLOR, StrokeThickness=ST, IsHitTestVisible=false)
+                        line.StrokeDashArray <- new DoubleCollection( seq[1.; 1.5] )
+                        line
+                    if isZone(x,y) && not(isZone(x-1,y)) then  // left
+                        let line = mkLine(OMTW*float(x)-OFF, float(y*11*3), OMTW*float(x)-OFF, float((y+1)*11*3))
+                        canvasAdd(owLocatorCanvas, line, 0., 0.)
+                    if isZone(x,y) && not(isZone(x+1,y)) then  // right
+                        let line = mkLine(OMTW*float(x+1)+OFF, float(y*11*3), OMTW*float(x+1)+OFF, float((y+1)*11*3))
+                        canvasAdd(owLocatorCanvas, line, 0., 0.)
+                    if isZone(x,y) && not(isZone(x,y-1)) then  // top
+                        let line = mkLine(OMTW*float(x), float(y*11*3)-OFF, OMTW*float(x+1), float(y*11*3)-OFF)
+                        canvasAdd(owLocatorCanvas, line, 0., 0.)
+                    if isZone(x,y) && not(isZone(x,y+1)) then  // bottom
+                        let line = mkLine(OMTW*float(x), float((y+1)*11*3)+OFF, OMTW*float(x+1), float((y+1)*11*3)+OFF)
+                        canvasAdd(owLocatorCanvas, line, 0., 0.)
             for i = 0 to 15 do
                 for j = 0 to 7 do
                     // ... and highlight all undiscovered tiles
@@ -1997,6 +2018,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         )
     hideLocator <- (fun () ->
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
+        allOwMapZoneBlackCanvases |> Array2D.iteri (fun _x _y zbc -> zbc.Opacity <- 0.0)
         for i = 0 to 15 do
             for j = 0 to 7 do
                 owLocatorTilesZone.[i,j].Hide()
