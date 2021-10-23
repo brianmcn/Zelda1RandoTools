@@ -402,8 +402,8 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "AnyRoad2"         , 1                                                  , "Any Road 2/4"
     "AnyRoad3"         , 1                                                  , "Any Road 3/4"
     "AnyRoad4"         , 1                                                  , "Any Road 4/4"
-    "Sword3"           , 1                                                  , "Magical Sword Cave"
-    "Sword2"           , 1                                                  , "White Sword Cave"
+    "Sword3"           , 1                                                  , "Magical Sword Cave\n(10-14 hearts to lift)"
+    "Sword2"           , 1                                                  , "White Sword Cave\n(4-6 hearts to lift)"
     "Sword1"           , 1                                                  , "Wood Sword Cave"
     // 1Q has 12 shops, distributed 4,4,3,1                                
     // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         

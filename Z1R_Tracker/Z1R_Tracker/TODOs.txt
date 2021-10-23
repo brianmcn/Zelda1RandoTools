@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-should s2/s3 popup description say 4-6/10-14 hearts?
-
 yeff accidentally click white sword cave box, ended up with green empty box, should this state be disallowed?
 
 waterfall should have a minimap marker, for new folks to know how to enter it
@@ -30,6 +28,8 @@ Would a thin black border on GYR highlights look good or bad (and louder (bad) o
 
 
 add documenattion to ensure emulator takes input without focus, as ZTracker needs focus
+
+docs for broadcast window needing to be onscreen (physical display) for obs to work (but behind main app is ok) (show desktop screenshot)
 
 
 
