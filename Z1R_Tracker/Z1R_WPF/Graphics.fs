@@ -150,7 +150,8 @@ let darkenImpl pct (bmp:System.Drawing.Bitmap) =
     r
 let darken(bmp:System.Drawing.Bitmap) =
     darkenImpl 0.5 bmp
-
+let mediaColor(c:System.Drawing.Color) =
+    Media.Color.FromArgb(c.A, c.R, c.G, c.B)
 
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
@@ -167,14 +168,20 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
-type TileHighlightRectangle() =
+type TileHighlightRectangle() as this =
     (*
     // full rectangles badly obscure routing paths, so we just draw corners
     let L1,L2,R1,R2 = 2.+0.0, 2.+(OMTW-4.)/2.-6., 2.+(OMTW-4.)/2.+6., 2.+OMTW-4.
     let T1,T2,B1,B2 = 2.+0.0, 2.+10.0, 2.+19.0, 2.+29.0
     *)
+    let green = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50)))
+    let yellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50)))
+    let red = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50)))
+    let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65)))
+    let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
+    let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
     let shapes = [|
-        new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=4.,Opacity=1.0,IsHitTestVisible=false)
+        new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
         (*
         new Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
         new Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=T1, Y2=T2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
@@ -186,12 +193,14 @@ type TileHighlightRectangle() =
         new Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
         *)
         |]
-    member _this.MakeRed() = for s in shapes do (s.Stroke <- Brushes.Red; s.Opacity <- 0.7)
-    member _this.MakeYellow() = for s in shapes do (s.Stroke <- Brushes.Yellow; s.Opacity <- 0.75)
-    member _this.MakeGreen() = for s in shapes do (s.Stroke <- Brushes.Lime; s.Opacity <- 0.55)
-    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- Brushes.Red; s.Opacity <- 0.35)
-    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- Brushes.Yellow; s.Opacity <- 0.4)
-    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- Brushes.Lime; s.Opacity <- 0.3)
+    do
+        this.MakeGreen()
+    member _this.MakeRed() = for s in shapes do (s.Stroke <- red; s.Opacity <- 1.0) //Brushes.Red; s.Opacity <- 0.7)
+    member _this.MakeYellow() = for s in shapes do (s.Stroke <- yellow; s.Opacity <- 1.0) //Brushes.Yellow; s.Opacity <- 0.75)
+    member _this.MakeGreen() = for s in shapes do (s.Stroke <- green; s.Opacity <- 1.0) //Brushes.Lime; s.Opacity <- 0.55)
+    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- palered; s.Opacity <- 1.0) //Brushes.Red; s.Opacity <- 0.35)
+    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- paleyellow; s.Opacity <- 1.0) //Brushes.Yellow; s.Opacity <- 0.4)
+    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- palegreen; s.Opacity <- 1.0) //Brushes.Lime; s.Opacity <- 0.3)
     member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
     member _this.Shapes = shapes
 

@@ -15,8 +15,6 @@ CURRENT PRIORITIES
 
 yeff accidentally click white sword cave box, ended up with green empty box, should this state be disallowed?
 
-waterfall should have a minimap marker, for new folks to know how to enter it
-
 weff could not figure out Link (the 10s timeout and not knowing his own location interfered) general routing trouble
 
 weff never used magnifier and kept missing bomb spots
@@ -24,10 +22,9 @@ weff never used magnifier and kept missing bomb spots
 weff tried to click the explainer decoration for 'dont have it'
 
 
-Would a thin black border on GYR highlights look good or bad (and louder (bad) or quieter (good))? And how does it look at 2/3 and 1/3 size?
-
-
 add documenattion to ensure emulator takes input without focus, as ZTracker needs focus
+
+broadcast/obs notes (consider turning off obs mouse capture if using broadcast)
 
 docs for broadcast window needing to be onscreen (physical display) for obs to work (but behind main app is ok) (show desktop screenshot)
 
