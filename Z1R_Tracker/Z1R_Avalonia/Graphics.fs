@@ -373,7 +373,7 @@ let dungeonRoomFloorDrops, dungeonRoomMonsters =
     a.[0..7], a.[8..]
 
 let overworldImage =
-    let imageStream = GetResourceStream("s_map_overworld_strip8.png")
+    let imageStream = GetResourceStream("s_map_overworld_vanilla_strip8.png")
     // 8 maps in here: 1st quest, 2nd quest, 1st quest with mixed secrets, 2nd quest with mixed secrets, and then horizontal-reflected versions of each of those
     new System.Drawing.Bitmap(imageStream)
 let zhMapIcons =

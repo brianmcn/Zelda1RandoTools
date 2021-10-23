@@ -45,7 +45,7 @@ let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Can
 let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owGettableScreensTextBox = new TextBox(Width=80., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
-let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox)
+let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox, IsChecked=true)
 let ensureRespectingOwGettableScreensCheckBox() =
     if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
@@ -691,6 +691,44 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                 else
                                     c
                             bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
+            // make the entrances 'pop'
+            let POP = 1  // width of border
+            // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
+            for x = 1 to 14 do
+                for y = 1 to 9 do
+                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                    let border = 
+                        if c.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // black open cave
+                            let c2 = owMapBMPs.[i,j].GetPixel((x-1)*3, y*3)
+                            if c2.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // also black to the left, this is vanilla 6 two-wide entrance, only show one
+                                None
+                            else
+                                Some(System.Drawing.Color.FromArgb(0xFF,0x00,0xCC,0xCC))
+                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0x00,0xFF,0xFF).ToArgb() then  // cyan bomb spot
+                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF,0x00).ToArgb() then  // yellow recorder spot
+                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0x00).ToArgb() then  // red burn spot
+                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0xFF).ToArgb() then  // magenta pushblock spot
+                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                        else
+                            None
+                    match border with
+                    | Some bc -> 
+                        // thin black outline
+                        for px = x*int ENLARGE - POP - 1 to (x+1)*int ENLARGE - 1 + POP + 1 do
+                            for py = y*int ENLARGE - POP - 1 to (y+1)*int ENLARGE - 1 + POP + 1 do
+                                bmp.SetPixel(px, py, System.Drawing.Color.Black)
+                        // border color
+                        for px = x*int ENLARGE - POP to (x+1)*int ENLARGE - 1 + POP do
+                            for py = y*int ENLARGE - POP to (y+1)*int ENLARGE - 1 + POP do
+                                bmp.SetPixel(px, py, bc)
+                        // inner actual pixel
+                        for px = x*int ENLARGE to (x+1)*int ENLARGE - 1 do
+                            for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
+                                bmp.SetPixel(px, py, c)
+                    | None -> ()
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()

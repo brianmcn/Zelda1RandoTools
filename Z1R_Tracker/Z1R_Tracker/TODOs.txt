@@ -26,6 +26,12 @@ weff never used magnifier and kept missing bomb spots
 weff tried to click the explainer decoration for 'dont have it'
 
 
+Would a thin black border on GYR highlights look good or bad (and louder (bad) or quieter (good))? And how does it look at 2/3 and 1/3 size?
+
+
+add documenattion to ensure emulator takes input without focus, as ZTracker needs focus
+
+
 
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
