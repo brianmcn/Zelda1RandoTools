@@ -279,8 +279,8 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        let tb = new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen at any time\n",
-                                IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        let tb = new TextBox(Text="Note: once you start, you can click the 'start spot' icon\nin the legend to mark your start screen at any time",
+                                IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
         stackPanel.Children.Add(tb) |> ignore
 
         let mutable startButtonHasBeenClicked = false
@@ -339,6 +339,15 @@ type MyWindow() as this =
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                 })
             )
+
+        let tipsp = new StackPanel(Orientation=Orientation.Vertical)
+        let tb = new TextBox(Text="Random tip:", FontSize=14., IsReadOnly=true, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, BorderThickness=Thickness(0.))
+        tipsp.Children.Add(tb) |> ignore
+        let tipText = DungeonData.factoids.[ System.Random().Next(DungeonData.factoids.Length) ]
+        let tb = new TextBox(Text=tipText, FontSize=14., IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, TextWrapping=TextWrapping.Wrap, BorderThickness=Thickness(0.))
+        tipsp.Children.Add(tb) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 50., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore

@@ -423,7 +423,7 @@ let overworldImage =
 //        "s_map_overworld_zones_strip8.png"
         |]
     let file = files.[(new System.Random()).Next(files.Length)]
-    printfn "selecting overworld file %s" file
+//    printfn "selecting overworld file %s" file
     let imageStream = GetResourceStream(file)
     new System.Drawing.Bitmap(imageStream)
 let zhMapIcons =

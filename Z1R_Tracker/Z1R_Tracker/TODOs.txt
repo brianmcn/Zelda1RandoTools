@@ -13,8 +13,11 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-weff tried to click the explainer decoration for 'dont have it'
+consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
 
+factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
+ - verify them
+ - add more ZT ones
 
 
 
@@ -58,27 +61,6 @@ would 'combat' blocker be better if like had, pols voice, blue darknuts, blue wi
 
 is there a way to (non-HDN) 'show' the #floor-v-#basement items for each dungeon (teach)?
 could white/magical sword have an on-hover that shows it takes 4-6(5) or 10-14(12) to lift each (teach)?
-
-factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
- - a room with a gleeok cannot have a push block
- - Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Minor exception to the above:  Zelda can be in any room adjacent to Gannon, even if there are multiple shutter doors adjacent to Gannon. 
- - free door/bomb hole from overworld; free door/bomb hole from up-a-ing from a room where you opened that side (via bomb (shutter?))
- - khanana key explanation
- - could be tracker tips, like hover a triforce to see its known/hinted location on the map (shop 2nd item, hover candle progress bar, ...)
- - if a room has a shutter door, the push block cannot reveal a new staircase (just will open the shutter if pushable)
- - each seed has its own three fixed small/medium/large secret values, where the possible ranges are 1-20/25-40/50-150 rupees
- - when playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with bomb explosions (is this true?)
- - room 'five pairs' only drops in dungeon 1 in 1Q Shapes
- - sometimes 2 blue potions is cheaper than a red one. buying a blue when you have a blue turns it red
- - if a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not enough space on A15 to land.
- - something explaining 'whittling' rooms and enemies
- - if you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (traps & bubbles are considered enemies)
- - up-a-continue during fairy fountain refill returns to start screen with full health (but, up-a-continue during the refill will NOT remove a red-bubble-curse)
- - bomb upgrade dude never has a bombable north wall
- - Random 9 entry seeds: if you find 9 and the old man at the door tells you some nonsense that means you need all 8 tris to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc. 
- - For making Z-Tracker, send Brian some love on twitch (lorgon) or on twitter (@lorgon111)
- - In 1QL5, the floor drop spawn for 'tee' room is on the island
- - any roads - 3 staircase go +1/+2/+3 mod 4, if you mark 1-2-3-4 as all lefts
 
 
 dungeon room ui:

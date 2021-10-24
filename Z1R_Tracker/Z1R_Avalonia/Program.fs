@@ -144,7 +144,7 @@ type MyWindow() as this =
         let options = OptionsMenu.makeOptionsCanvas(false)
         stackPanel.Children.Add(options) |> ignore
 
-        let tb = dock <| new TextBox(Text="\nNote: once you start, you can click the\n'start spot' icon in the legend\nto mark your start screen at any time\n",IsReadOnly=true, Margin=spacing, MaxWidth=300.)
+        let tb = dock <| new TextBox(Text="Note: once you start, you can click the 'start spot' icon\n in the legend to mark your start screen at any time", IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=300.)
         stackPanel.Children.Add(tb) |> ignore
         let Quests = [|
                 "First Quest Overworld"
@@ -183,6 +183,14 @@ type MyWindow() as this =
                         this.Content <- cm.RootCanvas
                     })
                 )
+        let tipsp = new StackPanel(Orientation=Orientation.Vertical)
+        let tb = new TextBox(Text="Random tip:", FontSize=12., IsReadOnly=true, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, BorderThickness=Thickness(0.))
+        tipsp.Children.Add(tb) |> ignore
+        let tipText = DungeonData.factoids.[ System.Random().Next(DungeonData.factoids.Length) ]
+        let tb = new TextBox(Text=tipText, FontSize=12., IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, TextWrapping=TextWrapping.Wrap, BorderThickness=Thickness(0.))
+        tipsp.Children.Add(tb) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 50., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Gray, Width=WIDTH*2./3.)) |> ignore
+
         hstackPanel.Children.Add(stackPanel) |> ignore
     member this.Update(f10Press) =
         // update time
