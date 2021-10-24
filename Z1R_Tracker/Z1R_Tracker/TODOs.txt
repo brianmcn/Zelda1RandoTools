@@ -22,12 +22,6 @@ weff never used magnifier and kept missing bomb spots
 weff tried to click the explainer decoration for 'dont have it'
 
 
-add documenattion to ensure emulator takes input without focus, as ZTracker needs focus
-
-broadcast/obs notes (consider turning off obs mouse capture if using broadcast)
-
-docs for broadcast window needing to be onscreen (physical display) for obs to work (but behind main app is ok) (show desktop screenshot)
-
 
 
 test & evaluate new dungeon room ui:

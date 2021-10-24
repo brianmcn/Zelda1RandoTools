@@ -47,23 +47,25 @@ There is no support for saving in-progress game data; the tool is currently desi
 ## <a id="broadcast-window"></a> Broadcast Window (WPF only)
 
 On the [Options Menu](use.md#main-om), you can opt into a 'broadcast window'.  This causes a separate, not-as-tall (squarer) window to appear; the new window is designed 
-for stream-capture, for streamers who think the Z-Tracker app is too tall for their stream layout.  The broadcast window has two possible displays: one is 
-overworld-focused, and the other is dungeon-map focused.  The broadcast window will automatically switch between views depending upon if your mouse is in 
+for stream-capture, for streamers who think the Z-Tracker app is too tall for their stream layout.  The broadcast window switches dynamically between two possible displays: 
+one is overworld-focused, and the other is dungeon-map focused.  The broadcast window will automatically switch between views depending upon if your mouse is in 
 the upper portion or the lower portion of the main Z-Tracker window.  The broadcast window is not interactive - it does not respond to mouse clicks, and is 
-only a display.  Thus, you use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main interactive Z-Tracker 
-window, you instead capture the shorter broadcast window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
+only a display.  Thus, you use the main Z-Tracker window exactly as your normally would, but rather than have your stream capture the main, tall, interactive Z-Tracker 
+window, you instead capture the shorter Broadcast Window, and it will automatically show the correct subset of the view to your viewers, based on your mousing.
 
-when mouse in upper portion:
+sample display when mouse in upper portion:
 
 ![Broadcast overworld screenshot](screenshots/broadcast-overworld.png) 
 
-when mouse in lower portion:
+sample display when mouse in lower portion:
 
 ![Broadcast dungeon screenshot](screenshots/broadcast-dungeon.png)
 
 The broadcast window also has an option to be 2/3 size or 1/3 size (512 or 256 pixels wide, rather than 768 pixels wide).  
 Capturing these exact sizes 1:1 in your stream layout can help keep a bit of the pixel art 'crisp' in a smaller area for your stream, and may look better than 
 using OBS to downscale your screen capture of the broadcast window to some arbitrary-but-similar size.
+
+If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Tracker with OBS](stream-capture.md) document for a number of useful tips.
 
 
 ## <a id="window-size"></a> Window Size (WPF only)
