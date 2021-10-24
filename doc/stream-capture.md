@@ -17,7 +17,7 @@ Since the streamer's physical display real estate is typically at a premium, one
 This way it remains on the drawing surface of your desktop (to get drawing updates that OBS can capture), but also does not take up extra visible screen real estate (since it's behind another 
 window).  Here is an example:
 
-![sample streamer desktop layout screenshot](sample-desktop-layout.png)
+![sample streamer desktop layout screenshot](screenshots/sample-desktop-layout.png)
 
 (In this example, OBS and my twitch channel dashboard are on a second monitor.)  The main application window is fully visible to the streamer on the right hand side.  Just slightly down 
 and left of it, you can see the Broadcast Window peeking out from behind.  Leaving an edge peeking out makes it possible for the streamer to see at a glance if the upper 'overworld view' or 
