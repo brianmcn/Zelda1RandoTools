@@ -181,11 +181,32 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         dungeonTabs.Height <- contentCanvas.Height + 30.   // ok to set this 9 times
         tabItems.Add(levelTab)
 
+        let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas) =
+            doorCanvas.PointerPressed.Add(fun ea ->
+                let pp = ea.GetCurrentPoint(doorCanvas)
+                if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                    if pp.Properties.IsLeftButtonPressed then
+                        if door.State <> Dungeon.DoorState.YES then
+                            door.State <- Dungeon.DoorState.YES
+                        else
+                            door.State <- Dungeon.DoorState.UNKNOWN
+                    elif pp.Properties.IsRightButtonPressed then
+                        if door.State <> Dungeon.DoorState.NO then
+                            door.State <- Dungeon.DoorState.NO
+                        else
+                            door.State <- Dungeon.DoorState.UNKNOWN
+                    elif pp.Properties.IsMiddleButtonPressed then
+                        if door.State <> Dungeon.DoorState.LOCKED then
+                            door.State <- Dungeon.DoorState.LOCKED
+                        else
+                            door.State <- Dungeon.DoorState.UNKNOWN
+                )
+
         // horizontal doors
         let unknown = Dungeon.unknown
         let no = Dungeon.no
         let yes = Dungeon.yes
-        let blackedOut = Dungeon.blackedOut
+        let locked = Dungeon.locked
         let horizontalDoors = Array2D.zeroCreate 7 8
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -197,25 +218,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
-                    | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 horizontalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
-                let left _ =        
-                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if door.State <> Dungeon.DoorState.YES then
-                            door.State <- Dungeon.DoorState.YES
-                        else
-                            door.State <- Dungeon.DoorState.UNKNOWN
-                let right _ = 
-                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if door.State <> Dungeon.DoorState.NO then
-                            door.State <- Dungeon.DoorState.NO
-                        else
-                            door.State <- Dungeon.DoorState.UNKNOWN
-                d.PointerPressed.Add(fun ea -> 
-                    if ea.GetCurrentPoint(appMainCanvas).Properties.IsLeftButtonPressed then (left())
-                    elif ea.GetCurrentPoint(appMainCanvas).Properties.IsRightButtonPressed then (right()))
+                installDoorBehavior(door, d)
         // vertical doors
         let verticalDoors = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
@@ -228,25 +235,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
-                    | Dungeon.DoorState.BLACKEDOUT -> rect.Stroke <- blackedOut; rect.Fill <- blackedOut; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 verticalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
-                let left _ =
-                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if door.State <> Dungeon.DoorState.YES then
-                            door.State <- Dungeon.DoorState.YES
-                        else
-                            door.State <- Dungeon.DoorState.UNKNOWN
-                let right _ = 
-                    if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
-                        if door.State <> Dungeon.DoorState.NO then
-                            door.State <- Dungeon.DoorState.NO
-                        else
-                            door.State <- Dungeon.DoorState.UNKNOWN
-                d.PointerPressed.Add(fun ea -> 
-                    if ea.GetCurrentPoint(appMainCanvas).Properties.IsLeftButtonPressed then (left())
-                    elif ea.GetCurrentPoint(appMainCanvas).Properties.IsRightButtonPressed then (right()))
+                installDoorBehavior(door, d)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = masterRoomStates.[level-1]

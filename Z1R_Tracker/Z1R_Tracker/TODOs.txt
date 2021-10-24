@@ -13,10 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-weff could not figure out Link (the 10s timeout and not knowing his own location interfered) general routing trouble
-
-weff never used magnifier and kept missing bomb spots
-
 weff tried to click the explainer decoration for 'dont have it'
 
 
@@ -28,7 +24,6 @@ test & evaluate new dungeon room ui:
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
 hotkey testing, hotkey writeup in Notes
- - test two different keyboard keys map to same value
  - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
  - any consideration of spacebar or capital-letter-distiguishing?
 
@@ -49,10 +44,7 @@ then users can
 
 SMALL
 
-Marc: It occurs to me that with popup choosers now easy, an option for the future might be to put door details on scroll/middle-click, preserving the current UI 
-for the common cases but allowing to mark wild details for people who really want to. Obviously that would require design in how to represent them visually.
- - left click a non-green could still always mean green, right click a non-red could still always mean red
- - scrollwheel could popup (middle click could maybe cycle thru all, but does not seem very useful compared to scroll/popup)
+Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
 should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
 

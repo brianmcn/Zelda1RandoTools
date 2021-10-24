@@ -8,10 +8,10 @@ open System.Windows
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
 let no = new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy)) :> Brush
 let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush
-let blackedOut = new SolidColorBrush(Color.FromRgb(15uy, 15uy, 25uy))  :> Brush
+let locked = new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy))  :> Brush
 
 [<RequireQualifiedAccess>]
-type DoorState = | UNKNOWN | NO | YES | BLACKEDOUT
+type DoorState = | UNKNOWN | NO | YES | LOCKED
 
 type Door(state:DoorState, redraw) =
     let mutable state = state
@@ -95,7 +95,7 @@ type GrabHelper() =
                         roomStates.[x,y] <- oldRoomStates.[i,j]
                         roomIsCircled.[x,y] <- oldRoomIsCircled.[i,j]
                         let do_door(target:Door[,], x, y, source:DoorState[,], i, j) =
-                            if source.[i,j] = DoorState.YES || source.[i,j] = DoorState.NO then
+                            if source.[i,j] <> DoorState.UNKNOWN then
                                 target.[x,y].State <- source.[i,j]
                         if x<7 && i<7 then
                             do_door(horizontalDoors,x,y,oldHorizontalDoors,i,j)  // door right of room
