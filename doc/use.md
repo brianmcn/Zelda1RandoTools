@@ -269,10 +269,12 @@ There are 9 tabs for the 9 dungeons.
 ![Dungeon inset screenshot](screenshots/dungeon-inset.png)
 
 Doors between rooms are simple, and have four states:
+
  - dark gray is unknown (default)
  - green (left click) is "can go" (used for most kinds of doors/shutters/bombholes/etc)
  - red (right click) is "cannot go" (e.g. unbombable wall)
  - yellow (middle click) is "maybe" (you likely might use it for locked doors, or perhaps one-ways or shutters, up to you)
+
 Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green door) toggles it back into unknown gray.
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).
