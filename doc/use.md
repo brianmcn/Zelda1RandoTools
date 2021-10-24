@@ -383,6 +383,7 @@ marking eight OffTheMap spots appears in this screenshot:
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
 You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
+
  - Sword:       you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
  - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
  - Recorder:    you are blocked by Digdogger
@@ -390,13 +391,16 @@ You can mark up to 2 blockers per dungeon.  The icons have these suggested meani
  - Bait:        there's a hungry Goriya blocking you
  - Key:         you need more keys
  - Bomb:        you need to find more explosion walls
+
 The list of all these icons appears in a popup.  In addition to scrolling, clicking a blocker box will activate the popup.  
 
 ![Blockers screenshot](screenshots/blockers.png)
 
 When possible, the tracker will give a reminder when you may be unblocked, for example, if you marked 5 with a ladder block, then when you obtain the ladder:
+
  - (WPF Only) voice reminder: "Now that you have the ladder, consider dungeon 5" 
  - visual reminder:  (ladder icon) (right-arrow) (dungeon 5 icon)
+
 You can toggle whether you get these reminders in the [Options Menu](#main-om).
 
 
