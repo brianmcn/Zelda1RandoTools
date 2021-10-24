@@ -13,7 +13,7 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-yeff accidentally click white sword cave box, ended up with green empty box, should this state be disallowed?
+weff accidentally click white sword cave box, ended up with green empty box, should this state be disallowed?
 
 weff could not figure out Link (the 10s timeout and not knowing his own location interfered) general routing trouble
 
