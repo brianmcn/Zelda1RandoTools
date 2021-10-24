@@ -344,7 +344,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     let onClick(ea:Input.PointerPressedEventArgs,ident) =
         let pp = ea.GetCurrentPoint(cm.AppMainCanvas)
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
-        DismissPopupWithResult(ident, MouseButtonEventArgsToPlayerHas pp)
+        DismissPopupWithResult(ident, if ident = -1 then TrackerModel.PlayerHas.NO else MouseButtonEventArgsToPlayerHas pp)
     let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
     let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
     let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
