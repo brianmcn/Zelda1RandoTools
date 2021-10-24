@@ -25,8 +25,9 @@ let makeLine(v1,v2,color) =
     let line = new Shapes.Line(StartPoint=Point(x1,y1), EndPoint=Point(x2,y2), Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
     line
 
-let MaxYGH = 12 // default
-let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, fadeOut, maxYellowGreenHighlights) = 
+let MaxGYR = 12 // default
+let All = 128
+let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
@@ -105,9 +106,10 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         if ok then
                             let (cost,_preds) = r
                             pq.Enqueue(cost, (i,j))
-        // highlight cheapest N unmarked
-        let N = maxYellowGreenHighlights
-        if N > 0 then
+        let N = maxBoldGYR
+        let M = maxPaleGYR
+        // bold highlight cheapest N unmarked, pale highlight next cheapest M unmarked
+        if N+M > 0 then
             let toHighlight = ResizeArray()
             let rec iterate(N,recentCost) =
                 if not pq.IsEmpty then
@@ -115,7 +117,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                     if N > 0 || nextCost = recentCost then
                         toHighlight.Add(i,j,true)
                         iterate(N-1,nextCost)
-                    elif N > -maxYellowGreenHighlights then
+                    elif N > -M then
                         toHighlight.Add(i,j,false)
                         iterate(N-1,999999)
             if not pq.IsEmpty then

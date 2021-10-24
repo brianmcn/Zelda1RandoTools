@@ -193,14 +193,17 @@ type TileHighlightRectangle() as this =
         new Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
         *)
         |]
+    let Draw(s:Shapes.Rectangle, isPale) =
+        s.Opacity <- 1.0
+        s.StrokeThickness <- if isPale then 2.0 else 4.0
     do
         this.MakeGreen()
-    member _this.MakeRed() = for s in shapes do (s.Stroke <- red; s.Opacity <- 1.0) //Brushes.Red; s.Opacity <- 0.7)
-    member _this.MakeYellow() = for s in shapes do (s.Stroke <- yellow; s.Opacity <- 1.0) //Brushes.Yellow; s.Opacity <- 0.75)
-    member _this.MakeGreen() = for s in shapes do (s.Stroke <- green; s.Opacity <- 1.0) //Brushes.Lime; s.Opacity <- 0.55)
-    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- palered; s.Opacity <- 1.0) //Brushes.Red; s.Opacity <- 0.35)
-    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- paleyellow; s.Opacity <- 1.0) //Brushes.Yellow; s.Opacity <- 0.4)
-    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- palegreen; s.Opacity <- 1.0) //Brushes.Lime; s.Opacity <- 0.3)
+    member _this.MakeRed() = for s in shapes do (s.Stroke <- red; Draw(s,false)) //Brushes.Red; s.Opacity <- 0.7)
+    member _this.MakeYellow() = for s in shapes do (s.Stroke <- yellow; Draw(s,false)) //Brushes.Yellow; s.Opacity <- 0.75)
+    member _this.MakeGreen() = for s in shapes do (s.Stroke <- green; Draw(s,false)) //Brushes.Lime; s.Opacity <- 0.55)
+    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- palered; Draw(s,true)) //Brushes.Red; s.Opacity <- 0.35)
+    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- paleyellow; Draw(s,true)) //Brushes.Yellow; s.Opacity <- 0.4)
+    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- palegreen; Draw(s,true)) //Brushes.Lime; s.Opacity <- 0.3)
     member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
     member _this.Shapes = shapes
 
