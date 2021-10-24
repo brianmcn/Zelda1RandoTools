@@ -319,6 +319,7 @@ let itemBoxMouseButtonExplainerDecoration =
         p.Children.Add(tb) |> ignore
         sp.Children.Add(p) |> ignore
     let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=d)
+    b.PointerPressed.Add(fun ea -> ea.Handled <- true)  // absorb mouse clicks, so that clicking explainer decoration does not dismiss popup due to being outside-the-area click
     let fe : Control = upcast b
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)

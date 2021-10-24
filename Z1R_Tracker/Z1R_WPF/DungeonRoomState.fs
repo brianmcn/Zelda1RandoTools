@@ -405,6 +405,7 @@ let dungeonRoomMouseButtonExplainerDecoration =
         p.Children.Add(tb) |> ignore
         sp.Children.Add(p) |> ignore
     let b = new Border(Background=Brushes.Black, BorderThickness=Thickness(ST), BorderBrush=Brushes.DimGray, Child=d)
+    b.MouseDown.Add(fun ea -> ea.Handled <- true)  // absorb mouse clicks, so that clicking explainer decoration does not dismiss popup due to being outside-the-area click
     b
 
 let dungeonRoomMouseButtonExplainerDecoration2 =
@@ -435,6 +436,7 @@ let dungeonRoomMouseButtonExplainerDecoration2 =
         p.Children.Add(tb) |> ignore
         sp.Children.Add(p) |> ignore
     let b = new Border(Background=Brushes.Black, BorderThickness=Thickness(ST), BorderBrush=Brushes.DimGray, Child=d)
+    b.MouseDown.Add(fun ea -> ea.Handled <- true)  // absorb mouse clicks, so that clicking explainer decoration does not dismiss popup due to being outside-the-area click
     b
                 
 let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
