@@ -118,7 +118,7 @@ the [dungeon inset](#dungeon-inset), which provides a duplicate view of each col
 
 **Boomstick Book** - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 
-**Ganon/Zelda** - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section
+**Ganon/Zelda** - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section and pause the timer
 
 **4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X); rather than mark these directly, these are 
 typically interacted with via the [take any accelerator](#take-any-accelerator) on the overworld map

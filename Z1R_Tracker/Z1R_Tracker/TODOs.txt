@@ -20,7 +20,6 @@ factoids for 'loading ui screen':   (try to incorporate icon graphics? delighter
  - add more ZT ones
 
 
-
 test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
@@ -31,10 +30,12 @@ hotkey testing, hotkey writeup in Notes
  - any consideration of spacebar or capital-letter-distiguishing?
 
 distributing version process
+ - for a full release, change the version number in OverworldData.fs, and then find that commit in history and tag it e.g. "v0.992" in git, so can link docs? or make a branch?
  - delete entire Relase directory
      - get rid of hotkeys/settings/crash log
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
+ - edit Notes.txt to point to point-in-time doc URL? or branch URL?
  - delete ZTracker.lnk (has my machine's paths hardcoded)
  - zip up directory
 then users can

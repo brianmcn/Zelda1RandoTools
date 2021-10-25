@@ -467,7 +467,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // mark the dungeon wins on timeline via ganon/zelda boxes
     gridAddTuple(owItemGrid, basicBoxImpl("Killed Ganon (mark timeline)",  Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
     gridAddTuple(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda),  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
-    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> if b then notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text)
+    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
+        if b then 
+            notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text
+            TrackerModel.LastChangedTime.PauseAll()
+        else
+            TrackerModel.LastChangedTime.ResumeAll()
+        )
     // mark whether player currently has bombs, for overworld routing
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, false, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
