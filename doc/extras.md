@@ -1,5 +1,8 @@
 # HotKeys and extra windows
 
+Z-Tracker has two versions - one runs on Windows and one runs on Linux. The two versions are very similar, but have some minor differences.
+Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
+
 Contents of this document:
 
   - [HotKeys](#hotkeys)
