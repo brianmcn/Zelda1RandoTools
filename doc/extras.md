@@ -1,5 +1,13 @@
 # HotKeys and extra windows
 
+Contents of this document:
+
+  - [HotKeys](#hotkeys)
+  - [Save State](#save-state)
+  - [Broadcast Window](#broadcast-window)
+  - [Window Size](#window-size)
+
+
 ## <a id="hotkeys"></a> HotKeys
 
 You can bind hotkeys (keyboard keys 0-9 or a-z) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
