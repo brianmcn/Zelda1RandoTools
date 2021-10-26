@@ -14,6 +14,68 @@ type MyCommand(f) =
         member this.add_CanExecuteChanged(h) = ev.Publish.AddHandler(fun o ea -> h.Invoke(o,ea))
         member this.remove_CanExecuteChanged(h) = ev.Publish.RemoveHandler(fun o ea -> h.Invoke(o,ea))
 
+let MakeTipTextBox(txt) =
+    new TextBox(Text=txt, FontSize=12., IsReadOnly=true, TextAlignment=TextAlignment.Left, TextWrapping=TextWrapping.Wrap, HorizontalAlignment=HorizontalAlignment.Left, BorderThickness=Thickness(0.))
+
+let ApplyKonamiCodeEasterEgg(cm:CustomComboBoxes.CanvasManager, fe:Control) =
+    let mutable i = 0
+    let code = [|
+        Input.Key.Up
+        Input.Key.Up
+        Input.Key.Down
+        Input.Key.Down
+        Input.Key.Left
+        Input.Key.Right
+        Input.Key.Left
+        Input.Key.Right
+        Input.Key.B
+        Input.Key.A
+        |]
+    // Note: they need to click on an element inside the window (such as text of a tip) first to give focus to fe
+    fe.KeyDown.Add(fun ea ->
+        if i < code.Length && ea.Key = code.[i] then
+            i <- i + 1
+//            printfn "%A" ea.Key
+            if i = code.Length then
+                let wh = new System.Threading.ManualResetEvent(false)
+                let tips = new StackPanel(Orientation=Orientation.Vertical)
+                let header(txt) =
+                    let tb = MakeTipTextBox(txt)
+                    tb.BorderThickness <- Thickness(0.,0.,0.,2.)
+                    tb.FontSize <- tb.FontSize + 2.
+                    tb.Margin <- Thickness(0., 15., 0., 10.)
+                    tb
+                let mutable even = false
+                let body(txt) =
+                    let tb = MakeTipTextBox(txt)
+                    tb.Margin <- Thickness(0., 8., 0., 0.)
+                    if even then
+                        tb.Background <- Brushes.Black
+                    else
+                        tb.Background <- Graphics.almostBlack
+                    even <- not even
+                    tb
+                tips.Children.Add(header("ALL OF TIPS")) |> ignore   // grammar mimics 'ALL OF ITEMS' in LoZ startup scroll
+                tips.Children.Add(header("Novice-level tips")) |> ignore
+                for t in DungeonData.Factoids.noviceTips do
+                    tips.Children.Add(body(t)) |> ignore
+                tips.Children.Add(header("Intermediate-level tips")) |> ignore
+                for t in DungeonData.Factoids.intermediateTips do
+                    tips.Children.Add(body(t)) |> ignore
+                tips.Children.Add(header("Advanced-level tips")) |> ignore
+                for t in DungeonData.Factoids.advancedTips do
+                    tips.Children.Add(body(t)) |> ignore
+                tips.Children.Add(header("Z-Tracker tips")) |> ignore
+                for t in DungeonData.Factoids.zTrackerTips do
+                    tips.Children.Add(body(t)) |> ignore
+                let sv = new ScrollViewer(HorizontalAlignment=HorizontalAlignment.Left, VerticalAlignment=VerticalAlignment.Top, Content=tips)
+                let BUFFER = 160.
+                let tipsBorder = new Border(Width=cm.AppMainCanvas.Width-BUFFER, Height=cm.AppMainCanvas.Height-BUFFER, Background=Brushes.Black, 
+                                            BorderThickness=Thickness(3.), Child=sv)
+                CustomComboBoxes.DoModal(cm, wh, BUFFER/2., BUFFER/2., tipsBorder) |> Async.StartImmediate
+        )
+
+
 type MyWindow() as this = 
     inherit Window()
     let startTime = new TrackerModel.LastChangedTime()
@@ -35,8 +97,8 @@ type MyWindow() as this =
             appMainCanvas, cm
         this.Content <- cm.RootCanvas
         let hstackPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        ApplyKonamiCodeEasterEgg(cm, hstackPanel)
         appMainCanvas.Children.Add(hstackPanel) |> ignore
-
 
         let FUDGE = 30.
         HotKeys.InitializeWindow(this, cm.RootCanvas, FUDGE/2.)
@@ -184,10 +246,10 @@ type MyWindow() as this =
                     })
                 )
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
-        let tb = new TextBox(Text="Random tip:", FontSize=12., IsReadOnly=true, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, BorderThickness=Thickness(0.))
+        let tb = MakeTipTextBox("Random tip:")
         tipsp.Children.Add(tb) |> ignore
-        let tipText = DungeonData.factoids.[ System.Random().Next(DungeonData.factoids.Length) ]
-        let tb = new TextBox(Text=tipText, FontSize=12., IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Left, HorizontalAlignment=HorizontalAlignment.Left, TextWrapping=TextWrapping.Wrap, BorderThickness=Thickness(0.))
+        let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])
+        tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
         stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 50., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Gray, Width=WIDTH*2./3.)) |> ignore
 
