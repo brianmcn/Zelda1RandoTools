@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
-
 factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
  - verify them
  - add more ZT ones
@@ -24,10 +22,6 @@ test & evaluate new dungeon room ui:
  - see if it needs first-time-use in-app tutorial or something, or any 'options' to cater to extreme ends of spectrum
 
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
-
-hotkey testing, hotkey writeup in Notes
- - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
- - any consideration of spacebar or capital-letter-distiguishing?
 
 distributing version process
  - for a full release, change the version number in OverworldData.fs, and then find that commit in history and tag it e.g. "v0.992" in git, so can link docs? or make a branch?
@@ -40,13 +34,13 @@ distributing version process
  - zip up directory
 then users can
  - unzip folder somewhere
- - run Z1R_WPF.exe once
- - copy ZTracker.lnk shortcut wherever you like
- - Notes.txt enclosed has detailed information about how it all works, you are welcome to read it or not, feedback both ways is useful, to find out what makes sense versus what is hard to figure out.
-    - actually, link to web docs
+ - run Z1R_WPF.exe
+ - that will start the program. it will also create a ZTracker.lnk shortcut in the folder, which you can copy wherever you like (e.g. place on desktop)
 
 
 SMALL
+
+consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
 
 Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
@@ -62,6 +56,11 @@ would 'combat' blocker be better if like had, pols voice, blue darknuts, blue wi
 
 is there a way to (non-HDN) 'show' the #floor-v-#basement items for each dungeon (teach)?
 could white/magical sword have an on-hover that shows it takes 4-6(5) or 10-14(12) to lift each (teach)?
+
+
+hotkeys
+ - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
+ - any consideration of spacebar or capital-letter-distiguishing?
 
 
 dungeon room ui:

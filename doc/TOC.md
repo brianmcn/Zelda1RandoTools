@@ -3,6 +3,7 @@
 Here are the main documentation sections for Z-Tracker.
 
 - Downloading and Installing Z-Tracker
+- [Quick Start Guide](quick-start.md)
 - Using Z-Tracker
    - [Startup Options](startup-options.md)
    - [Main gameplay features](use.md)
