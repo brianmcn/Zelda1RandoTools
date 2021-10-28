@@ -1052,7 +1052,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             Async.StartImmediate <| SetNewValue(state, originalState)
                         | None -> ()
                     )
-    speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
+    if speechRecognitionInstance <> null then
+        speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
                                     let c = owCanvases.[currentlyMousedOWX,currentlyMousedOWY]
                                     if c <> null && c.IsMouseOver then  // canvas can be null for always-empty grid places

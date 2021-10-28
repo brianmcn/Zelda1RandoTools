@@ -382,10 +382,11 @@ type MyWindow() as this =
                             TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
                         else
                             TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                    let speechRecognitionInstance = new SpeechRecognition.SpeechRecognitionInstance(kind)
+                    let mutable speechRecognitionInstance = null
                     if TrackerModel.Options.ListenForSpeech.Value then
                         printfn "Initializing microphone for speech recognition..."
                         try
+                            speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
                             SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
                             SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
                         with ex ->

@@ -13,6 +13,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+ I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
+
 factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
  - verify them
  - add more ZT ones

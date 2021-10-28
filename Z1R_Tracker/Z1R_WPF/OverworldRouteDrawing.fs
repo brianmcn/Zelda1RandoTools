@@ -121,7 +121,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         iterate(N-1,999999)
             if not pq.IsEmpty then
                 let recentCost,(i,j) = pq.Dequeue()
-                toHighlight.Add(i,j,true)
+                toHighlight.Add(i,j,N>0)
                 iterate(N-1,recentCost)
             for (i,j,bright) in toHighlight do
                 let thr = new Graphics.TileHighlightRectangle()

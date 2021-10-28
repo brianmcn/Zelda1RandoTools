@@ -5,6 +5,7 @@ open System.Windows.Controls
 
 let speechRecognizer = new System.Speech.Recognition.SpeechRecognitionEngine()
 
+[<AllowNullLiteral>]
 type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
     let wakePhrase = "tracker set"
     let mapStatePhrases = 
