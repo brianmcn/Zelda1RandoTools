@@ -427,9 +427,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 rect.Stroke <- no
         redraw()
         prop.Changed.Add(fun _ -> redraw())
-        c.MouseLeftButtonDown.Add(fun _ ->
-            prop.Toggle()
-        )
+        c.MouseDown.Add(fun _ -> prop.Toggle())
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         if isTimeline then
             timelineItems.Add(new Timeline.TimelineItem(fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
