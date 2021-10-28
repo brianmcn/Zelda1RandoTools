@@ -13,8 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-ow spots left does not highlight raft spots if no raft
-
 tooltip for whitesword/ladder/armos icons (be detailed, for noobs, explain how they appear, coords of coast, etc)
 "If you click on the icon of a ladder the tracker behaves exactly as though you had clicked in the box next to the ladder" (activatePopup(0))
 (I can imagine also drawing a super-thin grey 'guideline' from behind-center of icon to left-center of box, as visual scaffolding)

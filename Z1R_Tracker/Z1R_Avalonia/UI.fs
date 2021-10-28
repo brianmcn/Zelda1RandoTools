@@ -1851,6 +1851,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, unmarked, 
                                             unmarked, Point(0.,0.), 0, 0, false, true, 0, OverworldRouteDrawing.All)
+        if not(TrackerModel.playerComputedStateSummary.HaveRaft) then
+            // drawPathsImpl cannot reach the raft locations and won't color them, so just ad-hoc those two spots
+            for i,j in [5,4 ; 15,2] do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = -1 then  // they may have marked the raft spots (e.g. Any Road), so only if unmarked...
+                    let thr = new Graphics.TileHighlightRectangle()
+                    thr.MakePaleRed()
+                    for s in thr.Shapes do
+                        canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
         )
     owRemainingScreensTextBox.PointerLeave.Add(fun _ ->
         routeDrawingCanvas.Children.Clear()
