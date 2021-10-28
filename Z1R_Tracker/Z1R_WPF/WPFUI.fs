@@ -376,11 +376,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
     // ladder, armos, white sword items
-    gridAddTuple(owItemGrid, Graphics.BMPtoImage Graphics.ladder_bmp, OW_ITEM_GRID_LOCATIONS.LADDER_ICON)
+    let ladderBoxImpl = boxItemImpl(TrackerModel.ladderBox, true)
+    let armosBoxImpl  = boxItemImpl(TrackerModel.armosBox, false)
+    let sword2BoxImpl = boxItemImpl(TrackerModel.sword2Box, true)
+    gridAddTuple(owItemGrid, ladderBoxImpl, OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
+    gridAddTuple(owItemGrid, armosBoxImpl,  OW_ITEM_GRID_LOCATIONS.ARMOS_ITEM_BOX)
+    gridAddTuple(owItemGrid, sword2BoxImpl, OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ITEM_BOX)
+    let rerouteClick(fe:FrameworkElement, newDest:FrameworkElement) = fe.MouseDown.Add(fun ea -> newDest.RaiseEvent(ea)); fe
+    let ladderIcon = Graphics.BMPtoImage Graphics.ladder_bmp
+    gridAddTuple(owItemGrid, rerouteClick(ladderIcon, ladderBoxImpl), OW_ITEM_GRID_LOCATIONS.LADDER_ICON)
+    ladderIcon.ToolTip <- "The item box to the right is for the item found off the coast, at coords F16."
     let armos = Graphics.BMPtoImage Graphics.ow_key_armos_bmp
     armos.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.HasArmos))
     armos.MouseLeave.Add(fun _ -> hideLocator())
-    gridAddTuple(owItemGrid, armos, OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
+    gridAddTuple(owItemGrid, rerouteClick(armos, armosBoxImpl), OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
+    armos.ToolTip <- "The item box to the right is for the item found under an Armos robot on the overworld."
     let white_sword_canvas = new Canvas(Width=30., Height=30.)
     let redrawWhiteSwordCanvas(c:Canvas) =
         c.Children.Clear()
@@ -396,10 +406,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
     newLocation.Add(fun _ -> redrawWhiteSwordCanvas())
     *)
-    gridAddTuple(owItemGrid, white_sword_canvas, OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
-    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.ladderBox, true), OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
-    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.armosBox, false), OW_ITEM_GRID_LOCATIONS.ARMOS_ITEM_BOX)
-    gridAddTuple(owItemGrid, boxItemImpl(TrackerModel.sword2Box, true), OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ITEM_BOX)
+    gridAddTuple(owItemGrid, rerouteClick(white_sword_canvas, sword2BoxImpl), OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+    white_sword_canvas.ToolTip <- "The item box to the right is for the item found in the White Sword Cave, which will be found somewhere on the overworld."
     white_sword_canvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword2))
     white_sword_canvas.MouseLeave.Add(fun _ -> hideLocator())
 
