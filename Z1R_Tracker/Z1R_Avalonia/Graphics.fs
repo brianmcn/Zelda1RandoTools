@@ -91,15 +91,14 @@ let transformColor(bmp:System.Drawing.Bitmap, f) =
     r
 
 let greyscale(bmp:System.Drawing.Bitmap) =
-    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
-    for px = 0 to bmp.Width-1 do
-        for py = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(px,py)
+    transformColor(bmp, fun c -> 
+        if c.ToArgb() = System.Drawing.Color.Transparent.ToArgb() then
+            c
+        else
             let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
             let avg = if avg = 0 then 0 else avg + 60    // never too dark
-            let c = System.Drawing.Color.FromArgb(avg, avg, avg)
-            r.SetPixel(px, py, c)
-    r
+            System.Drawing.Color.FromArgb(avg, avg, avg)
+        )
 let desaturateColor(c:System.Drawing.Color, pct) =
     let f = pct   // 0.60 // desaturate by 60%
     let L = 0.3*float c.R + 0.6*float c.G + 0.1*float c.B

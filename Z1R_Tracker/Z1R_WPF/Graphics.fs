@@ -123,15 +123,14 @@ let transformColor(bmp:System.Drawing.Bitmap, f) =
     r
 
 let greyscale(bmp:System.Drawing.Bitmap) =
-    let r = new System.Drawing.Bitmap(bmp.Width,bmp.Height)
-    for px = 0 to bmp.Width-1 do
-        for py = 0 to bmp.Height-1 do
-            let c = bmp.GetPixel(px,py)
+    transformColor(bmp, fun c -> 
+        if c.ToArgb() = System.Drawing.Color.Transparent.ToArgb() then
+            c
+        else
             let avg = (int c.R + int c.G + int c.B) / 5  // not just average, but overall darker
             let avg = if avg = 0 then 0 else avg + 60    // never too dark
-            let c = System.Drawing.Color.FromArgb(avg, avg, avg)
-            r.SetPixel(px, py, c)
-    r
+            System.Drawing.Color.FromArgb(avg, avg, avg)
+        )
 let desaturateColor(c:System.Drawing.Color, pct) =
     let f = pct   // 0.60 // desaturate by 60%
     let L = 0.3*float c.R + 0.6*float c.G + 0.1*float c.B
@@ -296,7 +295,9 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
             let r = new System.Drawing.Bitmap(7*3,7*3)
             for px = 0 to 7*3-1 do
                 for py = 0 to 7*3-1 do
-                    r.SetPixel(px, py, bmp.GetPixel(px/3 + i*7, py/3))
+                    let color = bmp.GetPixel(px/3 + i*7, py/3)
+                    let color = if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then System.Drawing.Color.Transparent else color
+                    r.SetPixel(px, py, color)
             yield r
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],

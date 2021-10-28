@@ -3,7 +3,7 @@
 module Factoids =
     let noviceTips = [|
         // novice
-        "Damage table: wood sword=1; white sword=2; magic sword=4; wand(melee or beam)=2; wood arrow=2; silver arrow=4; fire=1; bomb explosion=4; boomerang=0"
+        "Damage table: wood sword=1; white sword=2; magic sword=4; wand(melee or beam)=2; wood arrow=2; silver arrow=4; fire=1; bomb explosion=4; boomerang=0 (some enemies have 0 HP and can be killed by boomerang)"
         "If an overworld screen has 6 monsters, and you kill 2 and leave the screen, only 4 will spawn when you next return.  Overworld monsters can fully respawn only after a screen is fully cleared, or after a save."
         "If a dungeon room has 6 monsters, and you kill 2 and leave the room, only 4 will spawn when you next return.  Dungeon monsters can fully respawn only after a room is fully cleared, or after the player leaves the dungeon."
         "Each seed has its own specific value for small/medium/large secrets, where the possible ranges for any seed are 1-20/25-40/50-150 rupees."
@@ -11,6 +11,7 @@ module Factoids =
         "For the Any Roads, from your current entrance, the 3 staircases go +1/+2/+3 steps along the 1-2-3-4-1-2-3-4-... chain."
         "When there is a standing item drop on the floor of a dungeon room when you first walk in, there cannot be another prize drop for killing all monsters in the room."
         "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
+        "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
         |]
     let intermediateTips = [|
         // intermediate
@@ -43,7 +44,7 @@ module Factoids =
         "In Z-Tracker, hovering some parts of the 'Item Progress' bar will highlight spots on the overworld map, e.g. hovering the candle highlights all remaining burnable trees."
         "In Z-Tracker, hovering the 'open cave icon' near the upper right of the tracker will highlight unmarked open caves, which may be useful if you're still looking for the wooden sword."
         "In Z-Tracker, hovering the 'bomb' icon in the upper right of the tracker will highlight any Bomb Shop locations you have marked on the map."
-        "In Z-Tracker, hovering the Armos icon in the top middle of the tracker will highlight any Armos spots on the overworld map you have not yet marked."
+        "In Z-Tracker, hovering the Armos icon in the top middle of the tracker will highlight any Armos spots on the overworld map you have not yet marked.  There are 5 armos spots in the overworld; 4 have entrances and one has an item."
         "In Z-Tracker, hovering the 'Spot Summary' text in the upper right will display all the remaining locations you have yet to find, based on your existing overworld map marks."
         "In Z-Tracker, when you locate a dungeon entrance on the overworld map, its triforce numeral lights up white on the top of the tracker, so that it is easy to see which dungeons you have/haven't yet found."
         "In Z-Tracker, you can 'paint out' a bunch of rooms in a dungeon by holding down the mouse button and dragging over rooms.  The mouse left-button paints 'completed' rooms, and the right-button paints 'uncompleted' rooms."
@@ -53,6 +54,7 @@ module Factoids =
         "In Z-Tracker, you can edit the key items and triforce you got from a dungeon, using the box right next to the dungeon map, rather than having to mouse all the way back up to the top of the app."
         "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking per-minute 'splits' of when you got each triforce piece (as well as every other key item)."
         "In Z-Tracker, you can edit HotKeys.txt in the application folder to set up various keyboard shortcuts."
+        "In Z-Tracker, the 'highlight pixels' on the overworld map (and magnifier) have the following meanings: red=burn bush, yellow=recorder, magenta=push rock/armos, cyan=bomb spot, black=open cave."
         "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on twitter (@lorgon111)."
         |]
     let allTips = [|
