@@ -14,6 +14,8 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 CURRENT PRIORITIES
 
 I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
+ - actually, the front page should point to docs and release, and maybe the existing project background info should be lower on that page, or elsewhere
+
 
 factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
  - verify them
@@ -26,14 +28,19 @@ test & evaluate new dungeon room ui:
 get feedback on whether folks find the choicedomain limits constraining (or useful error prevention)
 
 distributing version process
- - for a full release, change the version number in OverworldData.fs, and then find that commit in history and tag it e.g. "v0.992" in git, so can link docs? or make a branch?
+ - for a full release, change the version number in OverworldData.fs (e.g. v1.0.0)
+ - edit Notes.txt to point to upcoming branch URL
+ - commit to master
+ - make a branch e.g. "v1.0" in git which is a spur for the release (and bugfix updates to app/docs)
+ - make a tag on the branch with the full version number e.g. "v1.0.0"
+ - commit the branch
  - delete entire Relase directory
      - get rid of hotkeys/settings/crash log
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
- - edit Notes.txt to point to point-in-time doc URL? or branch URL?
  - delete ZTracker.lnk (has my machine's paths hardcoded)
  - zip up directory
+ - publish Release in the branch on the tag, and add the zip as a resource
 then users can
  - unzip folder somewhere
  - run Z1R_WPF.exe
@@ -41,6 +48,20 @@ then users can
 
 
 SMALL
+
+Idea of how to deal with starting items, triforces, and hearts, money/life rooms, and key items as common drops:
+ - there's a separate popup/pane where you can adjust things
+ - has extra item boxes for marking starting items not found in a dungeon (or used for 'jackpot' shuffled common drops)
+ - in HDN, there's a pane for marking triforces you have that didnt come out of a dungeon (in non-HDN, just ensure orange-triforce with non-white numeral is a visual state) 
+      - need way to see triforce decoder diagram in non-HDN
+ - there's a place to + or - your heart containers (for diff starting hearts, or for money or life rooms)
+ - (adjust docs accordingly, for feature, and for info on well-supported flags)
+ - deals with comments directly below
+should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
+start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
+Kigalas: Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
+
+
 
 imagine adding a status bar that has info like 'has burn bush' or 'has recorder spot' to explain/reinforce the meanings of the pixel colors, and 
 could also be a place to add text for LostWoods/LostHills tiles.  Not sure where to place it in the UI yet, though...
@@ -50,18 +71,15 @@ consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (
 
 Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
-should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
 
 consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
 
-start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
 
 consider hover-feedback-of-all-clickables (e.g. triforce could slightly-darken-color-on-hover)
 
 would 'combat' blocker be better if like had, pols voice, blue darknuts, blue wizzrobe, etc, to be specific for those who care?
 
 is there a way to (non-HDN) 'show' the #floor-v-#basement items for each dungeon (teach)?
-could white/magical sword have an on-hover that shows it takes 4-6(5) or 10-14(12) to lift each (teach)?
 
 
 hotkeys
@@ -87,6 +105,7 @@ abraxas
 homer: blockers.. love this section, might want to add Rupees (ex. you hit a mugger early on, don't want to give up a max bomb so youll come back with 67 rupees or whatever) Or maybe make it mugger block?
 homer:
  - in sprite shuffle, might want to mark 2 white sword caves because cant tell
+        - sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
  - homer found A, then 9, then went into A, mapped inside 9, made a mess, hm
  - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
 [10:27 AM] homerjsmash: ha yes, but if one were to look at the pretty art and see a gohma one would know def blocked there vs maybe blocked there. But i understand your point
@@ -100,7 +119,7 @@ lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks
 lorgon: mark screens with bomb droppers
 lorgon: like imagine middle click from dungeons
 
-Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map
+Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
 start spot hotkey?
 
@@ -110,9 +129,6 @@ start spot hotkey?
  - related: where can zelda fit (some explicit mark for shutter doors?)
  - gesture could be hover-ganon and hover-zelda, and there is room to bring those icons down into inset, i think
 
-
-
-sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
 
 like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
@@ -168,8 +184,6 @@ hide dungeon numbers:
 I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
 
 
-Kigalas:
-Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
 
 
 
@@ -199,7 +213,6 @@ other possible hotkey stuff?  (start/stop timer, got mags, ... ?)  other possibl
 decide about PTT functionality
 versioning . . .
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
-yellow door state? (maybe left/right rotate forward/reverse thru unknown->green->yellow->red cycle)
 
 (start screen eventually have start OR load old data)
 
