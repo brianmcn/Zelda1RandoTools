@@ -374,7 +374,9 @@ type MyWindow() as this =
                     do! Async.SwitchToContext ctxt
                     TrackerModel.Options.writeSettings()
 
-                    OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+                    if false then   // this feature is currently unused
+                        Gamepad.ControllerFailureEvent.Publish.Add(handle)
+                        OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
 
                     let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
                     let kind = 

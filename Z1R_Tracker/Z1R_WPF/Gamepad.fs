@@ -10,6 +10,8 @@ let mutable LeftShoulderButtonMostRecentRelease = DateTime.Now   // lack of thre
 let IsLeftShoulderButtonDown() =
     System.Threading.Volatile.Read(&LeftShoulderButtonIsDown) = 1
 
+let ControllerFailureEvent = new Event<_>()
+
 let Initialize() =
     let mutable joystickGuid = Guid.Empty
     let directInput = new DirectInput()
@@ -30,21 +32,28 @@ let Initialize() =
         // Acquire the joystick
         joystick.Acquire()
 
+        let mutable ok = true
         async {
             // Poll events from joystick
-            while true do
-                joystick.Poll()
-                let datas = joystick.GetBufferedData()
-                for state in datas do
-                    if state.Offset = JoystickOffset.Buttons4 then
-                        if state.Value = 128 then
-                            //printfn "left shoulder button pressed"
-                            System.Threading.Volatile.Write(&LeftShoulderButtonIsDown,1)
-                        if state.Value = 0 then
-                            //printfn "left shoulder button released"
-                            System.Threading.Volatile.Write(&LeftShoulderButtonIsDown,0)
-                            LeftShoulderButtonMostRecentRelease <- DateTime.Now
-                    //printfn "%s" (state.ToString())
+            while ok do
+                try
+                    joystick.Poll()    
+                    let datas = joystick.GetBufferedData()
+                    for state in datas do
+                        if state.Offset = JoystickOffset.Buttons4 then
+                            if state.Value = 128 then
+                                //printfn "left shoulder button pressed"
+                                System.Threading.Volatile.Write(&LeftShoulderButtonIsDown,1)
+                            if state.Value = 0 then
+                                //printfn "left shoulder button released"
+                                System.Threading.Volatile.Write(&LeftShoulderButtonIsDown,0)
+                                LeftShoulderButtonMostRecentRelease <- DateTime.Now
+                        //printfn "%s" (state.ToString())
+                with e ->
+                    ok <- false
+                    printfn "Failed to read from gamepad.  Reading the gamepad will no longer function, but the rest of the app will continue to work."
+                    printfn "The gamepad error will be logged."
+                    ControllerFailureEvent.Trigger(e)
         } |> Async.Start
         true
 

@@ -55,6 +55,7 @@ module Factoids =
         "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking per-minute 'splits' of when you got each triforce piece (as well as every other key item)."
         "In Z-Tracker, you can edit HotKeys.txt in the application folder to set up various keyboard shortcuts."
         "In Z-Tracker, the 'highlight pixels' on the overworld map (and magnifier) have the following meanings: red=burn bush, yellow=recorder, magenta=push rock/armos, cyan=bomb spot, black=open cave."
+        "In Z-Tracker, the overworld map highlights various tiles with a green rectangle if you can uncover a location there, a yellow rectangle if the screen may or may not yield a location and you can uncover it, or a red rectangle if you don't have the item to uncover a location there."
         "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on twitter (@lorgon111)."
         |]
     let allTips = [|
