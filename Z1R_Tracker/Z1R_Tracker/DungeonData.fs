@@ -9,9 +9,11 @@ module Factoids =
         "Each seed has its own specific value for small/medium/large secrets, where the possible ranges for any seed are 1-20/25-40/50-150 rupees."
         "Sometimes buying 2 blue potions is cheaper than buying a red one.  Buying a blue potion when you have a blue potion turns it into a red potion."
         "For the Any Roads, from your current entrance, the 3 staircases go +1/+2/+3 steps along the 1-2-3-4-1-2-3-4-... chain."
+        "To stun a Dodongo with a single bomb, walk halfway between two tiles when placing the bomb; Dodongo can only eat bombs placed evenly on the tile grid.  After being stunned, Dodongo can be killed with a sword/wand for a bomb pack drop."
         "When there is a standing item drop on the floor of a dungeon room when you first walk in, there cannot be another prize drop for killing all monsters in the room."
         "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
         "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
+        "In most dungeons, there is one floor drop item, and the remaining key item(s) are found in basements.  Exceptions: L9 has no floor drops; L1 and L2 have two floor drops in first-quest-dungeons, whereas L1 and L3 have two floor drops in second-quest-dungeons."
         |]
     let intermediateTips = [|
         // intermediate

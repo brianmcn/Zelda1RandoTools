@@ -13,9 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-consider making MMG icon dark by default, with toggle?
-should shops items go dark when you have get that item or better?
-
 
 I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
  - actually, the front page should point to docs and release, and maybe the existing project background info should be lower on that page, or elsewhere
@@ -52,6 +49,9 @@ then users can
 
 
 SMALL
+
+consider making MMG icon dark by default, with toggle?
+should shops items go dark when you have get that item or better?
 
 Idea of how to deal with starting items, triforces, and hearts, money/life rooms, and key items as common drops:
  - there's a separate popup/pane where you can adjust things
