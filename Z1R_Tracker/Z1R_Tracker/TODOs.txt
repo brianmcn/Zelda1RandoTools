@@ -13,7 +13,6 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
-
 I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
  - actually, the front page should point to docs and release, and maybe the existing project background info should be lower on that page, or elsewhere
 
@@ -50,6 +49,10 @@ then users can
 
 SMALL
 
+if any road ends up being power bracelet blocked, and you don't have PB yet, maybe grey out any road until you get it? hm
+
+possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
+
 consider making MMG icon dark by default, with toggle?
 should shops items go dark when you have get that item or better?
 
@@ -64,6 +67,9 @@ Idea of how to deal with starting items, triforces, and hearts, money/life rooms
 should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
 start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
 Kigalas: Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
+
+clicking the kitty should meow or purr or something
+
 
 
 

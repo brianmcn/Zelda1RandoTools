@@ -1631,12 +1631,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             match oneTimeRemindAnyKey with
             | None -> ()
             | Some(lct, thunk) ->
-                if (DateTime.Now - lct.Time).Minutes > 0 then  // 1 min
+                if (DateTime.Now - lct.Time).Minutes > 1 then  // 2 min
                     thunk()
             match oneTimeRemindLadder with
             | None -> ()
             | Some(lct, thunk) ->
-                if (DateTime.Now - lct.Time).Minutes > 0 then  // 1 min
+                if (DateTime.Now - lct.Time).Minutes > 1 then  // 2 min
                     thunk()
         )
     timer.Start()
