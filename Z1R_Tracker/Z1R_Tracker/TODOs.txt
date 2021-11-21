@@ -13,6 +13,20 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+princess save stops timer, she never gets timeline'd
+
+in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder?
+
+size and bombability increases with dungeon number 'tip'
+'safety door' tip for gleeok, lanmos, etc?
+tip: if you up-a out of a DRC before the npc finishes speaking and starts taking money, it doesnt get taken
+tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
+
+pi: wishes routing lines were brighter and/or on top (has coords on)
+
+BU costs 75 - 125
+
+
 I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
  - actually, the front page should point to docs and release, and maybe the existing project background info should be lower on that page, or elsewhere
 
@@ -34,6 +48,7 @@ distributing version process
  - make a branch e.g. "v1.0" in git which is a spur for the release (and bugfix updates to app/docs)
  - make a tag on the branch with the full version number e.g. "v1.0.0"
  - commit the branch
+ABOVE IS DONE
  - delete entire Relase directory
      - get rid of hotkeys/settings/crash log
  - run the program once

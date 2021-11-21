@@ -1147,8 +1147,7 @@ type TriforceAndGoSummary() =
                     missingTriforceFromLocatedDungeonCount <- missingTriforceFromLocatedDungeonCount + 1
         let compute() =
             let mutable score = 100
-            let missingPenalty = 15 + unreachableCount
-            score <- score - missingDungeonCount*missingPenalty                  // big penalty for unlocated dungeon
+            score <- score - missingDungeonCount*20                              // big penalty for unlocated dungeon
             score <- score - missingTriforceFromLocatedDungeonCount*8            // smallish penalty for missing triforce in a dungeon you already located
             if not haveBow then score <- score - 35                              // huge penalty for missing bow
             if not haveSilvers then score <- score - 30                          // huge penalty for missing silvers

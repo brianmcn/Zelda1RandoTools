@@ -26,7 +26,7 @@ module Factoids =
         "When playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with explosions (from bombs or boomstick)."
         "If a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not space on A15 to land."
         "If you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (as traps & bubbles are considered enemies)."
-        "Up-A-continue during a fairy fountain refill returns you to the starting screen with full health (but, Up-A-continue during the refill will NOT remove a red-bubble-curse)."
+        "Up-A-continue during a fairy fountain refill returns you to the starting screen with full health."
         "Bomb upgrade man never has a bombable north wall (nor do rooms containing dungeon NPCs who give hints)."
         "A dungeon room with a push block shutter will never drop an item."
         |]
