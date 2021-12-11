@@ -14,6 +14,8 @@ module Factoids =
         "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
         "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
         "In most dungeons, there is one floor drop item, and the remaining key item(s) are found in basements.  Exceptions: L9 has no floor drops; L1 and L2 have two floor drops in first-quest-dungeons, whereas L1 and L3 have two floor drops in second-quest-dungeons."
+        "Generally/roughly, the higher the dungeon number, the larger the dungeon is likely to be, and the less likely a given wall will be bombable."
+        "If you up-a out of a door repair charge room before the NPC finishes speaking and starts taking your money, you can avoid the charge."
         |]
     let intermediateTips = [|
         // intermediate
@@ -23,12 +25,13 @@ module Factoids =
         "If you screen transition (e.g. from East to West) on the Overworld before entering a dungeon, you may unlock a doorway or uncover a free bomb-hole on the wall you came from (e.g. East)."
     //        "(how does it work for up-a-ing from a room where you opened that side (via bomb (shutter?))"
         "If a room has a shutter door, a push block cannot reveal a new staircase (just will open the shutter if pushable)."
+        "A dungeon room with a push block shutter will never drop an item."
         "When playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with explosions (from bombs or boomstick)."
         "If a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not space on A15 to land."
         "If you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (as traps & bubbles are considered enemies)."
         "Up-A-continue during a fairy fountain refill returns you to the starting screen with full health."
         "Bomb upgrade man never has a bombable north wall (nor do rooms containing dungeon NPCs who give hints)."
-        "A dungeon room with a push block shutter will never drop an item."
+        "Standing just halfway out the east door of a dungeon room makes the player immune to some attacks; this 'safety door' strategy can be effective to shoot beam swords at gleeoks or lanmola, for example."
         |]
     let advancedTips = [|
         // advanced

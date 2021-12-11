@@ -13,18 +13,24 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+consider kigalas feedback:
+When it resets the timer can you make it reset the tracker itself? Or add some a way to return to the initial starting screen?
+Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
+Broadcast window seems to retain its position after closing but the main window doesn't. Can that be a thing for the tracker itself?
+Can we have a .txt file to use as a base to pull from for the Notes section like Hotkeys has?
+Can we have an option to have the Broadcast window not capture the mouse cursor?
+
+
 princess save stops timer, she never gets timeline'd
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder?
 
-size and bombability increases with dungeon number 'tip'
-'safety door' tip for gleeok, lanmos, etc?
-tip: if you up-a out of a DRC before the npc finishes speaking and starts taking money, it doesnt get taken
 tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
+ - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
+    [7:57 PM] FurySK: Drop item: Cannot ever have a push block across all functions, outside of diamond staircases (edited)
+
 
 pi: wishes routing lines were brighter and/or on top (has coords on)
-
-BU costs 75 - 125
 
 
 I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
@@ -34,6 +40,8 @@ I could maybe also link the docs (rather than root github) in the 'about' (the v
 factoids for 'loading ui screen':   (try to incorporate icon graphics? delighters!)
  - verify them
  - add more ZT ones
+
+2Q ow, vanilla 5 is a fairy fountain, should mark as such
 
 
 test & evaluate new dungeon room ui:
