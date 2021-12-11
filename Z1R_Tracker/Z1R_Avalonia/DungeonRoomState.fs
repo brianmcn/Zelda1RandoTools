@@ -233,7 +233,7 @@ type RoomType =
         | HChute                  -> "Horizontal chute"
         | Turnstile               -> "Turnstile"
         | OldManHint              -> "NPC with hint"
-        | BombUpgrade             -> "Bomb Upgrade"
+        | BombUpgrade             -> "Bomb Upgrade (75-125 rupees)"
         | LifeOrMoney             -> "Life or Money (pay to escape) room"
         | HungryGoriyaMeatBlock   -> "Hungry Goriya (meat block)"
         | StartEnterFromE         -> "Dungeon entrance (from east)"

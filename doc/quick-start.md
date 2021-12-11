@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Here's the bare minimum of what you need to know to use Z-Tracker.
+Here's the bare minimum of what you need to know to use Z-Tracker.  If you prefer to watch a video, here's a link to a [short video tutorial on Z-Tracker](https://www.youtube.com/watch?v=IABAWaJCfRk).
 
 On the initial screen, be sure to select startup options that correspond to your z1r rando flagset.
 
