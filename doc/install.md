@@ -1,3 +1,17 @@
 # Downloading and Installing Z-Tracker
 
-TODO
+Z-Tracker is available for Windows and Linux.
+
+On Linux, you will need to build from source code, using the project in the Z1R_Avalonia folder.  (If you want to build for Windows, use the project in the Z1R_WPF folder instead.)
+
+The Windows version is released as a .zip file folder of the executable and all its helper files.  Download the .zip file, and then
+
+ - unzip the folder somewhere (wherever you want to store this installation of Z-Tracker)
+ - run Z1R_WPF.exe to start the program
+ - running it will also create a ZTracker.lnk shortcut in the folder, which you can copy wherever you like (e.g. place the shortcut on your Desktop, for easy double-click startup in the future)
+
+The current release for Windows is version 1.0.1, and currently can be downloaded only from the z1r discord server, in the 'Randomizer Tracker' section, as a recent message on the '#general' subchannel.  
+Here's a link to the z1r discord: https://discord.com/invite/xWZn8TxX
+
+Windows Defender is pretty aggressive about unknown .exe files, and sometimes flags Z1R_WPF.exe as a virus and quarantines the file (this can change from week to week).  
+You might need to select 'Run Anyway' from a warning screen, or go into Window Defender's virus & threat protection history to 'Restore' the Z1R_WPF.exe if it gets quarantined.

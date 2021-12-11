@@ -69,6 +69,9 @@ then users can
  - run Z1R_WPF.exe
  - that will start the program. it will also create a ZTracker.lnk shortcut in the folder, which you can copy wherever you like (e.g. place on desktop)
 
+if flagged as virus, this may help
+https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-security-center
+
 
 SMALL
 

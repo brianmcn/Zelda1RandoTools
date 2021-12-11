@@ -2,7 +2,12 @@
 
 ### A tracker for Zelda 1 Randomizer
 
-This is a tracking tool for those who casually stream gameplay of seeds of fcouglin's [Zelda 1 Randomizer](https://sites.google.com/site/zeldarandomizer/).
+The most recent release is v1.0.1, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.0/doc/TOC.md), which includes links for 
+downloading and installing Z-Tracker.
+
+## Motivation
+
+This is a tracking tool for those play seeds of fcouglin's [Zelda 1 Randomizer](https://sites.google.com/site/zeldarandomizer/).
 
 This tool is inspired by [ZHelper](http://questwizard.net/zhelper/), a tool commonly used by z1r racers.
 
@@ -18,13 +23,4 @@ I wanted to create my own tool that I thought was better suited to certain audie
 * For **those learning z1r**: provide some helpful assistance and steering that makes it easier for the new player to decide what to do next.  Some features help route a path through the overworld 
   to find all of the necessary locations, and others provide reminder feedback about item progress and places that ought to be returned to, to finish the seed.
 
-The final bullet (automated 'assistance') presumably makes the tool not 'race legal', and so **z1r racers** are not currently part of the target audience for this tool.  (In the future, I can imagine
-having options to turn off some assistive features, but as someone who's not currently a member of the active racing community, I'm not even sure what the legal subset would be.  It's possible future
-work on this project.)
-
-### Features
-
-You can get a sense of the features of the tracker by reading through [Notes.txt](/Z1R_Tracker/Z1R_Tracker/Notes.txt) and by looking at an
-old screenshot below:
-
-![old_screenshot](/images/old_screenshot2.png)
+Z-Tracker is still in activate development as I write this (December 2021).  The current release is suitable both for casual seed runners as well as z1r racers.
