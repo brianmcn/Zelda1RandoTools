@@ -13,6 +13,89 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+whichever dungeon tab is selected, it should also highlight that blockers area
+
+homer wants the 'highlight empty box' - i have a discord conversation with a full design
+
+homer wants door-inference (think about)
+ - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
+ - off-by-default option ('infer some dungeon doors based on rooms')
+
+homer wants blocker-question-mark, could have 16 choices, e.g. "bomb" and "bomb?", and hotkey cycles them
+
+should coast item voice says 'consider'?
+
+change rando and ZT to say BOARD-3 instead of LEVEL-3
+
+homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
+
+bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
+
+homer probably could use bomb-default-on and big-icons-default-on (he even wants candle)
+
+"now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8
+
+the bottom 'item progress' is a good summary, though grayed-out silvers and have-bluish-silvers look very similar; hm, i could do a background thingy there maybe
+
+Make screenshots of broadcast mode mid-game in OW/dungroom popups for the front page github
+
+the rando spoiler log does not mirror coordinates, so D5 is death armos normally, but not in mirrored, so I need to change how 'coords' displays in mirrored, ugh
+
+update docs with changes? branch for 1.1?
+
+me: make 'show hotkeys' choose a better size to start
+ - add hotkeys, e.g. 'k' for key in dungeon room drop detail
+
+consider in HDN making known numbers appear on overworld map e.g. "A5" like a two-item shop
+
+HDN, non-shapes, in addition to red-green room match, maybe could yellow out numbers already taken? hmmm
+
+maybe 'secret' hotkey to cycle 3 sizes? (or maybe any hotkey with multiple bindings cycles? hmmm)
+
+consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
+
+Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
+
+possibly an 'any road' single hotkey that works like voice, and auto-selects next road?
+
+cd wants ganon & zelda rooms
+
+consider adding my 'dungeon drops' room table somewhere somehow
+
+hovering legend - recorder dest, dungeon, any road should highlight those on map
+
+some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
+
+kigalas: grab (when click dungeon tab then press enter)
+
+make old man in dungeon be toggle, for unread unbook hints, if want to return to hints post-book
+
+Idea of how to deal with starting items, triforces, and hearts, money/life rooms, and key items as common drops:
+ - there's a separate popup/pane where you can adjust things - maybe a blue box with '...' as 9's third box
+     - has checklist of every item, every triforce, and also a way to +/- hearts
+     - items dont interact with choicedomain, but do populate progress summary
+     - triforces only need to be there for HDN, but probably can always be there for consistency? or should folks click triforce number? hmmmmmm
+     - need a way to pull up trifoce decoder diagram (or maybe 'its just there' with that popup)
+ - has extra item boxes for marking starting items not found in a dungeon (or used for 'jackpot' shuffled common drops)
+ - in HDN, there's a pane for marking triforces you have that didnt come out of a dungeon (in non-HDN, just ensure orange-triforce with non-white numeral is a visual state) 
+      - need way to see triforce decoder diagram in non-HDN
+ - there's a place to + or - your heart containers (for diff starting hearts, or for money or life rooms)
+ - (adjust docs accordingly, for feature, and for info on well-supported flags)
+ - deals with comments directly below
+should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
+start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
+Kigalas: Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
+
+Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
+ - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
+ - Yellow percentage, count DRCs, etc
+ - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
+
+
+
+
+
+
 consider kigalas feedback:
 When it resets the timer can you make it reset the tracker itself? Or add some a way to return to the initial starting screen?
 Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
@@ -73,6 +156,16 @@ if flagged as virus, this may help
 https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-security-center
 
 
+
+
+eventually:
+
+https://bitbucket.org/Garmichael/infinite-hyrule/src/master/
+
+https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
+
+ 
+
 SMALL
 
 if any road ends up being power bracelet blocked, and you don't have PB yet, maybe grey out any road until you get it? hm
@@ -82,18 +175,6 @@ possibly a reminder when all dungeons have been found _or_hinted_, so you don't 
 consider making MMG icon dark by default, with toggle?
 should shops items go dark when you have get that item or better?
 
-Idea of how to deal with starting items, triforces, and hearts, money/life rooms, and key items as common drops:
- - there's a separate popup/pane where you can adjust things
- - has extra item boxes for marking starting items not found in a dungeon (or used for 'jackpot' shuffled common drops)
- - in HDN, there's a pane for marking triforces you have that didnt come out of a dungeon (in non-HDN, just ensure orange-triforce with non-white numeral is a visual state) 
-      - need way to see triforce decoder diagram in non-HDN
- - there's a place to + or - your heart containers (for diff starting hearts, or for money or life rooms)
- - (adjust docs accordingly, for feature, and for info on well-supported flags)
- - deals with comments directly below
-should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
-start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
-Kigalas: Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
-
 clicking the kitty should meow or purr or something
 
 
@@ -102,8 +183,6 @@ clicking the kitty should meow or purr or something
 imagine adding a status bar that has info like 'has burn bush' or 'has recorder spot' to explain/reinforce the meanings of the pixel colors, and 
 could also be a place to add text for LostWoods/LostHills tiles.  Not sure where to place it in the UI yet, though...
   - advanced: status bar could show % chance of a yellow highlight yielding a location
-
-consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
 
 Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
@@ -142,7 +221,7 @@ homer: blockers.. love this section, might want to add Rupees (ex. you hit a mug
 homer:
  - in sprite shuffle, might want to mark 2 white sword caves because cant tell
         - sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
- - homer found A, then 9, then went into A, mapped inside 9, made a mess, hm
+ - homer found A, then 9, then went into A, mapped inside 9, made a mess, hm (first mark has audio feedback?)
  - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
 [10:27 AM] homerjsmash: ha yes, but if one were to look at the pretty art and see a gohma one would know def blocked there vs maybe blocked there. But i understand your point
 [10:27 AM] Lorgon111: (so i guess, is maybe possible to 'write' both 'hard' and 'soft' into the UI, if you want to track them differentially, but at some point, just do whatever)
@@ -154,8 +233,6 @@ homer:
 lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
 lorgon: mark screens with bomb droppers
 lorgon: like imagine middle click from dungeons
-
-Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
 start spot hotkey?
 
@@ -196,10 +273,6 @@ maybe make separate project for generation-tools, e.g.
         i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
          - river, NW corner, south bomb coast, mid-candle-row, any others?
 
-
-Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
- - Yellow percentage, count DRCs, etc
- - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
 
 
 HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
@@ -242,8 +315,6 @@ consider controller-button push-to-talk to explicitly activate speech recognitio
 Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
 select item box via voice?  select dungeon room via voice?
 
-(Kigalas wants dungeon door options.  Keep in mind e.g. zhelper lets you filter out items you don't want to scroll thru, so i could also have options for 'extra UI' some people might opt out of)
-
 other possible hotkey stuff?  (start/stop timer, got mags, ... ?)  other possible keys (shift/ctrl, thumb button, gamepad, remap left/right click in various contexts, ...?)
 
 decide about PTT functionality
@@ -269,10 +340,6 @@ timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only 
    rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
 
 
-
-homer conversation, he forgot shops could even have second items:
-regarding second-shop-icon, are you saying that it would help you remember that second-item is an option available to you if 'bomb' displays not just 'bomb' in center, but 
-like 'bomb' on left hand side and like "shop item #2 question mark" icon on the right side, to display that the second slot is still available for use
 
 If I want to put chosen color on backgrounds with text foreground (e.g. LEVEL-A) then see e.g.
 https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
