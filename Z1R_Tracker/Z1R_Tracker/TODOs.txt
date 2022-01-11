@@ -13,6 +13,12 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
+
+Make  documentation picture of all the hover-targets and what they do
+
+Want a global flag for 'seen a meat block?'
+
 whichever dungeon tab is selected, it should also highlight that blockers area
 
 homer wants the 'highlight empty box' - i have a discord conversation with a full design
