@@ -9,7 +9,7 @@ module Factoids =
         "Each seed has its own specific value for small/medium/large secrets, where the possible ranges for any seed are 1-20/25-40/50-150 rupees."
         "Sometimes buying 2 blue potions is cheaper than buying a red one.  Buying a blue potion when you have a blue potion turns it into a red potion."
         "For the Any Roads, from your current entrance, the 3 staircases go +1/+2/+3 steps along the 1-2-3-4-1-2-3-4-... chain."
-        "To stun a Dodongo with a single bomb, walk halfway between two tiles when placing the bomb; Dodongo can only eat bombs placed evenly on the tile grid.  After being stunned, Dodongo can be killed with a sword/wand for a bomb pack drop."
+        "To stun a Dodongo with a single bomb, walk halfway between two tiles when placing the bomb; Dodongo can only eat bombs placed evenly on the tile grid.  After being stunned, Dodongo can be killed with a sword for a bomb pack drop."
         "When there is a standing item drop on the floor of a dungeon room when you first walk in, there cannot be another prize drop for killing all monsters in the room."
         "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
         "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
@@ -35,7 +35,7 @@ module Factoids =
         |]
     let advancedTips = [|
         // advanced
-        "Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Exception: if Zelda is adjacent to Gannon, Ganon's room may have multiple shutter doors."
+        "Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Exceptions: If Zelda is adjacent to Ganon, Ganon's room may have multiple shutter doors. If Ganon is not required, she has no shutter and can be anywhere."
         "If you have 0 keys, and a room has both a shutter and a locked door, and you press against the locked door the moment the shutter opens, you can go through the door without a key, unlocking it (khananakey)."
         "If using 'Level 9 Entry: Random' flag, if the old man at the door tells you some nonsense, that means you need all 8 triforces to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc."
         "In Shapes (1Q) dungeons, after clearing monsters, dungeon room 'five pairs' can only drop in dungeon 1, and dungeon room 'maze' can only drop in dungeon 4."
