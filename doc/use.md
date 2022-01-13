@@ -109,15 +109,18 @@ the [dungeon inset](#dungeon-inset), which provides a duplicate view of each col
 If the flagset you are playing with uses any Starting Items, uses Shuffle Minor Dungeon Drops, or uses Make Important Item Drops (from monsters),
 then there is no obvious place to track these items in the main tracker.  Instead, Z-Tracker has an 'extras' popup to track these extra items, 
 which you can access by clicking on the blue ellipsis icon in dungeon 9's column:
+
 ![Extras button](screenshots/extras-ellipsis.png)
 
 Clicking the elllipsis pops up a display like this:
+
 ![Extras popup](screenshots/extras-popup.png)
 
 So for example, if you started with triforce 3, the red candle, and 4 starting hearts, you could click a triforce, candle, and +1 max hearts, and
 see the changes reflected here (note how you can see triforce 3 light up on the main tracker, the red candle light up in the Item Progress bar, and
 the max hearts changed in the upper right of the tracker).  For convenience, the triforce-decoder-diagram appears alongside this popup, to help you
 figure out which triforce piece was in your starting inventory:
+
 ![Extras popup](screenshots/extras-example.png)
 
 Note that you can also use the max-hearts feature here to reduce your maximum hearts, e.g. if a 'Money or Life' mugger steals one in a dungeon.
