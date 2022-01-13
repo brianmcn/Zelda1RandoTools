@@ -182,7 +182,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let mutable found,hasTriforce = false,false
         if index <> -1 then
             found <- TrackerModel.GetDungeon(index).HasBeenLocated()
-            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
+            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce() 
+        hasTriforce <- hasTriforce || TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value()
         let hasHint = not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN
         c.Children.Clear()
         if hasHint then
@@ -193,7 +194,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             else
                 c.Children.Add(Graphics.BMPtoImage Graphics.emptyFoundNumberedTriforce_bmps.[i]) |> ignore
         else
-            c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedTriforce_bmps.[i]) |> ignore
+            if not found then
+                c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedUnfoundTriforce_bmps.[i]) |> ignore
+            else
+                c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedFoundTriforce_bmps.[i]) |> ignore
     let updateNumberedTriforceDisplayIfItExists =
         if TrackerModel.IsHiddenDungeonNumbers() then
             let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
@@ -250,8 +254,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         gridAdd(mainTracker, c, i, 1)
         let fullTriforceBmp =
             match kind with
-            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
-            | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
+            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
+            | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
@@ -298,6 +302,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if j=0 || j=1 || i=7 then
                     canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
+    let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
+    extrasImage.ToolTip <- "Starting items and extra drops"
+    ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
+    gridAdd(mainTracker, extrasImage, 8, 4)
     do 
         let RedrawForSecondQuestDungeonToggle() =
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
@@ -502,6 +510,126 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+
+    let extrasPanel =
+        let mutable refreshTDD = fun () -> ()
+        let mkTxt(size,txt) = 
+            new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=size, Margin=Thickness(5.),
+                            VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                            Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black)
+        let leftPanel = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+        let headerDescription1 = mkTxt(20., "Starting Items and Extra Drops")
+        let iconedHeader = new StackPanel(Orientation=Orientation.Horizontal)
+        iconedHeader.Children.Add(Graphics.BMPtoImage Graphics.iconExtras_bmp) |> ignore
+        iconedHeader.Children.Add(headerDescription1) |> ignore
+        let headerDescription2 = mkTxt(16., "Mark any items you start the game with\nor get as monster drops/extra dungeon drops\nin this section")
+        leftPanel.Children.Add(iconedHeader) |> ignore
+        leftPanel.Children.Add(headerDescription2) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        let triforcePanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        for i = 0 to 7 do
+            let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            let redraw() =
+                innerc.Children.Clear()
+                if TrackerModel.GetTriforceHaves().[i] then
+                    innerc.Children.Add(Graphics.BMPtoImage(Graphics.fullNumberedFoundTriforce_bmps.[i])) |> ignore 
+                else
+                    innerc.Children.Add(Graphics.BMPtoImage(Graphics.emptyFoundNumberedTriforce_bmps.[i])) |> ignore 
+            redraw()
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                for j = 0 to 7 do
+                    TrackerModel.GetDungeon(j).PlayerHasTriforceChanged.Add(fun _ -> redraw(); refreshTDD())
+                    TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw(); refreshTDD())
+            else
+                TrackerModel.GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> redraw(); refreshTDD())
+            innerc.MouseDown.Add(fun _ -> 
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Toggle()
+                else
+                    TrackerModel.GetDungeon(i).ToggleTriforce()
+                redraw()
+                refreshTDD()
+                )
+            triforcePanel.Children.Add(innerc) |> ignore
+        leftPanel.Children.Add(triforcePanel) |> ignore
+        let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        weaponsRowPanel.Children.Add(basicBoxImpl("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("White sword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(weaponsRowPanel) |> ignore
+        let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        utilityRowPanel.Children.Add(basicBoxImpl("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Red ring", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Any key", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(utilityRowPanel) |> ignore
+        let maxHeartsPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        let maxHeartsText = mkTxt(12., sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+        let adjustText = mkTxt(12., " You can adjust hearts here:")
+        let plusOne = new Button(Content=" +1 ")
+        let minusOne = new Button(Content=" -1 ")
+        plusOne.Click.Add(fun _ -> 
+            TrackerModel.startingItemsAndExtras.MaxHeartsDifferential <- TrackerModel.startingItemsAndExtras.MaxHeartsDifferential + 1
+            TrackerModel.recomputePlayerStateSummary()
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+            )
+        minusOne.Click.Add(fun _ -> 
+            TrackerModel.startingItemsAndExtras.MaxHeartsDifferential <- TrackerModel.startingItemsAndExtras.MaxHeartsDifferential - 1
+            TrackerModel.recomputePlayerStateSummary()
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+            )
+        maxHeartsPanel.Children.Add(maxHeartsText) |> ignore
+        maxHeartsPanel.Children.Add(adjustText) |> ignore
+        maxHeartsPanel.Children.Add(plusOne) |> ignore
+        maxHeartsPanel.Children.Add(minusOne) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(maxHeartsPanel) |> ignore
+        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=leftPanel)
+        b.MouseDown.Add(fun ea -> ea.Handled <- true)
+        let bp = new StackPanel(Orientation=Orientation.Vertical)
+        bp.Children.Add(b) |> ignore
+        let spacer = new DockPanel(Width=30.)
+        let panel = new StackPanel(Orientation=Orientation.Horizontal)
+        refreshTDD <- fun () ->
+            panel.Children.Clear()
+            panel.Children.Add(bp) |> ignore
+            panel.Children.Add(spacer) |> ignore
+            let tdd = Dungeon.MakeTriforceDecoderDiagram()
+            tdd.MouseDown.Add(fun ea -> ea.Handled <- true)
+            panel.Children.Add(tdd) |> ignore
+        refreshTDD()
+        panel
+    let mutable popupIsActive = false
+    extrasImage.MouseDown.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            let wh = new System.Threading.ManualResetEvent(false)
+            let whole = new Canvas(Width=cm.Width, Height=cm.Height)
+            let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
+            whole.Children.Add(mouseClickInterceptor) |> ignore
+            whole.Children.Add(extrasPanel) |> ignore
+            mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
+                whole.Children.Clear() // to reparent extrasPanel again next popup
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
+
+
 
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped

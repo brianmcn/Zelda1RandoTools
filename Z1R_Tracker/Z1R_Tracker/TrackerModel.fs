@@ -599,6 +599,41 @@ type PlayerProgressAndTakeAnyHearts() =
     member _this.PlayerHasBombs         = playerHasBombs
 let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 
+let extrasLastChangedTime = new LastChangedTime()
+type StartingItemsAndExtras() =
+    let triforces = Array.init 8 (fun _ -> BoolProperty(false,fun()->extrasLastChangedTime.SetNow()))
+    let whiteSword = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let silverArrow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let bow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let wand = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let redCandle = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let boomerang = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let magicBoomerang = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let redRing = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let powerBracelet = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let ladder = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let raft = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let recorder = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let anyKey = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let mutable maxHeartsDiff = 0
+    member _this.HDNStartingTriforcePieces = triforces
+    member _this.PlayerHasWhiteSword         = whiteSword
+    member _this.PlayerHasSilverArrow = silverArrow
+    member _this.PlayerHasBow = bow
+    member _this.PlayerHasWand = wand
+    member _this.PlayerHasRedCandle = redCandle
+    member _this.PlayerHasBoomerang = boomerang
+    member _this.PlayerHasMagicBoomerang = magicBoomerang
+    member _this.PlayerHasRedRing = redRing
+    member _this.PlayerHasPowerBracelet = powerBracelet
+    member _this.PlayerHasLadder = ladder
+    member _this.PlayerHasRaft = raft
+    member _this.PlayerHasRecorder = recorder
+    member _this.PlayerHasAnyKey = anyKey
+    member _this.MaxHeartsDifferential with get() = maxHeartsDiff and set(x) = maxHeartsDiff <- x
+let startingItemsAndExtras = StartingItemsAndExtras()
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeons and Boxes
 
@@ -743,6 +778,8 @@ let GetTriforceHaves() =
                 if d.LabelChar >= '1' && d.LabelChar <= '8' then
                     let n = int d.LabelChar - int '1'
                     haves.[n] <- true
+            if startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value() then
+                haves.[i] <- true
         haves
     else
         [| for i = 0 to 7 do yield GetDungeon(i).PlayerHasTriforce() |]
@@ -816,6 +853,32 @@ let recomputePlayerStateSummary() =
         ringLevel <- max ringLevel 1
     if playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Value() then
         arrowLevel <- max arrowLevel 1
+    if startingItemsAndExtras.PlayerHasWhiteSword.Value() then
+        swordLevel <- max swordLevel 2
+    if startingItemsAndExtras.PlayerHasSilverArrow.Value() then
+        arrowLevel <- 2
+    if startingItemsAndExtras.PlayerHasBoomerang.Value() then
+        boomerangLevel <- max boomerangLevel 1
+    if startingItemsAndExtras.PlayerHasMagicBoomerang.Value() then
+        boomerangLevel <- 2
+    if startingItemsAndExtras.PlayerHasBow.Value() then
+        haveBow <- true
+    if startingItemsAndExtras.PlayerHasRedCandle.Value() then
+        candleLevel <- 2
+    if startingItemsAndExtras.PlayerHasWand.Value() then
+        haveWand <- true
+    if startingItemsAndExtras.PlayerHasRedRing.Value() then
+        ringLevel <- 2
+    if startingItemsAndExtras.PlayerHasPowerBracelet.Value() then
+        havePowerBracelet <- true
+    if startingItemsAndExtras.PlayerHasLadder.Value() then
+        haveLadder <- true
+    if startingItemsAndExtras.PlayerHasRaft.Value() then
+        haveRaft <- true
+    if startingItemsAndExtras.PlayerHasRecorder.Value() then
+        haveRecorder <- true
+    if startingItemsAndExtras.PlayerHasAnyKey.Value() then
+        haveAnyKey <- true
     if ladderBox.PlayerHas() <> PlayerHas.NO then
         haveCoastItem <- true
     if sword2Box.PlayerHas() <> PlayerHas.NO then
@@ -823,6 +886,7 @@ let recomputePlayerStateSummary() =
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
             playerHearts <- playerHearts + 1
+    playerHearts <- playerHearts + startingItemsAndExtras.MaxHeartsDifferential
     playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
                                                                 swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
     playerComputedStateSummaryLastComputedTime.SetNow()
@@ -1016,6 +1080,7 @@ let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.N
 let recomputeWhatIsNeeded() =
     let mutable changed = false
     if playerProgressLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time ||
+        extrasLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time ||
         dungeonsAndBoxesLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time then
         recomputePlayerStateSummary()
         changed <- true
@@ -1270,10 +1335,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     if numFound > previouslyAnnouncedFoundDungeonCount then
         ite.AnnounceFoundDungeonCount(numFound)
         previouslyAnnouncedFoundDungeonCount <- numFound
-    let mutable triforces = 0
-    for d = 0 to 8 do
-        if GetDungeon(d).PlayerHasTriforce() then
-            triforces <- triforces + 1
+    let triforces = GetTriforceHaves() |> Array.filter id |> Array.length
     let mutable locatedDungeons = 0
     let mutable completedDungeons = 0
     for d = 0 to 8 do

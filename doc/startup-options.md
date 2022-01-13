@@ -29,12 +29,8 @@ can be changed at any time in the middle of the game, not just at startup.
      - the map legend and green dungeon icons will suggest the wrong things
  - **Change Sword Hearts** is assumed to be checked, but if it's not checked in your flagset, the only bad side-effect is that you may get e.g. a spurious reminder to "Consider the magical sword"
    when you have 10 hearts, even though you actually need 12 hearts
- - **Starting Hearts** are assumed to be 3; if it's another value, the "Max Hearts" display may be incorrect, and reminders may trigger at the wrong time, as with the previous bullet
- - **Add Money or Life Rooms** is assumed to be un-checked; if you pay to exit such a room with a Heart Container, then the "Max Hearts" display may be wrong, as with the previous bullet
  - **Level 9 Entry** is assumed to be 8 triforces; if it's something else, various "go-time" reminders may not trigger, or may trigger incorrectly
  - **Force Ganon Fight** is assumed to be checked; if not, then "go-time" reminders will erroneously think you need the Silver Arrows
- - **Shuffle Minor Dungeon Drops** and **Make Important Items Drops** are assumed to be un-checked; if they are checked, a single dungeon may yield many key items, and you'll have to distribute 
-   them among the various dungeon's item boxes in the [Dungeon Item Area](use.md#main-dia) as you see fit
 
 None of these are sufficiently "breaking" to advise against using Z-Tracker, but be aware of the limitations.
 

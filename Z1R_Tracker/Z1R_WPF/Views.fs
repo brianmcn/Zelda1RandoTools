@@ -26,10 +26,14 @@ let emptyFoundTriforce_bmp(i) =
     match TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
     | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.emptyFoundLetteredTriforce_bmps.[i]
     | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.emptyFoundNumberedTriforce_bmps.[i]
-let fullTriforce_bmp(i) =
+let fullUnfoundTriforce_bmp(i) =
     match TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
-    | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
-    | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
+    | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredUnfoundTriforce_bmps.[i]
+    | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedUnfoundTriforce_bmps.[i]
+let fullFoundTriforce_bmp(i) =
+    match TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
+    | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
+    | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
 
 let drawTinyIconIfLocationIsOverworldBlock(c:Canvas, owInstanceOpt:OverworldData.OverworldInstance option, location) =
     match owInstanceOpt with
@@ -85,7 +89,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
         if not(dungeon.PlayerHasTriforce()) then 
             innerc.Children.Add(Graphics.BMPtoImage(if not(found) then emptyUnfoundTriforce_bmp(trackerIndex) else emptyFoundTriforce_bmp(trackerIndex))) |> ignore
         else
-            innerc.Children.Add(Graphics.BMPtoImage(fullTriforce_bmp(trackerIndex))) |> ignore 
+            innerc.Children.Add(Graphics.BMPtoImage(if not(found) then fullUnfoundTriforce_bmp(trackerIndex) else fullFoundTriforce_bmp(trackerIndex))) |> ignore 
         drawTinyIconIfLocationIsOverworldBlock(innerc, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[trackerIndex])
     redraw()
     // interactions
