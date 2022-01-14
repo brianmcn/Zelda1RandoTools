@@ -1598,7 +1598,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
                     // blockers ui
                     if a.[i] then
-                        blockerDungeonSunglasses.[i].Opacity <- 0.5
+                        blockerDungeonSunglasses.[i].Opacity <- 0.3
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
@@ -1787,21 +1787,32 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
     // blockers
+    let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
+                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.4)
+                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.6)
+                                                  new GradientStop(Color.FromArgb(255uy, 180uy, 60uy, 60uy), 1.0)
+                                                 ])
+    let blocker_brush = new LinearGradientBrush(blocker_gsc, Point(0.,0.), Point(1.,1.))
     let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
             let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
-            c.Children.Add(rect) |> ignore
-            let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
-            c.Children.Add(innerc) |> ignore
-            let redraw(n) =
-                innerc.Children.Clear()
-                let bmp = Graphics.blockerCurrentBMP(n)
-                if bmp <> null then
-                    let image = Graphics.BMPtoImage(bmp)
-                    image.IsHitTestVisible <- false
-                    canvasAdd(innerc, image, 4., 4.)
-                innerc
+            let redraw(n) = 
+                c.Children.Clear()
+                match n with
+                | TrackerModel.DungeonBlocker.MAYBE_LADDER 
+                | TrackerModel.DungeonBlocker.MAYBE_RECORDER
+                | TrackerModel.DungeonBlocker.MAYBE_BAIT
+                | TrackerModel.DungeonBlocker.MAYBE_BOMB
+                | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW
+                | TrackerModel.DungeonBlocker.MAYBE_KEY
+                | TrackerModel.DungeonBlocker.MAYBE_MONEY
+                    -> rect.Stroke <- blocker_brush
+                | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
+                | _ -> rect.Stroke <- Brushes.LightGray
+                c.Children.Add(rect) |> ignore
+                canvasAdd(c, Graphics.blockerCurrentBMP(n) , 3., 3.)
+                c
             c, redraw
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
@@ -1823,13 +1834,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 DockPanel.SetDock(textBorder, Dock.Right)
                 dp.Children.Add(textBorder) |> ignore
                 Canvas.SetTop(dp, 30.)
-                Canvas.SetRight(dp, 90.)
+                Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(Graphics.blockerCurrentBMP(db))), true, db), 
-                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., popupRedraw,
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), true, db), 
+                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with
                 | Some(db) -> SetNewValue(db)

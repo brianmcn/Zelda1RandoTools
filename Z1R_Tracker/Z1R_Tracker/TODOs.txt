@@ -15,23 +15,10 @@ CURRENT PRIORITIES
 
 update docs with changes
 
-Idea of how to deal with starting items, triforces, and hearts, money/life rooms, and key items as common drops:
- - there's a separate popup/pane where you can adjust things - maybe a blue box with '...' as 9's third box
-     - has checklist of every item, every triforce, and also a way to +/- hearts
-     - items dont interact with choicedomain, but do populate progress summary
-     - triforces only need to be there for HDN, but probably can always be there for consistency? or should folks click triforce number? hmmmmmm
-         - should be there for consistency, but in non-HDN it has same backing store as clicking triforce number, just like e.g. wood/magical sword will
-     - need a way to pull up trifoce decoder diagram (or maybe 'its just there' with that popup)
- - has extra item boxes for marking starting items not found in a dungeon (or used for 'jackpot' shuffled common drops)
- - in HDN, there's a pane for marking triforces you have that didnt come out of a dungeon (in non-HDN, just ensure orange-triforce with non-white numeral is a visual state) 
-      - need way to see triforce decoder diagram in non-HDN
- - there's a place to + or - your heart containers (for diff starting hearts, or for money or life rooms)
- - (adjust docs accordingly, for feature, and for info on well-supported flags)
- - deals with comments directly below
-should have dark-numeral-triforce on bright orange triangle for triforce-as-starting-item-but-dungeon-not-yet-located scenario
-start with random triforce pieces, need a way to pull up triforce-decoder-diagram, even in non-HDN (there's space to place button right of hint-decoder)
-Kigalas: Next thing was hitting a Lose your Health or (item) room. Since it tracks hearts for getting Swords, it would be nice to let it know that I've lost one in a dungeon.
 
+homer wants blocker-question-mark, could have 16 choices, e.g. "bomb" and "bomb?", and hotkey cycles them? maybe-combat useful? or should rupee (mugger) instead of maybe-combat? hm
+ - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
+ - make 16 choices with labels, but use box color or background as maybe/must visual distinguisher
 
 
 
@@ -49,9 +36,6 @@ homer wants the 'highlight empty box' - i have a discord conversation with a ful
 homer wants door-inference (think about)
  - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
  - off-by-default option ('infer some dungeon doors based on rooms')
-
-homer wants blocker-question-mark, could have 16 choices, e.g. "bomb" and "bomb?", and hotkey cycles them? maybe-combat useful? or should rupee (mugger) instead of maybe-combat? hm
- - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
 
 change rando and ZT to say BOARD-3 instead of LEVEL-3
 

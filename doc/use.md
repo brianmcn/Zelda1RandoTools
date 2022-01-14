@@ -406,15 +406,19 @@ marking eight OffTheMap spots appears in this screenshot:
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
 You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
 
- - Sword:       you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
  - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
  - Recorder:    you are blocked by Digdogger
  - Ladder:      there's a ladder block (moat)
- - Bait:        there's a hungry Goriya blocking you
  - Key:         you need more keys
+ - Bait:        there's a hungry Goriya blocking you
+ - Rupee:       you need money (e.g. to pay off a Money or Life mugger)
  - Bomb:        you need to find more explosion walls
+ - Sword:       you need better combat gear (sword upgrade, ring upgrade, or maybe wand)
 
 The list of all these icons appears in a popup.  In addition to scrolling, clicking a blocker box will activate the popup.  
+
+For those players who want more fine-grained discrimination between **definitely** being blocked and **maybe** being blocked, there is a second set
+of most icons on a green/red gradient background for denoting when you only might be blocked.
 
 ![Blockers screenshot](screenshots/blockers.png)
 

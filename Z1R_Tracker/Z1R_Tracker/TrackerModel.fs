@@ -1018,55 +1018,76 @@ let recomputeMapStateSummary() =
 // only some of these can participate in semantic reminders, obviously...
 [<RequireQualifiedAccess>]
 type DungeonBlocker =
-    | COMBAT    // need better weapon/armor
     | BOW_AND_ARROW
     | RECORDER
     | LADDER  
-    | BAIT    
     | KEY
+    | BAIT    
+    | MONEY     // money or life room? bomb upgrade?
     | BOMB
-//    | MONEY     // money or life room? bomb upgrade?
+    | COMBAT    // need better weapon/armor
+    | MAYBE_BOW_AND_ARROW
+    | MAYBE_RECORDER
+    | MAYBE_LADDER  
+    | MAYBE_KEY
+    | MAYBE_BAIT    
+    | MAYBE_MONEY
+    | MAYBE_BOMB
     | NOTHING
+    member this.HardCanonical() =
+        match this with
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> DungeonBlocker.BOW_AND_ARROW
+        | DungeonBlocker.MAYBE_RECORDER -> DungeonBlocker.RECORDER
+        | DungeonBlocker.MAYBE_LADDER -> DungeonBlocker.LADDER
+        | DungeonBlocker.MAYBE_BAIT -> DungeonBlocker.BAIT
+        | DungeonBlocker.MAYBE_KEY -> DungeonBlocker.KEY
+        | DungeonBlocker.MAYBE_BOMB -> DungeonBlocker.BOMB
+        | DungeonBlocker.MAYBE_MONEY -> DungeonBlocker.MONEY 
+        | x -> x
     member this.DisplayDescription() =
         match this with
         | DungeonBlocker.COMBAT -> "Need better\nweapon/armor"
         | DungeonBlocker.BOW_AND_ARROW -> "Need bow&arrow"
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> "Might need bow&arrow"
         | DungeonBlocker.RECORDER -> "Need recorder"
+        | DungeonBlocker.MAYBE_RECORDER -> "Might need recorder"
         | DungeonBlocker.LADDER -> "Need ladder"
+        | DungeonBlocker.MAYBE_LADDER -> "Might need ladder"
         | DungeonBlocker.BAIT -> "Need meat"
+        | DungeonBlocker.MAYBE_BAIT -> "Might need meat"
         | DungeonBlocker.KEY -> "Need keys"
+        | DungeonBlocker.MAYBE_KEY -> "Might need keys"
         | DungeonBlocker.BOMB -> "Need bombs"
+        | DungeonBlocker.MAYBE_BOMB -> "Might need bombs"
+        | DungeonBlocker.MONEY -> "Need money\n(e.g. mugger)"
+        | DungeonBlocker.MAYBE_MONEY -> "Might need money\n(e.g. mugger)"
         | DungeonBlocker.NOTHING -> "Unmarked"
-    member this.Next() =
-        match this with
-        | DungeonBlocker.COMBAT -> DungeonBlocker.BOW_AND_ARROW
-        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.RECORDER
-        | DungeonBlocker.RECORDER -> DungeonBlocker.LADDER
-        | DungeonBlocker.LADDER -> DungeonBlocker.BAIT
-        | DungeonBlocker.BAIT -> DungeonBlocker.KEY
-        | DungeonBlocker.KEY -> DungeonBlocker.BOMB
-        | DungeonBlocker.BOMB -> DungeonBlocker.NOTHING
-        | DungeonBlocker.NOTHING -> DungeonBlocker.COMBAT
-    member this.Prev() =
-        match this with
-        | DungeonBlocker.COMBAT -> DungeonBlocker.NOTHING
-        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.COMBAT
-        | DungeonBlocker.RECORDER -> DungeonBlocker.BOW_AND_ARROW
-        | DungeonBlocker.LADDER -> DungeonBlocker.RECORDER
-        | DungeonBlocker.BAIT -> DungeonBlocker.LADDER
-        | DungeonBlocker.KEY -> DungeonBlocker.BAIT
-        | DungeonBlocker.BOMB -> DungeonBlocker.KEY
-        | DungeonBlocker.NOTHING -> DungeonBlocker.BOMB
     static member All = [| 
-        DungeonBlocker.COMBAT
         DungeonBlocker.BOW_AND_ARROW
         DungeonBlocker.RECORDER
-        DungeonBlocker.LADDER
-        DungeonBlocker.BAIT
+        DungeonBlocker.LADDER  
         DungeonBlocker.KEY
+        DungeonBlocker.BAIT    
+        DungeonBlocker.MONEY
         DungeonBlocker.BOMB
+        DungeonBlocker.COMBAT
+        DungeonBlocker.MAYBE_BOW_AND_ARROW
+        DungeonBlocker.MAYBE_RECORDER
+        DungeonBlocker.MAYBE_LADDER  
+        DungeonBlocker.MAYBE_KEY
+        DungeonBlocker.MAYBE_BAIT    
+        DungeonBlocker.MAYBE_MONEY
+        DungeonBlocker.MAYBE_BOMB
         DungeonBlocker.NOTHING
         |]
+    member this.Next() =
+        let i = DungeonBlocker.All |> Array.findIndex (fun x -> x = this)
+        let j = (i + 1) % DungeonBlocker.All.Length
+        DungeonBlocker.All.[j]
+    member this.Prev() =
+        let i = DungeonBlocker.All |> Array.findIndex (fun x -> x = this)
+        let j = (DungeonBlocker.All.Length + i - 1) % DungeonBlocker.All.Length
+        DungeonBlocker.All.[j]
 [<RequireQualifiedAccess>]
 type CombatUnblockerDetail =
     | BETTER_SWORD
@@ -1383,10 +1404,10 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
-    let blockerLogic(db) =
+    let blockerLogic(db:DungeonBlocker) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if dungeonBlockers.[i,0] = db || dungeonBlockers.[i,1] = db then
+            if dungeonBlockers.[i,0].HardCanonical() = db.HardCanonical() || dungeonBlockers.[i,1].HardCanonical() = db.HardCanonical() then
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1413,7 +1434,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         blockerLogic(DungeonBlocker.KEY)
     priorAnyKey <- playerComputedStateSummary.HaveAnyKey
 
-    // Note: no logic for BAIT or loose KEYs, as the tracker has no reliable knowledge of this aspect of player's inventory
+    // Note: no logic for BAIT or loose KEYs or MONEY, as the tracker has no reliable knowledge of this aspect of player's inventory
 
     // items
     if not remindedLadder && playerComputedStateSummary.HaveLadder then
