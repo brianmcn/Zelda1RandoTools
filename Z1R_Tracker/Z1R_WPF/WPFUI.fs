@@ -774,12 +774,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     // nearby ow tiles magnified overlay
     let ENLARGE = 8.
+    let POP = 1  // width of entrance border
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
     let DTOCW,DTOCH = 3.*16.*ENLARGE + 4.*BT, 3.*11.*ENLARGE + 4.*BT
     let dungeonTabsOverlayContent = new Canvas(Width=DTOCW, Height=DTOCH)
     mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
-    dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
+    let dtocPlusLegend = new StackPanel(Orientation=Orientation.Vertical)
+    dtocPlusLegend.Children.Add(dungeonTabsOverlayContent) |> ignore
+    let dtocLegend = new StackPanel(Orientation=Orientation.Horizontal, Background=Graphics.almostBlack)
+    for outer,inner,desc in [Brushes.Cyan, Brushes.Black, "open cave"
+                             Brushes.Black, Brushes.Cyan, "bomb spot"
+                             Brushes.Black, Brushes.Red, "burn spot"
+                             Brushes.Black, Brushes.Yellow, "recorder spot"
+                             Brushes.Black, Brushes.Magenta, "pushable spot"] do
+        let black = new Canvas(Width=ENLARGE + 2.*(float POP + 1.), Height=ENLARGE + 2.*(float POP + 1.), Background=Brushes.Black)
+        let outer = new Canvas(Width=ENLARGE + 2.*(float POP), Height=ENLARGE + 2.*(float POP), Background=outer)
+        let inner = new Canvas(Width=ENLARGE, Height=ENLARGE, Background=inner)
+        canvasAdd(black, outer, 1., 1.)
+        canvasAdd(black, inner, 1.+float POP, 1.+float POP)
+        dtocLegend.Children.Add(black) |> ignore
+        let text = new TextBox(Text=desc, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                    FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center)
+        dtocLegend.Children.Add(text) |> ignore
+    dtocPlusLegend.Children.Add(dtocLegend) |> ignore
+    dungeonTabsOverlay.Child <- dtocPlusLegend
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -832,7 +851,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                     c
                             bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
             // make the entrances 'pop'
-            let POP = 1  // width of border
             // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
             for x = 1 to 14 do
                 for y = 1 to 9 do

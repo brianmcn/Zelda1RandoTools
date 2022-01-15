@@ -24,9 +24,6 @@ dungeon summary tab (see marc convo)
 
 
 
-
-status-bar-legend under magnifier explaining dot colors
-
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
 Make  documentation picture of all the hover-targets and what they do
