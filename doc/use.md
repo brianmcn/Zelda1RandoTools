@@ -429,6 +429,11 @@ When possible, the tracker will give a reminder when you may be unblocked, for e
 
 You can toggle whether you get these reminders in the [Options Menu](#main-om).
 
+You cannot add a ladder/recorder/bow&arrow/key blocker if the tracker thinks you already have the corresponding items in your inventory .  This is to prevent 
+the common mistake of e.g. the player forgetting they have the ladder, and then exiting a moat-ed dungeon and marking a ladder blocker.
+
+When one of dungeons 1-8 is the currently selected dungeon tab, the corresponding blockers section gets a subtle highlight.
+
 
 ## <a id="main-notes"></a> Notes
 

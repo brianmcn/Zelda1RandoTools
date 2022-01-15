@@ -103,7 +103,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, TH, rightwardCanvas:Canvas, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -332,7 +332,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             grabHelper.ToggleGrabMode()
             grabRedraw()
             )
-        dungeonTabs.SelectionChanged.Add(fun _ -> 
+        dungeonTabs.SelectionChanged.Add(fun ea -> 
+            try
+                let x = ea.AddedItems.[0]
+                if obj.ReferenceEquals(x,levelTab) then
+                    levelTabSelected.Trigger(level)
+            with _ -> ()
             // the tab has already changed, kill the current grab
             if grabHelper.IsGrabMode then 
                 grabHelper.Abort()

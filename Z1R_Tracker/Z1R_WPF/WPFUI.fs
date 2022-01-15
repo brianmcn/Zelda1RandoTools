@@ -1771,8 +1771,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
+    let levelTabSelected = new Event<_>()
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, rightwardCanvas, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, rightwardCanvas, levelTabSelected, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1837,9 +1838,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
+            let canBeBlocked(db:TrackerModel.DungeonBlocker) =
+                match db.HardCanonical() with
+                | TrackerModel.DungeonBlocker.LADDER -> not TrackerModel.playerComputedStateSummary.HaveLadder
+                | TrackerModel.DungeonBlocker.RECORDER -> not TrackerModel.playerComputedStateSummary.HaveRecorder
+                | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> not (TrackerModel.playerComputedStateSummary.HaveBow && TrackerModel.playerComputedStateSummary.ArrowLevel > 0)
+                | TrackerModel.DungeonBlocker.KEY -> not TrackerModel.playerComputedStateSummary.HaveAnyKey
+                | _ -> true
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), true, db), 
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), canBeBlocked(db), db), 
                                 Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
                 match r with
@@ -1864,6 +1872,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
+    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(45uy, 45uy, 45uy))
     blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
@@ -1878,10 +1887,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
                 let d = new DockPanel(LastChildFill=false)
+                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=30., IsHitTestVisible=false,
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
-                                        TextAlignment=TextAlignment.Right, Margin=Thickness(0.,0.,6.,0.))
+                                        TextAlignment=TextAlignment.Right, Margin=Thickness(20.,0.,6.,0.))
                 sp.Children.Add(tb) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonIndex, 0)) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonIndex, 1)) |> ignore

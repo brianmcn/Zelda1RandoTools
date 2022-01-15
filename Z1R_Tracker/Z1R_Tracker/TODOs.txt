@@ -15,21 +15,21 @@ CURRENT PRIORITIES
 
 update docs with changes
 
-
-homer wants blocker-question-mark, could have 16 choices, e.g. "bomb" and "bomb?", and hotkey cycles them? maybe-combat useful? or should rupee (mugger) instead of maybe-combat? hm
- - if i try to mark ladder as BLOCKERS, but i have ladder, it should warn me
- - make 16 choices with labels, but use box color or background as maybe/must visual distinguisher
+make a decision about linux (and update docs)
 
 
 
 
+dungeon summary tab (see marc convo)
 
+
+
+
+status-bar-legend under magnifier explaining dot colors
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
 Make  documentation picture of all the hover-targets and what they do
-
-whichever dungeon tab is selected, it should also highlight that blockers area
 
 homer wants the 'highlight empty box' - i have a discord conversation with a full design
 
