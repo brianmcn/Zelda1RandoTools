@@ -354,11 +354,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         for i = 0 to 7 do
             if i<>7 then
                 if TrackerModel.IsHiddenDungeonNumbers() then
-                    let TEXT = "LEVEL-9"
                     if i <> 6 || labelChar = '9' then
                         let fg = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color) then Brushes.Black else Brushes.White
                         let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=fg, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false,
-                                                Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                                                BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                        OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
+                            tb.Text <- ((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1))
                         canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
                         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
                             tb.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
@@ -388,10 +389,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     } |> Async.StartImmediate
                             )
                 else
-                    let TEXT = sprintf "LEVEL-%d " level
                     let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
-                                            Text=TEXT.Substring(i,1), BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                                            BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                    OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
+                        tb.Text <- (sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1))
                     canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+            OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
             for j = 0 to 7 do
                 let c = new Canvas(Width=float(13*3), Height=float(9*3))

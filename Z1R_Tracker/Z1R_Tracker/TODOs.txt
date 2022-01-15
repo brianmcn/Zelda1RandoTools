@@ -34,8 +34,6 @@ homer wants door-inference (think about)
  - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
  - off-by-default option ('infer some dungeon doors based on rooms')
 
-change rando and ZT to say BOARD-3 instead of LEVEL-3
-
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
 
 bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors

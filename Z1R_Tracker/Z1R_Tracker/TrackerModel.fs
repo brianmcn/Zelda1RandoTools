@@ -47,6 +47,7 @@ module Options =
     let mutable ListenForSpeech = Bool(true)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
+    let mutable BOARDInsteadOfLEVEL = Bool(false)
     let mutable IsSecondQuestDungeons = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
@@ -79,6 +80,7 @@ module Options =
         member val ListenForSpeech = true with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
+        member val BOARDInsteadOfLEVEL = false with get,set
         member val IsSecondQuestDungeons = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
@@ -115,6 +117,7 @@ module Options =
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
+        data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
@@ -163,6 +166,7 @@ module Options =
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
+            BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)

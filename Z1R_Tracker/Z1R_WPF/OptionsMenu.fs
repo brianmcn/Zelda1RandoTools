@@ -9,6 +9,7 @@ let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
 let broadcastWindowOptionChanged = new Event<unit>()
+let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
@@ -132,6 +133,13 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let options3sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,2.,0.,0.))
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options3sp.Children.Add(tb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="BOARD instead of LEVEL",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BOARDInsteadOfLEVEL.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.BOARDInsteadOfLEVEL.Value <- true; BOARDInsteadOfLEVELOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.BOARDInsteadOfLEVEL.Value <- false; BOARDInsteadOfLEVELOptionChanged.Trigger())
+    cb.ToolTip <- "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N"
+    options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
