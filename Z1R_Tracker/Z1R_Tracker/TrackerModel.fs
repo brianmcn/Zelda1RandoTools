@@ -55,6 +55,7 @@ module Options =
     let mutable SmallerAppWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
+    let mutable HotKeyWindowLTWH = ""
 
     type ReadWrite() =
         member val DrawRoutes = true with get,set
@@ -89,6 +90,7 @@ module Options =
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
+        member val HotKeyWindowLTWH = "" with get, set
 
     let mutable private cachedSettingJson = null
 
@@ -125,6 +127,7 @@ module Options =
         data.SmallerAppWindow <- SmallerAppWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
+        data.HotKeyWindowLTWH <- HotKeyWindowLTWH
 
         let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
         if json <> cachedSettingJson then
@@ -174,6 +177,7 @@ module Options =
             SmallerAppWindow.Value <- data.SmallerAppWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
+            HotKeyWindowLTWH <- data.HotKeyWindowLTWH
         with e ->
             cachedSettingJson <- null
             printfn "Unable to read settings file '%s':" filename 

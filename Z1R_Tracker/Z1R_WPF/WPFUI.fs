@@ -1441,19 +1441,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show\nHotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
     canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 60., THRU_MAIN_MAP_H)
-    showHotKeysButton.Click.Add(fun _ ->
+    let showHotKeys(isRightClick) =
         let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
         w.Title <- "Z-Tracker HotKeys"
         w.Owner <- Application.Current.MainWindow
         w.Content <- p
-        p.Measure(Size(1280., 720.))
-        w.Width <- p.DesiredSize.Width + 16.
-        w.Height <- p.DesiredSize.Height + 40.
-        w.SizeChanged.Add(fun _ -> refocusMainWindow())
-        w.LocationChanged.Add(fun _ -> refocusMainWindow())
+        let save() = 
+            TrackerModel.Options.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
+            TrackerModel.Options.writeSettings()
+        let leftTopWidthHeight = TrackerModel.Options.HotKeyWindowLTWH
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
+        if not isRightClick && matches.Success then
+            w.Left <- float matches.Groups.[1].Value
+            w.Top <- float matches.Groups.[2].Value
+            w.Width <- float matches.Groups.[3].Value
+            w.Height <- float matches.Groups.[4].Value
+        else
+            p.Measure(Size(1280., 720.))
+            w.Width <- p.DesiredSize.Width + 16.
+            w.Height <- p.DesiredSize.Height + 40.
+        w.SizeChanged.Add(fun _ -> save(); refocusMainWindow())
+        w.LocationChanged.Add(fun _ -> save(); refocusMainWindow())
         w.Show()
-        )
+    showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
+    showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None

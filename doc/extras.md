@@ -20,9 +20,10 @@ So for example 'b' could be set up to mean 'bow' when the mouse is over an item 
 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.
 
 While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide a way to display your current hotkey
-information.  Click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
+information.  Left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
 mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
-display window at any time when you are done with it.
+display window at any time when you are done with it.  The window size and location will persist across sessions.  If the window ever becomes inaccessible 
+off-screen, you can right-click the 'Show HotKeys' button to re-position and re-size the window to a default location on-screen.
 
 ![screenshot](screenshots/hotkey-cheat-sheet-example.png)
 

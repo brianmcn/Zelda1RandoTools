@@ -24,11 +24,42 @@ add a 'whats new in 1.1' section to docs
  - (legend on overworld magnifier)
  - (current dungeon tab highlights corresponding blockers area)
  - (dungeon door/room mouseover feedback)
+ - (show hotkeys window remembers size/location)
 
 
+
+put logo icon in the app somewhere
 
 some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 dungeon summary tab (see marc convo)
+
+consider in HDN making known numbers appear on overworld map e.g. "A5" like a two-item shop
+
+cd wants ganon & zelda rooms
+
+Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
+
+hovering legend - recorder dest, dungeon, any road should highlight those on map
+
+add tooltips on all hoverables (or a status bar, or something)
+
+kigalas: grab (when click dungeon tab then press enter)
+
+kig: Can we have a .txt file to use as a base to pull from for the Notes section like Hotkeys has?
+
+in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
+ - second quest, 1 v 4?
+
+2Q ow, vanilla 5 is a fairy fountain, should mark as such
+
+add a good screenshot to front page github (link from in-app version button), above 'motivation' section
+
+HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
+ - maybe reincarnate this feature as a routing-rectangles filter, e.g. mid-game you set the 'only route me to 1Q rooms' or something? hmm
+
+
+
+
 
 
 
@@ -56,28 +87,11 @@ Make screenshots of broadcast mode mid-game in OW/dungroom popups for the front 
 
 the rando spoiler log does not mirror coordinates, so D5 is death armos normally, but not in mirrored, so I need to change how 'coords' displays in mirrored, ugh
 
-me: make 'show hotkeys' choose a better size to start
- - add hotkeys, e.g. 'k' for key in dungeon room drop detail
-
-consider in HDN making known numbers appear on overworld map e.g. "A5" like a two-item shop
-
 HDN, non-shapes, in addition to red-green room match, maybe could yellow out numbers already taken? hmmm
-
-maybe 'secret' hotkey to cycle 3 sizes? (or maybe any hotkey with multiple bindings cycles? hmmm)
-
-consider mouse-hover feedback on dungeon rooms and doors, to improve targeting (see how behaves on red doors)
-
-Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road?
 
-cd wants ganon & zelda rooms
-
 consider adding my 'dungeon drops' room table somewhere somehow
-
-hovering legend - recorder dest, dungeon, any road should highlight those on map
-
-kigalas: grab (when click dungeon tab then press enter)
 
 make old man in dungeon be toggle, for unread unbook hints, if want to return to hints post-book
 
@@ -86,29 +100,16 @@ Tracker could be smart about https://discord.com/channels/368763663986982912/586
  - Yellow percentage, count DRCs, etc
  - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
 
-
-
-
-
-
 consider kigalas feedback:
 Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
 Broadcast window seems to retain its position after closing but the main window doesn't. Can that be a thing for the tracker itself?
-Can we have a .txt file to use as a base to pull from for the Notes section like Hotkeys has?
-
-
-in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder?
 
 tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
  - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
     [7:57 PM] FurySK: Drop item: Cannot ever have a push block across all functions, outside of diamond staircases (edited)
 
 
-I could maybe also link the docs (rather than root github) in the 'about' (the version button)?
- - actually, the front page should point to docs and release, and maybe the existing project background info should be lower on that page, or elsewhere
 
-
-2Q ow, vanilla 5 is a fairy fountain, should mark as such
 
 
 distributing version process
@@ -185,6 +186,8 @@ homer:
 lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
 lorgon: mark screens with bomb droppers
 lorgon: like imagine middle click from dungeons
+like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
+
 
 start spot hotkey?
 
@@ -194,8 +197,6 @@ start spot hotkey?
  - related: where can zelda fit (some explicit mark for shutter doors?)
  - gesture could be hover-ganon and hover-zelda, and there is room to bring those icons down into inset, i think
 
-
-like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
@@ -221,9 +222,6 @@ maybe make separate project for generation-tools, e.g.
          - river, NW corner, south bomb coast, mid-candle-row, any others?
 
 
-
-HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
- - maybe reincarnate this feature as a routing-rectangles filter, e.g. mid-game you set the 'only route me to 1Q rooms' or something? hmm
 
 
 hide dungeon numbers:
