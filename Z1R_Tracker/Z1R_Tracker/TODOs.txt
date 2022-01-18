@@ -17,9 +17,17 @@ update docs with changes
 
 make a decision about linux (and update docs)
 
+add a 'whats new in 1.1' section to docs
+ - starting/extra items
+ - maybe-blockers
+ - BOARD v LEVEL
+ - (legend on overworld magnifier)
+ - (current dungeon tab highlights corresponding blockers area)
+ - (dungeon door/room mouseover feedback)
 
 
 
+some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 dungeon summary tab (see marc convo)
 
 
@@ -68,8 +76,6 @@ cd wants ganon & zelda rooms
 consider adding my 'dungeon drops' room table somewhere somehow
 
 hovering legend - recorder dest, dungeon, any road should highlight those on map
-
-some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 
 kigalas: grab (when click dungeon tab then press enter)
 

@@ -5,6 +5,7 @@ open System.Windows.Controls
 open System.Windows
 
 // door colors
+let highlight = Brushes.White // using Opacity 0.6 in practice
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
 let no = new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy)) :> Brush
 let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush

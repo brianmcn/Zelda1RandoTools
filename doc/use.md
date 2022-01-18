@@ -14,11 +14,11 @@ Contents of this document:
 - [Main Z-Tracker Window](#main)
   - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
   - [Dungeon Item Area](#main-dia)
+    - [Starting Items or Extra Drops](#main-sioed)
   - [Other Item Area](#main-oia)
   - [Link (specific routing)](#main-link)
   - [Overworld Map](#main-owm)
   - [Dungeon Tracker](#main-dt)
-    - [Starting Items or Extra Drops](#main-sioed)
   - [Dungeon Rooms](#main-dr)
   - [Blockers](#main-blockers)
   - [Notes](#main-notes)
@@ -287,8 +287,13 @@ shows the possible locations for that dungeon or sword cave.  Hint-halo-highligh
 There are 9 tabs for the 9 dungeons.
 
 <a id="dungeon-inset">The right column of each tab has an inset with this dungeon's triforce and items</a>, so you can edit them without having to mouse all the way to the top of the app.
+Other dungeon tracking marks have no semantic meaning to the tracker, and can be used by the player however they see fit.
 
 ![Dungeon inset screenshot](screenshots/dungeon-inset.png)
+
+When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+
+#### Doors
 
 Doors between rooms are simple, and have four states:
 
@@ -299,7 +304,11 @@ Doors between rooms are simple, and have four states:
 
 Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green door) toggles it back into unknown gray.
 
+#### Rooms
+
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).
+
+#### Multiple rooms at once
 
 If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
 Same with right mouse button, but for uncompleted rooms.  
@@ -312,13 +321,11 @@ Sometimes you may mark up a bit of dungeon map, before noticing that (a portion 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
 fix an offset map.
 
+#### Vanilla dungeon maps
+
 Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
-Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews and hinting which ones 
-    are compatible with your current room markup.
-
-Dungeon tracking has no semantic meaning to the tracker, and can be used by the player however they see fit.
-
-When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
+are compatible with your current room markup.
 
 ## <a id="main-dr"></a> Dungeon Rooms
 

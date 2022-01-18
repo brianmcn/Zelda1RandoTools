@@ -191,6 +191,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 )
         
         // horizontal doors
+        let highlight = Dungeon.highlight
         let unknown = Dungeon.unknown
         let no = Dungeon.no
         let yes = Dungeon.yes
@@ -201,8 +202,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let d = new Canvas(Width=12., Height=16., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=unknown, StrokeThickness=2., Fill=unknown)
                 let line = new Shapes.Line(X1 = 6., Y1 = -12., X2 = 6., Y2 = 28., StrokeThickness=3., Stroke=no, Opacity=0.)
+                let highlightOutline = new Shapes.Rectangle(Width=14., Height=18., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
+                canvasAdd(d, highlightOutline, -1., -1.)
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
@@ -211,6 +214,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 horizontalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 installDoorBehavior(door, d)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- 0.6)
+                d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
         // vertical doors
         let verticalDoors = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
@@ -218,8 +223,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let d = new Canvas(Width=24., Height=12., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=unknown, StrokeThickness=2., Fill=unknown)
                 let line = new Shapes.Line(X1 = -14., Y1 = 6., X2 = 38., Y2 = 6., StrokeThickness=3., Stroke=no, Opacity=0.)
+                let highlightOutline = new Shapes.Rectangle(Width=26., Height=14., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
+                canvasAdd(d, highlightOutline, -1., -1.)
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
@@ -228,6 +235,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 verticalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 installDoorBehavior(door, d)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- 0.6)
+                d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = masterRoomStates.[level-1]
@@ -397,19 +406,23 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
             for j = 0 to 7 do
-                let c = new Canvas(Width=float(13*3), Height=float(9*3))
-                canvasAdd(dungeonBodyCanvas, c, float(i*51), float(j*39))
+                let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
+                let c = new Canvas(Width=float(13*3)-2.*BUFFER, Height=float(9*3)-2.*BUFFER, Background=Brushes.Black, IsHitTestVisible=true)
+                canvasAdd(dungeonBodyCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
+                let highlightOutline = new Shapes.Rectangle(Width=float(13*3)+2., Height=float(9*3)+2., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
                     let image = roomStates.[i,j].CurrentDisplay(bigIcons || bigIconsTemp)
-                    canvasAdd(c, image, 0., 0.)
+                    image.IsHitTestVisible <- false
+                    canvasAdd(c, image, -BUFFER, -BUFFER)
+                    canvasAdd(c, highlightOutline, -1.-BUFFER, -1.-BUFFER)
                     if roomIsCircled.[i,j] then
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
                         //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
                         ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;12.5;8.;15.;8.;15.;] )
-                        canvasAdd(c, ellipse, -6., -6.)
+                        canvasAdd(c, ellipse, -6.-BUFFER, -6.-BUFFER)
                 redraw()
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let usedTransportsRemoveState(roomState:DungeonRoomState.DungeonRoomState) =
@@ -439,7 +452,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     popupIsActive <- true
                     let roomPos = c.TranslatePoint(Point(), cm.AppMainCanvas)
                     let dashCanvas = new Canvas()
-                    canvasAdd(c, dashCanvas, 0., 0.)
+                    canvasAdd(c, dashCanvas, -BUFFER, -BUFFER)
                     CustomComboBoxes.MakePrettyDashes(dashCanvas, Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
                     let pos = Point(roomPos.X+13.*3./2., roomPos.Y+9.*3./2.)
                     do! DungeonRoomState.DoModalDungeonRoomSelectAndDecorate(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
@@ -448,7 +461,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     redraw()
                     popupIsActive <- false
                     }
-                let BUFFER = 2.
                 let highlightImpl(canvas,contiguous:_[,], brush) =
                     for x = 0 to 7 do
                         for y = 0 to 7 do
@@ -501,11 +513,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 let ok,warn = grabHelper.PreviewDrop(i,j)
                                 highlight(ok, Brushes.Lime)
                                 highlight(warn, Brushes.Yellow)
+                        else
+                            highlightOutline.Opacity <- 0.6
                     )
                 c.MouseLeave.Add(fun _ ->
                     if not popupIsActive then
                         if grabHelper.IsGrabMode then
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
+                    highlightOutline.Opacity <- 0.0
                     )
                 c.MouseWheel.Add(fun _ -> 
                     if not popupIsActive then
@@ -517,8 +532,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if not popupIsActive then
                         async {
                             let pos = ea.GetPosition(c)
-                            // I often accidentally click room when trying to target doors with mouse, only do certain actions when isInterior
-                            let isInterior = not(pos.X < BUFFER || pos.X > c.Width-BUFFER || pos.Y < BUFFER || pos.Y > c.Height-BUFFER)
                             if ea.ChangedButton = Input.MouseButton.Left then
                                 if grabHelper.IsGrabMode then
                                     if not grabHelper.HasGrab then
@@ -546,41 +559,38 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             horizontalDoors |> Array2D.iteri (fun x y c -> c.State <- backupHorizontalDoors.[x,y])
                                             verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                                 else
-                                    if isInterior then
-                                        // plain left click
-                                        if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
-                                            // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
-                                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                    // plain left click
+                                    if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
+                                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
+                                        roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                        roomStates.[i,j].IsComplete <- true
+                                    else
+                                        if isFirstTimeClickingAnyRoomInThisDungeonTab then
+                                            //do! activatePopup(true)  // old behavior
+                                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.StartEnterFromS
                                             roomStates.[i,j].IsComplete <- true
+                                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                                         else
-                                            if isFirstTimeClickingAnyRoomInThisDungeonTab then
-                                                //do! activatePopup(true)  // old behavior
-                                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.StartEnterFromS
-                                                roomStates.[i,j].IsComplete <- true
-                                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false
-                                            else
-                                                match roomStates.[i,j].RoomType.NextEntranceRoom() with
-                                                | Some(next) -> roomStates.[i,j].RoomType <- next  // cycle the entrance arrow around cardinal positions
-                                                | None ->
-                                                    // toggle completedness
-                                                    roomStates.[i,j].IsComplete <- not roomStates.[i,j].IsComplete
-                                        redraw()
+                                            match roomStates.[i,j].RoomType.NextEntranceRoom() with
+                                            | Some(next) -> roomStates.[i,j].RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                            | None ->
+                                                // toggle completedness
+                                                roomStates.[i,j].IsComplete <- not roomStates.[i,j].IsComplete
+                                    redraw()
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
-                                    if isInterior then
-                                        // plain right click
-                                        do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
-                                        isFirstTimeClickingAnyRoomInThisDungeonTab <- false
-                                        redraw()
+                                    // plain right click
+                                    do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
+                                    isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                    redraw()
                             elif ea.ChangedButton = Input.MouseButton.Middle then
                                 if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
-                                    if isInterior then
-                                        // middle click toggles floor drops, or if none, toggle circles
-                                        if roomStates.[i,j].FloorDropDetail.IsNotMarked then
-                                            roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
-                                        else
-                                            roomStates.[i,j].ToggleFloorDropBrightness()
-                                        redraw()
+                                    // middle click toggles floor drops, or if none, toggle circles
+                                    if roomStates.[i,j].FloorDropDetail.IsNotMarked then
+                                        roomIsCircled.[i,j] <- not roomIsCircled.[i,j]
+                                    else
+                                        roomStates.[i,j].ToggleFloorDropBrightness()
+                                    redraw()
                         } |> Async.StartImmediate
                     ), (fun ea ->
                     if not popupIsActive then
