@@ -28,6 +28,7 @@ add a 'whats new in 1.1' section to docs
  - (dungeon door/room mouseover feedback)
  - (show hotkeys window remembers size/location)
  - (add ZT logo next to kitty)
+ - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
 
 
 
@@ -39,8 +40,6 @@ Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highli
 hovering legend - recorder dest, dungeon, any road should highlight those on map
 
 add tooltips on all hoverables (or a status bar, or something)
-
-kigalas: grab (when click dungeon tab then press enter)
 
 kig: Can we have a .txt file to use as a base to pull from for the Notes section like Hotkeys has?
 
