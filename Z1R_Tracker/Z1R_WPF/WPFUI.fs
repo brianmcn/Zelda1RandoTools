@@ -815,7 +815,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                 let i,j = 
                                     if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
                                         14,5
-                                    elif owMapNum=1 && i=11 && j=0 then // second quest has dead fairy here, borrow 2,4
+                                    elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
                                         2,4
                                     elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
                                         2,4
@@ -985,7 +985,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             if owInstance.AlwaysEmpty(i,j) then
                 // already set up as permanent opaque layer, in code above, so nothing else to do
                 // except...
-                if i=9 && j=3 || i=3 && j=4 then // fairy spots
+                if i=9 && j=3 || i=3 && j=4 || (owInstance.Quest=OverworldData.OWQuest.SECOND && i=11 && j=0) then // fairy spots
                     let image = Graphics.BMPtoImage Graphics.fairy_bmp
                     canvasAdd(c, image, OMTW/2.-8., 1.)
                 if i=15 && j=5 then // ladder spot

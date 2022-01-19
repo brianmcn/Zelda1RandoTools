@@ -28,9 +28,10 @@ add a 'whats new in 1.1' section to docs
  - (dungeon door/room mouseover feedback)
  - (show hotkeys window remembers size/location)
  - (add ZT logo next to kitty)
- - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
  - (big icons checkbox in dungeons is persisted across sessions)
  - (Notes.txt default Notes)
+ - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
+ - (fix 2Q not showing fairy icon at 1Q5)
 
 
 
@@ -43,12 +44,8 @@ hovering legend - recorder dest, dungeon, any road should highlight those on map
 
 add tooltips on all hoverables (or a status bar, or something)
 
-kig: Can we have a .txt file to use as a base to pull from for the Notes section like Hotkeys has?
-
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
  - second quest, 1 v 4?
-
-2Q ow, vanilla 5 is a fairy fountain, should mark as such
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 
