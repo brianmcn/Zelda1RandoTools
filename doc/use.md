@@ -447,6 +447,8 @@ When one of dungeons 1-8 is the currently selected dungeon tab, the correspondin
 This area is for ad-hoc text note-taking by the player (e.g. quickly type "5 BU 128" to remind you to return to level 5 to buy a Bomb Upgrade for 128 rupees).
 Unlike scrap paper on your desk, these notes are visible to stream viewers.
 
+If a file called Notes.txt exists in the program folder, the Notes box will be pre-populated with the text from that file.
+
 
 ## <a id="main-timeline"></a> Timeline
 

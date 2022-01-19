@@ -1943,7 +1943,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
-    tb.Text <- "Notes\n"
+    let notesFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Notes.txt")
+    if not(System.IO.File.Exists(notesFilename)) then
+        tb.Text <- "Notes\n"
+    else
+        tb.Text <- System.IO.File.ReadAllText(notesFilename)
     tb.AcceptsReturn <- true
     canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 

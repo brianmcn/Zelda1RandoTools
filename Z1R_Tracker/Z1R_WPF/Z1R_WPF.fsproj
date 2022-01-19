@@ -108,8 +108,8 @@
     <Compile Include="LinkRouting.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="..\Z1R_Tracker\Notes.txt">
-      <Link>Notes.txt</Link>
+    <Content Include="..\Z1R_Tracker\README.txt">
+      <Link>README.txt</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="reminder_clink.wav">

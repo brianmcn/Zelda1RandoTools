@@ -30,6 +30,7 @@ add a 'whats new in 1.1' section to docs
  - (add ZT logo next to kitty)
  - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
  - (big icons checkbox in dungeons is persisted across sessions)
+ - (Notes.txt default Notes)
 
 
 
