@@ -21,6 +21,7 @@ add a 'whats new in 1.1' section to docs
  - starting/extra items
  - maybe-blockers
  - BOARD v LEVEL
+ - HDN, number and letter appear on OW map when know number
  - (legend on overworld magnifier)
  - (current dungeon tab highlights corresponding blockers area)
  - (dungeon door/room mouseover feedback)
@@ -31,8 +32,6 @@ add a 'whats new in 1.1' section to docs
 
 some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 dungeon summary tab (see marc convo)
-
-consider in HDN making known numbers appear on overworld map e.g. "A5" like a two-item shop
 
 cd wants ganon & zelda rooms
 
@@ -59,6 +58,7 @@ HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to a
 
 
 
+homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
 
 
 

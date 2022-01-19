@@ -212,11 +212,33 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.IsDungeon then
+        let combine(number:System.Drawing.Bitmap, letter:System.Drawing.Bitmap) =
+            let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px>=3*3 && px<8*3 && py>=1*3 && py<10*3 then 
+                        fullTileBmp.SetPixel(px, py, number.GetPixel(px-3*3, py-1*3))
+                    elif px>=7*3 && px<12*3 && py>=1*3 && py<10*3 then // sharing one 'pixel'
+                        fullTileBmp.SetPixel(px, py, letter.GetPixel(px-7*3, py-1*3))  
+                    else
+                        fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+            fullTileBmp
         if TrackerModel.IsHiddenDungeonNumbers() then 
-            if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                Graphics.theFullTileBmpTable.[ms.State].[3], []
+            let isGreen = TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder
+            if TrackerModel.GetDungeon(ms.State).LabelChar <> '?' then
+                if isGreen then
+                    let letter = Graphics.theInteriorBmpTable.[ms.State].[3]
+                    let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[1]
+                    combine(number,letter), []
+                else
+                    let letter = Graphics.theInteriorBmpTable.[ms.State].[2]
+                    let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[0]
+                    combine(number,letter), []
             else
-                Graphics.theFullTileBmpTable.[ms.State].[2], []
+                if isGreen then
+                    Graphics.theFullTileBmpTable.[ms.State].[3], []
+                else
+                    Graphics.theFullTileBmpTable.[ms.State].[2], []
         else 
             if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
                 Graphics.theFullTileBmpTable.[ms.State].[1], []
