@@ -112,8 +112,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     Child=new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=16., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
-    let mutable bigIcons = false          // whether user has checked they prefer big icons
-    let mutable bigIconsTemp = false      // whether we are currently in the mouse hover to show big icons
+    // TrackerModel.Options.BigIconsInDungeons  // whether user has checked they prefer big icons
+    let mutable bigIconsTemp = false            // whether we are currently in the mouse hover to show big icons
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
@@ -271,10 +271,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         hoverCanvas.MouseLeave.Add(fun _ -> hoverCanvas.Children.Clear(); canvasAdd(hoverCanvas, miniBorder, 0., 0.))
         // big icons for monsters & floor drops
         let bigIconsCB = new CheckBox(Content=DungeonRoomState.mkTxt("I"))
-        bigIconsCB.IsChecked <- System.Nullable.op_Implicit bigIcons
-        dungeonTabs.SelectionChanged.Add(fun _ -> bigIconsCB.IsChecked <- System.Nullable.op_Implicit bigIcons)
-        bigIconsCB.Checked.Add(fun _ -> bigIcons <- true; redrawAllRooms())
-        bigIconsCB.Unchecked.Add(fun _ -> bigIcons <- false; bigIconsTemp <- false; redrawAllRooms())
+        bigIconsCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BigIconsInDungeons
+        dungeonTabs.SelectionChanged.Add(fun _ -> bigIconsCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BigIconsInDungeons)
+        bigIconsCB.Checked.Add(fun _ -> TrackerModel.Options.BigIconsInDungeons <- true; TrackerModel.Options.writeSettings(); redrawAllRooms())
+        bigIconsCB.Unchecked.Add(fun _ -> TrackerModel.Options.BigIconsInDungeons <- false; bigIconsTemp <- false; TrackerModel.Options.writeSettings(); redrawAllRooms())
         bigIconsCB.ToolTip <- "Toggle whether larger or smaller corner icons are shown on dungeon rooms"
         let bigIconsPanel = new DockPanel(Width=28., Height=21., Background=Graphics.almostBlack, IsHitTestVisible=true)
         bigIconsPanel.Children.Add(bigIconsCB) |> ignore
@@ -414,7 +414,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
-                    let image = roomStates.[i,j].CurrentDisplay(bigIcons || bigIconsTemp)
+                    let image = roomStates.[i,j].CurrentDisplay(TrackerModel.Options.BigIconsInDungeons || bigIconsTemp)
                     image.IsHitTestVisible <- false
                     canvasAdd(c, image, -BUFFER, -BUFFER)
                     canvasAdd(c, highlightOutline, -1.-BUFFER, -1.-BUFFER)

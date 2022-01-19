@@ -29,6 +29,7 @@ add a 'whats new in 1.1' section to docs
  - (show hotkeys window remembers size/location)
  - (add ZT logo next to kitty)
  - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
+ - (big icons checkbox in dungeons is persisted across sessions)
 
 
 
@@ -55,16 +56,18 @@ HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to a
 
 
 
+homer wants the 'highlight empty box' - i have a discord conversation with a full design
 
 homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
+
+homer probably could use bomb-default-on 
+
 
 
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
 Make  documentation picture of all the hover-targets and what they do
-
-homer wants the 'highlight empty box' - i have a discord conversation with a full design
 
 homer wants door-inference (think about)
  - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
@@ -73,8 +76,6 @@ homer wants door-inference (think about)
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
 
 bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
-
-homer probably could use bomb-default-on and big-icons-default-on (he even wants candle)
 
 "now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8
 
