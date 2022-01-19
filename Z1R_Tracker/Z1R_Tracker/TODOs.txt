@@ -22,6 +22,7 @@ add a 'whats new in 1.1' section to docs
  - maybe-blockers
  - BOARD v LEVEL
  - HDN, number and letter appear on OW map when know number
+ - Gannon and Zelda room options (hotkeyable) in level 9 (replaces Bomb Upgrade and Meat Block)
  - (legend on overworld magnifier)
  - (current dungeon tab highlights corresponding blockers area)
  - (dungeon door/room mouseover feedback)
@@ -32,8 +33,6 @@ add a 'whats new in 1.1' section to docs
 
 some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 dungeon summary tab (see marc convo)
-
-cd wants ganon & zelda rooms
 
 Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
