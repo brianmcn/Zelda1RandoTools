@@ -25,10 +25,9 @@ add a 'whats new in 1.1' section to docs
  - (current dungeon tab highlights corresponding blockers area)
  - (dungeon door/room mouseover feedback)
  - (show hotkeys window remembers size/location)
+ - (add ZT logo next to kitty)
 
 
-
-put logo icon in the app somewhere
 
 some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
 dungeon summary tab (see marc convo)

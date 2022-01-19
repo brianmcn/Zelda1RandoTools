@@ -1435,12 +1435,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
     kitty.Width <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
-    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
+    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width - 20., THRU_MAIN_MAP_H)
+    let ztlogo = new Image()
+    let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
+    ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+    ztlogo.Width <- 40.
+    ztlogo.Height <- 40.
+    let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
+    canvasAdd(appMainCanvas, logoBorder, 16.*OMTW - ztlogo.Width - 2., THRU_MAIN_MAP_H + kitty.Height - ztlogo.Height - 6.)
 
     // show hotkeys button
     let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show\nHotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
-    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 60., THRU_MAIN_MAP_H)
+    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 85., THRU_MAIN_MAP_H)
     let showHotKeys(isRightClick) =
         let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()

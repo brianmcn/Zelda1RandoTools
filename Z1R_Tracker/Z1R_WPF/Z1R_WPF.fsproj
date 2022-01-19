@@ -68,6 +68,7 @@
     <Content Include="icons\ztlogo64x64.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="icons\ZTlogo64x64.png" />
     <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
     <EmbeddedResource Include="icons\icons7x7.png" />
     <EmbeddedResource Include="icons\icons10x10.png" />
