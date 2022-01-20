@@ -284,10 +284,10 @@ shows the possible locations for that dungeon or sword cave.  Hint-halo-highligh
 
 ## <a id="main-dt"></a> Dungeon Tracker
 
-There are 9 tabs for the 9 dungeons.
+There are 10 tabs - one for each of the 9 dungeons, and a summary tab 'S' which shows minimaps/previews of dungeons 1-8.
 
-<a id="dungeon-inset">The right column of each tab has an inset with this dungeon's triforce and items</a>, so you can edit them without having to mouse all the way to the top of the app.
-Other dungeon tracking marks have no semantic meaning to the tracker, and can be used by the player however they see fit.
+<a id="dungeon-inset">The right column of each dungeon tab has an inset with this dungeon's triforce and items</a>, so you can edit them without having to mouse all the way to 
+the top of the app.  Other dungeon tracking marks have no semantic meaning to the tracker, and can be used by the player however they see fit.
 
 ![Dungeon inset screenshot](screenshots/dungeon-inset.png)
 

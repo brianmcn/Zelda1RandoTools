@@ -19,6 +19,7 @@ make a decision about linux (and update docs)
 
 add a 'whats new in 1.1' section to docs
  - starting/extra items
+ - dungeon summary tab (minmaps, hover-preview, click selection)
  - maybe-blockers
  - BOARD v LEVEL
  - HDN, number and letter appear on OW map when know number
@@ -34,9 +35,18 @@ add a 'whats new in 1.1' section to docs
  - (fix 2Q not showing fairy icon at 1Q5)
 
 
+TODO greying out completed dungeons on overview is bad when letter and number (grey only middle)
 
-some kind of 'dungeon overview' - which have maps/tri/etc... like blockers, a metadata overview
-dungeon summary tab (see marc convo)
+
+
+[10:03 AM] Lorgon111: imagine if, when you move the mouse, the area near the mouse immediately goes from 0% visible to 30% visible in a corner of the emu window
+[10:03 AM] Lorgon111: and then if you fail to interact fro two seconds, it fades back down to 0%
+[10:03 AM] Lorgon111: or something along those lines
+[10:04 AM] Lorgon111: so you get like 200x200 pixels near the ZT mouse in-game emu-HUD that appears 'on demand' as a transparent overlay (edited)
+[10:05 AM] Lorgon111: or you could maybe put it just outside the emu window, but not need the full real estate of giant ZT window
+
+
+homer wants the 'highlight empty box' - i have a discord conversation with a full design
 
 Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
@@ -54,7 +64,6 @@ HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to a
 
 
 
-homer wants the 'highlight empty box' - i have a discord conversation with a full design
 
 homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
 

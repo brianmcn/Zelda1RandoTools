@@ -117,6 +117,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
+    let contentCanvases = Array.zeroCreate 9
+    let localDungeonTrackerPanelWidth = 42.
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
@@ -129,7 +131,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             )
         // local dungeon tracker
         let tileSunglasses = 0.75
-        let localDungeonTrackerPanelWidth = 42.
         let blockerGridHeight = float(36*3)  // brittle, but that's the current constant
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, blockerGridHeight - float(TH)
@@ -167,6 +168,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         canvasAdd(contentCanvas, dungeonHighlightCanvas, 3., 3.)
 
         levelTab.Content <- contentCanvas
+        contentCanvases.[level-1] <- contentCanvas
         dungeonTabs.Height <- contentCanvas.Height + 30.   // ok to set this 9 times
         dungeonTabs.Items.Add(levelTab) |> ignore
 
@@ -624,7 +626,66 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         // "sunglasses"
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
-    dungeonTabs.SelectedIndex <- 8
+    // end -- for level in 1 to 9 do
+    do
+        // summary tab
+        let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
+        let labelChar = 'S'
+        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsHitTestVisible=false, 
+                                 HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        levelTab.Header <- header
+        let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        dungeonTabs.SelectionChanged.Add(fun ea -> 
+            try
+                let x = ea.AddedItems.[0]
+                if obj.ReferenceEquals(x,levelTab) then
+                    levelTabSelected.Trigger(10)
+            with _ -> ()
+            )
+        // grid
+        let w, h = int contentCanvas.Width / 3, int contentCanvas.Height / 3
+        let g = Graphics.makeGrid(3, 3, w, h)
+        let make(i) =
+            let mini = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
+            let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
+            let overlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsHitTestVisible=false, Child=midi)
+            Canvas.SetLeft(overlay, 0.)
+            Canvas.SetBottom(overlay, 0.)
+            mini.MouseEnter.Add(fun _ ->
+                rightwardCanvas.Height <- dungeonTabs.ActualHeight
+                rightwardCanvas.Children.Clear()
+                rightwardCanvas.Children.Add(overlay) |> ignore
+                levelTabSelected.Trigger(i+1)
+                )
+            mini.MouseLeave.Add(fun _ ->
+                rightwardCanvas.Children.Clear()
+                if dungeonTabs.SelectedIndex=9 then  // we may have clicked on D4, and MouseLeave fires after tab is switched
+                    levelTabSelected.Trigger(10)
+                )
+            mini.MouseDown.Add(fun _ ->
+                rightwardCanvas.Children.Clear()
+                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(new System.Action(fun () -> 
+                    dungeonTabs.SelectedIndex <- i
+                    levelTabSelected.Trigger(i+1)
+                    )) |> ignore
+                )
+            mini
+        let text = new TextBox(Text="\nDungeon Summary\n\nHover to preview\n\nClick to switch tab\n", Margin=Thickness(0.,0.,8.,0.),
+                               Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                               FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center)
+        Graphics.gridAdd(g, text, 0, 0)
+        Graphics.gridAdd(g, make(0), 1, 0)
+        Graphics.gridAdd(g, make(1), 2, 0)
+        Graphics.gridAdd(g, make(2), 0, 1)
+        Graphics.gridAdd(g, make(3), 1, 1)
+        Graphics.gridAdd(g, make(4), 2, 1)
+        Graphics.gridAdd(g, make(5), 0, 2)
+        Graphics.gridAdd(g, make(6), 1, 2)
+        Graphics.gridAdd(g, make(7), 2, 2)
+        canvasAdd(contentCanvas, g, 0., 0.)
+        levelTab.Content <- contentCanvas
+        dungeonTabs.Items.Add(levelTab) |> ignore
+    dungeonTabs.SelectedIndex <- 9
     selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
 
     // make the whole canvas
@@ -634,7 +695,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let button = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
                                                     Text="FQ/SQ", IsReadOnly=true, IsHitTestVisible=false),
                                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
-        canvasAdd(dungeonTabsWholeCanvas, button, 320., 0.)
+        canvasAdd(dungeonTabsWholeCanvas, button, 360., 0.)
         
         let currentDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
 
@@ -645,7 +706,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
 
         let mutable popupIsActive = false
         button.Click.Add(fun _ ->
-            if not popupIsActive then
+            if not popupIsActive && not(dungeonTabs.SelectedIndex=9) then  // no behavior on summary tab
                 popupIsActive <- true
                 
                 let ST = CustomComboBoxes.borderThickness
@@ -724,7 +785,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     canvasAdd(outlineDrawingCanvases.[i], s, 0., 0.)
             )
         fqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
-        canvasAdd(dungeonTabsWholeCanvas, fqcb, 310., 0.) 
+        canvasAdd(dungeonTabsWholeCanvas, fqcb, 350., 0.) 
 
         sqcb.IsChecked <- System.Nullable.op_Implicit false
         sqcb.Checked.Add(fun _ -> 
@@ -735,6 +796,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     canvasAdd(outlineDrawingCanvases.[i], s, 0., 0.)
             )
         sqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
-        canvasAdd(dungeonTabsWholeCanvas, sqcb, 360., 0.) 
+        canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 
 
     dungeonTabsWholeCanvas, grabModeTextBlock
