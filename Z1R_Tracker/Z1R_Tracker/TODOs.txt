@@ -13,26 +13,11 @@ Just a place to dump feature ideas (small or big) or fixes/improvements
 
 CURRENT PRIORITIES
 
+
 update docs with changes
 
 make a decision about linux (and update docs)
 
-add a 'whats new in 1.1' section to docs
- - starting/extra items
- - dungeon summary tab (minmaps, hover-preview, click selection)
- - maybe-blockers
- - BOARD v LEVEL
- - HDN, number and letter appear on OW map when know number
- - Gannon and Zelda room options (hotkeyable) in level 9 (replaces Bomb Upgrade and Meat Block)
- - (legend on overworld magnifier)
- - (current dungeon tab highlights corresponding blockers area)
- - (dungeon door/room mouseover feedback)
- - (show hotkeys window remembers size/location)
- - (add ZT logo next to kitty)
- - (big icons checkbox in dungeons is persisted across sessions)
- - (Notes.txt default Notes)
- - (fix GRAB getting triggered when clicking dungeon tab then pressing Enter)
- - (fix 2Q not showing fairy icon at 1Q5)
 
 
 
