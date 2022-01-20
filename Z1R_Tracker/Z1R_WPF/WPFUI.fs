@@ -2082,6 +2082,101 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
 
+    do
+        let mouseHoverExplainerIcon = new Button(Content=(Graphics.greyscale(Graphics.question_marks_bmp) |> Graphics.BMPtoImage))
+        canvasAdd(appMainCanvas, mouseHoverExplainerIcon, 540., 0.)
+        let c = new Canvas(Width=appMainCanvas.Width, Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, Opacity=0., IsHitTestVisible=false)
+        canvasAdd(appMainCanvas, c, 0., 0.)
+        let darkenTop = new Canvas(Width=OMTW*16., Height=150., Background=Brushes.Black, Opacity=0.40)
+        canvasAdd(c, darkenTop, 0., 0.)
+        let darkenOW = new Canvas(Width=OMTW*16., Height=11.*3.*8., Background=Brushes.Black, Opacity=0.85)
+        canvasAdd(c, darkenOW, 0., 150.)
+        let darkenBottom = new Canvas(Width=OMTW*16., Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H, Background=Brushes.Black, Opacity=0.40)
+        canvasAdd(c, darkenBottom, 0., 150.+11.*3.*8.)
+
+        let desc = new TextBox(Text="Mouse Hover Explainer",FontSize=30.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(c, desc, 450., 370.)
+
+        let delayedDescriptions = ResizeArray()
+        let mkTxt(text) = new TextBox(Text=text,FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(1.0),IsReadOnly=true)
+        let addLabel(poly:Shapes.Polyline, text, x, y) =
+            poly.Points.Add(Point(x,y))
+            canvasAdd(c, poly, 0., 0.)
+            delayedDescriptions.Add(c, mkTxt(text), x, y)
+
+        let ST = 2.0
+        let COL = Brushes.Green
+        let triforces = 
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,58.; 268.,58.; 268.,32.; 528.,32.; 528.,2.; 2.,2.; 2.,58. ] |> Seq.map Point ))
+            else
+                new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,58.; 268.,58.; 268.,32.; 2.,32.; 2.,58. ] |> Seq.map Point ))
+        addLabel(triforces, "Show location of dungeon, if known or hinted", 10., 300.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+        let whiteSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(whiteSword, "Show location of white sword cave, if known or hinted", 30., 270.)
+
+        let COL = Brushes.CornflowerBlue
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
+        let armos = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(armos, "Show locations of any unmarked armos", 120., 240.)
+
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
+        let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 98.,28.; 98.,2.; 58.,2.; 58.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(shopping, "Show locations of shops containing each item", 400., 240.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
+        let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(shopping, "If have no candle, show locations of shops with blue candle\nElse show unmarked burnable bush locations", 380., 270.)
+
+        let COL = Brushes.Green
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
+        let magsAndWoodSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 58.,28.; 58.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(magsAndWoodSword, "Show locations of magical/wood sword caves, if known or hinted", 300., 210.)
+
+        let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 542.,138.; 558.,138.; 558.,122.; 542.,122.; 542.,138. ] |> Seq.map Point))
+        addLabel(openCaves, "Show locations of unmarked open caves", 430., 180.)
+
+        let COL = Brushes.MediumVioletRed
+        let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 476.,92.; 436.,92.; 436.,130.; 535.,130.; 535.,116.; 550.,116.; 550.,50. ] |> Seq.map Point))
+        addLabel(zonesEtAl, "As described", 600., 150.)
+
+        let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 600.,150. ] |> Seq.map Point))
+        canvasAdd(c, spotSummary, 0., 0.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25., THRU_MAP_AND_LEGEND_H
+        let candle = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 28.,28.; 28.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        candle.Points.Add(Point(150.,410.))
+        canvasAdd(c, candle, 0., 0.)
+        let desc = mkTxt("Show Burnables")
+        Canvas.SetRight(desc, c.Width-150.)
+        Canvas.SetTop(desc, 390.)
+        c.Children.Add(desc) |> ignore
+        let COL = Brushes.CornflowerBlue
+        let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25.+7.*30., THRU_MAP_AND_LEGEND_H-2.
+        let others = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 118.,28.; 118.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        others.Points.Add(Point(360.,405.))
+        canvasAdd(c, others, 0., 0.)
+        let desc = mkTxt("Show Ladderable/Recorderable/\nPowerBraceletable/Raftable")
+        desc.TextAlignment <- TextAlignment.Right
+        Canvas.SetTop(desc, 370.)
+        Canvas.SetRight(desc, c.Width-360.)
+        c.Children.Add(desc) |> ignore
+
+        for dd in delayedDescriptions do   // ensure these drow atop all the PolyLines
+            canvasAdd(dd)
+
+        mouseHoverExplainerIcon.MouseEnter.Add(fun _ -> 
+            c.Opacity <- 1.0
+            )
+        mouseHoverExplainerIcon.MouseLeave.Add(fun _ -> 
+            c.Opacity <- 0.0
+            )
+
     let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owLocatorTilesZone = Array2D.zeroCreate 16 8
     let owLocatorCanvas = new Canvas()
