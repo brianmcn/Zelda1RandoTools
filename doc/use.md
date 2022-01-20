@@ -2,9 +2,6 @@
 
 This document has detailed notes about the main UI features of Z-Tracker.
 
-Z-Tracker has two versions - one runs on Windows and one runs on Linux.  The two versions are very similar, but have some minor differences.  
-Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
-
 Contents of this document:
 
 - [General Features](#general)
@@ -431,7 +428,7 @@ of most icons on a green/red gradient background for denoting when you only migh
 
 When possible, the tracker will give a reminder when you may be unblocked, for example, if you marked 5 with a ladder block, then when you obtain the ladder:
 
- - (WPF Only) voice reminder: "Now that you have the ladder, consider dungeon 5" 
+ - voice reminder: "Now that you have the ladder, consider dungeon 5" 
  - visual reminder:  (ladder icon) (right-arrow) (dungeon 5 icon)
 
 You can toggle whether you get these reminders in the [Options Menu](#main-om).
@@ -476,8 +473,6 @@ Options are saved automatically to a JSON file, so that next time you use the tr
 
 # <a id="speech-synthesis"></a> Speech Synthesis (voice reminders)
 
-(WPF Only)
-
 There are a variety of spoken reminders, which can be triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
 You can toggle various categories of voice reminders in the [Options Menu](#main-om).
 
@@ -485,8 +480,6 @@ Visual icons representing these spoken reminders appear in the upper right corne
 You can toggle various categories of visual reminders in the [Options Menu](#main-om).
 
 # <a id="speech-recognition"></a> Speech Recognition
-
-(WPF only)
 
 When hovering over a blank overworld map tile, with a microphone equipped, you can speak aloud e.g. "tracker set bomb shop" to mark the current tile as a bomb shop.
 

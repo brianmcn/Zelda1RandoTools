@@ -1,8 +1,5 @@
 # HotKeys and extra windows
 
-Z-Tracker has two versions - one runs on Windows and one runs on Linux. The two versions are very similar, but have some minor differences.
-Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
-
 Contents of this document:
 
   - [HotKeys](#hotkeys)
@@ -56,7 +53,7 @@ These ad-hoc behaviors are designed either to make common cases fast and easy, o
 There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
 
 
-## <a id="broadcast-window"></a> Broadcast Window (WPF only)
+## <a id="broadcast-window"></a> Broadcast Window
 
 On the [Options Menu](use.md#main-om), you can opt into a 'broadcast window'.  This causes a separate, not-as-tall (squarer) window to appear; the new window is designed 
 for stream-capture, for streamers who think the Z-Tracker app is too tall for their stream layout.  The broadcast window switches dynamically between two possible displays: 
@@ -80,7 +77,7 @@ using OBS to downscale your screen capture of the broadcast window to some arbit
 If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Tracker with OBS](stream-capture.md) document for a number of useful tips.
 
 
-## <a id="window-size"></a> Window Size (WPF only)
+## <a id="window-size"></a> Window Size
 
 The Z-Tracker application is somewhat large (the window content is 768x963), designed to make all of the important information available to the player on-screen 
 at once.  However some users may need or desire a smaller application.  You can make the application window 2/3 size by editing the file 

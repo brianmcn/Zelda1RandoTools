@@ -16,8 +16,6 @@ CURRENT PRIORITIES
 
 update docs with changes
 
-make a decision about linux (and update docs)
-
 
 
 
