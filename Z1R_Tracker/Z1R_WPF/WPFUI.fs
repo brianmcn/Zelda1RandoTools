@@ -896,51 +896,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    let drawRectangleCornersHighlight(c,x,y,color) =
-        ignore(c,x,y,color)
-        (*
-        // full rectangles badly obscure routing paths, so we just draw corners
-        let L1,L2,R1,R2 = 0.0, (OMTW-4.)/2.-6., (OMTW-4.)/2.+6., OMTW-4.
-        let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
-        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        *)
-    let drawDungeonHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Yellow)
-    let drawCompletedIconHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=15.0*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+    let drawCompletedIconHighlight(c,x,y,isWider) =
+        let w = if isWider then 27.0 else 15.0
+        let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
-        let diff = if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.
+        let diff = (if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.) - (if isWider then 6.0 else 0.0)
         canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
-    let drawCompletedDungeonHighlight(c,x,y) =
-        // darkened rectangle corners
-        let yellow = System.Windows.Media.Brushes.Yellow.Color
-        let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
-        drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
+    let drawCompletedDungeonHighlight(c,x,y,isWider) =
         // darken the number
-        drawCompletedIconHighlight(c,x,y)
-    let drawWarpHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Orchid)
+        drawCompletedIconHighlight(c,x,y,isWider)
     let drawDarkening(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
-    let drawDungeonRecorderWarpHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=OMTW, Height=float(11*3))
@@ -1028,10 +996,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
                             for fe,x,y in extraDecorations do
                                 canvasAdd(c, fe, x, y)
-                    if ms.IsDungeon then
-                        drawDungeonHighlight(c,0.,0)
-                    if ms.IsWarp then
-                        drawWarpHighlight(c,0.,0)
                 let isLegalHere(state) = if state = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then owInstance.HasArmos(i,j) else true
                 let updateGridSpot delta phrase = 
                     async {
@@ -1236,28 +1200,22 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
     let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
-    drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
 
     let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.1*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.1,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.1,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.1,0,false)
     canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.5*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.5,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0,false)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
 
     canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 4.8*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,4.8,0)
-    drawDungeonRecorderWarpHighlight(legendCanvas,4.8,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
     canvasAdd(legendCanvas, shrink(Graphics.theFullTileBmpTable.[9].[0]), 7.1*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.1,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
@@ -1586,23 +1544,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
-                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
-                // highlight any triforce dungeons as recorder warp destinations
-                if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
-                    drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y,(TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar<>'?'))
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Armos(x,y) = 
                 if TrackerModel.armosBox.PlayerHas() <> TrackerModel.PlayerHas.NO then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten armos icon
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten armos icon
             member _this.Sword3(x,y) = 
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
                 if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten white sword item cave icon
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()

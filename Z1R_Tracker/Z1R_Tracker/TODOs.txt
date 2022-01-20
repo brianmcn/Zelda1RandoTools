@@ -35,9 +35,6 @@ add a 'whats new in 1.1' section to docs
  - (fix 2Q not showing fairy icon at 1Q5)
 
 
-TODO greying out completed dungeons on overview is bad when letter and number (grey only middle)
-
-
 
 [10:03 AM] Lorgon111: imagine if, when you move the mouse, the area near the mouse immediately goes from 0% visible to 30% visible in a corner of the emu window
 [10:03 AM] Lorgon111: and then if you fail to interact fro two seconds, it fades back down to 0%
