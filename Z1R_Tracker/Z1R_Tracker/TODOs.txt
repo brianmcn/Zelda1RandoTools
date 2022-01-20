@@ -15,6 +15,7 @@ CURRENT PRIORITIES
 
 
 update docs with changes
+update whats new with changes
 
 
 
@@ -26,7 +27,7 @@ update docs with changes
 [10:05 AM] Lorgon111: or you could maybe put it just outside the emu window, but not need the full real estate of giant ZT window
 
 
-homer wants the 'highlight empty box' - i have a discord conversation with a full design
+
 
 Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
 
@@ -45,6 +46,9 @@ HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to a
 
 
 
+
+
+
 homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
 
 homer probably could use bomb-default-on 
@@ -59,6 +63,7 @@ Make  documentation picture of all the hover-targets and what they do
 homer wants door-inference (think about)
  - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
  - off-by-default option ('infer some dungeon doors based on rooms')
+
 
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
 

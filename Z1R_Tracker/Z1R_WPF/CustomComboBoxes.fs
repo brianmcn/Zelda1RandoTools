@@ -16,8 +16,10 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.MouseButtonEventArgs) =
     elif ea.ChangedButton = Input.MouseButton.Right then TrackerModel.PlayerHas.NO
     else TrackerModel.PlayerHas.SKIPPED
 let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy))
+let noAndNotEmpty = Brushes.Red
 let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy))
 let skipped = Brushes.MediumPurple
+let skippedAndEmpty = Brushes.White
 let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     match boxCellCurrent with
     | -1 -> null
@@ -392,7 +394,7 @@ let itemBoxMouseButtonExplainerDecoration =
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
 
-let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, callerExtraDecorations) = async {
+let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, originalPlayerHas, callerExtraDecorations) = async {
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
@@ -412,7 +414,15 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
     let onClick(ea,ident) =
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
-        DismissPopupWithResult(ident, if ident = -1 then TrackerModel.PlayerHas.NO else MouseButtonEventArgsToPlayerHas ea)
+        DismissPopupWithResult(ident, 
+            let newPH = MouseButtonEventArgsToPlayerHas ea
+            if ident = -1 then 
+                if originalPlayerHas=TrackerModel.PlayerHas.NO && newPH = TrackerModel.PlayerHas.SKIPPED then
+                    TrackerModel.PlayerHas.SKIPPED   // middle click an empty box toggles it to white
+                else
+                    TrackerModel.PlayerHas.NO 
+            else 
+                newPH)
     let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
     let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
     let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.

@@ -170,8 +170,13 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp=null then CustomComboBoxes.no else Brushes.Red
-        | TrackerModel.PlayerHas.SKIPPED -> rect.Stroke <- CustomComboBoxes.skipped; CustomComboBoxes.placeSkippedItemXDecoration(innerc)
+        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp=null then CustomComboBoxes.no else CustomComboBoxes.noAndNotEmpty
+        | TrackerModel.PlayerHas.SKIPPED -> 
+            if bmp=null then 
+                rect.Stroke <- CustomComboBoxes.skippedAndEmpty 
+            else 
+                rect.Stroke <- CustomComboBoxes.skipped
+                CustomComboBoxes.placeSkippedItemXDecoration(innerc)
     redraw()
     // interactions
     let mutable popupIsActive = false
@@ -180,7 +185,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
         let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
         async {
-            let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, extraDecorations)
+            let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
             match r with
             | Some(newBoxCellValue, newPlayerHas) -> box.Set(newBoxCellValue, newPlayerHas)
             | None -> ()
@@ -218,6 +223,13 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
                         box.Set(i, TrackerModel.PlayerHas.SKIPPED)
                     else
                         box.Set(i, TrackerModel.PlayerHas.NO)
+                elif i = -1 then
+                    if box.CellCurrent() <> -1 then
+                        box.Set(i, TrackerModel.PlayerHas.NO)      // emptying a full box always goes to NO first
+                    elif box.PlayerHas()=TrackerModel.PlayerHas.NO then
+                        box.Set(i, TrackerModel.PlayerHas.SKIPPED) // emptying an empty box toggles the box outline color
+                    else
+                        box.Set(i, TrackerModel.PlayerHas.NO)      // emptying an empty box toggles the box outline color
                 else
                     // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
                     if not(box.AttemptToSet(i, TrackerModel.PlayerHas.NO)) then

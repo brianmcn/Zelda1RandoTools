@@ -96,6 +96,8 @@ on a box you don't have) on a non-empty item box will also activate the popup.
 The purpose of being able to mark items as 'skipped' is so that the various reminder systems will quit pestering you (about, for example, the 
 boomerang you intentionally left behind on the coast), while still accurately capturing your true 'item progress' on the screen for viewers.
 
+(Inside the item popup, middle-clicking the empty box toggles the outline color of the box, which you can use to highlight a particular empty box.)
+
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 
 Note: while you can interact with Triforces and Items in the Dungeon Item Area, in practice you will instead typically interact with these in 

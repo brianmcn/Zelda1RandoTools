@@ -36,6 +36,14 @@ New room options for the final dungeon (that replace Bomb Upgrade and Meat Block
 
 ![Gannon & Zelda](screenshots/gannon-zelda.png)
 
+### Highlight empty item boxes
+
+In the item box popup, whereas middle-clicking an item marks that item as intentionally skipped, now middle-clicking the empty box toggles the
+box outline between red and white.  You can use this white box outline mark however you like, e.g. to highlight a high-priority dungeon item 
+to find ("I never found the stair item in 3, remember to come back there soon").  
+
+By default, the white sword, ladder, and armos item boxes start out with this white highlight.
+
 ### Other minor stuff
 
 A number of minor improvements:

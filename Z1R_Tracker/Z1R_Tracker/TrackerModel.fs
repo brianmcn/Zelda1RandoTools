@@ -687,10 +687,11 @@ type Box() =
         playerHas <- v
         dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
+    member _this.IsDone() = cell.Current() <> -1 && playerHas <> PlayerHas.NO   // the player knows the item here and has gotten or intentionally skipped it
 
-let ladderBox = Box()
-let armosBox  = Box()
-let sword2Box = Box()
+let ladderBox = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let armosBox  = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let sword2Box = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
 
 [<RequireQualifiedAccess>]
 type DungeonTrackerInstanceKind =
@@ -766,14 +767,14 @@ and Dungeon(id,numBoxes) =
             if playerHasTriforce then
                 let mutable numBoxesDone = 0
                 for b in boxes do
-                    if b.PlayerHas() <> PlayerHas.NO then
+                    if b.IsDone() then
                         numBoxesDone <- numBoxesDone + 1
                 let twoBoxers = if Options.IsSecondQuestDungeons.Value then "123567" else "234567"
                 numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
             else
                 false
         | DungeonTrackerInstanceKind.DEFAULT ->
-            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
+            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.IsDone())
     // for Hidden Dungeon Numbers
     member _this.Color with get() = color and set(x) = color <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
     member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime.SetNow()
@@ -891,9 +892,9 @@ let recomputePlayerStateSummary() =
         haveRecorder <- true
     if startingItemsAndExtras.PlayerHasAnyKey.Value() then
         haveAnyKey <- true
-    if ladderBox.PlayerHas() <> PlayerHas.NO then
+    if ladderBox.IsDone() then
         haveCoastItem <- true
-    if sword2Box.PlayerHas() <> PlayerHas.NO then
+    if sword2Box.IsDone() then
         haveWhiteSwordItem <- true
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
@@ -989,7 +990,7 @@ let recomputeMapStateSummary() =
                     sword1Location <- i,j
                 | n when n=MapSquareChoiceDomainHelper.ARMOS -> 
                     armosLocation <- i,j
-                    if armosBox.PlayerHas() = PlayerHas.NO then
+                    if not(armosBox.IsDone()) then
                         owRouteworthySpots.[i,j] <- true
                 | -1 ->
                     owSpotsRemain <- owSpotsRemain + 1

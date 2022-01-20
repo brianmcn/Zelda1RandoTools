@@ -966,7 +966,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
                     //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got
                     doUIUpdateEvent.Publish.Add(fun _ ->          // this waits a second, which gives visual feeback when left-clicked & allows hotkeys to skip it via multi-hotkey
-                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO then
+                        if not(TrackerModel.ladderBox.IsDone()) then
                             coastBoxOnOwGrid.Opacity <- 1.
                             coastBoxOnOwGrid.IsHitTestVisible <- true
                         else
@@ -1549,14 +1549,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Armos(x,y) = 
-                if TrackerModel.armosBox.PlayerHas() <> TrackerModel.PlayerHas.NO then
+                if TrackerModel.armosBox.IsDone() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten armos icon
             member _this.Sword3(x,y) = 
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
-                if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
+                if TrackerModel.sword2Box.IsDone() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten white sword item cave icon
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
