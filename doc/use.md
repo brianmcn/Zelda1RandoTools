@@ -14,7 +14,7 @@ Contents of this document:
 - [Main Z-Tracker Window](#main)
   - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
   - [Dungeon Item Area](#main-dia)
-    - [Starting Items or Extra Drops](#main-sioed)
+    - [Starting Items and Extra Drops](#main-sioed)
   - [Other Item Area](#main-oia)
   - [Link (specific routing)](#main-link)
   - [Overworld Map](#main-owm)
@@ -104,7 +104,7 @@ Most item progress has semantic meaning to the tracker with regards to routing/r
 Note: while you can interact with Triforces and Items in the Dungeon Item Area, in practice you will instead typically interact with these in 
 the [dungeon inset](#dungeon-inset), which provides a duplicate view of each column.
 
-### <a id="main-sioed"></a> Starting Items or Extra Drops
+### <a id="main-sioed"></a> Starting Items and Extra Drops
 
 If the flagset you are playing with uses any Starting Items, uses Shuffle Minor Dungeon Drops, or uses Make Important Item Drops (from monsters),
 then there is no obvious place to track these items in the main tracker.  Instead, Z-Tracker has an 'extras' popup to track these extra items, 
