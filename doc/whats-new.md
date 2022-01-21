@@ -44,6 +44,14 @@ to find ("I never found the stair item in 3, remember to come back there soon").
 
 By default, the white sword, ladder, and armos item boxes start out with this white highlight.
 
+### Mouse hover explainer
+
+There are a lot of places in the app where hovering the mouse over something can display useful information.  Now you can learn about all of
+these mouse-hover targets inside the app, by hovering the question mark left of the game timer at the top of the app.  When you move the mouse 
+over the question mark, the diagram below appears:
+
+![Mouse Hover Explainer](screenshots/mouse-hover-explainer.png)
+
 ### Other minor stuff
 
 A number of minor improvements:

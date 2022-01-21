@@ -19,9 +19,6 @@ update whats new with changes
 
 
 
-doc the hover-help-question-mark
-
-
 
 
 [10:03 AM] Lorgon111: imagine if, when you move the mouse, the area near the mouse immediately goes from 0% visible to 30% visible in a corner of the emu window
