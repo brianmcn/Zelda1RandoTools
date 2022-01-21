@@ -21,9 +21,6 @@ update whats new with changes
 
 doc the hover-help-question-mark
 
-Kigalas: Had an idea last night - mouse hover over any of the 4 hearts to highlight Potion shops on the map (me: expectation might be to highlight un-taken take-anys, hm)
-
-hovering legend - recorder dest, dungeon, any road should highlight those on map
 
 
 

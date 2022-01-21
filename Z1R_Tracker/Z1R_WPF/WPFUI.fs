@@ -162,6 +162,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
     let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
+    let mutable showLocatorPotionAndTakeAny = fun() -> ()
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
@@ -380,6 +381,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
+        c.MouseEnter.Add(fun _ -> showLocatorPotionAndTakeAny())
+        c.MouseLeave.Add(fun _ -> hideLocator())
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
@@ -1211,11 +1214,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 4.8*OMTW, 0.)
+    let recorderDestinationLegendIcon = shrink firstGreenDungeonBMP
+    canvasAdd(legendCanvas, recorderDestinationLegendIcon, 4.8*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink(Graphics.theFullTileBmpTable.[9].[0]), 7.1*OMTW, 0.)
+    let anyRoadLegendIcon = shrink(Graphics.theFullTileBmpTable.[9].[0])
+    canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
@@ -2137,6 +2142,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let magsAndWoodSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 58.,28.; 58.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
         addLabel(magsAndWoodSword, "Show locations of magical/wood sword caves, if known or hinted", 300., 210.)
 
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.HEARTS)
+        let hearts = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 118.,28.; 118.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        hearts.Points.Add(Point(270.,170.))
+        canvasAdd(c, hearts, 0., 0.)
+        let desc = mkTxt("Show locations of potion shops\nand un-taken Take Anys")
+        desc.TextAlignment <- TextAlignment.Right
+        Canvas.SetRight(desc, c.Width-270.)
+        Canvas.SetTop(desc, 170.)
+        c.Children.Add(desc) |> ignore
+
         let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 542.,138.; 558.,138.; 558.,122.; 542.,122.; 542.,138. ] |> Seq.map Point))
         addLabel(openCaves, "Show locations of unmarked open caves", 430., 180.)
 
@@ -2150,22 +2165,35 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let COL = Brushes.MediumVioletRed
         let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25., THRU_MAP_AND_LEGEND_H
         let candle = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 28.,28.; 28.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-        candle.Points.Add(Point(150.,410.))
+        candle.Points.Add(Point(120.,410.))
         canvasAdd(c, candle, 0., 0.)
         let desc = mkTxt("Show Burnables")
-        Canvas.SetRight(desc, c.Width-150.)
+        Canvas.SetRight(desc, c.Width-120.)
         Canvas.SetTop(desc, 390.)
         c.Children.Add(desc) |> ignore
         let COL = Brushes.CornflowerBlue
         let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25.+7.*30., THRU_MAP_AND_LEGEND_H-2.
         let others = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 118.,28.; 118.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-        others.Points.Add(Point(360.,405.))
+        others.Points.Add(Point(330.,405.))
         canvasAdd(c, others, 0., 0.)
         let desc = mkTxt("Show Ladderable/Recorderable/\nPowerBraceletable/Raftable")
         desc.TextAlignment <- TextAlignment.Right
+        Canvas.SetRight(desc, c.Width-330.)
         Canvas.SetTop(desc, 370.)
-        Canvas.SetRight(desc, c.Width-360.)
         c.Children.Add(desc) |> ignore
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = LEFT_OFFSET + 4.8*OMTW + 15., THRU_MAIN_MAP_H + 3.
+        let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        recorderDest.Points.Add(Point(330.,340.))
+        canvasAdd(c, recorderDest, 0., 0.)
+        let desc = mkTxt("Show recorder destinations")
+        Canvas.SetRight(desc, c.Width-330.)
+        Canvas.SetTop(desc, 340.)
+        c.Children.Add(desc) |> ignore
+        let COL = Brushes.Green
+        let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
+        let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(anyRoad, "Show Any Roads", 430., 340.)
 
         for dd in delayedDescriptions do   // ensure these drow atop all the PolyLines
             canvasAdd(dd)
@@ -2268,6 +2296,33 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
                     owLocatorTilesZone.[i,j].MakeGreen()
         )
+    showLocatorPotionAndTakeAny <- (fun () ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
+                    (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    recorderDestinationLegendIcon.MouseEnter.Add(fun _ ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if TrackerModel.playerComputedStateSummary.HaveRecorder && MapStateProxy(cur).IsDungeon && TrackerModel.GetDungeon(cur).PlayerHasTriforce() then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    recorderDestinationLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
+    anyRoadLegendIcon.MouseEnter.Add(fun _ ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur >= TrackerModel.MapSquareChoiceDomainHelper.WARP_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.WARP_4 then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    anyRoadLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
     showLocator <- (fun sld ->
         match sld with
         | ShowLocatorDescriptor.DungeonNumber(n) ->
