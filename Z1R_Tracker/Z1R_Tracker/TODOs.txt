@@ -28,11 +28,13 @@ maybe make a video of the near-mouse HUD explaining it and asking for feedback (
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
  - second quest, 1 v 4?
+ - see homer conversation (ghostbusters non-interactive visual overlay 3rd box when complete)
+
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 
-HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to actually test this feature sometime, even if by running 2Q but selecting mixed intentionally.
- - maybe reincarnate this feature as a routing-rectangles filter, e.g. mid-game you set the 'only route me to 1Q rooms' or something? hmm
+homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
+ - maybe something like HFQ/HSQ - e.g. HPB/HR?  locate on hint decoder, or on main app?
 
 
 homer wants door-inference (think about)
@@ -47,8 +49,6 @@ homer wants door-inference (think about)
 
 
 
-homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
- - maybe something like HFQ/HSQ - e.g. HPB/HR?  locate on hint decoder, or on main app?
 
 homer probably could use bomb-default-on 
 

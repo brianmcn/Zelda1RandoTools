@@ -320,13 +320,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> RedrawForSecondQuestDungeonToggle())
 
     // in mixed quest, buttons to hide first/second quest
-    let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
-    let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
-    let thereAreMarks(questOnlyInterestingMarks:_[,]) =
+    let thereAreMarks(questOnly:string[]) =
         let mutable r = false
         for x = 0 to 15 do 
             for y = 0 to 7 do
-                if questOnlyInterestingMarks.[x,y] then
+                if questOnly.[y].Chars(x) = 'X' && MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current()).IsInteresting then
                     r <- true
         r
     let mutable hideFirstQuestFromMixed = fun _b -> ()
@@ -341,22 +339,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideFirstQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(firstQuestOnlyInterestingMarks) then
-            System.Media.SystemSounds.Asterisk.Play()
-            hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        else
-            hideFirstQuestFromMixed false
+        if thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideFirstQuestFromMixed false
         hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
 
     hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideSecondQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(secondQuestOnlyInterestingMarks) then
-            System.Media.SystemSounds.Asterisk.Play()
-            hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        else
-            hideSecondQuestFromMixed false
+        if thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideSecondQuestFromMixed false
         hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
@@ -742,14 +736,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             owHidingMapGridCanvases.[i,j] <- c
     canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
     let hide(x,y) =
-        let hideColor = Brushes.DarkSlateGray // Brushes.Black
-        let hideOpacity = 0.6 // 0.4
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 7.*OMTW/48., 0.)
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 19.*OMTW/48., 0.)
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 32.*OMTW/48., 0.)
+        let hideColor = Brushes.DarkSlateGray
+        let hideOpacity = 0.7
+        let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+        canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
     hideSecondQuestFromMixed <- 
         (fun unhide ->  // make mixed appear reduced to 1st quest
             for x = 0 to 15 do
@@ -1049,10 +1039,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             ()
                         else failwith "bad delta"
                         let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
-                            secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                        if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
-                            firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                         redrawGridSpot()
                         } |> Async.StartImmediate
                 owUpdateFunctions.[i,j] <- updateGridSpot 

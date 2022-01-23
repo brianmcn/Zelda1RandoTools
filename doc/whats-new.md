@@ -70,6 +70,8 @@ A number of minor improvements:
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter
  - fix 2Q overworld not showing fairy icon at 1Q5
+ - fix coordinate display in Mirror Overworld to match z1r spoiler log format
+ - fix HFQ/HSQ buttons to be more useful and to display less ugly
 
 
 ## Version 1.0
