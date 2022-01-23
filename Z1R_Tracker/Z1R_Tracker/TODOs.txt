@@ -27,8 +27,6 @@ maybe make a video of the near-mouse HUD explaining it and asking for feedback (
 
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
- - second quest, 1 v 4?
- - see homer conversation (ghostbusters non-interactive visual overlay 3rd box when complete)
 
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section

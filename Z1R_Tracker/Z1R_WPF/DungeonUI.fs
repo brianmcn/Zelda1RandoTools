@@ -13,7 +13,7 @@ let TH = 24 // text height
 
 open HotKeys.MyKey
 
-let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level) =
+let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster) =
     let dungeonIndex = level-1
     let linkCanvas = new Canvas(Width=30., Height=30.)
     let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
@@ -46,7 +46,13 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     sp.Children.Add(dungeonView) |> ignore
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
-        sp.Children.Add(Views.MakeBoxItem(cm, box)) |> ignore
+        let c = new Canvas(Width=30., Height=30.)
+        let view = Views.MakeBoxItem(cm, box)
+        canvasAdd(c, view, 0., 0.)
+        sp.Children.Add(c) |> ignore
+        if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
+            let r = new Shapes.Rectangle(Width=30., Height=30., Fill=new VisualBrush(ghostBuster), IsHitTestVisible=false)
+            canvasAdd(c, r, 0., 0.)
     sp.Children.Add(linkCanvas) |> ignore
     sp.Margin <- Thickness(3.)
     let border = new Border(Child=sp, BorderThickness=Thickness(3.), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
@@ -107,7 +113,8 @@ type TrackerLocation =
     | OVERWORLD
     | DUNGEON
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, 
+                    mainTrackerGhostbusters:Canvas[], contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -142,7 +149,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let mutable localDungeonTrackerPanel = null
         do
             let PopulateLocalDungeonTrackerPanel() =
-                let ldtp,unhighlight = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level)
+                let ldtp,unhighlight = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level, if level=9 then null else mainTrackerGhostbusters.[level-1])
                 if localDungeonTrackerPanel<> null then
                     contentCanvas.Children.Remove(localDungeonTrackerPanel)  // remove old one
                 localDungeonTrackerPanel <- ldtp

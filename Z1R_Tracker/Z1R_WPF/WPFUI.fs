@@ -39,6 +39,23 @@ let makeGrid = Graphics.makeGrid
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 
+let makeGhostBuster() =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
+    let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)
+    let circle = new Shapes.Ellipse(Width=30., Height=30., StrokeThickness=3., Stroke=Brushes.Gray)
+    let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=Brushes.Gray)
+    canvasAdd(c, circle, 0., 0.)
+    canvasAdd(c, slash, 0., 0.)
+    c
+let mainTrackerGhostbusters = Array.init 8 (fun _ -> makeGhostBuster())
+let updateGhostBusters() =
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        for i = 0 to 7 do
+            let lc = TrackerModel.GetDungeon(i).LabelChar
+            let twoItemDungeons = if TrackerModel.Options.IsSecondQuestDungeons.Value then "123567" else "234567"
+            if twoItemDungeons.Contains(lc.ToString()) then
+                mainTrackerGhostbusters.[i].Opacity <- 1.0
+            else
+                mainTrackerGhostbusters.[i].Opacity <- 0.0
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.4 else 0.3), IsHitTestVisible=false))
@@ -295,6 +312,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
                     canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
+                if j=2 && i<> 8 then
+                    canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
     else
         for i = 0 to 8 do
             for j = 0 to 2 do
@@ -317,7 +336,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 else
                     canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
         RedrawForSecondQuestDungeonToggle()
-        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> RedrawForSecondQuestDungeonToggle())
+        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> 
+            RedrawForSecondQuestDungeonToggle()
+            doUIUpdateEvent.Trigger()  // CompletedDungeons may change
+            updateGhostBusters()
+            )
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            for i = 0 to 7 do
+                TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateGhostBusters())
 
     // in mixed quest, buttons to hide first/second quest
     let thereAreMarks(questOnly:string[]) =
@@ -1775,7 +1801,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, TH, rightwardCanvas, levelTabSelected, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, TH, rightwardCanvas, levelTabSelected, mainTrackerGhostbusters, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...

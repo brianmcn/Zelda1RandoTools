@@ -24,9 +24,11 @@ In the options menu, you can now choose BOARD instead of LEVEL for column header
 
 ![BOARD](screenshots/board-versus-level.png)
 
-### Hidden dungeon numbers shows known numbers on the overworld map
+### Improvements to ''Hidden Dungeon Numbers' support
 
-If the dungeon number is known, both the number and letter appear on the overworld map
+If the dungeon number is known, both the number and letter appear on the overworld map.
+
+If the dungeon number is known, and that dungeon only has two items rather than three, the third item box is automatically marked off with a 'ghostbusters' (circle/slash) icon.
 
 ![HDN numbers](screenshots/hidden-dungeon-numbers-known.png)
 
