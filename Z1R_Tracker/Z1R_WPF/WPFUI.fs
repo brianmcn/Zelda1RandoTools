@@ -1977,13 +1977,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),  // may change with OMTW and overall layout
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
-            mirrorOverworldFEs.Add(tb)
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
             owCoordsTBs.[i,j] <- tb
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
             gridAdd(owCoordsGrid, c, i, j) 
+    mirrorOverworldFEs.Add(owCoordsGrid)
     canvasAdd(overworldCanvas, owCoordsGrid, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showCoords)
@@ -2896,6 +2896,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 let c = new Canvas(Width=12.*W/768. - 2., Height=12.*H/672. - 2.)
                 let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=0.0)
                 b
+            let oLegendRect = 
+                let c = new Canvas(Width=12.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=1.0, Height=12.*H/672. - 2. + 6.)
+                b
+            let mkTxt(txt) = new TextBox(FontSize=oLegendRect.Height, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text=txt)
+            let oText1 = mkTxt("Z-Tracker mouse ")
+            let oText2 = mkTxt(" at H16")
+            let oCaption = new StackPanel(Orientation=Orientation.Horizontal, Opacity=0.0)
+            oCaption.Children.Add(oText1) |> ignore
+            oCaption.Children.Add(oLegendRect) |> ignore
+            oCaption.Children.Add(oText2) |> ignore
+            canvasAdd(c, oCaption, 48.*W/768., 48.*H/672. - 4. - oLegendRect.Height)
             for i = 0 to 8 do
                 canvasAdd(c, vs.[i], 0., 0.)
                 canvasAdd(c, hs.[i], 0., 0.)
@@ -2904,21 +2916,26 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             trackerLocationMoused.Publish.Add(fun (tl,i,j) ->
                 if i = -1 then
                     minimapOverlayWindow.Opacity <- 0.0
+                    drect.Opacity <- 0.0
                     orect.Opacity <- 0.0
-                    orect.Opacity <- 0.0
+                    oCaption.Opacity <- 0.0
                 else
                     match tl with
                     | DungeonUI.TrackerLocation.DUNGEON ->
                         minimapOverlayWindow.Opacity <- 1.0
                         drect.Opacity <- 1.0
                         orect.Opacity <- 0.0
+                        oCaption.Opacity <- 0.0
                         Canvas.SetLeft(drect, (48.+24.*float(i)) * W / 768. - 2.)
                         Canvas.SetTop(drect, (48.+12.*float(j)) * H / 672. - 2.)
                     | DungeonUI.TrackerLocation.OVERWORLD ->
                         minimapOverlayWindow.Opacity <- 1.0
-                        orect.Opacity <- 1.0
                         drect.Opacity <- 0.0
-                        Canvas.SetLeft(orect, (48.+12.*float(i)) * W / 768. - 2.)
+                        orect.Opacity <- 1.0
+                        oCaption.Opacity <- 1.0
+                        let i = if displayIsCurrentlyMirrored then 16-i else i+1
+                        oText2.Text <- sprintf " at %c%d" ("ABCDEFGH".[j]) i
+                        Canvas.SetLeft(orect, (48.+12.*float(i-1)) * W / 768. - 2.)
                         Canvas.SetTop(orect, (48.+12.*float(j)) * H / 672. - 2.)
                 )
             //c.UseLayoutRounding <- true
