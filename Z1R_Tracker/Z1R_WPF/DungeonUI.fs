@@ -103,7 +103,11 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
+type TrackerLocation =
+    | OVERWORLD
+    | DUNGEON
+
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let grabHelper = new Dungeon.GrabHelper()
@@ -521,12 +525,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 highlight(warn, Brushes.Yellow)
                         else
                             highlightOutline.Opacity <- 0.6
+                            trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
                 c.MouseLeave.Add(fun _ ->
                     if not popupIsActive then
                         if grabHelper.IsGrabMode then
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
                     highlightOutline.Opacity <- 0.0
+                    trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
                     )
                 c.MouseWheel.Add(fun _ -> 
                     if not popupIsActive then

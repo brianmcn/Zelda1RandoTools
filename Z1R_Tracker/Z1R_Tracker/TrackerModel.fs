@@ -56,6 +56,7 @@ module Options =
     let mutable IsMuted = false
     let mutable Volume = 30
     let mutable HotKeyWindowLTWH = ""
+    let mutable OverlayLocatorWindowLTWH = ""
     let mutable BigIconsInDungeons = false
 
     type ReadWrite() =
@@ -92,6 +93,7 @@ module Options =
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
         member val HotKeyWindowLTWH = "" with get, set
+        member val OverlayLocatorWindowLTWH = "" with get, set
         member val BigIconsInDungeons = false with get, set
 
     let mutable private cachedSettingJson = null
@@ -130,6 +132,7 @@ module Options =
         data.IsMuted <- IsMuted
         data.Volume <- Volume
         data.HotKeyWindowLTWH <- HotKeyWindowLTWH
+        data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
         data.BigIconsInDungeons <- BigIconsInDungeons
 
         let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
@@ -181,6 +184,7 @@ module Options =
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
             HotKeyWindowLTWH <- data.HotKeyWindowLTWH
+            OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
             BigIconsInDungeons <- data.BigIconsInDungeons
         with e ->
             cachedSettingJson <- null

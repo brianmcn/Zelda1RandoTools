@@ -899,6 +899,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
+    let trackerLocationMoused = new Event<_>()
     let drawCompletedIconHighlight(c,x,y,isWider) =
         let w = if isWider then 27.0 else 15.0
         let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
@@ -944,11 +945,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                                 canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], BT+float x*(16.*ENLARGE+BT), BT+float y*(11.*ENLARGE+BT))
                                         if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
                                             dungeonTabsOverlay.Opacity <- 1.0
+                                        trackerLocationMoused.Trigger(DungeonUI.TrackerLocation.OVERWORLD, i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
                                         )
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                      trackerLocationMoused.Trigger(DungeonUI.TrackerLocation.OVERWORLD, -1, -1)
                                       dungeonTabsOverlayContent.Children.Clear()
                                       dungeonTabsOverlay.Opacity <- 0.
                                       routeDrawingCanvas.Children.Clear())
@@ -1224,13 +1227,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
-    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.7, Height=11.*3.)
+    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.45, Height=11.*3.)
     let legendStartIcon = makeStartIcon()
-    canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+8.5*OMTW/48., 0.)
+    canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+4.*OMTW/48., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", IsHitTestVisible=false)
-    canvasAdd(legendStartIconButtonCanvas, tb, 1.*OMTW, 0.)
+    canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
-    canvasAdd(legendCanvas, legendStartIconButton, 9.4*OMTW, 0.)
+    canvasAdd(legendCanvas, legendStartIconButton, 9.1*OMTW, 0.)
     let mutable popupIsActive = false
     legendStartIconButton.Click.Add(fun _ ->
         if not popupIsActive then
@@ -1380,7 +1383,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     hintSP.Children.Add(hintGrid) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, tb, 530., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(appMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
     let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
@@ -1398,7 +1401,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
     kitty.Width <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
-    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width - 20., THRU_MAIN_MAP_H)
+    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width - 12., THRU_MAIN_MAP_H)
     let ztlogo = new Image()
     let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
     ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
@@ -1408,9 +1411,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, logoBorder, 16.*OMTW - ztlogo.Width - 2., THRU_MAIN_MAP_H + kitty.Height - ztlogo.Height - 6.)
 
     // show hotkeys button
-    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show\nHotKeys", IsHitTestVisible=false)
+    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show HotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
-    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 85., THRU_MAIN_MAP_H)
+    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H)
     let showHotKeys(isRightClick) =
         let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
@@ -1436,6 +1439,22 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         w.Show()
     showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
     showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
+
+    // minimap overlay button
+    let minimapOverlayTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Minimap overlay", IsHitTestVisible=false)
+    let minimapOverlayButton = new Button(Content=minimapOverlayTB)
+    canvasAdd(appMainCanvas, minimapOverlayButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 22.)
+    let mutable minimapOverlay = fun _irc -> ()
+    minimapOverlayButton.Click.Add(fun _ -> minimapOverlay(false))
+    minimapOverlayButton.MouseRightButtonDown.Add(fun _ -> minimapOverlay(true))
+
+    // near-mouse HUD button
+    let nearMouseHUDTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Near-mouse HUD", IsHitTestVisible=false)
+    let nearMouseHUDButton = new Button(Content=nearMouseHUDTB)
+    canvasAdd(appMainCanvas, nearMouseHUDButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 44.)
+    let mutable nearMouseHUD = fun _irc -> ()
+    nearMouseHUDButton.Click.Add(fun _ -> nearMouseHUD(false))
+    nearMouseHUDButton.MouseRightButtonDown.Add(fun _ -> nearMouseHUD(true))
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -1770,7 +1789,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, rightwardCanvas, levelTabSelected, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, TH, rightwardCanvas, levelTabSelected, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -2659,6 +2678,304 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             broadcastWindow.Show()
             refocusMainWindow()
         )
+
+    // near-mouse HUD
+    let makeOverlayWindow(_isRightClick) = // todo: save location/size/position/stayfade, use right click to reset defaults
+        let overlayChromeWindow = new Window(Title="Z-Tracker near-mouse HUD controls", ResizeMode=ResizeMode.CanMinimize, SizeToContent=SizeToContent.WidthAndHeight, 
+                                                WindowStartupLocation=WindowStartupLocation.CenterOwner,
+                                                Owner=Application.Current.MainWindow, Background=Brushes.Black)
+        let mutable lastMouse = DateTime.Now
+        let mutable maxOpacity = 1.0
+        let mutable oW, oH, oStay, oFade = ref 250., ref 250., ref 1000., ref 1300.
+
+        // controls layout
+        let mkTxt(txt) = new TextBox(FontSize=16., Foreground=Brushes.Lime, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text=txt)
+        let mutable doUpdate = fun () -> ()
+        let edit(tb:TextBox, label:TextBox, least, update:float ref) = 
+            tb.BorderThickness <- Thickness(1.)
+            tb.IsReadOnly <- false
+            tb.IsHitTestVisible <- true
+            tb.Width <- 80.
+            tb.TextChanged.Add(fun _ ->
+                try
+                    let r = float tb.Text
+                    if r >= least then
+                        label.Foreground <- Brushes.Lime
+                        update := r
+                        doUpdate()
+                    else
+                        label.Foreground <- Brushes.Red
+                with _ -> 
+                    label.Foreground <- Brushes.Red
+                )
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        let topButtons = new DockPanel(LastChildFill=false)
+        let topLeftButton = new Button(Content=mkTxt("Put HUD above"))
+        topButtons.Children.Add(topLeftButton) |> ignore
+        DockPanel.SetDock(topLeftButton, Dock.Left)
+        let topRightButton = new Button(Content=mkTxt("Put HUD above"))
+        topButtons.Children.Add(topRightButton) |> ignore
+        DockPanel.SetDock(topRightButton, Dock.Right)
+        sp.Children.Add(topButtons) |> ignore
+        let spacer() = sp.Children.Add(new DockPanel(Height=10.)) |> ignore
+        spacer()
+        sp.Children.Add(mkTxt("Move this control window to position the HUD.\n(Click corner buttons if needed.)\nYou can minimize this control window once\nthe HUD is positioned where you want it.")) |> ignore
+        spacer()
+        let spWH = new StackPanel(Orientation=Orientation.Horizontal)
+        let size = mkTxt("HUD Size -- ")
+        let widthLabel = mkTxt("Width:")
+        let widthInput = mkTxt((!oW).ToString())
+        let heightLabel = mkTxt("   Height:")
+        let heightInput = mkTxt((!oH).ToString())
+        edit(widthInput, widthLabel, 20., oW)
+        edit(heightInput, heightLabel, 20., oH)
+        spWH.Children.Add(size) |> ignore
+        spWH.Children.Add(widthLabel) |> ignore
+        spWH.Children.Add(widthInput) |> ignore
+        spWH.Children.Add(heightLabel) |> ignore
+        spWH.Children.Add(heightInput) |> ignore
+        sp.Children.Add(spWH) |> ignore
+        spacer()
+        let opacityLabel = mkTxt("Max Opacity:")
+        sp.Children.Add(opacityLabel) |> ignore
+        let slider = new Slider(Orientation=Orientation.Horizontal, Maximum=100., TickFrequency=10., TickPlacement=Primitives.TickPlacement.Both, IsSnapToTickEnabled=false, Width=400.)
+        slider.Value <- maxOpacity * slider.Maximum
+        slider.ValueChanged.Add(fun _ -> lastMouse <- DateTime.Now; maxOpacity <- slider.Value / 100.)
+        sp.Children.Add(slider) |> ignore
+        spacer()
+        sp.Children.Add(mkTxt("After each mouse move in the tracker,\nHUD will stay at Max Opacity for 'Stay'ms, then\nfade out completely after 'Fade'ms.\nFor 'always on' mode, set 'Fade' to 0.")) |> ignore
+        spacer()
+        let spSF = new StackPanel(Orientation=Orientation.Horizontal)
+        let stayLabel = mkTxt("Stay(ms):")
+        let stayInput = mkTxt((!oStay).ToString())
+        let fadeLabel = mkTxt("   Fade(ms):")
+        let fadeInput = mkTxt((!oFade).ToString())
+        edit(stayInput, stayLabel, 0., oStay)
+        edit(fadeInput, fadeLabel, 0., oFade)
+        spSF.Children.Add(stayLabel) |> ignore
+        spSF.Children.Add(stayInput) |> ignore
+        spSF.Children.Add(fadeLabel) |> ignore
+        spSF.Children.Add(fadeInput) |> ignore
+        sp.Children.Add(spSF) |> ignore
+        spacer()
+        let bottomButtons = new DockPanel(LastChildFill=false)
+        let bottomLeftButton = new Button(Content=mkTxt("Put HUD below"))
+        (bottomLeftButton.Content :?> TextBox).Background <- Brushes.Green
+        bottomButtons.Children.Add(bottomLeftButton) |> ignore
+        DockPanel.SetDock(bottomLeftButton, Dock.Left)
+        let bottomRightButton = new Button(Content=mkTxt("Put HUD below"))
+        bottomButtons.Children.Add(bottomRightButton) |> ignore
+        DockPanel.SetDock(bottomRightButton, Dock.Right)
+        sp.Children.Add(bottomButtons) |> ignore
+
+        overlayChromeWindow.Content <- new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(2.), Child=sp)
+        overlayChromeWindow.Show()
+        
+        let W = appMainCanvas.Width
+        let overlayWindow = new Window(Title="Z-Tracker near-mouse HUD", ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.Manual, Owner=Application.Current.MainWindow, 
+                                        Background=Brushes.Black, WindowStyle=WindowStyle.None, AllowsTransparency=true, Opacity=maxOpacity, Topmost=true)
+        overlayWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+        overlayWindow.Left <- 0.0
+        overlayWindow.Top <- 0.0
+
+        let makeViewRect(upperLeft:Point, lowerRight:Point) =
+            let vb = new VisualBrush(cm.RootCanvas)
+            vb.ViewboxUnits <- BrushMappingMode.Absolute
+            vb.Viewbox <- Rect(upperLeft, lowerRight)
+            vb.Stretch <- Stretch.None
+            let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
+            bwRect.Fill <- vb
+            bwRect
+
+        let c = new Canvas()
+        let wholeView = makeViewRect(Point(0.,0.), Point(W,appMainCanvas.Height))
+        canvasAdd(c, wholeView, 0., 0.)
+
+        let addFakeMouse(c:Canvas) =
+            let fakeMouse = new Shapes.Polygon(Fill=Brushes.White)
+            fakeMouse.Points <- new PointCollection([Point(0.,0.); Point(12.,6.); Point(6.,12.)])
+            c.Children.Add(fakeMouse) |> ignore
+            fakeMouse
+        let fakeMouse = addFakeMouse(c)
+        doUpdate <- fun () ->
+            overlayWindow.Width <- !oW
+            overlayWindow.Height <- !oH
+            Canvas.SetLeft(fakeMouse, !oW / 2.)
+            Canvas.SetTop(fakeMouse, !oH / 2.)
+        doUpdate()
+
+        let dp = new DockPanel(Width=W)
+        dp.UseLayoutRounding <- true
+        dp.Children.Add(c) |> ignore
+        let borderForLocationMoveSetup = new Border(BorderBrush=Brushes.Transparent, BorderThickness=Thickness(1.), Child=dp)
+        overlayWindow.Content <- borderForLocationMoveSetup
+    
+        cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
+            let mousePos = ea.GetPosition(appMainCanvas)
+            Canvas.SetLeft(wholeView, (!oW / 2.) - mousePos.X)
+            Canvas.SetTop(wholeView, (!oH / 2.) - mousePos.Y)
+            lastMouse <- DateTime.Now
+            )
+
+        let mutable which = 0  // 0 = bottom left, 1 = bottom right, 2 = top left, 3 = top right
+        let moveWindow() =
+            if which = 0 then
+                overlayWindow.Left <- overlayChromeWindow.Left + 8.
+                overlayWindow.Top <- overlayChromeWindow.Top + overlayChromeWindow.Height
+            elif which = 1 then
+                overlayWindow.Left <- overlayChromeWindow.Left - 8. + overlayChromeWindow.Width - overlayWindow.Width
+                overlayWindow.Top <- overlayChromeWindow.Top + overlayChromeWindow.Height
+            elif which = 2 then
+                overlayWindow.Left <- overlayChromeWindow.Left + 8.
+                overlayWindow.Top <- overlayChromeWindow.Top - 8. - overlayWindow.Height
+            else
+                overlayWindow.Left <- overlayChromeWindow.Left - 8. + overlayChromeWindow.Width - overlayWindow.Width
+                overlayWindow.Top <- overlayChromeWindow.Top - 8. - overlayWindow.Height
+            borderForLocationMoveSetup.BorderBrush <- Brushes.Gray
+            lastMouse <- DateTime.Now
+        let all = [bottomLeftButton; bottomRightButton; topLeftButton; topRightButton]
+        for n,b in [0,bottomLeftButton; 1,bottomRightButton; 2,topLeftButton; 3,topRightButton] do
+            b.Click.Add(fun _ ->
+                which <- n
+                for x in all do 
+                    (x.Content :?> TextBox).Background <- Brushes.Black
+                (b.Content :?> TextBox).Background <- Brushes.Green
+                moveWindow()
+                )
+        overlayChromeWindow.LocationChanged.Add(fun ea ->
+            //if overlayChromeWindow.WindowState = WindowState.Normal then  // dont update when Minimized
+            if overlayChromeWindow.Left <> -32000. then  // dont update when Minimized
+                moveWindow()
+            )
+        overlayChromeWindow.Closed.Add(fun _ -> overlayWindow.Close())
+
+        let timer = new System.Windows.Threading.DispatcherTimer()
+        timer.Interval <- TimeSpan.FromMilliseconds(100.0)
+        timer.Tick.Add(fun _ -> 
+            if !oFade = 0.0 then
+                overlayWindow.Opacity <- maxOpacity
+            else
+                let diffms = (DateTime.Now - lastMouse).TotalMilliseconds |> float
+                if diffms < !oStay then
+                    overlayWindow.Opacity <- maxOpacity
+                elif diffms < !oFade then
+                    let pct = (diffms - !oStay) / (!oFade - !oStay)
+                    overlayWindow.Opacity <- maxOpacity * (1.0 - pct)
+                else
+                    overlayWindow.Opacity <- 0.
+            borderForLocationMoveSetup.BorderBrush <- Brushes.Transparent
+            )
+        timer.Start()
+
+        overlayWindow.Show()
+        moveWindow()
+    nearMouseHUD <- fun (isRightClick) -> makeOverlayWindow(isRightClick)
+
+    let makeMinimapOverlay(isRightClick) =
+        let minimapOverlayWindow = new Window(Title="Z-Tracker minimap overlay", ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.Manual,
+                                                WindowStartupLocation=WindowStartupLocation.Manual, Owner=Application.Current.MainWindow,
+                                                Background=Brushes.Transparent, WindowStyle=WindowStyle.None, AllowsTransparency=true,
+                                                Opacity=1.0, Topmost=true)
+        let init() =
+            let W, H = minimapOverlayWindow.Width, minimapOverlayWindow.Height
+            let c = new Canvas(Width=W, Height=H)
+            let GRIDCOLOR = Brushes.Gray
+            let vs = Array.init 9 (fun i ->
+                let x = (48.+24.*float(i)) * W / 768.
+                new Shapes.Line(Stroke=GRIDCOLOR, StrokeThickness=1.0, X1=x, X2=x, Y1=48.*H/672., Y2=(48.+12.*8.)*H/672.)
+                )
+            let hs = Array.init 9 (fun j ->
+                let y = (48.+12.*float(j)) * H / 672.
+                new Shapes.Line(Stroke=GRIDCOLOR, StrokeThickness=1.0, X1=48.*W/768., X2=(48.+24.*8.)*W/768., Y1=y, Y2=y)
+                )
+            let drect = 
+                let c = new Canvas(Width=24.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=0.0)
+                b
+            let orect = 
+                let c = new Canvas(Width=12.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=0.0)
+                b
+            for i = 0 to 8 do
+                canvasAdd(c, vs.[i], 0., 0.)
+                canvasAdd(c, hs.[i], 0., 0.)
+            canvasAdd(c, drect, 0., 0.)
+            canvasAdd(c, orect, 0., 0.)
+            trackerLocationMoused.Publish.Add(fun (tl,i,j) ->
+                if i = -1 then
+                    minimapOverlayWindow.Opacity <- 0.0
+                    orect.Opacity <- 0.0
+                    orect.Opacity <- 0.0
+                else
+                    match tl with
+                    | DungeonUI.TrackerLocation.DUNGEON ->
+                        minimapOverlayWindow.Opacity <- 1.0
+                        drect.Opacity <- 1.0
+                        orect.Opacity <- 0.0
+                        Canvas.SetLeft(drect, (48.+24.*float(i)) * W / 768. - 2.)
+                        Canvas.SetTop(drect, (48.+12.*float(j)) * H / 672. - 2.)
+                    | DungeonUI.TrackerLocation.OVERWORLD ->
+                        minimapOverlayWindow.Opacity <- 1.0
+                        orect.Opacity <- 1.0
+                        drect.Opacity <- 0.0
+                        Canvas.SetLeft(orect, (48.+12.*float(i)) * W / 768. - 2.)
+                        Canvas.SetTop(orect, (48.+12.*float(j)) * H / 672. - 2.)
+                )
+            //c.UseLayoutRounding <- true
+            //let outerBorder = new Border(BorderBrush=Brushes.Lime, BorderThickness=Thickness(1.), Child=c, Opacity=1.0)  // for help debugging
+            //overlayLocatorWindow.Content <- outerBorder
+            minimapOverlayWindow.Content <- c
+        // 768   48 72 ...
+        // 672   48 60 ...
+
+        let sizerWindow = new Window()
+        sizerWindow.Title <- "Z-Tracker sizer"
+        sizerWindow.ResizeMode <- ResizeMode.CanResize
+        sizerWindow.SizeToContent <- SizeToContent.Manual
+        let save() = 
+            TrackerModel.Options.OverlayLocatorWindowLTWH <- sprintf "%d,%d,%d,%d" (int sizerWindow.Left) (int sizerWindow.Top) (int sizerWindow.Width) (int sizerWindow.Height)
+            TrackerModel.Options.writeSettings()
+        let leftTopWidthHeight = TrackerModel.Options.OverlayLocatorWindowLTWH
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
+        if not isRightClick && matches.Success then
+            sizerWindow.Left <- float matches.Groups.[1].Value
+            sizerWindow.Top <- float matches.Groups.[2].Value
+            sizerWindow.Width <- float matches.Groups.[3].Value
+            sizerWindow.Height <- float matches.Groups.[4].Value
+            sizerWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+        else
+            sizerWindow.Width <- 500.
+            sizerWindow.Height <- 500.
+            sizerWindow.WindowStartupLocation <- WindowStartupLocation.CenterOwner
+        sizerWindow.Owner <- Application.Current.MainWindow
+        sizerWindow.Background <- Brushes.Black
+        sizerWindow.WindowStyle <- WindowStyle.SingleBorderWindow
+        let dp = new DockPanel(Opacity=0.0, LastChildFill=true)
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        sp.Children.Add(new TextBox(Text="Resize this window so that\nit exactly covers the\nNES game screen, then\nclick the button below", TextAlignment=TextAlignment.Center)) |> ignore
+        let button = new Button(Content=new TextBox(Text="Click here after sizing"), Width=300., HorizontalAlignment=HorizontalAlignment.Center)
+        button.Click.Add(fun _ -> 
+            minimapOverlayWindow.Left <- sizerWindow.Left + 8.
+            minimapOverlayWindow.Top<- sizerWindow.Top
+            minimapOverlayWindow.Width <- sizerWindow.Width - 16.
+            minimapOverlayWindow.Height <- sizerWindow.Height - 8.
+            init()
+            minimapOverlayWindow.Show()
+            dp.Opacity <- 1.0
+            save()
+            sizerWindow.Close()
+            )
+        sp.Children.Add(button) |> ignore
+        let outerBorder = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(2.,0.,2.,2.), Child=sp, Opacity=1.0)
+        let style = new Style(typeof<TextBox>)
+        style.Setters.Add(new Setter(TextBox.FontSizeProperty, 20.))
+        style.Setters.Add(new Setter(TextBox.IsReadOnlyProperty, true))
+        style.Setters.Add(new Setter(TextBox.IsHitTestVisibleProperty, false))
+        outerBorder.Resources.Add(typeof<TextBox>, style)
+        sizerWindow.Content <- outerBorder
+        sizerWindow.Show()
+    minimapOverlay <- fun (isRightClick) -> makeMinimapOverlay(isRightClick)
+    
 
     canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
 

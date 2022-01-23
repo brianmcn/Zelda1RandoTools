@@ -7,11 +7,17 @@ open System.Runtime.InteropServices
 module Winterop = 
     [<DllImport("User32.dll")>]
     extern bool RegisterHotKey(IntPtr hWnd,int id,uint32 fsModifiers,uint32 vk)
-
     [<DllImport("User32.dll")>]
     extern bool UnregisterHotKey(IntPtr hWnd,int id)
-
     let HOTKEY_ID = 9000
+
+    [<DllImport("kernel32.dll")>]
+    extern IntPtr GetConsoleWindow()
+    [<DllImport("user32.dll")>]
+    extern bool ShowWindow(IntPtr hWnd, int nCmdShow)
+    let SW_HIDE = 0
+    let SW_SHOW = 5
+    let SW_MINIMIZE = 6
 
     (*
     [<ComImport>]
@@ -535,9 +541,9 @@ type DummyWindow() as this =
             let mainW = new MyWindow()
             mainW.Owner <- this
             mainW.Show()
+            let handle = Winterop.GetConsoleWindow()
+            Winterop.ShowWindow(handle, Winterop.SW_MINIMIZE) |> ignore
             )
-    
-
 
 [<STAThread>]
 [<EntryPoint>]

@@ -18,14 +18,9 @@ update docs with changes
 update whats new with changes
 
 
+add minimap overlay screenshots to docs, once have real ones
 
-
-
-[10:03 AM] Lorgon111: imagine if, when you move the mouse, the area near the mouse immediately goes from 0% visible to 30% visible in a corner of the emu window
-[10:03 AM] Lorgon111: and then if you fail to interact fro two seconds, it fades back down to 0%
-[10:03 AM] Lorgon111: or something along those lines
-[10:04 AM] Lorgon111: so you get like 200x200 pixels near the ZT mouse in-game emu-HUD that appears 'on demand' as a transparent overlay (edited)
-[10:05 AM] Lorgon111: or you could maybe put it just outside the emu window, but not need the full real estate of giant ZT window
+maybe make a video of the near-mouse HUD explaining it and asking for feedback (and link it in docs)
 
 
 
@@ -40,12 +35,20 @@ HFQ/HSQ maybe should change from jailbars to full-tile slate-greying?  Need to a
  - maybe reincarnate this feature as a routing-rectangles filter, e.g. mid-game you set the 'only route me to 1Q rooms' or something? hmm
 
 
+homer wants door-inference (think about)
+ - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
+ - off-by-default option ('infer some dungeon doors based on rooms')
+
+
+         draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+         - maybe can draw it on magnifier?
 
 
 
 
 
 homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
+ - maybe something like HFQ/HSQ - e.g. HPB/HR?  locate on hint decoder, or on main app?
 
 homer probably could use bomb-default-on 
 
@@ -55,10 +58,6 @@ homer probably could use bomb-default-on
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
 Make  documentation picture of all the hover-targets and what they do
-
-homer wants door-inference (think about)
- - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
- - off-by-default option ('infer some dungeon doors based on rooms')
 
 
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way

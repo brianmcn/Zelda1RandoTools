@@ -15,6 +15,7 @@ Contents of this document:
   - [Other Item Area](#main-oia)
   - [Link (specific routing)](#main-link)
   - [Overworld Map](#main-owm)
+     - [Buttons](#main-buttons)
   - [Dungeon Tracker](#main-dt)
   - [Dungeon Rooms](#main-dr)
   - [Blockers](#main-blockers)
@@ -272,14 +273,29 @@ tracker for "The Legend of Zelda" randomizer.
 
 <a id="item-progress">"Item progress" bar</a> lights up items as you get them or upgrade them, as a quick display summary of the player's inventory.
 
-You can click the 'Start Spot' button in the legend to mark your starting screen on the overworld map.
+### <a id="main-buttons"></a> Buttons
 
-You can click the 'Show HotKeys' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
+There are a number of buttons near the bottom right of the overworld map.
 
-<a id="helpful-hint">Clicking the 'Hint decoder' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
+You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.
+
+<a id="helpful-hint">Clicking the '**Hint decoder**' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
 shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).
 
+You can click the '**Show HotKeys**' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
+
+You can click the '**Minimap overlay**' button to create a new transparent window which sits atop your emulator window, and projects an 8x8 grid atop the in-game minimap in the upper 
+left of The Legend of Zelda gameplay.  As you mouseover dungeon rooms in the Z-Tracker window, the corresponding room will light up in the new transparent window, giving the 
+illusion of ROM minimap interacting with the tracker.  Similarly, mousing over overworld tiles in the tracker highlights the mouse location over the in-game overworld minimap.
+Screenshots are suggestive:
+
+TODO add screenshots
+
+The '**Near-mouse HUD**' is an experimental feature, which allows you to project a small portion of the main Z-Tracker window into another location on your desktop.  I know that some 
+folks put a tracker on their second monitor when they play z1r, which may mean you need to turn your head or look far away every time you need to interact with the tracker.  If you 
+have a small amount of screen space on the main monitor near (or even overlapping) the game window that you can sacrifice for tracking purposes, then this feature may allow you to do
+a bit of basic tracking without having to turn your head to look at the main tracker window on the other monitor.  Please ping me if you try out this feature, it needs feedback.
 
 ## <a id="main-dt"></a> Dungeon Tracker
 
