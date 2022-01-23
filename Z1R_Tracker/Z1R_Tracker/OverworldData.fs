@@ -161,6 +161,28 @@ module PrivateInternals =
         "..X............."
         |]
 
+    let owMapSquaresFirstQuestGravePushable = [|
+        "................"
+        "................"
+        ".X.............."
+        "................"
+        "................"
+        "................"
+        "................"
+        "................"
+        |]
+
+    let owMapSquaresSecondQuestGravePushable = [|
+        "................"
+        "................"
+        "X..............."
+        "................"
+        "................"
+        "................"
+        "................"
+        "................"
+        |]
+
     let owMapSquaresFirstQuestAlwaysEmpty = [|
         "X.X...X.XX......"
         ".X...X.XXX.X...."
@@ -256,6 +278,12 @@ type OverworldInstance(quest) =
         | SECOND ->       PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X'
         | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
         | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
+    member this.GravePushable(x,y) =
+        match quest with
+        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X'
+        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X'
+        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
+        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
     member this.Burnable(x,y) =
         match quest with
         | FIRST ->        PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X'

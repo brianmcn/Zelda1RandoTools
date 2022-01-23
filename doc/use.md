@@ -281,7 +281,8 @@ You can click the '**Start Spot**' button in the legend to mark your starting sc
 
 <a id="helpful-hint">Clicking the '**Hint decoder**' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
-shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).
+shows the possible locations for that dungeon or sword cave.  Hint-halo-highlights on the overworld map use [GYR highlights](#general-gyr).  A separate hint decoder
+page explains the other types of hints.
 
 You can click the '**Show HotKeys**' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
 

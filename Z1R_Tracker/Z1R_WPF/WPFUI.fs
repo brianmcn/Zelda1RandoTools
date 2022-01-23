@@ -355,6 +355,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         r
     let mutable hideFirstQuestFromMixed = fun _b -> ()
     let mutable hideSecondQuestFromMixed = fun _b -> ()
+    let mutable featsAreHidden, raftsAreHidden = false, false
+    let mutable hideFeatsOfStrength = fun _b -> ()
+    let mutable hideRaftSpots = fun _b -> ()
 
     let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
@@ -752,40 +755,76 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, owDarkeningMapGrid, 0., 0.)
 
     // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
-    let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
-    owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    for i = 0 to 15 do
-        for j = 0 to 7 do
-            let c = new Canvas(Width=OMTW, Height=float(11*3))
-            gridAdd(owHidingMapGrid, c, i, j)
-            owHidingMapGridCanvases.[i,j] <- c
-    canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
-    let hide(x,y) =
-        let hideColor = Brushes.DarkSlateGray
-        let hideOpacity = 0.7
-        let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
-    hideSecondQuestFromMixed <- 
-        (fun unhide ->  // make mixed appear reduced to 1st quest
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
-                        if unhide then
-                            owHidingMapGridCanvases.[x,y].Children.Clear()
-                        else
-                            hide(x,y)
-        )
-    hideFirstQuestFromMixed <-
-        (fun unhide ->   // make mixed appear reduced to 2nd quest
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
-                        if unhide then
-                            owHidingMapGridCanvases.[x,y].Children.Clear()
-                        else
-                            hide(x,y)
-        )
+    do  // HFQ/HSQ
+        let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
+        let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
+        owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let c = new Canvas(Width=OMTW, Height=float(11*3))
+                gridAdd(owHidingMapGrid, c, i, j)
+                owHidingMapGridCanvases.[i,j] <- c
+        canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
+        let hide(x,y) =
+            let hideColor = Brushes.DarkSlateGray
+            let hideOpacity = 0.7
+            let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+            canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
+        hideSecondQuestFromMixed <- 
+            (fun unhide ->  // make mixed appear reduced to 1st quest
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
+                            if unhide then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+        hideFirstQuestFromMixed <-
+            (fun unhide ->   // make mixed appear reduced to 2nd quest
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
+                            if unhide then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+    do  // SailNot/NoFeats
+        let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
+        let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
+        owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let c = new Canvas(Width=OMTW, Height=float(11*3))
+                gridAdd(owHidingMapGrid, c, i, j)
+                owHidingMapGridCanvases.[i,j] <- c
+        canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
+        let hide(x,y) =
+            let hideColor = Brushes.DarkSlateGray
+            let hideOpacity = 0.7
+            let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+            canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
+        hideFeatsOfStrength <- 
+            (fun b ->  // hide feats of strength
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owInstance.PowerBraceletable(x,y) || owInstance.GravePushable(x,y) then
+                            if not b then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+        hideRaftSpots <-
+            (fun b ->   // hide raft spots (sail not)
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owInstance.Raftable(x,y) then
+                            if not b then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
 
     // ow route drawing layer
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -1392,6 +1431,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let hintSP = new StackPanel(Orientation=Orientation.Vertical)
     hintSP.Children.Add(hintDescriptionTextBox) |> ignore
     hintSP.Children.Add(hintGrid) |> ignore
+    let makeHintText(txt) = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=txt)
+    let otherChoices = new DockPanel(LastChildFill=true)
+    let otherTB = makeHintText("There are a few other types of hints. To see them, click here:")
+    let otherButton = new Button(Content=new Label(FontSize=16., Content="Other hints"))
+    DockPanel.SetDock(otherButton, Dock.Right)
+    otherChoices.Children.Add(otherTB)|> ignore
+    otherChoices.Children.Add(otherButton)|> ignore
+    hintSP.Children.Add(otherChoices) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
@@ -1400,8 +1447,50 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         if not popupIsActive then
             popupIsActive <- true
             let wh = new System.Threading.ManualResetEvent(false)
+            let mutable otherButtonWasClicked = false
+            otherButton.Click.Add(fun _ ->
+                otherButtonWasClicked <- true
+                wh.Set() |> ignore
+                )
             async {
                 do! CustomComboBoxes.DoModal(cm, wh, 0., 65., hintBorder)
+                if otherButtonWasClicked then
+                    wh.Reset() |> ignore
+                    let otherSP = new StackPanel(Orientation=Orientation.Vertical)
+                    let otherTopTB = makeHintText("Here are the meanings of some hints, which you need to track on your own:")
+                    otherTopTB.BorderThickness <- Thickness(0.,0.,0.,4.)
+                    otherSP.Children.Add(otherTopTB) |> ignore
+                    for desc,mean in 
+                        [|
+                        "A feat of strength will lead to...", "Either push a gravestone, or push\nan overworld rock requiring Power Bracelet"
+                        "Sail across the water...", "Raft required to reach a place"
+                        "Play a melody...", "Either an overworld recorder spot, or a\nDigdogger in a dungeon logically blocks..."
+                        "Fire the arrow...", "In a dungeon, Gohma logically blocks..."
+                        "Cross the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
+                        |] do
+                        let dp = new DockPanel(LastChildFill=true)
+                        let d = makeHintText(desc)
+                        d.Width <- 240.
+                        dp.Children.Add(d) |> ignore
+                        let m = makeHintText(mean)
+                        DockPanel.SetDock(m, Dock.Right)
+                        dp.Children.Add(m) |> ignore
+                        otherSP.Children.Add(dp) |> ignore
+                    let otherBottomTB = makeHintText("Here are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
+                    otherBottomTB.BorderThickness <- Thickness(0.,4.,0.,4.)
+                    otherSP.Children.Add(otherBottomTB) |> ignore
+                    let featsCheckBox  = new CheckBox(Content=makeHintText("No feat of strength... (Power Bracelet / pushing graves not required)"))
+                    featsCheckBox.IsChecked <- System.Nullable.op_Implicit featsAreHidden
+                    featsCheckBox.Checked.Add(fun _ -> featsAreHidden <- true; hideFeatsOfStrength true)
+                    featsCheckBox.Unchecked.Add(fun _ -> featsAreHidden <- false; hideFeatsOfStrength false)
+                    otherSP.Children.Add(featsCheckBox) |> ignore
+                    let raftsCheckBox  = new CheckBox(Content=makeHintText("Sail not... (Raft not required)"))
+                    raftsCheckBox.IsChecked <- System.Nullable.op_Implicit raftsAreHidden
+                    raftsCheckBox.Checked.Add(fun _ -> raftsAreHidden <- true; hideRaftSpots true)
+                    raftsCheckBox.Unchecked.Add(fun _ -> raftsAreHidden <- false; hideRaftSpots false)
+                    otherSP.Children.Add(raftsCheckBox) |> ignore
+                    let otherHintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=otherSP)
+                    do! CustomComboBoxes.DoModal(cm, wh, 0., 65., otherHintBorder)
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )

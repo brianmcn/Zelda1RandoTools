@@ -24,33 +24,22 @@ maybe make a video of the near-mouse HUD explaining it and asking for feedback (
 
 
 
+Beta copies to Kig and homer
 
 
 
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 
-homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
- - maybe something like HFQ/HSQ - e.g. HPB/HR?  locate on hint decoder, or on main app?
- - prob on hint decoder, and also add other explanations?
- https://www.orderoftheate.com/zelda-1-randomizer/hints-explained
- - yeah maybe a 'see other hint types' button at bottom, that switches to new popup with the rest, and the new checkboxes
-
-
-
-
-         draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
-         - maybe can draw it on magnifier?
 
 
 
 
 
 
-homer probably could use bomb-default-on 
 
-
-
+draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
+ - maybe can draw it on magnifier?
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
