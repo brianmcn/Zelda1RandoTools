@@ -1064,7 +1064,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         elif delta = 0 then 
                             ()
                         else failwith "bad delta"
-                        let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                         redrawGridSpot()
                         } |> Async.StartImmediate
                 owUpdateFunctions.[i,j] <- updateGridSpot 
@@ -2854,7 +2853,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 (b.Content :?> TextBox).Background <- Brushes.Green
                 moveWindow()
                 )
-        overlayChromeWindow.LocationChanged.Add(fun ea ->
+        overlayChromeWindow.LocationChanged.Add(fun _ea ->
             //if overlayChromeWindow.WindowState = WindowState.Normal then  // dont update when Minimized
             if overlayChromeWindow.Left <> -32000. then  // dont update when Minimized
                 moveWindow()

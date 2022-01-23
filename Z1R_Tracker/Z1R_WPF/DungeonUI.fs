@@ -450,6 +450,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Some n -> usedTransports.[n] <- usedTransports.[n] + 1
                 let SetNewValue(newState:DungeonRoomState.DungeonRoomState) =
                     let originalState = roomStates.[i,j]
+                    let originallyWasNotMarked = originalState.RoomType.IsNotMarked
                     let isLegal = newState.RoomType = originalState.RoomType || 
                                     (match newState.RoomType.KnownTransportNumber with
                                         | None -> true
@@ -458,6 +459,22 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         usedTransportsRemoveState(roomStates.[i,j])
                         roomStates.[i,j] <- newState
                         usedTransportsAddState(roomStates.[i,j])
+                        // conservative door inference
+                        if TrackerModel.Options.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone then
+                            // they appear to have walked into this room from an adjacent room
+                            let possibleEntries = ResizeArray()
+                            if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
+                                possibleEntries.Add(horizontalDoors.[i-1,j])
+                            if i < 7 && not(roomStates.[i+1,j].IsEmpty) then
+                                possibleEntries.Add(horizontalDoors.[i,j])
+                            if j > 0 && not(roomStates.[i,j-1].IsEmpty) then
+                                possibleEntries.Add(verticalDoors.[i,j-1])
+                            if j < 7 && not(roomStates.[i,j+1].IsEmpty) then
+                                possibleEntries.Add(verticalDoors.[i,j])
+                            if possibleEntries.Count = 1 then
+                                let door = possibleEntries.[0]
+                                if door.State = Dungeon.DoorState.UNKNOWN then
+                                    door.State <- Dungeon.DoorState.YES
                         redraw()
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
@@ -550,7 +567,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 Graphics.setupClickVersusDrag(c, (fun ea ->
                     if not popupIsActive then
                         async {
-                            let pos = ea.GetPosition(c)
                             if ea.ChangedButton = Input.MouseButton.Left then
                                 if grabHelper.IsGrabMode then
                                     if not grabHelper.HasGrab then
@@ -579,15 +595,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                                 else
                                     // plain left click
+                                    let workingCopy = roomStates.[i,j].Clone()
                                     if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
                                         // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
-                                        roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                        roomStates.[i,j].IsComplete <- true
+                                        workingCopy.RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                        workingCopy.IsComplete <- true
+                                        SetNewValue(workingCopy)
                                     else
                                         if isFirstTimeClickingAnyRoomInThisDungeonTab then
-                                            //do! activatePopup(true)  // old behavior
-                                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.StartEnterFromS
-                                            roomStates.[i,j].IsComplete <- true
+                                            workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
+                                            workingCopy.IsComplete <- true
+                                            SetNewValue(workingCopy)
                                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                                         else
                                             match roomStates.[i,j].RoomType.NextEntranceRoom() with

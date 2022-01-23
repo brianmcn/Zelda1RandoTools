@@ -319,6 +319,9 @@ Doors between rooms are simple, and have four states:
 
 Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green door) toggles it back into unknown gray.
 
+There is an option in the [Options Menu](#main-om), off by default, to automatically infer some green doors.  (It will conservatively put a green door between rooms A and B 
+only if you just marked B, and B is not a transport stair, and A is the only adjacent room with a mark.)
+
 #### Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).

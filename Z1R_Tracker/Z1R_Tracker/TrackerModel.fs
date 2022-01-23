@@ -49,6 +49,7 @@ module Options =
     let mutable PlaySoundWhenUseSpeech = Bool(true)
     let mutable BOARDInsteadOfLEVEL = Bool(false)
     let mutable IsSecondQuestDungeons = Bool(false)
+    let mutable DoDoorInference = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
     let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
@@ -85,6 +86,7 @@ module Options =
         member val PlaySoundWhenUseSpeech = true with get,set
         member val BOARDInsteadOfLEVEL = false with get,set
         member val IsSecondQuestDungeons = false with get,set
+        member val DoDoorInference = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
         member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
@@ -125,6 +127,7 @@ module Options =
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
         data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.DoDoorInference <- DoDoorInference.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
         data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
@@ -177,6 +180,7 @@ module Options =
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
             BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
+            DoDoorInference.Value <- data.DoDoorInference
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
             BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier

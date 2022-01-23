@@ -26,18 +26,17 @@ maybe make a video of the near-mouse HUD explaining it and asking for feedback (
 
 
 
-in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
 
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 
 homerjsmash: A thought..no feat of strength and sail not hints. Is there room for a feature to click and those caves either grey out or something?
  - maybe something like HFQ/HSQ - e.g. HPB/HR?  locate on hint decoder, or on main app?
+ - prob on hint decoder, and also add other explanations?
+ https://www.orderoftheate.com/zelda-1-randomizer/hints-explained
+ - yeah maybe a 'see other hint types' button at bottom, that switches to new popup with the rest, and the new checkboxes
 
 
-homer wants door-inference (think about)
- - if you just marked a new room, AND the new room is adjacent to only one existing room, AND the new-room-mark is not a transport stair, then draw a green door between the new room and the only-adjacent-room.
- - off-by-default option ('infer some dungeon doors based on rooms')
 
 
          draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
@@ -55,8 +54,7 @@ homer probably could use bomb-default-on
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
 
-Make  documentation picture of all the hover-targets and what they do
-
+in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
 
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
 
@@ -72,7 +70,7 @@ the rando spoiler log does not mirror coordinates, so D5 is death armos normally
 
 HDN, non-shapes, in addition to red-green room match, maybe could yellow out numbers already taken? hmmm
 
-possibly an 'any road' single hotkey that works like voice, and auto-selects next road?
+possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
 
 consider adding my 'dungeon drops' room table somewhere somehow
 
