@@ -3100,7 +3100,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         sizerWindow.WindowStyle <- WindowStyle.SingleBorderWindow
         let dp = new DockPanel(Opacity=0.0, LastChildFill=true)
         let sp = new StackPanel(Orientation=Orientation.Vertical)
-        sp.Children.Add(new TextBox(Text="Resize this window so that\nit exactly covers the\nNES game screen, then\nclick the button below", TextAlignment=TextAlignment.Center)) |> ignore
+        sp.Children.Add(new TextBox(Text="Resize this window so that it exactly covers\nthe NES game screen, then click the button below", TextAlignment=TextAlignment.Center)) |> ignore
         let button = new Button(Content=new TextBox(Text="Click here after sizing"), Width=300., HorizontalAlignment=HorizontalAlignment.Center)
         button.Click.Add(fun _ -> 
             minimapOverlayWindow.Left <- sizerWindow.Left + 8.
@@ -3114,9 +3114,43 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             sizerWindow.Close()
             )
         sp.Children.Add(button) |> ignore
+        sp.Children.Add(new TextBox(Text="You can make gross adjustments to window size\nby grabbing the window corner, like any other window.", FontSize=12., TextAlignment=TextAlignment.Center)) |> ignore
+        sp.Children.Add(new TextBox(Text="To fine-tune the window size, you can use the buttons\nbelow to adjust one pixel at a time.", FontSize=12., TextAlignment=TextAlignment.Center)) |> ignore
+        let nudgeCanvas = new Canvas(Width=260., Height=260., HorizontalAlignment=HorizontalAlignment.Center)
+        let r = new Shapes.Rectangle(Width=150., Height=150., Stroke=Brushes.White, StrokeThickness=3.)
+        canvasAdd(nudgeCanvas, r, 55., 55.)
+        let leftLarger = new Button(Content=new TextBox(Text="◄"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, leftLarger, 10., 110.)
+        let leftSmaller = new Button(Content=new TextBox(Text="►"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, leftSmaller, 60., 110.)
+        let rightSmaller = new Button(Content=new TextBox(Text="◄"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, rightSmaller, 160., 110.)
+        let rightLarger = new Button(Content=new TextBox(Text="►"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, rightLarger, 210., 110.)
+        let topLarger = new Button(Content=new TextBox(Text="▲"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, topLarger, 110., 10.)
+        let topSmaller = new Button(Content=new TextBox(Text="▼"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, topSmaller, 110., 60.)
+        let bottomSmaller = new Button(Content=new TextBox(Text="▲"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, bottomSmaller, 110., 160.)
+        let bottomLarger = new Button(Content=new TextBox(Text="▼"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, bottomLarger, 110., 210.)
+        let left(delta) = sizerWindow.Left <- sizerWindow.Left + delta
+        let width(delta) = sizerWindow.Width <- sizerWindow.Width + delta
+        let top(delta) = sizerWindow.Top <- sizerWindow.Top + delta
+        let height(delta) = sizerWindow.Height <- sizerWindow.Height + delta
+        leftLarger.Click.Add(fun _ -> left(-1.); width(1.))
+        leftSmaller.Click.Add(fun _ -> left(1.); width(-1.))
+        rightSmaller.Click.Add(fun _ -> width(-1.))
+        rightLarger.Click.Add(fun _ -> width(1.))
+        topLarger.Click.Add(fun _ -> top(-1.); height(1.))
+        topSmaller.Click.Add(fun _ -> top(1.); height(-1.))
+        bottomSmaller.Click.Add(fun _ -> height(-1.))
+        bottomLarger.Click.Add(fun _ -> height(1.))
+        sp.Children.Add(nudgeCanvas) |> ignore
         let outerBorder = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(2.,0.,2.,2.), Child=sp, Opacity=1.0)
         let style = new Style(typeof<TextBox>)
-        style.Setters.Add(new Setter(TextBox.FontSizeProperty, 20.))
+        style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
         style.Setters.Add(new Setter(TextBox.IsReadOnlyProperty, true))
         style.Setters.Add(new Setter(TextBox.IsHitTestVisibleProperty, false))
         outerBorder.Resources.Add(typeof<TextBox>, style)
