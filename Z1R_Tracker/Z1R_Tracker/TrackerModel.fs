@@ -635,6 +635,7 @@ type StartingItemsAndExtras() =
     let raft = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let recorder = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let anyKey = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let book = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let mutable maxHeartsDiff = 0
     member _this.HDNStartingTriforcePieces = triforces
     member _this.PlayerHasWhiteSword         = whiteSword
@@ -650,6 +651,7 @@ type StartingItemsAndExtras() =
     member _this.PlayerHasRaft = raft
     member _this.PlayerHasRecorder = recorder
     member _this.PlayerHasAnyKey = anyKey
+    member _this.PlayerHasBook = book
     member _this.MaxHeartsDifferential with get() = maxHeartsDiff and set(x) = maxHeartsDiff <- x
 let startingItemsAndExtras = StartingItemsAndExtras()
 
@@ -900,6 +902,8 @@ let recomputePlayerStateSummary() =
         haveRecorder <- true
     if startingItemsAndExtras.PlayerHasAnyKey.Value() then
         haveAnyKey <- true
+    if startingItemsAndExtras.PlayerHasBook.Value() then
+        haveBookOrShield <- true
     if ladderBox.IsDone() then
         haveCoastItem <- true
     if sword2Box.IsDone() then

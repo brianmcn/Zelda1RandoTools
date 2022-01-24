@@ -27,6 +27,8 @@ review other screenshots to see any that need to be re-taken
 
 Beta copies to Kig and homer
 
+TODO new screenshot of starting items
+
 TODO window size nudger
 
 TODO bug, red ring from start items, woods sword, blue candle, got double-timelined, 
