@@ -113,7 +113,7 @@ type TrackerLocation =
     | OVERWORLD
     | DUNGEON
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, 
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, 
                     mainTrackerGhostbusters:Canvas[], contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
@@ -168,7 +168,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             if (pos.X < 0. || pos.X > contentCanvas.ActualWidth) || (pos.Y < 0. || pos.Y > contentCanvas.ActualHeight) then
                 contentCanvasMouseLeaveFunc(level)
             )
-        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  
+        let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)  
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
@@ -280,8 +280,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             Canvas.SetBottom(b, 0.)
             Canvas.SetLeft(b, -260.)
             hoverCanvas.Children.Add(b) |> ignore
+            let vb = new VisualBrush(dungeonCanvas)
+            trackerDungeonMoused.Trigger(vb)
             )
-        hoverCanvas.MouseLeave.Add(fun _ -> hoverCanvas.Children.Clear(); canvasAdd(hoverCanvas, miniBorder, 0., 0.))
+        hoverCanvas.MouseLeave.Add(fun _ -> 
+            hoverCanvas.Children.Clear()
+            canvasAdd(hoverCanvas, miniBorder, 0., 0.)
+            trackerDungeonMoused.Trigger(null)
+            )
         // big icons for monsters & floor drops
         let bigIconsCB = new CheckBox(Content=DungeonRoomState.mkTxt("I"))
         bigIconsCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BigIconsInDungeons

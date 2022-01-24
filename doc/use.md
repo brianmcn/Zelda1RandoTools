@@ -288,7 +288,8 @@ You can click the '**Show HotKeys**' button in the legend to pop out a resizable
 
 You can click the '**Minimap overlay**' button to create a new transparent window which sits atop your emulator window, and projects an 8x8 grid atop the in-game minimap in the upper 
 left of The Legend of Zelda gameplay.  As you mouseover dungeon rooms in the Z-Tracker window, the corresponding room will light up in the new transparent window, giving the 
-illusion of ROM minimap interacting with the tracker.  Similarly, mousing over overworld tiles in the tracker highlights the mouse location over the in-game overworld minimap.
+illusion of ROM minimap interacting with the tracker.  (On the pause screen in a dungeon, mouse-hovering the blue bars in the corner of the dungeon tracker will project all your
+dungeon marks onto the pause-screen parchement-map.)  Similarly, mousing over overworld tiles in the tracker highlights the mouse location over the in-game overworld minimap.
 Screenshots are suggestive:
 
 TODO add screenshots

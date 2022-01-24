@@ -22,11 +22,14 @@ add minimap overlay screenshots to docs, once have real ones
 
 maybe make a video of the near-mouse HUD explaining it and asking for feedback (and link it in docs)
 
+review other screenshots to see any that need to be re-taken
 
 
 Beta copies to Kig and homer
 
+TODO window size nudger
 
+TODO bug, red ring from start items, woods sword, blue candle, got double-timelined, 
 
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
