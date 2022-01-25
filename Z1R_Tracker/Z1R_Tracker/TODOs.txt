@@ -18,14 +18,9 @@ update docs with changes
 update whats new with changes
 
 
-add minimap overlay screenshots to docs, once have real ones
-
 maybe make a video of the near-mouse HUD explaining it and asking for feedback (and link it in docs)
 
-review other screenshots to see any that need to be re-taken
-
-
-Beta copies to Kig and homer
+Beta copies to Kig and homer - done
 
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 

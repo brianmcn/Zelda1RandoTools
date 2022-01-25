@@ -4,9 +4,11 @@ A summary of the features/fixes in the various releases of Z-Tracker
 
 ## <a id="v1.1"></a>Version 1.1
 
-### Starting Items and  Extra Drops
+### Starting Items and Extra Drops
 
 You can now track items obtained outside the usual places, see [the documentation](use.md#main-sioed) for details.
+
+![Extras](screenshots/extras-example.png)
 
 ### Dungeon Summary Tab
 
@@ -17,6 +19,8 @@ The dungeon tracker now has a tab showing the tracking of the first 8 dungeons o
 ### Maybe-blockers
 
 There's now an option to distinguish "definitely" and "maybe" in the BLOCKERS sections.  See [the documentation](use.md#main-blockers) for details.
+
+![Blockers](screenshots/blockers.png)
 
 ### BOARD instead of LEVEL
 
@@ -40,7 +44,11 @@ New room options for the final dungeon (that replace Bomb Upgrade and Meat Block
 
 ### Minimap overlay and Near-mouse HUD
 
-The minimap overlay is super-cool.  The Near-mouse HUD is an experimental feature.  See [the documentation](use.md#main-buttons) for details, and consider trying out these optional features.
+The minimap overlay is super-cool:
+
+![Minimap dungeon overlay](screenshots/minimap-dungeon-and-overworld.png)
+
+The Near-mouse HUD is an experimental feature.  See [the documentation](use.md#main-buttons) for details on both, and consider trying out these optional features.
 
 ### Highlight empty item boxes
 

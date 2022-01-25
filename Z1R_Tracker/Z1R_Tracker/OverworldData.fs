@@ -1,6 +1,6 @@
 ﻿module OverworldData
 
-let VersionString = "1.1.0a1"
+let VersionString = "1.1.0b"
 let ProgramNameString = sprintf "Z-Tracker v%s" VersionString
 let Website = "https://github.com/brianmcn/Zelda1RandoTools"
 let AboutBody = sprintf "%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" ProgramNameString Website

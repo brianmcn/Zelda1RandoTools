@@ -44,7 +44,7 @@ module Options =
         let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
-    let mutable ListenForSpeech = Bool(true)
+    let mutable ListenForSpeech = Bool(false)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
     let mutable BOARDInsteadOfLEVEL = Bool(false)
@@ -81,7 +81,7 @@ module Options =
         member val Visual_HaveKeyLadder = true with get,set
         member val Visual_Blockers = true with get,set
         
-        member val ListenForSpeech = true with get,set
+        member val ListenForSpeech = false with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
         member val BOARDInsteadOfLEVEL = false with get,set

@@ -159,6 +159,8 @@ hearts and heart containers found in the world.)
 
 Open Cave Icon - Mouse-hovering the open-cave icon will highlight any open cave locations you have not yet marked, using green [GYR highlights](#general-gyr).
 
+Question mark icon - Mouse hovering this brings up the "Mouse Hover Explainer" which explains the effects of hovering many different elements in the tracker.
+
 Timer - Displays the amount of time you have spent on the seed
 
 'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.
@@ -171,15 +173,6 @@ you have been marking those diligently.
 
 <a id="hfq-hsq">HFQ/HSQ buttons</a> - If the rando flagsset is not known a priori to be 1st/2nd/mixed overworld, you should select mixed-2nd at startup, and then use the
 Hide First Quest or Hide Second Quest buttons later if later helpful.
-
-Many of the items in this area have behaviors when hovered with the mouse:
-- Mouse-hovering the wood/white/magical sword icons will highlight their cave's (possible) location(s) on the map if known (or hinted).
-- Mouse-hovering the boomstick book icon will highlight its shop location on the map, if known.
-- Mouse-hovering blue_ring/wood_arrow/bomb icon will highlight all its shop locations on the map.
-- Mouse-hovering blue_candle icon will highlight all its shop locations on the map if you don't yet have a candle; otherwise it highlights burnable trees.
-- Mouse-hovering the armos icon will highlight any armos locations you have not yet marked up.
-- Mouse-hovering the power-bracelet/ladder/raft/recorder/redcandle in your inventory or in the ['item progress' bar](#item-progress) will 
-  highlight any push-block/ladderable/raftable/whistleable/burnable locations you have not yet marked up.
 
 
 ## <a id="main-link"></a> Link (specific routing)
@@ -292,7 +285,7 @@ illusion of ROM minimap interacting with the tracker.  (On the pause screen in a
 dungeon marks onto the pause-screen parchement-map.)  Similarly, mousing over overworld tiles in the tracker highlights the mouse location over the in-game overworld minimap.
 Screenshots are suggestive:
 
-TODO add screenshots
+![Minimap dungeon overlay](screenshots/minimap-dungeon-and-overworld.png)
 
 The '**Near-mouse HUD**' is an experimental feature, which allows you to project a small portion of the main Z-Tracker window into another location on your desktop.  I know that some 
 folks put a tracker on their second monitor when they play z1r, which may mean you need to turn your head or look far away every time you need to interact with the tracker.  If you 
