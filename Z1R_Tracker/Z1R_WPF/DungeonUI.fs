@@ -172,6 +172,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
+        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsHitTestVisible=false, FontSize=200., Opacity=0.0,
+                            Width=dungeonBodyCanvas.Width, Height=dungeonBodyCanvas.Height, VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
+                            HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        let showNumeral() =
+            numeral.Opacity <- 0.7
+            let ctxt = Threading.SynchronizationContext.Current
+            async { 
+                do! Async.Sleep(1000)
+                do! Async.SwitchToContext(ctxt)
+                numeral.Opacity <- 0.0 
+            } |> Async.Start
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
         canvasAdd(contentCanvas, dungeonCanvas, 3., 3.)
@@ -365,6 +376,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let x = ea.AddedItems.[0]
                 if obj.ReferenceEquals(x,levelTab) then
                     levelTabSelected.Trigger(level)
+                    showNumeral()
             with _ -> ()
             // the tab has already changed, kill the current grab
             if grabHelper.IsGrabMode then 
@@ -612,6 +624,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
+                                            showNumeral()
                                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                                         else
                                             match roomStates.[i,j].RoomType.NextEntranceRoom() with
@@ -663,6 +676,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         // "sunglasses"
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
+        canvasAdd(dungeonBodyCanvas, numeral, 0., 0.)  // so numeral displays atop all else
     // end -- for level in 1 to 9 do
     do
         // summary tab
