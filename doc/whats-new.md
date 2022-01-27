@@ -70,12 +70,14 @@ A number of minor improvements:
  - big icons checkbox in dungeons is persisted across sessions
  - The file Notes.txt can be used as the default Notes text at startup
  - The rest of the Helpful hints (ones that don't lead to dungeon/sword) have been added to the Hint Decoder
+ - you can now change between 'Default' and '2/3 size' main window in the application (on the startup screen)
 
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter
  - fix 2Q overworld not showing fairy icon at 1Q5
  - fix coordinate display in Mirror Overworld to match z1r spoiler log format
  - fix HFQ/HSQ buttons to be more useful and to display less ugly
+ - fix windows/taskbar to now properly display Z-Tracker logo icon
 
 
 ## Version 1.0
