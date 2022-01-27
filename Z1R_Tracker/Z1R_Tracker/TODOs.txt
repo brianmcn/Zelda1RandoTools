@@ -23,6 +23,8 @@ maybe make a video of the near-mouse HUD explaining it and asking for feedback (
 add a good screenshot to front page github (link from in-app version button), above 'motivation' section
 
 
+TODO detect when people's resolution wont fit the app, and offer fix in-app
+
 
 
 

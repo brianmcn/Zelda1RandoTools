@@ -1546,6 +1546,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
     showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
 
+#if NOT_RACE_LEGAL
     // minimap overlay button
     let minimapOverlayTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Minimap overlay", IsHitTestVisible=false)
     let minimapOverlayButton = new Button(Content=minimapOverlayTB)
@@ -1561,6 +1562,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let mutable nearMouseHUD = fun _irc -> ()
     nearMouseHUDButton.Click.Add(fun _ -> nearMouseHUD(false))
     nearMouseHUDButton.MouseRightButtonDown.Add(fun _ -> nearMouseHUD(true))
+#endif
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -2978,7 +2980,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
         nearMouseHUDWindow.Show()
         moveWindow()
+#if NOT_RACE_LEGAL
     nearMouseHUD <- fun (isRightClick) -> makeOverlayWindow(isRightClick)
+#endif
 
     let mutable minimapOverlayWindow = null : Window
     let makeMinimapOverlay(isRightClick) =
@@ -3156,8 +3160,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         outerBorder.Resources.Add(typeof<TextBox>, style)
         sizerWindow.Content <- outerBorder
         sizerWindow.Show()
+#if NOT_RACE_LEGAL
     minimapOverlay <- fun (isRightClick) -> makeMinimapOverlay(isRightClick)
-    
+#endif    
 
     canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
 

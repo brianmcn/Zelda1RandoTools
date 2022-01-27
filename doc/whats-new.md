@@ -42,14 +42,6 @@ New room options for the final dungeon (that replace Bomb Upgrade and Meat Block
 
 ![Gannon & Zelda](screenshots/gannon-zelda.png)
 
-### Minimap overlay and Near-mouse HUD
-
-The minimap overlay is super-cool:
-
-![Minimap dungeon overlay](screenshots/minimap-dungeon-and-overworld.png)
-
-The Near-mouse HUD is an experimental feature.  See [the documentation](use.md#main-buttons) for details on both, and consider trying out these optional features.
-
 ### Highlight empty item boxes
 
 In the item box popup, whereas middle-clicking an item marks that item as intentionally skipped, now middle-clicking the empty box toggles the

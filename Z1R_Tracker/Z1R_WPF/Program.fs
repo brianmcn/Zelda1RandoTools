@@ -538,6 +538,22 @@ type DummyWindow() as this =
         this.WindowState <- WindowState.Minimized
         this.Loaded.Add(fun _ ->
             this.Visibility <- Visibility.Hidden
+            
+            // method 1
+            let resHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height  // e.g. 1440
+            let actualHeight = SystemParameters.PrimaryScreenHeight  // e.g. 960
+            let scale = float resHeight / actualHeight  // e.g.   1.5 
+            let waHeight = SystemParameters.WorkArea.Height
+            printfn "method1: scale = %f    actualHeight=%f    waHeight=%f" scale actualHeight waHeight
+            // TODO if waHeight < 1000.0 then suggest Smaller
+//caffy
+//method1: scale = 1.250000    actualHeight=864.000000    waHeight=824.000000
+//method2: scale = 1.250000
+            // method 2
+            let dpiScale = VisualTreeHelper.GetDpi(this)
+            let scale = dpiScale.DpiScaleY
+            printfn "method2: scale = %f" scale
+            
             let mainW = new MyWindow()
             mainW.Owner <- this
             mainW.Show()
