@@ -2637,8 +2637,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         broadcastWindow.ResizeMode <- ResizeMode.NoResize
         broadcastWindow.SizeToContent <- SizeToContent.Manual
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
-        broadcastWindow.Left <- 0.0
-        broadcastWindow.Top <- 0.0
+        let leftTop = TrackerModel.Options.BroadcastWindowLT
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
+        if matches.Success then
+            broadcastWindow.Left <- float matches.Groups.[1].Value
+            broadcastWindow.Top <- float matches.Groups.[2].Value
+        broadcastWindow.LocationChanged.Add(fun _ ->
+            TrackerModel.Options.BroadcastWindowLT <- sprintf "%d,%d" (int broadcastWindow.Left) (int broadcastWindow.Top)
+            TrackerModel.Options.writeSettings()
+            )
         broadcastWindow.Width <- (if size=1 then 256. elif size=2 then 512. else 768.) + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black

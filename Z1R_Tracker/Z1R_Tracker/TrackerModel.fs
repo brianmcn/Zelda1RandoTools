@@ -56,6 +56,8 @@ module Options =
     let mutable SmallerAppWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
+    let mutable MainWindowLT = ""
+    let mutable BroadcastWindowLT = ""
     let mutable HotKeyWindowLTWH = ""
     let mutable OverlayLocatorWindowLTWH = ""
     let mutable BigIconsInDungeons = false
@@ -94,6 +96,8 @@ module Options =
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
+        member val MainWindowLT = "" with get,set
+        member val BroadcastWindowLT = "" with get,set
         member val HotKeyWindowLTWH = "" with get, set
         member val OverlayLocatorWindowLTWH = "" with get, set
         member val BigIconsInDungeons = false with get, set
@@ -134,6 +138,8 @@ module Options =
         data.SmallerAppWindow <- SmallerAppWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
+        data.MainWindowLT <- MainWindowLT
+        data.BroadcastWindowLT <- BroadcastWindowLT
         data.HotKeyWindowLTWH <- HotKeyWindowLTWH
         data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
         data.BigIconsInDungeons <- BigIconsInDungeons
@@ -187,6 +193,8 @@ module Options =
             SmallerAppWindow.Value <- data.SmallerAppWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
+            MainWindowLT <- data.MainWindowLT
+            BroadcastWindowLT <- data.BroadcastWindowLT
             HotKeyWindowLTWH <- data.HotKeyWindowLTWH
             OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
             BigIconsInDungeons <- data.BigIconsInDungeons

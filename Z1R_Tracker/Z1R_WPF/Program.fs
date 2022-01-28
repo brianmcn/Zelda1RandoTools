@@ -263,8 +263,15 @@ type MyWindow() as this =
             else 
                 WIDTH, HEIGHT
         //printfn "%f, %f" APP_WIDTH APP_HEIGHT
-        this.Left <- System.Windows.SystemParameters.PrimaryScreenWidth - APP_WIDTH
-        this.Top <- 0.0
+        let leftTop = TrackerModel.Options.MainWindowLT
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
+        if matches.Success then
+            this.Left <- float matches.Groups.[1].Value
+            this.Top <- float matches.Groups.[2].Value
+        this.LocationChanged.Add(fun _ ->
+            TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+            TrackerModel.Options.writeSettings()
+            )
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
@@ -433,9 +440,7 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        let tb = new TextBox(Text="Note: once you start, you can click the 'start spot' icon\nin the legend to mark your start screen at any time",
-                                IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
-        stackPanel.Children.Add(tb) |> ignore
+        stackPanel.Children.Add(new DockPanel(Height=20.)) |> ignore
 
         let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
@@ -503,7 +508,7 @@ type MyWindow() as this =
         let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
-        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 50., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 30., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore

@@ -65,12 +65,14 @@ A number of minor improvements:
  - the current dungeon tab highlights corresponding blockers area
  - dungeon doors/rooms give mouseover feedback, to make it easier to click the intended target
  - there's an option to automatically infer some dungeon door marks (see [the documentation](use.md#main-dt) for Doors)
+ - main application window and broadcast window remember their locations
  - 'Show HotKeys' window remembers its size/location
  - added Z-Tracker logo next to the kitty
  - big icons checkbox in dungeons is persisted across sessions
  - The file Notes.txt can be used as the default Notes text at startup
  - The rest of the Helpful hints (ones that don't lead to dungeon/sword) have been added to the Hint Decoder
  - you can now change between 'Default' and '2/3 size' main window in the application (on the startup screen)
+ - when you change dungeon tabs, or first mark a room in a dungeon, the dungeon number appears briefly on the tab to remind you which tab you are on, to help prevent the error of mapping in the wrong tab
 
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter
