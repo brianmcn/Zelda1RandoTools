@@ -77,6 +77,7 @@ ABOVE IS DONE
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
  - delete ZTracker.lnk (has my machine's paths hardcoded)
+ - delete LT numbers from settings (my screen window position)
  - zip up directory
  - publish Release in the branch on the tag, and add the zip as a resource
 then users can
