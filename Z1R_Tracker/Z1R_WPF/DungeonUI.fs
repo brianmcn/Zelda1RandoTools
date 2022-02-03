@@ -169,6 +169,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 contentCanvasMouseLeaveFunc(level)
             )
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)  
+        let dungeonHeaderCanvas = new Canvas(Height=float(TH), Width=float(39*8 + 12*7))         // draw e.g. BOARD-5 here
+        dungeonHeaderCanvas.ClipToBounds <- true
+        canvasAdd(dungeonCanvas, dungeonHeaderCanvas, 0., 0.)
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
@@ -392,15 +395,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             )
         let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
         for i = 0 to 7 do
+            let HFF = new FontFamily("Courier New")
             if i<>7 then
                 if TrackerModel.IsHiddenDungeonNumbers() then
                     if i <> 6 || labelChar = '9' then
                         let fg = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color) then Brushes.Black else Brushes.White
-                        let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=fg, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false,
-                                                BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                        let tb = new TextBox(Width=float(13*3), Height=float(TH+16), FontSize=float(TH+16), Foreground=fg, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false,
+                                                BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold)
                         OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
                             tb.Text <- ((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1))
-                        canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+                        canvasAdd(dungeonCanvas, tb, float(i*51)+5., -9.)
                         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
                             tb.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
                             )
@@ -413,10 +417,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
                         gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
                         let rainbowBrush = new LinearGradientBrush(gsc, 90.)
-                        let tb = new TextBox(Width=float(13*3-16), Height=float(TH-4), FontSize=float(TH-4), Foreground=Brushes.Black, Background=rainbowBrush, IsReadOnly=true, IsHitTestVisible=false,
-                                                Text="?", BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold,
-                                                HorizontalContentAlignment=HorizontalAlignment.Center)
-                        let button = new Button(Height=float(TH), Content=tb, BorderThickness=Thickness(2.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.White)
+                        let tb = new TextBox(Width=float(13*3-16), Height=float(TH+8), FontSize=float(TH+8), Foreground=Brushes.Black, Background=rainbowBrush, IsReadOnly=true, IsHitTestVisible=false,
+                                                Text=sprintf"%c"labelChar, BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold,
+                                                HorizontalContentAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+                        let tbc = new Canvas(Width=tb.Width, Height=float(TH-4), ClipToBounds=true)
+                        canvasAdd(tbc, tb, 0., -8.)
+                        let button = new Button(Height=float(TH), Content=tbc, BorderThickness=Thickness(2.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.White)
                         canvasAdd(dungeonCanvas, button, float(i*51)+6., 0.)
                         let mutable popupIsActive = false
                         button.Click.Add(fun _ ->
@@ -429,11 +435,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     } |> Async.StartImmediate
                             )
                 else
-                    let tb = new TextBox(Width=float(13*3), Height=float(TH), FontSize=float(TH-4), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
-                                            BorderThickness=Thickness(0.), FontFamily=new FontFamily("Courier New"), FontWeight=FontWeights.Bold)
+                    let tb = new TextBox(Width=float(13*3), Height=float(TH+16), FontSize=float(TH+16), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
+                                            BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold)
                     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
                         tb.Text <- (sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1))
-                    canvasAdd(dungeonCanvas, tb, float(i*51)+12., 0.)
+                    canvasAdd(dungeonHeaderCanvas, tb, float(i*51)+5., -9.)
             OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
             for j = 0 to 7 do
