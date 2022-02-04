@@ -67,7 +67,9 @@ but do not yet have a candle, and the "OW spots left" is mouse-hovered to highli
 
 ![Dungeon Item Area screenshot](screenshots/dungeon-item-area.png)
 
-**Triforces:** Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
+### Triforces: 
+
+Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
 
 The triforce display suggests if a particular dungeon has been located on overworld map: 
 
@@ -82,7 +84,9 @@ Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) 
 If the dungeon location is known to be an overworld spot blocked by Raft/PowerBracelet/Ladder/Recorder, a tiny icon of that blocker appears in its 
 upper right.  This is to help keep track of things if playing using the "Force Overworld Block" flag setting of the rando.
 
-<a id="item-boxes">**Items:**</a> The list of possible items (Book, Boomerang, ...) appears in a popup.  
+### <a id="item-boxes">Items:</a> 
+
+The list of possible items (Book, Boomerang, ...) appears in a popup.  
 ![Item popup](screenshots/item-popup.png)
 
 Choose the item to populate a box, and
