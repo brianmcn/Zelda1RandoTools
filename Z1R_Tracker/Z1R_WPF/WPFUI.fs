@@ -249,7 +249,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         } |> Async.StartImmediate
                 )
             gridAdd(mainTracker, colorButton, i, 0)
-            TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
+            let dungeon = TrackerModel.GetDungeon(i)
+            Dungeon.HotKeyAHiddenDungeonLabel(colorCanvas, dungeon, None)
+            dungeon.HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
                 colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
                 colorCanvas.Children.Clear()
                 let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
@@ -1209,7 +1211,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                         tileCanvas.Children.Add(dp) |> ignore
                                         ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
@@ -1426,7 +1428,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let gridClickDismissalDoesMouseWarpBackToTileCenter = false
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
                 match r with
                 | Some(i) ->
                     // update model
@@ -1988,7 +1990,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                                 (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), canBeBlocked(db), db), 
                                 Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
-                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                 match r with
                 | Some(db) -> SetNewValue(db)
                 | None -> () 

@@ -4,6 +4,8 @@ open System.Windows.Media
 open System.Windows.Controls
 open System.Windows
 
+open HotKeys.MyKey
+
 // door colors
 let highlight = Brushes.White // using Opacity 0.6 in practice
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
@@ -287,7 +289,7 @@ let HiddenDungeonColorChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, til
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                            gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                            gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
     }
 
 let MakeTriforceDecoderDiagram() =
@@ -307,6 +309,19 @@ let MakeTriforceDecoderDiagram() =
     let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=sp)
     b
 
+let HotKeyAHiddenDungeonLabel(fe:FrameworkElement, dungeon:TrackerModel.Dungeon, who:System.Threading.ManualResetEvent option) =
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        fe.MyKeyAdd(fun ea ->
+            for ch in ['1'..'8'] do
+                let key = HotKeys.convertAlpha_NumToKey(ch)
+                if ea.Key = key then
+                    dungeon.LabelChar <- ch
+                    match who with
+                    | Some wh -> wh.Set() |> ignore
+                    | _ -> ()
+            )
+
+let mutable HDNCP = None
 let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex) = async {
     // TODO can you choose same # twice?
     let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
@@ -343,9 +358,20 @@ let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, ti
         [(upcast warnBorder : FrameworkElement), -123., 284.; (upcast b : FrameworkElement), 190., -120.]
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
+    let wh = new System.Threading.ManualResetEvent(false)
+    let dungeon = TrackerModel.GetDungeon(dungeonIndex)
+    HDNCP <- Some(dungeon, wh)
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, Some(wh))
+    HDNCP <- None
     }
+do
+    // Add() permanently adds an event listener.  We want to only call Add() once, but only listen while the popup is active
+    CustomComboBoxes.CanvasManager.TheOnlyCanvasManager.AfterCreatePopupCanvas.Add(fun popupCanvas ->
+        match HDNCP with
+        | Some(dungeon, wh) -> HotKeyAHiddenDungeonLabel(popupCanvas, dungeon, Some(wh))
+        | _ -> ()
+    )
 
 let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex, curColor, curLabel, accelerateIntoNumberChooser, warpReturn:Point) = async {
     let wh = new System.Threading.ManualResetEvent(false)

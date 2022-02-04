@@ -541,7 +541,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLev
             let y = originalStateIndex / gnc
             Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)))
         let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
         workingCopy.IsComplete <- true
         popupCanvas.Children.Remove(tileSurroundingCanvas)
         match r with

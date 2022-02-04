@@ -107,6 +107,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
                         popupIsActive <- false
                         } |> Async.StartImmediate
             )
+        Dungeon.HotKeyAHiddenDungeonLabel(innerc, dungeon, None)
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw after we can look up its new location coordinates

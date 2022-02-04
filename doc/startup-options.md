@@ -62,6 +62,11 @@ Enabling this option causes a number of changes in the tracker to help the playe
    - the overworld map tiles for dungeons are labeled A-H
    - the blockers labels are A-H
    - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
+ - hotkeys:
+   - pressing keyboard keys 1-8 will set the dungeon number when
+      - hovering a lettered triforce
+      - hovering the color/number button above the lettered triforces at the top of the tracker
+      - inside the Number chooser popup
 
 The workflow for the player then becomes:
  - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon

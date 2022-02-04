@@ -22,10 +22,6 @@ update whats new with changes
 WAIT
 may be tourney announcement soon, see if any other useful features for that
 
-(homer convo) so maybe ideally:
- - if you are hovering the triforce or the box above it, and you press 1-8, it should set the number
- - if you end up in the current dialog that lets you set number/color, and you press 1-8, it should set the number and exit the dialog
-?
 
 consider augmenting 'congrats found all 9 dungeons' reminder with 'white sword cave still missing' if it is
 

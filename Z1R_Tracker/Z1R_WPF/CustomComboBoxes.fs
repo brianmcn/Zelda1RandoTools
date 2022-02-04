@@ -58,12 +58,16 @@ using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, Syst
     filestream.Close();
 }
 *)
-type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
+type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
+    static let mutable theOnlyCanvasManager = None
     do
         if rootCanvas.Width <> appMainCanvas.Width || rootCanvas.Height <> appMainCanvas.Height then
             failwith "rootCanvas and appMainCanvas should be the same size"
         if not(obj.Equals(appMainCanvas.Parent,rootCanvas)) || not(rootCanvas.Children.Count=1) then
             failwith "rootCanvas must have appMainCanvas as its only child"
+        if theOnlyCanvasManager.IsSome then
+            failwith "created more than one CanvasManager"
+        theOnlyCanvasManager <- Some(this)
     let popupCanvasStack = new System.Collections.Generic.Stack<_>()
     let opacityStack = new System.Collections.Generic.Stack<_>()
     let afterCreatePopupCanvas = new Event<_>()
@@ -107,6 +111,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     // and here is how the broadcast window can listen for popup activity
     member _this.AfterCreatePopupCanvas = afterCreatePopupCanvas.Publish
     member _this.BeforeDismissPopupCanvas = beforeDismissPopupCanvas.Publish
+    static member TheOnlyCanvasManager with get() = theOnlyCanvasManager.Value
 
 // TODO rename DoModals
 let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity) = async {
@@ -249,7 +254,7 @@ type PopupClickBehavior<'a> =
 
 (*
 CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, who)
 *)
 let DoModalGridSelect<'State,'Result>
         (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
@@ -262,9 +267,10 @@ let DoModalGridSelect<'State,'Result>
                 onClick,  // called on tile click or selectable grid click, you choose what to do:   (mousebuttonEA, currentStateID) -> PopupClickBehavior<'Result>
                 extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
                 brushes:ModalGridSelectBrushes,
-                gridClickDismissalDoesMouseWarpBackToTileCenter
+                gridClickDismissalDoesMouseWarpBackToTileCenter,
+                who:System.Threading.ManualResetEvent option      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
                 ) = async {
-    let wh = new System.Threading.ManualResetEvent(false)
+    let wh = match who with Some(x) -> x | _ -> new System.Threading.ManualResetEvent(false)
     let mutable result = None
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
@@ -446,5 +452,5 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true)
+                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
