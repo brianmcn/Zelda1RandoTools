@@ -23,8 +23,6 @@ WAIT
 may be tourney announcement soon, see if any other useful features for that
 
 
-consider augmenting 'congrats found all 9 dungeons' reminder with 'white sword cave still missing' if it is
-
 Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
 https://discord.com/channels/674255646518149130/710648312214061098/937820067557699606
 Some kind of map presets could be good, and 4 types of shops as well, in terms of 'other free marks' people might want to add, hmm.

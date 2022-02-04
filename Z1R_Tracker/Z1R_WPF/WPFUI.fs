@@ -1749,7 +1749,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if n = 1 then
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon", icons) 
                 elif n = 9 then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
+                    if TrackerModel.mapStateSummary.Sword2Location = TrackerModel.NOTFOUND   // if sword2 cave not found on overworld map,
+                            && TrackerModel.sword2Box.CellCurrent() = -1 then                // and the tracker box is still empty (some people might not mark map, but will mark item)
+                        let greyedSword2 = upcb(Graphics.greyscale(Graphics.theInteriorBmpTable.[14].[0]))
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons, but the white sword cave is still missing", 
+                                        [yield! icons; yield greyedSword2])
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
                 else
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n, icons) 
             member _this.AnnounceTriforceCount(n) = 

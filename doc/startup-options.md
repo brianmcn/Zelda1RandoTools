@@ -65,7 +65,7 @@ Enabling this option causes a number of changes in the tracker to help the playe
  - hotkeys:
    - pressing keyboard keys 1-8 will set the dungeon number when
       - hovering a lettered triforce
-      - hovering the color/number button above the lettered triforces at the top of the tracker
+      - hovering the Color-Number button above the lettered triforces at the top of the tracker
       - inside the Number chooser popup
 
 The workflow for the player then becomes:
