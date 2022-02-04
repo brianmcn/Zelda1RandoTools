@@ -42,6 +42,7 @@ module Factoids =
         "In 1QL5, the floor drop spawn for 'tee' room is on the island; in L4, it's bottom right of the tee room; in most other dungeons, it's top right of the tee room."
         "The dungeon room floor drop near the East door is unique to 1QL1."
         "These dungeon room never drop after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
+        "If the 'Add 2nd Quest Doors' randomizer flag is used, walk-through-walls will never appear in levels 1, 3, or 7, but walk-through-walls may appear in any other dungeon."
         |]
     let zTrackerTips = [|
         "In Z-Tracker, hovering a triforce icon at the top of the tracker will display its location on the overworld map, if that location is known or has been hinted."

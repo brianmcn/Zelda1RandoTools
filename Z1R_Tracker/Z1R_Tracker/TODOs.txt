@@ -18,13 +18,16 @@ update docs with changes
 update whats new with changes
 
 
-add a good screenshot to front page github (link from in-app version button), above 'motivation' section
-
 
 WAIT
 may be tourney announcement soon, see if any other useful features for that
 
+(homer convo) so maybe ideally:
+ - if you are hovering the triforce or the box above it, and you press 1-8, it should set the number
+ - if you end up in the current dialog that lets you set number/color, and you press 1-8, it should set the number and exit the dialog
+?
 
+consider augmenting 'congrats found all 9 dungeons' reminder with 'white sword cave still missing' if it is
 
 Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
 https://discord.com/channels/674255646518149130/710648312214061098/937820067557699606

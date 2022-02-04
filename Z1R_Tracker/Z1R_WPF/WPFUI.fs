@@ -275,9 +275,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
-    let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
-    gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
-    mainTrackerCanvases.[8,0] <- level9ColorCanvas
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
@@ -298,6 +295,24 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c.MouseLeave.Add(fun _ -> hideLocator())
         timelineItems.Add(new Timeline.TimelineItem(fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
         c
+    // dungeon 9 doesn't need a color, we display a 'found summary' here instead
+    let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
+    gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
+    mainTrackerCanvases.[8,0] <- level9ColorCanvas
+    let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -2.)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 20.)
+    let updateFoundDungeonsCount() =
+        let mutable r = 0
+        for trackerIndex = 0 to 8 do    
+            let d = TrackerModel.GetDungeon(trackerIndex)
+            if d.HasBeenLocated() then
+                r <- r + 1
+        foundDungeonsTB1.Text <- sprintf "%d/9" r
+    for trackerIndex = 0 to 8 do    
+        let d = TrackerModel.GetDungeon(trackerIndex)
+        d.HasBeenLocatedChanged.Add(fun _ -> updateFoundDungeonsCount())
     // items
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then

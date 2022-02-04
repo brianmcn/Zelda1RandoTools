@@ -69,11 +69,13 @@ but do not yet have a candle, and the "OW spots left" is mouse-hovered to highli
 
 **Triforces:** Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
 
-The triforce display suggests if dungeon has been located on overworld map: 
+The triforce display suggests if a particular dungeon has been located on overworld map: 
 
  - gray numeral means un-found
  - white numeral means location known
  - highlighted background means have [helpful location hint](#helpful-hint)
+
+The current number of dungeons you have located on the overworld is displayed above dungeon 9's numeral.
 
 Mouse-hovering the triforce will highlight the dungeon's (possible) location(s) on the map if known (or hinted).
 
