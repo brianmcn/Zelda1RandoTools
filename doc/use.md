@@ -11,6 +11,8 @@ Contents of this document:
 - [Main Z-Tracker Window](#main)
   - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
   - [Dungeon Item Area](#main-dia)
+    - [Triforces](#dia-triforces)
+    - [Items](#item-boxes)
     - [Starting Items and Extra Drops](#main-sioed)
   - [Other Item Area](#main-oia)
   - [Link (specific routing)](#main-link)
@@ -67,7 +69,7 @@ but do not yet have a candle, and the "OW spots left" is mouse-hovered to highli
 
 ![Dungeon Item Area screenshot](screenshots/dungeon-item-area.png)
 
-### Triforces: 
+### <a id="dia-triforces">Triforces:</a>
 
 Click to toggle whether you have a triforce.  Triforces start out darkened, and light up orange when you get them.
 
