@@ -32,6 +32,8 @@ In the options menu, you can now choose BOARD instead of LEVEL for column header
 
 If the dungeon number is known, both the number and letter appear on the overworld map.
 
+Hotkeys: Pressing keyboard keys 1-8, either in the Number chooser, or when hovering a lettered triforce or its number button, will set the number for that dungeon.
+
 If the dungeon number is known, and that dungeon only has two items rather than three, the third item box is automatically marked off with a 'ghostbusters' (circle/slash) icon.
 
 ![HDN numbers](screenshots/hidden-dungeon-numbers-known.png)
@@ -67,12 +69,14 @@ A number of minor improvements:
  - there's an option to automatically infer some dungeon door marks (see [the documentation](use.md#main-dt) for Doors)
  - main application window and broadcast window remember their locations
  - 'Show HotKeys' window remembers its size/location
+ - a count of how many dungeon entrances you have already found appears at the top of the tracker
  - added Z-Tracker logo next to the kitty
  - big icons checkbox in dungeons is persisted across sessions
  - The file Notes.txt can be used as the default Notes text at startup
  - The rest of the Helpful hints (ones that don't lead to dungeon/sword) have been added to the Hint Decoder
  - you can now change between 'Default' and '2/3 size' main window in the application (on the startup screen)
  - when you change dungeon tabs, or first mark a room in a dungeon, the dungeon number appears briefly on the tab to remind you which tab you are on, to help prevent the error of mapping in the wrong tab
+ - there's a new reminder if you are still missing the white sword cave when you locate the 9th dungeon
 
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter
