@@ -425,12 +425,14 @@ type MyWindow() as this =
 
         let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
         let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        Graphics.scaleUpCheckBoxBox(hscb, 1.66)
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
         checkboxSP.Children.Add(hscb) |> ignore
 
         let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        Graphics.scaleUpCheckBoxBox(hdcb, 1.66)
         hdcb.IsChecked <- System.Nullable.op_Implicit false
         hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
         hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())

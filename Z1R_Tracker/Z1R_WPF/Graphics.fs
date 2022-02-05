@@ -87,6 +87,9 @@ let makeArrow(targetX, targetY, sourceX, sourceY, brush) =
     let triangle = new Shapes.Polygon(Fill=brush)
     triangle.Points <- new PointCollection([Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y)])
     line, triangle
+let scaleUpCheckBoxBox(cb:CheckBox, scale) =
+    cb.LayoutTransform <- new ScaleTransform(scale, scale)
+    (cb.Content :?> FrameworkElement).LayoutTransform <- new ScaleTransform(1.0/scale, 1.0/scale)
 
 let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 let makeButton(text, fontSizeOpt, fgOpt) =
