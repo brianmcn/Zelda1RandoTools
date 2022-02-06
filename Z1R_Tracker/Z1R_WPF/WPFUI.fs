@@ -1563,6 +1563,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
     showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
 
+    // show/run custom button
+    let showRunCustomTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
+                                        Text="Show/Run\nCustom", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
+    let showRunCustomButton = new Button(Content=showRunCustomTB)
+    canvasAdd(appMainCanvas, showRunCustomButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 22.)
+    showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
+    //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
+
 #if NOT_RACE_LEGAL
     // minimap overlay button
     let minimapOverlayTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Minimap overlay", IsHitTestVisible=false)

@@ -8,7 +8,6 @@ TODOs
 
 Just a place to dump feature ideas (small or big) or fixes/improvements
 
-(Don't forget to keep Notes.txt up-to-date as change features!)
 
 
 CURRENT PRIORITIES
@@ -18,12 +17,14 @@ update docs with changes
 update whats new with changes
 
 
+push 1.1 back to master, to update front page
 
-WAIT
-may be tourney announcement soon, see if any other useful features for that
+put version button on startup screen too
 
 
 on release, maybe make another 'whats new' video
+
+
 
 
 Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
@@ -73,6 +74,13 @@ tip: you can't have both an item appear when the enemies die and a push block st
 
 
 
+[2:39 PM] homerjsmash: also i don't remember if i've given you this one before, but v1.xx feature request. Old man counts in levels. ex. I'm in level 1 shapes and i see an old man, i check a box or something. old man found. Then if I have a crappy combat room or a room blocked by ladder I know it's not the old man room that i can't get to. Flip side, i don't have that checked, then I know I don't care about that room.
+[2:43 PM] Lorgon111: so is there always at least one old man per dungeon? or specific counts?
+[2:43 PM] Lorgon111: (you can mark his room when see him, but have to look at map and count yourself today)
+[3:02 PM] homerjsmash: yeah there is 1 man in 1-4, 4 in 9 and I forgot how many in 5-8, but it's the same as vanilla (I am mostly certain about this)
+[3:02 PM] homerjsmash: i think there are 3 in 5 and 7
+
+
 
 
 distributing version process
@@ -88,7 +96,9 @@ ABOVE IS DONE
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
  - delete ZTracker.lnk (has my machine's paths hardcoded)
- - delete LT numbers from settings (my screen window position)
+ - If used program, then maybe also do these:
+     - delete LT numbers from settings (my screen window position)
+     - delete ShowRunCustom.txt
  - zip up directory
  - publish Release in the branch on the tag, and add the zip as a resource
 then users can

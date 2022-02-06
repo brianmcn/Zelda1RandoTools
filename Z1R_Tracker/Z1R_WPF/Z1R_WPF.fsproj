@@ -100,6 +100,7 @@
     <Compile Include="PieMenus.fs" />
     <Compile Include="DungeonRoomState.fs" />
     <Compile Include="HotKeys.fs" />
+    <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />
     <Compile Include="Views.fs" />
     <Compile Include="OptionsMenu.fs" />

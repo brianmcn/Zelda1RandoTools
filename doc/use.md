@@ -287,6 +287,9 @@ page explains the other types of hints.
 
 You can click the '**Show HotKeys**' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
 
+You can click the '**Show/Run Custom**' button to run some custom actions.  This is an experimental feature, which may be useful to folks who commonly view images of maps or use 
+notes or other programs concurrently with the tracker.  You can control the behaviors of this button by editing the file ShowRunCustom.txt.  The text file format is self-describing.
+(Pressing the button will create a template ShowRunCustom.txt file if it does not exist, and offer you a chance to edit it.)
 
 ## <a id="main-dt"></a> Dungeon Tracker
 

@@ -77,6 +77,7 @@ A number of minor improvements:
  - you can now change between 'Default' and '2/3 size' main window in the application (on the startup screen)
  - when you change dungeon tabs, or first mark a room in a dungeon, the dungeon number appears briefly on the tab to remind you which tab you are on, to help prevent the error of mapping in the wrong tab
  - there's a new reminder if you are still missing the white sword cave when you locate the 9th dungeon
+ - there's a new button 'Show/Run Custom' which can be used to script SHOWing some image windows or RUNning executables, see [the documentation](use.md#main-buttons) for more info
 
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter

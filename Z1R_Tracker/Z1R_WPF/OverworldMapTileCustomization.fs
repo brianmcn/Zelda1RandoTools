@@ -608,5 +608,9 @@ let MakeMappedHotKeysDisplay() =
     all.Children.Add(dungeonRoomPanel) |> ignore
     if total = 0 then
         all.Children.Add(DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")) |> ignore  // Note: not full filename, don't want to leak PII (e.g. C:\Users\YourRealName\...) on-stream
+        let fileToSelect = HotKeys.HotKeyFilename
+        let args = sprintf "/Select, \"%s\"" fileToSelect
+        let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
+        System.Diagnostics.Process.Start(psi) |> ignore
     new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
 
