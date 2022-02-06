@@ -454,3 +454,17 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
+
+let makeVersionButtonWithBehavior(cm:CanvasManager) =
+    let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
+    let mutable popupIsActive = false
+    vb.Click.Add(fun _ ->
+        if not popupIsActive then
+            async {
+                let! r = DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+                popupIsActive <- false
+                if r = "Go to website" then
+                    System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+            } |> Async.StartImmediate
+        )
+    vb

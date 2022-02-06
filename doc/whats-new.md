@@ -78,6 +78,7 @@ A number of minor improvements:
  - when you change dungeon tabs, or first mark a room in a dungeon, the dungeon number appears briefly on the tab to remind you which tab you are on, to help prevent the error of mapping in the wrong tab
  - there's a new reminder if you are still missing the white sword cave when you locate the 9th dungeon
  - there's a new button 'Show/Run Custom' which can be used to script SHOWing some image windows or RUNning executables, see [the documentation](use.md#main-buttons) for more info
+ - the currently running version number now appears on the startup screen
 
  And some small fixes:
  - fix GRAB getting triggered when clicking dungeon tab then pressing Enter

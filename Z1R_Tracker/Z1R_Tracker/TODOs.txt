@@ -19,8 +19,6 @@ update whats new with changes
 
 push 1.1 back to master, to update front page
 
-put version button on startup screen too
-
 
 on release, maybe make another 'whats new' video
 

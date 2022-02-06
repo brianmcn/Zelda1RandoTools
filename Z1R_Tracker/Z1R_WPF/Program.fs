@@ -384,7 +384,11 @@ type MyWindow() as this =
             let dp = new DockPanel(Height=(if TrackerModel.Options.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
             dp.Children.Add(topBar) |> ignore
             stackPanel.Children.Add(dp) |> ignore
-            stackPanel.Children.Add(new DockPanel(Height=30.)) |> ignore
+            let spacer = new DockPanel(Height=30., LastChildFill=false)
+            let vb = Graphics.dock(CustomComboBoxes.makeVersionButtonWithBehavior(cm), Dock.Top)
+            DockPanel.SetDock(vb, Dock.Right)
+            spacer.Children.Add(vb) |> ignore
+            stackPanel.Children.Add(spacer) |> ignore
 
         let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore

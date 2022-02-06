@@ -1364,18 +1364,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     itemProgressCanvas.MouseLeave.Add(fun _ -> hideLocator())
 
     // Version
-    let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
+    let vb = CustomComboBoxes.makeVersionButtonWithBehavior(cm)
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
-    let mutable popupIsActive = false
-    vb.Click.Add(fun _ ->
-        if not popupIsActive then
-            async {
-                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
-                popupIsActive <- false
-                if r = "Go to website" then
-                    System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
-            } |> Async.StartImmediate
-        )
 
     let HINTGRID_W, HINTGRID_H = 180., 36.
     let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,int HINTGRID_W,int HINTGRID_H)
