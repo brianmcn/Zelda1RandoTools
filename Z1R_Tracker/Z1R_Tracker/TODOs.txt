@@ -17,8 +17,6 @@ update docs with changes
 update whats new with changes
 
 
-push 1.1 back to master, to update front page
-
 
 on release, maybe make another 'whats new' video
 
