@@ -42,6 +42,7 @@ is often faster when there is a very long list of choices, such as the overworld
 and abort making any changes to the element.
 
 When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
+
 In certain cases noted below, clicking also activates the popup.
 
 ## <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
@@ -109,8 +110,9 @@ boomerang you intentionally left behind on the coast), while still accurately ca
 
 Most item progress has semantic meaning to the tracker with regards to routing/reminders/etc as described below.
 
-Note: while you can interact with Triforces and Items in the Dungeon Item Area, in practice you will instead typically interact with these in 
-the [dungeon inset](#dungeon-inset), which provides a duplicate view of each column.
+Note: while you can interact with Triforces and Items in the Dungeon Item Area, if you map dungeons, then in practice you will typically prefer to 
+interact with these elements in the [dungeon inset](#dungeon-inset), which provides a duplicate view of each column next to the corresponding dungeon 
+map.
 
 ### <a id="main-sioed"></a> Starting Items and Extra Drops
 
@@ -148,14 +150,14 @@ Note that you can also use the max-hearts feature here to reduce your maximum he
 
 **Boomstick Book** - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 
-**Ganon/Zelda** - click when you kill ganon or rescue zelda, marks timeline; clicking zelda will also post your finish time as text in the NOTES section and pause the timer
+**Ganon/Zelda** - click when you kill ganon to mark the timeline; click zelda when you finish to post your finish time as text in the NOTES section and stop the timer
 
-**4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X); rather than mark these directly, these are 
-typically interacted with via the [take any accelerator](#take-any-accelerator) on the overworld map
+**4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X); rather than marking these directly, you can interact
+with them via the [take any accelerator](#take-any-accelerator) on the overworld map
 
-**Zones** - click checkbox or mouse-hover to show overworld map zones, as hinted by randomizer NPCs for locations
+**Zones** - click the checkbox or mouse-hover to show overworld map zones, as hinted by randomizer NPCs for locations
 
-**Coords** - click checkbox or mouse-hover to show a coordinate overlay
+**Coords** - click the checkbox or mouse-hover to show a coordinate overlay
 
 'N' OW spots left - Displays a count of all remaining, unmarked spots.  Mouse-hovering shows them all with [GYR highlights](#general-gyr).
 
@@ -163,7 +165,7 @@ typically interacted with via the [take any accelerator](#take-any-accelerator) 
 or mouse-hover to show all the remaining unmarked overworld tiles you could uncover given your current item set, using [GYR highlights](#general-gyr).
 
 Max Hearts: 'N' - Displays the current number of heart containers the player has.  (Useful as a double-check that you have correctly been marking take-any
-hearts and heart containers found in the world.)
+hearts and heart containers found in the world.  Use [the blue ellipsis](#main-sioed) to adjust e.g. for a mugger stealing hearts in a Money or Life room.)
 
 Open Cave Icon - Mouse-hovering the open-cave icon will highlight any open cave locations you have not yet marked, using green [GYR highlights](#general-gyr).
 
@@ -209,40 +211,45 @@ an unmarked map tile will activate the popup.  Left-clicking a "dark" tile will 
 
 and here are their meanings:
 
- "icon"       | description
- -------------|-------------
- "1-9"        | dungeons
- "1-4"        | any roads (stair warps)
- "sword3/2/1" | magical sword/white sword/wood sword item cave
- (items)      | item shop
- "green"      | secrets: "?" unknown, "$" large, "rupee" medium, "¢" small
- "door"       | door repair charge
- "dice"       | money making game
- "letter"     | the potion letter cave
- "armos"      | armos item location (can only be in 5 spots)
- "purple?"    | hint shop, or white/magical sword hint
- "heart"      | cave to "take any one you want"
- "potion"     | potion shop
- "dark"       | nothing, or don't care
+ icon            | description
+ ----------------|-------------
+ yellow 1-9      | dungeons
+ magenta 1-4     | any roads (stair warps)
+ sword3/2/1      | magical sword/white sword/wood sword item cave
+ (item icons)    | item shop for that item
+ (green icons)   | secrets: '?' unknown, '$' large, 'rupee' medium, '¢' small
+ door            | door repair charge
+ dice            | money making game
+ letter          | the potion letter cave
+ armos           | armos item location (can only be in 5 spots)
+ purple '?'      | hint shop, or white/magical sword hint
+ heart           | cave to "take any one you want"
+ potion          | potion shop
+ dark rectangle  | nothing, or don't care
+ light rectangle | unmarked
 
 Left-clicking an unmarked map tile will mark it 'dark', as an accelerator for marking don't-care spots.
 
-Left-clicking an item shop pops up choices for a second item in the shop (max of 2 items).  
+Left-clicking an item shop pops up choices for a second item in the shop (max of 2 items can be displayed).  
 
 ![Shop with two items screenshot](screenshots/second-shop-item.png)
 
 Right click a shop to change the first item (whole tile popup).
 
-Left-clicking toggles the <a id="ow-map-tile-brightness">brightness</a> of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location.
- - take-any, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
+Left-clicking toggles the <a id="ow-map-tile-brightness">brightness</a> of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location:
+ - take-any-one-you-want, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
-Some map tiles have accelerators.  For example, <a id="take-any-accelerator">when selecting the 'take any heart' map tile</a> from the popup grid (or via speech), the take-any
+Some map tiles have accelerators.  For example, <a id="take-any-accelerator">when selecting the 'take any heart' map tile</a>, the take-any
 accelerator will pop up, with 4 choices (take potion, take candle, take heart, take nothing).  Your selection may have multiple effects, for 
-example, choosing the candle will (1) 'X' out one of the take-any hearts in the top of the tracker, (2) mark that you have a blue candle in the top 
-of the tracker, and (3) mark the overworld map tile as a 'taken' take-any-heart.  The accelerator is a pie menu that pops up in the middle of the
-window and warps your mouse cursor to the center, so you can quickly make a selection with a small mouse movement and a click.  After making the
-selection, your mouse cursor is warped back to the overworld tile you started at.  Using the accelerators is simple and intuitive; reading this
-paragraph was comparably more difficult and time-consuming.
+example, choosing the candle will 
+
+ - 'X' out one of the take-any hearts in the top of the tracker
+ - mark that you have a blue candle in the top of the tracker, and 
+ - mark the overworld map tile as a 'taken' take-any-heart.  
+ 
+The accelerator is a pie menu that pops up in the middle of the window and warps your mouse cursor to the center, so you can quickly make a selection with a small mouse 
+movement and a click.  After making the selection, your mouse cursor is warped back to the overworld tile you started at.  Using the accelerators is simple and intuitive; 
+reading this paragraph was comparably more difficult and time-consuming.
 
 ![Take Any screenshot](screenshots/take-any-pie-menu.png)
 
@@ -250,7 +257,8 @@ paragraph was comparably more difficult and time-consuming.
 accelerator on the tile as well.  As a result, you typically interact with these item boxes on their map tiles, rather than having to move your mouse 
 to the top-tracker to interact with them.
 
-Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.
+Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.  (You can turn off the 
+magnifier in the [Options Menu](#main-om) if you find it distracting.)
 
 ![Magnifier screenshot](screenshots/magnifier.png)
 
@@ -265,6 +273,7 @@ Hovering an overworld map tile shows a magnified version of nearby tiles, to mak
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
  - routing assumes no screen-scrolling or other fancy walking glitches
  - routing knows special map topology (e.g. Lost Hills)
+
 The routeworthy spots nearest the mouse cursor will be highlighted using [GYR highlights](#general-gyr).
 You can turn off these routing and highlighting marks if you find them distracting, using the [Options Menu](#main-om).  Even if you turn off these generalized routing marks, 
 you can still click on [Link](#main-link) to get the temporary, specific routing marks on-demand.
@@ -336,6 +345,7 @@ fix an offset map.
 #### Vanilla dungeon maps
 
 Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+
 Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
 are compatible with your current room markup.
 
@@ -343,23 +353,25 @@ are compatible with your current room markup.
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
 
+### Motivation
+
 To motivate Z-Tracker's feature set, consider a dungeon room with a Digdogger, a floor drop of a bomb pack, and a push-block leading to a staircase basement
 containing a key item like the Ladder.  Should this room be marked as a Digdogger room? A bomb pack room? An item staircase?  The salient information may change
 over time, e.g.
  - you walk into the room the first time, and see Digdogger, a bomb pack on the floor, and a possible push block
  - you might want to leave the bomb pack, spend some bombs in adjoining rooms, and then return 90 seconds later to pick up the bomb pack
  - you might have to come back in 10 minutes with a recorder to defeat Digdogger, and try pushing the block, revealing the item staircase
- - you might be walking back through the room a couple minutes after that, and not be sure if you already tried pushing the pushblock
+ - you might be walking back through the room a couple minutes after that, and not recall if you already tried pushing the pushblock
 
 Z-Tracker supports four independent aspects of a given dungeon room:
- - RoomType          - the 'shape' or 'staircase info' of a room, examples including:
+ - RoomType          - the 'shape' or 'staircase info' of a room, examples include:
                             'empty room', 'room with possible pushblock', 'room with transport staircase 2', 'old man hint', 'hungry Goriya', 'chevy moat', ...
- - MonsterDetail     - information about boss monsters or bubbles in the room
- - FloorDropDetail   - what floor drop the room has, and whether you have already gotten it
  - Completedness     - are you 'done' with this room
+ - MonsterDetail     - optional extra information about boss monsters or bubbles in the room
+ - FloorDropDetail   - optional extra information about what floor drop the room has, and whether you have already gotten it
 
 As a result, in the scenario described before, you could mark up the room thusly:
- - upon entering the room, mark it as RoomType='possible pushblock', MonsterDetail=Digdogger, FloorDropDetail='bomb pack (ungotten)', Completed=no
+ - upon entering the room, mark it as RoomType='possible pushblock', Completed=no, MonsterDetail=Digdogger, FloorDropDetail='bomb pack (ungotten)'
  - after returning to grab bombs, you can toggle the 'gotten' of the FloorDropDetail
  - later when you kill Digdogger, you can mark the room Complete
  - upon discovering the item staircase, you could change the RoomType to 'item staircase'
@@ -367,6 +379,8 @@ As a result, in the scenario described before, you could mark up the room thusly
 ![Dungeon room example screenshot](screenshots/dungeon-room-example-scenario.png)
 
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
+
+### Practical use
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
  - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
@@ -384,8 +398,8 @@ If you want to change the MonsterDetail or FloorDropDetail for a room, then righ
 but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
 to the current room's "preview" tile.  Once you are done, click the preview tile to save your edits to the dungeon map; a left-click marks the room completed,
 and a right-click marks it uncompleted.  (After clicking a detail, its grid briefly goes half-transparent, as visual feedback that your detail has been applied
-to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, double-
-right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
+to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, 
+double-right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
 
 ![Dungeon room detail screenshot](screenshots/dungeon-room-detail.png)
 
@@ -393,11 +407,11 @@ If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' t
 appear as a bright icon, and gotten floor drops appear darkened.
 
 If a room does not have a FloorDropDetail, then middle-clicking will toggle a yellow 'circle' around the room.  This is an ad-hoc mark which you can use 
-however you like, but one suggested use is to mark an un-gotten, unspecified floor drop item.  In my experience, it is very rare to intentionally "leave
-behind" a floor drop to come back to later - the main exception is bomb packs.  As a result, if I leave a bomb pack behind, I'll just middle-click-
-yellow-circle a room to quickly mark it, rather than go through the more cumbersome FloorDropDetail UI.  In the rare case where I leave something else behind,
+however you like.  (One suggested use is to mark an un-gotten, unspecified floor drop item.  In my experience, it is very rare to intentionally "leave
+behind" a floor drop to come back to later - the main exception is bomb packs.  As a result, if I leave a bomb pack behind, I'll just 
+middle-click-yellow-circle a room to quickly mark it, rather than go through the more cumbersome FloorDropDetail UI.  In the rare case where I leave something else behind,
 such as an unreachable key in the middle of a circle-moat room when I don't have the ladder, then I use the FloorDropDetail UI to capture that specific bit
-of information.  Another suggested use for the middle-click yellow circle is to mark rooms in 9 where you think Zelda or Ganon might be.
+of information.)
 
 The MonsterDetail and FloorDropDetail information appear as tiny icons in the corners of rooms on the map.  If you want to briefly make these icons larger 
 and see a legend, you can mouse-hover the checkbox in the very bottom right of the dungeon tab.  If you want to permanently keep the icons on their larger
@@ -436,8 +450,8 @@ You can mark up to 2 blockers per dungeon.  The icons have these suggested meani
 
 The list of all these icons appears in a popup.  In addition to scrolling, clicking a blocker box will activate the popup.  
 
-For those players who want more fine-grained discrimination between **definitely** being blocked and **maybe** being blocked, there is a second set
-of most icons on a green/red gradient background for denoting when you only might be blocked.
+For those players who want more fine-grained discrimination between *definitely* being blocked and *maybe* being blocked, there is a second set
+of most icons on a green/red gradient background for denoting when you only *might* be blocked.
 
 ![Blockers screenshot](screenshots/blockers.png)
 
@@ -465,8 +479,8 @@ If a file called Notes.txt exists in the program folder, the Notes box will be p
 ## <a id="main-timeline"></a> Timeline
 
 The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
-Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker.  
-This makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
+Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker. This 
+makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
 
 The timeline is non-interactive, it is just a display for capturing progress-over-time.  Here is a sample of how it appears:
 
@@ -489,10 +503,10 @@ Options are saved automatically to a JSON file, so that next time you use the tr
 # <a id="speech-synthesis"></a> Speech Synthesis (voice reminders)
 
 There are a variety of spoken reminders, which can be triggered based on the player's inventory, map progress, and time.  They are rather ad-hoc, stuff that helped Brian.
-You can toggle various categories of voice reminders in the [Options Menu](#main-om).
 
-Visual icons representing these spoken reminders appear in the upper right corner of the timeline, both on Windows and on Linux.
-You can toggle various categories of visual reminders in the [Options Menu](#main-om).
+Visual icons representing these spoken reminders also appear in the upper-right corner of the timeline.
+
+You can toggle various categories of voice & visual reminders in the [Options Menu](#main-om).
 
 # <a id="speech-recognition"></a> Speech Recognition
 

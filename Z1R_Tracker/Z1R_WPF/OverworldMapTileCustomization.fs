@@ -552,7 +552,7 @@ let MakeMappedHotKeysDisplay() =
     let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
     let mutable total = 0
     let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->FrameworkElement, iconW, header) =
-        let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical, Margin=Thickness(3., 3., 13., 3.))
+        let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical)
         let stateToKey = new System.Collections.Generic.Dictionary<_,_>()
         for state in states do
             stateToKey.Add(state, ResizeArray())
@@ -581,6 +581,7 @@ let MakeMappedHotKeysDisplay() =
             panel.Children.Add(sp) |> ignore
         if panel.Children.Count > 0 then
             panel.Children.Insert(0, DungeonRoomState.mkTxt(header))
+            panel.Margin <- Thickness(3., 3., 13., 3.)
         panel
     let bmpElseSize (w, h) bmp =
         let icon : FrameworkElement = if bmp = null then upcast new DockPanel(Width=float w, Height=float h) else upcast Graphics.BMPtoImage bmp
@@ -607,10 +608,12 @@ let MakeMappedHotKeysDisplay() =
     all.Children.Add(blockerPanel) |> ignore
     all.Children.Add(dungeonRoomPanel) |> ignore
     if total = 0 then
-        all.Children.Add(DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")) |> ignore  // Note: not full filename, don't want to leak PII (e.g. C:\Users\YourRealName\...) on-stream
+        let tb = DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")
+        tb.FontSize <- 16.
+        all.Children.Add(tb) |> ignore
         let fileToSelect = HotKeys.HotKeyFilename
         let args = sprintf "/Select, \"%s\"" fileToSelect
         let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
         System.Diagnostics.Process.Start(psi) |> ignore
-    new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
+    total=0, new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
 

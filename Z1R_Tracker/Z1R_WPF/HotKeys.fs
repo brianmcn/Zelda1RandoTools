@@ -86,14 +86,8 @@ let MakeDefaultHotKeyFile(filename:string) =
     lines.Add("")
     // blockers
     lines.Add("# BLOCKERS - these hotkey bindings take effect when mouse-hovering a blocker box")
-    lines.Add("Blocker_Combat = ")
-    lines.Add("Blocker_Bow_And_Arrow = ")
-    lines.Add("Blocker_Recorder = ")
-    lines.Add("Blocker_Ladder = ")
-    lines.Add("Blocker_Bait = ")
-    lines.Add("Blocker_Key = ")
-    lines.Add("Blocker_Bomb = ")
-    lines.Add("Blocker_Nothing = ")
+    for b in TrackerModel.DungeonBlocker.All do
+        lines.Add(b.AsHotKeyName() + " = ")
     lines.Add("")
     // dungeon rooms
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
@@ -161,30 +155,19 @@ let PopulateHotKeyTables() =
                 if not(hkp.TryAdd(key,x)) then
                     raise <| new UserError(sprintf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename)
         match name with
-        | "Blocker_Combat"        -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.COMBAT)
-        | "Blocker_Bow_And_Arrow" -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BOW_AND_ARROW)
-        | "Blocker_Recorder"      -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.RECORDER)
-        | "Blocker_Ladder"        -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.LADDER)
-        | "Blocker_Bait"          -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BAIT)
-        | "Blocker_Key"           -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.KEY)
-        | "Blocker_Bomb"          -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.BOMB)
-        | "Blocker_Money"         -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MONEY)
-        | "Blocker_Maybe_Bow_And_Arrow"   -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW)
-        | "Blocker_Maybe_Recorder"-> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_RECORDER)
-        | "Blocker_Maybe_Ladder"  -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_LADDER)
-        | "Blocker_Maybe_Bait"    -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_BAIT)
-        | "Blocker_Maybe_Key"     -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_KEY)
-        | "Blocker_Maybe_Bomb"    -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_BOMB)
-        | "Blocker_Maybe_Money"   -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.MAYBE_MONEY )
-        | "Blocker_Nothing"       -> Add(BlockerHotKeyProcessor, chOpt, TrackerModel.DungeonBlocker.NOTHING)
         | "Item_Nothing"          -> Add(ItemHotKeyProcessor, chOpt, -1)
         | "Overworld_Nothing"     -> Add(OverworldHotKeyProcessor, chOpt, -1)
         | _ -> 
             let mutable found = false
-            for i = 0 to 14 do
-                if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then
-                    Add(ItemHotKeyProcessor, chOpt, i)
+            for b in TrackerModel.DungeonBlocker.All do
+                if name = b.AsHotKeyName() then
+                    Add(BlockerHotKeyProcessor, chOpt, b)
                     found <- true
+            if not found then
+                for i = 0 to 14 do
+                    if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then
+                        Add(ItemHotKeyProcessor, chOpt, i)
+                        found <- true
             if not found then
                 for i = 0 to TrackerModel.dummyOverworldTiles.Length-1 do
                     if name = "Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) then

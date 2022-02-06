@@ -1528,7 +1528,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let showHotKeysButton = new Button(Content=showHotKeysTB)
     canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H)
     let showHotKeys(isRightClick) =
-        let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
+        let none,p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
         w.Title <- "Z-Tracker HotKeys"
         w.Owner <- Application.Current.MainWindow
@@ -1538,7 +1538,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             TrackerModel.Options.writeSettings()
         let leftTopWidthHeight = TrackerModel.Options.HotKeyWindowLTWH
         let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
-        if not isRightClick && matches.Success then
+        if not none && not isRightClick && matches.Success then
             w.Left <- float matches.Groups.[1].Value
             w.Top <- float matches.Groups.[2].Value
             w.Width <- float matches.Groups.[3].Value

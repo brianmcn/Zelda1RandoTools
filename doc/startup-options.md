@@ -57,9 +57,9 @@ Enabling this option causes a number of changes in the tracker to help the playe
  - dungeon area:
    - the dungeon tabs are labeled ABCDEFGH9
    - the dungeon tabs and LEVEL- text get the Color of the dungeon
-   - LEVEL-N becomes LEVEL-?, and the rainbow question mark is a button to select a Color for the dungeon
+   - LEVEL-N becomes LEVEL-X, and the rainbow letter label is a button to select a Color for the dungeon
  - other:
-   - the overworld map tiles for dungeons are labeled A-H
+   - the overworld map tiles for dungeons are labeled with letters A-H, or number-letter (e.g. "5B") if the Number has been set
    - the blockers labels are A-H
    - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
  - hotkeys:
@@ -70,13 +70,13 @@ Enabling this option causes a number of changes in the tracker to help the playe
 
 The workflow for the player then becomes:
  - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon
-    - optionally, mark the floor color of the dungeon, by clicking either the '?' in the dungeon tab or the button above that letter's triforce
+    - optionally, mark the floor color of the dungeon, by clicking either the rainbow letter in the dungeon tab or the button above that letter's triforce
  - as you get items from the dungeon, mark them in that letter's column
  - when you get the triforce, set the dungeon Number (the Number chooser pops up automatically when you mark the triforce gotten)
  - if you can otherwise deduce with certainty the dungeon Number, set the dungeon number by clicking the button above the triforce
 
 The Color marks are for the player's reference, and have no semantic meaning to the tracker.
-The Number marks have semantics that interact with a number of tracker features, you should set it once known.
+The Number marks have semantics that interact with a number of tracker features; you should set it, once known.
 
 
 ## <a id="startup-coq"></a> Start buttons (choose overworld quest)

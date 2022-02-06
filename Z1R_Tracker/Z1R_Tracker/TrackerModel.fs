@@ -1067,6 +1067,24 @@ type DungeonBlocker =
     | MAYBE_MONEY
     | MAYBE_BOMB
     | NOTHING
+    member this.AsHotKeyName() =
+        match this with
+        | DungeonBlocker.COMBAT -> "Blocker_Combat"
+        | DungeonBlocker.BOW_AND_ARROW -> "Blocker_Bow_And_Arrow"
+        | DungeonBlocker.RECORDER -> "Blocker_Recorder"
+        | DungeonBlocker.LADDER -> "Blocker_Ladder"
+        | DungeonBlocker.BAIT -> "Blocker_Bait"
+        | DungeonBlocker.KEY -> "Blocker_Key"
+        | DungeonBlocker.BOMB -> "Blocker_Bomb"
+        | DungeonBlocker.MONEY -> "Blocker_Money"
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> "Blocker_Maybe_Bow_And_Arrow"
+        | DungeonBlocker.MAYBE_RECORDER -> "Blocker_Maybe_Recorder"
+        | DungeonBlocker.MAYBE_LADDER -> "Blocker_Maybe_Ladder"
+        | DungeonBlocker.MAYBE_BAIT -> "Blocker_Maybe_Bait"
+        | DungeonBlocker.MAYBE_KEY -> "Blocker_Maybe_Key"
+        | DungeonBlocker.MAYBE_BOMB -> "Blocker_Maybe_Bomb"
+        | DungeonBlocker.MAYBE_MONEY  -> "Blocker_Maybe_Money"
+        | DungeonBlocker.NOTHING -> "Blocker_Nothing"
     member this.HardCanonical() =
         match this with
         | DungeonBlocker.MAYBE_BOW_AND_ARROW -> DungeonBlocker.BOW_AND_ARROW
