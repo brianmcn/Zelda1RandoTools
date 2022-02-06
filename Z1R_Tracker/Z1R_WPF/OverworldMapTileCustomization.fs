@@ -88,7 +88,7 @@ let (armosX, armosY), (sword2x,sword2y) = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_
 let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, trackerModelBoxToUpdate:TrackerModel.Box,
                             topX,topY,pos:Point) = async {  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
     let extraDecorations = computeExtraDecorationArrow(topX, topY, pos)
-    let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, extraDecorations)
+    let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, trackerModelBoxToUpdate.PlayerHas(), extraDecorations)
     match r with
     | Some(newBoxCellValue, newPlayerHas) ->
         trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
@@ -204,7 +204,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD2 then
-        if TrackerModel.sword2Box.PlayerHas() = TrackerModel.PlayerHas.NO then
+        if not(TrackerModel.sword2Box.IsDone()) then
             let extraDecorationsF(boxPos:Point) =
                 let extraDecorations = computeExtraDecorationArrow(sword2x, sword2y, boxPos)
                 extraDecorations
@@ -212,11 +212,33 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.IsDungeon then
+        let combine(number:System.Drawing.Bitmap, letter:System.Drawing.Bitmap) =
+            let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    if px>=3*3 && px<8*3 && py>=1*3 && py<10*3 then 
+                        fullTileBmp.SetPixel(px, py, number.GetPixel(px-3*3, py-1*3))
+                    elif px>=7*3 && px<12*3 && py>=1*3 && py<10*3 then // sharing one 'pixel'
+                        fullTileBmp.SetPixel(px, py, letter.GetPixel(px-7*3, py-1*3))  
+                    else
+                        fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+            fullTileBmp
         if TrackerModel.IsHiddenDungeonNumbers() then 
-            if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                Graphics.theFullTileBmpTable.[ms.State].[3], []
+            let isGreen = TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder
+            if TrackerModel.GetDungeon(ms.State).LabelChar <> '?' then
+                if isGreen then
+                    let letter = Graphics.theInteriorBmpTable.[ms.State].[3]
+                    let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[1]
+                    combine(number,letter), []
+                else
+                    let letter = Graphics.theInteriorBmpTable.[ms.State].[2]
+                    let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[0]
+                    combine(number,letter), []
             else
-                Graphics.theFullTileBmpTable.[ms.State].[2], []
+                if isGreen then
+                    Graphics.theFullTileBmpTable.[ms.State].[3], []
+                else
+                    Graphics.theFullTileBmpTable.[ms.State].[2], []
         else 
             if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
                 Graphics.theFullTileBmpTable.[ms.State].[1], []
@@ -276,7 +298,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
         let r =
             match g with
             | Some(currentState) ->
@@ -530,7 +552,7 @@ let MakeMappedHotKeysDisplay() =
     let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
     let mutable total = 0
     let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->FrameworkElement, iconW, header) =
-        let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical, Margin=Thickness(3., 3., 13., 3.))
+        let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical)
         let stateToKey = new System.Collections.Generic.Dictionary<_,_>()
         for state in states do
             stateToKey.Add(state, ResizeArray())
@@ -559,6 +581,7 @@ let MakeMappedHotKeysDisplay() =
             panel.Children.Add(sp) |> ignore
         if panel.Children.Count > 0 then
             panel.Children.Insert(0, DungeonRoomState.mkTxt(header))
+            panel.Margin <- Thickness(3., 3., 13., 3.)
         panel
     let bmpElseSize (w, h) bmp =
         let icon : FrameworkElement = if bmp = null then upcast new DockPanel(Width=float w, Height=float h) else upcast Graphics.BMPtoImage bmp
@@ -567,7 +590,7 @@ let MakeMappedHotKeysDisplay() =
     let overworldPanel = makePanel([-1..TrackerModel.dummyOverworldTiles.Length-1], HotKeys.OverworldHotKeyProcessor, (fun state ->
         MapStateProxy(state).DefaultInteriorBmp() |> bmpElseSize(15,27)), 15, "OVERWORLD")
     let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 
-        Graphics.blockerCurrentBMP(state) |> bmpElseSize(21,21)), 21, "BLOCKERS")
+        upcast Graphics.blockerCurrentBMP(state)), 24, "BLOCKERS")
     let thingies = [| 
         yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of3
         yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of3
@@ -585,6 +608,12 @@ let MakeMappedHotKeysDisplay() =
     all.Children.Add(blockerPanel) |> ignore
     all.Children.Add(dungeonRoomPanel) |> ignore
     if total = 0 then
-        all.Children.Add(DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")) |> ignore  // Note: not full filename, don't want to leak PII (e.g. C:\Users\YourRealName\...) on-stream
-    new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
+        let tb = DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")
+        tb.FontSize <- 16.
+        all.Children.Add(tb) |> ignore
+        let fileToSelect = HotKeys.HotKeyFilename
+        let args = sprintf "/Select, \"%s\"" fileToSelect
+        let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
+        System.Diagnostics.Process.Start(psi) |> ignore
+    total=0, new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=all)
 

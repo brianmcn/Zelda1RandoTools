@@ -7,11 +7,17 @@ open System.Runtime.InteropServices
 module Winterop = 
     [<DllImport("User32.dll")>]
     extern bool RegisterHotKey(IntPtr hWnd,int id,uint32 fsModifiers,uint32 vk)
-
     [<DllImport("User32.dll")>]
     extern bool UnregisterHotKey(IntPtr hWnd,int id)
-
     let HOTKEY_ID = 9000
+
+    [<DllImport("kernel32.dll")>]
+    extern IntPtr GetConsoleWindow()
+    [<DllImport("user32.dll")>]
+    extern bool ShowWindow(IntPtr hWnd, int nCmdShow)
+    let SW_HIDE = 0
+    let SW_SHOW = 5
+    let SW_MINIMIZE = 6
 
     (*
     [<ComImport>]
@@ -257,8 +263,15 @@ type MyWindow() as this =
             else 
                 WIDTH, HEIGHT
         //printfn "%f, %f" APP_WIDTH APP_HEIGHT
-        this.Left <- System.Windows.SystemParameters.PrimaryScreenWidth - APP_WIDTH
-        this.Top <- 0.0
+        let leftTop = TrackerModel.Options.MainWindowLT
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
+        if matches.Success then
+            this.Left <- float matches.Groups.[1].Value
+            this.Top <- float matches.Groups.[2].Value
+        this.LocationChanged.Add(fun _ ->
+            TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+            TrackerModel.Options.writeSettings()
+            )
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
@@ -286,8 +299,96 @@ type MyWindow() as this =
         ApplyKonamiCodeEasterEgg(cm, mainDock)
         appMainCanvas.Children.Add(mainDock) |> ignore
 
+        let addDarkTheme(rd:ResourceDictionary) = 
+            let style = new Style(typeof<TextBox>)
+            style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+            style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.Orange))
+            rd.Add(typeof<TextBox>, style)
+            let style = new Style(typeof<Button>)
+            style.Setters.Add(new Setter(Button.BorderBrushProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
+            rd.Add(typeof<Button>, style)
+            let style = new Style(typeof<ToolTip>)
+            style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
+            style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
+            rd.Add(typeof<ToolTip>, style)
+
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 10., 0., 0.)
+
+        do        
+            let menu(wh:Threading.ManualResetEvent) = 
+                let mkTxt(txt) = new TextBox(Text=txt,IsReadOnly=true, Margin=spacing, //TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
+                                                BorderThickness=Thickness(0.), FontSize=16.)
+                let sp = new StackPanel(Orientation=Orientation.Vertical, Width=appMainCanvas.Width-100., Margin=Thickness(20.))
+                let title = new TextBox(Text="Window Size",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
+                                            BorderThickness=Thickness(0.,0.,0.,3.), FontSize=20.)
+                sp.Children.Add(title) |> ignore
+                sp.Children.Add(mkTxt("Z-Tracker can run in either of two window sizes: 'Default' (larger) or '2/3 size' (smaller).")) |> ignore
+                sp.Children.Add(mkTxt("Changes to this setting will only take effect the next time you start the application.")) |> ignore
+                sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window in '%s' mode.  You can change the setting here:" (if TrackerModel.Options.SmallerAppWindow.Value then "2/3 size" else "Default"))) |> ignore
+                sp.Children.Add(new DockPanel(Height=20.)) |> ignore
+                let rb3 = new RadioButton(Content=new TextBox(Text="Default" , IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
+                let rb2 = new RadioButton(Content=new TextBox(Text="2/3 size", IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
+                if TrackerModel.Options.SmallerAppWindow.Value then
+                    rb2.IsChecked <- System.Nullable.op_Implicit true
+                else
+                    rb3.IsChecked <- System.Nullable.op_Implicit true
+                let mutable desireSmaller = TrackerModel.Options.SmallerAppWindow.Value
+                rb3.Checked.Add(fun _ -> desireSmaller <- false)
+                rb2.Checked.Add(fun _ -> desireSmaller <- true)
+                let inner = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
+                inner.Children.Add(rb3) |> ignore
+                inner.Children.Add(rb2) |> ignore
+                sp.Children.Add(inner) |> ignore
+                let buttons = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=spacing)
+                let sb = Graphics.makeButton("Save changes and close Z-Tracker\n(changes take effect next time)", Some(16.), None)
+                let cb = Graphics.makeButton("Don't make any changes\n(exit this popup menu)", Some(16.), None)
+                cb.Click.Add(fun _ -> wh.Set() |> ignore)
+                sb.Click.Add(fun _ ->
+                    TrackerModel.Options.SmallerAppWindow.Value <- desireSmaller
+                    TrackerModel.Options.writeSettings()
+                    this.Close()
+                    )
+                buttons.Children.Add(sb) |> ignore
+                buttons.Children.Add(new DockPanel(Width=30.)) |> ignore  // spacing
+                buttons.Children.Add(cb) |> ignore
+                sp.Children.Add(buttons) |> ignore
+                addDarkTheme(sp.Resources)
+                new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp)
+
+            let fs = if TrackerModel.Options.SmallerAppWindow.Value then 16. else 12.
+            let topBar = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
+            let tb = new TextBox(Text=sprintf "Z-Tracker window too %s? " (if TrackerModel.Options.SmallerAppWindow.Value then "small" else "large"), 
+                                    IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=fs, VerticalAlignment=VerticalAlignment.Center)
+            topBar.Children.Add(tb) |> ignore
+            let b = Graphics.makeButton("Click here for options", Some(fs), None)
+            let mutable popupIsActive = false
+            b.Click.Add(fun _ -> 
+                if not popupIsActive then
+                    popupIsActive <- true
+                    let wh = new Threading.ManualResetEvent(false)
+                    CustomComboBoxes.DoModal(cm, wh, 50., 100., menu(wh)) |> Async.StartImmediate
+                    popupIsActive <- false
+                )
+            topBar.Children.Add(b) |> ignore
+            let workingAreaTooSmallForDefaultHeight = SystemParameters.WorkArea.Height < 1000.0
+            let likelyDoesntFit = workingAreaTooSmallForDefaultHeight && not(TrackerModel.Options.SmallerAppWindow.Value)
+            let barColor = 
+                if likelyDoesntFit then 
+                    new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy))   // reddish
+                else 
+                    new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy))    // grayish
+            let dp = new DockPanel(Height=(if TrackerModel.Options.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
+            dp.Children.Add(topBar) |> ignore
+            stackPanel.Children.Add(dp) |> ignore
+            let spacer = new DockPanel(Height=30., LastChildFill=false)
+            let vb = Graphics.dock(CustomComboBoxes.makeVersionButtonWithBehavior(cm), Dock.Top)
+            DockPanel.SetDock(vb, Dock.Right)
+            spacer.Children.Add(vb) |> ignore
+            stackPanel.Children.Add(spacer) |> ignore
 
         let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore
@@ -328,12 +429,14 @@ type MyWindow() as this =
 
         let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
         let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        Graphics.scaleUpCheckBoxBox(hscb, 1.66)
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
         checkboxSP.Children.Add(hscb) |> ignore
 
         let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        Graphics.scaleUpCheckBoxBox(hdcb, 1.66)
         hdcb.IsChecked <- System.Nullable.op_Implicit false
         hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
         hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())
@@ -343,9 +446,7 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        let tb = new TextBox(Text="Note: once you start, you can click the 'start spot' icon\nin the legend to mark your start screen at any time",
-                                IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
-        stackPanel.Children.Add(tb) |> ignore
+        stackPanel.Children.Add(new DockPanel(Height=20.)) |> ignore
 
         let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
@@ -413,7 +514,7 @@ type MyWindow() as this =
         let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
-        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 50., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 30., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
@@ -429,20 +530,7 @@ type MyWindow() as this =
 
         // "dark theme"
         mainDock.Background <- Brushes.Black
-        let style = new Style(typeof<TextBox>)
-        style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
-        style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.Orange))
-        mainDock.Resources.Add(typeof<TextBox>, style)
-        let style = new Style(typeof<Button>)
-        style.Setters.Add(new Setter(Button.BorderBrushProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
-        mainDock.Resources.Add(typeof<Button>, style)
-        let style = new Style(typeof<ToolTip>)
-        style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
-        style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
-        style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
-        mainDock.Resources.Add(typeof<ToolTip>, style)
+        addDarkTheme(mainDock.Resources)
         
     override this.Update(f10Press) =
         base.Update(f10Press)
@@ -532,12 +620,31 @@ type DummyWindow() as this =
         this.WindowState <- WindowState.Minimized
         this.Loaded.Add(fun _ ->
             this.Visibility <- Visibility.Hidden
+            
+(*
+            // method 1
+            let resHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height  // e.g. 1440
+            let actualHeight = SystemParameters.PrimaryScreenHeight  // e.g. 960
+            let scale = float resHeight / actualHeight  // e.g.   1.5 
+            let waHeight = SystemParameters.WorkArea.Height
+            printfn "method1: scale = %f    actualHeight=%f    waHeight=%f" scale actualHeight waHeight
+            // TODO if waHeight < 1000.0 then suggest Smaller
+//caffy
+//method1: scale = 1.250000    actualHeight=864.000000    waHeight=824.000000
+//method2: scale = 1.250000
+            // method 2
+            let dpiScale = VisualTreeHelper.GetDpi(this)
+            let scale = dpiScale.DpiScaleY
+            printfn "method2: scale = %f" scale
+*)
+
             let mainW = new MyWindow()
             mainW.Owner <- this
             mainW.Show()
+            let handle = Winterop.GetConsoleWindow()
+            Winterop.ShowWindow(handle, Winterop.SW_MINIMIZE) |> ignore
+            mainW.Closed.Add(fun _ -> this.Close())
             )
-    
-
 
 [<STAThread>]
 [<EntryPoint>]
@@ -564,6 +671,6 @@ let main argv =
 #endif
     
     
-    printfn "press Enter to end"
-    System.Console.ReadLine() |> ignore
+//    printfn "press Enter to end"
+//    System.Console.ReadLine() |> ignore
     0

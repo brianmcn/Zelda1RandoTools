@@ -7,6 +7,8 @@ For best results, set the 'Window Match Priority' to 'Window title must match'.
 Be sure that your emulator does not need window focus (e.g. in FCEUX Config, Enable 'Run in Background' and 'Background Input'), as Z-Tracker requires window focus to
 respond to mousing and hotkeys.
 
+### For those using the Broadcast Window...
+
 Read the [Broadcast Window section](extras.md#broadcast-window) for more capture and sizing options.  If you do use the Broadcast Window, then you should probably turn OFF the
 'Capture cursor' checkbox in the OBS Window Capture of the Broadcast Window (the Broadcast Window displays its own virtual mouse cursor as window content).  If you capture the Z-Tracker 
 main app window directly, then you should probably turn ON the 'Capture cursor' checkbox in the OBS Window Capture of the main app window, so that viewers can see 'where you are',

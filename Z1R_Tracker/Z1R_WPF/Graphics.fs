@@ -87,6 +87,9 @@ let makeArrow(targetX, targetY, sourceX, sourceY, brush) =
     let triangle = new Shapes.Polygon(Fill=brush)
     triangle.Points <- new PointCollection([Point(tx,ty); Point(p1x,p1y); Point(p2x,p2y)])
     line, triangle
+let scaleUpCheckBoxBox(cb:CheckBox, scale) =
+    cb.LayoutTransform <- new ScaleTransform(scale, scale)
+    (cb.Content :?> FrameworkElement).LayoutTransform <- new ScaleTransform(1.0/scale, 1.0/scale)
 
 let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
 let makeButton(text, fontSizeOpt, fgOpt) =
@@ -287,7 +290,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
         brown_sword_bmp, magical_sword_bmp, blue_candle_bmp, blue_ring_bmp,
-        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp) =
+        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp, rupee_bmp) =
     let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -302,9 +305,9 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
-        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28])
+        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29])
 
-let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp = 
+let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -320,8 +323,8 @@ let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTr
     transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then System.Drawing.Color.LightGray else c)), 
         all.[1],
         transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then desaturateColor(c, 0.25) else c)), 
-        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6]
-let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x88,0x88,0x88)
+        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6], all.[7]
+let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x77,0x77,0x99)
 let FOUND_NUMERAL_COLOR = System.Drawing.Color.White
 let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
     let a = [|
@@ -343,16 +346,23 @@ let emptyFoundNumberedTriforce_bmps, emptyFoundLetteredTriforce_bmps =
                 yield bmp
             |] |]
     a.[0], a.[1]
-let fullNumberedTriforce_bmps, fullLetteredTriforce_bmps =
+let fullNumberedUnfoundTriforce_bmps, fullNumberedFoundTriforce_bmps, fullLetteredUnfoundTriforce_bmps, fullLetteredFoundTriforce_bmps =
     let a = [|
         for ch in ['1'; 'A'] do
             yield [|
             for i = 0 to 7 do
                 let bmp = fullOrangeTriforce_bmp.Clone() :?> System.Drawing.Bitmap
+                paintAlphanumerics3x5(char(int ch + i), UNFOUND_NUMERAL_COLOR, bmp, 4, 4)
+                yield bmp
+            |]
+            yield [|
+            for i = 0 to 7 do
+                let bmp = fullOrangeTriforce_bmp.Clone() :?> System.Drawing.Bitmap
                 paintAlphanumerics3x5(char(int ch + i), FOUND_NUMERAL_COLOR, bmp, 4, 4)
                 yield bmp
-            |] |]
-    a.[0], a.[1]
+            |]
+        |]
+    a.[0], a.[1], a.[2], a.[3]
 let unfoundL9_bmp,foundL9_bmp =
     let unfoundTriforceColor = emptyUnfoundNumberedTriforce_bmps.[0].GetPixel(15, 28)
     let u = new System.Drawing.Bitmap(10*3,10*3)
@@ -673,15 +683,40 @@ let ringLevelToBmp(ringLevel) =
     | _ -> failwith "bad RingLevel"
 
 let blockerCurrentBMP(current) =
-    match current with
-    | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
-    | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> bow_and_arrow_bmp
-    | TrackerModel.DungeonBlocker.RECORDER -> recorder_bmp
-    | TrackerModel.DungeonBlocker.LADDER -> ladder_bmp
-    | TrackerModel.DungeonBlocker.BAIT -> bait_bmp
-    | TrackerModel.DungeonBlocker.KEY -> key_bmp
-    | TrackerModel.DungeonBlocker.BOMB -> bomb_bmp
-    | TrackerModel.DungeonBlocker.NOTHING -> null
+    let gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 0uy, 180uy, 0uy), 0.)
+                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.3)
+                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.7)
+                                          new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
+                                         ])
+    let maybeBG = new LinearGradientBrush(gsc, Point(0.,0.), Point(1.,1.))
+    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
+    innerc.Children.Clear()
+    innerc.Background <- match current with
+                            | TrackerModel.DungeonBlocker.MAYBE_LADDER
+                            | TrackerModel.DungeonBlocker.MAYBE_BAIT
+                            | TrackerModel.DungeonBlocker.MAYBE_BOMB
+                            | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW
+                            | TrackerModel.DungeonBlocker.MAYBE_KEY
+                            | TrackerModel.DungeonBlocker.MAYBE_MONEY
+                            | TrackerModel.DungeonBlocker.MAYBE_RECORDER                            
+                                -> maybeBG :> Brush
+                            | _ -> Brushes.Black :> Brush
+    let bmp = 
+        match current with
+        | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
+        | TrackerModel.DungeonBlocker.BOW_AND_ARROW | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW -> bow_and_arrow_bmp
+        | TrackerModel.DungeonBlocker.RECORDER | TrackerModel.DungeonBlocker.MAYBE_RECORDER -> recorder_bmp
+        | TrackerModel.DungeonBlocker.LADDER | TrackerModel.DungeonBlocker.MAYBE_LADDER -> ladder_bmp
+        | TrackerModel.DungeonBlocker.BAIT | TrackerModel.DungeonBlocker.MAYBE_BAIT -> bait_bmp
+        | TrackerModel.DungeonBlocker.KEY | TrackerModel.DungeonBlocker.MAYBE_KEY -> key_bmp
+        | TrackerModel.DungeonBlocker.BOMB | TrackerModel.DungeonBlocker.MAYBE_BOMB -> bomb_bmp
+        | TrackerModel.DungeonBlocker.MONEY | TrackerModel.DungeonBlocker.MAYBE_MONEY -> rupee_bmp
+        | TrackerModel.DungeonBlocker.NOTHING -> null
+    if bmp <> null then
+        let image = BMPtoImage(bmp)
+        image.IsHitTestVisible <- false
+        canvasAdd(innerc, image, 1., 1.)
+    innerc
 
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)

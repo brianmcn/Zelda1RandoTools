@@ -5,6 +5,13 @@
 The most recent release is v1.0.1, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.0/doc/TOC.md), which includes links for 
 downloading and installing Z-Tracker.
 
+Sample screenshots:
+
+![sample tracker screenshot](doc/screenshots/full-tracker-with-dungeon-summary.png)
+
+
+![sample tracker screenshot](doc/screenshots/full-tracker-example1.png)
+
 ## Motivation
 
 This is a tracking tool for those play seeds of fcouglin's [Zelda 1 Randomizer](https://sites.google.com/site/zeldarandomizer/).

@@ -29,12 +29,8 @@ can be changed at any time in the middle of the game, not just at startup.
      - the map legend and green dungeon icons will suggest the wrong things
  - **Change Sword Hearts** is assumed to be checked, but if it's not checked in your flagset, the only bad side-effect is that you may get e.g. a spurious reminder to "Consider the magical sword"
    when you have 10 hearts, even though you actually need 12 hearts
- - **Starting Hearts** are assumed to be 3; if it's another value, the "Max Hearts" display may be incorrect, and reminders may trigger at the wrong time, as with the previous bullet
- - **Add Money or Life Rooms** is assumed to be un-checked; if you pay to exit such a room with a Heart Container, then the "Max Hearts" display may be wrong, as with the previous bullet
  - **Level 9 Entry** is assumed to be 8 triforces; if it's something else, various "go-time" reminders may not trigger, or may trigger incorrectly
  - **Force Ganon Fight** is assumed to be checked; if not, then "go-time" reminders will erroneously think you need the Silver Arrows
- - **Shuffle Minor Dungeon Drops** and **Make Important Items Drops** are assumed to be un-checked; if they are checked, a single dungeon may yield many key items, and you'll have to distribute 
-   them among the various dungeon's item boxes in the [Dungeon Item Area](use.md#main-dia) as you see fit
 
 None of these are sufficiently "breaking" to advise against using Z-Tracker, but be aware of the limitations.
 
@@ -61,21 +57,26 @@ Enabling this option causes a number of changes in the tracker to help the playe
  - dungeon area:
    - the dungeon tabs are labeled ABCDEFGH9
    - the dungeon tabs and LEVEL- text get the Color of the dungeon
-   - LEVEL-N becomes LEVEL-?, and the rainbow question mark is a button to select a Color for the dungeon
+   - LEVEL-N becomes LEVEL-X, and the rainbow letter label is a button to select a Color for the dungeon
  - other:
-   - the overworld map tiles for dungeons are labeled A-H
+   - the overworld map tiles for dungeons are labeled with letters A-H, or number-letter (e.g. "5B") if the Number has been set
    - the blockers labels are A-H
    - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
+ - hotkeys:
+   - pressing keyboard keys 1-8 will set the dungeon number when
+      - hovering a lettered triforce
+      - hovering the Color-Number button above the lettered triforces at the top of the tracker
+      - inside the Number chooser popup
 
 The workflow for the player then becomes:
  - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon
-    - optionally, mark the floor color of the dungeon, by clicking either the '?' in the dungeon tab or the button above that letter's triforce
+    - optionally, mark the floor color of the dungeon, by clicking either the rainbow letter in the dungeon tab or the button above that letter's triforce
  - as you get items from the dungeon, mark them in that letter's column
  - when you get the triforce, set the dungeon Number (the Number chooser pops up automatically when you mark the triforce gotten)
  - if you can otherwise deduce with certainty the dungeon Number, set the dungeon number by clicking the button above the triforce
 
 The Color marks are for the player's reference, and have no semantic meaning to the tracker.
-The Number marks have semantics that interact with a number of tracker features, you should set it once known.
+The Number marks have semantics that interact with a number of tracker features; you should set it, once known.
 
 
 ## <a id="startup-coq"></a> Start buttons (choose overworld quest)

@@ -4,7 +4,10 @@ open System.Windows.Media
 open System.Windows.Controls
 open System.Windows
 
+open HotKeys.MyKey
+
 // door colors
+let highlight = Brushes.White // using Opacity 0.6 in practice
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
 let no = new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy)) :> Brush
 let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush
@@ -286,9 +289,39 @@ let HiddenDungeonColorChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, til
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                            gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                            gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
     }
 
+let MakeTriforceDecoderDiagram() =
+    let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(5.))
+    let haves = TrackerModel.GetTriforceHaves()
+    let makeTB(text) = new TextBox(Width=TRIFORCE_SIZE*3.8, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text=text, Foreground=Brushes.Orange, Background=Brushes.Black)
+    sp.Children.Add(makeTB("Reference diagram - don't click here")) |> ignore
+    sp.Children.Add(makeTB("(Note: in Mixed Quest dungeons,\n7 and 8 may be swapped)")) |> ignore
+    sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
+    sp.Children.Add(makeTB("First Quest or Shapes dungeons")) |> ignore
+    sp.Children.Add(DrawTriforces1Q(haves)) |> ignore
+    sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
+    sp.Children.Add(makeTB("Second Quest dungeons")) |> ignore
+    sp.Children.Add(DrawTriforces2Q(haves)) |> ignore
+    let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=sp)
+    b
+
+let HotKeyAHiddenDungeonLabel(fe:FrameworkElement, dungeon:TrackerModel.Dungeon, who:System.Threading.ManualResetEvent option) =
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        fe.MyKeyAdd(fun ea ->
+            for ch in ['1'..'8'] do
+                let key = HotKeys.convertAlpha_NumToKey(ch)
+                if ea.Key = key then
+                    dungeon.LabelChar <- ch
+                    match who with
+                    | Some wh -> wh.Set() |> ignore
+                    | _ -> ()
+            )
+
+let mutable HDNCP = None
 let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, tileY, tileW, tileH, originalLabelChar:char, dungeonIndex) = async {
     // TODO can you choose same # twice?
     let tileCanvas = new Canvas(Width=tileW, Height=tileH, Background=Brushes.Black)
@@ -320,28 +353,25 @@ let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, ti
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
                                     Text="Don't mark anything other than '?'\nunless you are certain!", Foreground=Brushes.OrangeRed, Background=Brushes.Black)
         let warnBorder = new Border(BorderThickness=Thickness(4.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=warnTB)
-
-        let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(5.))
-        let haves = TrackerModel.GetTriforceHaves()
-        let makeTB(text) = new TextBox(Width=TRIFORCE_SIZE*3.8, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
-                                        VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
-                                        Text=text, Foreground=Brushes.Orange, Background=Brushes.Black)
-        sp.Children.Add(makeTB("Reference diagram - don't click here")) |> ignore
-        sp.Children.Add(makeTB("(Note: in Mixed Quest dungeons,\n7 and 8 may be swapped)")) |> ignore
-        sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
-        sp.Children.Add(makeTB("First Quest or Shapes dungeons")) |> ignore
-        sp.Children.Add(DrawTriforces1Q(haves)) |> ignore
-        sp.Children.Add(new DockPanel(Height=TRIFORCE_SIZE/3.)) |> ignore
-        sp.Children.Add(makeTB("Second Quest dungeons")) |> ignore
-        sp.Children.Add(DrawTriforces2Q(haves)) |> ignore
-        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=sp)
+        let b = MakeTriforceDecoderDiagram()
         b.MouseDown.Add(fun ea -> ea.Handled <- true)  // clicking the reference diagram should not close the dialog, people will do it by accident
         [(upcast warnBorder : FrameworkElement), -123., 284.; (upcast b : FrameworkElement), 190., -120.]
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
+    let wh = new System.Threading.ManualResetEvent(false)
+    let dungeon = TrackerModel.GetDungeon(dungeonIndex)
+    HDNCP <- Some(dungeon, wh)
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, Some(wh))
+    HDNCP <- None
     }
+do
+    // Add() permanently adds an event listener.  We want to only call Add() once, but only listen while the popup is active
+    CustomComboBoxes.CanvasManager.TheOnlyCanvasManager.AfterCreatePopupCanvas.Add(fun popupCanvas ->
+        match HDNCP with
+        | Some(dungeon, wh) -> HotKeyAHiddenDungeonLabel(popupCanvas, dungeon, Some(wh))
+        | _ -> ()
+    )
 
 let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex, curColor, curLabel, accelerateIntoNumberChooser, warpReturn:Point) = async {
     let wh = new System.Threading.ManualResetEvent(false)

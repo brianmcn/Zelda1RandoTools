@@ -39,6 +39,23 @@ let makeGrid = Graphics.makeGrid
 let OMTW = OverworldRouteDrawing.OMTW  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 
+let makeGhostBuster() =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
+    let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)
+    let circle = new Shapes.Ellipse(Width=30., Height=30., StrokeThickness=3., Stroke=Brushes.Gray)
+    let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=Brushes.Gray)
+    canvasAdd(c, circle, 0., 0.)
+    canvasAdd(c, slash, 0., 0.)
+    c
+let mainTrackerGhostbusters = Array.init 8 (fun _ -> makeGhostBuster())
+let updateGhostBusters() =
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        for i = 0 to 7 do
+            let lc = TrackerModel.GetDungeon(i).LabelChar
+            let twoItemDungeons = if TrackerModel.Options.IsSecondQuestDungeons.Value then "123567" else "234567"
+            if twoItemDungeons.Contains(lc.ToString()) then
+                mainTrackerGhostbusters.[i].Opacity <- 1.0
+            else
+                mainTrackerGhostbusters.[i].Opacity <- 0.0
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.4 else 0.3), IsHitTestVisible=false))
@@ -162,6 +179,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
     let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
+    let mutable showLocatorPotionAndTakeAny = fun() -> ()
     let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
     let mutable hideLocator = fun() -> ()
 
@@ -182,7 +200,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let mutable found,hasTriforce = false,false
         if index <> -1 then
             found <- TrackerModel.GetDungeon(index).HasBeenLocated()
-            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce()
+            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce() 
+        hasTriforce <- hasTriforce || TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value()
         let hasHint = not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN
         c.Children.Clear()
         if hasHint then
@@ -193,7 +212,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             else
                 c.Children.Add(Graphics.BMPtoImage Graphics.emptyFoundNumberedTriforce_bmps.[i]) |> ignore
         else
-            c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedTriforce_bmps.[i]) |> ignore
+            if not found then
+                c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedUnfoundTriforce_bmps.[i]) |> ignore
+            else
+                c.Children.Add(Graphics.BMPtoImage Graphics.fullNumberedFoundTriforce_bmps.[i]) |> ignore
     let updateNumberedTriforceDisplayIfItExists =
         if TrackerModel.IsHiddenDungeonNumbers() then
             let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
@@ -227,7 +249,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         } |> Async.StartImmediate
                 )
             gridAdd(mainTracker, colorButton, i, 0)
-            TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
+            let dungeon = TrackerModel.GetDungeon(i)
+            Dungeon.HotKeyAHiddenDungeonLabel(colorCanvas, dungeon, None)
+            dungeon.HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
                 colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
                 colorCanvas.Children.Clear()
                 let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
@@ -250,12 +274,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         gridAdd(mainTracker, c, i, 1)
         let fullTriforceBmp =
             match kind with
-            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredTriforce_bmps.[i]
-            | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedTriforce_bmps.[i]
+            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
+            | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
-    let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)       // dungeon 9 doesn't need a color, but we don't want to special case nulls
-    gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
-    mainTrackerCanvases.[8,0] <- level9ColorCanvas
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
@@ -276,6 +297,24 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c.MouseLeave.Add(fun _ -> hideLocator())
         timelineItems.Add(new Timeline.TimelineItem(fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
         c
+    // dungeon 9 doesn't need a color, we display a 'found summary' here instead
+    let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
+    gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
+    mainTrackerCanvases.[8,0] <- level9ColorCanvas
+    let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -2.)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 20.)
+    let updateFoundDungeonsCount() =
+        let mutable r = 0
+        for trackerIndex = 0 to 8 do    
+            let d = TrackerModel.GetDungeon(trackerIndex)
+            if d.HasBeenLocated() then
+                r <- r + 1
+        foundDungeonsTB1.Text <- sprintf "%d/9" r
+    for trackerIndex = 0 to 8 do    
+        let d = TrackerModel.GetDungeon(trackerIndex)
+        d.HasBeenLocatedChanged.Add(fun _ -> updateFoundDungeonsCount())
     // items
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then
@@ -290,6 +329,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
                     canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
+                if j=2 && i<> 8 then
+                    canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
     else
         for i = 0 to 8 do
             for j = 0 to 2 do
@@ -298,6 +339,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if j=0 || j=1 || i=7 then
                     canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
+    let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
+    extrasImage.ToolTip <- "Starting items and extra drops"
+    ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
+    gridAdd(mainTracker, extrasImage, 8, 4)
     do 
         let RedrawForSecondQuestDungeonToggle() =
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
@@ -308,20 +353,28 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 else
                     canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
         RedrawForSecondQuestDungeonToggle()
-        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> RedrawForSecondQuestDungeonToggle())
+        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> 
+            RedrawForSecondQuestDungeonToggle()
+            doUIUpdateEvent.Trigger()  // CompletedDungeons may change
+            updateGhostBusters()
+            )
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            for i = 0 to 7 do
+                TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateGhostBusters())
 
     // in mixed quest, buttons to hide first/second quest
-    let mutable firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
-    let mutable secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
-    let thereAreMarks(questOnlyInterestingMarks:_[,]) =
+    let thereAreMarks(questOnly:string[]) =
         let mutable r = false
         for x = 0 to 15 do 
             for y = 0 to 7 do
-                if questOnlyInterestingMarks.[x,y] then
+                if questOnly.[y].Chars(x) = 'X' && MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current()).IsInteresting then
                     r <- true
         r
     let mutable hideFirstQuestFromMixed = fun _b -> ()
     let mutable hideSecondQuestFromMixed = fun _b -> ()
+    let mutable featsAreHidden, raftsAreHidden = false, false
+    let mutable hideFeatsOfStrength = fun _b -> ()
+    let mutable hideRaftSpots = fun _b -> ()
 
     let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
@@ -332,22 +385,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideFirstQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(firstQuestOnlyInterestingMarks) then
-            System.Media.SystemSounds.Asterisk.Play()
-            hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        else
-            hideFirstQuestFromMixed false
+        if thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideFirstQuestFromMixed false
         hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
 
     hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideSecondQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(secondQuestOnlyInterestingMarks) then
-            System.Media.SystemSounds.Asterisk.Play()
-            hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        else
-            hideSecondQuestFromMixed false
+        if thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideSecondQuestFromMixed false
         hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
@@ -372,6 +421,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c.MouseLeftButtonDown.Add(fun _ -> f true)
         c.MouseRightButtonDown.Add(fun _ -> f false)
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
+        c.MouseEnter.Add(fun _ -> showLocatorPotionAndTakeAny())
+        c.MouseLeave.Add(fun _ -> hideLocator())
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
@@ -434,6 +485,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c
     let basicBoxImpl(tts, img, prop) =
         let c = veryBasicBoxImpl(img, true, prop)
+        c.ToolTip <- tts
+        c
+    let basicBoxImplNoTimeline(tts, img, prop) =
+        let c = veryBasicBoxImpl(img, false, prop)
         c.ToolTip <- tts
         c
     let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)    
@@ -502,6 +557,127 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+
+    let extrasPanel =
+        let mutable refreshTDD = fun () -> ()
+        let mkTxt(size,txt) = 
+            new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=size, Margin=Thickness(5.),
+                            VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                            Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black)
+        let leftPanel = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+        let headerDescription1 = mkTxt(20., "Starting Items and Extra Drops")
+        let iconedHeader = new StackPanel(Orientation=Orientation.Horizontal)
+        iconedHeader.Children.Add(Graphics.BMPtoImage Graphics.iconExtras_bmp) |> ignore
+        iconedHeader.Children.Add(headerDescription1) |> ignore
+        let headerDescription2 = mkTxt(16., "Mark any items you start the game with\nor get as monster drops/extra dungeon drops\nin this section")
+        leftPanel.Children.Add(iconedHeader) |> ignore
+        leftPanel.Children.Add(headerDescription2) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        let triforcePanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        for i = 0 to 7 do
+            let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+            let redraw() =
+                innerc.Children.Clear()
+                if TrackerModel.GetTriforceHaves().[i] then
+                    innerc.Children.Add(Graphics.BMPtoImage(Graphics.fullNumberedFoundTriforce_bmps.[i])) |> ignore 
+                else
+                    innerc.Children.Add(Graphics.BMPtoImage(Graphics.emptyFoundNumberedTriforce_bmps.[i])) |> ignore 
+            redraw()
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                for j = 0 to 7 do
+                    TrackerModel.GetDungeon(j).PlayerHasTriforceChanged.Add(fun _ -> redraw(); refreshTDD())
+                    TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw(); refreshTDD())
+            else
+                TrackerModel.GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> redraw(); refreshTDD())
+            innerc.MouseDown.Add(fun _ -> 
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Toggle()
+                else
+                    TrackerModel.GetDungeon(i).ToggleTriforce()
+                redraw()
+                refreshTDD()
+                )
+            triforcePanel.Children.Add(innerc) |> ignore
+        leftPanel.Children.Add(triforcePanel) |> ignore
+        let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("White sword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
+        weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(weaponsRowPanel) |> ignore
+        let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Red ring", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Any key", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
+        utilityRowPanel.Children.Add(basicBoxImpl("Book", Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook)) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(utilityRowPanel) |> ignore
+        let maxHeartsPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+        let maxHeartsText = mkTxt(12., sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+        let adjustText = mkTxt(12., " You can adjust hearts here:")
+        let plusOne = new Button(Content=" +1 ")
+        let minusOne = new Button(Content=" -1 ")
+        plusOne.Click.Add(fun _ -> 
+            TrackerModel.startingItemsAndExtras.MaxHeartsDifferential <- TrackerModel.startingItemsAndExtras.MaxHeartsDifferential + 1
+            TrackerModel.recomputePlayerStateSummary()
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+            )
+        minusOne.Click.Add(fun _ -> 
+            TrackerModel.startingItemsAndExtras.MaxHeartsDifferential <- TrackerModel.startingItemsAndExtras.MaxHeartsDifferential - 1
+            TrackerModel.recomputePlayerStateSummary()
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+            )
+        maxHeartsPanel.Children.Add(maxHeartsText) |> ignore
+        maxHeartsPanel.Children.Add(adjustText) |> ignore
+        maxHeartsPanel.Children.Add(plusOne) |> ignore
+        maxHeartsPanel.Children.Add(minusOne) |> ignore
+        leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+        leftPanel.Children.Add(maxHeartsPanel) |> ignore
+        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=leftPanel)
+        b.MouseDown.Add(fun ea -> ea.Handled <- true)
+        let bp = new StackPanel(Orientation=Orientation.Vertical)
+        bp.Children.Add(b) |> ignore
+        let spacer = new DockPanel(Width=30.)
+        let panel = new StackPanel(Orientation=Orientation.Horizontal)
+        refreshTDD <- fun () ->
+            panel.Children.Clear()
+            panel.Children.Add(bp) |> ignore
+            panel.Children.Add(spacer) |> ignore
+            let tdd = Dungeon.MakeTriforceDecoderDiagram()
+            tdd.MouseDown.Add(fun ea -> ea.Handled <- true)
+            panel.Children.Add(tdd) |> ignore
+        refreshTDD()
+        panel
+    let mutable popupIsActive = false
+    extrasImage.MouseDown.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            let wh = new System.Threading.ManualResetEvent(false)
+            let whole = new Canvas(Width=cm.Width, Height=cm.Height)
+            let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
+            whole.Children.Add(mouseClickInterceptor) |> ignore
+            whole.Children.Add(extrasPanel) |> ignore
+            mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
+                whole.Children.Clear() // to reparent extrasPanel again next popup
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
+
+
 
     // overworld map grouping, as main point of support for mirroring
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
@@ -601,44 +777,76 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, owDarkeningMapGrid, 0., 0.)
 
     // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
-    let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
-    owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
-    for i = 0 to 15 do
-        for j = 0 to 7 do
-            let c = new Canvas(Width=OMTW, Height=float(11*3))
-            gridAdd(owHidingMapGrid, c, i, j)
-            owHidingMapGridCanvases.[i,j] <- c
-    canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
-    let hide(x,y) =
-        let hideColor = Brushes.DarkSlateGray // Brushes.Black
-        let hideOpacity = 0.6 // 0.4
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 7.*OMTW/48., 0.)
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 19.*OMTW/48., 0.)
-        let rect = new System.Windows.Shapes.Rectangle(Width=7.0*OMTW/48., Height=float(11*3)-1.5, Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
-        canvasAdd(owHidingMapGridCanvases.[x,y], rect, 32.*OMTW/48., 0.)
-    hideSecondQuestFromMixed <- 
-        (fun unhide ->  // make mixed appear reduced to 1st quest
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
-                        if unhide then
-                            owHidingMapGridCanvases.[x,y].Children.Clear()
-                        else
-                            hide(x,y)
-        )
-    hideFirstQuestFromMixed <-
-        (fun unhide ->   // make mixed appear reduced to 2nd quest
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
-                        if unhide then
-                            owHidingMapGridCanvases.[x,y].Children.Clear()
-                        else
-                            hide(x,y)
-        )
+    do  // HFQ/HSQ
+        let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
+        let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
+        owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let c = new Canvas(Width=OMTW, Height=float(11*3))
+                gridAdd(owHidingMapGrid, c, i, j)
+                owHidingMapGridCanvases.[i,j] <- c
+        canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
+        let hide(x,y) =
+            let hideColor = Brushes.DarkSlateGray
+            let hideOpacity = 0.7
+            let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+            canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
+        hideSecondQuestFromMixed <- 
+            (fun unhide ->  // make mixed appear reduced to 1st quest
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
+                            if unhide then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+        hideFirstQuestFromMixed <-
+            (fun unhide ->   // make mixed appear reduced to 2nd quest
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
+                            if unhide then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+    do  // SailNot/NoFeats
+        let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
+        let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
+        owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let c = new Canvas(Width=OMTW, Height=float(11*3))
+                gridAdd(owHidingMapGrid, c, i, j)
+                owHidingMapGridCanvases.[i,j] <- c
+        canvasAdd(overworldCanvas, owHidingMapGrid, 0., 0.)
+        let hide(x,y) =
+            let hideColor = Brushes.DarkSlateGray
+            let hideOpacity = 0.7
+            let mark = new Shapes.Ellipse(Width=OMTW-2., Height=float(11*3)-2., Stroke=hideColor, StrokeThickness = 3., Fill=hideColor, Opacity=hideOpacity)
+            canvasAdd(owHidingMapGridCanvases.[x,y], mark, 0., 0.)
+        hideFeatsOfStrength <- 
+            (fun b ->  // hide feats of strength
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owInstance.PowerBraceletable(x,y) || owInstance.GravePushable(x,y) then
+                            if not b then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
+        hideRaftSpots <-
+            (fun b ->   // hide raft spots (sail not)
+                for x = 0 to 15 do
+                    for y = 0 to 7 do
+                        if owInstance.Raftable(x,y) then
+                            if not b then
+                                owHidingMapGridCanvases.[x,y].Children.Clear()
+                            else
+                                hide(x,y)
+            )
 
     // ow route drawing layer
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -646,12 +854,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     // nearby ow tiles magnified overlay
     let ENLARGE = 8.
+    let POP = 1  // width of entrance border
     let BT = 2.  // border thickness of the interior 3x3 grid of tiles
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
     let DTOCW,DTOCH = 3.*16.*ENLARGE + 4.*BT, 3.*11.*ENLARGE + 4.*BT
     let dungeonTabsOverlayContent = new Canvas(Width=DTOCW, Height=DTOCH)
     mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
-    dungeonTabsOverlay.Child <- dungeonTabsOverlayContent
+    let dtocPlusLegend = new StackPanel(Orientation=Orientation.Vertical)
+    dtocPlusLegend.Children.Add(dungeonTabsOverlayContent) |> ignore
+    let dtocLegend = new StackPanel(Orientation=Orientation.Horizontal, Background=Graphics.almostBlack)
+    for outer,inner,desc in [Brushes.Cyan, Brushes.Black, "open cave"
+                             Brushes.Black, Brushes.Cyan, "bomb spot"
+                             Brushes.Black, Brushes.Red, "burn spot"
+                             Brushes.Black, Brushes.Yellow, "recorder spot"
+                             Brushes.Black, Brushes.Magenta, "pushable spot"] do
+        let black = new Canvas(Width=ENLARGE + 2.*(float POP + 1.), Height=ENLARGE + 2.*(float POP + 1.), Background=Brushes.Black)
+        let outer = new Canvas(Width=ENLARGE + 2.*(float POP), Height=ENLARGE + 2.*(float POP), Background=outer)
+        let inner = new Canvas(Width=ENLARGE, Height=ENLARGE, Background=inner)
+        canvasAdd(black, outer, 1., 1.)
+        canvasAdd(black, inner, 1.+float POP, 1.+float POP)
+        dtocLegend.Children.Add(black) |> ignore
+        let text = new TextBox(Text=desc, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                    FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center)
+        dtocLegend.Children.Add(text) |> ignore
+    dtocPlusLegend.Children.Add(dtocLegend) |> ignore
+    dungeonTabsOverlay.Child <- dtocPlusLegend
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -668,7 +895,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                 let i,j = 
                                     if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
                                         14,5
-                                    elif owMapNum=1 && i=11 && j=0 then // second quest has dead fairy here, borrow 2,4
+                                    elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
                                         2,4
                                     elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
                                         2,4
@@ -704,7 +931,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                     c
                             bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
             // make the entrances 'pop'
-            let POP = 1  // width of border
             // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
             for x = 1 to 14 do
                 for y = 1 to 9 do
@@ -750,51 +976,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    let drawRectangleCornersHighlight(c,x,y,color) =
-        ignore(c,x,y,color)
-        (*
-        // full rectangles badly obscure routing paths, so we just draw corners
-        let L1,L2,R1,R2 = 0.0, (OMTW-4.)/2.-6., (OMTW-4.)/2.+6., OMTW-4.
-        let T1,T2,B1,B2 = 0.0, 10.0, 19.0, 29.0
-        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1, X2=L2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=T1+1.5, Y2=T1+1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=T1, Y2=T2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R1, X2=R2, Y1=B2-1.5, Y2=B2-1.5, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        let s = new System.Windows.Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=color, StrokeThickness = 3.)
-        canvasAdd(c, s, x*OMTW+2., float(y*11*3)+2.)
-        *)
-    let drawDungeonHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Yellow)
-    let drawCompletedIconHighlight(c,x,y) =
-        let rect = new System.Windows.Shapes.Rectangle(Width=15.0*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+    let trackerLocationMoused = new Event<_>()
+    let trackerDungeonMoused = new Event<_>()
+    let drawCompletedIconHighlight(c,x,y,isWider) =
+        let w = if isWider then 27.0 else 15.0
+        let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
-        let diff = if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.
+        let diff = (if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.) - (if isWider then 6.0 else 0.0)
         canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
-    let drawCompletedDungeonHighlight(c,x,y) =
-        // darkened rectangle corners
-        let yellow = System.Windows.Media.Brushes.Yellow.Color
-        let darkYellow = Color.FromRgb(yellow.R/2uy, yellow.G/2uy, yellow.B/2uy)
-        drawRectangleCornersHighlight(c,x,y,new SolidColorBrush(darkYellow))
+    let drawCompletedDungeonHighlight(c,x,y,isWider) =
         // darken the number
-        drawCompletedIconHighlight(c,x,y)
-    let drawWarpHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Orchid)
+        drawCompletedIconHighlight(c,x,y,isWider)
     let drawDarkening(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
-    let drawDungeonRecorderWarpHighlight(c,x,y) =
-        drawRectangleCornersHighlight(c,x,y,System.Windows.Media.Brushes.Lime)
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=OMTW, Height=float(11*3))
@@ -827,11 +1023,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                                 canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], BT+float x*(16.*ENLARGE+BT), BT+float y*(11.*ENLARGE+BT))
                                         if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
                                             dungeonTabsOverlay.Opacity <- 1.0
+                                        trackerLocationMoused.Trigger(DungeonUI.TrackerLocation.OVERWORLD, i, j)
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
                                         )
             c.MouseLeave.Add(fun _ -> c.Children.Remove(rect) |> ignore
+                                      trackerLocationMoused.Trigger(DungeonUI.TrackerLocation.OVERWORLD, -1, -1)
                                       dungeonTabsOverlayContent.Children.Clear()
                                       dungeonTabsOverlay.Opacity <- 0.
                                       routeDrawingCanvas.Children.Clear())
@@ -839,7 +1037,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             if owInstance.AlwaysEmpty(i,j) then
                 // already set up as permanent opaque layer, in code above, so nothing else to do
                 // except...
-                if i=9 && j=3 || i=3 && j=4 then // fairy spots
+                if i=9 && j=3 || i=3 && j=4 || (owInstance.Quest=OverworldData.OWQuest.SECOND && i=11 && j=0) then // fairy spots
                     let image = Graphics.BMPtoImage Graphics.fairy_bmp
                     canvasAdd(c, image, OMTW/2.-8., 1.)
                 if i=15 && j=5 then // ladder spot
@@ -852,7 +1050,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
                     //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got
                     doUIUpdateEvent.Publish.Add(fun _ ->          // this waits a second, which gives visual feeback when left-clicked & allows hotkeys to skip it via multi-hotkey
-                        if TrackerModel.ladderBox.PlayerHas() = TrackerModel.PlayerHas.NO then
+                        if not(TrackerModel.ladderBox.IsDone()) then
                             coastBoxOnOwGrid.Opacity <- 1.
                             coastBoxOnOwGrid.IsHitTestVisible <- true
                         else
@@ -882,10 +1080,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
                             for fe,x,y in extraDecorations do
                                 canvasAdd(c, fe, x, y)
-                    if ms.IsDungeon then
-                        drawDungeonHighlight(c,0.,0)
-                    if ms.IsWarp then
-                        drawWarpHighlight(c,0.,0)
                 let isLegalHere(state) = if state = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then owInstance.HasArmos(i,j) else true
                 let updateGridSpot delta phrase = 
                     async {
@@ -932,11 +1126,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         elif delta = 0 then 
                             ()
                         else failwith "bad delta"
-                        let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then
-                            secondQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
-                        if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then
-                            firstQuestOnlyInterestingMarks.[i,j] <- ms.IsInteresting 
                         redrawGridSpot()
                         } |> Async.StartImmediate
                 owUpdateFunctions.[i,j] <- updateGridSpot 
@@ -1022,7 +1211,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                         tileCanvas.Children.Add(dp) |> ignore
                                         ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
@@ -1090,38 +1279,34 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
     let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
-    drawDungeonHighlight(legendCanvas,0.,0)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
 
     let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
     canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.1*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.1,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.1,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.1,0,false)
     canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.5*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,2.5,0)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0)
+    drawCompletedDungeonHighlight(legendCanvas,2.5,0,false)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 4.8*OMTW, 0.)
-    drawDungeonHighlight(legendCanvas,4.8,0)
-    drawDungeonRecorderWarpHighlight(legendCanvas,4.8,0)
+    let recorderDestinationLegendIcon = shrink firstGreenDungeonBMP
+    canvasAdd(legendCanvas, recorderDestinationLegendIcon, 4.8*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    canvasAdd(legendCanvas, shrink(Graphics.theFullTileBmpTable.[9].[0]), 7.1*OMTW, 0.)
-    drawWarpHighlight(legendCanvas,7.1,0)
+    let anyRoadLegendIcon = shrink(Graphics.theFullTileBmpTable.[9].[0])
+    canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
 
-    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.7, Height=11.*3.)
+    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.45, Height=11.*3.)
     let legendStartIcon = makeStartIcon()
-    canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+8.5*OMTW/48., 0.)
+    canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+4.*OMTW/48., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", IsHitTestVisible=false)
-    canvasAdd(legendStartIconButtonCanvas, tb, 1.*OMTW, 0.)
+    canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
-    canvasAdd(legendCanvas, legendStartIconButton, 9.4*OMTW, 0.)
+    canvasAdd(legendCanvas, legendStartIconButton, 9.1*OMTW, 0.)
     let mutable popupIsActive = false
     legendStartIconButton.Click.Add(fun _ ->
         if not popupIsActive then
@@ -1179,18 +1364,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     itemProgressCanvas.MouseLeave.Add(fun _ -> hideLocator())
 
     // Version
-    let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
+    let vb = CustomComboBoxes.makeVersionButtonWithBehavior(cm)
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
-    let mutable popupIsActive = false
-    vb.Click.Add(fun _ ->
-        if not popupIsActive then
-            async {
-                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
-                popupIsActive <- false
-                if r = "Go to website" then
-                    System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
-            } |> Async.StartImmediate
-        )
 
     let HINTGRID_W, HINTGRID_H = 180., 36.
     let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,int HINTGRID_W,int HINTGRID_H)
@@ -1243,7 +1418,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let gridClickDismissalDoesMouseWarpBackToTileCenter = false
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
                 match r with
                 | Some(i) ->
                     // update model
@@ -1269,16 +1444,66 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let hintSP = new StackPanel(Orientation=Orientation.Vertical)
     hintSP.Children.Add(hintDescriptionTextBox) |> ignore
     hintSP.Children.Add(hintGrid) |> ignore
+    let makeHintText(txt) = new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, Text=txt)
+    let otherChoices = new DockPanel(LastChildFill=true)
+    let otherTB = makeHintText("There are a few other types of hints. To see them, click here:")
+    let otherButton = new Button(Content=new Label(FontSize=16., Content="Other hints"))
+    DockPanel.SetDock(otherButton, Dock.Right)
+    otherChoices.Children.Add(otherTB)|> ignore
+    otherChoices.Children.Add(otherButton)|> ignore
+    hintSP.Children.Add(otherChoices) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, tb, 530., THRU_MAP_AND_LEGEND_H + 6.)
+    canvasAdd(appMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
     let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
             let wh = new System.Threading.ManualResetEvent(false)
+            let mutable otherButtonWasClicked = false
+            otherButton.Click.Add(fun _ ->
+                otherButtonWasClicked <- true
+                wh.Set() |> ignore
+                )
             async {
                 do! CustomComboBoxes.DoModal(cm, wh, 0., 65., hintBorder)
+                if otherButtonWasClicked then
+                    wh.Reset() |> ignore
+                    let otherSP = new StackPanel(Orientation=Orientation.Vertical)
+                    let otherTopTB = makeHintText("Here are the meanings of some hints, which you need to track on your own:")
+                    otherTopTB.BorderThickness <- Thickness(0.,0.,0.,4.)
+                    otherSP.Children.Add(otherTopTB) |> ignore
+                    for desc,mean in 
+                        [|
+                        "A feat of strength will lead to...", "Either push a gravestone, or push\nan overworld rock requiring Power Bracelet"
+                        "Sail across the water...", "Raft required to reach a place"
+                        "Play a melody...", "Either an overworld recorder spot, or a\nDigdogger in a dungeon logically blocks..."
+                        "Fire the arrow...", "In a dungeon, Gohma logically blocks..."
+                        "Cross the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
+                        |] do
+                        let dp = new DockPanel(LastChildFill=true)
+                        let d = makeHintText(desc)
+                        d.Width <- 240.
+                        dp.Children.Add(d) |> ignore
+                        let m = makeHintText(mean)
+                        DockPanel.SetDock(m, Dock.Right)
+                        dp.Children.Add(m) |> ignore
+                        otherSP.Children.Add(dp) |> ignore
+                    let otherBottomTB = makeHintText("Here are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
+                    otherBottomTB.BorderThickness <- Thickness(0.,4.,0.,4.)
+                    otherSP.Children.Add(otherBottomTB) |> ignore
+                    let featsCheckBox  = new CheckBox(Content=makeHintText("No feat of strength... (Power Bracelet / pushing graves not required)"))
+                    featsCheckBox.IsChecked <- System.Nullable.op_Implicit featsAreHidden
+                    featsCheckBox.Checked.Add(fun _ -> featsAreHidden <- true; hideFeatsOfStrength true)
+                    featsCheckBox.Unchecked.Add(fun _ -> featsAreHidden <- false; hideFeatsOfStrength false)
+                    otherSP.Children.Add(featsCheckBox) |> ignore
+                    let raftsCheckBox  = new CheckBox(Content=makeHintText("Sail not... (Raft not required)"))
+                    raftsCheckBox.IsChecked <- System.Nullable.op_Implicit raftsAreHidden
+                    raftsCheckBox.Checked.Add(fun _ -> raftsAreHidden <- true; hideRaftSpots true)
+                    raftsCheckBox.Unchecked.Add(fun _ -> raftsAreHidden <- false; hideRaftSpots false)
+                    otherSP.Children.Add(raftsCheckBox) |> ignore
+                    let otherHintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=otherSP)
+                    do! CustomComboBoxes.DoModal(cm, wh, 0., 65., otherHintBorder)
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
@@ -1289,25 +1514,70 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
     kitty.Width <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
-    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width, THRU_MAIN_MAP_H)
+    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width - 12., THRU_MAIN_MAP_H)
+    let ztlogo = new Image()
+    let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
+    ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+    ztlogo.Width <- 40.
+    ztlogo.Height <- 40.
+    let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
+    canvasAdd(appMainCanvas, logoBorder, 16.*OMTW - ztlogo.Width - 2., THRU_MAIN_MAP_H + kitty.Height - ztlogo.Height - 6.)
 
     // show hotkeys button
-    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show\nHotKeys", IsHitTestVisible=false)
+    let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show HotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
-    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 60., THRU_MAIN_MAP_H)
-    showHotKeysButton.Click.Add(fun _ ->
-        let p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
+    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H)
+    let showHotKeys(isRightClick) =
+        let none,p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
         w.Title <- "Z-Tracker HotKeys"
         w.Owner <- Application.Current.MainWindow
         w.Content <- p
-        p.Measure(Size(1280., 720.))
-        w.Width <- p.DesiredSize.Width + 16.
-        w.Height <- p.DesiredSize.Height + 40.
-        w.SizeChanged.Add(fun _ -> refocusMainWindow())
-        w.LocationChanged.Add(fun _ -> refocusMainWindow())
+        let save() = 
+            TrackerModel.Options.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
+            TrackerModel.Options.writeSettings()
+        let leftTopWidthHeight = TrackerModel.Options.HotKeyWindowLTWH
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
+        if not none && not isRightClick && matches.Success then
+            w.Left <- float matches.Groups.[1].Value
+            w.Top <- float matches.Groups.[2].Value
+            w.Width <- float matches.Groups.[3].Value
+            w.Height <- float matches.Groups.[4].Value
+        else
+            p.Measure(Size(1280., 720.))
+            w.Width <- p.DesiredSize.Width + 16.
+            w.Height <- p.DesiredSize.Height + 40.
+        w.SizeChanged.Add(fun _ -> save(); refocusMainWindow())
+        w.LocationChanged.Add(fun _ -> save(); refocusMainWindow())
         w.Show()
-        )
+    showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
+    showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
+
+    // show/run custom button
+    let showRunCustomTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
+                                        Text="Show/Run\nCustom", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
+    let showRunCustomButton = new Button(Content=showRunCustomTB)
+    canvasAdd(appMainCanvas, showRunCustomButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 22.)
+    showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
+    //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
+
+#if NOT_RACE_LEGAL
+    // minimap overlay button
+    let minimapOverlayTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Minimap overlay", IsHitTestVisible=false)
+    let minimapOverlayButton = new Button(Content=minimapOverlayTB)
+    canvasAdd(appMainCanvas, minimapOverlayButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 22.)
+    let mutable minimapOverlay = fun _irc -> ()
+    minimapOverlayButton.Click.Add(fun _ -> minimapOverlay(false))
+    minimapOverlayButton.MouseRightButtonDown.Add(fun _ -> minimapOverlay(true))
+
+    // near-mouse HUD button
+    let nearMouseHUDTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Near-mouse HUD", IsHitTestVisible=false)
+    let nearMouseHUDButton = new Button(Content=nearMouseHUDTB)
+    canvasAdd(appMainCanvas, nearMouseHUDButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 44.)
+    let mutable nearMouseHUD = fun _irc -> ()
+    nearMouseHUDButton.Click.Add(fun _ -> nearMouseHUD(false))
+    nearMouseHUDButton.MouseRightButtonDown.Add(fun _ -> nearMouseHUD(true))
+#endif
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -1421,23 +1691,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
                 if isCompleted then
-                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y)
-                // highlight any triforce dungeons as recorder warp destinations
-                if TrackerModel.playerComputedStateSummary.HaveRecorder && hasTri then
-                    drawDungeonRecorderWarpHighlight(recorderingCanvas,float x,y)
+                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y,(TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar<>'?'))
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Armos(x,y) = 
-                if TrackerModel.armosBox.PlayerHas() <> TrackerModel.PlayerHas.NO then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten armos icon
+                if TrackerModel.armosBox.IsDone() then
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten armos icon
             member _this.Sword3(x,y) = 
                 if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten magic sword cave icon
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
-                if TrackerModel.sword2Box.PlayerHas() <> TrackerModel.PlayerHas.NO then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y)  // darken a gotten white sword item cave icon
+                if TrackerModel.sword2Box.IsDone() then
+                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten white sword item cave icon
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
@@ -1470,7 +1737,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             mainTrackerCanvases.[i,j].Children.Add(mainTrackerCanvasShaders.[i,j]) |> ignore
                     // blockers ui
                     if a.[i] then
-                        blockerDungeonSunglasses.[i].Opacity <- 0.5
+                        blockerDungeonSunglasses.[i].Opacity <- 0.3
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
@@ -1480,7 +1747,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if n = 1 then
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon", icons) 
                 elif n = 9 then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
+                    if TrackerModel.mapStateSummary.Sword2Location = TrackerModel.NOTFOUND   // if sword2 cave not found on overworld map,
+                            && TrackerModel.sword2Box.CellCurrent() = -1 then                // and the tracker box is still empty (some people might not mark map, but will mark item)
+                        let greyedSword2 = upcb(Graphics.greyscale(Graphics.theInteriorBmpTable.[14].[0]))
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons, but the white sword cave is still missing", 
+                                        [yield! icons; yield greyedSword2])
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
                 else
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n, icons) 
             member _this.AnnounceTriforceCount(n) = 
@@ -1643,8 +1916,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
+    let levelTabSelected = new Event<_>()
     let dungeonTabs,grabModeTextBlock = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, TH, rightwardCanvas, (fun level ->
+        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, trackerDungeonMoused, TH, rightwardCanvas, levelTabSelected, mainTrackerGhostbusters, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
                 // when mouse in a dungeon map, show its location...
@@ -1659,21 +1933,32 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
     // blockers
+    let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
+                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.4)
+                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.6)
+                                                  new GradientStop(Color.FromArgb(255uy, 180uy, 60uy, 60uy), 1.0)
+                                                 ])
+    let blocker_brush = new LinearGradientBrush(blocker_gsc, Point(0.,0.), Point(1.,1.))
     let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
             let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
-            c.Children.Add(rect) |> ignore
-            let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
-            c.Children.Add(innerc) |> ignore
-            let redraw(n) =
-                innerc.Children.Clear()
-                let bmp = Graphics.blockerCurrentBMP(n)
-                if bmp <> null then
-                    let image = Graphics.BMPtoImage(bmp)
-                    image.IsHitTestVisible <- false
-                    canvasAdd(innerc, image, 4., 4.)
-                innerc
+            let redraw(n) = 
+                c.Children.Clear()
+                match n with
+                | TrackerModel.DungeonBlocker.MAYBE_LADDER 
+                | TrackerModel.DungeonBlocker.MAYBE_RECORDER
+                | TrackerModel.DungeonBlocker.MAYBE_BAIT
+                | TrackerModel.DungeonBlocker.MAYBE_BOMB
+                | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW
+                | TrackerModel.DungeonBlocker.MAYBE_KEY
+                | TrackerModel.DungeonBlocker.MAYBE_MONEY
+                    -> rect.Stroke <- blocker_brush
+                | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
+                | _ -> rect.Stroke <- Brushes.LightGray
+                c.Children.Add(rect) |> ignore
+                canvasAdd(c, Graphics.blockerCurrentBMP(n) , 3., 3.)
+                c
             c, redraw
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
@@ -1695,14 +1980,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 DockPanel.SetDock(textBorder, Dock.Right)
                 dp.Children.Add(textBorder) |> ignore
                 Canvas.SetTop(dp, 30.)
-                Canvas.SetRight(dp, 90.)
+                Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
+            let canBeBlocked(db:TrackerModel.DungeonBlocker) =
+                match db.HardCanonical() with
+                | TrackerModel.DungeonBlocker.LADDER -> not TrackerModel.playerComputedStateSummary.HaveLadder
+                | TrackerModel.DungeonBlocker.RECORDER -> not TrackerModel.playerComputedStateSummary.HaveRecorder
+                | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> not (TrackerModel.playerComputedStateSummary.HaveBow && TrackerModel.playerComputedStateSummary.ArrowLevel > 0)
+                | TrackerModel.DungeonBlocker.KEY -> not TrackerModel.playerComputedStateSummary.HaveAnyKey
+                | _ -> true
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.BMPtoImage(Graphics.blockerCurrentBMP(db))), true, db), 
-                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (3, 3, 21, 21), -60., 30., popupRedraw,
-                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true)
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), canBeBlocked(db), db), 
+                                Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
+                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                 match r with
                 | Some(db) -> SetNewValue(db)
                 | None -> () 
@@ -1725,6 +2017,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
+    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(45uy, 45uy, 45uy))
     blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
@@ -1739,10 +2032,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
                 let d = new DockPanel(LastChildFill=false)
+                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=30., IsHitTestVisible=false,
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
-                                        TextAlignment=TextAlignment.Right, Margin=Thickness(0.,0.,6.,0.))
+                                        TextAlignment=TextAlignment.Right, Margin=Thickness(20.,0.,6.,0.))
                 sp.Children.Add(tb) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonIndex, 0)) |> ignore
                 sp.Children.Add(makeBlockerBox(dungeonIndex, 1)) |> ignore
@@ -1757,7 +2051,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     tb.FontSize <- 24.
     tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
     tb.Background <- System.Windows.Media.Brushes.Black 
-    tb.Text <- "Notes\n"
+    let notesFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Notes.txt")
+    if not(System.IO.File.Exists(notesFilename)) then
+        tb.Text <- "Notes\n"
+    else
+        tb.Text <- System.IO.File.ReadAllText(notesFilename)
     tb.AcceptsReturn <- true
     canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
@@ -1808,13 +2106,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),  // may change with OMTW and overall layout
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
-            mirrorOverworldFEs.Add(tb)
             tb.Opacity <- 0.0
             tb.IsHitTestVisible <- false // transparent to mouse
             owCoordsTBs.[i,j] <- tb
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, tb, 2., 6.)
             gridAdd(owCoordsGrid, c, i, j) 
+    mirrorOverworldFEs.Add(owCoordsGrid)
     canvasAdd(overworldCanvas, owCoordsGrid, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showCoords)
@@ -1937,6 +2235,124 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
 
+    do
+        let mouseHoverExplainerIcon = new Button(Content=(Graphics.greyscale(Graphics.question_marks_bmp) |> Graphics.BMPtoImage))
+        canvasAdd(appMainCanvas, mouseHoverExplainerIcon, 540., 0.)
+        let c = new Canvas(Width=appMainCanvas.Width, Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, Opacity=0., IsHitTestVisible=false)
+        canvasAdd(appMainCanvas, c, 0., 0.)
+        let darkenTop = new Canvas(Width=OMTW*16., Height=150., Background=Brushes.Black, Opacity=0.40)
+        canvasAdd(c, darkenTop, 0., 0.)
+        let darkenOW = new Canvas(Width=OMTW*16., Height=11.*3.*8., Background=Brushes.Black, Opacity=0.85)
+        canvasAdd(c, darkenOW, 0., 150.)
+        let darkenBottom = new Canvas(Width=OMTW*16., Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H, Background=Brushes.Black, Opacity=0.40)
+        canvasAdd(c, darkenBottom, 0., 150.+11.*3.*8.)
+
+        let desc = new TextBox(Text="Mouse Hover Explainer",FontSize=30.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        canvasAdd(c, desc, 450., 370.)
+
+        let delayedDescriptions = ResizeArray()
+        let mkTxt(text) = new TextBox(Text=text,FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(1.0),IsReadOnly=true)
+        let addLabel(poly:Shapes.Polyline, text, x, y) =
+            poly.Points.Add(Point(x,y))
+            canvasAdd(c, poly, 0., 0.)
+            delayedDescriptions.Add(c, mkTxt(text), x, y)
+
+        let ST = 2.0
+        let COL = Brushes.Green
+        let triforces = 
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,58.; 268.,58.; 268.,32.; 528.,32.; 528.,2.; 2.,2.; 2.,58. ] |> Seq.map Point ))
+            else
+                new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,58.; 268.,58.; 268.,32.; 2.,32.; 2.,58. ] |> Seq.map Point ))
+        addLabel(triforces, "Show location of dungeon, if known or hinted", 10., 300.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+        let whiteSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(whiteSword, "Show location of white sword cave, if known or hinted", 30., 270.)
+
+        let COL = Brushes.CornflowerBlue
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
+        let armos = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(armos, "Show locations of any unmarked armos", 120., 240.)
+
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
+        let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 98.,28.; 98.,2.; 58.,2.; 58.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(shopping, "Show locations of shops containing each item", 400., 240.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
+        let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(shopping, "If have no candle, show locations of shops with blue candle\nElse show unmarked burnable bush locations", 380., 270.)
+
+        let COL = Brushes.Green
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
+        let magsAndWoodSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 58.,28.; 58.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(magsAndWoodSword, "Show locations of magical/wood sword caves, if known or hinted", 300., 210.)
+
+        let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.HEARTS)
+        let hearts = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 118.,28.; 118.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        hearts.Points.Add(Point(270.,170.))
+        canvasAdd(c, hearts, 0., 0.)
+        let desc = mkTxt("Show locations of potion shops\nand un-taken Take Anys")
+        desc.TextAlignment <- TextAlignment.Right
+        Canvas.SetRight(desc, c.Width-270.)
+        Canvas.SetTop(desc, 170.)
+        c.Children.Add(desc) |> ignore
+
+        let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 542.,138.; 558.,138.; 558.,122.; 542.,122.; 542.,138. ] |> Seq.map Point))
+        addLabel(openCaves, "Show locations of unmarked open caves", 430., 180.)
+
+        let COL = Brushes.MediumVioletRed
+        let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 476.,92.; 436.,92.; 436.,130.; 535.,130.; 535.,116.; 550.,116.; 550.,50. ] |> Seq.map Point))
+        addLabel(zonesEtAl, "As described", 600., 150.)
+
+        let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 600.,150. ] |> Seq.map Point))
+        canvasAdd(c, spotSummary, 0., 0.)
+
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25., THRU_MAP_AND_LEGEND_H
+        let candle = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 28.,28.; 28.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        candle.Points.Add(Point(120.,410.))
+        canvasAdd(c, candle, 0., 0.)
+        let desc = mkTxt("Show Burnables")
+        Canvas.SetRight(desc, c.Width-120.)
+        Canvas.SetTop(desc, 390.)
+        c.Children.Add(desc) |> ignore
+        let COL = Brushes.CornflowerBlue
+        let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25.+7.*30., THRU_MAP_AND_LEGEND_H-2.
+        let others = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 118.,28.; 118.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        others.Points.Add(Point(330.,405.))
+        canvasAdd(c, others, 0., 0.)
+        let desc = mkTxt("Show Ladderable/Recorderable/\nPowerBraceletable/Raftable")
+        desc.TextAlignment <- TextAlignment.Right
+        Canvas.SetRight(desc, c.Width-330.)
+        Canvas.SetTop(desc, 370.)
+        c.Children.Add(desc) |> ignore
+        let COL = Brushes.MediumVioletRed
+        let dx,dy = LEFT_OFFSET + 4.8*OMTW + 15., THRU_MAIN_MAP_H + 3.
+        let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        recorderDest.Points.Add(Point(330.,340.))
+        canvasAdd(c, recorderDest, 0., 0.)
+        let desc = mkTxt("Show recorder destinations")
+        Canvas.SetRight(desc, c.Width-330.)
+        Canvas.SetTop(desc, 340.)
+        c.Children.Add(desc) |> ignore
+        let COL = Brushes.Green
+        let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
+        let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+        addLabel(anyRoad, "Show Any Roads", 430., 340.)
+
+        for dd in delayedDescriptions do   // ensure these drow atop all the PolyLines
+            canvasAdd(dd)
+
+        mouseHoverExplainerIcon.MouseEnter.Add(fun _ -> 
+            c.Opacity <- 1.0
+            )
+        mouseHoverExplainerIcon.MouseLeave.Add(fun _ -> 
+            c.Opacity <- 0.0
+            )
+
     let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owLocatorTilesZone = Array2D.zeroCreate 16 8
     let owLocatorCanvas = new Canvas()
@@ -2028,6 +2444,33 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
                     owLocatorTilesZone.[i,j].MakeGreen()
         )
+    showLocatorPotionAndTakeAny <- (fun () ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
+                    (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    recorderDestinationLegendIcon.MouseEnter.Add(fun _ ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if TrackerModel.playerComputedStateSummary.HaveRecorder && MapStateProxy(cur).IsDungeon && TrackerModel.GetDungeon(cur).PlayerHasTriforce() then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    recorderDestinationLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
+    anyRoadLegendIcon.MouseEnter.Add(fun _ ->
+        routeDrawingCanvas.Children.Clear()
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur >= TrackerModel.MapSquareChoiceDomainHelper.WARP_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.WARP_4 then
+                    owLocatorTilesZone.[i,j].MakeGreen()
+        )
+    anyRoadLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
     showLocator <- (fun sld ->
         match sld with
         | ShowLocatorDescriptor.DungeonNumber(n) ->
@@ -2215,8 +2658,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         broadcastWindow.ResizeMode <- ResizeMode.NoResize
         broadcastWindow.SizeToContent <- SizeToContent.Manual
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
-        broadcastWindow.Left <- 0.0
-        broadcastWindow.Top <- 0.0
+        let leftTop = TrackerModel.Options.BroadcastWindowLT
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
+        if matches.Success then
+            broadcastWindow.Left <- float matches.Groups.[1].Value
+            broadcastWindow.Top <- float matches.Groups.[2].Value
+        broadcastWindow.LocationChanged.Add(fun _ ->
+            TrackerModel.Options.BroadcastWindowLT <- sprintf "%d,%d" (int broadcastWindow.Left) (int broadcastWindow.Top)
+            TrackerModel.Options.writeSettings()
+            )
         broadcastWindow.Width <- (if size=1 then 256. elif size=2 then 512. else 768.) + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
@@ -2364,6 +2814,383 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             broadcastWindow.Show()
             refocusMainWindow()
         )
+
+    // near-mouse HUD
+    let mutable nearMouseHUDChromeWindow = null : Window
+    let makeOverlayWindow(_isRightClick) = // todo: save location/size/position/stayfade, use right click to reset defaults
+        if nearMouseHUDChromeWindow <> null then
+            nearMouseHUDChromeWindow.Close() // only one at a time
+        nearMouseHUDChromeWindow <- new Window(Title="Z-Tracker near-mouse HUD controls", ResizeMode=ResizeMode.CanMinimize, SizeToContent=SizeToContent.WidthAndHeight, 
+                                                WindowStartupLocation=WindowStartupLocation.CenterOwner,
+                                                Owner=Application.Current.MainWindow, Background=Brushes.Black)
+        let mutable lastMouse = DateTime.Now
+        let mutable maxOpacity = 1.0
+        let mutable oW, oH, oStay, oFade = ref 250., ref 250., ref 1000., ref 1300.
+
+        // controls layout
+        let mkTxt(txt) = new TextBox(FontSize=16., Foreground=Brushes.Lime, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text=txt)
+        let mutable doUpdate = fun () -> ()
+        let edit(tb:TextBox, label:TextBox, least, update:float ref) = 
+            tb.BorderThickness <- Thickness(1.)
+            tb.IsReadOnly <- false
+            tb.IsHitTestVisible <- true
+            tb.Width <- 80.
+            tb.TextChanged.Add(fun _ ->
+                try
+                    let r = float tb.Text
+                    if r >= least then
+                        label.Foreground <- Brushes.Lime
+                        update := r
+                        doUpdate()
+                    else
+                        label.Foreground <- Brushes.Red
+                with _ -> 
+                    label.Foreground <- Brushes.Red
+                )
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        let topButtons = new DockPanel(LastChildFill=false)
+        let topLeftButton = new Button(Content=mkTxt("Put HUD above"))
+        topButtons.Children.Add(topLeftButton) |> ignore
+        DockPanel.SetDock(topLeftButton, Dock.Left)
+        let topRightButton = new Button(Content=mkTxt("Put HUD above"))
+        topButtons.Children.Add(topRightButton) |> ignore
+        DockPanel.SetDock(topRightButton, Dock.Right)
+        sp.Children.Add(topButtons) |> ignore
+        let spacer() = sp.Children.Add(new DockPanel(Height=10.)) |> ignore
+        spacer()
+        sp.Children.Add(mkTxt("Move this control window to position the HUD.\n(Click corner buttons if needed.)\nYou can minimize this control window once\nthe HUD is positioned where you want it.")) |> ignore
+        spacer()
+        let spWH = new StackPanel(Orientation=Orientation.Horizontal)
+        let size = mkTxt("HUD Size -- ")
+        let widthLabel = mkTxt("Width:")
+        let widthInput = mkTxt((!oW).ToString())
+        let heightLabel = mkTxt("   Height:")
+        let heightInput = mkTxt((!oH).ToString())
+        edit(widthInput, widthLabel, 20., oW)
+        edit(heightInput, heightLabel, 20., oH)
+        spWH.Children.Add(size) |> ignore
+        spWH.Children.Add(widthLabel) |> ignore
+        spWH.Children.Add(widthInput) |> ignore
+        spWH.Children.Add(heightLabel) |> ignore
+        spWH.Children.Add(heightInput) |> ignore
+        sp.Children.Add(spWH) |> ignore
+        spacer()
+        let opacityLabel = mkTxt("Max Opacity:")
+        sp.Children.Add(opacityLabel) |> ignore
+        let slider = new Slider(Orientation=Orientation.Horizontal, Maximum=100., TickFrequency=10., TickPlacement=Primitives.TickPlacement.Both, IsSnapToTickEnabled=false, Width=400.)
+        slider.Value <- maxOpacity * slider.Maximum
+        slider.ValueChanged.Add(fun _ -> lastMouse <- DateTime.Now; maxOpacity <- slider.Value / 100.)
+        sp.Children.Add(slider) |> ignore
+        spacer()
+        sp.Children.Add(mkTxt("After each mouse move in the tracker,\nHUD will stay at Max Opacity for 'Stay'ms, then\nfade out completely after 'Fade'ms.\nFor 'always on' mode, set 'Fade' to 0.")) |> ignore
+        spacer()
+        let spSF = new StackPanel(Orientation=Orientation.Horizontal)
+        let stayLabel = mkTxt("Stay(ms):")
+        let stayInput = mkTxt((!oStay).ToString())
+        let fadeLabel = mkTxt("   Fade(ms):")
+        let fadeInput = mkTxt((!oFade).ToString())
+        edit(stayInput, stayLabel, 0., oStay)
+        edit(fadeInput, fadeLabel, 0., oFade)
+        spSF.Children.Add(stayLabel) |> ignore
+        spSF.Children.Add(stayInput) |> ignore
+        spSF.Children.Add(fadeLabel) |> ignore
+        spSF.Children.Add(fadeInput) |> ignore
+        sp.Children.Add(spSF) |> ignore
+        spacer()
+        let bottomButtons = new DockPanel(LastChildFill=false)
+        let bottomLeftButton = new Button(Content=mkTxt("Put HUD below"))
+        (bottomLeftButton.Content :?> TextBox).Background <- Brushes.Green
+        bottomButtons.Children.Add(bottomLeftButton) |> ignore
+        DockPanel.SetDock(bottomLeftButton, Dock.Left)
+        let bottomRightButton = new Button(Content=mkTxt("Put HUD below"))
+        bottomButtons.Children.Add(bottomRightButton) |> ignore
+        DockPanel.SetDock(bottomRightButton, Dock.Right)
+        sp.Children.Add(bottomButtons) |> ignore
+
+        nearMouseHUDChromeWindow.Content <- new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(2.), Child=sp)
+        nearMouseHUDChromeWindow.Show()
+        
+        let W = appMainCanvas.Width
+        let nearMouseHUDWindow = new Window(Title="Z-Tracker near-mouse HUD", ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.Manual, Owner=Application.Current.MainWindow, 
+                                        Background=Brushes.Black, WindowStyle=WindowStyle.None, AllowsTransparency=true, Opacity=maxOpacity, Topmost=true)
+        nearMouseHUDWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+        nearMouseHUDWindow.Left <- 0.0
+        nearMouseHUDWindow.Top <- 0.0
+
+        let makeViewRect(upperLeft:Point, lowerRight:Point) =
+            let vb = new VisualBrush(cm.RootCanvas)
+            vb.ViewboxUnits <- BrushMappingMode.Absolute
+            vb.Viewbox <- Rect(upperLeft, lowerRight)
+            vb.Stretch <- Stretch.None
+            let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
+            bwRect.Fill <- vb
+            bwRect
+
+        let c = new Canvas()
+        let wholeView = makeViewRect(Point(0.,0.), Point(W,appMainCanvas.Height))
+        canvasAdd(c, wholeView, 0., 0.)
+
+        let addFakeMouse(c:Canvas) =
+            let fakeMouse = new Shapes.Polygon(Fill=Brushes.White)
+            fakeMouse.Points <- new PointCollection([Point(0.,0.); Point(12.,6.); Point(6.,12.)])
+            c.Children.Add(fakeMouse) |> ignore
+            fakeMouse
+        let fakeMouse = addFakeMouse(c)
+        doUpdate <- fun () ->
+            nearMouseHUDWindow.Width <- !oW
+            nearMouseHUDWindow.Height <- !oH
+            Canvas.SetLeft(fakeMouse, !oW / 2.)
+            Canvas.SetTop(fakeMouse, !oH / 2.)
+        doUpdate()
+
+        let dp = new DockPanel(Width=W)
+        dp.UseLayoutRounding <- true
+        dp.Children.Add(c) |> ignore
+        let borderForLocationMoveSetup = new Border(BorderBrush=Brushes.Transparent, BorderThickness=Thickness(1.), Child=dp)
+        nearMouseHUDWindow.Content <- borderForLocationMoveSetup
+    
+        cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
+            let mousePos = ea.GetPosition(appMainCanvas)
+            Canvas.SetLeft(wholeView, (!oW / 2.) - mousePos.X)
+            Canvas.SetTop(wholeView, (!oH / 2.) - mousePos.Y)
+            lastMouse <- DateTime.Now
+            )
+
+        let mutable which = 0  // 0 = bottom left, 1 = bottom right, 2 = top left, 3 = top right
+        let moveWindow() =
+            if which = 0 then
+                nearMouseHUDWindow.Left <- nearMouseHUDChromeWindow.Left + 8.
+                nearMouseHUDWindow.Top <- nearMouseHUDChromeWindow.Top + nearMouseHUDChromeWindow.Height
+            elif which = 1 then
+                nearMouseHUDWindow.Left <- nearMouseHUDChromeWindow.Left - 8. + nearMouseHUDChromeWindow.Width - nearMouseHUDWindow.Width
+                nearMouseHUDWindow.Top <- nearMouseHUDChromeWindow.Top + nearMouseHUDChromeWindow.Height
+            elif which = 2 then
+                nearMouseHUDWindow.Left <- nearMouseHUDChromeWindow.Left + 8.
+                nearMouseHUDWindow.Top <- nearMouseHUDChromeWindow.Top - 8. - nearMouseHUDWindow.Height
+            else
+                nearMouseHUDWindow.Left <- nearMouseHUDChromeWindow.Left - 8. + nearMouseHUDChromeWindow.Width - nearMouseHUDWindow.Width
+                nearMouseHUDWindow.Top <- nearMouseHUDChromeWindow.Top - 8. - nearMouseHUDWindow.Height
+            borderForLocationMoveSetup.BorderBrush <- Brushes.Gray
+            lastMouse <- DateTime.Now
+        let all = [bottomLeftButton; bottomRightButton; topLeftButton; topRightButton]
+        for n,b in [0,bottomLeftButton; 1,bottomRightButton; 2,topLeftButton; 3,topRightButton] do
+            b.Click.Add(fun _ ->
+                which <- n
+                for x in all do 
+                    (x.Content :?> TextBox).Background <- Brushes.Black
+                (b.Content :?> TextBox).Background <- Brushes.Green
+                moveWindow()
+                )
+        nearMouseHUDChromeWindow.LocationChanged.Add(fun _ea ->
+            //if overlayChromeWindow.WindowState = WindowState.Normal then  // dont update when Minimized
+            if nearMouseHUDChromeWindow.Left <> -32000. then  // dont update when Minimized
+                moveWindow()
+            )
+        nearMouseHUDChromeWindow.Closed.Add(fun _ -> nearMouseHUDWindow.Close())
+
+        let timer = new System.Windows.Threading.DispatcherTimer()
+        timer.Interval <- TimeSpan.FromMilliseconds(100.0)
+        timer.Tick.Add(fun _ -> 
+            if !oFade = 0.0 then
+                nearMouseHUDWindow.Opacity <- maxOpacity
+            else
+                let diffms = (DateTime.Now - lastMouse).TotalMilliseconds |> float
+                if diffms < !oStay then
+                    nearMouseHUDWindow.Opacity <- maxOpacity
+                elif diffms < !oFade then
+                    let pct = (diffms - !oStay) / (!oFade - !oStay)
+                    nearMouseHUDWindow.Opacity <- maxOpacity * (1.0 - pct)
+                else
+                    nearMouseHUDWindow.Opacity <- 0.
+            borderForLocationMoveSetup.BorderBrush <- Brushes.Transparent
+            )
+        timer.Start()
+
+        nearMouseHUDWindow.Show()
+        moveWindow()
+#if NOT_RACE_LEGAL
+    nearMouseHUD <- fun (isRightClick) -> makeOverlayWindow(isRightClick)
+#endif
+
+    let mutable minimapOverlayWindow = null : Window
+    let makeMinimapOverlay(isRightClick) =
+        if minimapOverlayWindow <> null then
+            minimapOverlayWindow.Close() // only one at a time
+        minimapOverlayWindow <- new Window(Title="Z-Tracker minimap overlay", ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.Manual,
+                                                WindowStartupLocation=WindowStartupLocation.Manual, Owner=Application.Current.MainWindow,
+                                                Background=Brushes.Transparent, WindowStyle=WindowStyle.None, AllowsTransparency=true,
+                                                Opacity=1.0, Topmost=true)
+        let init() =
+            let W, H = minimapOverlayWindow.Width, minimapOverlayWindow.Height
+            let entireCanvas = new Canvas(Width=W, Height=H)
+            let minimapCanvas = new Canvas(Width=W, Height=H)
+            let GRIDCOLOR = Brushes.Gray
+            let vs = Array.init 9 (fun i ->
+                let x = (48.+24.*float(i)) * W / 768.
+                new Shapes.Line(Stroke=GRIDCOLOR, StrokeThickness=1.0, X1=x, X2=x, Y1=48.*H/672., Y2=(48.+12.*8.)*H/672.)
+                )
+            let hs = Array.init 9 (fun j ->
+                let y = (48.+12.*float(j)) * H / 672.
+                new Shapes.Line(Stroke=GRIDCOLOR, StrokeThickness=1.0, X1=48.*W/768., X2=(48.+24.*8.)*W/768., Y1=y, Y2=y)
+                )
+            let drect = 
+                let c = new Canvas(Width=24.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=0.0)
+                b
+            let orect = 
+                let c = new Canvas(Width=12.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=0.0)
+                b
+            let oLegendRect = 
+                let c = new Canvas(Width=12.*W/768. - 2., Height=12.*H/672. - 2.)
+                let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Child=c, Opacity=1.0, Height=12.*H/672. - 2. + 6.)
+                b
+            let mkTxt(txt) = new TextBox(FontSize=oLegendRect.Height, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text=txt)
+            let oText1 = mkTxt("Z-Tracker mouse ")
+            let oText2 = mkTxt(" at H16")
+            let oCaption = new StackPanel(Orientation=Orientation.Horizontal, Opacity=0.0)
+            oCaption.Children.Add(oText1) |> ignore
+            oCaption.Children.Add(oLegendRect) |> ignore
+            oCaption.Children.Add(oText2) |> ignore
+            canvasAdd(minimapCanvas, oCaption, 48.*W/768., 144.*H/672. + 2.)
+            for i = 0 to 8 do
+                canvasAdd(minimapCanvas, vs.[i], 0., 0.)
+                canvasAdd(minimapCanvas, hs.[i], 0., 0.)
+            canvasAdd(minimapCanvas, drect, 0., 0.)
+            canvasAdd(minimapCanvas, orect, 0., 0.)
+            trackerLocationMoused.Publish.Add(fun (tl,i,j) ->
+                if i = -1 then
+                    minimapCanvas.Opacity <- 0.0
+                    drect.Opacity <- 0.0
+                    orect.Opacity <- 0.0
+                    oCaption.Opacity <- 0.0
+                else
+                    match tl with
+                    | DungeonUI.TrackerLocation.DUNGEON ->
+                        minimapCanvas.Opacity <- 1.0
+                        drect.Opacity <- 1.0
+                        orect.Opacity <- 0.0
+                        oCaption.Opacity <- 0.0
+                        Canvas.SetLeft(drect, (48.+24.*float(i)) * W / 768. - 2.)
+                        Canvas.SetTop(drect, (48.+12.*float(j)) * H / 672. - 2.)
+                    | DungeonUI.TrackerLocation.OVERWORLD ->
+                        minimapCanvas.Opacity <- 1.0
+                        drect.Opacity <- 0.0
+                        orect.Opacity <- 1.0
+                        oCaption.Opacity <- 1.0
+                        let i = if displayIsCurrentlyMirrored then 16-i else i+1
+                        oText2.Text <- sprintf " at %c%d" ("ABCDEFGH".[j]) i
+                        Canvas.SetLeft(orect, (48.+12.*float(i-1)) * W / 768. - 2.)
+                        Canvas.SetTop(orect, (48.+12.*float(j)) * H / 672. - 2.)
+                )
+            let pauseScreenMapCanvas = new Canvas(Width=W, Height=H, Opacity=0.0)
+            let left = 384. * W / 768.
+            let top = 285. * H / 672.
+            let width = 8. * 24. * W / 768.
+            let height = ((8. * 24.) - 6.) * H / 672.
+            let heightWithHeader = height * float(TH + 27*8 + 12*7) / float(27*8 + 12*7)
+            let topWithHeader = top - (heightWithHeader - height)
+            let rect = new Shapes.Rectangle(Width=width, Height=heightWithHeader, Stroke=Brushes.Gray, StrokeThickness=1.)
+            canvasAdd(pauseScreenMapCanvas, rect, left, topWithHeader)
+            trackerDungeonMoused.Publish.Add(fun (vb:VisualBrush) ->
+                if vb = null then
+                    pauseScreenMapCanvas.Opacity <- 0.0
+                else
+                    rect.Fill <- vb
+                    pauseScreenMapCanvas.Opacity <- 0.6
+                )
+            //c.UseLayoutRounding <- true
+            //let outerBorder = new Border(BorderBrush=Brushes.Lime, BorderThickness=Thickness(1.), Child=c, Opacity=1.0)  // for help debugging
+            //overlayLocatorWindow.Content <- outerBorder
+            canvasAdd(entireCanvas, minimapCanvas, 0., 0.)
+            canvasAdd(entireCanvas, pauseScreenMapCanvas, 0., 0.)
+            minimapOverlayWindow.Content <- entireCanvas
+        // 768   48 72 ...
+        // 672   48 60 ...
+
+        let sizerWindow = new Window()
+        sizerWindow.Title <- "Z-Tracker sizer"
+        sizerWindow.ResizeMode <- ResizeMode.CanResize
+        sizerWindow.SizeToContent <- SizeToContent.Manual
+        let save() = 
+            TrackerModel.Options.OverlayLocatorWindowLTWH <- sprintf "%d,%d,%d,%d" (int sizerWindow.Left) (int sizerWindow.Top) (int sizerWindow.Width) (int sizerWindow.Height)
+            TrackerModel.Options.writeSettings()
+        let leftTopWidthHeight = TrackerModel.Options.OverlayLocatorWindowLTWH
+        let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
+        if not isRightClick && matches.Success then
+            sizerWindow.Left <- float matches.Groups.[1].Value
+            sizerWindow.Top <- float matches.Groups.[2].Value
+            sizerWindow.Width <- float matches.Groups.[3].Value
+            sizerWindow.Height <- float matches.Groups.[4].Value
+            sizerWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+        else
+            sizerWindow.Width <- 500.
+            sizerWindow.Height <- 500.
+            sizerWindow.WindowStartupLocation <- WindowStartupLocation.CenterOwner
+        sizerWindow.Owner <- Application.Current.MainWindow
+        sizerWindow.Background <- Brushes.Black
+        sizerWindow.WindowStyle <- WindowStyle.SingleBorderWindow
+        let dp = new DockPanel(Opacity=0.0, LastChildFill=true)
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        sp.Children.Add(new TextBox(Text="Resize this window so that it exactly covers\nthe NES game screen, then click the button below", TextAlignment=TextAlignment.Center)) |> ignore
+        let button = new Button(Content=new TextBox(Text="Click here after sizing"), Width=300., HorizontalAlignment=HorizontalAlignment.Center)
+        button.Click.Add(fun _ -> 
+            minimapOverlayWindow.Left <- sizerWindow.Left + 8.
+            minimapOverlayWindow.Top<- sizerWindow.Top
+            minimapOverlayWindow.Width <- sizerWindow.Width - 16.
+            minimapOverlayWindow.Height <- sizerWindow.Height - 8.
+            init()
+            minimapOverlayWindow.Show()
+            dp.Opacity <- 1.0
+            save()
+            sizerWindow.Close()
+            )
+        sp.Children.Add(button) |> ignore
+        sp.Children.Add(new TextBox(Text="You can make gross adjustments to window size\nby grabbing the window corner, like any other window.", FontSize=12., TextAlignment=TextAlignment.Center)) |> ignore
+        sp.Children.Add(new TextBox(Text="To fine-tune the window size, you can use the buttons\nbelow to adjust one pixel at a time.", FontSize=12., TextAlignment=TextAlignment.Center)) |> ignore
+        let nudgeCanvas = new Canvas(Width=260., Height=260., HorizontalAlignment=HorizontalAlignment.Center)
+        let r = new Shapes.Rectangle(Width=150., Height=150., Stroke=Brushes.White, StrokeThickness=3.)
+        canvasAdd(nudgeCanvas, r, 55., 55.)
+        let leftLarger = new Button(Content=new TextBox(Text="◄"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, leftLarger, 10., 110.)
+        let leftSmaller = new Button(Content=new TextBox(Text="►"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, leftSmaller, 60., 110.)
+        let rightSmaller = new Button(Content=new TextBox(Text="◄"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, rightSmaller, 160., 110.)
+        let rightLarger = new Button(Content=new TextBox(Text="►"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, rightLarger, 210., 110.)
+        let topLarger = new Button(Content=new TextBox(Text="▲"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, topLarger, 110., 10.)
+        let topSmaller = new Button(Content=new TextBox(Text="▼"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, topSmaller, 110., 60.)
+        let bottomSmaller = new Button(Content=new TextBox(Text="▲"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, bottomSmaller, 110., 160.)
+        let bottomLarger = new Button(Content=new TextBox(Text="▼"), Width=40., Height=40.)
+        canvasAdd(nudgeCanvas, bottomLarger, 110., 210.)
+        let left(delta) = sizerWindow.Left <- sizerWindow.Left + delta
+        let width(delta) = sizerWindow.Width <- sizerWindow.Width + delta
+        let top(delta) = sizerWindow.Top <- sizerWindow.Top + delta
+        let height(delta) = sizerWindow.Height <- sizerWindow.Height + delta
+        leftLarger.Click.Add(fun _ -> left(-1.); width(1.))
+        leftSmaller.Click.Add(fun _ -> left(1.); width(-1.))
+        rightSmaller.Click.Add(fun _ -> width(-1.))
+        rightLarger.Click.Add(fun _ -> width(1.))
+        topLarger.Click.Add(fun _ -> top(-1.); height(1.))
+        topSmaller.Click.Add(fun _ -> top(1.); height(-1.))
+        bottomSmaller.Click.Add(fun _ -> height(-1.))
+        bottomLarger.Click.Add(fun _ -> height(1.))
+        sp.Children.Add(nudgeCanvas) |> ignore
+        let outerBorder = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(2.,0.,2.,2.), Child=sp, Opacity=1.0)
+        let style = new Style(typeof<TextBox>)
+        style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
+        style.Setters.Add(new Setter(TextBox.IsReadOnlyProperty, true))
+        style.Setters.Add(new Setter(TextBox.IsHitTestVisibleProperty, false))
+        outerBorder.Resources.Add(typeof<TextBox>, style)
+        sizerWindow.Content <- outerBorder
+        sizerWindow.Show()
+#if NOT_RACE_LEGAL
+    minimapOverlay <- fun (isRightClick) -> makeMinimapOverlay(isRightClick)
+#endif    
 
     canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
 

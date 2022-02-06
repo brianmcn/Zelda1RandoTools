@@ -9,20 +9,30 @@ let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
 let broadcastWindowOptionChanged = new Event<unit>()
+let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 
-let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU) =
-    let effect() = if needFU then TrackerModel.forceUpdate()
+let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
+    let effect() = 
+        if needFU then 
+            TrackerModel.forceUpdate()
+        otherEffect()
     cb.IsChecked <- System.Nullable.op_Implicit b.Value
     cb.Checked.Add(fun _ -> b.Value <- true; effect())
     cb.Unchecked.Add(fun _ -> b.Value <- false; effect())
 
-let data1 = [|
-    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false
-    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false
-    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false
-    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true
-    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked (starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false
+let data1o = [|
+    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false, fun()->()
+    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, fun()->()
+    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, fun()->()
+    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true, fun()->()
+    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked (starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false, fun()->()
+    |]
+
+let data1d = [|
+    "BOARD instead of LEVEL", "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N", TrackerModel.Options.BOARDInsteadOfLEVEL, false, BOARDInsteadOfLEVELOptionChanged.Trigger
+    "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
+    "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModel.Options.DoDoorInference, false, fun()->()
     |]
 
 let data2 = [|
@@ -61,10 +71,17 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
     let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options1sp.Children.Add(tb) |> ignore
-    for text,tip,b,needFU in data1 do
+    for text,tip,b,needFU,oe in data1o do
         let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true))
         cb.ToolTip <- tip
-        link(cb, b, needFU)
+        link(cb, b, needFU, oe)
+        options1sp.Children.Add(cb) |> ignore
+    let tb = new TextBox(Text="Dungeon settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
+    options1sp.Children.Add(tb) |> ignore
+    for text,tip,b,needFU,oe in data1d do
+        let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true))
+        cb.ToolTip <- tip
+        link(cb, b, needFU, oe)
         options1sp.Children.Add(cb) |> ignore
     optionsAllsp.Children.Add(options1sp) |> ignore
 
@@ -114,10 +131,10 @@ let makeOptionsCanvas(width, includePopupExplainer) =
             Graphics.gridAdd(options2Grid, backgroundColor(), 1, row)
             Graphics.gridAdd(options2Grid, backgroundColor(), 2, row)
         let cbVoice = new CheckBox(HorizontalAlignment=HorizontalAlignment.Center)
-        link(cbVoice, bVoice, false)
+        link(cbVoice, bVoice, false, fun()->())
         Graphics.gridAdd(options2Grid, cbVoice, 0, row)
         let cbVisual = new CheckBox(HorizontalAlignment=HorizontalAlignment.Center)
-        link(cbVisual, bVisual, false)
+        link(cbVisual, bVisual, false, fun()->())
         Graphics.gridAdd(options2Grid, cbVisual, 1, row)
         let tb = new TextBox(Text=text,IsReadOnly=true, Background=Brushes.Transparent)
         tb.ToolTip <- tip
@@ -133,13 +150,6 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options3sp.Children.Add(tb) |> ignore
 
-    let cb = new CheckBox(Content=new TextBox(Text="Second quest dungeons",IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsSecondQuestDungeons.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- true; secondQuestDungeonsOptionChanged.Trigger())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.IsSecondQuestDungeons.Value <- false; secondQuestDungeonsOptionChanged.Trigger())
-    cb.ToolTip <- "Check this if dungeon 4, rather than dungeon 1, has 3 items"
-    options3sp.Children.Add(cb) |> ignore
-
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false
@@ -148,7 +158,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         ToolTipService.SetShowOnDisabled(cb, true)
     else
         cb.ToolTip <- "Use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
-        link(cb, TrackerModel.Options.ListenForSpeech, false)
+        link(cb, TrackerModel.Options.ListenForSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Confirmation sound",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
@@ -159,7 +169,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         ToolTipService.SetShowOnDisabled(cb, true)
     else
         cb.ToolTip <- "Play a confirmation sound whenever speech recognition is used to make an update to the tracker"
-        link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech, false)
+        link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
 (*  // this is not (yet) a fully supported feature, so don't publish it on the options menu

@@ -16,8 +16,10 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.MouseButtonEventArgs) =
     elif ea.ChangedButton = Input.MouseButton.Right then TrackerModel.PlayerHas.NO
     else TrackerModel.PlayerHas.SKIPPED
 let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy))
+let noAndNotEmpty = Brushes.Red
 let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy))
 let skipped = Brushes.MediumPurple
+let skippedAndEmpty = Brushes.White
 let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     match boxCellCurrent with
     | -1 -> null
@@ -56,12 +58,16 @@ using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, Syst
     filestream.Close();
 }
 *)
-type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
+type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
+    static let mutable theOnlyCanvasManager = None
     do
         if rootCanvas.Width <> appMainCanvas.Width || rootCanvas.Height <> appMainCanvas.Height then
             failwith "rootCanvas and appMainCanvas should be the same size"
         if not(obj.Equals(appMainCanvas.Parent,rootCanvas)) || not(rootCanvas.Children.Count=1) then
             failwith "rootCanvas must have appMainCanvas as its only child"
+        if theOnlyCanvasManager.IsSome then
+            failwith "created more than one CanvasManager"
+        theOnlyCanvasManager <- Some(this)
     let popupCanvasStack = new System.Collections.Generic.Stack<_>()
     let opacityStack = new System.Collections.Generic.Stack<_>()
     let afterCreatePopupCanvas = new Event<_>()
@@ -105,6 +111,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) =
     // and here is how the broadcast window can listen for popup activity
     member _this.AfterCreatePopupCanvas = afterCreatePopupCanvas.Publish
     member _this.BeforeDismissPopupCanvas = beforeDismissPopupCanvas.Publish
+    static member TheOnlyCanvasManager with get() = theOnlyCanvasManager.Value
 
 // TODO rename DoModals
 let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity) = async {
@@ -247,7 +254,7 @@ type PopupClickBehavior<'a> =
 
 (*
 CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, who)
 *)
 let DoModalGridSelect<'State,'Result>
         (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
@@ -260,9 +267,10 @@ let DoModalGridSelect<'State,'Result>
                 onClick,  // called on tile click or selectable grid click, you choose what to do:   (mousebuttonEA, currentStateID) -> PopupClickBehavior<'Result>
                 extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
                 brushes:ModalGridSelectBrushes,
-                gridClickDismissalDoesMouseWarpBackToTileCenter
+                gridClickDismissalDoesMouseWarpBackToTileCenter,
+                who:System.Threading.ManualResetEvent option      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
                 ) = async {
-    let wh = new System.Threading.ManualResetEvent(false)
+    let wh = match who with Some(x) -> x | _ -> new System.Threading.ManualResetEvent(false)
     let mutable result = None
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
@@ -392,7 +400,7 @@ let itemBoxMouseButtonExplainerDecoration =
     fe
 let itemBoxModalGridSelectBrushes = new ModalGridSelectBrushes(Brushes.Yellow, Brushes.Yellow, new SolidColorBrush(Color.FromRgb(140uy,10uy,0uy)), Brushes.Gray)
 
-let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, callerExtraDecorations) = async {
+let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activationDelta, originalPlayerHas, callerExtraDecorations) = async {
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
@@ -412,7 +420,15 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     let originalStateIndex = if boxCellCurrent = -1 then 15 else boxCellCurrent
     let onClick(ea,ident) =
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
-        DismissPopupWithResult(ident, if ident = -1 then TrackerModel.PlayerHas.NO else MouseButtonEventArgsToPlayerHas ea)
+        DismissPopupWithResult(ident, 
+            let newPH = MouseButtonEventArgsToPlayerHas ea
+            if ident = -1 then 
+                if originalPlayerHas=TrackerModel.PlayerHas.NO && newPH = TrackerModel.PlayerHas.SKIPPED then
+                    TrackerModel.PlayerHas.SKIPPED   // middle click an empty box toggles it to white
+                else
+                    TrackerModel.PlayerHas.NO 
+            else 
+                newPH)
     let decorationsShouldGoToTheLeft = boxX > Graphics.OMTW*8.
     let gridX, gridY = if decorationsShouldGoToTheLeft then -117., -3. else 27., -3.
     let decoX,decoY = if decorationsShouldGoToTheLeft then -152., 108. else 27., 108.
@@ -436,5 +452,19 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true)
+                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
+
+let makeVersionButtonWithBehavior(cm:CanvasManager) =
+    let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
+    let mutable popupIsActive = false
+    vb.Click.Add(fun _ ->
+        if not popupIsActive then
+            async {
+                let! r = DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
+                popupIsActive <- false
+                if r = "Go to website" then
+                    System.Diagnostics.Process.Start(OverworldData.Website) |> ignore
+            } |> Async.StartImmediate
+        )
+    vb

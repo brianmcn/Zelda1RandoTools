@@ -1,8 +1,5 @@
 # HotKeys and extra windows
 
-Z-Tracker has two versions - one runs on Windows and one runs on Linux. The two versions are very similar, but have some minor differences.
-Some features are only available for the Windows version; these features will be labeled as 'WPF only'.
-
 Contents of this document:
 
   - [HotKeys](#hotkeys)
@@ -20,9 +17,10 @@ So for example 'b' could be set up to mean 'bow' when the mouse is over an item 
 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.
 
 While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide a way to display your current hotkey
-information.  Click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
+information.  Left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
 mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
-display window at any time when you are done with it.
+display window at any time when you are done with it.  The window size and location will persist across sessions.  If the window ever becomes inaccessible 
+off-screen, you can right-click the 'Show HotKeys' button to re-position and re-size the window to a default location on-screen.
 
 ![screenshot](screenshots/hotkey-cheat-sheet-example.png)
 
@@ -55,7 +53,7 @@ These ad-hoc behaviors are designed either to make common cases fast and easy, o
 There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
 
 
-## <a id="broadcast-window"></a> Broadcast Window (WPF only)
+## <a id="broadcast-window"></a> Broadcast Window
 
 On the [Options Menu](use.md#main-om), you can opt into a 'broadcast window'.  This causes a separate, not-as-tall (squarer) window to appear; the new window is designed 
 for stream-capture, for streamers who think the Z-Tracker app is too tall for their stream layout.  The broadcast window switches dynamically between two possible displays: 
@@ -79,10 +77,9 @@ using OBS to downscale your screen capture of the broadcast window to some arbit
 If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Tracker with OBS](stream-capture.md) document for a number of useful tips.
 
 
-## <a id="window-size"></a> Window Size (WPF only)
+## <a id="window-size"></a> Window Size
 
 The Z-Tracker application is somewhat large (the window content is 768x963), designed to make all of the important information available to the player on-screen 
-at once.  However some users may need or desire a smaller application.  You can make the application window 2/3 size by editing the file 
-"Z1R_Tracker_settings.json" in a text editor, and changing "SmallerAppWindow" from 'false' to 'true'.  A few of the elements may not look as good at this size,
-but most of the app's graphics are in multiples of 3 pixels, so this still looks decent and can make the app usable on machines with smaller display resolutions.
+at once.  However some users may need or desire a smaller application window.  You can make the application window 2/3 size by clicking the button in the banner strip at the 
+very top of the startup screen, which allows you to select either the Default or 2/3 size options.
 

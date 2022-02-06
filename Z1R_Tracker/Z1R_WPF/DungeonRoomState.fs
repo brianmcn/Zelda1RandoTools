@@ -155,6 +155,9 @@ type RoomType =
     | StartEnterFromS
     // off the map
     | OffTheMap
+    // level 9 only
+    | Gannon   // (replace bomb upgrade)
+    | Zelda   // (replace meat block)
     member this.AsHotKeyName() =
         match this with
         | Unmarked                -> "RoomType_Unmarked"
@@ -188,6 +191,8 @@ type RoomType =
         | StartEnterFromN         -> "RoomType_StartEnterFromN"
         | StartEnterFromS         -> "RoomType_StartEnterFromS"
         | OffTheMap               -> "RoomType_OffTheMap"
+        | Gannon                  -> "RoomType_Gannon"
+        | Zelda                   -> "RoomType_Zelda"
     member this.IsNotMarked = this = RoomType.Unmarked
     member this.NextEntranceRoom() = 
         match this with
@@ -240,6 +245,8 @@ type RoomType =
         | StartEnterFromN         -> "Dungeon entrance (from north)"
         | StartEnterFromS         -> "Dungeon entrance (from south)"
         | OffTheMap               -> "(Off the map)"
+        | Gannon                  -> "Gannon"
+        | Zelda                   -> "Zelda"
     member private this.BmpPair() =
         match this with
         | Unmarked                -> fst Graphics.dungeonRoomBmpPairs.[0], fst Graphics.dungeonRoomBmpPairs.[0]
@@ -273,6 +280,8 @@ type RoomType =
         | StartEnterFromN         -> Graphics.dungeonRoomBmpPairs.[27]
         | StartEnterFromS         -> Graphics.dungeonRoomBmpPairs.[28]
         | OffTheMap               -> Graphics.dungeonRoomBmpPairs.[30]
+        | Gannon                  -> snd Graphics.dungeonRoomBmpPairs.[31], snd Graphics.dungeonRoomBmpPairs.[31]
+        | Zelda                   -> snd Graphics.dungeonRoomBmpPairs.[32], snd Graphics.dungeonRoomBmpPairs.[32]
     member this.CompletedBmp()   = this.BmpPair() |> snd
     member this.UncompletedBmp() = this.BmpPair() |> fst
     static member All() = [|
@@ -306,6 +315,8 @@ type RoomType =
         RoomType.StartEnterFromN
         RoomType.StartEnterFromS
         RoomType.OffTheMap
+        RoomType.Gannon
+        RoomType.Zelda
         RoomType.Unmarked
         |]
 
@@ -439,7 +450,7 @@ let dungeonRoomMouseButtonExplainerDecoration2 =
     b.MouseDown.Add(fun ea -> ea.Handled <- true)  // absorb mouse clicks, so that clicking explainer decoration does not dismiss popup due to being outside-the-area click
     b
                 
-let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
+let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLevel9, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
     let tweak(im:Image) = im.Opacity <- 0.65; im
     let tileSunglasses = 0.75
 
@@ -463,13 +474,23 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
         let extra = 30.
         let tileSurroundingCanvas = new Canvas(Width=float(13*3)*SCALE+extra, Height=float(9*3)*SCALE+extra, Background=Brushes.DarkOliveGreen)
         canvasAdd(popupCanvas, tileSurroundingCanvas, tileX-extra/2., tileY-extra/2.)
-        let grid = [|
+        let grid = 
+            if isLevel9 then
+                [|
+                RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.Gannon; RoomType.Zelda; RoomType.StartEnterFromE;
+                RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN;
+                RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS;
+                RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
+                RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile;
+                |]
+            else
+                [|
                 RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.BombUpgrade; RoomType.HungryGoriyaMeatBlock; RoomType.StartEnterFromE;
                 RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN;
                 RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS;
                 RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
                 RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile;
-            |]
+                |]
         let gridElementsSelectablesAndIDs : (FrameworkElement*_*_)[] = grid |> Array.mapi (fun _i rt ->
             let isLegal = (rt = originalRoomState.RoomType) || (match rt.KnownTransportNumber with | None -> true | Some n -> usedTransports.[n]<>2)
             upcast tweak(Graphics.BMPtoImage(rt.UncompletedBmp())), isLegal, rt
@@ -520,7 +541,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             let y = originalStateIndex / gnc
             Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)))
         let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter)
+                                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
         workingCopy.IsComplete <- true
         popupCanvas.Children.Remove(tileSurroundingCanvas)
         match r with

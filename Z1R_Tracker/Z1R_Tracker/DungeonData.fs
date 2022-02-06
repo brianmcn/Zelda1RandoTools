@@ -35,13 +35,14 @@ module Factoids =
         |]
     let advancedTips = [|
         // advanced
-        "Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Exceptions: If Zelda is adjacent to Ganon, Ganon's room may have multiple shutter doors. If Ganon is not required, she has no shutter and can be anywhere."
+        "Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Exceptions: If Zelda is adjacent to Gannon, Gannon's room may have multiple shutter doors. If Gannon is not required, Zelda can be anywhere, including rooms without shutters."
         "If you have 0 keys, and a room has both a shutter and a locked door, and you press against the locked door the moment the shutter opens, you can go through the door without a key, unlocking it (khananakey)."
         "If using 'Level 9 Entry: Random' flag, if the old man at the door tells you some nonsense, that means you need all 8 triforces to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc."
         "In Shapes (1Q) dungeons, after clearing monsters, dungeon room 'five pairs' can only drop in dungeon 1, and dungeon room 'maze' can only drop in dungeon 4."
         "In 1QL5, the floor drop spawn for 'tee' room is on the island; in L4, it's bottom right of the tee room; in most other dungeons, it's top right of the tee room."
         "The dungeon room floor drop near the East door is unique to 1QL1."
         "These dungeon room never drop after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
+        "If the 'Add 2nd Quest Doors' randomizer flag is used, walk-through-walls will never appear in levels 1, 3, or 7, but walk-through-walls may appear in any other dungeon."
         |]
     let zTrackerTips = [|
         "In Z-Tracker, hovering a triforce icon at the top of the tracker will display its location on the overworld map, if that location is known or has been hinted."

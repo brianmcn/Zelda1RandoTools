@@ -60,7 +60,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <None Include="TODOs.txt" />
-    <None Include="Notes.txt" />
+    <None Include="README.txt" />
     <Compile Include="OverworldData.fs" />
     <Compile Include="DungeonData.fs" />
     <Compile Include="OverworldRouting.fs" />

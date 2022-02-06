@@ -44,16 +44,23 @@ module Options =
         let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
-    let mutable ListenForSpeech = Bool(true)
+    let mutable ListenForSpeech = Bool(false)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
+    let mutable BOARDInsteadOfLEVEL = Bool(false)
     let mutable IsSecondQuestDungeons = Bool(false)
+    let mutable DoDoorInference = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
     let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
     let mutable SmallerAppWindow = Bool(false)
     let mutable IsMuted = false
     let mutable Volume = 30
+    let mutable MainWindowLT = ""
+    let mutable BroadcastWindowLT = ""
+    let mutable HotKeyWindowLTWH = ""
+    let mutable OverlayLocatorWindowLTWH = ""
+    let mutable BigIconsInDungeons = false
 
     type ReadWrite() =
         member val DrawRoutes = true with get,set
@@ -76,10 +83,12 @@ module Options =
         member val Visual_HaveKeyLadder = true with get,set
         member val Visual_Blockers = true with get,set
         
-        member val ListenForSpeech = true with get,set
+        member val ListenForSpeech = false with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
+        member val BOARDInsteadOfLEVEL = false with get,set
         member val IsSecondQuestDungeons = false with get,set
+        member val DoDoorInference = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
         member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
@@ -87,6 +96,11 @@ module Options =
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
+        member val MainWindowLT = "" with get,set
+        member val BroadcastWindowLT = "" with get,set
+        member val HotKeyWindowLTWH = "" with get, set
+        member val OverlayLocatorWindowLTWH = "" with get, set
+        member val BigIconsInDungeons = false with get, set
 
     let mutable private cachedSettingJson = null
 
@@ -115,13 +129,20 @@ module Options =
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
+        data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.DoDoorInference <- DoDoorInference.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
         data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
         data.SmallerAppWindow <- SmallerAppWindow.Value
         data.IsMuted <- IsMuted
         data.Volume <- Volume
+        data.MainWindowLT <- MainWindowLT
+        data.BroadcastWindowLT <- BroadcastWindowLT
+        data.HotKeyWindowLTWH <- HotKeyWindowLTWH
+        data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
+        data.BigIconsInDungeons <- BigIconsInDungeons
 
         let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
         if json <> cachedSettingJson then
@@ -163,13 +184,20 @@ module Options =
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
+            BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
+            DoDoorInference.Value <- data.DoDoorInference
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
             BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
             SmallerAppWindow.Value <- data.SmallerAppWindow
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
+            MainWindowLT <- data.MainWindowLT
+            BroadcastWindowLT <- data.BroadcastWindowLT
+            HotKeyWindowLTWH <- data.HotKeyWindowLTWH
+            OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
+            BigIconsInDungeons <- data.BigIconsInDungeons
         with e ->
             cachedSettingJson <- null
             printfn "Unable to read settings file '%s':" filename 
@@ -599,6 +627,43 @@ type PlayerProgressAndTakeAnyHearts() =
     member _this.PlayerHasBombs         = playerHasBombs
 let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 
+let extrasLastChangedTime = new LastChangedTime()
+type StartingItemsAndExtras() =
+    let triforces = Array.init 8 (fun _ -> BoolProperty(false,fun()->extrasLastChangedTime.SetNow()))
+    let whiteSword = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let silverArrow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let bow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let wand = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let redCandle = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let boomerang = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let magicBoomerang = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let redRing = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let powerBracelet = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let ladder = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let raft = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let recorder = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let anyKey = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let book = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let mutable maxHeartsDiff = 0
+    member _this.HDNStartingTriforcePieces = triforces
+    member _this.PlayerHasWhiteSword         = whiteSword
+    member _this.PlayerHasSilverArrow = silverArrow
+    member _this.PlayerHasBow = bow
+    member _this.PlayerHasWand = wand
+    member _this.PlayerHasRedCandle = redCandle
+    member _this.PlayerHasBoomerang = boomerang
+    member _this.PlayerHasMagicBoomerang = magicBoomerang
+    member _this.PlayerHasRedRing = redRing
+    member _this.PlayerHasPowerBracelet = powerBracelet
+    member _this.PlayerHasLadder = ladder
+    member _this.PlayerHasRaft = raft
+    member _this.PlayerHasRecorder = recorder
+    member _this.PlayerHasAnyKey = anyKey
+    member _this.PlayerHasBook = book
+    member _this.MaxHeartsDifferential with get() = maxHeartsDiff and set(x) = maxHeartsDiff <- x
+let startingItemsAndExtras = StartingItemsAndExtras()
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeons and Boxes
 
@@ -640,10 +705,11 @@ type Box() =
         playerHas <- v
         dungeonsAndBoxesLastChangedTime.SetNow()
         changed.Trigger()
+    member _this.IsDone() = cell.Current() <> -1 && playerHas <> PlayerHas.NO   // the player knows the item here and has gotten or intentionally skipped it
 
-let ladderBox = Box()
-let armosBox  = Box()
-let sword2Box = Box()
+let ladderBox = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let armosBox  = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let sword2Box = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
 
 [<RequireQualifiedAccess>]
 type DungeonTrackerInstanceKind =
@@ -719,14 +785,14 @@ and Dungeon(id,numBoxes) =
             if playerHasTriforce then
                 let mutable numBoxesDone = 0
                 for b in boxes do
-                    if b.PlayerHas() <> PlayerHas.NO then
+                    if b.IsDone() then
                         numBoxesDone <- numBoxesDone + 1
                 let twoBoxers = if Options.IsSecondQuestDungeons.Value then "123567" else "234567"
                 numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
             else
                 false
         | DungeonTrackerInstanceKind.DEFAULT ->
-            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.PlayerHas() <> PlayerHas.NO)
+            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.IsDone())
     // for Hidden Dungeon Numbers
     member _this.Color with get() = color and set(x) = color <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
     member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime.SetNow()
@@ -743,6 +809,8 @@ let GetTriforceHaves() =
                 if d.LabelChar >= '1' && d.LabelChar <= '8' then
                     let n = int d.LabelChar - int '1'
                     haves.[n] <- true
+            if startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value() then
+                haves.[i] <- true
         haves
     else
         [| for i = 0 to 7 do yield GetDungeon(i).PlayerHasTriforce() |]
@@ -816,13 +884,42 @@ let recomputePlayerStateSummary() =
         ringLevel <- max ringLevel 1
     if playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Value() then
         arrowLevel <- max arrowLevel 1
-    if ladderBox.PlayerHas() <> PlayerHas.NO then
+    if startingItemsAndExtras.PlayerHasWhiteSword.Value() then
+        swordLevel <- max swordLevel 2
+    if startingItemsAndExtras.PlayerHasSilverArrow.Value() then
+        arrowLevel <- 2
+    if startingItemsAndExtras.PlayerHasBoomerang.Value() then
+        boomerangLevel <- max boomerangLevel 1
+    if startingItemsAndExtras.PlayerHasMagicBoomerang.Value() then
+        boomerangLevel <- 2
+    if startingItemsAndExtras.PlayerHasBow.Value() then
+        haveBow <- true
+    if startingItemsAndExtras.PlayerHasRedCandle.Value() then
+        candleLevel <- 2
+    if startingItemsAndExtras.PlayerHasWand.Value() then
+        haveWand <- true
+    if startingItemsAndExtras.PlayerHasRedRing.Value() then
+        ringLevel <- 2
+    if startingItemsAndExtras.PlayerHasPowerBracelet.Value() then
+        havePowerBracelet <- true
+    if startingItemsAndExtras.PlayerHasLadder.Value() then
+        haveLadder <- true
+    if startingItemsAndExtras.PlayerHasRaft.Value() then
+        haveRaft <- true
+    if startingItemsAndExtras.PlayerHasRecorder.Value() then
+        haveRecorder <- true
+    if startingItemsAndExtras.PlayerHasAnyKey.Value() then
+        haveAnyKey <- true
+    if startingItemsAndExtras.PlayerHasBook.Value() then
+        haveBookOrShield <- true
+    if ladderBox.IsDone() then
         haveCoastItem <- true
-    if sword2Box.PlayerHas() <> PlayerHas.NO then
+    if sword2Box.IsDone() then
         haveWhiteSwordItem <- true
     for h = 0 to 3 do
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
             playerHearts <- playerHearts + 1
+    playerHearts <- playerHearts + startingItemsAndExtras.MaxHeartsDifferential
     playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
                                                                 swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
     playerComputedStateSummaryLastComputedTime.SetNow()
@@ -913,7 +1010,7 @@ let recomputeMapStateSummary() =
                     sword1Location <- i,j
                 | n when n=MapSquareChoiceDomainHelper.ARMOS -> 
                     armosLocation <- i,j
-                    if armosBox.PlayerHas() = PlayerHas.NO then
+                    if not(armosBox.IsDone()) then
                         owRouteworthySpots.[i,j] <- true
                 | -1 ->
                     owSpotsRemain <- owSpotsRemain + 1
@@ -954,55 +1051,94 @@ let recomputeMapStateSummary() =
 // only some of these can participate in semantic reminders, obviously...
 [<RequireQualifiedAccess>]
 type DungeonBlocker =
-    | COMBAT    // need better weapon/armor
     | BOW_AND_ARROW
     | RECORDER
     | LADDER  
-    | BAIT    
     | KEY
+    | BAIT    
+    | MONEY     // money or life room? bomb upgrade?
     | BOMB
-//    | MONEY     // money or life room? bomb upgrade?
+    | COMBAT    // need better weapon/armor
+    | MAYBE_BOW_AND_ARROW
+    | MAYBE_RECORDER
+    | MAYBE_LADDER  
+    | MAYBE_KEY
+    | MAYBE_BAIT    
+    | MAYBE_MONEY
+    | MAYBE_BOMB
     | NOTHING
+    member this.AsHotKeyName() =
+        match this with
+        | DungeonBlocker.COMBAT -> "Blocker_Combat"
+        | DungeonBlocker.BOW_AND_ARROW -> "Blocker_Bow_And_Arrow"
+        | DungeonBlocker.RECORDER -> "Blocker_Recorder"
+        | DungeonBlocker.LADDER -> "Blocker_Ladder"
+        | DungeonBlocker.BAIT -> "Blocker_Bait"
+        | DungeonBlocker.KEY -> "Blocker_Key"
+        | DungeonBlocker.BOMB -> "Blocker_Bomb"
+        | DungeonBlocker.MONEY -> "Blocker_Money"
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> "Blocker_Maybe_Bow_And_Arrow"
+        | DungeonBlocker.MAYBE_RECORDER -> "Blocker_Maybe_Recorder"
+        | DungeonBlocker.MAYBE_LADDER -> "Blocker_Maybe_Ladder"
+        | DungeonBlocker.MAYBE_BAIT -> "Blocker_Maybe_Bait"
+        | DungeonBlocker.MAYBE_KEY -> "Blocker_Maybe_Key"
+        | DungeonBlocker.MAYBE_BOMB -> "Blocker_Maybe_Bomb"
+        | DungeonBlocker.MAYBE_MONEY  -> "Blocker_Maybe_Money"
+        | DungeonBlocker.NOTHING -> "Blocker_Nothing"
+    member this.HardCanonical() =
+        match this with
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> DungeonBlocker.BOW_AND_ARROW
+        | DungeonBlocker.MAYBE_RECORDER -> DungeonBlocker.RECORDER
+        | DungeonBlocker.MAYBE_LADDER -> DungeonBlocker.LADDER
+        | DungeonBlocker.MAYBE_BAIT -> DungeonBlocker.BAIT
+        | DungeonBlocker.MAYBE_KEY -> DungeonBlocker.KEY
+        | DungeonBlocker.MAYBE_BOMB -> DungeonBlocker.BOMB
+        | DungeonBlocker.MAYBE_MONEY -> DungeonBlocker.MONEY 
+        | x -> x
     member this.DisplayDescription() =
         match this with
         | DungeonBlocker.COMBAT -> "Need better\nweapon/armor"
         | DungeonBlocker.BOW_AND_ARROW -> "Need bow&arrow"
+        | DungeonBlocker.MAYBE_BOW_AND_ARROW -> "Might need bow&arrow"
         | DungeonBlocker.RECORDER -> "Need recorder"
+        | DungeonBlocker.MAYBE_RECORDER -> "Might need recorder"
         | DungeonBlocker.LADDER -> "Need ladder"
+        | DungeonBlocker.MAYBE_LADDER -> "Might need ladder"
         | DungeonBlocker.BAIT -> "Need meat"
+        | DungeonBlocker.MAYBE_BAIT -> "Might need meat"
         | DungeonBlocker.KEY -> "Need keys"
+        | DungeonBlocker.MAYBE_KEY -> "Might need keys"
         | DungeonBlocker.BOMB -> "Need bombs"
+        | DungeonBlocker.MAYBE_BOMB -> "Might need bombs"
+        | DungeonBlocker.MONEY -> "Need money\n(e.g. mugger)"
+        | DungeonBlocker.MAYBE_MONEY -> "Might need money\n(e.g. mugger)"
         | DungeonBlocker.NOTHING -> "Unmarked"
-    member this.Next() =
-        match this with
-        | DungeonBlocker.COMBAT -> DungeonBlocker.BOW_AND_ARROW
-        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.RECORDER
-        | DungeonBlocker.RECORDER -> DungeonBlocker.LADDER
-        | DungeonBlocker.LADDER -> DungeonBlocker.BAIT
-        | DungeonBlocker.BAIT -> DungeonBlocker.KEY
-        | DungeonBlocker.KEY -> DungeonBlocker.BOMB
-        | DungeonBlocker.BOMB -> DungeonBlocker.NOTHING
-        | DungeonBlocker.NOTHING -> DungeonBlocker.COMBAT
-    member this.Prev() =
-        match this with
-        | DungeonBlocker.COMBAT -> DungeonBlocker.NOTHING
-        | DungeonBlocker.BOW_AND_ARROW -> DungeonBlocker.COMBAT
-        | DungeonBlocker.RECORDER -> DungeonBlocker.BOW_AND_ARROW
-        | DungeonBlocker.LADDER -> DungeonBlocker.RECORDER
-        | DungeonBlocker.BAIT -> DungeonBlocker.LADDER
-        | DungeonBlocker.KEY -> DungeonBlocker.BAIT
-        | DungeonBlocker.BOMB -> DungeonBlocker.KEY
-        | DungeonBlocker.NOTHING -> DungeonBlocker.BOMB
     static member All = [| 
-        DungeonBlocker.COMBAT
         DungeonBlocker.BOW_AND_ARROW
         DungeonBlocker.RECORDER
-        DungeonBlocker.LADDER
-        DungeonBlocker.BAIT
+        DungeonBlocker.LADDER  
         DungeonBlocker.KEY
+        DungeonBlocker.BAIT    
+        DungeonBlocker.MONEY
         DungeonBlocker.BOMB
+        DungeonBlocker.COMBAT
+        DungeonBlocker.MAYBE_BOW_AND_ARROW
+        DungeonBlocker.MAYBE_RECORDER
+        DungeonBlocker.MAYBE_LADDER  
+        DungeonBlocker.MAYBE_KEY
+        DungeonBlocker.MAYBE_BAIT    
+        DungeonBlocker.MAYBE_MONEY
+        DungeonBlocker.MAYBE_BOMB
         DungeonBlocker.NOTHING
         |]
+    member this.Next() =
+        let i = DungeonBlocker.All |> Array.findIndex (fun x -> x = this)
+        let j = (i + 1) % DungeonBlocker.All.Length
+        DungeonBlocker.All.[j]
+    member this.Prev() =
+        let i = DungeonBlocker.All |> Array.findIndex (fun x -> x = this)
+        let j = (DungeonBlocker.All.Length + i - 1) % DungeonBlocker.All.Length
+        DungeonBlocker.All.[j]
 [<RequireQualifiedAccess>]
 type CombatUnblockerDetail =
     | BETTER_SWORD
@@ -1016,6 +1152,7 @@ let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.N
 let recomputeWhatIsNeeded() =
     let mutable changed = false
     if playerProgressLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time ||
+        extrasLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time ||
         dungeonsAndBoxesLastChangedTime.Time > playerComputedStateSummaryLastComputedTime.Time then
         recomputePlayerStateSummary()
         changed <- true
@@ -1270,10 +1407,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     if numFound > previouslyAnnouncedFoundDungeonCount then
         ite.AnnounceFoundDungeonCount(numFound)
         previouslyAnnouncedFoundDungeonCount <- numFound
-    let mutable triforces = 0
-    for d = 0 to 8 do
-        if GetDungeon(d).PlayerHasTriforce() then
-            triforces <- triforces + 1
+    let triforces = GetTriforceHaves() |> Array.filter id |> Array.length
     let mutable locatedDungeons = 0
     let mutable completedDungeons = 0
     for d = 0 to 8 do
@@ -1321,10 +1455,10 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
-    let blockerLogic(db) =
+    let blockerLogic(db:DungeonBlocker) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if dungeonBlockers.[i,0] = db || dungeonBlockers.[i,1] = db then
+            if dungeonBlockers.[i,0].HardCanonical() = db.HardCanonical() || dungeonBlockers.[i,1].HardCanonical() = db.HardCanonical() then
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1351,7 +1485,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         blockerLogic(DungeonBlocker.KEY)
     priorAnyKey <- playerComputedStateSummary.HaveAnyKey
 
-    // Note: no logic for BAIT or loose KEYs, as the tracker has no reliable knowledge of this aspect of player's inventory
+    // Note: no logic for BAIT or loose KEYs or MONEY, as the tracker has no reliable knowledge of this aspect of player's inventory
 
     // items
     if not remindedLadder && playerComputedStateSummary.HaveLadder then

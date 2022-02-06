@@ -14,6 +14,7 @@
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>Z1R_WPF</Name>
     <TargetFrameworkProfile />
+    <ApplicationIcon>icons\ztlogo64x64.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -68,6 +69,7 @@
     <Content Include="icons\ztlogo64x64.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="icons\ZTlogo64x64.png" />
     <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
     <EmbeddedResource Include="icons\icons7x7.png" />
     <EmbeddedResource Include="icons\icons10x10.png" />
@@ -98,6 +100,7 @@
     <Compile Include="PieMenus.fs" />
     <Compile Include="DungeonRoomState.fs" />
     <Compile Include="HotKeys.fs" />
+    <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />
     <Compile Include="Views.fs" />
     <Compile Include="OptionsMenu.fs" />
@@ -107,8 +110,8 @@
     <Compile Include="LinkRouting.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="..\Z1R_Tracker\Notes.txt">
-      <Link>Notes.txt</Link>
+    <Content Include="..\Z1R_Tracker\README.txt">
+      <Link>README.txt</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="reminder_clink.wav">
