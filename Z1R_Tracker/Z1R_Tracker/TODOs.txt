@@ -83,7 +83,7 @@ tip: you can't have both an item appear when the enemies die and a push block st
 
 distributing version process
  - for a full release, change the version number in OverworldData.fs (e.g. v1.0.0)
- - edit Notes.txt to point to upcoming branch URL
+ - edit README.txt to point to upcoming branch URL
  - commit to master
  - make a branch e.g. "v1.0" in git which is a spur for the release (and bugfix updates to app/docs)
  - make a tag on the branch with the full version number e.g. "v1.0.0"
