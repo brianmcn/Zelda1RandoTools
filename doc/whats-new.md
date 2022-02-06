@@ -1,6 +1,9 @@
-# What's new in this version
+# What's new in each version
 
 A summary of the features/fixes in the various releases of Z-Tracker
+
+ - [Version 1.1](#v1.1) (released 2022-02-06)
+ - [Version 1.0](#v1.0) (released 2021-12-11)
 
 ## <a id="v1.1"></a>Version 1.1
 
@@ -88,6 +91,6 @@ A number of minor improvements:
  - fix windows/taskbar to now properly display Z-Tracker logo icon
 
 
-## Version 1.0
+## <a id="v1.0"></a>Version 1.0
 
 Original Release (see [full documentation for v1.0](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.0/doc/TOC.md))

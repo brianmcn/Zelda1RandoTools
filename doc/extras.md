@@ -80,7 +80,6 @@ If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Trac
 ## <a id="window-size"></a> Window Size
 
 The Z-Tracker application is somewhat large (the window content is 768x963), designed to make all of the important information available to the player on-screen 
-at once.  However some users may need or desire a smaller application.  You can make the application window 2/3 size by editing the file 
-"Z1R_Tracker_settings.json" in a text editor, and changing "SmallerAppWindow" from 'false' to 'true'.  A few of the elements may not look as good at this size,
-but most of the app's graphics are in multiples of 3 pixels, so this still looks decent and can make the app usable on machines with smaller display resolutions.
+at once.  However some users may need or desire a smaller application window.  You can make the application window 2/3 size by clicking the button in the banner strip at the 
+very top of the startup screen, which allows you to select either the Default or 2/3 size options.
 
