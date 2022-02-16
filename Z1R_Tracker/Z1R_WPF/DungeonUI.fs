@@ -130,7 +130,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
     let levelTabs = Array.zeroCreate 9
     let contentCanvases = Array.zeroCreate 9
-    let dummyCanvas = new Canvas(Opacity=0.0001)  // a kludge to help work around TabControl unloading tabs when not selected
+    let dummyCanvas = new Canvas(Opacity=0.0001, IsHitTestVisible=false)  // a kludge to help work around TabControl unloading tabs when not selected
     let localDungeonTrackerPanelWidth = 42.
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)

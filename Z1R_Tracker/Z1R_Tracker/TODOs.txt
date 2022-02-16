@@ -21,6 +21,13 @@ CURRENT PRIORITIES
 
 update docs with changes
 update whats new with changes
+ TODO next version
+  - made LEVEL/BOARD header use Zelda font
+  - fixed miniminimap (hover blue bars) to show BOARD-5 or whatnot
+  - dungeon summary tab no longer show stale/missing info
+
+
+
 
 
 futz with VS text editor settings
@@ -30,11 +37,14 @@ on release, maybe make another 'whats new' video
 
 
 
+need voice command to set 'nothing' (dont care) (also unmarked?)
 
 meat block can appear in L9 (BU cannot)
 the other weird T shaped room could be a new room maybe
 
 "now that you have better armor, consider dungeon 8" when just got red ring in 8
+"now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8 (blockerLogic())
+
 
 maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
 
@@ -55,17 +65,15 @@ Some kind of map presets could be good, and 4 types of shops as well, in terms o
 draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
  - maybe can draw it on magnifier?
 
-Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked?
+Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
+ - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
+ - ghostbusters help now
 
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
 
 bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
-
-"now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8 (blockerLogic())
-
-the rando spoiler log does not mirror coordinates, so D5 is death armos normally, but not in mirrored, so I need to change how 'coords' displays in mirrored, ugh
 
 HDN, non-shapes, in addition to red-green room match, maybe could yellow out numbers already taken? hmmm
 
@@ -86,6 +94,16 @@ Also, when you select Second Quest Dungeons can you have it automatically have t
 tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
  - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
     [7:57 PM] FurySK: Drop item: Cannot ever have a push block across all functions, outside of diamond staircases (edited)
+The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER
+0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .
+1 - Drop stands in the room, shutters open on room clear.                                                                                   .          X             .           .
+2 - "Master" enemy room.  Killing the enemy in slot 0 kills all enemies in the room.  Shutter doors do not open.                            .          .             .           .
+3 - No drop, doors only open if you hold the Triforce of Power.                                                                             .          .             .           .
+4 - Drop standing if present, push a block to open shutter doors when all cleared.                                                          .          .             .           X
+5 - Drop standing if present, push a block to open a stair when all cleared (doors permanently stay shut, see 2nd quest level 8)            .          .             X           .
+6 - Open shutter doors if the enemy in the first slot is killed (used only for Life/Money rooms currently, as Fire is an enemy)             .          .             .           .
+7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .
+
 
 
 
