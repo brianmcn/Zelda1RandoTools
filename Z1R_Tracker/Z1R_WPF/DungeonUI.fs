@@ -128,10 +128,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
+    let levelTabs = Array.zeroCreate 9
     let contentCanvases = Array.zeroCreate 9
+    let dummyCanvas = new Canvas(Opacity=0.0001)  // a kludge to help work around TabControl unloading tabs when not selected
     let localDungeonTrackerPanelWidth = 42.
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
+        levelTabs.[level-1] <- levelTab
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
         let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsHitTestVisible=false, 
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
@@ -285,11 +288,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+190.)
         hoverCanvas.MouseEnter.Add(fun _ ->
             let markedRooms = roomStates |> Array2D.map (fun s -> not(s.IsEmpty))
-            let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms,'?') // todo
+            let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
             let i = Graphics.BMPtoImage bmp
             i.Width <- 240.
             i.Height <- 120.
             i.Stretch <- Stretch.UniformToFill
+            RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
             Canvas.SetBottom(b, 0.)
             Canvas.SetLeft(b, -260.)
@@ -378,6 +382,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             try
                 let x = ea.AddedItems.[0]
                 if obj.ReferenceEquals(x,levelTab) then
+                    dummyCanvas.Children.Clear()
+                    levelTab.Content <- contentCanvas   // re-parent the content which may have been deparented by summary tab
                     levelTabSelected.Trigger(level)
                     showNumeral()
             with _ -> ()
@@ -389,7 +395,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             )
 
         let backgroundColorCanvas = new Canvas(Width=float(51*6+12), Height=float(TH))
-        canvasAdd(dungeonCanvas, backgroundColorCanvas, 0., 0.)
+        canvasAdd(dungeonHeaderCanvas, backgroundColorCanvas, 0., 0.)
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
             backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
             )
@@ -397,17 +403,25 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         for i = 0 to 7 do
             let HFF = new FontFamily("Courier New")
             if i<>7 then
+                let makeLetter(bmpFunc) =
+                    let bmp = bmpFunc() 
+                    let img = Graphics.BMPtoImage bmp
+                    img.Width <- float TH
+                    img.Height <- float TH
+                    img.Stretch <- Stretch.UniformToFill
+                    RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor)
+                    img
                 if TrackerModel.IsHiddenDungeonNumbers() then
                     if i <> 6 || labelChar = '9' then
-                        let fg = if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color) then Brushes.Black else Brushes.White
-                        let tb = new TextBox(Width=float(13*3), Height=float(TH+16), FontSize=float(TH+16), Foreground=fg, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false,
-                                                BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold)
-                        OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
-                            tb.Text <- ((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1))
-                        canvasAdd(dungeonCanvas, tb, float(i*51)+5., -9.)
-                        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
-                            tb.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
-                            )
+                        let mutable img = null
+                        let update() =
+                            dungeonHeaderCanvas.Children.Remove(img)
+                            img <- makeLetter(fun() -> Dungeon.MakeLetterBmpInZeldaFont(((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
+                                                                                                Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color)))
+                            canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
+                        update()
+                        OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> update())
+                        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> update())
                     else
                         let gsc = new GradientStopCollection()
                         gsc.Add(new GradientStop(Colors.Red, 0.))
@@ -435,11 +449,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     } |> Async.StartImmediate
                             )
                 else
-                    let tb = new TextBox(Width=float(13*3), Height=float(TH+16), FontSize=float(TH+16), Foreground=Brushes.White, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
-                                            BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold)
+                    let bmpFunc() = Dungeon.MakeLetterBmpInZeldaFont((sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
+                    let mutable img = makeLetter(bmpFunc)
+                    canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
-                        tb.Text <- (sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1))
-                    canvasAdd(dungeonHeaderCanvas, tb, float(i*51)+5., -9.)
+                        dungeonHeaderCanvas.Children.Remove(img)
+                        img <- makeLetter(bmpFunc)
+                        canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
+                        )
             OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
             for j = 0 to 7 do
@@ -692,10 +709,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                  HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         levelTab.Header <- header
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        contentCanvas.Children.Add(dummyCanvas) |> ignore
         dungeonTabs.SelectionChanged.Add(fun ea -> 
             try
                 let x = ea.AddedItems.[0]
                 if obj.ReferenceEquals(x,levelTab) then
+                    dummyCanvas.Children.Clear()
+                    for i = 0 to 7 do
+                        // deparent content canvases
+                        levelTabs.[i].Content <- null
+                        // make them visually here (but hidden by the dummy's lack of opacity), so that updates (like BOARD<->LEVEL) get visually drawn to be picked up by VisualBrush
+                        dummyCanvas.Children.Add(contentCanvases.[i]) |> ignore
                     levelTabSelected.Trigger(10)
             with _ -> ()
             )

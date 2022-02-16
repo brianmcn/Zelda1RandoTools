@@ -461,7 +461,255 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
 
 // Zelda-like minimap
 
+module ZeldaFont =
+    let A = """
+..XXX...
+.XX.XX..
+XX...XX.
+XX...XX.
+XXXXXXX.
+XX...XX.
+XX...XX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let B = """
+XXXXXX..
+XX...XX.
+XX...XX.
+XXXXXX..
+XX...XX.
+XX...XX.
+XXXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let C = """
+..XXXX..
+.XX..XX.
+XX......
+XX......
+XX......
+.XX..XX.
+..XXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let D = """
+XXXXX...
+XX..XX..
+XX...XX.
+XX...XX.
+XX...XX.
+XX..XX..
+XXXXX...
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let E = """
+XXXXXXX.
+XX......
+XX......
+XXXXXX..
+XX......
+XX......
+XXXXXXX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let F = """
+XXXXXXX.
+XX......
+XX......
+XXXXXX..
+XX......
+XX......
+XX......
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let G = """
+..XXXXX.
+.XX.....
+XX......
+XX..XXX.
+XX...XX.
+.XX..XX.
+..XXXXX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let H = """
+XX...XX.
+XX...XX.
+XX...XX.
+XXXXXXX.
+XX...XX.
+XX...XX.
+XX...XX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let lettersAthruH = [| A; B; C; D; E; F; G; H |]
+    let L = """
+.XXX....
+.XXX....
+.XXX....
+.XXX....
+.XXX....
+.XXX....
+.XXXXXX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let O = """
+.XXXXX..
+XX...XX.
+XX...XX.
+XX...XX.
+XX...XX.
+XX...XX.
+.XXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let R = """
+XXXXXX..
+XX...XX.
+XX...XX.
+XX..XXX.
+XXXXX...
+XX.XXX..
+XX..XXX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let V = """
+XX...XX.
+XX...XX.
+XX...XX.
+XXX.XXX.
+.XXXXX..
+..XXX...
+...X....
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let hyphen = """
+........
+........
+........
+.XXXXX..
+........
+........
+........
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let questionMark = """
+..XXX...
+.X...X..
+.....X..
+....X...
+...X....
+........
+...X....
+........"""             .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit0 = """
+..XXX...
+.X..XX..
+XX...XX.
+XX...XX.
+XX...XX.
+.XX..X..
+..XXX...
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit1 = """
+..XX....
+.XXX....
+..XX....
+..XX....
+..XX....
+..XX....
+XXXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit2 = """
+.XXXXX..
+XX...XX.
+....XXX.
+..XXXX..
+.XXXX...
+XXX.....
+XXXXXXX.
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit3 = """
+.XXXXXX.
+....XX..
+...XX...
+..XXXX..
+.....XX.
+XX...XX.
+.XXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit4 = """
+...XXX..
+..XXXX..
+.XX.XX..
+XX..XX..
+XXXXXXX.
+....XX..
+....XX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit5 = """
+XXXXXX..
+XX......
+XXXXXX..
+.....XX.
+.....XX.
+XX...XX.
+.XXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit6 = """
+..XXXX..
+.XX.....
+XX......
+XXXXXX..
+XX...XX.
+XX...XX.
+.XXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit7 = """
+XXXXXXX.
+XX...XX.
+....XX..
+...XX...
+..XX....
+..XX....
+..XX....
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit8 = """
+.XXXXX..
+XX...XX.
+XX...XX.
+.XXXXX..
+XX...XX.
+XX...XX.
+.XXXXX..
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digit9 = """
+.XXXXX..
+XX...XX.
+XX...XX.
+.XXXXXX.
+.....XX.
+....XX..
+.XXXX...
+........"""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
+    let digits = [| digit0; digit1; digit2; digit3; digit4; digit5; digit6; digit7; digit8; digit9 |]
+    let fromLetter(letter) = 
+        if letter >= 'A' && letter <= 'H' then
+            lettersAthruH.[int letter - int 'A']
+        elif letter = 'L' then
+            L
+        elif letter = 'O' then
+            O
+        elif letter = 'R' then
+            R
+        elif letter = 'V' then
+            V
+        elif letter = '-' then
+            hyphen
+        elif letter >= '0' && letter <= '9' then
+            digits.[int letter - int '0']
+        else //elif letter = '?' then
+            questionMark
+
 let BLUE = System.Drawing.Color.FromArgb(71, 47, 228)
+let MakeLetterBmpInZeldaFont(letter, preferBlack) =
+    let bmp = new System.Drawing.Bitmap(8, 8)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            bmp.SetPixel(x,y,System.Drawing.Color.Transparent)
+    let a = ZeldaFont.fromLetter(letter)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if a.[y].Chars(x)='X' then
+                bmp.SetPixel(x, y, if preferBlack then System.Drawing.Color.Black else System.Drawing.Color.White)
+    bmp
 let MakeMiniMiniMapBmp() =
     let bmp = new System.Drawing.Bitmap(8, 8)
     for x = 0 to 7 do
@@ -474,72 +722,62 @@ let MakeMiniMiniMapBmp() =
             bmp.SetPixel(x,y,BLUE)
     bmp
 let MakeLoZMinimapDisplayBmp(rooms:bool[,], letter) =
+    let OFFWHITE = System.Drawing.Color.FromArgb(210, 210, 210)
     let YELLOW = System.Drawing.Color.FromArgb(215, 152, 42)
     let bmp = new System.Drawing.Bitmap(80, 40)
     for x = 0 to 79 do
         for y = 0 to 39 do
             bmp.SetPixel(x,y,System.Drawing.Color.Black)
     let mutable xoff = 0
-    let w(x,y) = bmp.SetPixel(xoff+x,y,System.Drawing.Color.White)
-    // L
-    for x = 1 to 3 do
-        for y = 0 to 6 do
-            w(x,y)
-    for x = 4 to 6 do
-        w(x,6)
+    let w(x,y) = bmp.SetPixel(xoff+x,y,OFFWHITE)
+    let LEVEL = [| ZeldaFont.L; ZeldaFont.E; ZeldaFont.V; ZeldaFont.E; ZeldaFont.L |]
+    let BOARD = [| ZeldaFont.B; ZeldaFont.O; ZeldaFont.A; ZeldaFont.R; ZeldaFont.D |]
+    let which = if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then BOARD else LEVEL
+    // L B
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if which.[0].[y].Chars(x)='X' then w(x,y)
     xoff <- 8
-    // E
-    for x = 0 to 6 do
-        w(x,0)
-        w(x,6)
-    for x = 0 to 5 do
-        w(x,3)
-    for x = 0 to 1 do
-        for y = 0 to 6 do
-            w(x,y)
+    // E O
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if which.[1].[y].Chars(x)='X' then w(x,y)
     xoff <- 16
-    // V
-    for y = 0 to 3 do
-        w(0,y)
-        w(1,y)
-        w(5,y)
-        w(6,y)
-    for y = 3 to 4 do
-        w(1,y)
-        w(2,y)
-        w(4,y)
-        w(5,y)
-    w(3,4)
-    for x = 2 to 4 do
-        w(x,5)
-    w(3,6)
+    // V A
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if which.[2].[y].Chars(x)='X' then w(x,y)
     xoff <- 24
-    // E
-    for x = 0 to 6 do
-        w(x,0)
-        w(x,6)
-    for x = 0 to 5 do
-        w(x,3)
-    for x = 0 to 1 do
-        for y = 0 to 6 do
-            w(x,y)
+    // E R
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if which.[3].[y].Chars(x)='X' then w(x,y)
     xoff <- 32
-    // L
-    for x = 1 to 3 do
-        for y = 0 to 6 do
-            w(x,y)
-    for x = 4 to 6 do
-        w(x,6)
+    // L D
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if which.[4].[y].Chars(x)='X' then w(x,y)
     xoff <- 40
     // -
-    for x = 0 to 5 do
-        w(x,3)
+    for x = 0 to 7 do
+        for y = 0 to 7 do
+            if ZeldaFont.hyphen.[y].Chars(x)='X' then w(x,y)
     xoff <- 48
-    // todo
-    ignore(letter)
-    // _
-    for x = 0 to 6 do
-        w(x,6)
+    if letter >= 'A' && letter <= 'H' then
+        let a = ZeldaFont.lettersAthruH.[int letter - int 'A']
+        for x = 0 to 7 do
+            for y = 0 to 7 do
+                if a.[y].Chars(x)='X' then w(x,y)
+    elif letter >= '0' && letter <= '9' then
+        let a = ZeldaFont.digits.[int letter - int '0']
+        for x = 0 to 7 do
+            for y = 0 to 7 do
+                if a.[y].Chars(x)='X' then w(x,y)
+    else
+        // ?
+        for x = 0 to 7 do
+            for y = 0 to 7 do
+                if ZeldaFont.questionMark.[y].Chars(x)='X' then w(x,y)
     for i = 0 to 7 do
         for j = 0 to 7 do
             if rooms.[i,j] then
@@ -589,7 +827,7 @@ XoXXXXXX
 XXXXXXXX
 .XXXXXX.
 ..XXXX.."""          .Split([|'\r'; '\n'|], System.StringSplitOptions.RemoveEmptyEntries)
-    let w(x,y) = bmp.SetPixel(xoff+x,yoff+y,System.Drawing.Color.White)
+    let w(x,y) = bmp.SetPixel(xoff+x,yoff+y,OFFWHITE)
     let b(x,y) = bmp.SetPixel(xoff+x,yoff+y,BLUE)
     for x = 0 to 7 do
         for y = 0 to 7 do

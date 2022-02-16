@@ -1,7 +1,13 @@
-﻿Inspirational reminder:
+﻿
+REMINDERS
 
-[11:49 AM] marcmagus: I have never installed ZHelper, my only experience of it is hating it as a viewer.
-[11:49 AM] Lorgon111: oh man, you are missing out on new ways to hate it
+Z-Tracker targets .Net Framework 4.8.  That's because Framework 4.x is part of the Windows OS, and so that makes Z-Tracker a small .zip file.
+I could target .NET 6.0 in the future, but it would require users to have the .NET runtime installed as a pre-req (or else 'Publish' the app 
+as self-contained, making the .zip file I give people hundreds of megs, which does not make sense as a strategy for adoption).
+
+I should be able to upgrade to VS2022 and keep targetting as I am today.
+
+see also https://devblogs.microsoft.com/visualstudio/support-ends-for-older-versions-of-visual-studio-feb2022/ and https://github.com/dotnet/core/blob/main/releases.md
 
 
 TODOs
@@ -17,9 +23,24 @@ update docs with changes
 update whats new with changes
 
 
+futz with VS text editor settings
+
 
 on release, maybe make another 'whats new' video
 
+
+
+'found' count visually overlaps 9's superscript (e.g. 9 on PB spot)
+
+
+meat block can appear in L9 (BU cannot)
+the other weird T shaped room could be a new room maybe
+
+"now that you have better armor, consider dungeon 8" when just got red ring in 8
+
+maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
+
+voice feedback saying what mark, so less need to watch what you clicked?
 
 
 
@@ -289,50 +310,4 @@ Keyboard focus and control
 
 
 
-
-
-
-
-comparisons to ZHelper
-
-ZHelper has lots of features this tracker lacks (save state, network co-op coordination, custom icons, ...) and uses less screen real estate.
-
-That said, I think this tracker has a number of advantages in usability, both in design and feature set:
-
- - All the items from a dungeon are in a single column.  No more accidentally marking 6's basement item in 5's slot, and then being confused later.
-
- - More consistent use of color: as things are completed (overworld 'X' spot, completed dungeon/room), they get 'dimmer' coloration, to fade somewhat into the background.
-   As a result, the eye is drawn to the bright spots, which are where the remaining work is and where the player needs to focus.
-
- - Less scrolling & mousing: 
-     - you can populate most icon boxes without any scrolling due to local popup menu showing all the item choices
-     - you can populate most overworld tiles without any scrolling via speech recognition
-     - local item popups and accelerators mean you rarely ever need to move the mouse to the top portion of the tracker
-
- - Overworld zoom magnifier: no more squinting at the tracker to see exactly where the bomb-hole is located on that one screen.
-
- - More information in fewer clicks: mouse hovering can show the area zone overlay, helpful hint locations, dungeon locations, and all kinds of other contextual information, with no switching tabs.
-
- - Quick after-the-fact dungeon markup: if you play half a dungeon without mapping, and then decide you need to map it, drag gestures can quickly 'paint out' the already-explored portions.
-   Or if you have a book-atlas, you can 'paint out' the dungeon map of uncompleted rooms before starting it.
-
-This tracker also has a number of attractive added features, including:
-
- - ability to mark two items in a shop, rather than just one
-
- - ability to correct mistakes in dungeon markup (e.g. when you put a bunch of rooms in the wrong column) by cut&pasting a segment
-
- - full support for 'hide dungeon numbers' flag - no more needing to move all your marks from one column to another after discovering you guessed the dungeon number wrong
-
- - a note-taking text area to type ad-hoc reminders to yourself (e.g. "L5 bomb upgrade 106"), and an area to mark dungeon blockers via icons (e.g. 4 needs ladder, 7 needs bow&arrow)
-
- - overworld routing guidance that can help steer newer players to remaining unexplored locations, or find the best route from A to B
-
- - a timeline which displays the 'history' of when you got key items, to orient latecomer stream viewers, or to help you replay the seed in your head in the post-game recap analysis
-
- - a sophisticated system for offering timely, useful reminders, via speech synthesis (voice reminders) and/or icon popups
- 
- - speech recognition features for marking bits of the overworld without any scrolling or clicking
-
- - richer dungeon mapping: ability to mark each dungeon room as 'cleared' or not, independent of the room icon; also, ability to 'circle' rooms in dungeons
 
