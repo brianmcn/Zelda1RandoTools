@@ -303,8 +303,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
     let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -2.)
-    canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 20.)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -6.)
+    canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 16.)
     let updateFoundDungeonsCount() =
         let mutable r = 0
         for trackerIndex = 0 to 8 do    

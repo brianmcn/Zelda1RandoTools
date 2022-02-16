@@ -35,6 +35,7 @@ let fullFoundTriforce_bmp(i) =
     | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
     | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
 
+// make a superscript icon to help visualize implications of 'Force OW block' rando flag
 let drawTinyIconIfLocationIsOverworldBlock(c:Canvas, owInstanceOpt:OverworldData.OverworldInstance option, location) =
     match owInstanceOpt with
     | Some owInstance ->
@@ -54,7 +55,7 @@ let drawTinyIconIfLocationIsOverworldBlock(c:Canvas, owInstanceOpt:OverworldData
             if icon <> null then
                 icon.Width <- 7.
                 icon.Height <- 7.
-                canvasAdd(c, icon, 21., 3.)
+                canvasAdd(c, icon, 23., 5.)
     | None -> ()
 let SynthesizeANewLocationKnownEvent(mapChoiceDomainChangePublished:IEvent<_>) =
     let resultEvent = new Event<_>()

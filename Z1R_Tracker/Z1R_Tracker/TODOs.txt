@@ -30,8 +30,6 @@ on release, maybe make another 'whats new' video
 
 
 
-'found' count visually overlaps 9's superscript (e.g. 9 on PB spot)
-
 
 meat block can appear in L9 (BU cannot)
 the other weird T shaped room could be a new room maybe
