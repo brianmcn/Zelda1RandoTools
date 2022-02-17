@@ -178,7 +178,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
-        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsHitTestVisible=false, FontSize=200., Opacity=0.0,
+        let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
+        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
                             Width=dungeonBodyCanvas.Width, Height=dungeonBodyCanvas.Height, VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
                             HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         let showNumeral() =
@@ -187,7 +188,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             async { 
                 do! Async.Sleep(1000)
                 do! Async.SwitchToContext(ctxt)
-                numeral.Opacity <- 0.0 
+                numeral.Opacity <- if isFirstTimeClickingAnyRoomInThisDungeonTab then 0.25 else 0.0 
             } |> Async.Start
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
@@ -399,7 +400,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
             backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
             )
-        let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
         for i = 0 to 7 do
             let HFF = new FontFamily("Courier New")
             if i<>7 then
@@ -543,6 +543,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
+                            numeral.Opacity <- 0.0
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness
                             match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
                             | Some(Choice1Of3(roomType)) -> 
@@ -647,8 +648,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
-                                            showNumeral()
                                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                            numeral.Opacity <- 0.0
                                         else
                                             match roomStates.[i,j].RoomType.NextEntranceRoom() with
                                             | Some(next) -> roomStates.[i,j].RoomType <- next  // cycle the entrance arrow around cardinal positions
@@ -661,6 +662,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     // plain right click
                                     do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
                                     isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                    numeral.Opacity <- 0.0
                                     redraw()
                             elif ea.ChangedButton = Input.MouseButton.Middle then
                                 if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
@@ -684,6 +686,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if not popupIsActive then
                         if roomStates.[i,j].RoomType.IsNotMarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                            numeral.Opacity <- 0.0
                             if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
                                 roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
                                 roomStates.[i,j].IsComplete <- true

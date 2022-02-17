@@ -33,9 +33,6 @@ update whats new with changes
 futz with VS text editor settings
 
 
-on release, maybe make another 'whats new' video
-
-
 
 need voice command to set 'nothing' (dont care) (also unmarked?)
 
