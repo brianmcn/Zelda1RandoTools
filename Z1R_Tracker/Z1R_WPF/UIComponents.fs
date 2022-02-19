@@ -492,11 +492,12 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
         redraw(current) |> ignore
+        TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
+            current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
+            redraw(current) |> ignore
+            )
         let mutable popupIsActive = false
-        let SetNewValue(db) =
-            current <- db
-            redraw(db) |> ignore
-            TrackerModel.dungeonBlockers.[dungeonIndex, blockerIndex] <- db
+        let SetNewValue(db) = TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
         let activate(activationDelta) =
             popupIsActive <- true
             let pc, predraw = make()

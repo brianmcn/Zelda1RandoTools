@@ -37,15 +37,18 @@ save state
      - would need UI on start screen for loading, alternative to 'start's
      - would need UI in app for saving, presumably just save a set filename with a date/time? button below spot summary?
  - do portions separately, e.g.
-   - top part of tracker
-   - overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
-   - blockers
+   DONE- item boxes, triforces, HDN color/label
+   - rest of top part of tracker
+   DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
+   DONE- blockers
    - dungeon marks (push down into Model? currently only in View)
    - notes
    - timeline (push down into Model? currently only in View)
  - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
  - think through scenarios
 
+
+fury says: triforce room with enemies must drop map
 
 
 futz with VS text editor settings

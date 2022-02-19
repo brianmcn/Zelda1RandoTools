@@ -1071,6 +1071,30 @@ type DungeonBlocker =
     | MAYBE_MONEY
     | MAYBE_BOMB
     | NOTHING
+    static member All = [| 
+        DungeonBlocker.BOW_AND_ARROW
+        DungeonBlocker.RECORDER
+        DungeonBlocker.LADDER  
+        DungeonBlocker.KEY
+        DungeonBlocker.BAIT    
+        DungeonBlocker.MONEY
+        DungeonBlocker.BOMB
+        DungeonBlocker.COMBAT
+        DungeonBlocker.MAYBE_BOW_AND_ARROW
+        DungeonBlocker.MAYBE_RECORDER
+        DungeonBlocker.MAYBE_LADDER  
+        DungeonBlocker.MAYBE_KEY
+        DungeonBlocker.MAYBE_BAIT    
+        DungeonBlocker.MAYBE_MONEY
+        DungeonBlocker.MAYBE_BOMB
+        DungeonBlocker.NOTHING
+        |]
+    static member FromHotKeyName(hkn) =
+        let mutable r = DungeonBlocker.NOTHING
+        for db in DungeonBlocker.All do
+            if db.AsHotKeyName()=hkn then
+                r <- db
+        r
     member this.AsHotKeyName() =
         match this with
         | DungeonBlocker.COMBAT -> "Blocker_Combat"
@@ -1117,24 +1141,6 @@ type DungeonBlocker =
         | DungeonBlocker.MONEY -> "Need money\n(e.g. mugger)"
         | DungeonBlocker.MAYBE_MONEY -> "Might need money\n(e.g. mugger)"
         | DungeonBlocker.NOTHING -> "Unmarked"
-    static member All = [| 
-        DungeonBlocker.BOW_AND_ARROW
-        DungeonBlocker.RECORDER
-        DungeonBlocker.LADDER  
-        DungeonBlocker.KEY
-        DungeonBlocker.BAIT    
-        DungeonBlocker.MONEY
-        DungeonBlocker.BOMB
-        DungeonBlocker.COMBAT
-        DungeonBlocker.MAYBE_BOW_AND_ARROW
-        DungeonBlocker.MAYBE_RECORDER
-        DungeonBlocker.MAYBE_LADDER  
-        DungeonBlocker.MAYBE_KEY
-        DungeonBlocker.MAYBE_BAIT    
-        DungeonBlocker.MAYBE_MONEY
-        DungeonBlocker.MAYBE_BOMB
-        DungeonBlocker.NOTHING
-        |]
     member this.Next() =
         let i = DungeonBlocker.All |> Array.findIndex (fun x -> x = this)
         let j = (i + 1) % DungeonBlocker.All.Length
@@ -1148,8 +1154,13 @@ type CombatUnblockerDetail =
     | BETTER_SWORD
     | BETTER_ARMOR
     | WAND
-let MAX_BLOCKERS_PER_DUNGEON = 2
-let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+type DungeonBlockersContainer() =
+    static let MAX_BLOCKERS_PER_DUNGEON = 2
+    static let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+    static let changed = new Event<unit>()
+    static member AnyBlockerChanged = changed.Publish
+    static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
+    static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1450,7 +1461,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     if combatUnblockers.Count > 0 then
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if dungeonBlockers.[i,0] = DungeonBlocker.COMBAT || dungeonBlockers.[i,1] = DungeonBlocker.COMBAT then
+            if DungeonBlockersContainer.GetDungeonBlocker(i,0) = DungeonBlocker.COMBAT || DungeonBlockersContainer.GetDungeonBlocker(i,1) = DungeonBlocker.COMBAT then
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1462,7 +1473,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
     let blockerLogic(db:DungeonBlocker) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if dungeonBlockers.[i,0].HardCanonical() = db.HardCanonical() || dungeonBlockers.[i,1].HardCanonical() = db.HardCanonical() then
+            if DungeonBlockersContainer.GetDungeonBlocker(i,0).HardCanonical() = db.HardCanonical() || DungeonBlockersContainer.GetDungeonBlocker(i,1).HardCanonical() = db.HardCanonical() then
                 if not(GetDungeon(i).IsComplete) then
                     dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then

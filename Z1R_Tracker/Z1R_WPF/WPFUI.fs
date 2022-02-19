@@ -1633,6 +1633,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         TrackerModel.recomputeWhatIsNeeded() |> ignore
         TrackerModel.forceUpdate()
         doUIUpdateEvent.Trigger()
+        // Blockers
+        for i = 0 to 7 do
+            for j = 0 to 1 do
+                TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(i,j,TrackerModel.DungeonBlocker.FromHotKeyName(data.Blockers.[i].[j]))
         if anySetProblems then
             () // TODO
         // done

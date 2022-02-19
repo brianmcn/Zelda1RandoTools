@@ -37,6 +37,7 @@ type AllData() =
     member val Version = "" with get,set
     member val Overworld : Overworld = null with get,set
     member val Items : Items = null with get,set
+    member val Blockers : string[][] = null with get,set
 
 let SaveOverworld(prefix) =
     let lines = ResizeArray()
@@ -80,7 +81,15 @@ let SaveItems(prefix) =
         if i<>8 then
             lines.Add("        } ] },")
         else
-            lines.Add("    } ] } ] }")
+            lines.Add("} ] } ] },")
+    lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
+
+let SaveBlockers(prefix) =
+    let lines = ResizeArray()
+    lines.Add(""""Blockers": [""")
+    for i = 0 to 7 do
+        lines.Add(sprintf """    [ "%s", "%s" ]%s""" (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,0).AsHotKeyName()) (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,1).AsHotKeyName()) (if i<>7 then "," else ""))
+    lines.Add("""]""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveAll() =  // can throw
@@ -89,6 +98,7 @@ let SaveAll() =  // can throw
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
         yield! SaveOverworld("    ")
         yield! SaveItems("    ")
+        yield! SaveBlockers("    ")
         yield sprintf """}"""
         |]
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
