@@ -38,6 +38,7 @@ type AllData() =
     member val Overworld : Overworld = null with get,set
     member val Items : Items = null with get,set
     member val Blockers : string[][] = null with get,set
+    member val Notes = "" with get,set
 
 let SaveOverworld(prefix) =
     let lines = ResizeArray()
@@ -89,16 +90,27 @@ let SaveBlockers(prefix) =
     lines.Add(""""Blockers": [""")
     for i = 0 to 7 do
         lines.Add(sprintf """    [ "%s", "%s" ]%s""" (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,0).AsHotKeyName()) (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,1).AsHotKeyName()) (if i<>7 then "," else ""))
-    lines.Add("""]""")
+    lines.Add("""],""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll() =  // can throw
+let EscapeStringForJson(s:string) =
+    s.Replace("\\", "\\\\")   // escape \
+     .Replace("\"", "\\\"")   // escape "
+     .Replace("/",  "\\/" )   // escape /
+     .Replace("\b", "\\b" )   // escape \b
+     .Replace("\t", "\\t" )   // escape \t
+     .Replace("\n", "\\n" )   // escape \n
+     .Replace("\f", "\\f" )   // escape \f
+     .Replace("\r", "\\r" )   // escape \r
+
+let SaveAll(notesText:string) =  // can throw
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
         yield! SaveOverworld("    ")
         yield! SaveItems("    ")
         yield! SaveBlockers("    ")
+        yield sprintf """    "Notes": "%s" """ (EscapeStringForJson notesText)
         yield sprintf """}"""
         |]
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")

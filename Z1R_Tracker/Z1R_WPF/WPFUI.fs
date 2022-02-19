@@ -884,7 +884,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll()
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1639,6 +1639,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(i,j,TrackerModel.DungeonBlocker.FromHotKeyName(data.Blockers.[i].[j]))
         if anySetProblems then
             () // TODO
+        // Notes
+        notesTextBox.Text <- data.Notes
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()

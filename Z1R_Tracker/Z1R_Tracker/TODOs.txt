@@ -42,13 +42,13 @@ save state
    DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
    DONE- blockers
    - dungeon marks (push down into Model? currently only in View)
-   - notes
+   DONE- notes
    - timeline (push down into Model? currently only in View)
  - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
  - think through scenarios
 
 
-fury says: triforce room with enemies must drop map
+fury says: triforce room with enemies and not-standing-item must drop map
 
 
 futz with VS text editor settings
