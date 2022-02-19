@@ -1606,23 +1606,37 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let a = data.Overworld.Map
         if a.Length <> 16 * 8 * 2 then
             failwith "bad load data at data.Overworld.Map"
-        else
-            silenceAllRemindersDuringCurrentLoad <- true
-            let mutable anySetProblems = false
-            for j = 0 to 7 do
-                for i = 0 to 15 do
-                    let cur = a.[j*16*2 + i*2]
-                    let ed = a.[j*16*2 + i*2 + 1]
-                    if not(TrackerModel.overworldMapMarks.[i,j].AttemptToSet(cur)) then
-                        anySetProblems <- true
-                    let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
-                    if k <> -1 then
-                        TrackerModel.setOverworldMapExtraData(i,j,k,ed)
-                    owUpdateFunctions.[i,j] 0 null  // redraw the tile
-//                TrackerModel.recomputePlayerStateSummary()
-                TrackerModel.recomputeMapStateSummary()
-                doUIUpdateEvent.Trigger()
-            silenceAllRemindersDuringCurrentLoad <- false
+        silenceAllRemindersDuringCurrentLoad <- true
+        // Overworld
+        let mutable anySetProblems = false
+        for j = 0 to 7 do
+            for i = 0 to 15 do
+                let cur = a.[j*16*2 + i*2]
+                let ed = a.[j*16*2 + i*2 + 1]
+                if not(TrackerModel.overworldMapMarks.[i,j].AttemptToSet(cur)) then
+                    anySetProblems <- true
+                let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
+                if k <> -1 then
+                    TrackerModel.setOverworldMapExtraData(i,j,k,ed)
+                owUpdateFunctions.[i,j] 0 null  // redraw the tile
+            TrackerModel.recomputeMapStateSummary()
+            doUIUpdateEvent.Trigger()
+        // Items
+        if not(data.Items.WhiteSwordBox.TryApply(TrackerModel.sword2Box)) then anySetProblems <- true
+        if not(data.Items.LadderBox.TryApply(TrackerModel.ladderBox)) then anySetProblems <- true
+        if not(data.Items.ArmosBox.TryApply(TrackerModel.armosBox)) then anySetProblems <- true
+        for i = 0 to 8 do
+            let ds = data.Items.Dungeons.[i]
+            let dd = TrackerModel.GetDungeon(i)
+            if not(ds.TryApply(dd)) then anySetProblems <- true
+        TrackerModel.recomputePlayerStateSummary()
+        TrackerModel.recomputeWhatIsNeeded() |> ignore
+        TrackerModel.forceUpdate()
+        doUIUpdateEvent.Trigger()
+        if anySetProblems then
+            () // TODO
+        // done
+        silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()
 
     TrackerModel.forceUpdate()

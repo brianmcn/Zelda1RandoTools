@@ -5,12 +5,40 @@ type Overworld() =
     member val Quest = -1 with get,set
     member val Map : int[] = null with get,set
 
+[<AllowNullLiteral>]
+type Box() =
+    member val CellCurrent = -1 with get,set
+    member val PlayerHas = 0 with get,set
+    member this.TryApply(b : TrackerModel.Box) = b.AttemptToSet(this.CellCurrent, TrackerModel.PlayerHas.FromInt this.PlayerHas)
+
+[<AllowNullLiteral>]
+type Dungeon() =
+    member val Triforce = false with get,set
+    member val Color = 0 with get,set
+    member val LabelChar = "?" with get,set
+    member val Boxes : Box[] = null with get,set
+    member this.TryApply(d : TrackerModel.Dungeon) =
+        if this.Triforce <> d.PlayerHasTriforce() then
+            d.ToggleTriforce()
+        d.Color <- this.Color
+        d.LabelChar <- this.LabelChar.[0]
+        (this.Boxes, d.Boxes) ||> Array.map2 (fun bs bd -> bs.TryApply(bd)) |> Array.fold (fun a b -> a && b) true
+
+[<AllowNullLiteral>]
+type Items() =
+    member val HiddenDungeonNumbers = false with get,set
+    member val SecondQuestDungeons = false with get,set
+    member val WhiteSwordBox : Box = null with get,set
+    member val LadderBox : Box = null with get,set
+    member val ArmosBox : Box = null with get,set
+    member val Dungeons : Dungeon[] = null with get,set
+
 type AllData() =
     member val Version = "" with get,set
     member val Overworld : Overworld = null with get,set
+    member val Items : Items = null with get,set
 
 let SaveOverworld(prefix) =
-    // - overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
     let lines = ResizeArray()
     lines.Add(sprintf """"Overworld": {""")
     lines.Add(sprintf """    "Quest": %d,""" (TrackerModel.owInstance.Quest.AsInt()))
@@ -25,7 +53,34 @@ let SaveOverworld(prefix) =
             sb.Append(sprintf "%2d,%2d%s  " cur ed comma) |> ignore
         lines.Add(sb.ToString())
     lines.Add(sprintf """    ]""")
-    lines.Add(sprintf """}""")
+    lines.Add(sprintf """},""")
+    lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
+
+let SaveItems(prefix) =
+    let lines = ResizeArray()
+    let SaveBox(pre, box:TrackerModel.Box) =
+        lines.Add(sprintf """%s%s"CellCurrent": %d, "PlayerHas": %d""" prefix pre (box.CellCurrent()) (box.PlayerHas().AsInt()))
+    lines.Add(sprintf """"Items": {""")
+    lines.Add(sprintf """    "HiddenDungeonNumbers": %b,""" (TrackerModel.IsHiddenDungeonNumbers()))
+    lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModel.Options.IsSecondQuestDungeons.Value)
+    lines.Add(sprintf """    "WhiteSwordBox": {""")
+    SaveBox("        ", TrackerModel.sword2Box)
+    lines.Add(sprintf """    }, "LadderBox": {""")
+    SaveBox("        ", TrackerModel.ladderBox)
+    lines.Add(sprintf """    }, "ArmosBox": {""")
+    SaveBox("        ", TrackerModel.armosBox)
+    lines.Add(sprintf """    }, "Dungeons": [""")
+    for i = 0 to 8 do
+        let d = TrackerModel.GetDungeon(i)
+        lines.Add(sprintf """            { "Triforce": %b, "Color": %d, "LabelChar": "%s", "Boxes": [ {""" (d.PlayerHasTriforce()) d.Color (d.LabelChar.ToString())) |> ignore
+        for box in d.Boxes do
+            SaveBox("                    ", box)
+            lines.Add("                }, {")
+        lines.RemoveAt(lines.Count-1)
+        if i<>8 then
+            lines.Add("        } ] },")
+        else
+            lines.Add("    } ] } ] }")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveAll() =  // can throw
@@ -33,6 +88,7 @@ let SaveAll() =  // can throw
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
         yield! SaveOverworld("    ")
+        yield! SaveItems("    ")
         yield sprintf """}"""
         |]
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")

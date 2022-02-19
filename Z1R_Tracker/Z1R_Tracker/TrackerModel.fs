@@ -669,7 +669,11 @@ let startingItemsAndExtras = StartingItemsAndExtras()
 
 let dungeonsAndBoxesLastChangedTime = new LastChangedTime()
 [<RequireQualifiedAccess>]
-type PlayerHas = | YES | NO | SKIPPED
+type PlayerHas = 
+    | YES | NO | SKIPPED
+    member this.AsInt() = match this with | PlayerHas.NO -> 0 | PlayerHas.YES -> 1 | PlayerHas.SKIPPED -> 2
+    static member FromInt(x) = if x=0 then PlayerHas.NO elif x=1 then PlayerHas.YES elif x=2 then PlayerHas.SKIPPED else failwith "bad PlayerHas value"
+
 type Box() =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)

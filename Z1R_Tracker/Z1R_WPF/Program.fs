@@ -316,7 +316,7 @@ type MyWindow() as this =
             rd.Add(typeof<ToolTip>, style)
 
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
-        let spacing = Thickness(0., 10., 0., 0.)
+        let spacing = Thickness(0., 8., 0., 0.)
 
         do        
             let menu(wh:Threading.ManualResetEvent) = 
@@ -390,7 +390,7 @@ type MyWindow() as this =
             spacer.Children.Add(vb) |> ignore
             stackPanel.Children.Add(spacer) |> ignore
 
-        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
+        let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore
 
         let hsPanel = new StackPanel(Margin=spacing, MaxWidth=WIDTH/2., Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
@@ -464,6 +464,9 @@ type MyWindow() as this =
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
             startButton.Margin <- spacing
             startButton.Width <- WIDTH/2.
+            if n=999 then
+                let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
+                stackPanel.Children.Add(tb) |> ignore
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
@@ -477,12 +480,46 @@ type MyWindow() as this =
                         Gamepad.ControllerFailureEvent.Publish.Add(handle)
                         OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
 
-                    let heartShuffle = hscb.IsChecked.HasValue && hscb.IsChecked.Value
-                    let kind = 
-                        if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
-                            TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                    let mutable loadData = None
+                    if n = 999 then
+                        let ofd = new Microsoft.Win32.OpenFileDialog()
+                        ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                        ofd.Filter <- "ZTracker saves|zt-save-*.json"
+                        let r = ofd.ShowDialog(this)
+                        if r.HasValue && r.Value then
+                            try
+                                loadData <- Some(SaveAndLoad.LoadAll(ofd.FileName))
+                                if loadData.Value.Version <> OverworldData.VersionString then
+                                    let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                                        OverworldData.VersionString loadData.Value.Version
+                                    let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                    ignore r
+                                    loadData <- None
+                            with e ->
+                                let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                ignore r
                         else
-                            TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                            let msg = sprintf "Failed to load a save file."
+                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                            ignore r
+
+                    // loadData takes precedence over user selections
+                    let heartShuffle = loadData.IsSome || (hscb.IsChecked.HasValue && hscb.IsChecked.Value)
+                    let kind = 
+                        if loadData.IsSome then
+                            if loadData.Value.Items.HiddenDungeonNumbers then 
+                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS 
+                            else 
+                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                        else
+                            if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                            else
+                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                    if loadData.IsSome then
+                        TrackerModel.Options.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+
                     let mutable speechRecognitionInstance = null
                     if TrackerModel.Options.ListenForSpeech.Value then
                         printfn "Initializing microphone for speech recognition..."
@@ -498,45 +535,25 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                        let mutable loadData = None
-                        if n = 999 then
-                            let ofd = new Microsoft.Win32.OpenFileDialog()
-                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                            ofd.Filter <- "ZTracker saves|zt-save-*.json"
-                            let r = ofd.ShowDialog(this)
-                            if r.HasValue && r.Value then
-                                try
-                                    loadData <- Some(SaveAndLoad.LoadAll(ofd.FileName))
-                                    if loadData.Value.Version <> OverworldData.VersionString then
-                                        let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
-                                                            OverworldData.VersionString loadData.Value.Version
-                                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                                        ignore r
-                                        loadData <- None
-                                    // TODO validate version, fail if not same (officially unsupported, even if may work)
-                                    // TODO eventually when more features, this affects heartShuffle
-                                with e ->
-                                    () // TODO msg, exit
-                            else
-                                () // TODO msg, exit
-                        let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
-                        stackPanel.Children.Add(tb) |> ignore
-                        let showProgress() = 
-                            async {
-                                tb.Text <- tb.Text.Replace(".\n", "..\n")
-                                // move mainDock to topmost layer again
-                                appMainCanvas.Children.Remove(mainDock)
-                                appMainCanvas.Children.Add(mainDock) |> ignore
-                                do! Async.Sleep(1) // pump to make 'Loading UI' text update
-                                do! Async.SwitchToContext ctxt
-                            }
-                        do! showProgress()
-                        let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
-                        updateTimeline <- u
-                        appMainCanvas.Children.Remove(mainDock)  // remove for good
-                        WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
-                        WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-                        Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+
+                    let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
+                    stackPanel.Children.Add(tb) |> ignore
+                    let showProgress() = 
+                        async {
+                            tb.Text <- tb.Text.Replace(".\n", "..\n")
+                            // move mainDock to topmost layer again
+                            appMainCanvas.Children.Remove(mainDock)
+                            appMainCanvas.Children.Add(mainDock) |> ignore
+                            do! Async.Sleep(1) // pump to make 'Loading UI' text update
+                            do! Async.SwitchToContext ctxt
+                        }
+                    do! showProgress()
+                    let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
+                    updateTimeline <- u
+                    appMainCanvas.Children.Remove(mainDock)  // remove for good
+                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
+                    WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
+                    Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                 } |> Async.StartImmediate
             )
 
