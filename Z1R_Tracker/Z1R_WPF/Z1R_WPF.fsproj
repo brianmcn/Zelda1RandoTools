@@ -108,6 +108,10 @@
     <Compile Include="SpeechRecognition.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />
     <Compile Include="LinkRouting.fs" />
+    <Compile Include="OverworldItemGridUI.fs" />
+    <Compile Include="UIComponents.fs" />
+    <Compile Include="HUDs.fs" />
+    <Compile Include="Broadcast.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\README.txt">

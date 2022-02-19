@@ -1,6 +1,6 @@
 ﻿module OverworldData
 
-let VersionString = "1.1.1"
+let VersionString = "1.2.0a"
 let ProgramNameString = sprintf "Z-Tracker v%s" VersionString
 let Website = "https://github.com/brianmcn/Zelda1RandoTools"
 let AboutBody = sprintf "%s by Dr. Brian Lorgon111\n\nLearn more at\n%s\n" ProgramNameString Website
@@ -27,6 +27,18 @@ type OWQuest =
     | MIXED_FIRST
     | MIXED_SECOND
     member this.IsFirstQuestOW = match this with |FIRST|MIXED_FIRST -> true | _ -> false
+    member this.AsInt() =
+        match this with
+        | FIRST -> 0
+        | SECOND -> 1
+        | MIXED_FIRST -> 2
+        | MIXED_SECOND -> 3
+    member this.FromInt(x) =
+        if x=0 then FIRST
+        elif x=1 then SECOND
+        elif x=2 then MIXED_FIRST
+        elif x=3 then MIXED_SECOND
+        else failwith "bad OWQuest.FromInt value"
 
 let owMapZone = [|
     "MMMMMMMMMMLHHHCC"

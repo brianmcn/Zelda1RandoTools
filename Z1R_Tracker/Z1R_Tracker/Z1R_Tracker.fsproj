@@ -65,6 +65,7 @@
     <Compile Include="DungeonData.fs" />
     <Compile Include="OverworldRouting.fs" />
     <Compile Include="TrackerModel.fs" />
+    <Compile Include="SaveAndLoad.fs" />
     <Content Include="packages.config" />
     <Content Include="App.config" />
   </ItemGroup>

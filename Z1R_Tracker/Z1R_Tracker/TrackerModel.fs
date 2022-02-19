@@ -931,7 +931,7 @@ let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST
 
 let mapLastChangedTime = new LastChangedTime()
 let mutable overworldMapMarks : Cell[,] = null
-let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate MapSquareChoiceDomainHelper.DARK_X)
+let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate (MapSquareChoiceDomainHelper.DARK_X+1))
 // extra data key-value store, used by 
 //  - 3-item shops to store the second item, key for all shops is SHOP, value 0 is none and 1-MapStateProxy.NUM_ITEMS are those items
 //  - various others store a brightness toggle, key is <mapstate>, value is 0 or <mapstate>

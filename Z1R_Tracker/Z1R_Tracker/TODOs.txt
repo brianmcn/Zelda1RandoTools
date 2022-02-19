@@ -25,6 +25,8 @@ update whats new with changes
   - made LEVEL/BOARD header use Zelda font
   - fixed miniminimap (hover blue bars) to show BOARD-5 or whatnot
   - dungeon summary tab no longer show stale/missing info
+  - dungeon numeral stays visible until first room mark
+  - save/load (in progress)
 
 
 
@@ -56,6 +58,21 @@ Some kind of map presets could be good, and 4 types of shops as well, in terms o
  - rather than full save/load, what if way to load preset overworld map only?
 
 
+
+save state
+ - would need to chip away at it
+ - imagine only loading 'at the start' some save state, turning off reminder/update systems during load
+     - would need UI on start screen for loading, alternative to 'start's
+     - would need UI in app for saving, presumably just save a set filename with a date/time? button below spot summary?
+ - do portions separately, e.g.
+   - top part of tracker
+   - overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
+   - blockers
+   - dungeon marks (push down into Model? currently only in View)
+   - notes
+   - timeline (push down into Model? currently only in View)
+ - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
+ - think through scenarios
 
 
 

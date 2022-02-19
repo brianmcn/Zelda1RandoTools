@@ -177,8 +177,8 @@ type MyWindow() as this =
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
     let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
-    //                             items  ow map  prog  dungeon tabs                      timeline   
-    let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6)
+    //                             items  ow map  prog  dungeon tabs                                    timeline   
+    let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
     let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
     let CHROME_WIDTH, CHROME_HEIGHT = 16., 40.  // Windows app border
     let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
@@ -278,17 +278,17 @@ type MyWindow() as this =
         this.Loaded.Add(fun _ -> this.Focus() |> ignore)
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
-            //                             items  ow map  prog  dungeon tabs                timeline
-            let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + WPFUI.TH + 30 + 27*8 + 12*7 + 3 + WPFUI.TCH + 6)
-            let rootCanvas =    new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+            //                             items  ow map  prog  dungeon tabs                                    timeline
+            let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
+            let rootCanvas =    new Canvas(Width=16.*Graphics.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
             rootCanvas.UseLayoutRounding <- true
-            let appMainCanvas = new Canvas(Width=16.*WPFUI.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
+            let appMainCanvas = new Canvas(Width=16.*Graphics.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
             let style = new Style(typeof<ToolTip>)
             style.Setters.Add(new Setter(ToolTip.ForegroundProperty, Brushes.Orange))
             style.Setters.Add(new Setter(ToolTip.BackgroundProperty, Graphics.almostBlack))
             style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
             rootCanvas.Resources.Add(typeof<ToolTip>, style)
-            WPFUI.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
+            Graphics.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
         if TrackerModel.Options.SmallerAppWindow.Value then 
@@ -458,6 +458,7 @@ type MyWindow() as this =
             1, "Second Quest Overworld"
             2, "Mixed - First Quest Overworld"
             3, "Mixed - Second Quest Overworld\n(or randomized quest)"
+            999, "from a previously saved state"
             |]
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
@@ -468,11 +469,8 @@ type MyWindow() as this =
                 if startButtonHasBeenClicked then () else
                 startButtonHasBeenClicked <- true
                 turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
-                let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
-                stackPanel.Children.Add(tb) |> ignore
                 let ctxt = System.Threading.SynchronizationContext.Current
-                Async.Start (async {
-                    do! Async.SwitchToContext ctxt
+                async {
                     TrackerModel.Options.writeSettings()
 
                     if false then   // this feature is currently unused
@@ -500,12 +498,46 @@ type MyWindow() as this =
                     else
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
-                    appMainCanvas.Children.Remove(mainDock)
-                    let u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, speechRecognitionInstance)
-                    updateTimeline <- u
-                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
-                    Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
-                })
+                        let mutable loadData = None
+                        if n = 999 then
+                            let ofd = new Microsoft.Win32.OpenFileDialog()
+                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                            ofd.Filter <- "ZTracker saves|zt-save-*.json"
+                            let r = ofd.ShowDialog(this)
+                            if r.HasValue && r.Value then
+                                try
+                                    loadData <- Some(SaveAndLoad.LoadAll(ofd.FileName))
+                                    if loadData.Value.Version <> OverworldData.VersionString then
+                                        let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                                            OverworldData.VersionString loadData.Value.Version
+                                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                        ignore r
+                                        loadData <- None
+                                    // TODO validate version, fail if not same (officially unsupported, even if may work)
+                                    // TODO eventually when more features, this affects heartShuffle
+                                with e ->
+                                    () // TODO msg, exit
+                            else
+                                () // TODO msg, exit
+                        let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
+                        stackPanel.Children.Add(tb) |> ignore
+                        let showProgress() = 
+                            async {
+                                tb.Text <- tb.Text.Replace(".\n", "..\n")
+                                // move mainDock to topmost layer again
+                                appMainCanvas.Children.Remove(mainDock)
+                                appMainCanvas.Children.Add(mainDock) |> ignore
+                                do! Async.Sleep(1) // pump to make 'Loading UI' text update
+                                do! Async.SwitchToContext ctxt
+                            }
+                        do! showProgress()
+                        let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
+                        updateTimeline <- u
+                        appMainCanvas.Children.Remove(mainDock)  // remove for good
+                        WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
+                        WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
+                        Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+                } |> Async.StartImmediate
             )
 
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
