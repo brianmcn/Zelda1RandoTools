@@ -262,13 +262,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             match kind with
             | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
+        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
-    let boxItemImpl(box:TrackerModel.Box, requiresForceUpdate) = 
+    let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
         let c = Views.MakeBoxItem(cm, box)
         box.Changed.Add(fun _ -> if requiresForceUpdate then TrackerModel.forceUpdate())
         c.MouseEnter.Add(fun _ -> 
@@ -281,7 +281,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
-        timelineItems.Add(new Timeline.TimelineItem(fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
+        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
         c
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
@@ -306,14 +306,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
         else        
-            boxItemImpl(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+            boxItemImpl("Level1or4Box3", TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 8 do
             for j = 0 to 2 do
                 let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
-                    canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
                 if j=2 && i<> 8 then
                     canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
@@ -323,7 +323,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j=0 || j=1 || i=7 then
-                    canvasAdd(c, boxItemImpl(TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
     let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
     extrasImage.ToolTip <- "Starting items and extra drops"
@@ -886,7 +886,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             async {
                 try
                     let totalSeconds = int (DateTime.Now - theStartTime.Time).TotalSeconds
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds)
+                    let timelineData = ResizeArray()
+                    for ti in timelineItems do
+                        if ti.IsDone then
+                            timelineData.Add(ti.Identifier, ti.FinishedMinute)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds, timelineData)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1508,22 +1512,22 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     theTimeline1.Canvas.Opacity <- 1.
     theTimeline2.Canvas.Opacity <- 0.
     theTimeline3.Canvas.Opacity <- 0.
-    let updateTimeline(minute) =
+    let updateTimeline(doSample, minute) =
         if minute <= 60 then
             theTimeline1.Canvas.Opacity <- 1.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline1.Update(minute, timelineItems)
+            theTimeline1.Update(doSample, minute, timelineItems)
         elif minute <= 120 then
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 1.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline2.Update(minute, timelineItems)
+            theTimeline2.Update(doSample, minute, timelineItems)
         else
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 1.
-            theTimeline3.Update(minute, timelineItems)
+            theTimeline3.Update(doSample, minute, timelineItems)
     canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
@@ -1659,6 +1663,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         notesTextBox.Text <- data.Notes
         // Dungeon Maps
         importDungeonModels(data.DungeonMaps)
+        // Timeline
+        if data.Timeline <> null then
+            for td in data.Timeline do
+                for ti in timelineItems do
+                    if ti.Identifier = td.Ident then
+                        if td.Minute - 1 < data.TimeInSeconds / 60 then
+                            ti.Sample(td.Minute)
+        updateTimeline(false, data.TimeInSeconds / 60)
         // Timer
         theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
         // done
@@ -1667,6 +1679,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
-    return updateTimeline
+    return (fun m -> updateTimeline(true,m))
     }
 

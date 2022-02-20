@@ -548,6 +548,9 @@ type MyWindow() as this =
                             do! Async.SwitchToContext ctxt
                         }
                     do! showProgress()
+                    match loadData with
+                    | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
+                    | _ -> ()
                     let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
                     updateTimeline <- u
                     appMainCanvas.Children.Remove(mainDock)  // remove for good

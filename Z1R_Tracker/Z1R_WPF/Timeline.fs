@@ -5,7 +5,7 @@ open System.Windows.Controls
 open System.Windows
 
 let canvasAdd = Graphics.canvasAdd
-type TimelineItem(f) =
+type TimelineItem(ident : string, f) =
     let mutable finishedMinute = 99999
     let mutable bmp = null
     member this.Sample(minute) =
@@ -18,6 +18,7 @@ type TimelineItem(f) =
     member this.IsDone = bmp<>null
     member this.FinishedMinute = finishedMinute
     member this.Bmp = bmp
+    member this.Identifier = ident
 
 let TLC = Brushes.SandyBrown   // timeline color
 let ICON_SPACING = 6.
@@ -76,13 +77,14 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         for x = int xpos to int lineWidth do
             iconAreaFilled.[x, numRows-1] <- 99
     member this.Canvas = timelineCanvas
-    member this.Update(minute, timelineItems:seq<TimelineItem>) =
+    member this.Update(doSample, minute, timelineItems:seq<TimelineItem>) =
         let tick = minute / minutesPerTick
         if tick < 0 || tick > numTicks then
             ()
         else
-            for ti in timelineItems do
-                ti.Sample(minute)
+            if doSample then
+                for ti in timelineItems do
+                    ti.Sample(minute)
             this.DrawItemsAndGuidelines(timelineItems)
             curTime.X1 <- xf(float minute / float minutesPerTick)
             curTime.X2 <- xf(float minute / float minutesPerTick)

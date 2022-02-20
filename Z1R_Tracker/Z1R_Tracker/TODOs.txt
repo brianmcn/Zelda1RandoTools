@@ -26,7 +26,7 @@ update whats new with changes
   - fixed miniminimap (hover blue bars) to show BOARD-5 or whatnot
   - dungeon summary tab no longer show stale/missing info
   - dungeon numeral stays visible until first room mark
-  - save/load (in progress)
+  - save/load
 
 
 
@@ -51,7 +51,7 @@ save state
              - poking roomIsCircled, then calling SetNewValue() seems like it would work
                   - but for 'empty' dungeons, want to repoke the 'first time clicking' to reactivate it, or rather the opposite (turn off for non-empty dungeons)
    DONE- notes
-   - timeline (push down into Model? currently only in View)
+   DONE- timeline (push down into Model? currently only in View)
  - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
  - think through scenarios
 

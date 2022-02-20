@@ -136,6 +136,11 @@ type StartingItemsAndExtrasModel() =
         TrackerModel.startingItemsAndExtras.PlayerHasBook.Set(this.PlayerHasBook)
         TrackerModel.startingItemsAndExtras.MaxHeartsDifferential <- this.MaxHeartsDifferential
 
+[<AllowNullLiteral>]
+type TimelineDatum() =
+    member val Ident = "" with get,set
+    member val Minute = 99999 with get,set
+
 //////////////////////////////////////////////////////////////////////////////
 
 let SaveOverworld(prefix) =
@@ -248,7 +253,7 @@ let SaveHints(prefix) =
     lines.Add("""},""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  // can throw
+let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds, timelineData:ResizeArray<string*int>) =  // can throw
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
@@ -262,6 +267,10 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
+        yield sprintf """    ],"""
+        yield sprintf """    "Timeline": ["""
+        for i = 0 to timelineData.Count-1 do
+            yield sprintf """        { "Ident": "%s", "Minute": %d }%s""" (fst timelineData.[i]) (snd timelineData.[i]) (if i=timelineData.Count-1 then "" else ",")
         yield sprintf """    ]"""
         yield sprintf """}"""
         |]

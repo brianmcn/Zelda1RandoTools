@@ -100,6 +100,7 @@ type AllData() =
     member val Hints : Hints = null with get,set
     member val Notes = "" with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
+    member val Timeline : TimelineDatum[] = null with get,set
 
 let LoadAll(filename) =  // can throw
     let json = System.IO.File.ReadAllText(filename)
