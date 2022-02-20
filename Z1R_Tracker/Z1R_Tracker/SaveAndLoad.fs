@@ -155,17 +155,17 @@ let SaveItems(prefix) =
     lines.Add(sprintf """    "HiddenDungeonNumbers": %b,""" (TrackerModel.IsHiddenDungeonNumbers()))
     lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModel.Options.IsSecondQuestDungeons.Value)
     lines.Add(sprintf """    "WhiteSwordBox": {""")
-    SaveBox("        ", TrackerModel.sword2Box)
+    SaveBox("    ", TrackerModel.sword2Box)
     lines.Add(sprintf """    }, "LadderBox": {""")
-    SaveBox("        ", TrackerModel.ladderBox)
+    SaveBox("    ", TrackerModel.ladderBox)
     lines.Add(sprintf """    }, "ArmosBox": {""")
-    SaveBox("        ", TrackerModel.armosBox)
+    SaveBox("    ", TrackerModel.armosBox)
     lines.Add(sprintf """    }, "Dungeons": [""")
     for i = 0 to 8 do
         let d = TrackerModel.GetDungeon(i)
         lines.Add(sprintf """            { "Triforce": %b, "Color": %d, "LabelChar": "%s", "Boxes": [ {""" (d.PlayerHasTriforce()) d.Color (d.LabelChar.ToString())) |> ignore
         for box in d.Boxes do
-            SaveBox("                    ", box)
+            SaveBox("            ", box)
             lines.Add("                }, {")
         lines.RemoveAt(lines.Count-1)
         if i<>8 then
@@ -233,8 +233,9 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[]) =  // can throw
         yield! SaveStartingItemsAndExtras("    ")
         yield! SaveBlockers("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
-        yield sprintf """    "DungeonMaps": """
-        yield! dungeonModelsJsonLines |> Array.map (fun s -> "        "+s)
+        yield sprintf """    "DungeonMaps": [ {"""
+        yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
+        yield sprintf """    ]"""
         yield sprintf """}"""
         |]
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")

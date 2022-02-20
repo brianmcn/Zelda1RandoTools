@@ -725,10 +725,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for i = 0 to 7 do
                 for j = 0 to 7 do
                     roomIsCircled.[i,j] <- dm.RoomIsCircled.[j].[i]
-                    let rs = dm.RoomStates.[j].[i].AsDungeonRoomState()
-                    if rs.RoomType <> DungeonRoomState.RoomType.Unmarked then
-                        isFirstTimeClickingAnyRoomInThisDungeonTab <- false
-                    setNewValueFunctions.[i,j](rs)
+                    let jsonModel = dm.RoomStates.[j].[i]
+                    if jsonModel <> null then
+                        let rs = jsonModel.AsDungeonRoomState()
+                        if rs.RoomType <> DungeonRoomState.RoomType.Unmarked then
+                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                        setNewValueFunctions.[i,j](rs)
             )
         do! showProgress()
     // end -- for level in 1 to 9 do

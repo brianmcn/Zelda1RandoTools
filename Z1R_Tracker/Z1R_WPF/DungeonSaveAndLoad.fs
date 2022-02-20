@@ -9,6 +9,12 @@ type DungeonRoomModel() =
     member val MonsterDetail = "" with get,set
     member val FloorDropDetail = "" with get,set
     member val FloorDropShouldAppearBright = false with get,set
+    member this.IsDefault =
+        not(this.IsCompleted) && 
+            this.RoomType=RoomType.Unmarked.AsHotKeyName() &&
+            this.MonsterDetail=MonsterDetail.Unmarked.AsHotKeyName() &&
+            this.FloorDropDetail=FloorDropDetail.Unmarked.AsHotKeyName() &&
+            this.FloorDropShouldAppearBright
     member this.AsDungeonRoomState() =
         let r = new DungeonRoomState()
         r.IsComplete <- this.IsCompleted
@@ -65,19 +71,20 @@ let SaveDungeonModel(prefix, model:DungeonModel) =
         lines.Add("    [")
         for i = 0 to 7 do
             let drm = model.RoomStates.[i].[j]
-            lines.Add(sprintf """    { "IsCompleted": %b, "RoomType": "%s", "MonsterDetail": "%s", "FloorDropDetail": "%s", "FloorDropShouldAppearBright": %b }%s"""
-                                    drm.IsCompleted drm.RoomType drm.MonsterDetail drm.FloorDropDetail drm.FloorDropShouldAppearBright (if i=7 then "" else ","))
+            if drm.IsDefault then
+                lines.Add(sprintf """    null%s""" (if i=7 then "" else ","))
+            else
+                lines.Add(sprintf """    { "IsCompleted": %b, "RoomType": "%s", "MonsterDetail": "%s", "FloorDropDetail": "%s", "FloorDropShouldAppearBright": %b }%s"""
+                                        drm.IsCompleted drm.RoomType drm.MonsterDetail drm.FloorDropDetail drm.FloorDropShouldAppearBright (if i=7 then "" else ","))
         lines.Add(sprintf "    ]%s" (if j=7 then "" else ","))
     lines.Add("""]""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveAllDungeons(models: DungeonModel[]) =
     [|
-        yield "[ {"
         for i = 0 to 8 do
             yield! SaveDungeonModel("    ", models.[i])
             yield sprintf "    }%s" (if i=8 then "" else ", {")
-        yield "]"
     |]
 
 open SaveAndLoad
