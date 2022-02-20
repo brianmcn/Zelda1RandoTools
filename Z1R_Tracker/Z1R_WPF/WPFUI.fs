@@ -885,7 +885,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines())
+                    let totalSeconds = int (DateTime.Now - theStartTime.Time).TotalSeconds
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1656,6 +1657,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         notesTextBox.Text <- data.Notes
         // Dungeon Maps
         importDungeonModels(data.DungeonMaps)
+        // Timer
+        theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()

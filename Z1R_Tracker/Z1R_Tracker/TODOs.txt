@@ -40,8 +40,9 @@ save state
    DONE- item boxes, triforces, HDN color/label
    DONE-shopping area items
    DONE- stating items/extra drops
-   - hint storage
-   - time
+   DONE- hint storage
+   DONE- time
+   - start spot
    DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
    DONE- blockers
    DONE- dungeon marks (push down into Model? currently only in View) 

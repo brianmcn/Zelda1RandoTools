@@ -59,7 +59,7 @@ type MyWindowBase() as this =
     let VK_F5 = 0x74
     let VK_F10 = 0x79
     let MOD_NONE = 0u
-    let startTime = new TrackerModel.LastChangedTime()
+    let startTime = OverworldItemGridUI.theStartTime
     do
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
@@ -552,7 +552,8 @@ type MyWindow() as this =
                     updateTimeline <- u
                     appMainCanvas.Children.Remove(mainDock)  // remove for good
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
-                    WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
+                    if loadData.IsNone then
+                        WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
                     Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                 } |> Async.StartImmediate
             )

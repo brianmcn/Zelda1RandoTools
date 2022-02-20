@@ -40,6 +40,8 @@ let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-pan
 let ITEM_PROGRESS_FIRST_ITEM = 130.
 
 // some global mutable variables needed across various UI components
+let theStartTime = new TrackerModel.LastChangedTime()
+
 let mutable displayIsCurrentlyMirrored = false
 
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()

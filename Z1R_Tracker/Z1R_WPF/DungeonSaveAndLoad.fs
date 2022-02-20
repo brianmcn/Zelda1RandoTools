@@ -91,6 +91,7 @@ open SaveAndLoad
         
 type AllData() =
     member val Version = "" with get,set
+    member val TimeInSeconds = 0 with get,set
     member val Overworld : Overworld = null with get,set
     member val Items : Items = null with get,set
     member val PlayerProgressAndTakeAnyHearts : PlayerProgressAndTakeAnyHeartsModel = null with get,set

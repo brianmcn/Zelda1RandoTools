@@ -242,10 +242,11 @@ let SaveHints(prefix) =
     lines.Add("""},""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string, dungeonModelsJsonLines:string[]) =  // can throw
+let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  // can throw
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
+        yield sprintf """    "TimeInSeconds": %d,""" totalSeconds
         yield! SaveOverworld("    ")
         yield! SaveItems("    ")
         yield! SavePlayerProgressAndTakeAnyHearts("    ")
