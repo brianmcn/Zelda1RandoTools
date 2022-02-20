@@ -57,6 +57,12 @@ type MonsterDetail =
         sp
     static member All() = 
         [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
+    static member FromHotKeyName(hkn) =
+        let mutable r = MonsterDetail.Unmarked
+        for x in MonsterDetail.All() do
+            if x.AsHotKeyName()=hkn then
+                r <- x
+        r
 
 [<RequireQualifiedAccess>]
 type FloorDropDetail =
@@ -115,6 +121,12 @@ type FloorDropDetail =
     static member All() =
         [| FloorDropDetail.Triforce; FloorDropDetail.Heart; FloorDropDetail.OtherKeyItem; FloorDropDetail.BombPack;
             FloorDropDetail.Key; FloorDropDetail.FiveRupee; FloorDropDetail.Map; FloorDropDetail.Compass; FloorDropDetail.Unmarked; |]
+    static member FromHotKeyName(hkn) =
+        let mutable r = FloorDropDetail.Unmarked
+        for x in FloorDropDetail.All() do
+            if x.AsHotKeyName()=hkn then
+                r <- x
+        r
 
 [<RequireQualifiedAccess>]
 type RoomType =
@@ -319,6 +331,12 @@ type RoomType =
         RoomType.Zelda
         RoomType.Unmarked
         |]
+    static member FromHotKeyName(hkn) =
+        let mutable r = RoomType.Unmarked
+        for x in RoomType.All() do
+            if x.AsHotKeyName()=hkn then
+                r <- x
+        r
 
 let entranceRoomArrowColorBrush = 
     let c = (Graphics.dungeonRoomBmpPairs.[28] |> snd).GetPixel(18, 24)
@@ -349,6 +367,7 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.IsEmpty = roomType.IsNotMarked || (roomType = RoomType.OffTheMap)
     member this.MonsterDetail with get() = monsterDetail and set(x) = monsterDetail <- x
     member this.FloorDropDetail with get() = floorDropDetail and set(x) = floorDropDetail <- x
+    member this.FloorDropAppearsBright with get() = floorDropShouldAppearBright
     member this.ToggleFloorDropBrightness() = floorDropShouldAppearBright <- not floorDropShouldAppearBright
     member this.CurrentDisplay(bigIcons) =
         let K = if bigIcons then 24. else 15.

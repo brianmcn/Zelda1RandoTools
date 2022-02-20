@@ -132,6 +132,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let contentCanvases = Array.zeroCreate 9
     let dummyCanvas = new Canvas(Opacity=0.0001, IsHitTestVisible=false)  // a kludge to help work around TabControl unloading tabs when not selected
     let localDungeonTrackerPanelWidth = 42.
+    let exportFunctions = Array.create 9 (fun () -> new DungeonSaveAndLoad.DungeonModel())
+    let importFunctions = Array.create 9 (fun _ -> ())
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         levelTabs.[level-1] <- levelTab
@@ -395,6 +397,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             grabRedraw()
             )
 
+        let setNewValueFunctions = Array2D.create 8 8 (fun _ -> ())
         let backgroundColorCanvas = new Canvas(Width=float(51*6+12), Height=float(TH))
         canvasAdd(dungeonHeaderCanvas, backgroundColorCanvas, 0., 0.)
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
@@ -519,6 +522,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         redraw()
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
+                setNewValueFunctions.[i,j] <- SetNewValue
                 let activatePopup(positionAtEntranceRoomIcons) = async {
                     popupIsActive <- true
                     let roomPos = c.TranslatePoint(Point(), cm.AppMainCanvas)
@@ -703,6 +707,29 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
         canvasAdd(dungeonBodyCanvas, numeral, 0., 0.)  // so numeral displays atop all else
+        exportFunctions.[level-1] <- (fun () ->
+            let r = new DungeonSaveAndLoad.DungeonModel()
+            r.HorizontalDoors <- Array.init 7 (fun i -> Array.init 8 (fun j -> horizontalDoors.[i,j].State.AsInt()))
+            r.VerticalDoors <-   Array.init 8 (fun i -> Array.init 7 (fun j -> verticalDoors.[i,j].State.AsInt()))
+            r.RoomIsCircled <-   Array.init 8 (fun i -> Array.init 8 (fun j -> roomIsCircled.[i,j]))
+            r.RoomStates <-      Array.init 8 (fun i -> Array.init 8 (fun j -> roomStates.[i,j] |> DungeonSaveAndLoad.DungeonRoomStateAsModel))
+            r
+            )
+        importFunctions.[level-1] <- (fun (dm:DungeonSaveAndLoad.DungeonModel) ->
+            for i = 0 to 6 do
+                for j = 0 to 7 do
+                    horizontalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.HorizontalDoors.[j].[i]
+            for i = 0 to 7 do
+                for j = 0 to 6 do
+                    verticalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.VerticalDoors.[j].[i]
+            for i = 0 to 7 do
+                for j = 0 to 7 do
+                    roomIsCircled.[i,j] <- dm.RoomIsCircled.[j].[i]
+                    let rs = dm.RoomStates.[j].[i].AsDungeonRoomState()
+                    if rs.RoomType <> DungeonRoomState.RoomType.Unmarked then
+                        isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                    setNewValueFunctions.[i,j](rs)
+            )
         do! showProgress()
     // end -- for level in 1 to 9 do
     do
@@ -883,5 +910,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         sqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 
 
-    return dungeonTabsWholeCanvas, grabModeTextBlock
+    let exportDungeonModelsJsonLines() = DungeonSaveAndLoad.SaveAllDungeons [| for f in exportFunctions do yield f() |]
+    let importDungeonModels(dma : DungeonSaveAndLoad.DungeonModel[]) =
+        for i = 0 to 8 do
+            importFunctions.[i](dma.[i])
+    return dungeonTabsWholeCanvas, grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
     }

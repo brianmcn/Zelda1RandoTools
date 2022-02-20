@@ -488,7 +488,7 @@ type MyWindow() as this =
                         let r = ofd.ShowDialog(this)
                         if r.HasValue && r.Value then
                             try
-                                loadData <- Some(SaveAndLoad.LoadAll(ofd.FileName))
+                                loadData <- Some(DungeonSaveAndLoad.LoadAll(ofd.FileName))
                                 if loadData.Value.Version <> OverworldData.VersionString then
                                     let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
                                                         OverworldData.VersionString loadData.Value.Version

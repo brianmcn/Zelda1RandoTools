@@ -14,7 +14,20 @@ let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush
 let locked = new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy))  :> Brush
 
 [<RequireQualifiedAccess>]
-type DoorState = | UNKNOWN | NO | YES | LOCKED
+type DoorState = 
+    | UNKNOWN | NO | YES | LOCKED
+    member this.AsInt() =
+        match this with
+        | UNKNOWN -> 0
+        | NO -> 1
+        | YES -> 2
+        | LOCKED -> 3
+    static member FromInt(x) =
+        if x=0 then DoorState.UNKNOWN
+        elif x=1 then DoorState.NO
+        elif x=2 then DoorState.YES
+        elif x=3 then DoorState.LOCKED
+        else failwith "bad DoorState.FromInt() value"
 
 type Door(state:DoorState, redraw) =
     let mutable state = state

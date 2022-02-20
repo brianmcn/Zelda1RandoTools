@@ -41,14 +41,19 @@ save state
    - rest of top part of tracker
    DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
    DONE- blockers
-   - dungeon marks (push down into Model? currently only in View)
+   DONE- dungeon marks (push down into Model? currently only in View) 
+        - hDoors, vDoors, 
+        - roomStates, roomIsCircled (validate usedTransports after import), turn off 'door infer' while setting, turn off 'first time clicking' while setting
+             - poking roomIsCircled, then calling SetNewValue() seems like it would work
+                  - but for 'empty' dungeons, want to repoke the 'first time clicking' to reactivate it, or rather the opposite (turn off for non-empty dungeons)
+
    DONE- notes
    - timeline (push down into Model? currently only in View)
  - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
  - think through scenarios
 
 
-fury says: triforce room with enemies and not-standing-item must drop map
+fury says: triforce room with enemies and not-standing-item must drop map (confirmed for Shapes)
 
 
 futz with VS text editor settings

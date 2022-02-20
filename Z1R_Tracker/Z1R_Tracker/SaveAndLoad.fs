@@ -33,13 +33,6 @@ type Items() =
     member val ArmosBox : Box = null with get,set
     member val Dungeons : Dungeon[] = null with get,set
 
-type AllData() =
-    member val Version = "" with get,set
-    member val Overworld : Overworld = null with get,set
-    member val Items : Items = null with get,set
-    member val Blockers : string[][] = null with get,set
-    member val Notes = "" with get,set
-
 let SaveOverworld(prefix) =
     let lines = ResizeArray()
     lines.Add(sprintf """"Overworld": {""")
@@ -93,23 +86,20 @@ let SaveBlockers(prefix) =
     lines.Add("""],""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string) =  // can throw
+let SaveAll(notesText:string, dungeonModelsJsonLines:string[]) =  // can throw
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
         yield! SaveOverworld("    ")
         yield! SaveItems("    ")
         yield! SaveBlockers("    ")
-        yield sprintf """    "Notes": %s""" (System.Text.Json.JsonSerializer.Serialize notesText)
+        yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
+        yield sprintf """    "DungeonMaps": """
+        yield! dungeonModelsJsonLines |> Array.map (fun s -> "        "+s)
         yield sprintf """}"""
         |]
     let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
     //let filename = "J:\\-impossiblesdkgfjhsdg;kdahfskjgfdhsgfh;lahjds;ljfdhs;ljfhldashfldashlfadshgflhjdgflajdgfjkl"  // test errors
     System.IO.File.WriteAllLines(filename, lines)
     filename
-
-let LoadAll(filename) =  // can throw
-    let json = System.IO.File.ReadAllText(filename)
-    let data = System.Text.Json.JsonSerializer.Deserialize<AllData>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
-    data
     

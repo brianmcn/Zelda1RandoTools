@@ -120,7 +120,7 @@ let RIGHT_COL = 440.
 let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
 
-let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, loadData:SaveAndLoad.AllData option, 
+let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
     let refocusMainWindow() =   // keep hotkeys working
         async {
@@ -874,6 +874,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
     //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
 
+    let mutable exportDungeonModelsJsonLines = fun () -> null
     let mutable popupIsActive = false
     let saveTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Save", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
@@ -884,7 +885,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines())
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1183,7 +1184,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()
-    let! dungeonTabs,grabModeTextBlock = 
+    let! dungeonTabs,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
         DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, trackerDungeonMoused, TH, rightwardCanvas, 
                                     levelTabSelected, mainTrackerGhostbusters, showProgress, (fun level ->
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
@@ -1195,6 +1196,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                     (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
             ), (fun _level -> hideLocator()))
+    exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
@@ -1641,6 +1643,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             () // TODO
         // Notes
         notesTextBox.Text <- data.Notes
+        // Dungeon Maps
+        importDungeonModels(data.DungeonMaps)
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()
