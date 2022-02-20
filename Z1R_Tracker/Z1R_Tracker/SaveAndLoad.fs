@@ -3,6 +3,9 @@
 [<AllowNullLiteral>]
 type Overworld() =
     member val Quest = -1 with get,set
+    member val MirrorOverworld = false with get,set
+    member val StartIconX = -1 with get,set
+    member val StartIconY = -1 with get,set
     member val Map : int[] = null with get,set
 
 [<AllowNullLiteral>]
@@ -139,6 +142,9 @@ let SaveOverworld(prefix) =
     let lines = ResizeArray()
     lines.Add(sprintf """"Overworld": {""")
     lines.Add(sprintf """    "Quest": %d,""" (TrackerModel.owInstance.Quest.AsInt()))
+    lines.Add(sprintf """    "MirrorOverworld": %b,""" (TrackerModel.Options.Overworld.MirrorOverworld.Value))
+    lines.Add(sprintf """    "StartIconX": %d,""" TrackerModel.startIconX)
+    lines.Add(sprintf """    "StartIconY": %d,""" TrackerModel.startIconY)
     lines.Add(sprintf """    "Map": [""")
     for j = 0 to 7 do
         let sb = new System.Text.StringBuilder("        ")

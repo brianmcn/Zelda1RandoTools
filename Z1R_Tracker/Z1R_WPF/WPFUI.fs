@@ -1606,11 +1606,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // poke loaded data values
     match loadData with
     | Some(data) ->
+        // Overworld
+        TrackerModel.Options.Overworld.MirrorOverworld.Value <- data.Overworld.MirrorOverworld
+        TrackerModel.startIconX <- data.Overworld.StartIconX
+        TrackerModel.startIconY <- data.Overworld.StartIconY
         let a = data.Overworld.Map
         if a.Length <> 16 * 8 * 2 then
             failwith "bad load data at data.Overworld.Map"
         silenceAllRemindersDuringCurrentLoad <- true
-        // Overworld
         let mutable anySetProblems = false
         for j = 0 to 7 do
             for i = 0 to 15 do
@@ -1622,8 +1625,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if k <> -1 then
                     TrackerModel.setOverworldMapExtraData(i,j,k,ed)
                 owUpdateFunctions.[i,j] 0 null  // redraw the tile
-            TrackerModel.recomputeMapStateSummary()
-            doUIUpdateEvent.Trigger()
+        TrackerModel.recomputeMapStateSummary()
         // Items
         if not(data.Items.WhiteSwordBox.TryApply(TrackerModel.sword2Box)) then anySetProblems <- true
         if not(data.Items.LadderBox.TryApply(TrackerModel.ladderBox)) then anySetProblems <- true

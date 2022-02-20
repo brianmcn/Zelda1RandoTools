@@ -42,7 +42,7 @@ save state
    DONE- stating items/extra drops
    DONE- hint storage
    DONE- time
-   - start spot
+   DONE- start spot
    DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
    DONE- blockers
    DONE- dungeon marks (push down into Model? currently only in View) 
