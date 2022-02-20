@@ -34,6 +34,12 @@ type Items() =
     member val Dungeons : Dungeon[] = null with get,set
 
 [<AllowNullLiteral>]
+type Hints() =
+    member val LocationHints : int[] = null with get,set
+    member val NoFeatOfStrengthHint = false with get,set
+    member val SailNotHint = false with get,set
+
+[<AllowNullLiteral>]
 type PlayerProgressAndTakeAnyHeartsModel() =
     member val TakeAnyHearts : int[] = null with get,set
     member val PlayerHasBoomBook = false with get,set
@@ -223,6 +229,19 @@ let SaveBlockers(prefix) =
     lines.Add("""],""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
+let SaveHints(prefix) =
+    let lines = ResizeArray()
+    lines.Add(""""Hints": {""")
+    let sb = new System.Text.StringBuilder("""    "LocationHints": [ """)
+    for i = 0 to 10 do
+        sb.Append(sprintf "%d%s " (TrackerModel.GetLevelHint(i).ToIndex()) (if i=10 then "" else ",")) |> ignore
+    sb.Append("],") |> ignore
+    lines.Add(sb.ToString())
+    lines.Add(sprintf """    "NoFeatOfStrengthHint": %b,""" TrackerModel.NoFeatOfStrengthHintWasGiven)
+    lines.Add(sprintf """    "SailNotHint": %b""" TrackerModel.SailNotHintWasGiven)
+    lines.Add("""},""")
+    lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
+
 let SaveAll(notesText:string, dungeonModelsJsonLines:string[]) =  // can throw
     let lines = [|
         yield sprintf """{"""
@@ -232,6 +251,7 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[]) =  // can throw
         yield! SavePlayerProgressAndTakeAnyHearts("    ")
         yield! SaveStartingItemsAndExtras("    ")
         yield! SaveBlockers("    ")
+        yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)

@@ -1256,6 +1256,8 @@ let GetLevelHint, SetLevelHint, LevelHintChanged =
     let SetLevelHint(i,v) = levelHints.[i] <- v; levelHintChangeEvents.[i].Trigger(v)
     let LevelHintChanged(i) = levelHintChangeEvents.[i].Publish
     GetLevelHint, SetLevelHint, LevelHintChanged
+let mutable NoFeatOfStrengthHintWasGiven = false
+let mutable SailNotHintWasGiven = false
 
 let forceUpdate() = 
     // UI can force an update for a few bits that we don't model well yet

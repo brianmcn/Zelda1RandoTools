@@ -319,6 +319,10 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let HINTGRID_W, HINTGRID_H = 180., 36.
     let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,int HINTGRID_W,int HINTGRID_H)
     let mutable row=0 
+    let updateViewFunctions = Array.create 11 (fun _ -> ())
+    let mkTxt(text) = 
+        new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                    Width=HINTGRID_W-6., Height=HINTGRID_H-6., BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text=text)
     for a,b in OverworldData.hintMeanings do
         let thisRow = row
         gridAdd(hintGrid, new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(1.), Text=a), 0, row)
@@ -341,11 +345,16 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
         dp.Children.Add(b) |> ignore
         dp.Children.Add(tb) |> ignore
         gridAdd(hintGrid, dp, 1, row)
-        let mkTxt(text) = 
-            new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
-                        Width=HINTGRID_W-6., Height=HINTGRID_H-6., BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text=text)
-        let button = new Button(Content=mkTxt(TrackerModel.HintZone.FromIndex(0).ToString()))
+        let button = new Button()
         gridAdd(hintGrid, button, 2, row)
+        let updateView() =
+            let hintZone = TrackerModel.GetLevelHint(thisRow)
+            if hintZone.ToIndex() = 0 then
+                b.Background <- Brushes.Black
+            else
+                b.Background <- Views.hintHighlightBrush
+            button.Content <- mkTxt(hintZone.ToString())
+        updateViewFunctions.[thisRow] <- updateView
         let mutable popupIsActive = false
         let activatePopup(activationDelta) =
             popupIsActive <- true
@@ -370,15 +379,9 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                                                 gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
                 match r with
                 | Some(i) ->
-                    // update model
                     TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
                     TrackerModel.forceUpdate()
-                    // update view
-                    if i = 0 then
-                        b.Background <- Brushes.Black
-                    else
-                        b.Background <- Views.hintHighlightBrush
-                    button.Content <- mkTxt(TrackerModel.HintZone.FromIndex(i).ToString())
+                    updateView()
                 | None -> ()
                 popupIsActive <- false
                 } |> Async.StartImmediate
@@ -408,6 +411,8 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
+            for i = 0 to 10 do
+                updateViewFunctions.[i]()
             let wh = new System.Threading.ManualResetEvent(false)
             let mutable otherButtonWasClicked = false
             otherButton.Click.Add(fun _ ->
@@ -442,14 +447,14 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                     otherBottomTB.BorderThickness <- Thickness(0.,4.,0.,4.)
                     otherSP.Children.Add(otherBottomTB) |> ignore
                     let featsCheckBox  = new CheckBox(Content=makeHintText("No feat of strength... (Power Bracelet / pushing graves not required)"))
-                    featsCheckBox.IsChecked <- System.Nullable.op_Implicit featsAreHidden
-                    featsCheckBox.Checked.Add(fun _ -> featsAreHidden <- true; hideFeatsOfStrength true)
-                    featsCheckBox.Unchecked.Add(fun _ -> featsAreHidden <- false; hideFeatsOfStrength false)
+                    featsCheckBox.IsChecked <- System.Nullable.op_Implicit TrackerModel.NoFeatOfStrengthHintWasGiven
+                    featsCheckBox.Checked.Add(fun _ -> TrackerModel.NoFeatOfStrengthHintWasGiven <- true; hideFeatsOfStrength true)
+                    featsCheckBox.Unchecked.Add(fun _ -> TrackerModel.NoFeatOfStrengthHintWasGiven <- false; hideFeatsOfStrength false)
                     otherSP.Children.Add(featsCheckBox) |> ignore
                     let raftsCheckBox  = new CheckBox(Content=makeHintText("Sail not... (Raft not required)"))
-                    raftsCheckBox.IsChecked <- System.Nullable.op_Implicit raftsAreHidden
-                    raftsCheckBox.Checked.Add(fun _ -> raftsAreHidden <- true; hideRaftSpots true)
-                    raftsCheckBox.Unchecked.Add(fun _ -> raftsAreHidden <- false; hideRaftSpots false)
+                    raftsCheckBox.IsChecked <- System.Nullable.op_Implicit TrackerModel.SailNotHintWasGiven
+                    raftsCheckBox.Checked.Add(fun _ -> TrackerModel.SailNotHintWasGiven <- true; hideRaftSpots true)
+                    raftsCheckBox.Unchecked.Add(fun _ -> TrackerModel.SailNotHintWasGiven <- false; hideRaftSpots false)
                     otherSP.Children.Add(raftsCheckBox) |> ignore
                     let otherHintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=otherSP)
                     do! CustomComboBoxes.DoModal(cm, wh, 0., 65., otherHintBorder)

@@ -42,7 +42,6 @@ let ITEM_PROGRESS_FIRST_ITEM = 130.
 // some global mutable variables needed across various UI components
 let mutable displayIsCurrentlyMirrored = false
 
-let mutable featsAreHidden, raftsAreHidden = false, false
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
 

@@ -1645,6 +1645,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(i,j,TrackerModel.DungeonBlocker.FromHotKeyName(data.Blockers.[i].[j]))
         if anySetProblems then
             () // TODO
+        // Hints
+        for i = 0 to 10 do
+            TrackerModel.SetLevelHint(i, TrackerModel.HintZone.FromIndex(data.Hints.LocationHints.[i]))
+        TrackerModel.NoFeatOfStrengthHintWasGiven <- data.Hints.NoFeatOfStrengthHint
+        TrackerModel.SailNotHintWasGiven <- data.Hints.SailNotHint
+        hideFeatsOfStrength TrackerModel.NoFeatOfStrengthHintWasGiven 
+        hideRaftSpots TrackerModel.SailNotHintWasGiven
         // Notes
         notesTextBox.Text <- data.Notes
         // Dungeon Maps

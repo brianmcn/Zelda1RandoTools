@@ -96,6 +96,7 @@ type AllData() =
     member val PlayerProgressAndTakeAnyHearts : PlayerProgressAndTakeAnyHeartsModel = null with get,set
     member val StartingItemsAndExtras : StartingItemsAndExtrasModel = null with get,set
     member val Blockers : string[][] = null with get,set
+    member val Hints : Hints = null with get,set
     member val Notes = "" with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
 
