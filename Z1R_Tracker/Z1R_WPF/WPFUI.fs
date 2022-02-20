@@ -1635,6 +1635,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         TrackerModel.recomputeWhatIsNeeded() |> ignore
         TrackerModel.forceUpdate()
         doUIUpdateEvent.Trigger()
+        // PlayerProgressAndTakeAnyHearts
+        data.PlayerProgressAndTakeAnyHearts.Apply()
+        // StartingItemsAndExtras
+        data.StartingItemsAndExtras.Apply()
         // Blockers
         for i = 0 to 7 do
             for j = 0 to 1 do

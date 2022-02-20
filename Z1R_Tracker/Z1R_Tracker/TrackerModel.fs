@@ -576,7 +576,7 @@ gets recomputed and a fresh model is published via change events to the UI for a
 
 In practice, chose to divide state into a few main groups, which keep of when they last changed, and then have simple dependencies to recompute stale data and bring entire model back up to date.
 
-Model is not enitrely threadsafe; will do all these computations on the UI thread.
+Model is not entirely threadsafe; will do all these computations on the UI thread.
 *)
 
 
