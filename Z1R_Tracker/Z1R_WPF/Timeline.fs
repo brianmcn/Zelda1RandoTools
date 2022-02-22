@@ -24,7 +24,8 @@ let TLC = Brushes.SandyBrown   // timeline color
 let ICON_SPACING = 6.
 let BIG_HASH = 15.
 let LINE_THICKNESS = 3.
-type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTick, leftText, midText, rightText, topRowReserveWidth:float) =
+let numTicks, ticksPerHash = 60, 5
+type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[], topRowReserveWidth:float) =
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
@@ -34,12 +35,25 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
     let xf(i) =      i*(lineWidth/float numTicks)
     let x(i) = float i*(lineWidth/float numTicks)
     do
-        //printfn "tick width = %f, iconWidth = %f, ratio = %f" (x 1) iconSize (iconSize / x 1)
+        let tb = new TextBlock(Text="0h",FontSize=12.,Foreground=TLC,Background=Brushes.Black)
+        let mkft(t) = new FormattedText(t, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, 
+                                            new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), 
+                                            tb.FontSize, tb.Foreground, new NumberSubstitution(), TextFormattingMode.Display, VisualTreeHelper.GetDpi(timelineCanvas).PixelsPerDip)
+        let mutable n = 0
+        let placeTextLabel(x) =
+            let ft = mkft(sevenTexts.[n])
+            if ft.Height > iconSize then
+                printfn "bad formatted text"
+            let ypos = iconAreaHeight + 6.
+            let xpos = x - ft.Width/2.
+            canvasAdd(timelineCanvas, new TextBlock(Text=sevenTexts.[n],FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
+            n <- n + 1
         canvasAdd(timelineCanvas, itemCanvas, 0., 0.)  // should be first, so e.g. curTime draws atop it
         for i = 0 to numTicks do
             if i%(2*ticksPerHash)=0 then
                 let line = new Shapes.Line(X1=x(i), Y1=iconAreaHeight, X2=x(i), Y2=iconAreaHeight+BIG_HASH, Stroke=TLC, StrokeThickness=LINE_THICKNESS)
                 canvasAdd(timelineCanvas, line, 0., 0.)
+                placeTextLabel(x(i))
             elif i%(ticksPerHash)=0 then
                 let line = new Shapes.Line(X1=x(i), Y1=iconAreaHeight+BIG_HASH/4., X2=x(i), Y2=iconAreaHeight+BIG_HASH*3./4., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
                 canvasAdd(timelineCanvas, line, 0., 0.)
@@ -48,34 +62,6 @@ type Timeline(iconSize, numRows, numTicks, ticksPerHash, lineWidth, minutesPerTi
         // text labels
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
-        let tb = new TextBlock(Text=leftText,FontSize=12.,Foreground=TLC,Background=Brushes.Black)
-        let mkft(t) = new FormattedText(t, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, 
-                                            new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), 
-                                            tb.FontSize, tb.Foreground, new NumberSubstitution(), TextFormattingMode.Display, VisualTreeHelper.GetDpi(timelineCanvas).PixelsPerDip)
-        let ft = mkft(leftText)
-        if ft.Height > iconSize then
-            printfn "bad ft1"
-        let ypos = iconAreaHeight - ft.Height
-        let xpos = 0. - ft.Width/2.
-        canvasAdd(timelineCanvas, new TextBlock(Text=leftText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
-        for x = 0 to int (xpos + ft.Width) do
-            iconAreaFilled.[x, numRows-1] <- 99
-        let ft = mkft(midText)
-        if ft.Height > iconSize then
-            printfn "bad ft2"
-        let ypos = iconAreaHeight - ft.Height
-        let xpos = lineWidth/2. - ft.Width/2.
-        canvasAdd(timelineCanvas, new TextBlock(Text=midText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
-        for x = int xpos to int (xpos + ft.Width) do
-            iconAreaFilled.[x, numRows-1] <- 99
-        let ft = mkft(rightText)
-        if ft.Height > iconSize then
-            printfn "bad ft3"
-        let ypos = iconAreaHeight - ft.Height
-        let xpos = lineWidth - ft.Width/2.
-        canvasAdd(timelineCanvas, new TextBlock(Text=rightText,FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
-        for x = int xpos to int lineWidth do
-            iconAreaFilled.[x, numRows-1] <- 99
     member this.Canvas = timelineCanvas
     member this.Update(doSample, minute, timelineItems:seq<TimelineItem>) =
         let tick = minute / minutesPerTick

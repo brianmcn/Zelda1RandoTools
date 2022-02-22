@@ -27,6 +27,7 @@ update whats new with changes
   - dungeon summary tab no longer show stale/missing info
   - dungeon numeral stays visible until first room mark
   - save/load
+  - timeline, app 4 pixels taller
 
 
 
@@ -55,8 +56,6 @@ save state
  - can be loaded independently, e.g. 'heart shuffle' is a top-tracker startup save, and e.g. vanilla map could be an overworld startup save
  - think through scenarios
 
-
-fury says: triforce room with enemies and not-standing-item must drop map (confirmed for Shapes)
 
 homer: highlight most recent overworld/dungeon room modified (to facilitate 'what did I just oops' scenario for fat fingering)
 

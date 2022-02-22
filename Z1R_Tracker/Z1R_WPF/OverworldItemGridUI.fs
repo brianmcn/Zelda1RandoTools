@@ -26,7 +26,7 @@ type ShowLocatorDescriptor =
     | Sword3
 
 // some global variables needed across various UI components
-let TCH = 123  // timeline height
+let TCH = 127  // timeline height
 let TH = DungeonUI.TH // text height
 let THRU_MAIN_MAP_H = float(150 + 8*11*3)
 let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
@@ -34,7 +34,7 @@ let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
 let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
 let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + (3 + 27*8 + 12*7 + 3) + 3)  // 3 is for a little blank space after this but before timeline
 let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
-let THRU_TIMELINE_H = START_TIMELINE_H + float TCH + 6.
+let THRU_TIMELINE_H = START_TIMELINE_H + float TCH
 let LEFT_OFFSET = 78.0
 let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
 let ITEM_PROGRESS_FIRST_ITEM = 130.

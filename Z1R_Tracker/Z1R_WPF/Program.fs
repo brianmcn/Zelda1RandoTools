@@ -180,7 +180,7 @@ type MyWindow() as this =
     //                             items  ow map  prog  dungeon tabs                                    timeline   
     let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
     let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
-    let CHROME_WIDTH, CHROME_HEIGHT = 16., 40.  // Windows app border
+    let CHROME_WIDTH, CHROME_HEIGHT = 16., 39.  // Windows app border
     let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
     let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
@@ -278,8 +278,7 @@ type MyWindow() as this =
         this.Loaded.Add(fun _ -> this.Focus() |> ignore)
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
-            //                             items  ow map  prog  dungeon tabs                                    timeline
-            let APP_CONTENT_HEIGHT = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
+            let APP_CONTENT_HEIGHT = HEIGHT_SANS_CHROME
             let rootCanvas =    new Canvas(Width=16.*Graphics.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)
             rootCanvas.UseLayoutRounding <- true
             let appMainCanvas = new Canvas(Width=16.*Graphics.OMTW, Height=APP_CONTENT_HEIGHT, Background=Brushes.Black)

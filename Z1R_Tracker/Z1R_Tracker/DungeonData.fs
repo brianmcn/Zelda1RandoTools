@@ -26,6 +26,7 @@ module Factoids =
     //        "(how does it work for up-a-ing from a room where you opened that side (via bomb (shutter?))"
         "If a room has a shutter door, a push block cannot reveal a new staircase (just will open the shutter if pushable)."
         "A dungeon room with a push block shutter will never drop an item."
+        "Consider the room that has the triforce in vanilla; in Shapes dungeons, when that room does not have a standing item upon entry, it will always drop the Map after killing all enemies."
         "When playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with explosions (from bombs or boomstick)."
         "If a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not space on A15 to land."
         "If you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (as traps & bubbles are considered enemies)."
