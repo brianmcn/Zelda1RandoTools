@@ -6,6 +6,13 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let UNICODE_UP = "\U0001F845"
+let UNICODE_LEFT = "\U0001F844"
+let UNICODE_DOWN = "\U0001F847"
+let UNICODE_RIGHT = "\U0001F846"
+let arrowColor = new SolidColorBrush(Color.FromArgb(255uy,0uy,180uy,250uy))
+let bgColor = new SolidColorBrush(Color.FromArgb(220uy,0uy,0uy,0uy))
+
 let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, owMapBMPs:System.Drawing.Bitmap[,]) =
     // nearby ow tiles magnified overlay
     let ENLARGE = 8.
@@ -123,7 +130,10 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
                                 bmp.SetPixel(px, py, c)
                     | None -> ()
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
-    
+    let makeArrow(text) = 
+        let tb = new TextBox(Text=text, FontSize=20., Foreground=arrowColor, Background=bgColor, IsReadOnly=true, BorderThickness=Thickness(0.))
+        tb.Clip <- new RectangleGeometry(Rect(0., 6., 30., 18.))
+        tb
     let onMouseForMagnifier(i,j) = 
         // show enlarged version of current & nearby rooms
         dungeonTabsOverlayContent.Children.Clear()
@@ -137,7 +147,21 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
         // draw the 3x3 tiles
         for x = 0 to 2 do
             for y = 0 to 2 do
-                canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], BT+float x*(16.*ENLARGE+BT), BT+float y*(11.*ENLARGE+BT))
+                let dx = BT+float x*(16.*ENLARGE+BT)
+                let dy = BT+float y*(11.*ENLARGE+BT)
+                canvasAdd(dungeonTabsOverlayContent, overlayTiles.[xmin+x,ymin+y], dx, dy)
+                if xmin+x = 1 && ymin+y = 6 then // Lost Woods
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+3., dy-2.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_LEFT), dx+3., dy+18.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_DOWN), dx+3., dy+38.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_LEFT), dx+3., dy+58.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_RIGHT),dx+101., dy+28.)
+                if xmin+x = 11 && ymin+y = 1 then // Lost Hills
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+20., dy-2.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+40., dy-2.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+60., dy-2.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+80., dy-2.)
+                    canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_LEFT), dx+3.,  dy+28.)
         if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
             dungeonTabsOverlay.Opacity <- 1.0
 

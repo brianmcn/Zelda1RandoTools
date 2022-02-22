@@ -27,7 +27,7 @@ update whats new with changes
   - dungeon summary tab no longer show stale/missing info
   - dungeon numeral stays visible until first room mark
   - save/load
-  - timeline, app 4 pixels taller
+  - timeline, app 4 pixels taller (extras Window Size doc)
 
 
 
@@ -61,8 +61,6 @@ homer: highlight most recent overworld/dungeon room modified (to facilitate 'wha
 
 futz with VS text editor settings
 
-wood sword block - maybe hovering wood sword cave icon puts armos-blocked in yellow?
-
 need voice command to set 'nothing' (dont care) (also unmarked?)
 
 meat block can appear in L9 (BU cannot)
@@ -88,9 +86,6 @@ Some kind of map presets could be good, and 4 types of shops as well, in terms o
 
 
 
-
-draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
- - maybe can draw it on magnifier?
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
  - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
