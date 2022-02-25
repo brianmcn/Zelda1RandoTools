@@ -113,7 +113,6 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
 
 let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
-let mutable notesTextBox = null : TextBox
 let mutable timeTextBox = null : TextBox
 let H = 30
 let RIGHT_COL = 440.
@@ -388,11 +387,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
 
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
-        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, notesTextBox, extrasImage, timeTextBox, resetTimerEvent)
+        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, timeTextBox, resetTimerEvent)
 
     do! showProgress()
 
     // overworld map grouping, as main point of support for mirroring
+    let mutable animateOverworldTile = fun _ -> ()
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
@@ -522,8 +522,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent = UIComponents.MakeMagnifier(mirrorOverworldFEs, owMapNum, owMapBMPs)
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()
-    let mutable mostRecentlyScrolledDungeonIndex = -1
-    let mostRecentlyScrolledDungeonIndexTime = new TrackerModel.LastChangedTime()
     // ow map
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -638,6 +636,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                             do! f(cm,c,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
+                                        animateOverworldTile(i,j)
                                 | None -> ()
                             elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP)=0 then
                                 // if item shop with only one item marked, use voice to set other item
@@ -646,21 +645,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                     if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
                                         TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
                                         Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
+                                        animateOverworldTile(i,j)
                                 | None -> ()
-                        elif delta = 1 then
-                            TrackerModel.overworldMapMarks.[i,j].Next()
-                            while not(isLegalHere(TrackerModel.overworldMapMarks.[i,j].Current())) do TrackerModel.overworldMapMarks.[i,j].Next()
-                            let newState = TrackerModel.overworldMapMarks.[i,j].Current()
-                            if newState >=0 && newState <=7 then
-                                mostRecentlyScrolledDungeonIndex <- newState
-                                mostRecentlyScrolledDungeonIndexTime.SetNow()
-                        elif delta = -1 then 
-                            TrackerModel.overworldMapMarks.[i,j].Prev() 
-                            while not(isLegalHere(TrackerModel.overworldMapMarks.[i,j].Current())) do TrackerModel.overworldMapMarks.[i,j].Prev()
-                            let newState = TrackerModel.overworldMapMarks.[i,j].Current()
-                            if newState >=0 && newState <=7 then
-                                mostRecentlyScrolledDungeonIndex <- newState
-                                mostRecentlyScrolledDungeonIndexTime.SetNow()
                         elif delta = 0 then 
                             ()
                         else failwith "bad delta"
@@ -680,6 +666,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         | _ -> ()
                         redrawGridSpot()
                         if originalState = -1 && currentState <> -1 then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
+                        animateOverworldTile(i,j)
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
                 }
@@ -770,7 +757,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         else
                             async {
                                 let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActive)
-                                if needRedraw then redrawGridSpot()
+                                if needRedraw then 
+                                    redrawGridSpot()
+                                    animateOverworldTile(i,j)
                                 if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
                             } |> Async.StartImmediate
                     )
@@ -782,7 +771,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             ea.Handled <- true
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                             let state = OverworldMapTileCustomization.DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState)
-                            Async.StartImmediate <| SetNewValue(state, originalState)
+                            async {
+                                do! SetNewValue(state, originalState)
+                            } |> Async.StartImmediate
                         | None -> ()
                     )
         if i%3 = 2 then
@@ -1014,8 +1005,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     else
                         blockerDungeonSunglasses.[i].Opacity <- 1.
             member _this.AnnounceFoundDungeonCount(n) = 
-                if DateTime.Now - mostRecentlyScrolledDungeonIndexTime.Time < TimeSpan.FromSeconds(1.5) then
-                    selectDungeonTabEvent.Trigger(mostRecentlyScrolledDungeonIndex)
                 let icons = [upcb(Graphics.genericDungeonInterior_bmp); ReminderTextBox(sprintf"%d/9"n)]
                 if n = 1 then
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon", icons) 
@@ -1676,6 +1665,24 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()
+
+    // animation
+    do
+        let c(t) = Color.FromArgb(t,0uy,255uy,255uy)  // Color.FromArgb(t,255uy,165uy,0uy)
+        let rgb = new RadialGradientBrush(GradientOrigin=Point(0.5,0.5), Center=Point(0.5,0.5), RadiusX=0.5, RadiusY=0.5)
+        rgb.GradientStops.Add(new GradientStop(c(0uy), 0.0))
+        rgb.GradientStops.Add(new GradientStop(c(0uy), 1.0))
+
+        let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(140uy)), Duration=new Duration(TimeSpan.FromSeconds(1.5)), AutoReverse=true)
+        let owHighlightTile = new Shapes.Rectangle(Width=OMTW, Height=11. * 3., StrokeThickness = 0., Fill=rgb, Opacity=1.0, IsHitTestVisible=false)
+        canvasAdd(overworldCanvas, owHighlightTile, OMTW*float(6), float(11*3*6))
+
+        let animateOWTile(x,y) = 
+            if TrackerModel.Options.AnimateTileChanges.Value then
+                Canvas.SetLeft(owHighlightTile, OMTW*float(x))
+                Canvas.SetTop(owHighlightTile, float(11*3*y))
+                rgb.GradientStops.[1].BeginAnimation(GradientStop.ColorProperty, ca)
+        animateOverworldTile <- animateOWTile
 
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded

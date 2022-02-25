@@ -150,6 +150,13 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let tb = new TextBox(Text="Other", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options3sp.Children.Add(tb) |> ignore
 
+    let cb = new CheckBox(Content=new TextBox(Text="Animate tile changes",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.AnimateTileChanges.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- true)
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- false)
+    cb.ToolTip <- "When you change an overworld map spot or a dungeon room type, briefly animate the rectangle to highlight what changed"
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false

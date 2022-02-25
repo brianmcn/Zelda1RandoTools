@@ -138,7 +138,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         levelTabs.[level-1] <- levelTab
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
-        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsHitTestVisible=false, 
+        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         levelTab.Header <- header
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) -> 
@@ -181,7 +181,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
         let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
-        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
+        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
                             Width=dungeonBodyCanvas.Width, Height=dungeonBodyCanvas.Height, VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
                             HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         let showNumeral() =
@@ -403,6 +403,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
             backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
             )
+        let mutable animateDungeonRoomTile = fun _ -> ()
         for i = 0 to 7 do
             let HFF = new FontFamily("Courier New")
             if i<>7 then
@@ -520,6 +521,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 if door.State = Dungeon.DoorState.UNKNOWN then
                                     door.State <- Dungeon.DoorState.YES
                         redraw()
+                        animateDungeonRoomTile(i,j)
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
                 setNewValueFunctions.[i,j] <- SetNewValue
@@ -703,6 +705,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let outlineDrawingCanvas = new Canvas()  // where we draw non-shapes-dungeons overlays
         outlineDrawingCanvases.[level-1] <- outlineDrawingCanvas
         canvasAdd(dungeonCanvas, outlineDrawingCanvas, 0., 0.)
+        // animation
+        do
+            let c(t) = Color.FromArgb(t,255uy,165uy,0uy)
+            let scb = new SolidColorBrush(c(0uy))
+            let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(180uy)), Duration=new Duration(TimeSpan.FromSeconds(1.0)), AutoReverse=true)
+            let roomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Stroke=scb, Opacity=1.0, IsHitTestVisible=false)
+            canvasAdd(dungeonBodyCanvas, roomHighlightTile, 0., 0.)
+            let animateRoomTile(x,y) = 
+                if TrackerModel.Options.AnimateTileChanges.Value then
+                    Canvas.SetLeft(roomHighlightTile, float(x*51)-3.)
+                    Canvas.SetTop(roomHighlightTile, float(y*39)-3.)
+                    scb.BeginAnimation(SolidColorBrush.ColorProperty, ca)
+            animateDungeonRoomTile <- animateRoomTile
         // "sunglasses"
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
@@ -738,7 +753,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         // summary tab
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         let labelChar = 'S'
-        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsHitTestVisible=false, 
+        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
                                  HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         levelTab.Header <- header
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
@@ -814,7 +829,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let currentDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
 
         let mkTxt(txt,ok) =
-            new TextBox(Width=50., Height=30., FontSize=15., Foreground=(if ok then Brushes.Lime else Brushes.Red), Background=Brushes.Black, IsHitTestVisible=false, 
+            new TextBox(Width=50., Height=30., FontSize=15., Foreground=(if ok then Brushes.Lime else Brushes.Red), Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                         BorderThickness=Thickness(0.), Text=txt, VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center,
                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
 
@@ -866,7 +881,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let onClick(_ea, state) = CustomComboBoxes.DismissPopupWithResult(state)
                 let extraDecorations = [|
                     (upcast new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=
-                        new TextBox(FontSize=15., Foreground=Brushes.Orange, Background=Brushes.Black, IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(3.),
+                        new TextBox(FontSize=15., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(3.),
                                     Text="Choose a vanilla dungeon outline to\ndraw on this dungeon map tab.\n\n"+
                                             "Green selections are compatible with\nyour currently marked rooms.\n\nChoose 'none' to remove outline.")
                         ):FrameworkElement), float gx, float gnr*(2.*ST+float grh)+2.*ST

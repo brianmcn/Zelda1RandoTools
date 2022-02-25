@@ -259,7 +259,7 @@ type MyWindow() as this =
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         let APP_WIDTH, APP_HEIGHT = 
             if TrackerModel.Options.SmallerAppWindow.Value then 
-                round(WIDTH_SANS_CHROME*0.666666 + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*0.666666 + CHROME_HEIGHT)
+                round(WIDTH_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_HEIGHT)
             else 
                 WIDTH, HEIGHT
         //printfn "%f, %f" APP_WIDTH APP_HEIGHT
@@ -291,7 +291,7 @@ type MyWindow() as this =
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
         if TrackerModel.Options.SmallerAppWindow.Value then 
-            let trans = new ScaleTransform(0.666666, 0.666666)
+            let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
         this.Content <- cm.RootCanvas
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
@@ -325,22 +325,40 @@ type MyWindow() as this =
                 let title = new TextBox(Text="Window Size",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
                                             BorderThickness=Thickness(0.,0.,0.,3.), FontSize=20.)
                 sp.Children.Add(title) |> ignore
-                sp.Children.Add(mkTxt("Z-Tracker can run in either of two window sizes: 'Default' (larger) or '2/3 size' (smaller).")) |> ignore
+                sp.Children.Add(mkTxt("Z-Tracker can run in a few window sizes: 'Default' (largest), '5/6 size', or '2/3 size'.")) |> ignore
                 sp.Children.Add(mkTxt("Changes to this setting will only take effect the next time you start the application.")) |> ignore
-                sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window in '%s' mode.  You can change the setting here:" (if TrackerModel.Options.SmallerAppWindow.Value then "2/3 size" else "Default"))) |> ignore
+                let MODE6,MODE5,MODE4 = "Default", "5/6 size", "2/3 size"
+                let curMode = 
+                    if TrackerModel.Options.SmallerAppWindow.Value then 
+                        if TrackerModel.Options.SmallerAppWindowScaleFactor = 2.0/3.0 then 
+                            MODE4
+                        elif TrackerModel.Options.SmallerAppWindowScaleFactor = 5.0/6.0 then 
+                            MODE5
+                        else
+                            sprintf "scale factor: %f" TrackerModel.Options.SmallerAppWindowScaleFactor
+                    else 
+                        MODE6
+                sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window is '%s'.  You can change the setting here:" curMode)) |> ignore
                 sp.Children.Add(new DockPanel(Height=20.)) |> ignore
-                let rb3 = new RadioButton(Content=new TextBox(Text="Default" , IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
-                let rb2 = new RadioButton(Content=new TextBox(Text="2/3 size", IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
+                let rb6 = new RadioButton(Content=new TextBox(Text=MODE6, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
+                let rb5 = new RadioButton(Content=new TextBox(Text=MODE5, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
+                let rb4 = new RadioButton(Content=new TextBox(Text=MODE4, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 if TrackerModel.Options.SmallerAppWindow.Value then
-                    rb2.IsChecked <- System.Nullable.op_Implicit true
+                    if curMode=MODE5 then
+                        rb5.IsChecked <- System.Nullable.op_Implicit true
+                    else
+                        rb4.IsChecked <- System.Nullable.op_Implicit true
                 else
-                    rb3.IsChecked <- System.Nullable.op_Implicit true
+                    rb6.IsChecked <- System.Nullable.op_Implicit true
                 let mutable desireSmaller = TrackerModel.Options.SmallerAppWindow.Value
-                rb3.Checked.Add(fun _ -> desireSmaller <- false)
-                rb2.Checked.Add(fun _ -> desireSmaller <- true)
+                let mutable desireScale = 2.0/3.0
+                rb6.Checked.Add(fun _ -> desireSmaller <- false)
+                rb5.Checked.Add(fun _ -> desireSmaller <- true; desireScale <- 5.0/6.0)
+                rb4.Checked.Add(fun _ -> desireSmaller <- true; desireScale <- 2.0/3.0)
                 let inner = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
-                inner.Children.Add(rb3) |> ignore
-                inner.Children.Add(rb2) |> ignore
+                inner.Children.Add(rb6) |> ignore
+                inner.Children.Add(rb5) |> ignore
+                inner.Children.Add(rb4) |> ignore
                 sp.Children.Add(inner) |> ignore
                 let buttons = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=spacing)
                 let sb = Graphics.makeButton("Save changes and close Z-Tracker\n(changes take effect next time)", Some(16.), None)
@@ -348,6 +366,7 @@ type MyWindow() as this =
                 cb.Click.Add(fun _ -> wh.Set() |> ignore)
                 sb.Click.Add(fun _ ->
                     TrackerModel.Options.SmallerAppWindow.Value <- desireSmaller
+                    TrackerModel.Options.SmallerAppWindowScaleFactor <- desireScale
                     TrackerModel.Options.writeSettings()
                     this.Close()
                     )

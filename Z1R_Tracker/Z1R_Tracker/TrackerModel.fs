@@ -44,6 +44,7 @@ module Options =
         let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
+    let mutable AnimateTileChanges = Bool(true)
     let mutable ListenForSpeech = Bool(false)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
@@ -54,6 +55,7 @@ module Options =
     let mutable BroadcastWindowSize = 3
     let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
     let mutable SmallerAppWindow = Bool(false)
+    let mutable SmallerAppWindowScaleFactor = 2.0/3.0
     let mutable IsMuted = false
     let mutable Volume = 30
     let mutable MainWindowLT = ""
@@ -83,6 +85,8 @@ module Options =
         member val Visual_HaveKeyLadder = true with get,set
         member val Visual_Blockers = true with get,set
         
+        
+        member val AnimateTileChanges = false with get,set
         member val ListenForSpeech = false with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
@@ -93,6 +97,7 @@ module Options =
         member val BroadcastWindowSize = 3 with get,set
         member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
         member val SmallerAppWindow = false with get,set
+        member val SmallerAppWindowScaleFactor = 2.0/3.0 with get,set
 
         member val IsMuted = false with get, set
         member val Volume = 30 with get, set
@@ -126,6 +131,7 @@ module Options =
         data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
         data.Visual_Blockers <-        VisualReminders.Blockers.Value
 
+        data.AnimateTileChanges <- AnimateTileChanges.Value
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
@@ -136,6 +142,7 @@ module Options =
         data.BroadcastWindowSize <- BroadcastWindowSize
         data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
         data.SmallerAppWindow <- SmallerAppWindow.Value
+        data.SmallerAppWindowScaleFactor <- SmallerAppWindowScaleFactor
         data.IsMuted <- IsMuted
         data.Volume <- Volume
         data.MainWindowLT <- MainWindowLT
@@ -181,6 +188,7 @@ module Options =
             VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
             VisualReminders.Blockers.Value <-        data.Visual_Blockers
 
+            AnimateTileChanges.Value <- data.AnimateTileChanges
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
@@ -191,6 +199,7 @@ module Options =
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
             BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
             SmallerAppWindow.Value <- data.SmallerAppWindow
+            SmallerAppWindowScaleFactor <- data.SmallerAppWindowScaleFactor
             IsMuted <- data.IsMuted
             Volume <- max 0 (min 100 data.Volume)
             MainWindowLT <- data.MainWindowLT

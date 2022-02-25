@@ -43,6 +43,7 @@ let ITEM_PROGRESS_FIRST_ITEM = 130.
 let theStartTime = new TrackerModel.LastChangedTime()
 
 let mutable displayIsCurrentlyMirrored = false
+let mutable notesTextBox = null : TextBox
 
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
@@ -56,7 +57,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    notesTextBox:TextBox, extrasImage:Image, timeTextBox:TextBox, resetTimerEvent:Event<unit>) =
+                    extrasImage:Image, timeTextBox:TextBox, resetTimerEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
     let owItemGrid = makeGrid(5, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)

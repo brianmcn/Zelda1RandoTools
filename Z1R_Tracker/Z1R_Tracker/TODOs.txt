@@ -22,12 +22,15 @@ CURRENT PRIORITIES
 update docs with changes
 update whats new with changes
  TODO next version
+  - save/load
   - made LEVEL/BOARD header use Zelda font
+  - dungeon numeral stays visible until first room mark
+  - LostWoods/LostHills magnifier shows paths
   - fixed miniminimap (hover blue bars) to show BOARD-5 or whatnot
   - dungeon summary tab no longer show stale/missing info
-  - dungeon numeral stays visible until first room mark
-  - save/load
-  - timeline, app 4 pixels taller (extras Window Size doc)
+  - more timeline numbers, app 4 pixels taller (extras Window Size doc)
+  - app size: default, 5/6, 2/3, can do custom by editing settings file
+  - changed ow/dungeon-room tile animations
 
 
 
@@ -58,6 +61,19 @@ save state
 
 
 homer: highlight most recent overworld/dungeon room modified (to facilitate 'what did I just oops' scenario for fat fingering)
+When you get 10 hearts and the mags reminder comes up it would be cool if the mags cave highlighted briefly too
+ - cyan overworld, orange dungeon?
+ 
+
+consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
+
+potato_pony...
+
+if mouse a hotkeyable, show the hotkey reminder somehow (if not 'show hotkeys' just to prod the one you forgot) - could be last line of popup description for OW tile...
+
+export timeline splits to text info?
+
+
 
 futz with VS text editor settings
 
@@ -65,6 +81,7 @@ need voice command to set 'nothing' (dont care) (also unmarked?)
 
 meat block can appear in L9 (BU cannot)
 the other weird T shaped room could be a new room maybe
+offthemap could get a space
 
 "now that you have better armor, consider dungeon 8" when just got red ring in 8
 "now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8 (blockerLogic())
