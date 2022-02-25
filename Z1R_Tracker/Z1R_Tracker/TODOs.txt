@@ -35,6 +35,7 @@ update whats new with changes
   - hotkey reminders show up as last line of popup menu description text
   - "don't care" or "nothing" both speech-mark off an overworld tile
   - rooms: meat block, bomb upgrade, gannon, zelda, lava moat, off the map - now available in every dungeon popup
+  - fewer reminder to consider dungeon X when you're in dungeon X already
 
 
 save state
@@ -63,10 +64,6 @@ potato_pony... export timeline splits to text info?
 
 
 futz with VS text editor settings
-
-
-"now that you have better armor, consider dungeon 8" when just got red ring in 8
-"now that you have the any key, consider dungeon 8" could be silenced if any key was marked gotten in 8 (blockerLogic())
 
 
 maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)

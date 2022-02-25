@@ -1461,54 +1461,69 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         if not justAnnouncedTAG then
             ite.AnnounceTriforceAndGo(triforces, tagSummary)
     // blockers - COMBAT
+    let calcFromDungeon(item) =
+        let mutable fromDungeon = -1
+        for i = 0 to 7 do
+            if GetDungeon(i).Boxes |> Array.exists (fun b -> b.CellCurrent() = item) then
+                fromDungeon <- i
+        fromDungeon
     let combatUnblockers = ResizeArray()
+    let combatUnblockerOrigins = ResizeArray()
     if playerComputedStateSummary.SwordLevel > priorSwordWandLevel then
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_SWORD)
+        if playerComputedStateSummary.SwordLevel = 2 then
+            combatUnblockerOrigins.Add(calcFromDungeon(ITEMS.WHITESWORD))
     if playerComputedStateSummary.HaveWand && (priorSwordWandLevel < 2) then
         combatUnblockers.Add(CombatUnblockerDetail.WAND)
+        combatUnblockerOrigins.Add(calcFromDungeon(ITEMS.WAND))
     if playerComputedStateSummary.RingLevel > priorRingLevel 
                 && (playerComputedStateSummary.SwordLevel>0 || playerComputedStateSummary.HaveWand) then  // armor won't help you win combat if you have 0 weapons
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_ARMOR)
+        combatUnblockerOrigins.Add(calcFromDungeon(ITEMS.REDRING))
     if combatUnblockers.Count > 0 then
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if DungeonBlockersContainer.GetDungeonBlocker(i,0) = DungeonBlocker.COMBAT || DungeonBlockersContainer.GetDungeonBlocker(i,1) = DungeonBlocker.COMBAT then
-                if not(GetDungeon(i).IsComplete) then
-                    dungeonIdxs.Add(i)
+            if combatUnblockerOrigins.Count = 1 && combatUnblockerOrigins.[0] = i then
+                () // do nothing, they're already in the dungeon we'd be reminding them to go to
+            else
+                if DungeonBlockersContainer.GetDungeonBlocker(i,0) = DungeonBlocker.COMBAT || DungeonBlockersContainer.GetDungeonBlocker(i,1) = DungeonBlocker.COMBAT then
+                    if not(GetDungeon(i).IsComplete) then
+                        dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
             if tagSummary.Level < 103 then // no need for blocker-reminder if fully-go-time
                 ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonIdxs, combatUnblockers)
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
-    let blockerLogic(db:DungeonBlocker) =
+    let blockerLogic(db:DungeonBlocker, fromDungeon) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
-            if DungeonBlockersContainer.GetDungeonBlocker(i,0).HardCanonical() = db.HardCanonical() || DungeonBlockersContainer.GetDungeonBlocker(i,1).HardCanonical() = db.HardCanonical() then
-                if not(GetDungeon(i).IsComplete) then
-                    dungeonIdxs.Add(i)
+            if i <> fromDungeon then
+                if DungeonBlockersContainer.GetDungeonBlocker(i,0).HardCanonical() = db.HardCanonical() || DungeonBlockersContainer.GetDungeonBlocker(i,1).HardCanonical() = db.HardCanonical() then
+                    if not(GetDungeon(i).IsComplete) then
+                        dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
             if tagSummary.Level < 103 then // no need for blocker-reminder if fully-go-time
                 ite.RemindUnblock(db, dungeonIdxs, [])
     // blockers - others
     if not priorBombs && playerProgressAndTakeAnyHearts.PlayerHasBombs.Value() then
-        blockerLogic(DungeonBlocker.BOMB)
+        blockerLogic(DungeonBlocker.BOMB, -1)
     priorBombs <- playerProgressAndTakeAnyHearts.PlayerHasBombs.Value()
 
     if not priorBowArrow && playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1 then
-        blockerLogic(DungeonBlocker.BOW_AND_ARROW)
+        blockerLogic(DungeonBlocker.BOW_AND_ARROW, calcFromDungeon(ITEMS.BOW))   // may still spuriously fire if had bow, got silvers in 6 and 6 was bow blocked
     priorBowArrow <- playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel>=1
 
     if not priorRecorder && playerComputedStateSummary.HaveRecorder then
-        blockerLogic(DungeonBlocker.RECORDER)
+        blockerLogic(DungeonBlocker.RECORDER, calcFromDungeon(ITEMS.RECORDER))
     priorRecorder <- playerComputedStateSummary.HaveRecorder
 
     if not priorLadder && playerComputedStateSummary.HaveLadder then
-        blockerLogic(DungeonBlocker.LADDER)
+        blockerLogic(DungeonBlocker.LADDER, calcFromDungeon(ITEMS.LADDER))
     priorLadder <- playerComputedStateSummary.HaveLadder
 
     if not priorAnyKey && playerComputedStateSummary.HaveAnyKey then
-        blockerLogic(DungeonBlocker.KEY)
+        blockerLogic(DungeonBlocker.KEY, calcFromDungeon(ITEMS.KEY))
     priorAnyKey <- playerComputedStateSummary.HaveAnyKey
 
     // Note: no logic for BAIT or loose KEYs or MONEY, as the tracker has no reliable knowledge of this aspect of player's inventory
