@@ -16,7 +16,7 @@ let voice = OptionsMenu.voice
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
 let mutable silenceAllRemindersDuringCurrentLoad = false
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
-let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
+let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualUpdateToSynchronizeWithReminder) =
     if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value()) then  // if won the game, quit sending reminders
         let shouldRemindVoice, shouldRemindVisual =
             match category with
@@ -27,7 +27,10 @@ let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
             | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
         if not(silenceAllRemindersDuringCurrentLoad) && (shouldRemindVoice || shouldRemindVisual) then 
-            reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual)
+            reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
+let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
+    SendReminderImpl(category, text, icons, None)
+
 let ReminderTextBox(txt) : FrameworkElement = 
     upcast new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., FontWeight=FontWeights.Bold, IsHitTestVisible=false,
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
@@ -393,6 +396,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     // overworld map grouping, as main point of support for mirroring
     let mutable animateOverworldTile = fun _ -> ()
+    let animateOverworldTileIfOptionIsChecked(i,j) =
+        if TrackerModel.Options.AnimateTileChanges.Value then
+            animateOverworldTile(i,j)
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
@@ -636,7 +642,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                             do! f(cm,c,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
-                                        animateOverworldTile(i,j)
+                                        animateOverworldTileIfOptionIsChecked(i,j)
                                 | None -> ()
                             elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP)=0 then
                                 // if item shop with only one item marked, use voice to set other item
@@ -645,7 +651,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                     if TrackerModel.MapSquareChoiceDomainHelper.IsItem(newState) then
                                         TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP,TrackerModel.MapSquareChoiceDomainHelper.ToItem(newState))
                                         Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
-                                        animateOverworldTile(i,j)
+                                        animateOverworldTileIfOptionIsChecked(i,j)
                                 | None -> ()
                         elif delta = 0 then 
                             ()
@@ -666,7 +672,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         | _ -> ()
                         redrawGridSpot()
                         if originalState = -1 && currentState <> -1 then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
-                        animateOverworldTile(i,j)
+                        animateOverworldTileIfOptionIsChecked(i,j)
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
                 }
@@ -759,7 +765,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                                 let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActive)
                                 if needRedraw then 
                                     redrawGridSpot()
-                                    animateOverworldTile(i,j)
+                                    animateOverworldTileIfOptionIsChecked(i,j)
                                 if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
                             } |> Async.StartImmediate
                     )
@@ -938,6 +944,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // place start icon in top layer
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
+
+        let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
+                animateOverworldTile loc
+                let ctxt = System.Threading.SynchronizationContext.Current
+                hideLocator()  // we may be moused in a dungeon right now
+                showLocatorExactLocation loc
+                do! Async.Sleep(3000)
+                do! Async.SwitchToContext ctxt
+                hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon
+            } 
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentMaxHeartsTextBox.Text <- sprintf "Max Hearts: %d" h
             member _this.AnnounceConsiderSword2() = 
@@ -949,7 +965,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp()); 
                                         upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
-            member _this.AnnounceConsiderSword3() = SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
+            member _this.AnnounceConsiderSword3() = 
+                SendReminderImpl(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)],
+                                    Some(AsyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.Sword3Location)))
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
@@ -1025,7 +1043,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 else
                     SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You now have %d triforces" n, [yield! icons; if n=8 then yield upcb(Graphics.iconCheckMark_bmp)])
                 if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
-                    SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)])
+                    SendReminderImpl(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)],
+                                        Some(AsyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.Sword3Location)))
+                if n = 8 && (TrackerModel.mapStateSummary.DungeonLocations.[8] <> TrackerModel.NOTFOUND) then
+                    SendReminderImpl(TrackerModel.ReminderCategory.DungeonFeedback, "Dungeon nine is open", [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(8).DefaultInteriorBmp())],
+                                        Some(AsyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.DungeonLocations.[8])))
             member _this.AnnounceTriforceAndGo(triforceCount, tagSummary) = 
                 let needSomeThingsicons = [
                     for _i = 1 to tagSummary.MissingDungeonCount do
@@ -1544,7 +1566,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, reminderDisplayOuterDockPanel, 0., START_TIMELINE_H)
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
-            let! (text,shouldRemindVoice,icons,shouldRemindVisual) = inbox.Receive()
+            let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
             do! Async.SwitchToContext(cxt)
             if not(TrackerModel.Options.IsMuted) then
                 let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
@@ -1559,6 +1581,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 reminderDisplayInnerDockPanel.Children.Add(sp) |> ignore
                 if shouldRemindVisual then
                     reminderDisplayOuterDockPanel.Opacity <- 1.
+                match visualUpdateToSynchronizeWithReminder with
+                | None -> ()
+                | Some vu -> Async.StartImmediate vu
                 do! Async.SwitchToThreadPool()
                 if shouldRemindVisual then
                     do! Async.Sleep(200) // give reminder clink sound time to play
@@ -1678,7 +1703,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         canvasAdd(overworldCanvas, owHighlightTile, OMTW*float(6), float(11*3*6))
 
         let animateOWTile(x,y) = 
-            if TrackerModel.Options.AnimateTileChanges.Value then
+            if (x,y) <> TrackerModel.NOTFOUND then
                 Canvas.SetLeft(owHighlightTile, OMTW*float(x))
                 Canvas.SetTop(owHighlightTile, float(11*3*y))
                 rgb.GradientStops.[1].BeginAnimation(GradientStop.ColorProperty, ca)
