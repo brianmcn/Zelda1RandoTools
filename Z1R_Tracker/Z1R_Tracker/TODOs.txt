@@ -33,6 +33,7 @@ update whats new with changes
   - changed ow/dungeon-room tile animations
   - mags reminder highlights s3 location, d9 highlighted after get all 8 tris
   - hotkey reminders show up as last line of popup menu description text
+  - "don't care" or "nothing" both speech-mark off an overworld tile
 
 
 save state
@@ -56,15 +57,11 @@ save state
 
 consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
 
-potato_pony...
-
-export timeline splits to text info?
+potato_pony... export timeline splits to text info?
 
 
 
 futz with VS text editor settings
-
-need voice command to set 'nothing' (dont care) (also unmarked?)
 
 meat block can appear in L9 (BU cannot)
 the other weird T shaped room could be a new room maybe

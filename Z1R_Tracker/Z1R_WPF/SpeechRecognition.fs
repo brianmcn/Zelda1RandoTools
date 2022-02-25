@@ -34,6 +34,8 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
             "hint shop"         , 32
             "take any"          , 33
             "potion shop"       , 34
+            "don't care"        , 35
+            "nothing"           , 35
             |]
         match kind with
         | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
