@@ -73,7 +73,6 @@
     <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
     <EmbeddedResource Include="icons\icons7x7.png" />
     <EmbeddedResource Include="icons\icons10x10.png" />
-    <EmbeddedResource Include="icons\icons13x9.png" />
     <EmbeddedResource Include="icons\icons3x7.png" />
     <EmbeddedResource Include="icons\icons8x16.png" />
     <EmbeddedResource Include="icons\ow_icons5x9.png" />

@@ -152,6 +152,7 @@ type RoomType =
     | CircleMoat
     // other geometry
     | Tee
+    | LavaMoat
     | VChute
     | HChute
     | Turnstile
@@ -191,6 +192,7 @@ type RoomType =
         | RightMoat               -> "RoomType_RightMoat"
         | CircleMoat              -> "RoomType_CircleMoat"
         | Tee                     -> "RoomType_Tee"
+        | LavaMoat                -> "RoomType_LavaMoat"
         | VChute                  -> "RoomType_VChute"
         | HChute                  -> "RoomType_HChute"
         | Turnstile               -> "RoomType_Turnstile"
@@ -229,22 +231,23 @@ type RoomType =
         | Unmarked                -> "(Unmarked)"
         | NonDescript             -> "Empty/non-descript room"
         | MaybePushBlock          -> "Room which might have a staircase"
-        | ItemBasement            -> "Room whose staircase leads to a basement item"
+        | ItemBasement            -> "Room with staircase to a basement item"
         | StaircaseToUnknown      -> "Room with staircase (unknown destination)"
-        | Transport1              -> "Transport staircase #1 (one of a matched pair)"
-        | Transport2              -> "Transport staircase #2 (one of a matched pair)"
-        | Transport3              -> "Transport staircase #3 (one of a matched pair)"
-        | Transport4              -> "Transport staircase #4 (one of a matched pair)"
-        | Transport5              -> "Transport staircase #5 (one of a matched pair)"
-        | Transport6              -> "Transport staircase #6 (one of a matched pair)"
-        | Transport7              -> "Transport staircase #7 (one of a matched pair)"
-        | Transport8              -> "Transport staircase #8 (one of a matched pair)"
+        | Transport1              -> "Transport staircase #1 (one of matched pair)"
+        | Transport2              -> "Transport staircase #2 (one of matched pair)"
+        | Transport3              -> "Transport staircase #3 (one of matched pair)"
+        | Transport4              -> "Transport staircase #4 (one of matched pair)"
+        | Transport5              -> "Transport staircase #5 (one of matched pair)"
+        | Transport6              -> "Transport staircase #6 (one of matched pair)"
+        | Transport7              -> "Transport staircase #7 (one of matched pair)"
+        | Transport8              -> "Transport staircase #8 (one of matched pair)"
         | Chevy                   -> "Chevy (four-way moat-ladder-block)"
         | DoubleMoat              -> "Double moat"
         | TopMoat                 -> "North moat"
         | RightMoat               -> "East moat"
         | CircleMoat              -> "Circle moat"
         | Tee                     -> "Tee (moat isolating south exit)"
+        | LavaMoat                -> "Lava moat (weird shaped moat)"
         | VChute                  -> "Vertical chute"
         | HChute                  -> "Horizontal chute"
         | Turnstile               -> "Turnstile"
@@ -280,6 +283,7 @@ type RoomType =
         | RightMoat               -> Graphics.dungeonRoomBmpPairs.[4]
         | CircleMoat              -> Graphics.dungeonRoomBmpPairs.[6]
         | Tee                     -> Graphics.dungeonRoomBmpPairs.[9]
+        | LavaMoat                -> Graphics.dungeonRoomBmpPairs.[33]
         | VChute                  -> Graphics.dungeonRoomBmpPairs.[7]
         | HChute                  -> Graphics.dungeonRoomBmpPairs.[8]
         | Turnstile               -> Graphics.dungeonRoomBmpPairs.[16]
@@ -315,6 +319,7 @@ type RoomType =
         RoomType.RightMoat
         RoomType.CircleMoat
         RoomType.Tee
+        RoomType.LavaMoat
         RoomType.VChute
         RoomType.HChute
         RoomType.Turnstile

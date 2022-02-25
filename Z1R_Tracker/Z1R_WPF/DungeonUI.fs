@@ -532,7 +532,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     canvasAdd(c, dashCanvas, -BUFFER, -BUFFER)
                     CustomComboBoxes.MakePrettyDashes(dashCanvas, Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
                     let pos = Point(roomPos.X+13.*3./2., roomPos.Y+9.*3./2.)
-                    do! DungeonRoomStateUI.DoModalDungeonRoomSelectAndDecorate(cm, (level=9), roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
+                    do! DungeonRoomStateUI.DoModalDungeonRoomSelectAndDecorate(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
                     c.Children.Remove(dashCanvas)
                     Graphics.WarpMouseCursorTo(pos)
                     redraw()
@@ -554,16 +554,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
                             | Some(Choice1Of3(roomType)) -> 
                                 ea.Handled <- true
-                                if level=9 && (roomType=DungeonRoomState.RoomType.BombUpgrade || roomType=DungeonRoomState.RoomType.HungryGoriyaMeatBlock) ||
-                                    level<>9 && (roomType=DungeonRoomState.RoomType.Gannon || roomType=DungeonRoomState.RoomType.Zelda) then
-                                    () // do nothing, these hotkeys do not apply
+                                let workingCopy = roomStates.[i,j].Clone()
+                                if workingCopy.RoomType = roomType then
+                                    workingCopy.RoomType <- DungeonRoomState.RoomType.Unmarked
                                 else
-                                    let workingCopy = roomStates.[i,j].Clone()
-                                    if workingCopy.RoomType = roomType then
-                                        workingCopy.RoomType <- DungeonRoomState.RoomType.Unmarked
-                                    else
-                                        workingCopy.RoomType <- roomType
-                                    SetNewValue(workingCopy)
+                                    workingCopy.RoomType <- roomType
+                                SetNewValue(workingCopy)
                             | Some(Choice2Of3(monsterDetail)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()

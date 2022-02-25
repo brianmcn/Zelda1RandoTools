@@ -68,7 +68,7 @@ let dungeonRoomMouseButtonExplainerDecoration2 =
     b.MouseDown.Add(fun ea -> ea.Handled <- true)  // absorb mouse clicks, so that clicking explainer decoration does not dismiss popup due to being outside-the-area click
     b
                 
-let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLevel9, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
+let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
     let tweak(im:Image) = im.Opacity <- 0.65; im
     let tileSunglasses = 0.75
 
@@ -93,32 +93,26 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLev
         let tileSurroundingCanvas = new Canvas(Width=float(13*3)*SCALE+extra, Height=float(9*3)*SCALE+extra, Background=Brushes.DarkOliveGreen)
         canvasAdd(popupCanvas, tileSurroundingCanvas, tileX-extra/2., tileY-extra/2.)
         let grid = 
-            if isLevel9 then
-                [|
-                RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.Gannon; RoomType.Zelda; RoomType.StartEnterFromE;
-                RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN;
-                RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS;
-                RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
-                RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile;
-                |]
-            else
-                [|
-                RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.BombUpgrade; RoomType.HungryGoriyaMeatBlock; RoomType.StartEnterFromE;
-                RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN;
-                RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS;
-                RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW;
-                RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile;
-                |]
-        let gridElementsSelectablesAndIDs : (FrameworkElement*_*_)[] = grid |> Array.mapi (fun _i rt ->
+            [|
+            RoomType.DoubleMoat; RoomType.CircleMoat; RoomType.LifeOrMoney; RoomType.BombUpgrade; RoomType.HungryGoriyaMeatBlock; RoomType.StartEnterFromE; RoomType.Gannon;
+            RoomType.TopMoat; RoomType.Chevy; RoomType.OldManHint; RoomType.VChute; RoomType.HChute; RoomType.StartEnterFromN; RoomType.Zelda;
+            RoomType.RightMoat; RoomType.Unmarked; RoomType.MaybePushBlock; RoomType.NonDescript; RoomType.Tee; RoomType.StartEnterFromS; RoomType.LavaMoat;
+            RoomType.ItemBasement; RoomType.StaircaseToUnknown; RoomType.Transport1; RoomType.Transport2; RoomType.Transport3; RoomType.StartEnterFromW; RoomType.OffTheMap;
+            RoomType.Transport4; RoomType.Transport5; RoomType.Transport6; RoomType.Transport7; RoomType.Transport8; RoomType.Turnstile; RoomType.Turnstile;
+            |]
+        let gridElementsSelectablesAndIDs : (FrameworkElement*_*_)[] = grid |> Array.mapi (fun i rt ->
             let isLegal = (rt = originalRoomState.RoomType) || (match rt.KnownTransportNumber with | None -> true | Some n -> usedTransports.[n]<>2)
-            upcast tweak(Graphics.BMPtoImage(rt.UncompletedBmp())), isLegal, rt
+            if i = grid.Length-1 then
+                null, false, rt
+            else
+                upcast tweak(Graphics.BMPtoImage(rt.UncompletedBmp())), isLegal, rt
             )
         let originalStateIndex = match (grid |> Array.tryFindIndex (fun x -> x = originalRoomState.RoomType)) with Some x -> x | _ -> grid |> Array.findIndex (fun x -> x = RoomType.Unmarked)
         let activationDelta = 0
-        let (gnc, gnr, gcw, grh) = 6, 5, 13*3, 9*3
+        let (gnc, gnr, gcw, grh) = 7, 5, 13*3, 9*3
         let totalGridWidth = float gnc*(float gcw + 2.*ST)
         let totalGridHeight = float gnr*(float grh + 2.*ST)
-        let gx,gy = -78.,-75.-totalGridHeight
+        let gx,gy = -96.,-75.-totalGridHeight
         let fullRoom = originalRoomState.Clone()  // a copy with the original decorations, used for redrawTile display
         fullRoom.IsComplete <- false
         let redrawTile(curState:RoomType) =
@@ -130,7 +124,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLev
             RenderOptions.SetBitmapScalingMode(fullRoomDisplay, BitmapScalingMode.NearestNeighbor)
             fullRoomDisplay.Opacity <- tileSunglasses
             canvasAdd(tileCanvas, fullRoomDisplay, 0., 0.)
-            let textWidth = 340.
+            let textWidth = 328.
             let topText = Graphics.center(makeCaption("Select a room type", true), int textWidth, 24)
             let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(curState.DisplayDescription, Choice1Of3 curState)
             let bottomText = Graphics.center(makeCaption(s, true), int textWidth, 49)
@@ -155,7 +149,7 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, isLev
             // position mouse on entrance icons
             Graphics.WarpMouseCursorTo(Point(tileX+gx+5.5*(float gcw + ST*2.), tileY+gy+totalGridHeight/2.))
         else
-            // position moude on existing RoomType
+            // position mouse on existing RoomType
             let x = originalStateIndex % gnc
             let y = originalStateIndex / gnc
             Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)))
