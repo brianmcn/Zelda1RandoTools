@@ -549,21 +549,13 @@ let MakeRemainderSummaryDisplay() =
 //////////////////////////////////////////////////
 
 let MakeMappedHotKeysDisplay() =
-    let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
     let mutable total = 0
     let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->FrameworkElement, iconW, header) =
         let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical)
-        let stateToKey = new System.Collections.Generic.Dictionary<_,_>()
-        for state in states do
-            stateToKey.Add(state, ResizeArray())
-        for k in keyUniverse do
-            match hkp.TryGetValue(HotKeys.convertAlpha_NumToKey k) with
-            | Some x -> stateToKey.[x].Add(k)
-            | None -> ()
         let bucket = ResizeArray()
         for state in states do
-            if stateToKey.[state].Count > 0 then
-                let keys = stateToKey.[state] |> Seq.fold (fun s c -> s + c.ToString()) ""
+            if hkp.StateToKeys(state).Count > 0 then
+                let keys = hkp.StateToKeys(state) |> Seq.fold (fun s c -> s + c.ToString()) ""
                 let icon = mkIcon(state)
                 icon.Width <- float iconW
                 let border = new Border(BorderBrush=Brushes.DimGray, BorderThickness=Thickness(1.), Child=icon)

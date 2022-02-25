@@ -32,6 +32,7 @@ update whats new with changes
   - app size: default, 5/6, 2/3, can do custom by editing settings file
   - changed ow/dungeon-room tile animations
   - mags reminder highlights s3 location, d9 highlighted after get all 8 tris
+  - hotkey reminders show up as last line of popup menu description text
 
 
 save state
@@ -56,8 +57,6 @@ save state
 consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
 
 potato_pony...
-
-if mouse a hotkeyable, show the hotkey reminder somehow (if not 'show hotkeys' just to prod the one you forgot) - could be last line of popup description for OW tile...
 
 export timeline splits to text info?
 

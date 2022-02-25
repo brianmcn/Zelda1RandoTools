@@ -436,6 +436,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         let innerc = redraw(ident)
         let s = if ident = -1 then "Unmarked" else TrackerModel.ITEMS.AsDisplayDescription(ident)
+        let s = HotKeys.ItemHotKeyProcessor.AppendHotKeyToDescription(s, ident)
         let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
         let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)

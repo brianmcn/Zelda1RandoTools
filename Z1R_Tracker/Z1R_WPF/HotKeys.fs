@@ -120,8 +120,10 @@ let ParseHotKeyDataFile(filename:string) =
 
 ////////////////////////////////////////////////////////////
 
-type HotKeyProcessor<'v>(contextName) =
+let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
+type HotKeyProcessor<'v when 'v : equality>(contextName) =
     let table = new System.Collections.Generic.Dictionary<Input.Key,'v>()
+    let stateToKeys = new System.Collections.Generic.Dictionary<_,_>()  // caching
     member this.ContextName = contextName
     member this.TryGetValue(k) = 
         match table.TryGetValue(k) with
@@ -133,6 +135,23 @@ type HotKeyProcessor<'v>(contextName) =
         else
             table.Add(k,v)
             true
+    member this.StateToKeys(state) =
+        if not(stateToKeys.ContainsKey(state)) then
+            let r = ResizeArray()
+            for k in keyUniverse do
+                match this.TryGetValue(convertAlpha_NumToKey k) with
+                | Some x -> if x = state then r.Add(k)
+                | None -> ()
+            stateToKeys.Add(state, r)
+            r
+        else
+            stateToKeys.[state]
+    member this.AppendHotKeyToDescription(desc, state) =
+        let keys = this.StateToKeys(state)
+        if keys.Count > 0 then
+            sprintf "%s\nHotKey = %c" desc keys.[0]
+        else
+            desc
 
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")

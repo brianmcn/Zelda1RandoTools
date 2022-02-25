@@ -532,7 +532,8 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
             let pc, predraw = make()
             let popupRedraw(n) =
                 let innerc = predraw(n)
-                let text = new TextBox(Text=n.DisplayDescription(), Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                let s = HotKeys.BlockerHotKeyProcessor.AppendHotKeyToDescription(n.DisplayDescription(), n)
+                let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                             FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
                 let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
                 let dp = new DockPanel(LastChildFill=false)
