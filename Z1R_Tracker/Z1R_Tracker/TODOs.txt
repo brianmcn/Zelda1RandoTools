@@ -62,6 +62,14 @@ consider removing choicedomain restrictions, prefer warnings? (deal with spot su
 potato_pony... export timeline splits to text info?
 
 
+lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
+lorgon: mark screens with bomb droppers
+lorgon: like imagine middle click from dungeons
+like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
+
+
+start spot hotkey?
+
 
 futz with VS text editor settings
 
@@ -70,6 +78,7 @@ maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox
 
 voice feedback saying what mark, so less need to watch what you clicked?
 
+cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
 
 
 Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
@@ -99,8 +108,6 @@ possibly an 'any road' single hotkey that works like voice, and auto-selects nex
 
 consider adding my 'dungeon drops' room table somewhere somehow
 
-make old man in dungeon be toggle, for unread unbook hints, if want to return to hints post-book
-
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
  - Yellow percentage, count DRCs, etc
@@ -124,13 +131,18 @@ The game (vanilla Z1) has 8 possible room states that can be set for the rooms (
 
 
 
+timeline still klutzy that marking zelda stops time and she never gets timeline'd
+
 
 [2:39 PM] homerjsmash: also i don't remember if i've given you this one before, but v1.xx feature request. Old man counts in levels. ex. I'm in level 1 shapes and i see an old man, i check a box or something. old man found. Then if I have a crappy combat room or a room blocked by ladder I know it's not the old man room that i can't get to. Flip side, i don't have that checked, then I know I don't care about that room.
 [2:43 PM] Lorgon111: so is there always at least one old man per dungeon? or specific counts?
 [2:43 PM] Lorgon111: (you can mark his room when see him, but have to look at map and count yourself today)
 [3:02 PM] homerjsmash: yeah there is 1 man in 1-4, 4 in 9 and I forgot how many in 5-8, but it's the same as vanilla (I am mostly certain about this)
 [3:02 PM] homerjsmash: i think there are 3 in 5 and 7
-
+Lorgon111: in Shapes, is there always a fixed number of 'old man hints' in each dungeon? if so, how many in each dungeon?  (does it differ in other dungeon quests?)
+[2:42 PM] fcoughlin: The answer is that it should match the vanilla version.  Which means grabs notes you'd normally see 1 hint man in 1-4.  5 would have 2 hints (plus 1 bomb up), 6 has 2 hints, 7 has 1 hint, 1 bomb up, 1 grumble.  8 has 2 hints.  9 has 3 hints.
+[2:49 PM] Lorgon111: and I guess the hint-men and bomb-upgrade-men can be swapped?  because i know e.g. i saw both bomb upgrades in 7 the other day.  except i guess maybe the old men in 9 dont get swapped.
+[4:25 PM] Panzer: correct
 
 
 
@@ -204,13 +216,6 @@ homer:
         - sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
 
 
-lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
-lorgon: mark screens with bomb droppers
-lorgon: like imagine middle click from dungeons
-like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
-
-
-start spot hotkey?
 
 
 'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
