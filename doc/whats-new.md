@@ -2,8 +2,82 @@
 
 A summary of the features/fixes in the various releases of Z-Tracker
 
+ - [Version 1.2](#v1.2) (under development)
  - [Version 1.1](#v1.1) (released 2022-02-06)
  - [Version 1.0](#v1.0) (released 2021-12-11)
+
+---
+
+## <a id="v1.2"></a>Version 1.2
+
+### Save and load
+
+You can now save the state of the tracker to a file, and load it again (say, tomorrow) to pick up a seed where you left off.
+
+Click the 'Save' button in the running tracker to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.
+
+![Save button](screenshots/save-button.png)
+
+On the startup screen, choose the 'Start: from a previously saved state' option to load up a prior save.
+
+![Load button](screenshots/load-button.png)
+
+### Dungeon numerals stay visible until first room is marked
+
+To make it less likely to accidentally map a dungeon in the wrong tab, the dungeon numeral stays visible over the whole tab until the first room is marked.
+
+![Dungeon numeral](screenshots/dungeon-numeral.png)
+
+### More dungeon room types
+
+The dungeon room shape "Lava Moat" has been added, and now the existing room types "Bomb Upgrade", "Hungry Goriya", "Gannon", "Zelda", and "Off the map" are now
+always available in the dungeon room selection popup menu.
+
+![Dungeon room types](screenshots/dungeon-room-types.png)
+
+### LostWoods/LostHills magnifier improvements
+
+The Lost Woods tile and Lost Hills tile now show the routes to traverse these 'maze' tiles on the overworld magnifier.  This is to help both Zelda 1 novice players, as well as
+veterans who may get confused/disoriented when playing using the rando flag "Mirror Overworld".
+
+![Lost woods magnifier](screenshots/lost-woods-magnifier.png)
+
+### More timeline time labels
+
+It's now easier to read times from the timeline:
+
+![Timeline labels](screenshots/timeline-labels.png)
+
+The tracker was made 4 pixels taller to accomodate this.
+
+### More application sizes
+
+On the startup screen, the top banner used to allow changing the application to run either at full size (default) or at 2/3 size (for some laptops/tablets where Z-Tracker couldn't fit on the screen).  
+Now there is third option of 5/6 size; furthermore, by manually editting the json settings file, you could try other arbitrary sizes as well (though they may not look very good due to pixel scaling issues).
+
+### Changed-tile animations
+
+You might sometimes accidentally click/hotkey an overworld tile or dungeon room that you didn't mean to change, and you might not notice/see which tile you just changed.  There is now an option to 
+"Animate tile changes" in the Options Menu which causes a brief highlight animation over the most-recently-changed overworld tile or dungeon room.
+
+### HotKey reminders
+
+Now most popup menus will remind you of HotKeys you have mapped in the descriptions of the corresponding items.  This is useful for the scenario where you know that you mapped a HotKey for
+a certain item, but you forget what you set it to.  
+
+![HotKey reminder](screenshots/hotkey-reminder.png)
+
+### A number of minor fixes and changes
+
+ - fixed: mini-mini-map (the dungeon hover-blue-bars) show text like "BOARD-5" properly
+ - fixed: dungeon summary tab no longer sometime shows stale/missing info
+ - fixed: fewer reminders to "consider dungeon X" when you're in dungeon X already
+ - made dungeon LEVEL/BOARD header use Zelda font
+ - speaking either "don't care" or "nothing" will mark off an overworld tile using [Speech Recognition](use.md#speech-recognition)
+ - when you get a reminder to consider the magical sword, tracker now briefly highlights its location on the map
+ - when you get the 8th triforce piece, tracker now briefly highlights the location of dungeon 9
+
+---
 
 ## <a id="v1.1"></a>Version 1.1
 
@@ -90,6 +164,7 @@ A number of minor improvements:
  - fix HFQ/HSQ buttons to be more useful and to display less ugly
  - fix windows/taskbar to now properly display Z-Tracker logo icon
 
+---
 
 ## <a id="v1.0"></a>Version 1.0
 

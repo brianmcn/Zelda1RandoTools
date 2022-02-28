@@ -551,4 +551,6 @@ let wakePhrase = "tracker set"
                 "hint shop"         , 32
                 "take any"          , 33
                 "potion shop"       , 34
+                "don't care"        , 35
+                "nothing"           , 35
 ```

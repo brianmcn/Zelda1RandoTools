@@ -21,21 +21,6 @@ CURRENT PRIORITIES
 
 update docs with changes
 update whats new with changes
- TODO next version
-  - save/load
-  - made LEVEL/BOARD header use Zelda font
-  - dungeon numeral stays visible until first room mark
-  - LostWoods/LostHills magnifier shows paths
-  - fixed miniminimap (hover blue bars) to show BOARD-5 or whatnot
-  - dungeon summary tab no longer show stale/missing info
-  - more timeline numbers, app 4 pixels taller (extras Window Size doc)
-  - app size: default, 5/6, 2/3, can do custom by editing settings file
-  - changed ow/dungeon-room tile animations
-  - mags reminder highlights s3 location, d9 highlighted after get all 8 tris
-  - hotkey reminders show up as last line of popup menu description text
-  - "don't care" or "nothing" both speech-mark off an overworld tile
-  - rooms: meat block, bomb upgrade, gannon, zelda, lava moat, off the map - now available in every dungeon popup
-  - fewer reminder to consider dungeon X when you're in dungeon X already
 
 
 save state
