@@ -50,7 +50,15 @@ These ad-hoc behaviors are designed either to make common cases fast and easy, o
 
 ## <a id="save-state"></a> Save State
 
-There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
+You can save the current state of the tracker to a file, and load it again (say, tomorrow) to pick up a seed where you left off.
+
+Click the 'Save' button in the running tracker to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.
+
+![Save button](screenshots/save-button.png)
+
+On the startup screen, choose the 'Start: from a previously saved state' option to load up a prior save.
+
+![Load button](screenshots/load-button.png)
 
 
 ## <a id="broadcast-window"></a> Broadcast Window

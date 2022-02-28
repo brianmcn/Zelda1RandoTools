@@ -69,7 +69,7 @@ a certain item, but you forget what you set it to.
 
 ### A number of minor fixes and changes
 
- - fixed: mini-mini-map (the dungeon hover-blue-bars) show text like "BOARD-5" properly
+ - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're in dungeon X already
  - made dungeon LEVEL/BOARD header use Zelda font
