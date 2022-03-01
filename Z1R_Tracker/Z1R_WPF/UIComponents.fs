@@ -208,8 +208,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Imag
     canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
     canvasAdd(legendCanvas, legendStartIconButton, 9.1*OMTW, 0.)
-    let mutable popupIsActive = false
-    legendStartIconButton.Click.Add(fun _ ->
+    legendStartIconButtonBehavior <- (fun () ->
         if not popupIsActive then
             popupIsActive <- true
             let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16.,
@@ -241,6 +240,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Imag
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
     recorderDestinationLegendIcon, anyRoadLegendIcon
 
 let MakeItemProgressBar(appMainCanvas, owInstance:OverworldData.OverworldInstance) =
@@ -379,7 +379,6 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 b.Background <- Views.hintHighlightBrush
             button.Content <- mkTxt(hintZone.ToString())
         updateViewFunctions.[thisRow] <- updateView
-        let mutable popupIsActive = false
         let activatePopup(activationDelta) =
             popupIsActive <- true
             let tileX, tileY = (let p = button.TranslatePoint(Point(),cm.AppMainCanvas) in p.X+3., p.Y+3.)
@@ -431,7 +430,6 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
     canvasAdd(cm.AppMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
-    let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -525,7 +523,6 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
             current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
             redraw(current) |> ignore
             )
-        let mutable popupIsActive = false
         let SetNewValue(db) = TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
         let activate(activationDelta) =
             popupIsActive <- true

@@ -187,8 +187,6 @@ let DoModalDungeonRoomSelectAndDecorate(cm:CustomComboBoxes.CanvasManager, origi
             ea.Handled <- true
             if (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Right) && ea.ButtonState = Input.MouseButtonState.Pressed then
                 snapBackWorkingCopy.IsComplete <- ea.ChangedButton = Input.MouseButton.Left
-                if not(snapBackWorkingCopy.IsComplete) && snapBackWorkingCopy.RoomType.IsNotMarked then
-                    snapBackWorkingCopy.RoomType <- RoomType.OffTheMap   // ad-hoc way to mark this RoomType, since it doesn't fit in the grid (Unmarked right-click in the detail menu)
                 setNewValue(snapBackWorkingCopy)
                 cleanupAndUnblock()
         let mutable workingCopyDisplay = null

@@ -226,7 +226,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
             //mainTrackerCanvases.[i,0] <- colorCanvas
             let colorButton = new Button(Width=30., Height=30., BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.DimGray, Content=colorCanvas)
-            let mutable popupIsActive = false
             colorButton.Click.Add(fun _ -> 
                 if not popupIsActive && TrackerModel.IsHiddenDungeonNumbers() then
                     popupIsActive <- true
@@ -662,7 +661,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let popupIsActive = ref false
+                let popupIsActiveRef = ref false
                 let SetNewValue(currentState, originalState) = async {
                     if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
                         if currentState >=0 && currentState <=8 then
@@ -677,7 +676,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
                 }
                 let activatePopup(activationDelta) =
-                    popupIsActive := true
+                    popupIsActiveRef := true
                     let GCOL,GROW = 8,5
                     let GCOUNT = GCOL*GROW
                     let pos = c.TranslatePoint(Point(), appMainCanvas)
@@ -747,15 +746,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
-                        popupIsActive := false
+                        popupIsActiveRef := false
                         } |> Async.StartImmediate
                 c.MouseRightButtonDown.Add(fun _ -> 
-                    if not !popupIsActive then
+                    if not !popupIsActiveRef then
                         // right click activates the popup selector
                         activatePopup(0)
                     )
                 c.MouseLeftButtonDown.Add(fun _ -> 
-                    if not !popupIsActive then
+                    if not !popupIsActiveRef then
                         // left click is the 'special interaction'
                         let pos = c.TranslatePoint(Point(), appMainCanvas)
                         let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
@@ -763,16 +762,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
                         else
                             async {
-                                let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActive)
+                                let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActiveRef)
                                 if needRedraw then 
                                     redrawGridSpot()
                                     animateOverworldTileIfOptionIsChecked(i,j)
                                 if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
                             } |> Async.StartImmediate
                     )
-                c.MouseWheel.Add(fun x -> if not !popupIsActive then activatePopup(if x.Delta<0 then 1 else -1))
+                c.MouseWheel.Add(fun x -> if not !popupIsActiveRef then activatePopup(if x.Delta<0 then 1 else -1))
                 c.MyKeyAdd(fun ea ->
-                    if not !popupIsActive then
+                    if not !popupIsActiveRef then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
                         | Some(hotKeyedState) -> 
                             ea.Handled <- true
@@ -873,7 +872,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
 
     let mutable exportDungeonModelsJsonLines = fun () -> null
-    let mutable popupIsActive = false
     let saveTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Save", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
     let saveButton = new Button(Content=saveTB)
@@ -1545,7 +1543,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
 
     canvasAdd(appMainCanvas, moreOptionsButton, 0., START_TIMELINE_H)
-    let mutable popupIsActive = false
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true

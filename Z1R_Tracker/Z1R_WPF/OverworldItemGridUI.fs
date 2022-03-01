@@ -42,11 +42,15 @@ let ITEM_PROGRESS_FIRST_ITEM = 130.
 // some global mutable variables needed across various UI components
 let theStartTime = new TrackerModel.LastChangedTime()
 
+let mutable popupIsActive = false
+
 let mutable displayIsCurrentlyMirrored = false
 let mutable notesTextBox = null : TextBox
 
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
+
+let mutable legendStartIconButtonBehavior = fun () -> ()
 
 let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
 let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
@@ -316,7 +320,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             panel.Children.Add(tdd) |> ignore
         refreshTDD()
         panel
-    let mutable popupIsActive = false
     extrasImage.MouseDown.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -336,12 +339,12 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     // timer reset
     let timerResetButton = Graphics.makeButton("Pause/Reset timer", Some(16.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
-    let mutable popupIsActive = false
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
             let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
             let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
+            let mutable userPressedReset = false
             let sp = new StackPanel(Orientation=Orientation.Vertical)
             sp.Children.Add(firstButton) |> ignore
             sp.Children.Add(new DockPanel(Height=300.)) |> ignore
@@ -352,6 +355,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 )
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
+                userPressedReset <- true
                 wh.Set() |> ignore
                 )
             async {
@@ -359,6 +363,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)
                 TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
+                if userPressedReset then
+                    legendStartIconButtonBehavior()  // jump into the 'place the start spot' popup
                 } |> Async.StartImmediate
         )
     // spot summary

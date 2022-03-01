@@ -173,7 +173,8 @@ Question mark icon - Mouse hovering this brings up the "Mouse Hover Explainer" w
 
 Timer - Displays the amount of time you have spent on the seed
 
-'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.
+'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.  If you reset the timer,
+you will also activate the <a id="main-buttons">'Start Spot' button</a> to mark the starting screen on the overworld.
 
 <a id="spot-summary">'Spot Summary'</a> - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
@@ -287,7 +288,7 @@ tracker for "The Legend of Zelda" randomizer.
 
 There are a number of buttons near the bottom right of the overworld map.
 
-You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.
+You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.  This behavior also activates automatically when you reset the timer.
 
 <a id="helpful-hint">Clicking the '**Hint decoder**' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
@@ -389,7 +390,7 @@ If all you care about it 'what rooms have I been in, and what rooms have I compl
 ![Dungeon room completed example screenshot](screenshots/dungeon-room-completed-example.png)
 
 If you want to change a RoomType (to mark a transport staircase, hungry Goriya, chevy moat, ...), then right-click the room to bring up the RoomType popup:
- - a grid of 30 possible types of rooms appear
+ - a grid of 34 possible types of rooms appear
  - choose the one you want with your mouse, and left-click it
 
 ![Dungeon room chooser screenshot](screenshots/dungeon-room-chooser.png)
@@ -426,9 +427,7 @@ zero extra mousing.
 
 There is one special RoomType, called OffTheMap.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
 dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
-on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap is not available in the room selection popup.  You can either use 
-it by mapping a hotkey, or you can also select it by right clicking a room to bring up the popup, right clicking the Unmarked tile in the grid, and then 
-right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.  An example of 
+on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap appears as "OFF" in the room selection popup.  An example of 
 marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)

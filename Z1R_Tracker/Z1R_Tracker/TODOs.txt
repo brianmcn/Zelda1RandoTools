@@ -53,8 +53,6 @@ lorgon: like imagine middle click from dungeons
 like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
 
-start spot hotkey?
-
 
 futz with VS text editor settings
 
@@ -74,6 +72,7 @@ Some kind of map presets could be good, and 4 types of shops as well, in terms o
 
 
 
+change each 'asterisk' beep warning into a more detailed message about what is wrong?
 
 
 
@@ -277,6 +276,7 @@ ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
 
 broadcast window doesnt capture drag-drop mouse movement
 
+if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
 
