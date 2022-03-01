@@ -174,7 +174,7 @@ Question mark icon - Mouse hovering this brings up the "Mouse Hover Explainer" w
 Timer - Displays the amount of time you have spent on the seed
 
 'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.  If you reset the timer,
-you will also activate the <a id="main-buttons">'Start Spot' button</a> to mark the starting screen on the overworld.
+you will also activate the ['Start Spot' button](#main-buttons) to mark the starting screen on the overworld.
 
 <a id="spot-summary">'Spot Summary'</a> - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
