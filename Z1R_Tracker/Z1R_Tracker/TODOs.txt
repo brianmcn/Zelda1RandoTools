@@ -56,6 +56,12 @@ like 'start spot', could have other overworld decorations (e.g. to mark bomb dro
 
 futz with VS text editor settings
 
+TheDoctorBlue wants to operate entire tracker with numpad, consider?
+
+homer: which blocker blocked item v which blocked triforce
+ - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
+
+homer wish misclick timeline (any key) not permanently put it there
 
 maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
 
