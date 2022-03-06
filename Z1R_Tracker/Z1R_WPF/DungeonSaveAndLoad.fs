@@ -99,6 +99,7 @@ type AllData() =
     member val Blockers : string[][] = null with get,set
     member val Hints : Hints = null with get,set
     member val Notes = "" with get,set
+    member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
     member val Timeline : TimelineDatum[] = null with get,set
 

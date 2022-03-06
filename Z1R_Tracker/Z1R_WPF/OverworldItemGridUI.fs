@@ -48,6 +48,7 @@ let mutable notesTextBox = null : TextBox
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
 
+let mutable exportDungeonModelsJsonLines = fun () -> null
 let mutable legendStartIconButtonBehavior = fun () -> ()
 
 let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
@@ -190,6 +191,11 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         if b then 
             notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text
             TrackerModel.LastChangedTime.PauseAll()
+            if TrackerModel.Options.SaveOnCompletion.Value then
+                try
+                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), SaveAndLoad.FinishedSave) |> ignore
+                with e ->
+                    ()
         else
             TrackerModel.LastChangedTime.ResumeAll()
         )

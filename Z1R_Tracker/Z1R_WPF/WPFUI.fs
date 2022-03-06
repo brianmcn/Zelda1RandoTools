@@ -871,7 +871,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
     //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
 
-    let mutable exportDungeonModelsJsonLines = fun () -> null
     let saveTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Save", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
     let saveButton = new Button(Content=saveTB)
@@ -881,8 +880,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let totalSeconds = int (DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), SaveAndLoad.ManualSave)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1671,6 +1669,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // Notes
         notesTextBox.Text <- data.Notes
         // Dungeon Maps
+        DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
         // Timeline
         if data.Timeline <> null then
@@ -1706,6 +1705,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
+    do  // auto-save every 1 min
+        let ctxt = System.Threading.SynchronizationContext.Current
+        let diskIcon = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Gray, Child=Graphics.BMPtoImage(Graphics.iconDisk_bmp), Opacity=0.0)
+        canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
+        let timer = new System.Windows.Threading.DispatcherTimer()
+        timer.Interval <- TimeSpan.FromSeconds(60.0)
+        timer.Tick.Add(fun _ -> 
+            try
+                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), SaveAndLoad.AutoSave) |> ignore
+                async {
+                    diskIcon.Opacity <- 0.7
+                    do! Async.Sleep(300)
+                    do! Async.SwitchToContext ctxt
+                    diskIcon.Opacity <- 0.4
+                    do! Async.Sleep(300)
+                    do! Async.SwitchToContext ctxt
+                    diskIcon.Opacity <- 0.7
+                    do! Async.Sleep(300)
+                    do! Async.SwitchToContext ctxt
+                    diskIcon.Opacity <- 0.0
+                } |> Async.StartImmediate
+            with e ->
+                ()
+        )
+        timer.Start()
     return drawTimeline
     }
 

@@ -253,7 +253,13 @@ let SaveHints(prefix) =
     lines.Add("""},""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  // can throw
+type SaveType =
+    | ManualSave     // user clicked 'Save'
+    | FinishedSave   // user clicked Zelda and SaveOnCompletion option is on
+    | AutoSave       // each time a minute has passed
+
+let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], saveType) =  // can throw
+    let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
@@ -265,6 +271,7 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  
         yield! SaveBlockers("    ")
         yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
+        yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
         yield sprintf """    ],"""
@@ -277,8 +284,15 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  
         yield sprintf """    ]"""
         yield sprintf """}"""
         |]
-    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+    let filename = 
+        match saveType with
+        | ManualSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-manual-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+        | FinishedSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-completed-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+        | AutoSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-zz-autosave.json")
     //let filename = "J:\\-impossiblesdkgfjhsdg;kdahfskjgfdhsgfh;lahjds;ljfdhs;ljfhldashfldashlfadshgflhjdgflajdgfjkl"  // test errors
     System.IO.File.WriteAllLines(filename, lines)
+    match saveType with
+    | AutoSave -> System.IO.File.SetCreationTime(filename, System.DateTime.Now)
+    | _ -> ()
     filename
     

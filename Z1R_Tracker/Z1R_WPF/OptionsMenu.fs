@@ -157,6 +157,13 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.ToolTip <- "When you change an overworld map spot or a dungeon room type, briefly animate the rectangle to highlight what changed"
     options3sp.Children.Add(cb) |> ignore
 
+    let cb = new CheckBox(Content=new TextBox(Text="Save on completion",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SaveOnCompletion.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- true)
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- false)
+    cb.ToolTip <- "When you click Zelda to complete the seed, automatically save the full tracker state to a file"
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false

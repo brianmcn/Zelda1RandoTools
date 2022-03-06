@@ -45,6 +45,7 @@ module Options =
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
     let mutable AnimateTileChanges = Bool(true)
+    let mutable SaveOnCompletion = Bool(false)
     let mutable ListenForSpeech = Bool(false)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
@@ -86,7 +87,8 @@ module Options =
         member val Visual_Blockers = true with get,set
         
         
-        member val AnimateTileChanges = false with get,set
+        member val AnimateTileChanges = true with get,set
+        member val SaveOnCompletion = false with get,set
         member val ListenForSpeech = false with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
@@ -132,6 +134,7 @@ module Options =
         data.Visual_Blockers <-        VisualReminders.Blockers.Value
 
         data.AnimateTileChanges <- AnimateTileChanges.Value
+        data.SaveOnCompletion <- SaveOnCompletion.Value
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
@@ -189,6 +192,7 @@ module Options =
             VisualReminders.Blockers.Value <-        data.Visual_Blockers
 
             AnimateTileChanges.Value <- data.AnimateTileChanges
+            SaveOnCompletion.Value <- data.SaveOnCompletion
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech

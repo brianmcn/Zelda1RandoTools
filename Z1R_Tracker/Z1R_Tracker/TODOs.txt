@@ -27,6 +27,8 @@ BUG: in HDN, if get tri-A, don't set number, it doesnt remind N tri, if after, g
 TODO new timeline screenshot in use.md
 
 
+
+
 homer wish misclick timeline (any key) not permanently put it there (fixed)
 potato_pony... export timeline splits to text info? ('save' after done does effectively do this)
 clyceer: mouse hover for exact times? (hmm)

@@ -22,6 +22,13 @@ On the startup screen, choose the 'Start: from a previously saved state' option 
 
 ![Load button](screenshots/load-button.png)
 
+There is also an auto-save which saves the full tracker state (to a file named 'zt-save-zz-autosave.json') approximately every minute.  This might be useful if you accidentally 
+close the tracker or have a crash in the middle of a seed.
+
+There's also an option in the Options Menu to 'Save on completion', to automatically make a save when you click Zelda upon completion of the seed.  This can be useful to folks who
+like to keep records of all their Timeline splits for each game played.  (Note that the save files are large, so ensure you have plenty of disk space if you use this option to 
+accumulate a lot of saves.)
+
 ### Dungeon numerals stay visible until first room is marked
 
 To make it less likely to accidentally map a dungeon in the wrong tab, the dungeon numeral stays visible over the whole tab until the first room is marked.

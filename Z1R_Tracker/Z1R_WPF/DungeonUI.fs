@@ -113,6 +113,8 @@ type TrackerLocation =
     | OVERWORLD
     | DUNGEON
 
+let mutable theDungeonTabControl = null : TabControl
+
 let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, 
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
@@ -127,6 +129,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let mutable bigIconsTemp = false            // whether we are currently in the mouse hover to show big icons
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
+    theDungeonTabControl <- dungeonTabs
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
     let levelTabs = Array.zeroCreate 9
     let contentCanvases = Array.zeroCreate 9
@@ -741,6 +744,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let rs = jsonModel.AsDungeonRoomState()
                         if rs.RoomType <> DungeonRoomState.RoomType.Unmarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                            numeral.Opacity <- 0.0 
                         setNewValueFunctions.[i,j](rs)
             )
         do! showProgress()
