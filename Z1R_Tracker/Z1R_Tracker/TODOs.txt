@@ -27,6 +27,19 @@ TODO new timeline screenshot in use.md
 
 
 
+[5:13 PM] potato_pony: Sweet. That's more pragmatic than my ask :). Is there a way in the current ZTracker to just highlight all the known dungeons? Or maybe just the known unfinished dungeons? I know I can do 1 at a time but sometimes I'm trying to figure out where to go next and picking out the dungeons on the OW map isn't obvious
+[5:15 PM] Lorgon111: hm, interesting, there is not currently
+[5:19 PM] Lorgon111: "picking out the dungeons on the OW map isn't obvious" this is mildly concerning in itself, I use green and yellow for dungeons because they are so bright and visually 'pop' for me... but anyway...
+I am unsure the best way to highlight those N things at a time... perhaps using the strategy I used for showing hinted locations, where I darken all of the map except the few squares I want to call out?
+[5:20 PM] potato_pony: That's what I was picturing. I'm not sure why the yellow and green don't pop as much for me. I'd suggest not acting on this immediately -- let me get some more burn in with ZTracker and I'll let you know if it still feels like a thing
+[5:21 PM] potato_pony: I don't play as much as some other folks so the races you see me do is basically almost all of my playing :)
+[5:22 PM] Lorgon111: Yeah I know that visual icon parsing improves with time/familiarity, but this is still something i'll put on my list to think about
+
+
+
+if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
+
+
 
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
 

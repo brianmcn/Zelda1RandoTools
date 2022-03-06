@@ -379,6 +379,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 b.Background <- Views.hintHighlightBrush
             button.Content <- mkTxt(hintZone.ToString())
         updateViewFunctions.[thisRow] <- updateView
+        let mutable popupIsActive = false  // second level of popup, need local copy
         let activatePopup(activationDelta) =
             popupIsActive <- true
             let tileX, tileY = (let p = button.TranslatePoint(Point(),cm.AppMainCanvas) in p.X+3., p.Y+3.)
