@@ -881,7 +881,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let totalSeconds = int (DateTime.Now - theStartTime.Time).TotalSeconds
+                    let totalSeconds = int (DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
                     let timelineData = ResizeArray()
                     for ti in timelineItems do
                         if ti.IsDone then
@@ -1684,7 +1684,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             ti.Sample(td.Minute)
         updateTimeline(false, data.TimeInSeconds / 60)
         // Timer
-        theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
+        TrackerModel.theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()

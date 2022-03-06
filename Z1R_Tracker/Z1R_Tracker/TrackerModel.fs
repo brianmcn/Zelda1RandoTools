@@ -570,6 +570,8 @@ type LastChangedTime(intervalHowFarInThePast) as this =
             | Some(interval) -> System.DateTime.Now - interval
             | None -> stamp + (System.DateTime.Now - whenPaused)
 
+let theStartTime = new LastChangedTime()
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 (*

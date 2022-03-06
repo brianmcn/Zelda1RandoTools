@@ -23,28 +23,49 @@ update docs with changes
 update whats new with changes
 
 
-save state
-   DONE- item boxes, triforces, HDN color/label
-   DONE- shopping area items
-   DONE- stating items/extra drops
-   DONE- hint storage
-   DONE- time
-   DONE- start spot
-   DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
-   DONE- blockers
-   DONE- dungeon marks
-        - hDoors, vDoors, 
-        - roomStates, roomIsCircled (validate usedTransports after import), turn off 'door infer' while setting, turn off 'first time clicking' while setting
-             - poking roomIsCircled, then calling SetNewValue() seems like it would work
-                  - but for 'empty' dungeons, want to repoke the 'first time clicking' to reactivate it, or rather the opposite (turn off for non-empty dungeons)
-   DONE- notes
-   DONE- timeline
+
+homer wish misclick timeline (any key) not permanently put it there
+potato_pony... export timeline splits to text info? clyceer: mouse hover for exact times?
+timeline still klutzy that marking zelda stops time and she never gets timeline'd
+
+timeline & mistakes
+ - ""The timeline is non-interactive, it is just a display for capturing progress-over-time.""
+   Should it be possible to click (right-click?) a timeline item to remove it from the timeline to correct misclicks?
+   This (as a way to remove an erroneously posted item and its timestamp), coupled with changing-item-box-content-after-post being reflected on the timeline, would address it?
+
+timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
+ - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
+ - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
+   rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
+
+
+timeline:
+ - ideal: people mark an item when they get it, and maybe it shows up immediately
+ - mistake 1: people mark item they don't have yet, then maybe later unmark
+ - mistake 2: people mark wrong item, then change item type
+ - mistake 3: people forget to mark item when they get it
+ - mistake 4: people accidentally unmark item they did have
+maybe imagine timeline items know their entire interaction history, and there's a UI to interact with them where user can select among prior interactions to mark correct one, or
+just edit the timeline item directly to change display/time? need to think thru each mistake scenario and ideal interaction to fix (if desired)
+could also push timeline down into model maybe - it either monitors
+ - a BoolProperty like WoodSword in extras/shopping
+ - a TakeAnyHeart
+ - a Triforce
+ - or an item box
+and all of those live in the model
+
+
+cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
+
+change each 'asterisk' beep warning into a more detailed message about what is wrong?
+ - text on timeline reminder area?
+
+color numerals in tabs to mark bomb upgrades, or other things to come back to?
+ - more generally, what extra info, apart from blockers, might want to 'surface' about a dungeon when its tab is offscreen?
 
 
 
 consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
-
-potato_pony... export timeline splits to text info?
 
 
 lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
@@ -56,18 +77,22 @@ like 'start spot', could have other overworld decorations (e.g. to mark bomb dro
 
 futz with VS text editor settings
 
+
 TheDoctorBlue wants to operate entire tracker with numpad, consider?
+ - imagine hotkeys that map to 'move mouse ULDR', and then also... what?
+bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
+
+
+
 
 homer: which blocker blocked item v which blocked triforce
  - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
 
-homer wish misclick timeline (any key) not permanently put it there
 
 maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
 
 voice feedback saying what mark, so less need to watch what you clicked?
 
-cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
 
 
 Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
@@ -78,8 +103,6 @@ Some kind of map presets could be good, and 4 types of shops as well, in terms o
 
 
 
-change each 'asterisk' beep warning into a more detailed message about what is wrong?
-
 
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
@@ -89,22 +112,23 @@ in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet c
  - ghostbusters help now
 
 homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
-
-bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
+ - consider best use of scrollwheel on dungeon doors/rooms
+Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
 HDN, non-shapes, in addition to red-green room match, maybe could yellow out numbers already taken? hmmm
 
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
 
-consider adding my 'dungeon drops' room table somewhere somehow
+consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
 
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
  - Yellow percentage, count DRCs, etc
  - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
 
-consider kigalas feedback:
-Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
+kigalas: Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
+
+
 
 tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
  - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
@@ -120,8 +144,6 @@ The game (vanilla Z1) has 8 possible room states that can be set for the rooms (
 7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .
 
 
-
-timeline still klutzy that marking zelda stops time and she never gets timeline'd
 
 
 [2:39 PM] homerjsmash: also i don't remember if i've given you this one before, but v1.xx feature request. Old man counts in levels. ex. I'm in level 1 shapes and i see an old man, i check a box or something. old man found. Then if I have a crappy combat room or a room blocked by ladder I know it's not the old man room that i can't get to. Flip side, i don't have that checked, then I know I don't care about that room.
@@ -171,6 +193,25 @@ https://bitbucket.org/Garmichael/infinite-hyrule/src/master/
 
 https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
 
+
+save state
+   DONE- item boxes, triforces, HDN color/label
+   DONE- shopping area items
+   DONE- stating items/extra drops
+   DONE- hint storage
+   DONE- time
+   DONE- start spot
+   DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
+   DONE- blockers
+   DONE- dungeon marks
+        - hDoors, vDoors, 
+        - roomStates, roomIsCircled (validate usedTransports after import), turn off 'door infer' while setting, turn off 'first time clicking' while setting
+             - poking roomIsCircled, then calling SetNewValue() seems like it would work
+                  - but for 'empty' dungeons, want to repoke the 'first time clicking' to reactivate it, or rather the opposite (turn off for non-empty dungeons)
+   DONE- notes
+   DONE- timeline
+
+
  
 
 SMALL
@@ -179,8 +220,6 @@ possibly a reminder when all dungeons have been found _or_hinted_, so you don't 
 
 clicking the kitty should meow or purr or something
 
-
-Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
 
 
 consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
@@ -285,17 +324,6 @@ broadcast window doesnt capture drag-drop mouse movement
 if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
-
-timeline & mistakes
- - ""The timeline is non-interactive, it is just a display for capturing progress-over-time.""
-   Should it be possible to click (right-click?) a timeline item to remove it from the timeline to correct misclicks?
-   This (as a way to remove an erroneously posted item and its timestamp), coupled with changing-item-box-content-after-post being reflected on the timeline, would address it?
-
-timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
- - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
- - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
-   rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
-
 
 
 If I want to put chosen color on backgrounds with text foreground (e.g. LEVEL-A) then see e.g.

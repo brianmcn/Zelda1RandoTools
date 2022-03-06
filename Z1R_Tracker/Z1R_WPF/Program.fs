@@ -59,7 +59,7 @@ type MyWindowBase() as this =
     let VK_F5 = 0x74
     let VK_F10 = 0x79
     let MOD_NONE = 0u
-    let startTime = OverworldItemGridUI.theStartTime
+    let startTime = TrackerModel.theStartTime
     do
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
