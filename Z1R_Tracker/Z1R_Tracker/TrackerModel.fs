@@ -1538,7 +1538,97 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.RemindShortly(ITEMS.KEY)
         remindedAnyKey <- true
 
- ///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+
+[<RequireQualifiedAccess>]
+type TimelineItemDescription =   // a way to identify which unique timeline item we are referring to, without any associated 'state' (timestamps, gotten-ness, ...)
+    | ExtrasOrShopping of string * BoolProperty
+    | TakeAnyHeart of int
+    | Triforce of int
+    | ItemBox of string * Box
+    member this.Identifier =
+        match this with
+        | TimelineItemDescription.ExtrasOrShopping(i,_) -> i
+        | TimelineItemDescription.TakeAnyHeart n -> sprintf "TakeAnyHeart%d" (n+1)
+        | TimelineItemDescription.Triforce n -> sprintf "Triforce%d" (n+1)
+        | TimelineItemDescription.ItemBox(i,_) -> i
+type TimelineItemModel(desc: TimelineItemDescription) =
+    // TODO measure time in HH:MM:SS, and also keep history of all changes maybe
+    static let all = new System.Collections.Generic.Dictionary<_,_>()
+    let mutable finishedMinute = 99999
+    static let timelineChanged = new Event<_>()
+    let stamp(b) = 
+        let m = int (System.DateTime.Now - theStartTime.Time).TotalMinutes
+        if b then
+            finishedMinute <- m
+        else
+            finishedMinute <- 99999
+        timelineChanged.Trigger(m)
+    do
+        // listen for changes
+        match desc with
+        | TimelineItemDescription.ExtrasOrShopping(_,bp) -> bp.Changed.Add(fun _ -> stamp(bp.Value()))
+        | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1))
+        | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce()))
+        | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.PlayerHas()=PlayerHas.YES))
+    member this.StampMinute(m) = finishedMinute <- m
+    member this.Identifier = desc.Identifier
+    member this.FinishedMinute = finishedMinute
+    static member TimelineChanged = timelineChanged.Publish
+    static member All = all
+    static member MakeAll() =
+        // descriptions
+        let all = ResizeArray()
+        // shopping
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WoodSword", playerProgressAndTakeAnyHearts.PlayerHasWoodSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WoodArrow", playerProgressAndTakeAnyHearts.PlayerHasWoodArrow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BlueCandle", playerProgressAndTakeAnyHearts.PlayerHasBlueCandle))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BlueRing", playerProgressAndTakeAnyHearts.PlayerHasBlueRing))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicalSword", playerProgressAndTakeAnyHearts.PlayerHasMagicalSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BoomstickBook", playerProgressAndTakeAnyHearts.PlayerHasBoomBook))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Gannon", playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Zelda", playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda))
+        // extras
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WhiteSword", startingItemsAndExtras.PlayerHasWhiteSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("SilverArrow", startingItemsAndExtras.PlayerHasSilverArrow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Bow", startingItemsAndExtras.PlayerHasBow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Wand", startingItemsAndExtras.PlayerHasWand))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("RedCandle", startingItemsAndExtras.PlayerHasRedCandle))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Boomerang", startingItemsAndExtras.PlayerHasBoomerang))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicBoomerang", startingItemsAndExtras.PlayerHasMagicBoomerang))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("RedRing", startingItemsAndExtras.PlayerHasRedRing))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("PowerBracelet", startingItemsAndExtras.PlayerHasPowerBracelet))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Ladder", startingItemsAndExtras.PlayerHasLadder))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Raft", startingItemsAndExtras.PlayerHasRaft))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Recorder", startingItemsAndExtras.PlayerHasRecorder))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("AnyKey", startingItemsAndExtras.PlayerHasAnyKey))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Book", startingItemsAndExtras.PlayerHasBook))
+        // take any hearts
+        for i = 0 to 3 do
+            all.Add(TimelineItemDescription.TakeAnyHeart i)
+        // triforce
+        for i = 0 to 7 do
+            all.Add(TimelineItemDescription.Triforce i)
+        // items
+        all.Add(TimelineItemDescription.ItemBox("LadderBox", ladderBox))
+        all.Add(TimelineItemDescription.ItemBox("ArmosBox", armosBox))
+        all.Add(TimelineItemDescription.ItemBox("WhiteSwordBox", sword2Box))
+        if IsHiddenDungeonNumbers() then
+            for i = 0 to 8 do
+                for j = 0 to 2 do
+                    if i<>8 || j<>2 then
+                        all.Add(TimelineItemDescription.ItemBox(sprintf "Level%dBox%d" (i+1) (j+1), GetDungeon(i).Boxes.[j]))
+        else
+            all.Add(TimelineItemDescription.ItemBox("Level1or4Box3", DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4))
+            for i = 0 to 8 do
+                for j = 0 to 2 do
+                    if j=0 || j=1 || i=7 then
+                        all.Add(TimelineItemDescription.ItemBox(sprintf "Level%dBox%d" (i+1) (j+1), GetDungeon(i).Boxes.[j]))
+        // models
+        for tid in all do
+            TimelineItemModel.All.Add(tid.Identifier, new TimelineItemModel(tid))
+        
+///////////////////////////////////////////////////////
 
 let initializeAll(instance:OverworldData.OverworldInstance, kind) =
     if mapSquareChoiceDomain = null then
@@ -1557,5 +1647,6 @@ let initializeAll(instance:OverworldData.OverworldInstance, kind) =
             if owInstance.AlwaysEmpty(i,j) then
                 overworldMapMarks.[i,j].Prev()   // set to 'X'
     recomputeMapStateSummary()
+    TimelineItemModel.MakeAll()
 
         

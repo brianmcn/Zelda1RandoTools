@@ -6,18 +6,10 @@ open System.Windows
 
 let canvasAdd = Graphics.canvasAdd
 type TimelineItem(ident : string, f) =
-    let mutable finishedMinute = 99999
-    let mutable bmp = null
-    member this.Sample(minute) =
-        if bmp=null then
-            match f() with
-            | Some b ->
-                bmp <- b
-                finishedMinute <- minute
-            | _ -> ()
-    member this.IsDone = bmp<>null
-    member this.FinishedMinute = finishedMinute
-    member this.Bmp = bmp
+    let model = TrackerModel.TimelineItemModel.All.[ident]
+    member this.IsDone = model.FinishedMinute <> 99999
+    member this.FinishedMinute = model.FinishedMinute
+    member this.Bmp = f()
     member this.Identifier = ident
 
 let TLC = Brushes.SandyBrown   // timeline color
@@ -63,14 +55,11 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
     member this.Canvas = timelineCanvas
-    member this.Update(doSample, minute, timelineItems:seq<TimelineItem>) =
+    member this.Update(minute, timelineItems:seq<TimelineItem>) =
         let tick = minute / minutesPerTick
         if tick < 0 || tick > numTicks then
             ()
         else
-            if doSample then
-                for ti in timelineItems do
-                    ti.Sample(minute)
             this.DrawItemsAndGuidelines(timelineItems)
             curTime.X1 <- xf(float minute / float minutesPerTick)
             curTime.X2 <- xf(float minute / float minutesPerTick)

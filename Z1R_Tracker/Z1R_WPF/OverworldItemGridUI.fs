@@ -82,7 +82,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseLeave.Add(fun _ -> hideLocator())
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "TakeAnyHeart%d" (i+1), fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
+        timelineItems.Add(new Timeline.TimelineItem(sprintf "TakeAnyHeart%d" (i+1), fun()->Graphics.owHeartFull_bmp))
     // ladder, armos, white sword items
     let ladderBoxImpl = boxItemImpl("LadderBox", TrackerModel.ladderBox, true)
     let armosBoxImpl  = boxItemImpl("ArmosBox", TrackerModel.armosBox, false)
@@ -138,7 +138,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseDown.Add(fun _ -> prop.Toggle())
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         match timelineID with
-        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
+        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
         | None -> ()
         c
     let basicBoxImpl(tts, tid, img, prop) =

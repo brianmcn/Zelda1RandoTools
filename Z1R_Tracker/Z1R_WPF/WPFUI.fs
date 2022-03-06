@@ -263,7 +263,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             match kind with
             | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->if TrackerModel.GetDungeon(i).PlayerHasTriforce() then Some(fullTriforceBmp) else None))
+        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->fullTriforceBmp))
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
@@ -282,7 +282,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
-        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->if box.PlayerHas()=TrackerModel.PlayerHas.YES then Some(CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)) else None))
+        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)))
         c
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
@@ -1522,22 +1522,23 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     theTimeline1.Canvas.Opacity <- 1.
     theTimeline2.Canvas.Opacity <- 0.
     theTimeline3.Canvas.Opacity <- 0.
-    let updateTimeline(doSample, minute) =
+    let drawTimeline(minute) =
         if minute <= 60 then
             theTimeline1.Canvas.Opacity <- 1.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline1.Update(doSample, minute, timelineItems)
+            theTimeline1.Update(minute, timelineItems)
         elif minute <= 120 then
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 1.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline2.Update(doSample, minute, timelineItems)
+            theTimeline2.Update(minute, timelineItems)
         else
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 1.
-            theTimeline3.Update(doSample, minute, timelineItems)
+            theTimeline3.Update(minute, timelineItems)
+    TrackerModel.TimelineItemModel.TimelineChanged.Add(drawTimeline)
     canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
@@ -1678,11 +1679,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // Timeline
         if data.Timeline <> null then
             for td in data.Timeline do
-                for ti in timelineItems do
-                    if ti.Identifier = td.Ident then
-                        if td.Minute - 1 < data.TimeInSeconds / 60 then
-                            ti.Sample(td.Minute)
-        updateTimeline(false, data.TimeInSeconds / 60)
+                if td.Minute - 1 < data.TimeInSeconds / 60 then
+                    match TrackerModel.TimelineItemModel.All.TryGetValue(td.Ident) with
+                    | true, v -> v.StampMinute(td.Minute)
+                    | _ -> ()
+        drawTimeline(data.TimeInSeconds / 60)
         // Timer
         TrackerModel.theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
         // done
@@ -1709,6 +1710,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
-    return (fun m -> updateTimeline(true,m))
+    return drawTimeline
     }
 
