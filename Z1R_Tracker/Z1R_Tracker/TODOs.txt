@@ -22,37 +22,10 @@ CURRENT PRIORITIES
 update docs with changes
 update whats new with changes
 
-BUG: in HDN, if get tri-A, don't set number, it doesnt remind N tri, if after, get B, set num to 2, it reminds I have 1 tri
-
 TODO new timeline screenshot in use.md
 
 
 
-
-homer wish misclick timeline (any key) not permanently put it there (fixed)
-potato_pony... export timeline splits to text info? ('save' after done does effectively do this)
-clyceer: mouse hover for exact times? (hmm)
-timeline still klutzy that marking zelda stops time and she never gets timeline'd (fixed)
-
-timeline & mistakes
- - ""The timeline is non-interactive, it is just a display for capturing progress-over-time.""
-   Should it be possible to click (right-click?) a timeline item to remove it from the timeline to correct misclicks?
-   This (as a way to remove an erroneously posted item and its timestamp), coupled with changing-item-box-content-after-post being reflected on the timeline, would address it?
-
-timeline:
- - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)
- - mistake 1: people mark item they don't have yet, then maybe later unmark (good)
- - mistake 2: people mark wrong item, then change item type (good)
- - mistake 3: people forget to mark item when they get it (can't yet address)
- - mistake 4: people accidentally unmark item they did have (upon re-mark, will update time later)
-maybe imagine timeline items know their entire interaction history, and there's a UI to interact with them where user can select among prior interactions to mark correct one, or
-just edit the timeline item directly to change display/time? need to think thru each mistake scenario and ideal interaction to fix (if desired)
-could also push timeline down into model maybe - it either monitors
- - a BoolProperty like WoodSword in extras/shopping
- - a TakeAnyHeart
- - a Triforce
- - or an item box
-and all of those live in the model
 
 
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
@@ -215,6 +188,16 @@ save state
  
 
 SMALL
+
+timeline & mistakes
+ - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)
+ - mistake 1: people mark item they don't have yet, then maybe later unmark (good)
+ - mistake 2: people mark wrong item, then change item type (good)
+ - mistake 3: people forget to mark item when they get it (can't yet address)
+ - mistake 4: people accidentally unmark item they did have (upon re-mark, will update time later)
+maybe imagine timeline items know their entire interaction history, and there's a UI to interact with them where user can select among prior interactions to mark correct one, or
+just edit the timeline item directly to change display/time? need to think thru each mistake scenario and ideal interaction to fix (if desired)
+
 
 possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
 
