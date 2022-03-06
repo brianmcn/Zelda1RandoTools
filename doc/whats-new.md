@@ -42,13 +42,16 @@ veterans who may get confused/disoriented when playing using the rando flag "Mir
 
 ![Lost woods magnifier](screenshots/lost-woods-magnifier.png)
 
-### More timeline time labels
+### Timeline improvements
 
-It's now easier to read times from the timeline:
+The timeline now updates instantly as you get items, rather than only updating once per minute.  (The splits for each item/triforce are stored at one-second granularity and can 
+be easily read from the bottom of the save file if you click 'Save' at the end of the seed, for those who like saving their exact split times.)
+
+There are now more time labels on the timeline, making it easier to read:
 
 ![Timeline labels](screenshots/timeline-labels.png)
 
-The tracker was made 4 pixels taller to accomodate this.
+(The tracker was made 4 pixels taller to accomodate the labels.)
 
 ### More application sizes
 
