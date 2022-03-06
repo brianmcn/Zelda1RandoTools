@@ -24,22 +24,18 @@ update whats new with changes
 
 BUG: in HDN, if get tri-A, don't set number, it doesnt remind N tri, if after, get B, set num to 2, it reminds I have 1 tri
 
+TODO new timeline screenshot in use.md
+
 
 homer wish misclick timeline (any key) not permanently put it there (fixed)
-potato_pony... export timeline splits to text info? clyceer: mouse hover for exact times?
+potato_pony... export timeline splits to text info? ('save' after done does effectively do this)
+clyceer: mouse hover for exact times? (hmm)
 timeline still klutzy that marking zelda stops time and she never gets timeline'd (fixed)
 
 timeline & mistakes
  - ""The timeline is non-interactive, it is just a display for capturing progress-over-time.""
    Should it be possible to click (right-click?) a timeline item to remove it from the timeline to correct misclicks?
    This (as a way to remove an erroneously posted item and its timestamp), coupled with changing-item-box-content-after-post being reflected on the timeline, would address it?
-
-timeline minute ticker maybe should only tick every 2 mins in 2nd hour, if only posting items every 2nd minute?
- - right now the item can be placed 'ahead' in the next minute of the minute marker, which people (even me) find weird
- - i think boxes now have Changed events, maybe the right thing to do is to re-architect the timeline to be 'true to tracker now'
-   rather than 'snapshot'? means you can correct errors, but also means that you may lose history when correcting...
-
-TODO refactor timeline save&load maybe to be on model end
 
 timeline:
  - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)

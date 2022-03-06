@@ -7,8 +7,8 @@ open System.Windows
 let canvasAdd = Graphics.canvasAdd
 type TimelineItem(ident : string, f) =
     let model = TrackerModel.TimelineItemModel.All.[ident]
-    member this.IsDone = model.FinishedMinute <> 99999
-    member this.FinishedMinute = model.FinishedMinute
+    member this.IsDone = model.FinishedTotalSeconds <> -1
+    member this.FinishedTotalSeconds = model.FinishedTotalSeconds
     member this.Bmp = f()
     member this.Identifier = ident
 
@@ -61,8 +61,8 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             ()
         else
             this.DrawItemsAndGuidelines(timelineItems)
-            curTime.X1 <- xf(float minute / float minutesPerTick)
-            curTime.X2 <- xf(float minute / float minutesPerTick)
+            curTime.X1 <- xf(float (minute / minutesPerTick))
+            curTime.X2 <- xf(float (minute / minutesPerTick))
     member private this.DrawItemsAndGuidelines(timelineItems) =
         // redraw guidelines and items
         itemCanvas.Children.Clear()
@@ -70,7 +70,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         let buckets = new System.Collections.Generic.Dictionary<_,_>()
         for ti in timelineItems do
             if ti.IsDone then
-                let tick = float ti.FinishedMinute/float minutesPerTick |> ceil |> int   // e.g. minute 4 at 3 minutesPerTick should wind up in bucket 6, not bucket 3
+                let tick = float ti.FinishedTotalSeconds/(60.*float minutesPerTick) |> int
                 if not(buckets.ContainsKey(tick)) then
                     buckets.Add(tick, ResizeArray())
                 buckets.[tick].Add(ti.Bmp)

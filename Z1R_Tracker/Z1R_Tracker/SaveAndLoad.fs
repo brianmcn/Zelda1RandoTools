@@ -139,7 +139,7 @@ type StartingItemsAndExtrasModel() =
 [<AllowNullLiteral>]
 type TimelineDatum() =
     member val Ident = "" with get,set
-    member val Minute = 99999 with get,set
+    member val Seconds = -1 with get,set
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -253,7 +253,7 @@ let SaveHints(prefix) =
     lines.Add("""},""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds, timelineData:ResizeArray<string*int>) =  // can throw
+let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds) =  // can throw
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
@@ -268,9 +268,12 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds, tim
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
         yield sprintf """    ],"""
+        // write the timeline 'pretty' at the bottom of the file, for people who want to easily see/parse splits
         yield sprintf """    "Timeline": ["""
-        for i = 0 to timelineData.Count-1 do
-            yield sprintf """        { "Ident": "%s", "Minute": %d }%s""" (fst timelineData.[i]) (snd timelineData.[i]) (if i=timelineData.Count-1 then "" else ",")
+        let tis = [|for KeyValue(_,ti) in TrackerModel.TimelineItemModel.All do yield ti |] |> Array.sortBy (fun ti -> ti.FinishedTotalSeconds)
+        for i=0 to tis.Length-1 do
+            let ti = tis.[i]
+            yield sprintf """        { "Ident": "%-20s, "Seconds": %6d }%s""" (ti.Identifier+"\"") (ti.FinishedTotalSeconds) (if i=tis.Length-1 then "" else ",")
         yield sprintf """    ]"""
         yield sprintf """}"""
         |]

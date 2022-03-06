@@ -1553,17 +1553,18 @@ type TimelineItemDescription =   // a way to identify which unique timeline item
         | TimelineItemDescription.Triforce n -> sprintf "Triforce%d" (n+1)
         | TimelineItemDescription.ItemBox(i,_) -> i
 type TimelineItemModel(desc: TimelineItemDescription) =
-    // TODO measure time in HH:MM:SS, and also keep history of all changes maybe
+    // TODO keep history of all changes maybe
     static let all = new System.Collections.Generic.Dictionary<_,_>()
-    let mutable finishedMinute = 99999
+    let mutable finishedTotalSeconds = -1
     static let timelineChanged = new Event<_>()
     let stamp(b) = 
-        let m = int (System.DateTime.Now - theStartTime.Time).TotalMinutes
+        let span = System.DateTime.Now - theStartTime.Time
+        let s = int span.TotalSeconds
         if b then
-            finishedMinute <- m
+            finishedTotalSeconds <- s
         else
-            finishedMinute <- 99999
-        timelineChanged.Trigger(m)
+            finishedTotalSeconds <- -1
+        timelineChanged.Trigger(int span.TotalMinutes)
     do
         // listen for changes
         match desc with
@@ -1571,9 +1572,9 @@ type TimelineItemModel(desc: TimelineItemDescription) =
         | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1))
         | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce()))
         | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.PlayerHas()=PlayerHas.YES))
-    member this.StampMinute(m) = finishedMinute <- m
+    member this.StampTotalSeconds(s) = finishedTotalSeconds <- s
     member this.Identifier = desc.Identifier
-    member this.FinishedMinute = finishedMinute
+    member this.FinishedTotalSeconds = finishedTotalSeconds
     static member TimelineChanged = timelineChanged.Publish
     static member All = all
     static member MakeAll() =

@@ -882,11 +882,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             async {
                 try
                     let totalSeconds = int (DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
-                    let timelineData = ResizeArray()
-                    for ti in timelineItems do
-                        if ti.IsDone then
-                            timelineData.Add(ti.Identifier, ti.FinishedMinute)
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds, timelineData)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, exportDungeonModelsJsonLines(), totalSeconds)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
                     popupIsActive <- false
@@ -1679,9 +1675,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // Timeline
         if data.Timeline <> null then
             for td in data.Timeline do
-                if td.Minute - 1 < data.TimeInSeconds / 60 then
+                if td.Seconds <= data.TimeInSeconds then
                     match TrackerModel.TimelineItemModel.All.TryGetValue(td.Ident) with
-                    | true, v -> v.StampMinute(td.Minute)
+                    | true, v -> v.StampTotalSeconds(td.Seconds)
                     | _ -> ()
         drawTimeline(data.TimeInSeconds / 60)
         // Timer

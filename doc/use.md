@@ -301,6 +301,9 @@ You can click the '**Show/Run Custom**' button to run some custom actions.  This
 notes or other programs concurrently with the tracker.  You can control the behaviors of this button by editing the file ShowRunCustom.txt.  The text file format is self-describing.
 (Pressing the button will create a template ShowRunCustom.txt file if it does not exist, and offer you a chance to edit it.)
 
+You can click the '**Save**' button to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.  Use 
+this e.g. when you need to stop playing now and want to continue playing the same seed tomorrow.
+
 ## <a id="main-dt"></a> Dungeon Tracker
 
 There are 10 tabs - one for each of the 9 dungeons, and a summary tab 'S' which shows minimaps/previews of dungeons 1-8.
@@ -478,8 +481,9 @@ If a file called Notes.txt exists in the program folder, the Notes box will be p
 ## <a id="main-timeline"></a> Timeline
 
 The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
-Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker. This 
-makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
+As the player gets items, new items are posted to the timeline above the minute-marker. This makes it easy to look back and see e.g. that you got the wood sword 
+in the 12th minute.  (The timeline data is stored in 'TotalSeconds', so you can see your splits for every item at one-second granularity by clicking 'Save' and then
+inspecting the very end of the save file.)
 
 The timeline is non-interactive, it is just a display for capturing progress-over-time.  Here is a sample of how it appears:
 
