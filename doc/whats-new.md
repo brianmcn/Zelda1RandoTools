@@ -56,7 +56,7 @@ be easily read from the bottom of the save file if you click 'Save' at the end o
 
 There are now more time labels on the timeline, making it easier to read:
 
-![Timeline labels](screenshots/timeline-labels.png)
+![Timeline labels](screenshots/timeline-example.png)
 
 (The tracker was made 4 pixels taller to accomodate the labels.)
 
