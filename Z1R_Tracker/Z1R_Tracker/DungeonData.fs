@@ -21,6 +21,7 @@ module Factoids =
         // intermediate
         "A room with a gleeok cannot have a push block."
         "If you defeat 1 of 2 Lanmolas, or 1 of 3 small Digdoggers, and then leave the room, the monsters will all be gone when you return a moment later."
+        "A single dodongo in a room is a boss (will not respawn if killed and room is exited).  Three dodongos in a room is an enemy group (that can respawn)."
         "If you pirouette a dungeon entrance (walk out, walk right back in), you will unlock or bomb-hole a possible doorway on the wall opposite the entrance."
         "If you screen transition (e.g. from East to West) on the Overworld before entering a dungeon, you may unlock a doorway or uncover a free bomb-hole on the wall you came from (e.g. East)."
     //        "(how does it work for up-a-ing from a room where you opened that side (via bomb (shutter?))"
