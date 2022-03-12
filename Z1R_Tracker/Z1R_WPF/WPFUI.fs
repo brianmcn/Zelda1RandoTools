@@ -1191,20 +1191,45 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     thunk()
         )
 
+    // create overworld locator stuff (added to correct layer of visual tree later in the code)
+    let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
+    let owLocatorTilesZone = Array2D.zeroCreate 16 8
+    let owLocatorCanvas = new Canvas()
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            let z = new Graphics.TileHighlightRectangle()
+            z.Hide()
+            owLocatorTilesZone.[i,j] <- z
+            for s in z.Shapes do
+                gridAdd(owLocatorGrid, s, i, j)
+
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
-    let levelTabSelected = new Event<_>()
+    let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let! dungeonTabs,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
         DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, trackerDungeonMoused, TH, rightwardCanvas, 
                                     levelTabSelected, mainTrackerGhostbusters, showProgress, (fun level ->
-            let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
-            if (i,j) <> TrackerModel.NOTFOUND then
-                // when mouse in a dungeon map, show its location...
-                showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
-                // ...and behave like we are moused there
-                drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
-                                    (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
+            if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
+                routeDrawingCanvas.Children.Clear()
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
+                            if cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 = level-11 then
+                                owLocatorTilesZone.[i,j].MakeBoldGreen()
+                            else
+                                owLocatorTilesZone.[i,j].MakeGreen()
+                drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 
+                    if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0)
+            else
+                let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
+                if (i,j) <> TrackerModel.NOTFOUND then
+                    // when mouse in a dungeon map, show its location...
+                    showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
+                    // ...and behave like we are moused there
+                    drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
+                                        (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                        (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
             ), (fun _level -> hideLocator()))
     exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
@@ -1302,19 +1327,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // mouse hover explainer
     UIComponents.MakeMouseHoverExplainer(appMainCanvas)
 
-    let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let owLocatorTilesZone = Array2D.zeroCreate 16 8
-    let owLocatorCanvas = new Canvas()
-
     do! showProgress()
 
-    for i = 0 to 15 do
-        for j = 0 to 7 do
-            let z = new Graphics.TileHighlightRectangle()
-            z.Hide()
-            owLocatorTilesZone.[i,j] <- z
-            for s in z.Shapes do
-                gridAdd(owLocatorGrid, s, i, j)
     canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
     canvasAdd(overworldCanvas, owLocatorCanvas, 0., 0.)
 

@@ -786,6 +786,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                  HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         levelTab.Header <- header
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        //contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))  // just the mini's call Enter
+        contentCanvas.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
         contentCanvas.Children.Add(dummyCanvas) |> ignore
         dungeonTabs.SelectionChanged.Add(fun ea -> 
             try
@@ -814,6 +816,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 rightwardCanvas.Children.Clear()
                 rightwardCanvas.Children.Add(overlay) |> ignore
                 levelTabSelected.Trigger(i+1)
+                contentCanvasMouseEnterFunc(10+i+1)
                 )
             mini.MouseLeave.Add(fun _ ->
                 rightwardCanvas.Children.Clear()
@@ -831,7 +834,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let text = new TextBox(Text="\nDungeon Summary\n\nHover to preview\n\nClick to switch tab\n", Margin=Thickness(0.,0.,8.,0.),
                                Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center)
-        Graphics.gridAdd(g, text, 0, 0)
+        let tb = new Border(Width=float w, Height=float h, Background=Brushes.Black, Child=text)
+        tb.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
+        Graphics.gridAdd(g, tb, 0, 0)
         Graphics.gridAdd(g, make(0), 1, 0)
         Graphics.gridAdd(g, make(1), 2, 0)
         Graphics.gridAdd(g, make(2), 0, 1)

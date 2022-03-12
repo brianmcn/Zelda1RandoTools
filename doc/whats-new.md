@@ -84,6 +84,7 @@ a certain item, but you forget what you set it to.
  - fixed: fewer reminders to "consider dungeon X" when you're in dungeon X already
  - made dungeon LEVEL/BOARD header use Zelda font
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details
+ - when on the dungeon summary tab, all dungeon locations get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once
  - speaking either "don't care" or "nothing" will mark off an overworld tile using [Speech Recognition](use.md#speech-recognition)
  - when you get a reminder to consider the magical sword, tracker now briefly highlights its location on the map
  - when you get the 8th triforce piece, reminder that dungeon 9 is unlocked now briefly highlights the location of dungeon 9

@@ -313,7 +313,8 @@ the top of the app.  Other dungeon tracking marks have no semantic meaning to th
 
 ![Dungeon inset screenshot](screenshots/dungeon-inset.png)
 
-When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+When your mouse is inside a dungeon map area, the location of that dungeon will be highlighted with crosshairs on the overworld map.  When your mouse is inside the dungeon 
+summary tab area, the location of all dungeons get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once.
 
 #### Doors
 
@@ -443,7 +444,7 @@ While it is relatively easy to see what column of the dungeon you are in, by wit
 
 it can be harder to discern what row of the dungeon you are in.  Most players will look to the right of the mini-map, as rows 1&2 are next to the rupee count, rows 3&4 are 
 next to the blank space, rows 5&6 are next to the key count, and rows 7&8 are next to the bomb count.  To facilitate the same reading in Z-Tracker, the upper-right of each 
-dungeon map has a similar rupee/blank/key/bomb icon, as as you mouse over a room in the dungeon room grid, a little grey box appears next to the corresponding row in the 
+dungeon map has a similar rupee/blank/key/bomb icon, and as you mouse over a room in the dungeon room grid, a little grey box appears next to the corresponding row in the 
 upper right icon area:
 
 ![z-tracker dungeon map screenshot](screenshots/rupee-key-bomb-z-tracker.png)
