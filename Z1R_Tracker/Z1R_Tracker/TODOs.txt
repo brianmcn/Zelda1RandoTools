@@ -24,10 +24,6 @@ update whats new with changes
 
 
 
-speelbie: Beta version is working well so far, including save/load. One thing I find I'm missing from zhelper is the bomb/key indicators next to the map rows that make it a little 
-easier to tell what row you're on, not sure if you've thought of including those
- - implemented a feature for this, get feedback on it, document it if I keep it
-
 
 [5:13 PM] potato_pony: Sweet. That's more pragmatic than my ask :). Is there a way in the current ZTracker to just highlight all the known dungeons? Or maybe just the known unfinished dungeons? I know I can do 1 at a time but sometimes I'm trying to figure out where to go next and picking out the dungeons on the OW map isn't obvious
 [5:15 PM] Lorgon111: hm, interesting, there is not currently

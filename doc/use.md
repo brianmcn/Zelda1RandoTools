@@ -435,6 +435,20 @@ marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
+#### <a id="main-dungeon-row-location"></a>Row location assistance
+
+While it is relatively easy to see what column of the dungeon you are in, by witnessing what letter (of e.g. "LEVEL-1") the player marker is under on the in-game minimap:
+
+![in-game minimap screenshot](screenshots/rupee-key-bomb-in-game.png)
+
+it can be harder to discern what row of the dungeon you are in.  Most players will look to the right of the mini-map, as rows 1&2 are next to the rupee count, rows 3&4 are 
+next to the blank space, rows 5&6 are next to the key count, and rows 7&8 are next to the bomb count.  To facilitate the same reading in Z-Tracker, the upper-right of each 
+dungeon map has a similar rupee/blank/key/bomb icon, as as you mouse over a room in the dungeon room grid, a little grey box appears next to the corresponding row in the 
+upper right icon area:
+
+![z-tracker dungeon map screenshot](screenshots/rupee-key-bomb-z-tracker.png)
+
+In that screenshot, the mouse is over a room in the 5th row, so the highlight appears next to the top half of the 'key' icon.
 
 ## <a id="main-blockers"></a> Blockers
 
