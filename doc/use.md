@@ -336,7 +336,7 @@ Dungeon rooms are somewhat complicated, as there is a lot of state you might wan
 #### Multiple rooms at once
 
 If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
-Same with right mouse button, but for uncompleted rooms.  
+Same with right mouse button, but for uncompleted rooms (or for middle mouse button, for 'off the map' rooms, see [below](#off-the-map)).  
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
 Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
@@ -428,7 +428,7 @@ common entrance direction, and furthermore, left-clicking any of the four 'entra
 the usual left-click behavior of toggling completedness.  This way you can immediately mark the entrance tile and direction with some left clicks and
 zero extra mousing.
 
-There is one special RoomType, called OffTheMap.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
+<a id="off-the-map">There is one special RoomType, called OffTheMap</a>.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
 dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
 on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap appears as "OFF" in the room selection popup.  An example of 
 marking eight OffTheMap spots appears in this screenshot:

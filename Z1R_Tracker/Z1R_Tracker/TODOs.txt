@@ -42,10 +42,10 @@ I am unsure the best way to highlight those N things at a time... perhaps using 
 [9:06 PM] potato_pony: any consideration to global (always applicable) hotkeys for the "mark timeline" things?
 [9:07 PM] potato_pony: i'm never going to check off something like "killed gannon" when i have to move my mouse up there to find it 🙂
 [11:57 PM] Lorgon111: good feedback, will consider
+ - i think simplest design is, have a hotkey set 'global', have loading hotkeys ensure than no globals conflict with anything else, have them activate from anywhere, and have them toggle 'shopping' things?
+
 
 clyceer: wants to drag in grab mode, rather than click-click
-
-middle-click drag to 'paint' off the map rooms?
 
 maybe when moused over dungeon room, highlight the letter and maybe icon the rupee/blank/key/bomb somehow?
 

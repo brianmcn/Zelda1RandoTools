@@ -710,6 +710,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
                             elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
                                 DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
+                            elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
+                                DragDrop.DoDragDrop(c, "M", DragDropEffects.Link) |> ignore
                     ))
                 c.DragOver.Add(fun ea ->
                     if not popupIsActive then
@@ -719,9 +721,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
                                 roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
                                 roomStates.[i,j].IsComplete <- true
-                            else
+                            elif ea.Data.GetData(DataFormats.StringFormat) :?> string = "R" then
                                 roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
                                 roomStates.[i,j].IsComplete <- false
+                            elif ea.Data.GetData(DataFormats.StringFormat) :?> string = "M" then
+                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                                roomStates.[i,j].IsComplete <- true
                             redraw()
                     )
                 c.AllowDrop <- true

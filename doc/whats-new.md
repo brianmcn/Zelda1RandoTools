@@ -87,6 +87,7 @@ a certain item, but you forget what you set it to.
  - when you get a reminder to consider the magical sword, tracker now briefly highlights its location on the map
  - when you get the 8th triforce piece, reminder that dungeon 9 is unlocked now briefly highlights the location of dungeon 9
  - when you reset the timer, you immediately get put into the 'place the start spot location icon' popup to mark your start screen
+ - you can now middle-click-drag across multiple dungeon rooms to mark them as 'off the map' spots
 
 ---
 
