@@ -847,7 +847,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWhiteSwordItem = haveWhiteSwordItem
     member _this.HavePowerBracelet = havePowerBracelet
     member _this.HaveRaft = haveRaft
-    member _this.PlayerHearts = playerHearts // TODO can't handle money-or-life rooms losing heart, or flags that start with more hearts
+    member _this.PlayerHearts = playerHearts
     member _this.SwordLevel = swordLevel
     member _this.CandleLevel = candleLevel
     member _this.RingLevel = ringLevel

@@ -23,6 +23,11 @@ update docs with changes
 update whats new with changes
 
 
+
+'save' shows username (directory) on screen during stream
+
+
+
 speelbie: Beta version is working well so far, including save/load. One thing I find I'm missing from zhelper is the bomb/key indicators next to the map rows that make it a little 
 easier to tell what row you're on, not sure if you've thought of including those
 
@@ -37,6 +42,18 @@ I am unsure the best way to highlight those N things at a time... perhaps using 
 [5:22 PM] Lorgon111: Yeah I know that visual icon parsing improves with time/familiarity, but this is still something i'll put on my list to think about
 
 
+
+[9:06 PM] potato_pony: any consideration to global (always applicable) hotkeys for the "mark timeline" things?
+[9:07 PM] potato_pony: i'm never going to check off something like "killed gannon" when i have to move my mouse up there to find it 🙂
+[11:57 PM] Lorgon111: good feedback, will consider
+
+clyceer: wants to drag in grab mode, rather than click-click
+
+middle-click drag to 'paint' off the map rooms?
+
+maybe when moused over dungeon room, highlight the letter and maybe icon the rupee/blank/key/bomb somehow?
+
+puzzle-piecing maps 1-6,7-9?
 
 if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
 

@@ -1636,7 +1636,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if k <> -1 then
                     TrackerModel.setOverworldMapExtraData(i,j,k,ed)
                 owUpdateFunctions.[i,j] 0 null  // redraw the tile
-        TrackerModel.recomputeMapStateSummary()
         // Items
         if not(data.Items.WhiteSwordBox.TryApply(TrackerModel.sword2Box)) then anySetProblems <- true
         if not(data.Items.LadderBox.TryApply(TrackerModel.ladderBox)) then anySetProblems <- true
@@ -1645,10 +1644,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let ds = data.Items.Dungeons.[i]
             let dd = TrackerModel.GetDungeon(i)
             if not(ds.TryApply(dd)) then anySetProblems <- true
-        TrackerModel.recomputePlayerStateSummary()
-        TrackerModel.recomputeWhatIsNeeded() |> ignore
-        TrackerModel.forceUpdate()
-        doUIUpdateEvent.Trigger()
         // PlayerProgressAndTakeAnyHearts
         data.PlayerProgressAndTakeAnyHearts.Apply()
         // StartingItemsAndExtras
@@ -1681,6 +1676,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         drawTimeline(data.TimeInSeconds / 60)
         // Timer
         TrackerModel.theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
+        // recompute everything, update UI
+        TrackerModel.recomputeMapStateSummary()
+        TrackerModel.recomputePlayerStateSummary()
+        TrackerModel.recomputeWhatIsNeeded() |> ignore
+        TrackerModel.forceUpdate()
+        doUIUpdateEvent.Trigger()
         // done
         silenceAllRemindersDuringCurrentLoad <- false
     | _ -> ()

@@ -222,7 +222,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
 
-    let extrasPanel =
+    let extrasPanel,epRefresh =
         let mutable refreshTDD = fun () -> ()
         let mkTxt(size,txt) = 
             new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=size, Margin=Thickness(5.),
@@ -323,7 +323,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             tdd.MouseDown.Add(fun ea -> ea.Handled <- true)
             panel.Children.Add(tdd) |> ignore
         refreshTDD()
-        panel
+        let refresh() =
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+        panel, refresh
     extrasImage.MouseDown.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -331,6 +333,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             let whole = new Canvas(Width=cm.Width, Height=cm.Height)
             let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
             whole.Children.Add(mouseClickInterceptor) |> ignore
+            epRefresh()
             whole.Children.Add(extrasPanel) |> ignore
             mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
             async {
