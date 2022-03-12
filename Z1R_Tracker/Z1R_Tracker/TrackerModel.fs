@@ -949,6 +949,7 @@ let recomputePlayerStateSummary() =
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
 let mapLastChangedTime = new LastChangedTime()
+let overworldMapCircles = Array2D.create 16 8 false
 let mutable overworldMapMarks : Cell[,] = null
 let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate (MapSquareChoiceDomainHelper.DARK_X+1))
 // extra data key-value store, used by 

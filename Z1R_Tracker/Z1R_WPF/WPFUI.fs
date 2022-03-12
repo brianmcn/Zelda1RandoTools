@@ -524,6 +524,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     routeDrawingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, routeDrawingCanvas, 0., 0.)
 
+    // middle click overworld circles
+    let owCircles = Array2D.init 16 8 (fun _ _ -> new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Cyan, StrokeThickness=3.0, IsHitTestVisible=false, Opacity=0.0))
+
     let onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent = UIComponents.MakeMagnifier(mirrorOverworldFEs, owMapNum, owMapBMPs)
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()
@@ -598,6 +601,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             coastBoxOnOwGrid.Opacity <- 0.
                             coastBoxOnOwGrid.IsHitTestVisible <- false
                         )
+                c.MouseDown.Add(fun ea -> 
+                    if ea.ChangedButton = Input.MouseButton.Middle then
+                        // middle click toggles circle
+                        TrackerModel.overworldMapCircles.[i,j] <- not TrackerModel.overworldMapCircles.[i,j]
+                        owCircles.[i,j].Opacity <- if TrackerModel.overworldMapCircles.[i,j] then 1.0 else 0.0
+                    )
             else
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
@@ -748,26 +757,29 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         | None -> ()
                         popupIsActiveRef := false
                         } |> Async.StartImmediate
-                c.MouseRightButtonDown.Add(fun _ -> 
+                c.MouseDown.Add(fun ea -> 
                     if not !popupIsActiveRef then
-                        // right click activates the popup selector
-                        activatePopup(0)
-                    )
-                c.MouseLeftButtonDown.Add(fun _ -> 
-                    if not !popupIsActiveRef then
-                        // left click is the 'special interaction'
-                        let pos = c.TranslatePoint(Point(), appMainCanvas)
-                        let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                        if msp.IsX then
-                            activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
-                        else
-                            async {
-                                let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActiveRef)
-                                if needRedraw then 
-                                    redrawGridSpot()
-                                    animateOverworldTileIfOptionIsChecked(i,j)
-                                if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
-                            } |> Async.StartImmediate
+                        if ea.ChangedButton = Input.MouseButton.Left then
+                            // left click is the 'special interaction'
+                            let pos = c.TranslatePoint(Point(), appMainCanvas)
+                            let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
+                            if msp.IsX then
+                                activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
+                            else
+                                async {
+                                    let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActiveRef)
+                                    if needRedraw then 
+                                        redrawGridSpot()
+                                        animateOverworldTileIfOptionIsChecked(i,j)
+                                    if needUIUpdate then doUIUpdateEvent.Trigger()  // immediate update to dismiss green/yellow highlight from current tile
+                                } |> Async.StartImmediate
+                        elif ea.ChangedButton = Input.MouseButton.Right then
+                            // right click activates the popup selector
+                            activatePopup(0)
+                        elif ea.ChangedButton = Input.MouseButton.Middle then
+                            // middle click toggles circle
+                            TrackerModel.overworldMapCircles.[i,j] <- not TrackerModel.overworldMapCircles.[i,j]
+                            owCircles.[i,j].Opacity <- if TrackerModel.overworldMapCircles.[i,j] then 1.0 else 0.0
                     )
                 c.MouseWheel.Add(fun x -> if not !popupIsActiveRef then activatePopup(if x.Delta<0 then 1 else -1))
                 c.MyKeyAdd(fun ea ->
@@ -801,12 +813,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
 
     do! showProgress()
 
+    let overworldCirclesCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  
+    overworldCirclesCanvas.IsHitTestVisible <- false
+    canvasAdd(overworldCanvas, overworldCirclesCanvas, 0., 0.)
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            canvasAdd(overworldCirclesCanvas, owCircles.[i,j], 11.5*OMTW/48.-3.+OMTW*float(i), float(j*11*3))
+
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     
     // legend
-    let makeStartIcon() = new System.Windows.Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=System.Windows.Media.Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+    let makeStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
     let startIcon = makeStartIcon()
     let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, resizeMapTileImage, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent)
     let redrawItemProgressBar = UIComponents.MakeItemProgressBar(appMainCanvas, owInstance)
@@ -1637,20 +1656,24 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         TrackerModel.startIconX <- data.Overworld.StartIconX
         TrackerModel.startIconY <- data.Overworld.StartIconY
         let a = data.Overworld.Map
-        if a.Length <> 16 * 8 * 2 then
+        if a.Length <> 16 * 8 * 3 then
             failwith "bad load data at data.Overworld.Map"
         silenceAllRemindersDuringCurrentLoad <- true
         let mutable anySetProblems = false
         for j = 0 to 7 do
             for i = 0 to 15 do
-                let cur = a.[j*16*2 + i*2]
-                let ed = a.[j*16*2 + i*2 + 1]
+                let cur    = a.[j*16*3 + i*3]
+                let ed     = a.[j*16*3 + i*3 + 1]
+                let circle = a.[j*16*3 + i*3 + 2]
                 if not(TrackerModel.overworldMapMarks.[i,j].AttemptToSet(cur)) then
                     anySetProblems <- true
                 let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
                 if k <> -1 then
                     TrackerModel.setOverworldMapExtraData(i,j,k,ed)
+                if circle = 1 then
+                    TrackerModel.overworldMapCircles.[i,j] <- true
                 owUpdateFunctions.[i,j] 0 null  // redraw the tile
+                owCircles.[i,j].Opacity <- if TrackerModel.overworldMapCircles.[i,j] then 1.0 else 0.0
         // Items
         if not(data.Items.WhiteSwordBox.TryApply(TrackerModel.sword2Box)) then anySetProblems <- true
         if not(data.Items.LadderBox.TryApply(TrackerModel.ladderBox)) then anySetProblems <- true

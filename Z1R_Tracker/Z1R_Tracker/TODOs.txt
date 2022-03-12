@@ -35,8 +35,6 @@ update whats new with changes
 
 clyceer: wants to drag in grab mode, rather than click-click
 
-maybe when moused over dungeon room, highlight the letter and maybe icon the rupee/blank/key/bomb somehow?
-
 puzzle-piecing maps 1-6,7-9?
 
 if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
@@ -55,11 +53,6 @@ color numerals in tabs to mark bomb upgrades, or other things to come back to?
 
 consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
 
-
-lorgon: this is one reason i wonder if, like 'start spot', extra overworld marks may be useful
-lorgon: mark screens with bomb droppers
-lorgon: like imagine middle click from dungeons
-like 'start spot', could have other overworld decorations (e.g. to mark bomb droppers?)
 
 
 

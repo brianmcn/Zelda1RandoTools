@@ -157,8 +157,9 @@ let SaveOverworld(prefix) =
             let cur = TrackerModel.overworldMapMarks.[i,j].Current()
             let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
             let ed = if cur = -1 then -1 else TrackerModel.getOverworldMapExtraData(i,j,k)
+            let circle = if TrackerModel.overworldMapCircles.[i,j] then 1 else 0
             let comma = if j=7 && i=15 then "" else ","
-            sb.Append(sprintf "%2d,%2d%s  " cur ed comma) |> ignore
+            sb.Append(sprintf "%2d,%2d,%d%s  " cur ed circle comma) |> ignore
         lines.Add(sb.ToString())
     lines.Add(sprintf """    ]""")
     lines.Add(sprintf """},""")

@@ -258,6 +258,11 @@ reading this paragraph was comparably more difficult and time-consuming.
 accelerator on the tile as well.  As a result, you typically interact with these item boxes on their map tiles, rather than having to move your mouse 
 to the top-tracker to interact with them.
 
+You can middle-click any overworld tile to 'circle it' (middle-clicking again toggles the circle back off).  Use this however you like, perhaps to remind you of a screen with easy-to-kill
+bomb-droppers, for example.
+
+![Overworld circle](screenshots/overworld-middle-click-circle.png)
+
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.  (You can turn off the 
 magnifier in the [Options Menu](#main-om) if you find it distracting.)
 

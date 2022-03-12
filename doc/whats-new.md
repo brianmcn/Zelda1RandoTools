@@ -42,6 +42,13 @@ always available in the dungeon room selection popup menu.
 
 ![Dungeon room types](screenshots/dungeon-room-types.png)
 
+### Circle arbitrary overworld tiles
+
+You can now middle click an overworld tile to toggle a cyan circle on that overworld spot.  Use this however you like, perhaps to remind you of a screen with easy-to-kill
+bomb-droppers, for example.
+
+![Overworld circle](screenshots/overworld-middle-click-circle.png)
+
 ### LostWoods/LostHills magnifier improvements
 
 The Lost Woods tile and Lost Hills tile now show the routes to traverse these 'maze' tiles on the overworld magnifier.  This is to help both Zelda 1 novice players, as well as
