@@ -148,10 +148,32 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             header.Background <- new SolidColorBrush(Graphics.makeColor(color))
             header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
             )
-        // local dungeon tracker
         let tileSunglasses = 0.75
         let blockerGridHeight = float(36*3)  // brittle, but that's the current constant
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        // rupee/blank/key/bomb row highlighter
+        let highlightRow =
+            let bmp = Dungeon.MakeLoZMinimapDisplayBmp(Array2D.zeroCreate 8 8, '?') 
+            let rupeeKeyBomb = new System.Drawing.Bitmap(8, 32)
+            for i = 0 to 7 do
+                for j = 0 to 31 do
+                    rupeeKeyBomb.SetPixel(i, j, bmp.GetPixel(72+i, 8+j))
+            let i = Graphics.BMPtoImage rupeeKeyBomb
+            i.Width <- 16.
+            i.Height <- 64.
+            i.Stretch <- Stretch.UniformToFill
+            RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
+            canvasAdd(contentCanvas, i, contentCanvas.Width-20., 3.)
+            let rowHighlightGrid = Graphics.makeGrid(1,8,20,8)
+            let rowHighlighter = new Canvas(Width=16., Height=8., Background=Brushes.Gray, Opacity=0.)
+            Graphics.gridAdd(rowHighlightGrid, rowHighlighter, 0, 0)
+            canvasAdd(contentCanvas, rowHighlightGrid, contentCanvas.Width-40., 3.)
+            let highlightRow(rowOpt) =
+                match rowOpt with
+                | None -> rowHighlighter.Opacity <- 0.
+                | Some r -> rowHighlighter.Opacity <- 1.0; Grid.SetRow(rowHighlighter, r)
+            highlightRow
+        // local dungeon tracker
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, blockerGridHeight - float(TH)
         let pos = Point(0. + LD_X, posY + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
         let mutable localDungeonTrackerPanel = null
@@ -595,6 +617,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 highlight(ok, Brushes.Lime)
                                 highlight(warn, Brushes.Yellow)
                         else
+                            highlightRow(Some j)
                             highlightOutline.Opacity <- 0.6
                             trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
@@ -602,6 +625,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if not popupIsActive then
                         if grabHelper.IsGrabMode then
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
+                    highlightRow(None)
                     highlightOutline.Opacity <- 0.0
                     trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
                     )
