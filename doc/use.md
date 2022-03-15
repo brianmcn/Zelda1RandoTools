@@ -359,6 +359,8 @@ Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second
 Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
 are compatible with your current room markup.
 
+![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
+
 ## <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.

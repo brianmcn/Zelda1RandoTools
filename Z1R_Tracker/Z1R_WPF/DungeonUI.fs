@@ -88,20 +88,29 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     border, unhighlight
 
 let makeOutlineShapesImpl(quest:string[]) =
-    let outlines = ResizeArray()
+    let outlines = ResizeArray<FrameworkElement>()
+    let color = Brushes.MediumPurple
     // fixed dungeon drawing outlines - vertical segments
     for i = 0 to 6 do
         for j = 0 to 7 do
             if quest.[j].Chars(i) <> quest.[j].Chars(i+1) then
                 let s = new Shapes.Line(X1=float(i*(39+12)+39+12/2), Y1=float(TH+j*(27+12)-12/2), X2=float(i*(39+12)+39+12/2), Y2=float(TH+j*(27+12)+27+12/2), 
-                                Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
+                                Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
                 outlines.Add(s)
     // fixed dungeon drawing outlines - horizontal segments
     for i = 0 to 7 do
         for j = 0 to 6 do
             if quest.[j].Chars(i) <> quest.[j+1].Chars(i) then
                 let s = new Shapes.Line(X1=float(i*(39+12)-12/2), Y1=float(TH+(j+1)*(27+12)-12/2), X2=float(i*(39+12)+39+12/2), Y2=float(TH+(j+1)*(27+12)-12/2), 
-                                Stroke=Brushes.Red, StrokeThickness=3., IsHitTestVisible=false)
+                                Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
+                outlines.Add(s)
+    // fixed dungeon drawing outlines - off-map (non-)rooms
+    for i = 0 to 7 do
+        for j = 0 to 7 do
+            if quest.[j].Chars(i) <> 'X' then
+                let s = new Shapes.Rectangle(Width=float(39+12), Height=float(27+12), Fill=color, IsHitTestVisible=false, Opacity=0.15)
+                Canvas.SetLeft(s, float(i*(39+12)-12/2))
+                Canvas.SetTop(s, float(TH + j*(27+12)-12/2))
                 outlines.Add(s)
     outlines
 let makeFirstQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonData.firstQuest.[dungeonNumber])
@@ -888,8 +897,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         
         let currentDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
 
-        let mkTxt(txt,ok) =
-            new TextBox(Width=50., Height=30., FontSize=15., Foreground=(if ok then Brushes.Lime else Brushes.Red), Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+        let mkTxt(txt,color) =
+            new TextBox(Width=50., Height=30., FontSize=15., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                         BorderThickness=Thickness(0.), Text=txt, VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center,
                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
 
@@ -903,10 +912,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     canvasToRedraw.Children.Clear() |> ignore
                     if state>=1 && state<=9 then
                         for s in makeFirstQuestOutlineShapes(state-1) do
-                            canvasAdd(canvasToRedraw, s, 0., 0.)
+                            canvasToRedraw.Children.Add(s) |> ignore
                     if state>=10 && state<=18 then
                         for s in makeSecondQuestOutlineShapes(state-10) do
-                            canvasAdd(canvasToRedraw, s, 0., 0.)
+                            canvasToRedraw.Children.Add(s) |> ignore
                 
                 let SI = dungeonTabs.SelectedIndex
                 let roomStates = masterRoomStates.[SI]
@@ -918,15 +927,30 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             if not(roomStates.[x,y].IsEmpty) && quest.[l-1].[y].Chars(x)<>'X' then
                                 ok <- false
                     ok
+                let chooseColor(q,l) =
+                    let compat = isCompatible(q,l)
+                    if compat then
+                        let mutable anotherHasUsed = false
+                        for i = 0 to 8 do
+                            if i <> dungeonTabs.SelectedIndex then
+                                if TrackerModel.GetDungeon(i).LabelChar = l.ToString().Chars(0) then
+                                    anotherHasUsed <- true
+                                let usedState = currentDisplayState.[i]
+                                let usedLevel = if usedState > 9 then usedState-9 else usedState
+                                if usedLevel = l then
+                                    anotherHasUsed <- true
+                        if anotherHasUsed then Brushes.Yellow else Brushes.Lime
+                    else
+                        Brushes.Red
                 let pos = outlineDrawingCanvases.[SI].TranslatePoint(Point(), cm.AppMainCanvas)
                 let tileCanvas = new Canvas(Width=float(39*8 + 12*7), Height=float(TH + 27*8 + 12*7))
                 let gridElementsSelectablesAndIDs = [|
-                    yield (upcast mkTxt("none",true):FrameworkElement), true, 0
+                    yield (upcast mkTxt("none",Brushes.Lime):FrameworkElement), true, 0
                     for l = 1 to 9 do
-                        yield (upcast mkTxt(sprintf "1Q%d" l, isCompatible(1,l)):FrameworkElement), true, l
-                    yield (upcast mkTxt("none",true):FrameworkElement), true, 0    // two 'none's just to make the grid look nicer
+                        yield (upcast mkTxt(sprintf "1Q%d" l, chooseColor(1,l)):FrameworkElement), true, l
+                    yield (upcast mkTxt("none",Brushes.Lime):FrameworkElement), true, 0    // two 'none's just to make the grid look nicer
                     for l = 1 to 9 do
-                        yield (upcast mkTxt(sprintf "2Q%d" l, isCompatible(2,l)):FrameworkElement), true, l+9
+                        yield (upcast mkTxt(sprintf "2Q%d" l, chooseColor(2,l)):FrameworkElement), true, l+9
                     |]
                 let originalStateIndex = 
                     if currentDisplayState.[SI] >= 10 then 
@@ -942,8 +966,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let extraDecorations = [|
                     (upcast new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=
                         new TextBox(FontSize=15., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(3.),
-                                    Text="Choose a vanilla dungeon outline to\ndraw on this dungeon map tab.\n\n"+
-                                            "Green selections are compatible with\nyour currently marked rooms.\n\nChoose 'none' to remove outline.")
+                                    Text="Choose a vanilla dungeon outline to draw\non this dungeon map tab.\n\n"+
+                                            "Green selections are compatible with your\ncurrently marked rooms. Yellow selections\n"+
+                                            "are compatible, but indicate a dungeon\nnumber already in use by another tab.\n\n"+
+                                            "Choose 'none' to remove outline.")
                         ):FrameworkElement), float gx, float gnr*(2.*ST+float grh)+2.*ST
                     |]
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
@@ -971,7 +997,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for i = 0 to 8 do
                 outlineDrawingCanvases.[i].Children.Clear() |> ignore
                 for s in makeFirstQuestOutlineShapes(i) do
-                    canvasAdd(outlineDrawingCanvases.[i], s, 0., 0.)
+                    outlineDrawingCanvases.[i].Children.Add(s) |> ignore
             )
         fqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
         canvasAdd(dungeonTabsWholeCanvas, fqcb, 350., 0.) 
@@ -982,7 +1008,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for i = 0 to 8 do
                 outlineDrawingCanvases.[i].Children.Clear() |> ignore
                 for s in makeSecondQuestOutlineShapes(i) do
-                    canvasAdd(outlineDrawingCanvases.[i], s, 0., 0.)
+                    outlineDrawingCanvases.[i].Children.Add(s) |> ignore
             )
         sqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 

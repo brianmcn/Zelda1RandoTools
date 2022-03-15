@@ -50,6 +50,12 @@ You can make Bomb-Upgrade rooms and NPC-with-Hint rooms stand out visually:
 
 See [Special NPC rooms](use.md#main-dungeon-special-rooms) for details.
 
+### Vanilla dungeon map improvements
+
+The user interface and colors for the vanilla dungeon maps overlay has been improved.
+
+![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
+
 ### Circle arbitrary overworld tiles
 
 You can now middle click an overworld tile to toggle a cyan circle on that overworld spot.  Use this however you like, perhaps to remind you of a screen with easy-to-kill
