@@ -42,6 +42,14 @@ always available in the dungeon room selection popup menu.
 
 ![Dungeon room types](screenshots/dungeon-room-types.png)
 
+### Special NPC room highlights
+
+You can make Bomb-Upgrade rooms and NPC-with-Hint rooms stand out visually:
+
+![Special NPC rooms](screenshots/special-npc-room-color.png)
+
+See [Special NPC rooms](use.md#main-dungeon-special-rooms) for details.
+
 ### Circle arbitrary overworld tiles
 
 You can now middle click an overworld tile to toggle a cyan circle on that overworld spot.  Use this however you like, perhaps to remind you of a screen with easy-to-kill

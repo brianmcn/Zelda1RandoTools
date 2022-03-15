@@ -141,9 +141,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         levelTabs.[level-1] <- levelTab
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
-        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
+        let header = new TextBox(Width=13., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
-        levelTab.Header <- header
+        let bombUpgradeMarkHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.DodgerBlue, Opacity=0.)
+        let oldManUnreadHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.Red, Opacity=0.)
+        do
+            let headerSp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
+            headerSp.Children.Add(header) |> ignore
+            let headerInfo = new StackPanel(Orientation=Orientation.Vertical, Width=9.)
+            headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
+            headerInfo.Children.Add(bombUpgradeMarkHeaderCanvas) |> ignore
+            headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
+            headerInfo.Children.Add(oldManUnreadHeaderCanvas) |> ignore
+            headerSp.Children.Add(headerInfo) |> ignore
+            levelTab.Header <- headerSp
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) -> 
             header.Background <- new SolidColorBrush(Graphics.makeColor(color))
             header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
@@ -304,6 +315,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let redrawAllRooms() =
             for f in roomRedrawFuncs do
                 f()
+        let updateHeaderCanvases() =
+            bombUpgradeMarkHeaderCanvas.Opacity <- 0.
+            oldManUnreadHeaderCanvas.Opacity <- 0.
+            for i = 0 to 7 do
+                for j = 0 to 7 do
+                    let rs = roomStates.[i,j]
+                    if rs.RoomType = DungeonRoomState.RoomType.BombUpgrade && not(rs.IsComplete) then
+                        bombUpgradeMarkHeaderCanvas.Opacity <- 1.
+                    if rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
+                        oldManUnreadHeaderCanvas.Opacity <- 1.
+            levelTab.InvalidateProperty(TabItem.HeaderProperty)
         // minimap-draw-er
         let hoverCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black, IsHitTestVisible=true)
         let minimini = Dungeon.MakeMiniMiniMapBmp() |> Graphics.BMPtoImage
@@ -545,6 +567,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 let door = possibleEntries.[0]
                                 if door.State = Dungeon.DoorState.UNKNOWN then
                                     door.State <- Dungeon.DoorState.YES
+                        updateHeaderCanvases()
                         redraw()
                         animateDungeonRoomTile(i,j)
                     else
@@ -681,10 +704,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             numeral.Opacity <- 0.0
                                         else
                                             match roomStates.[i,j].RoomType.NextEntranceRoom() with
-                                            | Some(next) -> roomStates.[i,j].RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                            | Some(next) -> 
+                                                workingCopy.RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                                SetNewValue(workingCopy)
                                             | None ->
                                                 // toggle completedness
-                                                roomStates.[i,j].IsComplete <- not roomStates.[i,j].IsComplete
+                                                workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
+                                                SetNewValue(workingCopy)
                                     redraw()
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode

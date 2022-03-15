@@ -23,7 +23,8 @@ update docs with changes
 update whats new with changes
 
 
-
+FQ/SQ outlines are currently red, should maybe have magenta/blue walls as preview-overlay, and also lightly overlay a shade-out/hash over the non-rooms (both kigalas and homer dont like red line)
+ - see how interacts with preview when you have marked N rooms and then trying to fit an outline
 
 
 
@@ -33,21 +34,12 @@ update whats new with changes
  - i think simplest design is, have a hotkey set 'global', have loading hotkeys ensure than no globals conflict with anything else, have them activate from anywhere, and have them toggle 'shopping' things?
  - then potato_pony also wants hotkey for dungeon tabs (or at least summary tab?) but running out of keys, hm
 
-clyceer: wants to drag in grab mode, rather than click-click
-
 puzzle-piecing maps 1-6,7-9?
 
-if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
-
-
-
-cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
 
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
 
-color numerals in tabs to mark bomb upgrades, or other things to come back to?
- - more generally, what extra info, apart from blockers, might want to 'surface' about a dungeon when its tab is offscreen?
 
 
 
@@ -197,6 +189,10 @@ save state
 
 SMALL
 
+clyceer: wants to drag in grab mode, rather than click-click
+
+cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
+
 timeline & mistakes
  - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)
  - mistake 1: people mark item they don't have yet, then maybe later unmark (good)
@@ -258,6 +254,15 @@ if you get a 'meet' hint about white/magic sword cave location, could/should the
     and you can't assume the user wants to mark a hint
 
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? thumb button must be live-without-able
+[11:38 AM] potato_pony: ahhh, i don't hvae a middle click 
+[11:38 AM] Lorgon111: oof, this is something i never even considered
+[11:39 AM] Lorgon111: so i should probably have a hotkey that means middle click for folks on touchpads or something
+[11:39 AM] potato_pony: in fairness, i think i could but on the thinkpad i use the middle button is used for scrolling
+[11:40 AM] Lorgon111: i just added more middle-click functionality yesterday too 
+[11:41 AM] potato_pony: , . / as keyboard alternatives to left/middle/right click?
+[11:41 AM] Lorgon111: I mean, it's probably like ten hours of recoding everything, so I will probably never do it, but stuff like that would be the right thing.
+[11:42 AM] potato_pony: lol i hear ya
+
 
 maybe make separate project for generation-tools, e.g.
  - make magnifier bmps offline, save to a resource file, then load resource
@@ -348,6 +353,8 @@ https://github.com/microsoft/perfview
 BIG
 
 'undo'
+if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
+
 [9:52 AM] homerjsmash: Yeah I like where you're going with all of this. Also this prompted another thought for me, one of my big mistakes I make is I accidentally reclick a tile I 
 have already assigned. Example the potion shop is an open cave which is next to pb spot or something. When I finally get pb I move the mouse to that spot but accidentally fat finger
 the potion shop, which since I deselect everything but x makes it an X. Shoot. What the heck was that cave? There's no undo button or something like that

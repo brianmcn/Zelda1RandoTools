@@ -456,6 +456,22 @@ upper right icon area:
 
 In that screenshot, the mouse is over a room in the 5th row, so the highlight appears next to the top half of the 'key' icon.
 
+#### <a id="main-dungeon-special-rooms"></a>Special NPC rooms
+
+Two room types have colorful extra visual information in the tracker:
+
+ - **Bomb Upgrade** rooms, when marked uncompleted (unpurchased), and
+ - **NPC with Hint** rooms, when marked uncompleted (un-read, when using 'Book to understand old men' rando flag and encountering the NPC before getting the Book)
+
+These rooms appear with a blue and red outline respectively, and when they exist in a certain dungeon, the dungeon tab gets a dot of the corresponding color:
+
+![Special NPC rooms](screenshots/special-npc-room-color.png)
+
+The motivation here is that these are types of rooms you might want to return to later, even after completing the dungeon (getting the triforce and all the items).  By 
+highlighting this information in the header tab and on the map in color, it is easy to, for example, when you get enough rupees to purchase the bomb upgrade, immediately 
+see which dungeon number and which room in that dungeon you need to return to.  (Just like most other rooms, left-clicking toggles the completed-ness of the room, so when 
+you purchase a bomb upgrade, you can just left-click the room to un-mark it blue and make its tab-dot disappear.)
+
 ## <a id="main-blockers"></a> Blockers
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
