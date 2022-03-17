@@ -560,12 +560,11 @@ type MyWindow() as this =
                     let showProgress() = 
                         async {
                             tb.Text <- tb.Text.Replace(".\n", "..\n")
-                            // move mainDock to topmost layer again
-                            appMainCanvas.Children.Remove(mainDock)
-                            appMainCanvas.Children.Add(mainDock) |> ignore
                             do! Async.Sleep(1) // pump to make 'Loading UI' text update
                             do! Async.SwitchToContext ctxt
                         }
+                    // move mainDock to topmost while app is built behind it
+                    Canvas.SetZIndex(mainDock, 9999)
                     do! showProgress()
                     match loadData with
                     | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
