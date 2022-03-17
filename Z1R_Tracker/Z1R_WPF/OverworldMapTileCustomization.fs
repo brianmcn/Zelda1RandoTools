@@ -555,14 +555,13 @@ let MakeMappedHotKeysDisplay() =
         let bucket = ResizeArray()
         for state in states do
             if hkp.StateToKeys(state).Count > 0 then
-                let keys = hkp.StateToKeys(state) |> Seq.fold (fun s c -> s + c.ToString()) ""
+                let keys = hkp.StateToKeys(state) |> Seq.fold (fun s c -> s + HotKeys.PrettyKey(c) + ",") "" |> (fun s -> s.Substring(0, s.Length-1))
                 let icon = mkIcon(state)
                 icon.Width <- float iconW
                 let border = new Border(BorderBrush=Brushes.DimGray, BorderThickness=Thickness(1.), Child=icon)
                 border.Margin <- Thickness(3.)
                 let txt = DungeonRoomState.mkTxt(keys)
                 txt.TextAlignment <- TextAlignment.Left
-                txt.Width <- 20.
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 sp.Children.Add(border) |> ignore
                 sp.Children.Add(txt) |> ignore

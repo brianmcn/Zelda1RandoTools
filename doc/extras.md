@@ -10,14 +10,18 @@ Contents of this document:
 
 ## <a id="hotkeys"></a> HotKeys
 
-You can bind hotkeys (keyboard keys 0-9 or a-z) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
+You can bind hotkeys (any keyboard keys) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
 
 There are four mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers), and [dungeon rooms](use.md#main-dr).  
 So for example 'b' could be set up to mean 'bow' when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 
 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.
 
-While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide a way to display your current hotkey
-information.  Left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
+While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide ways to display your current hotkey
+information.  First, each popup menu will display any hotkeys that have been bound, alongside the description in the mouseover popup:
+
+![screenshot](screenshots/hotkey-in-popup-example.png)
+
+Second, you can left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
 mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
 display window at any time when you are done with it.  The window size and location will persist across sessions.  If the window ever becomes inaccessible 
 off-screen, you can right-click the 'Show HotKeys' button to re-position and re-size the window to a default location on-screen.

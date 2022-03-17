@@ -109,6 +109,7 @@ a certain item, but you forget what you set it to.
  - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're in dungeon X already
+ - hotkeys can now be bound to any keyboard key, see [HotKeys](extras.md#hotkeys) for details
  - made dungeon LEVEL/BOARD header use Zelda font
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details
  - when on the dungeon summary tab, all dungeon locations get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once

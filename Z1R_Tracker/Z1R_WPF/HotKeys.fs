@@ -22,12 +22,10 @@ open MyKey
 let InitializeWindow(w:Window) =
     w.Focusable <- true
     w.PreviewKeyDown.Add(fun ea ->
-        let keycode = int ea.Key
-        if keycode >=34 && keycode <=69 || ea.Key=Input.Key.OemMinus then  // 0-9a-z_ are all the hotkeys I bind
-            let x = Input.Mouse.DirectlyOver
-            if x <> null then
-                let ea = new MyKeyRoutedEventArgs(ea.Key)
-                x.RaiseEvent(ea)
+        let x = Input.Mouse.DirectlyOver
+        if x <> null then
+            let ea = new MyKeyRoutedEventArgs(ea.Key)
+            x.RaiseEvent(ea)
         )
 
 let convertAlpha_NumToKey(ch) =
@@ -57,12 +55,15 @@ let AllDungeonRoomNames = [|
         yield "DungeonRoom_" + x.AsHotKeyName()
     |]
 
+
 let MakeDefaultHotKeyFile(filename:string) =
     let lines = ResizeArray()
     (sprintf """# %s HotKeys
 
 # General form is 'SelectorName = key'
-#  - key can be 0-9 or a-z
+#  - key can be 0-9 or a-z, or alternately of the form \nnn where nnn is the numeric key code from
+#        https://docs.microsoft.com/en-us/dotnet/api/system.windows.input.key#fields
+#    (so for example \75 should be used as the key name for NumPad1)
 #  - SelectorName can be any of the list below
 # You can leave the key blank to not bind a hotkey to that selector
 
@@ -101,6 +102,7 @@ let ParseHotKeyDataFile(filename:string) =
     let commentRegex = new System.Text.RegularExpressions.Regex("^#.*$", System.Text.RegularExpressions.RegexOptions.None)
     let emptyLineRegex = new System.Text.RegularExpressions.Regex("^\s*$", System.Text.RegularExpressions.RegexOptions.None)
     let dataRegex = new System.Text.RegularExpressions.Regex("^\s*(\w+)\s*=\s*(\w)?\s*$", System.Text.RegularExpressions.RegexOptions.None)
+    let data2Regex = new System.Text.RegularExpressions.Regex("""^\s*(\w+)\s*=\s*\\(\d+)\s*$""", System.Text.RegularExpressions.RegexOptions.None)
     let data = ResizeArray()
     let mutable lineNumber = 1
     for line in lines do
@@ -109,18 +111,31 @@ let ParseHotKeyDataFile(filename:string) =
         else
             let m = dataRegex.Match(line)
             if not m.Success then
-                raise <| new UserError(sprintf "Error parsing '%s', line %d" filename lineNumber)
+                let m = data2Regex.Match(line)
+                if not m.Success then
+                    raise <| new UserError(sprintf "Error parsing '%s', line %d" filename lineNumber)
+                else
+                    let name = m.Groups.[1].Value
+                    let value = if m.Groups.Count > 2 then Some(enum<Input.Key>(int m.Groups.[2].Value)) else None
+                    data.Add(name, value, (lineNumber, filename))
+
             else
                 // Groups.[0] is the whole match
                 let name = m.Groups.[1].Value
-                let value = if m.Groups.Count > 2 && m.Groups.[2].Value.Length > 0 then Some(m.Groups.[2].Value.[0]) else None
+                let value = if m.Groups.Count > 2 && m.Groups.[2].Value.Length > 0 then Some(convertAlpha_NumToKey(m.Groups.[2].Value.[0])) else None
                 data.Add(name, value, (lineNumber, filename))
         lineNumber <- lineNumber + 1
     data
 
 ////////////////////////////////////////////////////////////
 
-let keyUniverse = [| yield! [|'0'..'9'|]; yield! [|'a'..'z'|]; yield '_' |]
+let keyUniverse = [| for i = 1 to 172 do yield enum<Input.Key>(i) |]   // it appears Input.Key does not range outside 1 to 172
+let PrettyKey(key:Input.Key) =
+    let s = key.ToString()
+    if System.Text.RegularExpressions.Regex.IsMatch(s, "D\d") then  // the 'name' of 0-9 across top keyboard is D0-D9
+        sprintf "%c" s.[1]
+    else
+        s
 type HotKeyProcessor<'v when 'v : equality>(contextName) =
     let table = new System.Collections.Generic.Dictionary<Input.Key,'v>()
     let stateToKeys = new System.Collections.Generic.Dictionary<_,_>()  // caching
@@ -139,7 +154,7 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
         if not(stateToKeys.ContainsKey(state)) then
             let r = ResizeArray()
             for k in keyUniverse do
-                match this.TryGetValue(convertAlpha_NumToKey k) with
+                match this.TryGetValue(k) with
                 | Some x -> if x = state then r.Add(k)
                 | None -> ()
             stateToKeys.Add(state, r)
@@ -149,7 +164,7 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
     member this.AppendHotKeyToDescription(desc, state) =
         let keys = this.StateToKeys(state)
         if keys.Count > 0 then
-            sprintf "%s\nHotKey = %c" desc keys.[0]
+            sprintf "%s\nHotKey = %s" desc (PrettyKey(keys.[0]))
         else
             desc
 
@@ -166,13 +181,12 @@ let PopulateHotKeyTables() =
         MakeDefaultHotKeyFile(filename)
     let data = ParseHotKeyDataFile(filename)
     for name, chOpt, (lineNumber, filename) in data do
-        let Add(hkp:HotKeyProcessor<_>, chOpt, x) =
-            match chOpt with
+        let Add(hkp:HotKeyProcessor<_>, keyOpt, x) =
+            match keyOpt with
             | None -> ()  // Foo=    means Foo is not bound to a hotkey on this line
-            | Some ch ->
-                let key = convertAlpha_NumToKey ch
+            | Some key ->
                 if not(hkp.TryAdd(key,x)) then
-                    raise <| new UserError(sprintf "Keyboard key '%c' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" ch hkp.ContextName lineNumber filename)
+                    raise <| new UserError(sprintf "Keyboard key '%s' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" (PrettyKey key) hkp.ContextName lineNumber filename)
         match name with
         | "Item_Nothing"          -> Add(ItemHotKeyProcessor, chOpt, -1)
         | "Overworld_Nothing"     -> Add(OverworldHotKeyProcessor, chOpt, -1)
