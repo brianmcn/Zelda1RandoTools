@@ -39,6 +39,7 @@ type DungeonModel() =  // these are serialized in j,i order, to be more human-re
     member val VerticalDoors : int[][] = null with get,set
     member val RoomIsCircled : bool[][] = null with get,set
     member val RoomStates : DungeonRoomModel[][] = null with get,set
+    member val VanillaMapOverlay = 0 with get,set
 
 let SaveDungeonModel(prefix, model:DungeonModel) =
     let lines = ResizeArray()
@@ -77,7 +78,8 @@ let SaveDungeonModel(prefix, model:DungeonModel) =
                 lines.Add(sprintf """    { "IsCompleted": %b, "RoomType": "%s", "MonsterDetail": "%s", "FloorDropDetail": "%s", "FloorDropShouldAppearBright": %b }%s"""
                                         drm.IsCompleted drm.RoomType drm.MonsterDetail drm.FloorDropDetail drm.FloorDropShouldAppearBright (if i=7 then "" else ","))
         lines.Add(sprintf "    ]%s" (if j=7 then "" else ","))
-    lines.Add("""]""")
+    lines.Add("""],""")
+    lines.Add(sprintf """"VanillaMapOverlay": %d""" model.VanillaMapOverlay)
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveAllDungeons(models: DungeonModel[]) =

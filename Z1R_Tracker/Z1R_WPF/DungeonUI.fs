@@ -130,6 +130,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let currentOutlineDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
+    let doVanillaOutlineRedraw(canvasToRedraw:Canvas, state) =
+        canvasToRedraw.Children.Clear() |> ignore
+        if state>=1 && state<=9 then
+            for s in makeFirstQuestOutlineShapes(state-1) do
+                canvasToRedraw.Children.Add(s) |> ignore
+        if state>=10 && state<=18 then
+            for s in makeSecondQuestOutlineShapes(state-10) do
+                canvasToRedraw.Children.Add(s) |> ignore
     let grabHelper = new Dungeon.GrabHelper()
     let grabModeTextBlock = 
         new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, 
@@ -799,6 +807,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             r.VerticalDoors <-   Array.init 8 (fun i -> Array.init 7 (fun j -> verticalDoors.[i,j].State.AsInt()))
             r.RoomIsCircled <-   Array.init 8 (fun i -> Array.init 8 (fun j -> roomIsCircled.[i,j]))
             r.RoomStates <-      Array.init 8 (fun i -> Array.init 8 (fun j -> roomStates.[i,j] |> DungeonSaveAndLoad.DungeonRoomStateAsModel))
+            r.VanillaMapOverlay <- currentOutlineDisplayState.[level-1]
             r
             )
         importFunctions.[level-1] <- (fun (dm:DungeonSaveAndLoad.DungeonModel) ->
@@ -818,6 +827,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                             numeral.Opacity <- 0.0 
                         setNewValueFunctions.[i,j](rs)
+            currentOutlineDisplayState.[level-1] <- dm.VanillaMapOverlay
+            doVanillaOutlineRedraw(outlineDrawingCanvases.[level-1], currentOutlineDisplayState.[level-1])
             )
         do! showProgress()
     // end -- for level in 1 to 9 do
@@ -914,15 +925,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 popupIsActive <- true
                 
                 let ST = CustomComboBoxes.borderThickness
-                let doRedraw(canvasToRedraw:Canvas, state) =
-                    canvasToRedraw.Children.Clear() |> ignore
-                    if state>=1 && state<=9 then
-                        for s in makeFirstQuestOutlineShapes(state-1) do
-                            canvasToRedraw.Children.Add(s) |> ignore
-                    if state>=10 && state<=18 then
-                        for s in makeSecondQuestOutlineShapes(state-10) do
-                            canvasToRedraw.Children.Add(s) |> ignore
-                
                 let SI = dungeonTabs.SelectedIndex
                 let roomStates = masterRoomStates.[SI]
                 let isCompatible(q,l) =
@@ -967,7 +969,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let (gnc, gnr, gcw, grh) = (5, 4, 50, 30)
                 let gx, gy = tileCanvas.Width + ST, 0.
                 let redrawTile(state) = 
-                    doRedraw(tileCanvas, state)
+                    doVanillaOutlineRedraw(tileCanvas, state)
                 let onClick(_ea, state) = CustomComboBoxes.DismissPopupWithResult(state)
                 let extraDecorations = [|
                     (upcast new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=
@@ -987,45 +989,35 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     match r with
                     | Some(state) -> currentOutlineDisplayState.[SI] <- state
                     | None -> ()
-                    doRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+                    doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
                     popupIsActive <- false
                     } |> Async.StartImmediate
             )
     else
-        let fqcb = new CheckBox(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+        let fqcb = new Button(Content=new TextBox(Text="FQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
         fqcb.ToolTip <- "Show vanilla first quest dungeon outlines"
-        let sqcb = new CheckBox(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+        let sqcb = new Button(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
         sqcb.ToolTip <- "Show vanilla second quest dungeon outlines"
 
-        fqcb.IsChecked <- System.Nullable.op_Implicit false
-        fqcb.Checked.Add(fun _ -> 
-            sqcb.IsChecked <- System.Nullable.op_Implicit false
-            for i = 0 to 8 do
-                outlineDrawingCanvases.[i].Children.Clear() |> ignore
-                for s in makeFirstQuestOutlineShapes(i) do
-                    outlineDrawingCanvases.[i].Children.Add(s) |> ignore
-                currentOutlineDisplayState.[i] <- i+1
-            )
-        fqcb.Unchecked.Add(fun _ -> 
-            outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear())
-            for i = 0 to 8 do
-                currentOutlineDisplayState.[i] <- 0
+        fqcb.Click.Add(fun _ -> 
+            let SI = dungeonTabs.SelectedIndex
+            if currentOutlineDisplayState.[SI]<>SI+1 then
+                currentOutlineDisplayState.[SI] <- SI+1
+                doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+            else
+                outlineDrawingCanvases.[SI].Children.Clear()
+                currentOutlineDisplayState.[SI] <- 0
             )
         canvasAdd(dungeonTabsWholeCanvas, fqcb, 350., 0.) 
 
-        sqcb.IsChecked <- System.Nullable.op_Implicit false
-        sqcb.Checked.Add(fun _ -> 
-            fqcb.IsChecked <- System.Nullable.op_Implicit false
-            for i = 0 to 8 do
-                outlineDrawingCanvases.[i].Children.Clear() |> ignore
-                for s in makeSecondQuestOutlineShapes(i) do
-                    outlineDrawingCanvases.[i].Children.Add(s) |> ignore
-                currentOutlineDisplayState.[i] <- i+1+9
-            )
-        sqcb.Unchecked.Add(fun _ -> 
-            outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear())
-            for i = 0 to 8 do
-                currentOutlineDisplayState.[i] <- 0
+        sqcb.Click.Add(fun _ -> 
+            let SI = dungeonTabs.SelectedIndex
+            if currentOutlineDisplayState.[SI]<>SI+10 then
+                currentOutlineDisplayState.[SI] <- SI+10
+                doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+            else
+                outlineDrawingCanvases.[SI].Children.Clear()
+                currentOutlineDisplayState.[SI] <- 0
             )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 
 

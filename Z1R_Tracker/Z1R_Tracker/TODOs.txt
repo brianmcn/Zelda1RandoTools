@@ -28,9 +28,6 @@ make a new Mouse Hover Explainer screenshot
 
 
 
-in HDN, I think I dont save the FQ/SQ vanilla map outlines applied to each dungeon on save/load (similar, in non-HDN, the FQ or SQ checkmarks could be saved)
-
-
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
