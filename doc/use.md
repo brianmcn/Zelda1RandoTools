@@ -370,7 +370,7 @@ dungeon tab, such as this:
 
 ![Dungeon potential unhighlighted](screenshots/dungeon-potential-unhighlighted.png)
 
-when you mouse-hover BLOCKERS the dungeon display adds highlights like this:
+when you mouse-hover BLOCKERS, the dungeon display adds highlights like this:
 
 ![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
 
