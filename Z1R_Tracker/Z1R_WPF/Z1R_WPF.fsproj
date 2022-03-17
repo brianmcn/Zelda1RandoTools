@@ -105,6 +105,7 @@
     <Compile Include="Views.fs" />
     <Compile Include="OptionsMenu.fs" />
     <Compile Include="DungeonSaveAndLoad.fs" />
+    <Compile Include="DungeonHighlightsUI.fs" />
     <Compile Include="DungeonUI.fs" />
     <Compile Include="SpeechRecognition.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />

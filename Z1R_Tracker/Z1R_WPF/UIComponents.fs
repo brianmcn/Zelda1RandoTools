@@ -487,7 +487,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
 
 open HotKeys.MyKey
 
-let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>, blockerDungeonSunglasses:FrameworkElement[]) =
+let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
     let appMainCanvas = cm.AppMainCanvas
     // blockers
     let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
@@ -584,7 +584,10 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth, IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
                 d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome reminders will trigger when you get the item that may unblock you."
+                ToolTipService.SetPlacement(d, Primitives.PlacementMode.Top)
                 d.Children.Add(tb) |> ignore
+                d.MouseEnter.Add(fun _ -> blockersHoverEvent.Trigger(true))
+                d.MouseLeave.Add(fun _ -> blockersHoverEvent.Trigger(false))
                 gridAdd(blockerGrid, d, i, j)
             else
                 let dungeonIndex = (3*j+i)-1
@@ -828,6 +831,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
     let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(anyRoad, "Show Any Roads", 430., 340.)
+    let COL = Brushes.MediumVioletRed
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; -70.,0.; -70.,36.; 50.,36.; 50.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(blockers, "Highlight potential\ndungeon continuations", 570., 320.)
 
     for dd in delayedDescriptions do   // ensure these draw atop all the PolyLines
         canvasAdd(dd)

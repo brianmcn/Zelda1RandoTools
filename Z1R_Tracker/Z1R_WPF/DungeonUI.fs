@@ -124,10 +124,12 @@ type TrackerLocation =
 
 let mutable theDungeonTabControl = null : TabControl
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, 
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, 
+                    levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
+    let currentOutlineDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
     let grabHelper = new Dungeon.GrabHelper()
     let grabModeTextBlock = 
         new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.LightGray, 
@@ -225,6 +227,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
         dungeonBodyCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
+        let dungeonBodyHighlightCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. blocker highlights here
+        dungeonBodyHighlightCanvas.ClipToBounds <- true
+        canvasAdd(dungeonCanvas, dungeonBodyHighlightCanvas, 0., float TH)
         let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
         let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
                             Width=dungeonBodyCanvas.Width, Height=dungeonBodyCanvas.Height, VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
@@ -785,6 +790,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width, Height=dungeonCanvas.Height, StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
         canvasAdd(dungeonBodyCanvas, numeral, 0., 0.)  // so numeral displays atop all else
+        // highlights
+        DungeonHighlightsUI.makeHighlights(level, dungeonBodyHighlightCanvas, roomStates, currentOutlineDisplayState, horizontalDoors, verticalDoors, blockersHoverEvent)
+        // save and load
         exportFunctions.[level-1] <- (fun () ->
             let r = new DungeonSaveAndLoad.DungeonModel()
             r.HorizontalDoors <- Array.init 7 (fun i -> Array.init 8 (fun j -> horizontalDoors.[i,j].State.AsInt()))
@@ -895,8 +903,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
         canvasAdd(dungeonTabsWholeCanvas, button, 360., 0.)
         
-        let currentDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
-
         let mkTxt(txt,color) =
             new TextBox(Width=50., Height=30., FontSize=15., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                         BorderThickness=Thickness(0.), Text=txt, VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center,
@@ -935,7 +941,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             if i <> dungeonTabs.SelectedIndex then
                                 if TrackerModel.GetDungeon(i).LabelChar = l.ToString().Chars(0) then
                                     anotherHasUsed <- true
-                                let usedState = currentDisplayState.[i]
+                                let usedState = currentOutlineDisplayState.[i]
                                 let usedLevel = if usedState > 9 then usedState-9 else usedState
                                 if usedLevel = l then
                                     anotherHasUsed <- true
@@ -953,10 +959,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         yield (upcast mkTxt(sprintf "2Q%d" l, chooseColor(2,l)):FrameworkElement), true, l+9
                     |]
                 let originalStateIndex = 
-                    if currentDisplayState.[SI] >= 10 then 
-                        1+currentDisplayState.[SI]   // skip over the extra 'none'
+                    if currentOutlineDisplayState.[SI] >= 10 then 
+                        1+currentOutlineDisplayState.[SI]   // skip over the extra 'none'
                     else 
-                        currentDisplayState.[SI]
+                        currentOutlineDisplayState.[SI]
                 let activationDelta = 0
                 let (gnc, gnr, gcw, grh) = (5, 4, 50, 30)
                 let gx, gy = tileCanvas.Width + ST, 0.
@@ -979,9 +985,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                                     gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
                     match r with
-                    | Some(state) -> currentDisplayState.[SI] <- state
+                    | Some(state) -> currentOutlineDisplayState.[SI] <- state
                     | None -> ()
-                    doRedraw(outlineDrawingCanvases.[SI], currentDisplayState.[SI])
+                    doRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
                     popupIsActive <- false
                     } |> Async.StartImmediate
             )
@@ -998,8 +1004,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 outlineDrawingCanvases.[i].Children.Clear() |> ignore
                 for s in makeFirstQuestOutlineShapes(i) do
                     outlineDrawingCanvases.[i].Children.Add(s) |> ignore
+                currentOutlineDisplayState.[i] <- i+1
             )
-        fqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
+        fqcb.Unchecked.Add(fun _ -> 
+            outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear())
+            for i = 0 to 8 do
+                currentOutlineDisplayState.[i] <- 0
+            )
         canvasAdd(dungeonTabsWholeCanvas, fqcb, 350., 0.) 
 
         sqcb.IsChecked <- System.Nullable.op_Implicit false
@@ -1009,8 +1020,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 outlineDrawingCanvases.[i].Children.Clear() |> ignore
                 for s in makeSecondQuestOutlineShapes(i) do
                     outlineDrawingCanvases.[i].Children.Add(s) |> ignore
+                currentOutlineDisplayState.[i] <- i+1+9
             )
-        sqcb.Unchecked.Add(fun _ -> outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear()))
+        sqcb.Unchecked.Add(fun _ -> 
+            outlineDrawingCanvases |> Seq.iter (fun odc -> odc.Children.Clear())
+            for i = 0 to 8 do
+                currentOutlineDisplayState.[i] <- 0
+            )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 
 
     let exportDungeonModelsJsonLines() = DungeonSaveAndLoad.SaveAllDungeons [| for f in exportFunctions do yield f() |]

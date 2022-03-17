@@ -22,9 +22,35 @@ CURRENT PRIORITIES
 update docs with changes
 update whats new with changes
 
+make a new Mouse Hover Explainer screenshot
 
-FQ/SQ outlines are currently red, should maybe have magenta/blue walls as preview-overlay, and also lightly overlay a shade-out/hash over the non-rooms (both kigalas and homer dont like red line)
- - see how interacts with preview when you have marked N rooms and then trying to fit an outline
+(review all screenshots)
+
+
+
+in HDN, I think I dont save the FQ/SQ vanilla map outlines applied to each dungeon on save/load (similar, in non-HDN, the FQ or SQ checkmarks could be saved)
+
+
+put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
+maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
+
+
+long conversation with homer about blockers
+ - he wants 3 per dungeon
+ - he thinks he wants map/book/atlas blocker of some sort, though perhaps maybe-bomb captures the same idea
+ - i want to see if I can make possibly-bombable-walls have a mouse-hover target to get brighter or something on summary tab, to help you decide where
+      to re-dig if you find yourself with a new atlas or a fresh stash of 12 bombs
+ - (some other way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
+IDEA FOR HIGHLIGHTS
+ - way to show off potential blocks, using highlights/animations, either on individual tab or summary tab
+ - (maybe) hovering a blocker activates that highlight, hovering 'BLOCKERS' word highlights all at once (but then how mouseover one dungeon in summary at same time)
+       - or maybe it's always on, if the animation can both make it obvious and also not create extra noise, hm
+ - potential bomb spots require a lot of inputs: current rooms, adjoined rooms (pay attention to OFF), current 'vanilla map overlay', current door
+ - potential other blockers are easier from full room state (e.g. is gohma bow boss marked, is this the meat room)
+
+
+UnknownAvailability wants numpad number hotkeys (need a general scancode mechanism via some escape something something)
+
 
 
 
@@ -106,16 +132,20 @@ kigalas: Also, when you select Second Quest Dungeons can you have it automatical
 tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
  - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
     [7:57 PM] FurySK: Drop item: Cannot ever have a push block across all functions, outside of diamond staircases (edited)
-The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER
-0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .
-1 - Drop stands in the room, shutters open on room clear.                                                                                   .          X             .           .
-2 - "Master" enemy room.  Killing the enemy in slot 0 kills all enemies in the room.  Shutter doors do not open.                            .          .             .           .
-3 - No drop, doors only open if you hold the Triforce of Power.                                                                             .          .             .           .
-4 - Drop standing if present, push a block to open shutter doors when all cleared.                                                          .          .             .           X
-5 - Drop standing if present, push a block to open a stair when all cleared (doors permanently stay shut, see 2nd quest level 8)            .          .             X           .
-6 - Open shutter doors if the enemy in the first slot is killed (used only for Life/Money rooms currently, as Fire is an enemy)             .          .             .           .
-7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .
+The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
+0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X
+1 - Drop stands in the room, shutters open on room clear.                                                                                   .          X             .           .             X
+2 - "Master" enemy room.  Killing the enemy in slot 0 kills all enemies in the room.  Shutter doors do not open.                            .          .             .           .             .
+3 - No drop, doors only open if you hold the Triforce of Power.                                                                             .          .             .           .             .
+4 - Drop standing if present, push a block to open shutter doors when all cleared.                                                          .          .             .           X             X
+5 - Drop standing if present, push a block to open a stair when all cleared (doors permanently stay shut, see 2nd quest level 8)            .          .             X           .             X   (2Q only)
+6 - Open shutter doors if the enemy in the first slot is killed (used only for Life/Money rooms currently, as Fire is an enemy)             .          .             .           .             .
+7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .             .
 
+Thus, in shapes, 
+ - Standing item implies no push-stair (unless RMOS in a no-shutter room, which uses state 5 above)
+ - Shutter implies no push-stair
+ - Kill->Drop implies no push-stair
 
 
 

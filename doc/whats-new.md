@@ -56,6 +56,12 @@ The user interface and colors for the vanilla dungeon maps overlay has been impr
 
 ![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
 
+### Highlight potential dungeon continuations
+
+This is a new feature to help locate paths to the rest of the rooms in a dungeon, see [here](use.md#main-hpdc) for details.
+
+![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
+
 ### Circle arbitrary overworld tiles
 
 You can now middle click an overworld tile to toggle a cyan circle on that overworld spot.  Use this however you like, perhaps to remind you of a screen with easy-to-kill

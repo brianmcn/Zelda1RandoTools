@@ -1225,9 +1225,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
+    let blockersHoverEvent = new Event<bool>()
     let! dungeonTabs,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
         DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, trackerDungeonMoused, TH, rightwardCanvas, 
-                                    levelTabSelected, mainTrackerGhostbusters, showProgress, (fun level ->
+                                    levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, (fun level ->
             if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
                 routeDrawingCanvas.Children.Clear()
                 for i = 0 to 15 do
@@ -1257,7 +1258,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     do! showProgress()
 
     // blockers
-    let blockerGrid = UIComponents.MakeBlockers(cm, levelTabSelected, blockerDungeonSunglasses)
+    let blockerGrid = UIComponents.MakeBlockers(cm, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
 
     // notes    
     let tb = new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)

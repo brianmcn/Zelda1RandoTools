@@ -361,6 +361,32 @@ are compatible with your current room markup.
 
 ![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
 
+#### <a id="main-hpdc"></a> Highlight potential dungeon continuations
+
+If you are having trouble finding all the rooms in a dungeon where you lack the map, and you want a visual reminder of what has yet to be checked, you can 
+mouse-hover the BLOCKERS label from the [Blockers](#main-blockers) section to display highlights that suggest what you still need to check.  This feature 
+is similar to (but distinct from) blockers, in that it is just based on your dungeon map markup.  In either the dungeon summary tab, or in a specific 
+dungeon tab, such as this:
+
+![Dungeon potential unhighlighted](screenshots/dungeon-potential-unhighlighted.png)
+
+when you mouse-hover BLOCKERS the dungeon display adds highlights like this:
+
+![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
+
+The display highlights a few things:
+ 
+ - walls that might be bombable and lead to a new room
+ - rooms you have marked as bow/recorder blocked (using MonsterDetail, described later in Dungeon Rooms)
+ - any uncompleted Hungry Goriya Meat Block rooms
+ - rooms where you have marked a doorway to them, but have not marked that you've been in the room (typically key-blocked or ladder-blocked)
+
+You might find this feature useful when you return to a dungeon with more bombs, trying to find a bomb wall, or e.g. when you just got the recorder and want 
+to check the summary tab to see which dungeons had rooms your marked with Digdoggers.
+
+(If you already have the map of the dungeon, but are still missing a way to get to certain rooms, then it might be more useful to mouse-hover the little blue 
+bars near the bottom right corner of the dungeon tab, and compare it with the in-game mini-map.)
+
 ## <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.

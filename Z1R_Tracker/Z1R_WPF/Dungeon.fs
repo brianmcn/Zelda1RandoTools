@@ -32,6 +32,7 @@ type DoorState =
 type Door(state:DoorState, redraw) =
     let mutable state = state
     member _this.State with get() = state and set(x) = state <- x; redraw(x)
+    member _this.IsYesOrLocked = state=DoorState.YES || state=DoorState.LOCKED
 
 type GrabHelper() =
     let mutable isGrabMode = false
