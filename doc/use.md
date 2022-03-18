@@ -503,7 +503,7 @@ you purchase a bomb upgrade, you can just left-click the room to un-mark it blue
 ## <a id="main-blockers"></a> Blockers
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
-You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
+You can mark up to 3 blockers per dungeon.  The icons have these suggested meanings:
 
  - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
  - Recorder:    you are blocked by Digdogger

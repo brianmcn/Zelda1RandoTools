@@ -592,15 +592,15 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
             else
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
-                let d = new DockPanel(LastChildFill=false)
+                let d = new DockPanel(LastChildFill=true)
                 levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
-                                        TextAlignment=TextAlignment.Right, Margin=Thickness(20.,0.,6.,0.))
+                                        TextAlignment=TextAlignment.Right, Margin=Thickness(2.,0.,2.,0.))
                 sp.Children.Add(tb) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonIndex, 0)) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonIndex, 1)) |> ignore
+                for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore
                 d.Children.Add(sp) |> ignore
                 gridAdd(blockerGrid, d, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity

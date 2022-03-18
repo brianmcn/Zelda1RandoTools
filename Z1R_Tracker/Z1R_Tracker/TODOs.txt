@@ -22,8 +22,9 @@ CURRENT PRIORITIES
 update docs with changes
 update whats new with changes
 
-make a new Mouse Hover Explainer screenshot
 
+make a new Mouse Hover Explainer screenshot
+make new BLOCKERS screenshots
 (review all screenshots)
 
 
@@ -32,21 +33,11 @@ maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
 long conversation with homer about blockers
- - he wants 3 per dungeon
+ - DONE he wants 3 per dungeon
  - he thinks he wants map/book/atlas blocker of some sort, though perhaps maybe-bomb captures the same idea
  - i want to see if I can make possibly-bombable-walls have a mouse-hover target to get brighter or something on summary tab, to help you decide where
       to re-dig if you find yourself with a new atlas or a fresh stash of 12 bombs
  - (some other way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-IDEA FOR HIGHLIGHTS
- - way to show off potential blocks, using highlights/animations, either on individual tab or summary tab
- - (maybe) hovering a blocker activates that highlight, hovering 'BLOCKERS' word highlights all at once (but then how mouseover one dungeon in summary at same time)
-       - or maybe it's always on, if the animation can both make it obvious and also not create extra noise, hm
- - potential bomb spots require a lot of inputs: current rooms, adjoined rooms (pay attention to OFF), current 'vanilla map overlay', current door
- - potential other blockers are easier from full room state (e.g. is gohma bow boss marked, is this the meat room)
-
-
-UnknownAvailability wants numpad number hotkeys (need a general scancode mechanism via some escape something something)
-
 
 
 

@@ -1171,12 +1171,12 @@ type CombatUnblockerDetail =
     | BETTER_ARMOR
     | WAND
 type DungeonBlockersContainer() =
-    static let MAX_BLOCKERS_PER_DUNGEON = 2
-    static let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+    static let dungeonBlockers = Array2D.create 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
     static let changed = new Event<unit>()
     static member AnyBlockerChanged = changed.Publish
     static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
     static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
+    static member MAX_BLOCKERS_PER_DUNGEON = 3
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1493,7 +1493,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             if combatUnblockerOrigins.Count = 1 && combatUnblockerOrigins.[0] = i then
                 () // do nothing, they're already in the dungeon we'd be reminding them to go to
             else
-                if DungeonBlockersContainer.GetDungeonBlocker(i,0) = DungeonBlocker.COMBAT || DungeonBlockersContainer.GetDungeonBlocker(i,1) = DungeonBlocker.COMBAT then
+                let mutable anyCombatBlocker = false
+                for j = 0 to DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    if DungeonBlockersContainer.GetDungeonBlocker(i,j) = DungeonBlocker.COMBAT then
+                        anyCombatBlocker <- true
+                if anyCombatBlocker then
                     if not(GetDungeon(i).IsComplete) then
                         dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1506,7 +1510,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
             if i <> fromDungeon then
-                if DungeonBlockersContainer.GetDungeonBlocker(i,0).HardCanonical() = db.HardCanonical() || DungeonBlockersContainer.GetDungeonBlocker(i,1).HardCanonical() = db.HardCanonical() then
+                let mutable anyMatchingBlocker = false
+                for j = 0 to DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    if DungeonBlockersContainer.GetDungeonBlocker(i,j).HardCanonical() = db.HardCanonical() then
+                        anyMatchingBlocker <- true
+                if anyMatchingBlocker then
                     if not(GetDungeon(i).IsComplete) then
                         dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then

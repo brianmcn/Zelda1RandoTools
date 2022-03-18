@@ -237,7 +237,14 @@ let SaveBlockers(prefix) =
     let lines = ResizeArray()
     lines.Add(""""Blockers": [""")
     for i = 0 to 7 do
-        lines.Add(sprintf """    [ "%s", "%s" ]%s""" (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,0).AsHotKeyName()) (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,1).AsHotKeyName()) (if i<>7 then "," else ""))
+        let mutable s = ""
+        for j = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+            s <- s + "\"" + TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,j).AsHotKeyName() + "\""
+            if j < TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 then
+                s <- s + ", "
+            else
+                s <- s + " "
+        lines.Add(sprintf """    [ %s]%s""" s (if i<>7 then "," else ""))
     lines.Add("""],""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
