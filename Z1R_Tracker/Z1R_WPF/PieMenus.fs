@@ -11,7 +11,8 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
     let wh = new System.Threading.ManualResetEvent(false)
     let c = new Canvas(IsHitTestVisible=true)
     let MARGIN = 10.
-    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-2.*MARGIN, Height=h, Background=Brushes.Black, Opacity=0.01)
+    let w = 16.*OMTW-2.*MARGIN
+    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=w, Height=h, Background=Brushes.Black, Opacity=0.01)
     c.Children.Add(someDrawnPixelToSeeMouseMoves) |> ignore
     let ps = ResizeArray()
     let mutable leftPanel,topPanel,rightPanel,bottomPanel = None,None,None,None
@@ -34,7 +35,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         for f in selfCleanupFuncs do f()
     let targetBrush = Brushes.Gray
     let innerH = h - 2.*(let b,_,_ = bordersDocksBehaviors.[0] in b.Height)
-    let g = new Grid(Width=16.*OMTW-2.*MARGIN, Height=h)
+    let g = new Grid(Width=w, Height=h)
     let circle = new Shapes.Ellipse(Width=innerH/1.5, Height=innerH/1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     g.Children.Add(circle) |> ignore
     let outerCircle = new Shapes.Ellipse(Width=innerH*1.5, Height=innerH*1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
@@ -130,7 +131,10 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         )
     Graphics.WarpMouseCursorTo(center)
     do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly
-    do! CustomComboBoxes.DoModal(cm, wh, 0., 0., c)
+    let tb = new TextBox(Text="Indicate which option you chose", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=16., IsHitTestVisible=false,
+                            BorderThickness=Thickness(1.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+    canvasAdd(c, tb, 270., -15.)
+    do! CustomComboBoxes.DoModal(cm, wh, 0., 16., c)
     onCloseOrDismiss()
     }
 
