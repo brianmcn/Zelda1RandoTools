@@ -37,6 +37,25 @@ put some kind of screenshot on the TOC page, so it can be a first landing page l
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
+
+
+ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
+
+> optional boxes or places to note consecutive, global, and recorder counts
+
+thinking about this again (especially now that I know how global works, and how to use it)
+I was kinda imagining a "+1 hotkey" would be the easiest interaction, but +1/-1 buttons near the counter could also work, or even a way to 'set' the current one by clicking on a row of 0-9 buttons
+
+for recorder, since it knows what tris you have, I was similarly thinking some kinda of +1/-1 interface and then like some highlight box moves over the appropriate tri up top maybe?
+
+still hard for me to imagine anyone tracking consecutive kills in a way other than counting aloud (edited)
+[1:20 PM] homerjsmash: for me i wouldn't increment it with each kill, more like i'm building a count on death mountain and then i have three screens of boulders and peahats, ok good enemies I can kill again.. was i on 5 or 6? lol
+[1:27 PM] Lorgon111: I see, oh interesting, ok
+
+
+
+
+
 long conversation with homer about blockers
  - DONE he wants 3 per dungeon
  - he thinks he wants map/book/atlas blocker of some sort, though perhaps maybe-bomb captures the same idea
@@ -334,8 +353,6 @@ Speech recogn – can multiple be running at once? Different grammars, context b
 select item box via voice?  select dungeon room via voice?
 
 other possible hotkey stuff?  (start/stop timer, got mags, ... ?)  other possible keys (shift/ctrl, thumb button, gamepad, remap left/right click in various contexts, ...?)
-
-ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
 
 broadcast window doesnt capture drag-drop mouse movement
 
