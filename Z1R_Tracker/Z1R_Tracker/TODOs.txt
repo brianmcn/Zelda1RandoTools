@@ -32,10 +32,6 @@ make new take-any-heart screenshot
 on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out?
 
 
-make a bomb dropper table (or full table) for show run custom (or link friendly url)
- - https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table
-
-
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
