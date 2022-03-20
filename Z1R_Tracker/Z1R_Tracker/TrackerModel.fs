@@ -1303,6 +1303,7 @@ type TriforceAndGoSummary() =
     // Note: we're just going to assume the player has a sword (or wand in swordless), let's not go nuts with advanced flags and/or unlikely no-sword-but-all-items situations
     let haveBow = playerComputedStateSummary.HaveBow
     let haveSilvers = playerComputedStateSummary.ArrowLevel=2
+    let silversKnownToBeInLevel9 = GetDungeon(8).Boxes.[0].CellCurrent()=ITEMS.SILVERARROW || GetDungeon(8).Boxes.[1].CellCurrent()=ITEMS.SILVERARROW
     let haveLadder = playerComputedStateSummary.HaveLadder
     let haveRecorder = playerComputedStateSummary.HaveLadder
     let unreachableCount = unreachablePossibleDungeonSpotCount()
@@ -1326,12 +1327,13 @@ type TriforceAndGoSummary() =
             //printfn "score: %d" score
             if score < 0 then 0 else score
         // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without being able to locate them all  
+        let knowSilvers = haveSilvers || silversKnownToBeInLevel9
         if missingDungeonCount=0 || unreachableCount=0 then 
-            if haveBow && haveSilvers && haveLadder && haveRecorder then
+            if haveBow && knowSilvers && haveLadder && haveRecorder then
                 103
-            elif haveBow && haveSilvers && haveLadder then
+            elif haveBow && knowSilvers && haveLadder then
                 102
-            elif haveBow && haveSilvers then
+            elif haveBow && knowSilvers then
                 101
             else
                 compute()
@@ -1340,6 +1342,7 @@ type TriforceAndGoSummary() =
     member _this.Level = tagLevel  // 103 TAG, 102 probably-TAG, 101 might-be-TAG, 1-100 see features below, 0 not worth reporting
     member _this.HaveBow = haveBow
     member _this.HaveSilvers = haveSilvers
+    member _this.SilversKnownToBeInLevel9 = silversKnownToBeInLevel9
     member _this.HaveLadder = haveLadder
     member _this.HaveRecorder = haveRecorder
     member _this.MissingDungeonCount = missingDungeonCount

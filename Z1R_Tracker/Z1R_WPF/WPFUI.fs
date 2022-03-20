@@ -1067,7 +1067,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         yield upcb(Graphics.greyscale Graphics.genericDungeonInterior_bmp)
                     if not tagSummary.HaveBow then
                         yield upcb(Graphics.greyscale Graphics.bow_bmp)
-                    if not tagSummary.HaveSilvers then
+                    if not tagSummary.HaveSilvers && not tagSummary.SilversKnownToBeInLevel9 then
                         yield upcb(Graphics.greyscale Graphics.silver_arrow_bmp)
                     ]
                 let triforceAndGoIcons = [
@@ -1077,14 +1077,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         for _i = 1 to (8-triforceCount) do
                             yield upcb(Graphics.greyTriforce_bmp)
                     yield upcb(Graphics.iconRightArrow_bmp)
+                    if not tagSummary.HaveSilvers && tagSummary.SilversKnownToBeInLevel9 then
+                        yield upcb(Graphics.greyscale Graphics.silver_arrow_bmp)
                     yield upcb(Graphics.ganon_bmp)
                     ]
                 let icons = [yield! needSomeThingsicons; yield! triforceAndGoIcons]
                 let go = if triforceCount=8 then "go time" else "triforce and go"
+                let silverDisclaimer = if not tagSummary.HaveSilvers && tagSummary.SilversKnownToBeInLevel9 then ", but you will need the silver arrows from 9" else ""
                 match tagSummary.Level with
-                | 101 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You might be "+go, icons)
-                | 102 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are probably "+go, icons)
-                | 103 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are "+go, icons)
+                | 101 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You might be "+go+silverDisclaimer, icons)
+                | 102 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are probably "+go+silverDisclaimer, icons)
+                | 103 -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You are "+go+silverDisclaimer, icons)
                 | 0 -> ()
                 | _ -> SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, (sprintf "You need %s to be " (if needSomeThingsicons.Length>1 then "some things" else "something"))+go, icons)
             member _this.RemindUnblock(blockerType, dungeons, detail) =

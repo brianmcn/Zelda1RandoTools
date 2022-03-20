@@ -55,7 +55,7 @@ let AllDungeonRoomNames = [|
         yield "DungeonRoom_" + x.AsHotKeyName()
     |]
 
-
+// Note to self; NumPad . and + are called Decimal and Add, not OemPeriod or OemPlus.  NumPad 'enter' is not supported, sadly.
 let MakeDefaultHotKeyFile(filename:string) =
     let lines = ResizeArray()
     (sprintf """# %s HotKeys

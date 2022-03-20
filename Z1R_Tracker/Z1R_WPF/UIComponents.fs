@@ -456,7 +456,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                         "Sail across the water...", "Raft required to reach a place"
                         "Play a melody...", "Either an overworld recorder spot, or a\nDigdogger in a dungeon logically blocks..."
                         "Fire the arrow...", "In a dungeon, Gohma logically blocks..."
-                        "Cross the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
+                        "Step over the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
                         |] do
                         let dp = new DockPanel(LastChildFill=true)
                         let d = makeHintText(desc)
