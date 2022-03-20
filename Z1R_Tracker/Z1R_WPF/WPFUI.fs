@@ -1261,21 +1261,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let blockerGrid = UIComponents.MakeBlockers(cm, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
 
     // notes    
-    let tb = new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height)
-    notesTextBox <- tb
-    tb.FontSize <- 24.
-    tb.Foreground <- System.Windows.Media.Brushes.LimeGreen 
-    tb.Background <- System.Windows.Media.Brushes.Black 
+    notesTextBox <- new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height,
+                            FontSize=20., Foreground=Brushes.LimeGreen , Background=Brushes.Black, AcceptsReturn=true)
     let notesFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Notes.txt")
     if not(System.IO.File.Exists(notesFilename)) then
-        tb.Text <- "Notes\n"
+        notesTextBox.Text <- "Notes\n"
     else
-        tb.Text <- System.IO.File.ReadAllText(notesFilename)
-    tb.AcceptsReturn <- true
-    canvasAdd(appMainCanvas, tb, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+        notesTextBox.Text <- System.IO.File.ReadAllText(notesFilename)
+    canvasAdd(appMainCanvas, notesTextBox, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
     grabModeTextBlock.Opacity <- 0.
-    grabModeTextBlock.Width <- tb.Width
+    grabModeTextBlock.Width <- notesTextBox.Width
     canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
 
     canvasAdd(appMainCanvas, rightwardCanvas, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H)  // extra place for dungeonTabs to draw atop blockers/notes

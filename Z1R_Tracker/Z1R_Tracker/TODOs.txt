@@ -25,6 +25,7 @@ update whats new with changes
 
 make a new Mouse Hover Explainer screenshot
 make new BLOCKERS screenshots
+make new take-any-heart screenshot
 (review all screenshots)
 
 
