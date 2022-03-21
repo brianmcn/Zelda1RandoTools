@@ -105,8 +105,9 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
         // rooms with blockers
         for i = 0 to 7 do
             for j = 0 to 7 do
-                // blocked by bow/recorder
+                // blocked by bow/recorder/bomb
                 if roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Bow ||
+                    roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Dodongo ||
                     roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Digdogger then  
                     // Note: even if room is 'complete', still considers blocker because e.g. standing Key, gohma, shutter
                     roomHighlights.[i,j].Opacity <- 1.0

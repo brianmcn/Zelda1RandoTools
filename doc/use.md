@@ -377,7 +377,7 @@ when you mouse-hover BLOCKERS, the dungeon display adds highlights like this:
 The display highlights a few things:
  
  - walls that might be bombable and lead to a new room
- - rooms you have marked as bow/recorder blocked (using MonsterDetail, described later in Dungeon Rooms)
+ - rooms you have marked as bow/recorder/bomb blocked due to bosses (using MonsterDetail, described later in Dungeon Rooms)
  - any uncompleted Hungry Goriya Meat Block rooms
  - rooms where you have marked a doorway to them, but have not marked that you've been in the room (typically key-blocked or ladder-blocked)
 
