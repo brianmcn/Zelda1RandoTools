@@ -8,25 +8,67 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+let allWithinOneScreen(w:Window) =
+    let resHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height  // e.g. 1440 pixels
+    let actualHeight = SystemParameters.PrimaryScreenHeight  // e.g. 960 units
+    let scale = float resHeight / actualHeight  // e.g.   1.5 
+
+    //printfn "Broadcast LTWHS: %f %f %f %f %f" w.Left w.Top w.Width w.Height scale
+    // for whatever reason, this FUDGE is needed to be accurate
+    let W_FUDGE = 8
+    let H_FUDGE = 10
+    let rect = new System.Drawing.Rectangle(int(w.Left * scale), int(w.Top * scale), int(w.Width * scale) - W_FUDGE, int(w.Height * scale) - H_FUDGE)
+
+    let screens = System.Windows.Forms.Screen.AllScreens
+    let mutable ok = false
+    for s in screens do
+        //printfn "Screen LTWH: %d %d %d %d" s.WorkingArea.Left s.WorkingArea.Top s.WorkingArea.Width s.WorkingArea.Height
+        if s.WorkingArea.Contains(rect) then
+            //printfn "ok on that screen"
+            ok <- true
+        else
+            //printfn "not ok on that screen"
+            ()
+    ok
+
 let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dungeonTabsOverlayContent:Canvas, refocusMainWindow) =
     let appMainCanvas = cm.AppMainCanvas
     let makeBroadcastWindow(size, showOverworldMagnifier) =
         let W = 768.
+        let scaleSize = if size=1 then 256. elif size=2 then 512. else 768.
         let broadcastWindow = new Window()
         broadcastWindow.Title <- "Z-Tracker broadcast"
         broadcastWindow.ResizeMode <- ResizeMode.NoResize
         broadcastWindow.SizeToContent <- SizeToContent.Manual
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+
+        let topBar = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center, 
+                                        Background=new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy)), Width=scaleSize, Opacity=0.0)
+        let tb = new TextBox(Text="The broadcast window is at least partially off-screen.  Streaming software like OBS cannot capture display updates to off-screen windows.  " +
+                                    "Re-position this window so that it is entirely within the bounds of a screen.  It is ok for this window to be BEHIND another window, " +
+                                    "such as behind the main Z-Tracker application window.  See the Z-Tracker documentation for details.",
+                                    Foreground=Brushes.White, Background=Brushes.Transparent, 
+                                    IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=14., VerticalAlignment=VerticalAlignment.Center, TextWrapping=TextWrapping.Wrap)
+        topBar.Children.Add(tb) |> ignore
+        let updateTopBar() =
+            if allWithinOneScreen(broadcastWindow) then
+                topBar.Opacity <- 0.0
+            else
+                topBar.Opacity <- 1.0
+
         let leftTop = TrackerModel.Options.BroadcastWindowLT
         let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
         if matches.Success then
             broadcastWindow.Left <- float matches.Groups.[1].Value
             broadcastWindow.Top <- float matches.Groups.[2].Value
+
+        broadcastWindow.Loaded.Add(fun _ -> updateTopBar())
         broadcastWindow.LocationChanged.Add(fun _ ->
+            updateTopBar()
             TrackerModel.Options.BroadcastWindowLT <- sprintf "%d,%d" (int broadcastWindow.Left) (int broadcastWindow.Top)
             TrackerModel.Options.writeSettings()
             )
-        broadcastWindow.Width <- (if size=1 then 256. elif size=2 then 512. else 768.) + 16.
+        broadcastWindow.Width <- scaleSize + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
 
@@ -127,7 +169,10 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
             let trans = new ScaleTransform(factor, factor)
             dp.LayoutTransform <- trans
             broadcastWindow.Height <- H*factor + 40.
-        broadcastWindow.Content <- dp
+        let c = new Canvas()
+        c.Children.Add(dp) |> ignore
+        c.Children.Add(topBar) |> ignore
+        broadcastWindow.Content <- c
         
         let mutable isUpper = true
         cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups

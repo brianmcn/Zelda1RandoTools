@@ -32,11 +32,17 @@ make new take-any-heart screenshot
 on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out?
 
 
+investigate broadcast window performance
+
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
+
+showing stair-items versus floor items (not using white highlight, maybe watermark in the empty box? ask homer if look distracting and need option to turn off. 
+          how work on HDN? hmmmm probably not do? you may mark before know...  maybe a preset-load with white boxes is better for non-HDN? hm... but if the
+          point is to help noobs, it should be on by default for non-HDN...)
 
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
@@ -52,8 +58,22 @@ still hard for me to imagine anyone tracking consecutive kills in a way other th
 [1:20 PM] homerjsmash: for me i wouldn't increment it with each kill, more like i'm building a count on death mountain and then i have three screens of boulders and peahats, ok good enemies I can kill again.. was i on 5 or 6? lol
 [1:27 PM] Lorgon111: I see, oh interesting, ok
 
+(from bogie's discord)
+I presume you mean e.g. https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table and highlighting the current (next) row?
+Would you map keyboard keys or controller buttons?  Is '+1' the only one you'd map?
+Does the global do anything funky on a 16-fairy? (If so I guess players just manually reset it?)
+I've been asked about this for Z-Tracker as well, but have only very recently learned how globals work to even think of implementing it.
+[12:54 PM] Lorgon111: Was thinking it might make sense to just make a standalone app for this, with a few display options like:
+ - show enemy groups (or not)
+ - show all drop columns (or just the bomb-droppers one)
+ - just show the counter 0-9 (and nothing else)
+ - always on top (yes/no) (in case you want to place it over the edge of some other window)
 
 
+
+[7:20 PM] homerjsmash: not sure if you know this already or if this was the intention but the hotkeys for the ws, armos, coast items do not work in the box that is closer to the map, only the top box
+[10:54 PM] Lorgon111: cannot reproduce, but i do notice that WS/armos accelerate you into the right-click-a-box popup, and hotkeys dont work there... hmm, will consider that.  but e.g. coast you can just hover and hotkey
+[10:57 PM] homerjsmash: I'll have to try on stream. I know for me the white sword item that was the case, maybe coast wasn't and u just assumed
 
 
 long conversation with homer about blockers
@@ -381,10 +401,16 @@ Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
 
 
 
+regarding overworld magnifier:
+jkoper: An interesting application of this zoomed grid, Lorgon, might be if you're playing with shuffle secret spots on and you can mark off spots you tried bombing or burning.
+
+
+
+
 check for memory leaks
 startup performance
 https://github.com/microsoft/perfview
-
+-OR- turn off tail calls and use VS profiler
 
 
 BIG
