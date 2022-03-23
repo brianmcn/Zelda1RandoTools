@@ -51,6 +51,7 @@ module Options =
     let mutable PlaySoundWhenUseSpeech = Bool(true)
     let mutable BOARDInsteadOfLEVEL = Bool(false)
     let mutable IsSecondQuestDungeons = Bool(false)
+    let mutable ShowBasementInfo = Bool(true)
     let mutable DoDoorInference = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
@@ -94,6 +95,7 @@ module Options =
         member val PlaySoundWhenUseSpeech = true with get,set
         member val BOARDInsteadOfLEVEL = false with get,set
         member val IsSecondQuestDungeons = false with get,set
+        member val ShowBasementInfo = true with get,set
         member val DoDoorInference = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
@@ -140,6 +142,7 @@ module Options =
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
         data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
+        data.ShowBasementInfo <- ShowBasementInfo.Value
         data.DoDoorInference <- DoDoorInference.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
@@ -198,6 +201,7 @@ module Options =
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
             BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
+            ShowBasementInfo.Value <- data.ShowBasementInfo
             DoDoorInference.Value <- data.DoDoorInference
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
@@ -689,13 +693,20 @@ type PlayerHas =
     member this.AsInt() = match this with | PlayerHas.NO -> 0 | PlayerHas.YES -> 1 | PlayerHas.SKIPPED -> 2
     static member FromInt(x) = if x=0 then PlayerHas.NO elif x=1 then PlayerHas.YES elif x=2 then PlayerHas.SKIPPED else failwith "bad PlayerHas value"
 
-type Box() =
+[<RequireQualifiedAccess>]
+type StairKind = // does this box represent a dungeon basement item? we only both with this for display purposes in non-hidden-dungeon-numbers
+    | Never
+    | Always
+    | LikeL2  // 2nd box of 2 is basement in 2nd quest
+    | LikeL3  // 2nd box of 3 is a basement in 1st quest
+type Box(stair:StairKind) =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
     let mutable playerHas = PlayerHas.NO
     let changed = new Event<_>()
     member _this.Changed = changed.Publish
     member _this.PlayerHas() = playerHas
+    member _this.Stair = stair
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
@@ -726,9 +737,9 @@ type Box() =
         changed.Trigger()
     member _this.IsDone() = cell.Current() <> -1 && playerHas <> PlayerHas.NO   // the player knows the item here and has gotten or intentionally skipped it
 
-let ladderBox = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let armosBox  = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let sword2Box = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let ladderBox = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let armosBox  = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let sword2Box = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
 
 [<RequireQualifiedAccess>]
 type DungeonTrackerInstanceKind =
@@ -737,8 +748,8 @@ type DungeonTrackerInstanceKind =
 
 type DungeonTrackerInstance(kind) =
     static let mutable theInstance = None
-    let finalBoxOf1Or4 = new Box()  // only relevant in DEFAULT
-    let dungeons = 
+    let finalBoxOf1Or4 = new Box(StairKind.Always)  // only relevant in DEFAULT
+    let makeDungeons() = 
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> [| 
             for i = 0 to 7 do 
@@ -756,15 +767,20 @@ type DungeonTrackerInstance(kind) =
             new Dungeon(7, 3)
             new Dungeon(8, 2)
             |]
+    let mutable dungeons = null
+    let getDungeons() =
+        if dungeons = null then
+            dungeons <- makeDungeons()
+        dungeons
     member _this.Kind = kind
-    member _this.Dungeons(i) = dungeons.[i]
+    member _this.Dungeons(i) = getDungeons().[i]
     member _this.FinalBoxOf1Or4 =
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> failwith "FinalBoxOf1Or4 does not exist in HIDE_DUNGEON_NUMBERS"
         | DungeonTrackerInstanceKind.DEFAULT -> finalBoxOf1Or4
     member _this.AllBoxes() =
         [|
-        for d in dungeons do
+        for d in getDungeons() do
             yield! d.Boxes
         yield ladderBox
         yield armosBox
@@ -777,7 +793,19 @@ type DungeonTrackerInstance(kind) =
 
 and Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
-    let boxes = Array.init numBoxes (fun _ -> new Box())
+    let boxes = Array.init numBoxes (fun j -> 
+        if DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS then
+            new Box(StairKind.Never)
+        else
+            if id=8 || (j=1 && not(id=0 || id=1 || id=2)) || j=2 then
+                new Box(StairKind.Always)
+            elif j=1 && id=1 then
+                new Box(StairKind.LikeL2)
+            elif j=1 && id=2 then
+                new Box(StairKind.LikeL3)
+            else
+                new Box(StairKind.Never)
+        )
     let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
     let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
     let hiddenDungeonColorLabelChangeEvent = new Event<_>()

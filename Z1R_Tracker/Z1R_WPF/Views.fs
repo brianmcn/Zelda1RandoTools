@@ -150,6 +150,22 @@ TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
     )
 let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOver) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+    if box.Stair <> TrackerModel.StairKind.Never then
+        let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
+        match box.Stair with
+        | TrackerModel.StairKind.LikeL2 ->
+            let update() = stairImg.Opacity <- if TrackerModel.Options.IsSecondQuestDungeons.Value && TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+        | TrackerModel.StairKind.LikeL3 ->
+            let update() = stairImg.Opacity <- if not(TrackerModel.Options.IsSecondQuestDungeons.Value) && TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+        | TrackerModel.StairKind.Always ->
+            let update() = stairImg.Opacity <- if TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+        | _ -> ()
+        canvasAdd(c, stairImg, 3., 3.)
     let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
     c.Children.Add(rect) |> ignore
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -159,6 +175,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         innerc.Children.Clear()
         let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
         if bmp <> null then
+            canvasAdd(innerc, new Canvas(Background=Brushes.Black, Width=21., Height=21.), 3., 3.)  // cover up any stair drawing
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
                 let image = Graphics.BMPtoImage(Graphics.greyscale bmp)  //Graphics.desaturate(bmp,0.99))
                 canvasAdd(innerc, image, 4., 4.)

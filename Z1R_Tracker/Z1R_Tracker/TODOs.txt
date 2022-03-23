@@ -40,10 +40,6 @@ put some kind of screenshot on the TOC page, so it can be a first landing page l
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
-showing stair-items versus floor items (not using white highlight, maybe watermark in the empty box? ask homer if look distracting and need option to turn off. 
-          how work on HDN? hmmmm probably not do? you may mark before know...  maybe a preset-load with white boxes is better for non-HDN? hm... but if the
-          point is to help noobs, it should be on by default for non-HDN...)
-
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
 

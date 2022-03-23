@@ -11,6 +11,7 @@ let mutable gamepadFailedToInitialize = false
 let broadcastWindowOptionChanged = new Event<unit>()
 let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
+let showBasementInfoOptionChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
     let effect() = 
@@ -31,7 +32,8 @@ let data1o = [|
 
 let data1d = [|
     "BOARD instead of LEVEL", "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N", TrackerModel.Options.BOARDInsteadOfLEVEL, false, BOARDInsteadOfLEVELOptionChanged.Trigger
-    "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
+    "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
+    "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as basement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
     "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModel.Options.DoDoorInference, false, fun()->()
     |]
 

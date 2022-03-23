@@ -102,8 +102,8 @@
     <Compile Include="PieMenus.fs" />
     <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />
-    <Compile Include="Views.fs" />
     <Compile Include="OptionsMenu.fs" />
+    <Compile Include="Views.fs" />
     <Compile Include="DungeonSaveAndLoad.fs" />
     <Compile Include="DungeonHighlightsUI.fs" />
     <Compile Include="DungeonUI.fs" />
