@@ -30,40 +30,13 @@ make new take-any-heart screenshot
 
 
 
-on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out?
-
-
-investigate broadcast window performance
+on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out? a 'found' checkmark?
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
-
-ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
-
-> optional boxes or places to note consecutive, global, and recorder counts
-
-thinking about this again (especially now that I know how global works, and how to use it)
-I was kinda imagining a "+1 hotkey" would be the easiest interaction, but +1/-1 buttons near the counter could also work, or even a way to 'set' the current one by clicking on a row of 0-9 buttons
-
-for recorder, since it knows what tris you have, I was similarly thinking some kinda of +1/-1 interface and then like some highlight box moves over the appropriate tri up top maybe?
-
-still hard for me to imagine anyone tracking consecutive kills in a way other than counting aloud (edited)
-[1:20 PM] homerjsmash: for me i wouldn't increment it with each kill, more like i'm building a count on death mountain and then i have three screens of boulders and peahats, ok good enemies I can kill again.. was i on 5 or 6? lol
-[1:27 PM] Lorgon111: I see, oh interesting, ok
-
-(from bogie's discord)
-I presume you mean e.g. https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table and highlighting the current (next) row?
-Would you map keyboard keys or controller buttons?  Is '+1' the only one you'd map?
-Does the global do anything funky on a 16-fairy? (If so I guess players just manually reset it?)
-I've been asked about this for Z-Tracker as well, but have only very recently learned how globals work to even think of implementing it.
-[12:54 PM] Lorgon111: Was thinking it might make sense to just make a standalone app for this, with a few display options like:
- - show enemy groups (or not)
- - show all drop columns (or just the bomb-droppers one)
- - just show the counter 0-9 (and nothing else)
- - always on top (yes/no) (in case you want to place it over the edge of some other window)
 
 
 
@@ -227,6 +200,32 @@ save state
  
 
 SMALL
+
+ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
+
+> optional boxes or places to note consecutive, global, and recorder counts
+
+thinking about this again (especially now that I know how global works, and how to use it)
+I was kinda imagining a "+1 hotkey" would be the easiest interaction, but +1/-1 buttons near the counter could also work, or even a way to 'set' the current one by clicking on a row of 0-9 buttons
+
+for recorder, since it knows what tris you have, I was similarly thinking some kinda of +1/-1 interface and then like some highlight box moves over the appropriate tri up top maybe?
+
+still hard for me to imagine anyone tracking consecutive kills in a way other than counting aloud (edited)
+[1:20 PM] homerjsmash: for me i wouldn't increment it with each kill, more like i'm building a count on death mountain and then i have three screens of boulders and peahats, ok good enemies I can kill again.. was i on 5 or 6? lol
+[1:27 PM] Lorgon111: I see, oh interesting, ok
+
+(from bogie's discord)
+I presume you mean e.g. https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table and highlighting the current (next) row?
+Would you map keyboard keys or controller buttons?  Is '+1' the only one you'd map?
+Does the global do anything funky on a 16-fairy? (If so I guess players just manually reset it?)
+I've been asked about this for Z-Tracker as well, but have only very recently learned how globals work to even think of implementing it.
+[12:54 PM] Lorgon111: Was thinking it might make sense to just make a standalone app for this, with a few display options like:
+ - show enemy groups (or not)
+ - show all drop columns (or just the bomb-droppers one)
+ - just show the counter 0-9 (and nothing else)
+ - always on top (yes/no) (in case you want to place it over the edge of some other window)
+
+
 
 clyceer: wants to drag in grab mode, rather than click-click
 

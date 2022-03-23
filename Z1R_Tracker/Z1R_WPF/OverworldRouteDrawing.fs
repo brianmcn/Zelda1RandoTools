@@ -27,6 +27,12 @@ let makeLine(v1,v2,color) =
 
 let MaxGYR = 12 // default
 let All = 128
+let color1 = new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy))
+let color2 = new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy))
+let color3 = new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy))
+let color4 = new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
+let color5 = new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
+let color6 = new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
 let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
@@ -41,12 +47,12 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
         let goal = Vertex(-1,-1,FULL) // non-existent goal will map all reachable locations
         let color(cost) =
             // white path that is bright near the cursor, but opacity falls off quickly as you get more cost-distance away
-            //if   cost <=  4 then new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy))   // too bright
-            if   cost <=  8 then new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy))
-            elif cost <= 14 then new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy))
-            elif cost <= 22 then new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
-            elif cost <= 30 then new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
-            else                 new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
+            //if   cost <=  4 then color1   // too bright
+            if   cost <=  8 then color2
+            elif cost <= 14 then color3
+            elif cost <= 22 then color4
+            elif cost <= 30 then color5
+            else                 color6
         let d = findAllBestPaths(adjacencyDict, v, goal)
         let visited = new System.Collections.Generic.HashSet<_>()
         let accumulatedLines = ResizeArray()
