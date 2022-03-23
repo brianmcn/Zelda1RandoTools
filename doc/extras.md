@@ -1,4 +1,4 @@
-# HotKeys and extra windows
+# HotKeys, save state, and extra windows
 
 Contents of this document:
 
@@ -12,9 +12,11 @@ Contents of this document:
 
 You can bind hotkeys (any keyboard keys) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
 
-There are four mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers), and [dungeon rooms](use.md#main-dr).  
-So for example 'b' could be set up to mean 'bow' when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 
-'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.
+There are five mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers),
+[dungeon rooms](use.md#main-dr), and a 'global' context, used both for toggling the boxes in the [other item area](use.md#main-oia) and for switching dungeon
+tabs via a hotkey.  The non-global contexts can each map the same keys, so for example 'b' could be set up to mean 'bow' when the mouse is over an item box,
+'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon
+room.  Any hotkeys in the global context must be unique (not bound in any other context).
 
 While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide ways to display your current hotkey
 information.  First, each popup menu will display any hotkeys that have been bound, alongside the description in the mouseover popup:
@@ -28,8 +30,9 @@ off-screen, you can right-click the 'Show HotKeys' button to re-position and re-
 
 ![screenshot](screenshots/hotkey-cheat-sheet-example.png)
 
-Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window to ensure that window 
-has focus, and then try again to mouse hover an empty item/overworld/blocker/dungeon box and press a keyboard hotkey.
+Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window (other than inside
+the [Notes text box](use.md#main-notes)) to ensure that window has focus, and then try again to mouse hover an empty item/overworld/blocker/dungeon box and press
+a keyboard hotkey.
 
 Hotkeys have some 'smarts' in addition to just 'setting the state you pressed':
 

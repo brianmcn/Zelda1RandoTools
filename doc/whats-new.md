@@ -97,19 +97,21 @@ Now there is third option of 5/6 size; furthermore, by manually editting the jso
 You might sometimes accidentally click/hotkey an overworld tile or dungeon room that you didn't mean to change, and you might not notice/see which tile you just changed.  There is now an option to 
 "Animate tile changes" in the Options Menu which causes a brief highlight animation over the most-recently-changed overworld tile or dungeon room.
 
-### HotKey reminders
+### HotKey improvements
 
 Now most popup menus will remind you of HotKeys you have mapped in the descriptions of the corresponding items.  This is useful for the scenario where you know that you mapped a HotKey for
 a certain item, but you forget what you set it to.  
 
 ![HotKey reminder](screenshots/hotkey-reminder.png)
 
+Also, you can now map 'global' hotkeys to toggle items in the upper right of the tracker (e.g. wood arrow, bomb, zelda), or to switch among the 10 dungeon tabs.
+Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKeys](extras.md#hotkeys) for details.
+
 ### A number of minor fixes and changes
 
  - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're in dungeon X already
- - hotkeys can now be bound to any keyboard key, see [HotKeys](extras.md#hotkeys) for details
  - you can now mark up to 3 Blockers per dungeon
  - made dungeon LEVEL/BOARD header use Zelda font
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details

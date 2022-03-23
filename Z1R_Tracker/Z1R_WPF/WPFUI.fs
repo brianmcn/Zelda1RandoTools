@@ -1769,6 +1769,34 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 ()
         )
         timer.Start()
+
+    appMainCanvas.MyKeyAdd(fun ea ->
+        match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+        | Some(hotKeyedState) -> 
+            ea.Handled <- true
+            match hotKeyedState with
+            | HotKeys.GlobalHotkeyTargets.ToggleMagicalSword -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleWoodSword    -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleBoomBook     -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleBlueCandle   -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleWoodArrow    -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleBlueRing     -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleBombs        -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleGannon       -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon.Toggle()
+            | HotKeys.GlobalHotkeyTargets.ToggleZelda        -> TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Toggle()
+            | HotKeys.GlobalHotkeyTargets.DungeonTab1        -> selectDungeonTabEvent.Trigger(0)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab2        -> selectDungeonTabEvent.Trigger(1)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab3        -> selectDungeonTabEvent.Trigger(2)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab4        -> selectDungeonTabEvent.Trigger(3)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab5        -> selectDungeonTabEvent.Trigger(4)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab6        -> selectDungeonTabEvent.Trigger(5)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab7        -> selectDungeonTabEvent.Trigger(6)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab8        -> selectDungeonTabEvent.Trigger(7)
+            | HotKeys.GlobalHotkeyTargets.DungeonTab9        -> selectDungeonTabEvent.Trigger(8)
+            | HotKeys.GlobalHotkeyTargets.DungeonTabS        -> selectDungeonTabEvent.Trigger(9)
+        | None -> ()
+    )
+
     return drawTimeline
     }
 

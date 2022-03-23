@@ -7,7 +7,7 @@ Here are the main documentation sections for Z-Tracker v1.1.
 - Using Z-Tracker
    - [Startup Options](startup-options.md)
    - [Main gameplay features](use.md)
-   - [HotKeys and extra windows](extras.md)
+   - [HotKeys, save state, and extra windows](extras.md)
 - [Stream-Capturing Z-Tracker with OBS](stream-capture.md)
 - Version History
    - v1.2 (under development) feature update ([see what's new in 1.2](whats-new.md#v1.2))

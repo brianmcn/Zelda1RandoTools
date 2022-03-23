@@ -19,11 +19,11 @@ module MyKey =
 
 open MyKey
 
-let InitializeWindow(w:Window) =
+let InitializeWindow(w:Window, notesTextBox:System.Windows.Controls.TextBox) =
     w.Focusable <- true
     w.PreviewKeyDown.Add(fun ea ->
         let x = Input.Mouse.DirectlyOver
-        if x <> null then
+        if x <> null && not(notesTextBox.IsKeyboardFocused) then
             let ea = new MyKeyRoutedEventArgs(ea.Key)
             x.RaiseEvent(ea)
         )
@@ -54,6 +54,97 @@ let AllDungeonRoomNames = [|
     for x in DungeonRoomState.FloorDropDetail.All() do
         yield "DungeonRoom_" + x.AsHotKeyName()
     |]
+
+[<RequireQualifiedAccess>]
+type GlobalHotkeyTargets =
+    | ToggleMagicalSword
+    | ToggleWoodSword
+    | ToggleBoomBook
+    | ToggleBlueCandle
+    | ToggleWoodArrow
+    | ToggleBlueRing
+    | ToggleBombs
+    | ToggleGannon
+    | ToggleZelda
+    | DungeonTab1
+    | DungeonTab2
+    | DungeonTab3
+    | DungeonTab4
+    | DungeonTab5
+    | DungeonTab6
+    | DungeonTab7
+    | DungeonTab8
+    | DungeonTab9
+    | DungeonTabS
+    member this.AsHotKeyName() =
+        match this with
+        | GlobalHotkeyTargets.ToggleMagicalSword -> "ToggleMagicalSword"
+        | GlobalHotkeyTargets.ToggleWoodSword    -> "ToggleWoodSword"
+        | GlobalHotkeyTargets.ToggleBoomBook     -> "ToggleBoomBook"
+        | GlobalHotkeyTargets.ToggleBlueCandle   -> "ToggleBlueCandle"
+        | GlobalHotkeyTargets.ToggleWoodArrow    -> "ToggleWoodArrow"
+        | GlobalHotkeyTargets.ToggleBlueRing     -> "ToggleBlueRing"
+        | GlobalHotkeyTargets.ToggleBombs        -> "ToggleBombs"
+        | GlobalHotkeyTargets.ToggleGannon       -> "ToggleGannon"
+        | GlobalHotkeyTargets.ToggleZelda        -> "ToggleZelda"
+        | GlobalHotkeyTargets.DungeonTab1        -> "DungeonTab1"
+        | GlobalHotkeyTargets.DungeonTab2        -> "DungeonTab2"
+        | GlobalHotkeyTargets.DungeonTab3        -> "DungeonTab3"
+        | GlobalHotkeyTargets.DungeonTab4        -> "DungeonTab4"
+        | GlobalHotkeyTargets.DungeonTab5        -> "DungeonTab5"
+        | GlobalHotkeyTargets.DungeonTab6        -> "DungeonTab6"
+        | GlobalHotkeyTargets.DungeonTab7        -> "DungeonTab7"
+        | GlobalHotkeyTargets.DungeonTab8        -> "DungeonTab8"
+        | GlobalHotkeyTargets.DungeonTab9        -> "DungeonTab9"
+        | GlobalHotkeyTargets.DungeonTabS        -> "DungeonTabS"
+    member this.AsHotKeyDisplay() : System.Windows.FrameworkElement =
+        let tab(level) : System.Windows.FrameworkElement =
+            let labelChar = if level=9 then '9' elif level=10 then 'S' elif TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
+            upcast new System.Windows.Controls.TextBox(Background=System.Windows.Media.Brushes.Black, Foreground=System.Windows.Media.Brushes.White, 
+                                                        Text=sprintf "Tab%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                                        HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        match this with
+        | GlobalHotkeyTargets.ToggleMagicalSword -> upcast (Graphics.magical_sword_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleWoodSword    -> upcast (Graphics.brown_sword_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleBoomBook     -> upcast (Graphics.boom_book_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleBlueCandle   -> upcast (Graphics.blue_candle_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleWoodArrow    -> upcast (Graphics.wood_arrow_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleBlueRing     -> upcast (Graphics.blue_ring_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleBombs        -> upcast (Graphics.bomb_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleGannon       -> upcast (Graphics.ganon_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.ToggleZelda        -> upcast (Graphics.zelda_bmp |> Graphics.BMPtoImage)
+        | GlobalHotkeyTargets.DungeonTab1        -> tab(1)
+        | GlobalHotkeyTargets.DungeonTab2        -> tab(2)
+        | GlobalHotkeyTargets.DungeonTab3        -> tab(3)
+        | GlobalHotkeyTargets.DungeonTab4        -> tab(4)
+        | GlobalHotkeyTargets.DungeonTab5        -> tab(5)
+        | GlobalHotkeyTargets.DungeonTab6        -> tab(6)
+        | GlobalHotkeyTargets.DungeonTab7        -> tab(7)
+        | GlobalHotkeyTargets.DungeonTab8        -> tab(8)
+        | GlobalHotkeyTargets.DungeonTab9        -> tab(9)
+        | GlobalHotkeyTargets.DungeonTabS        -> tab(10)
+    static member All = [|
+        GlobalHotkeyTargets.ToggleMagicalSword
+        GlobalHotkeyTargets.ToggleWoodSword   
+        GlobalHotkeyTargets.ToggleBoomBook    
+        GlobalHotkeyTargets.ToggleBlueCandle  
+        GlobalHotkeyTargets.ToggleWoodArrow   
+        GlobalHotkeyTargets.ToggleBlueRing    
+        GlobalHotkeyTargets.ToggleBombs       
+        GlobalHotkeyTargets.ToggleGannon      
+        GlobalHotkeyTargets.ToggleZelda       
+        GlobalHotkeyTargets.DungeonTab1       
+        GlobalHotkeyTargets.DungeonTab2       
+        GlobalHotkeyTargets.DungeonTab3       
+        GlobalHotkeyTargets.DungeonTab4       
+        GlobalHotkeyTargets.DungeonTab5       
+        GlobalHotkeyTargets.DungeonTab6       
+        GlobalHotkeyTargets.DungeonTab7       
+        GlobalHotkeyTargets.DungeonTab8       
+        GlobalHotkeyTargets.DungeonTab9       
+        GlobalHotkeyTargets.DungeonTabS       
+        |]
+
 
 // Note to self; NumPad . and + are called Decimal and Add, not OemPeriod or OemPlus.  NumPad 'enter' is not supported, sadly.
 let MakeDefaultHotKeyFile(filename:string) =
@@ -94,6 +185,10 @@ let MakeDefaultHotKeyFile(filename:string) =
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
     for x in AllDungeonRoomNames do
         lines.Add(x + " = ")
+    lines.Add("")
+    lines.Add("# GLOBAL - these hotkey bindings take effect anywhere, and cannot conflict with any others")
+    for x in GlobalHotkeyTargets.All do
+        lines.Add("Global_" + x.AsHotKeyName() + " = ")
     lines.Add("")
     System.IO.File.WriteAllLines(filename, lines)
 
@@ -144,6 +239,8 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
         match table.TryGetValue(k) with
         | true, v -> Some(v)
         | _ -> None
+    member this.ContainsKey(k) = table.ContainsKey(k)
+    member this.Keys() = table.Keys |> Seq.toArray
     member this.TryAdd(k,v) =
         if table.ContainsKey(k) then
             false
@@ -172,6 +269,7 @@ let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
 let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail> >("DungeonRoom")
+let GlobalHotKeyProcessor = new HotKeyProcessor<GlobalHotkeyTargets>("Global")
 
 let HotKeyFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
 
@@ -220,5 +318,22 @@ let PopulateHotKeyTables() =
                         Add(DungeonRoomHotKeyProcessor, chOpt, Choice3Of3 x)
                         found <- true
             if not found then
+                for x in GlobalHotkeyTargets.All do
+                    if name = "Global_"+ x.AsHotKeyName() then
+                        Add(GlobalHotKeyProcessor, chOpt, x)
+                        found <- true
+            if not found then
                 raise <| new UserError(sprintf "Bad name '%s' specified in '%s', line %d" name filename lineNumber)
-
+    // global conflict check
+    for k in GlobalHotKeyProcessor.Keys() do
+        let error(kind) =
+            let msg = sprintf "Global hotkey '%s' was bound as '%s', but that key was also bound to %s entry" (PrettyKey k) ("Global_"+GlobalHotKeyProcessor.TryGetValue(k).Value.AsHotKeyName()) kind
+            raise <| new UserError(msg)
+        if ItemHotKeyProcessor.ContainsKey(k) then
+            error "an 'Item_...'"
+        if OverworldHotKeyProcessor.ContainsKey(k) then
+            error "an 'Overworld_...'"
+        if BlockerHotKeyProcessor.ContainsKey(k) then
+            error "a 'Blocker_...'"
+        if DungeonRoomHotKeyProcessor.ContainsKey(k) then
+            error "a 'DungeonRoom_...'"

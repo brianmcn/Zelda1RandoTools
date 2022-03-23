@@ -593,11 +593,13 @@ let MakeMappedHotKeysDisplay() =
         | Choice2Of3 md -> (let i = md.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
         | Choice3Of3 fd -> (let i = fd.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
         ), 39, "DUNGEON")
+    let globalPanel = makePanel(HotKeys.GlobalHotkeyTargets.All, HotKeys.GlobalHotKeyProcessor, (fun state -> state.AsHotKeyDisplay()), 30, "GLOBALS")
     let all = new StackPanel(Orientation=Orientation.Horizontal)
     all.Children.Add(itemPanel) |> ignore
     all.Children.Add(overworldPanel) |> ignore
     all.Children.Add(blockerPanel) |> ignore
     all.Children.Add(dungeonRoomPanel) |> ignore
+    all.Children.Add(globalPanel) |> ignore
     if total = 0 then
         let tb = DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")
         tb.FontSize <- 16.

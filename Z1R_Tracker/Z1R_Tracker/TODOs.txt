@@ -29,6 +29,7 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
+
 on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out?
 
 
@@ -37,7 +38,6 @@ investigate broadcast window performance
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
-
 
 
 showing stair-items versus floor items (not using white highlight, maybe watermark in the empty box? ask homer if look distracting and need option to turn off. 
@@ -71,25 +71,9 @@ I've been asked about this for Z-Tracker as well, but have only very recently le
 
 
 
-[7:20 PM] homerjsmash: not sure if you know this already or if this was the intention but the hotkeys for the ws, armos, coast items do not work in the box that is closer to the map, only the top box
-[10:54 PM] Lorgon111: cannot reproduce, but i do notice that WS/armos accelerate you into the right-click-a-box popup, and hotkeys dont work there... hmm, will consider that.  but e.g. coast you can just hover and hotkey
-[10:57 PM] homerjsmash: I'll have to try on stream. I know for me the white sword item that was the case, maybe coast wasn't and u just assumed
+ - (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 
 
-long conversation with homer about blockers
- - DONE he wants 3 per dungeon
- - he thinks he wants map/book/atlas blocker of some sort, though perhaps maybe-bomb captures the same idea
- - i want to see if I can make possibly-bombable-walls have a mouse-hover target to get brighter or something on summary tab, to help you decide where
-      to re-dig if you find yourself with a new atlas or a fresh stash of 12 bombs
- - (some other way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-
-
-
-[9:06 PM] potato_pony: any consideration to global (always applicable) hotkeys for the "mark timeline" things?
-[9:07 PM] potato_pony: i'm never going to check off something like "killed gannon" when i have to move my mouse up there to find it 🙂
-[11:57 PM] Lorgon111: good feedback, will consider
- - i think simplest design is, have a hotkey set 'global', have loading hotkeys ensure than no globals conflict with anything else, have them activate from anywhere, and have them toggle 'shopping' things?
- - then potato_pony also wants hotkey for dungeon tabs (or at least summary tab?) but running out of keys, hm
 
 puzzle-piecing maps 1-6,7-9?
 

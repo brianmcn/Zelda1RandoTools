@@ -230,7 +230,6 @@ type MyWindow() as this =
                 logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
             )
 
-        HotKeys.InitializeWindow(this)
         HotKeys.PopulateHotKeyTables()
         let mutable settingsWereSuccessfullyRead = false
         TrackerModel.Options.readSettings()
@@ -572,6 +571,7 @@ type MyWindow() as this =
                     let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
                     updateTimeline <- u
                     appMainCanvas.Children.Remove(mainDock)  // remove for good
+                    HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     if loadData.IsNone then
                         WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
