@@ -203,6 +203,24 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 | None -> rowHighlighter.Opacity <- 0.
                 | Some r -> rowHighlighter.Opacity <- 1.0; Grid.SetRow(rowHighlighter, r)
             highlightRow
+        let mutable oldManCount = 0
+        let oldManCountTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(0.), Width=45.,
+                                        HorizontalContentAlignment=HorizontalAlignment.Center, Foreground=Brushes.Orange, Background=Brushes.Black)
+        let oldManBorder = new Border(Child=oldManCountTB, Width=45., BorderThickness=Thickness(0.), Background=Brushes.Black)
+        oldManBorder.ToolTip <- "'Old Man Count' - the number of NPC-with-hint and Bomb-Upgrade you have marked,\nand the total number expected in this dungeon"
+        let updateOldManCountText() = 
+            if TrackerModel.IsHiddenDungeonNumbers() then
+                if TrackerModel.GetDungeon(level-1).LabelChar <> '?' then
+                    let i = int(TrackerModel.GetDungeon(level-1).LabelChar) - int('1')
+                    oldManCountTB.Text <- sprintf "OM:%d/%d" oldManCount (TrackerModel.GetOldManHintCount(i))
+                else
+                    oldManCountTB.Text <- sprintf "OM:%d" oldManCount
+            else
+                oldManCountTB.Text <- sprintf "OM:%d/%d" oldManCount (TrackerModel.GetOldManHintCount(level-1))
+        updateOldManCountText()
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateOldManCountText())
+        canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 67.)
         // local dungeon tracker
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, blockerGridHeight - float(TH)
         let pos = Point(0. + LD_X, posY + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
@@ -571,7 +589,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         | Some n -> usedTransports.[n]<>2)
                     if isLegal then
                         usedTransportsRemoveState(roomStates.[i,j])
+                        if roomStates.[i,j].RoomType.IsOldMan then
+                            oldManCount <- oldManCount - 1
                         roomStates.[i,j] <- newState
+                        if roomStates.[i,j].RoomType.IsOldMan then
+                            oldManCount <- oldManCount + 1
+                        updateOldManCountText()
                         usedTransportsAddState(roomStates.[i,j])
                         // conservative door inference
                         if TrackerModel.Options.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone then

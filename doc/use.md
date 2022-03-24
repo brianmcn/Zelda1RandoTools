@@ -484,6 +484,13 @@ upper right icon area:
 
 In that screenshot, the mouse is over a room in the 5th row, so the highlight appears next to the top half of the 'key' icon.
 
+#### <a id="main-dungeon-old-man-count"></a>Old Man Count
+
+Each dungeon has a fixed number of expected encounters with 'old men' - NPCs who give hints, or offer bomb upgrades.  The number of such rooms you have marked, along with
+the expected count for this dungeon, are displayed in the sidebar:
+
+![z-tracker old man count screenshot](screenshots/old-man-count.png)
+
 #### <a id="main-dungeon-special-rooms"></a>Special NPC rooms
 
 Two room types have colorful extra visual information in the tracker:

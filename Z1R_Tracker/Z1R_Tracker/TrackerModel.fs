@@ -257,6 +257,14 @@ module Options =
 
 ///////////////////////////////////////////////////////////////////////////
 
+let GetOldManHintCount(i) =
+    if Options.IsSecondQuestDungeons.Value then
+        DungeonData.oldManHintCounts2Q.[i]
+    else
+        DungeonData.oldManHintCounts1Q.[i]
+
+///////////////////////////////////////////////////////////////////////////
+
 // abstraction for a set of scrollable choices
 [<AllowNullLiteral>]
 type ChoiceDomain(name:string,maxUsesArray:int[]) =

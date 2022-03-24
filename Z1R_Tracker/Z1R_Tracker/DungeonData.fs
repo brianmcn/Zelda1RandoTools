@@ -69,6 +69,9 @@ module Factoids =
 
 //////////////////////////////////////////////
 
+let oldManHintCounts1Q = [| 1; 1; 1; 1; 3; 2; 2; 2; 3 |]   // 1 hungry goriya that can be shuffled anywhere
+let oldManHintCounts2Q = [| 0; 0; 0; 2; 0; 1; 0; 1; 2 |]   // correct?   also 2 hungry goriya that can be shuffled anywhere?
+
 let l1q1 =
     [|
         "........"

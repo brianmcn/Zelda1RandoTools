@@ -37,35 +37,15 @@ put some kind of screenshot on the TOC page, so it can be a first landing page l
 maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
 
 
+(some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 
-
-
- - (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-
-
-
-puzzle-piecing maps 1-6,7-9?
 
 
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
 
 
-
-
-consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
-
-
-
-
 futz with VS text editor settings
-
-
-TheDoctorBlue wants to operate entire tracker with numpad, consider?
- - imagine hotkeys that map to 'move mouse ULDR', and then also... what?
-bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
-
-
 
 
 homer: which blocker blocked item v which blocked triforce
@@ -74,18 +54,8 @@ homer: which blocker blocked item v which blocked triforce
 
 maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
 
+
 voice feedback saying what mark, so less need to watch what you clicked?
-
-
-
-Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
-https://discord.com/channels/674255646518149130/710648312214061098/937820067557699606
-Some kind of map presets could be good, and 4 types of shops as well, in terms of 'other free marks' people might want to add, hmm.
- - can I imagine a separate marking layer for 'user specified'?  (Bogie had 'custom reminders' on certain spots, effectively)
- - rather than full save/load, what if way to load preset overworld map only?
-
-
-
 
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
@@ -93,21 +63,6 @@ Maybe like a subscript on the item-progress bar on e.g. the recorder saying how 
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
  - ghostbusters help now
-
-homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
- - consider best use of scrollwheel on dungeon doors/rooms
-Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
-
-possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
-
-consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
-
-Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
- - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
- - Yellow percentage, count DRCs, etc
- - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
-
-kigalas: Also, when you select Second Quest Dungeons can you have it automatically have the checkbox for SQ clicked?
 
 
 
@@ -128,18 +83,6 @@ Thus, in shapes,
  - Standing item implies no push-stair (unless RMOS in a no-shutter room, which uses state 5 above)
  - Shutter implies no push-stair
  - Kill->Drop implies no push-stair
-
-
-
-[2:39 PM] homerjsmash: also i don't remember if i've given you this one before, but v1.xx feature request. Old man counts in levels. ex. I'm in level 1 shapes and i see an old man, i check a box or something. old man found. Then if I have a crappy combat room or a room blocked by ladder I know it's not the old man room that i can't get to. Flip side, i don't have that checked, then I know I don't care about that room.
-[2:43 PM] Lorgon111: so is there always at least one old man per dungeon? or specific counts?
-[2:43 PM] Lorgon111: (you can mark his room when see him, but have to look at map and count yourself today)
-[3:02 PM] homerjsmash: yeah there is 1 man in 1-4, 4 in 9 and I forgot how many in 5-8, but it's the same as vanilla (I am mostly certain about this)
-[3:02 PM] homerjsmash: i think there are 3 in 5 and 7
-Lorgon111: in Shapes, is there always a fixed number of 'old man hints' in each dungeon? if so, how many in each dungeon?  (does it differ in other dungeon quests?)
-[2:42 PM] fcoughlin: The answer is that it should match the vanilla version.  Which means grabs notes you'd normally see 1 hint man in 1-4.  5 would have 2 hints (plus 1 bomb up), 6 has 2 hints, 7 has 1 hint, 1 bomb up, 1 grumble.  8 has 2 hints.  9 has 3 hints.
-[2:49 PM] Lorgon111: and I guess the hint-men and bomb-upgrade-men can be swapped?  because i know e.g. i saw both bomb upgrades in 7 the other day.  except i guess maybe the old men in 9 dont get swapped.
-[4:25 PM] Panzer: correct
 
 
 
@@ -226,10 +169,19 @@ I've been asked about this for Z-Tracker as well, but have only very recently le
  - always on top (yes/no) (in case you want to place it over the edge of some other window)
 
 
+consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
+
 
 clyceer: wants to drag in grab mode, rather than click-click
 
+
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
+
+
+homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
+ - consider best use of scrollwheel on dungeon doors/rooms
+Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
+
 
 timeline & mistakes
  - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)
@@ -241,10 +193,29 @@ maybe imagine timeline items know their entire interaction history, and there's 
 just edit the timeline item directly to change display/time? need to think thru each mistake scenario and ideal interaction to fix (if desired)
 
 
+possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
+
+
+consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
+
+
+Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
+ - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
+ - Yellow percentage, count DRCs, etc
+ - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
+
+
 possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
 
 clicking the kitty should meow or purr or something
 
+
+
+Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
+https://discord.com/channels/674255646518149130/710648312214061098/937820067557699606
+Some kind of map presets could be good, and 4 types of shops as well, in terms of 'other free marks' people might want to add, hmm.
+ - can I imagine a separate marking layer for 'user specified'?  (Bogie had 'custom reminders' on certain spots, effectively) well now middle-click circle OW spot could kinda do that
+ - rather than full save/load, what if way to load preset overworld map only?
 
 
 consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
@@ -356,6 +327,16 @@ broadcast window doesnt capture drag-drop mouse movement
 if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
+
+
+puzzle-piecing maps 1-6,7-9?
+
+
+TheDoctorBlue wants to operate entire tracker with numpad, consider?
+ - imagine hotkeys that map to 'move mouse ULDR', and then also... what?
+bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
+
+
 
 
 If I want to put chosen color on backgrounds with text foreground (e.g. LEVEL-A) then see e.g.
