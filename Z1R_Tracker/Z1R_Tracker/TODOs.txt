@@ -35,25 +35,18 @@ on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines 
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
-maybe slightly more in quickstart guide? or somewhere a pick of overworld popup?
+maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
 
 (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-
 
 
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
 
 
-futz with VS text editor settings
-
-
 homer: which blocker blocked item v which blocked triforce
  - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
-
-
-maybe a hover target for 'all item shops', e.g. to help see meat shop? (checkbox filters to darken some icons you don't care about, to declutter map?)
 
 
 voice feedback saying what mark, so less need to watch what you clicked?
@@ -66,24 +59,6 @@ in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet c
  - ghostbusters help now
 
 
-
-tip: you can't have both an item appear when the enemies die and a push block stair, unless the stairs are already visible
- - actually Standing Item:  Can only have a push block if RMO is on or 2nd quest is the Dungeon setup.
-    [7:57 PM] FurySK: Drop item: Cannot ever have a push block across all functions, outside of diamond staircases (edited)
-The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
-0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X
-1 - Drop stands in the room, shutters open on room clear.                                                                                   .          X             .           .             X
-2 - "Master" enemy room.  Killing the enemy in slot 0 kills all enemies in the room.  Shutter doors do not open.                            .          .             .           .             .
-3 - No drop, doors only open if you hold the Triforce of Power.                                                                             .          .             .           .             .
-4 - Drop standing if present, push a block to open shutter doors when all cleared.                                                          .          .             .           X             X
-5 - Drop standing if present, push a block to open a stair when all cleared (doors permanently stay shut, see 2nd quest level 8)            .          .             X           .             X   (2Q only)
-6 - Open shutter doors if the enemy in the first slot is killed (used only for Life/Money rooms currently, as Fire is an enemy)             .          .             .           .             .
-7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .             .
-
-Thus, in shapes, 
- - Standing item implies no push-stair (unless RMOS in a no-shutter room, which uses state 5 above)
- - Shutter implies no push-stair
- - Kill->Drop implies no push-stair
 
 
 
@@ -389,5 +364,22 @@ scroll? undo all recent (how recent?) changes to tile?  what will the user expec
 Keyboard focus and control
 
 
+
+ESOTERIC
+
+The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
+0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X
+1 - Drop stands in the room, shutters open on room clear.                                                                                   .          X             .           .             X
+2 - "Master" enemy room.  Killing the enemy in slot 0 kills all enemies in the room.  Shutter doors do not open.                            .          .             .           .             .
+3 - No drop, doors only open if you hold the Triforce of Power.                                                                             .          .             .           .             .
+4 - Drop standing if present, push a block to open shutter doors when all cleared.                                                          .          .             .           X             X
+5 - Drop standing if present, push a block to open a stair when all cleared (doors permanently stay shut, see 2nd quest level 8)            .          .             X           .             X   (2Q only)
+6 - Open shutter doors if the enemy in the first slot is killed (used only for Life/Money rooms currently, as Fire is an enemy)             .          .             .           .             .
+7 - Drop item hidden.  Kill all enemies to make shutters open and drop item appear.                                                         X          X             .           .             .
+
+Thus, in shapes, 
+ - Standing item implies no push-stair (unless RMOS in a no-shutter room, which uses state 5 above)
+ - Shutter implies no push-stair
+ - Kill->Drop implies no push-stair
 
 

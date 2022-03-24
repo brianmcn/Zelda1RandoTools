@@ -520,6 +520,16 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
         redraw(current) |> ignore
+        // hovering a blocker box with a sellable item will highlight the corresponding shops (currently only way to mouse-hover to see key/meat shops)
+        c.MouseEnter.Add(fun _ -> 
+            match current.HardCanonical() with
+            | TrackerModel.DungeonBlocker.BAIT -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
+            | TrackerModel.DungeonBlocker.KEY -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.KEY)
+            | TrackerModel.DungeonBlocker.BOMB -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            | _ -> ()
+            )
+        c.MouseLeave.Add(fun _ -> hideLocator())
         TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
             current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
             redraw(current) |> ignore
@@ -767,7 +777,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
 
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
     let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 98.,28.; 98.,2.; 58.,2.; 58.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-    addLabel(shopping, "Show locations of shops containing each item", 400., 240.)
+    addLabel(shopping, "Show locations of shops containing each item (or blocker", 400., 240.)
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 10.,0.; -70.,0.; -70.,36.; 36.,36.; 36.,0.; 10.,0. ] |> Seq.map (fun (x,y) -> Point(210.+dx+x,dy+y))))
+    addLabel(blockers, ")", 757., 240.)
 
     let COL = Brushes.MediumVioletRed
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
