@@ -574,9 +574,9 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
-    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
-    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(45uy, 45uy, 45uy))
-    blockerGrid.Height <- float(36*3)
+    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 38)
+    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy))
+    blockerGrid.Height <- float(38*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
             if i=0 && j=0 then
@@ -595,9 +595,9 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 let d = new DockPanel(LastChildFill=true)
                 levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., IsHitTestVisible=false,
-                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
-                                        TextAlignment=TextAlignment.Right, Margin=Thickness(2.,0.,2.,0.))
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., Height=14., IsHitTestVisible=false,
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.),
+                                        TextAlignment=TextAlignment.Center, Margin=Thickness(2.,0.,0.,0.))
                 sp.Children.Add(tb) |> ignore
                 for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
                     sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore

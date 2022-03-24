@@ -30,6 +30,7 @@ make new take-any-heart screenshot
 
 
 
+
 on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out? a 'found' checkmark?
 
 

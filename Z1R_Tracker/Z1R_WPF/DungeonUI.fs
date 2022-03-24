@@ -145,7 +145,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
     // TrackerModel.Options.BigIconsInDungeons  // whether user has checked they prefer big icons
-    let mutable bigIconsTemp = false            // whether we are currently in the mouse hover to show big icons
+    let mutable bigIconsSwapPreview = false     // whether we are currently in the mouse hover to show big icons
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     theDungeonTabControl <- dungeonTabs
@@ -367,15 +367,15 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         oldManUnreadHeaderCanvas.Opacity <- 1.
             levelTab.InvalidateProperty(TabItem.HeaderProperty)
         // minimap-draw-er
-        let hoverCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black, IsHitTestVisible=true)
+        let hoverCanvas = new Canvas(Width=26., Height=26., Background=Brushes.Black, IsHitTestVisible=true)
         let minimini = Dungeon.MakeMiniMiniMapBmp() |> Graphics.BMPtoImage
         minimini.Width <- 24.
         minimini.Height <- 24.
         minimini.Stretch <- Stretch.UniformToFill
-        minimini.Margin <- Thickness(2.)
+        minimini.Margin <- Thickness(1.)
         let miniBorder = new Border(Child=minimini, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
         canvasAdd(hoverCanvas, miniBorder, 0., 0.)
-        canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+190.)
+        canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.)
         hoverCanvas.MouseEnter.Add(fun _ ->
             let markedRooms = roomStates |> Array2D.map (fun s -> not(s.IsEmpty))
             let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
@@ -397,18 +397,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             trackerDungeonMoused.Trigger(null)
             )
         // big icons for monsters & floor drops
-        let bigIconsCB = new CheckBox(Content=DungeonRoomState.mkTxt("I"))
-        bigIconsCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BigIconsInDungeons
-        dungeonTabs.SelectionChanged.Add(fun _ -> bigIconsCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BigIconsInDungeons)
-        bigIconsCB.Checked.Add(fun _ -> TrackerModel.Options.BigIconsInDungeons <- true; TrackerModel.Options.writeSettings(); redrawAllRooms())
-        bigIconsCB.Unchecked.Add(fun _ -> TrackerModel.Options.BigIconsInDungeons <- false; bigIconsTemp <- false; TrackerModel.Options.writeSettings(); redrawAllRooms())
-        bigIconsCB.ToolTip <- "Toggle whether larger or smaller corner icons are shown on dungeon rooms"
-        let bigIconsPanel = new DockPanel(Width=28., Height=21., Background=Graphics.almostBlack, IsHitTestVisible=true)
-        bigIconsPanel.Children.Add(bigIconsCB) |> ignore
-        let bigIconsBorder = new Border(Child=bigIconsPanel, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
-        canvasAdd(contentCanvas, bigIconsBorder, LD_X+8., LD_Y+222.)
-        bigIconsBorder.MouseEnter.Add(fun _ ->
-            bigIconsTemp <- true
+        let bigIconsButtonPicture = new StackPanel(Orientation=Orientation.Horizontal)
+        bigIconsButtonPicture.Children.Add(DungeonRoomState.FloorDropDetail.Triforce.Bmp(false) |> Graphics.BMPtoImage) |> ignore
+        bigIconsButtonPicture.Children.Add(DungeonRoomState.FloorDropDetail.Triforce.Bmp(true) |> Graphics.BMPtoImage) |> ignore
+        let bigIconsButton = new Button(Content=bigIconsButtonPicture, Background=Graphics.almostBlack)
+        bigIconsButton.Click.Add(fun _ ->
+            TrackerModel.Options.BigIconsInDungeons <- not TrackerModel.Options.BigIconsInDungeons
+            TrackerModel.Options.writeSettings()
+            redrawAllRooms()
+            )
+        bigIconsButton.ToolTip <- "Click to permanently toggle whether larger or\nsmaller corner icons are shown on dungeon rooms"
+        canvasAdd(contentCanvas, bigIconsButton, LD_X, LD_Y+220.)
+        bigIconsButton.MouseEnter.Add(fun _ ->
+            bigIconsSwapPreview <- true
             redrawAllRooms()
             let mds, fds = new System.Collections.Generic.HashSet<_>(), new System.Collections.Generic.HashSet<_>()
             for i = 0 to 7 do
@@ -437,8 +438,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             rightwardCanvas.Height <- dungeonTabs.ActualHeight
             rightwardCanvas.Children.Add(border) |> ignore
             )
-        bigIconsBorder.MouseLeave.Add(fun _ ->
-            bigIconsTemp <- false
+        bigIconsButton.MouseLeave.Add(fun _ ->
+            bigIconsSwapPreview <- false
             redrawAllRooms()
             rightwardCanvas.Children.Clear()
             )
@@ -559,7 +560,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
-                    let image = roomStates.[i,j].CurrentDisplay(TrackerModel.Options.BigIconsInDungeons || bigIconsTemp)
+                    let image = roomStates.[i,j].CurrentDisplay(TrackerModel.Options.BigIconsInDungeons <> bigIconsSwapPreview)
                     image.IsHitTestVisible <- false
                     canvasAdd(c, image, -BUFFER, -BUFFER)
                     canvasAdd(c, highlightOutline, -1.-BUFFER, -1.-BUFFER)
