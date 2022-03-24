@@ -208,7 +208,7 @@ type RoomType =
         | Gannon                  -> "RoomType_Gannon"
         | Zelda                   -> "RoomType_Zelda"
     member this.IsNotMarked = this = RoomType.Unmarked
-    member this.IsOldMan = this = RoomType.OldManHint || this = RoomType.BombUpgrade
+    member this.IsOldMan = this = RoomType.OldManHint || this = RoomType.BombUpgrade || this = RoomType.HungryGoriyaMeatBlock || this = RoomType.LifeOrMoney
     member this.NextEntranceRoom() = 
         match this with
         | RoomType.StartEnterFromS -> Some(RoomType.StartEnterFromW)

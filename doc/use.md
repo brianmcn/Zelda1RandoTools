@@ -486,8 +486,8 @@ In that screenshot, the mouse is over a room in the 5th row, so the highlight ap
 
 #### <a id="main-dungeon-old-man-count"></a>Old Man Count
 
-Each dungeon has a fixed number of expected encounters with 'old men' - NPCs who give hints, or offer bomb upgrades.  The number of such rooms you have marked, along with
-the expected count for this dungeon, are displayed in the sidebar:
+Each dungeon has a fixed number of expected encounters with 'old men' (NPCs who give hints, offer bomb upgrades, mug you, or want meat).  The number of such rooms you 
+have marked, along with the expected count for this dungeon, is displayed in the sidebar:
 
 ![z-tracker old man count screenshot](screenshots/old-man-count.png)
 

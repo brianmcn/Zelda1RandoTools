@@ -115,7 +115,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - fixed: fewer reminders to "consider dungeon X" when you're already inside dungeon X right now
  - you can now mark up to 3 Blockers per dungeon
  - made dungeon LEVEL/BOARD header use Zelda font
- - dungeons show an [old man count](use.md#main-dungeon-old-man-count), tracking the number of NPC-with-hint and Bomb-Upgrade rooms you have marked versus the expect number (e.g. "OM:2/3")
+ - dungeons show an [old man count](use.md#main-dungeon-old-man-count), tracking the number of NPC rooms you have marked versus the expect number (e.g. "OM:2/3")
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details
  - when on the dungeon summary tab, all dungeon locations get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once
  - an empty dungeon item box display suggests whether it is a basement item or standing/floor drop ('Show basement info' in the Options Menu; 'on' by default)

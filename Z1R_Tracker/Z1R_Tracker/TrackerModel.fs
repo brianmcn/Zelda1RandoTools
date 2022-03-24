@@ -257,11 +257,11 @@ module Options =
 
 ///////////////////////////////////////////////////////////////////////////
 
-let GetOldManHintCount(i) =
+let GetOldManCount(i) =
     if Options.IsSecondQuestDungeons.Value then
-        DungeonData.oldManHintCounts2Q.[i]
+        DungeonData.oldManCounts2Q.[i]
     else
-        DungeonData.oldManHintCounts1Q.[i]
+        DungeonData.oldManCounts1Q.[i]
 
 ///////////////////////////////////////////////////////////////////////////
 

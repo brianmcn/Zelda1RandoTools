@@ -2,7 +2,6 @@
 
 module Factoids =
     let noviceTips = [|
-        // novice
         "Damage table: wood sword=1; white sword=2; magic sword=4; wand(melee or beam)=2; wood arrow=2; silver arrow=4; fire=1; bomb explosion=4; boomerang=0 (some enemies have 0 HP and can be killed by boomerang)"
         "If an overworld screen has 6 monsters, and you kill 2 and leave the screen, only 4 will spawn when you next return.  Overworld monsters can fully respawn only after a screen is fully cleared, or after a save."
         "If a dungeon room has 6 monsters, and you kill 2 and leave the room, only 4 will spawn when you next return.  Dungeon monsters can fully respawn only after a room is fully cleared, or after the player leaves the dungeon."
@@ -13,38 +12,35 @@ module Factoids =
         "When there is a standing item drop on the floor of a dungeon room when you first walk in, there cannot be another prize drop for killing all monsters in the room."
         "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
         "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
-        "In most dungeons, there is one floor drop item, and the remaining key item(s) are found in basements.  Exceptions: L9 has no floor drops; L1 and L2 have two floor drops in first-quest-dungeons, whereas L1 and L3 have two floor drops in second-quest-dungeons."
         "Generally/roughly, the higher the dungeon number, the larger the dungeon is likely to be, and the less likely a given wall will be bombable."
-        "If you up-a out of a door repair charge room before the NPC finishes speaking and starts taking your money, you can avoid the charge."
+        "If you UP+A out of a door repair charge room before the NPC finishes speaking and starts taking your money, you can avoid the charge."
         |]
     let intermediateTips = [|
-        // intermediate
         "A room with a gleeok cannot have a push block."
+        "While most dungeon 'old man' rooms can be shuffled in 1Q/Shapes dungeons, there is one exception: a bomb upgrade can never appear in level 9."
         "If you defeat 1 of 2 Lanmolas, or 1 of 3 small Digdoggers, and then leave the room, the monsters will all be gone when you return a moment later."
         "A single dodongo in a room is a boss (will not respawn if killed and room is exited).  Three dodongos in a room is an enemy group (that can respawn)."
         "If you pirouette a dungeon entrance (walk out, walk right back in), you will unlock or bomb-hole a possible doorway on the wall opposite the entrance."
         "If you screen transition (e.g. from East to West) on the Overworld before entering a dungeon, you may unlock a doorway or uncover a free bomb-hole on the wall you came from (e.g. East)."
     //        "(how does it work for up-a-ing from a room where you opened that side (via bomb (shutter?))"
         "If a room has a shutter door, a push block cannot reveal a new staircase (just will open the shutter if pushable)."
-        "A dungeon room with a push block shutter will never drop an item."
         "Consider the room that has the triforce in vanilla; in Shapes dungeons, when that room does not have a standing item upon entry, it will always drop the Map after killing all enemies."
         "When playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with explosions (from bombs or boomstick)."
         "If a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not space on A15 to land."
         "If you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (as traps & bubbles are considered enemies)."
-        "Up-A-continue/save during a fairy fountain refill returns you to your starting screen on the overworld with full health."
+        "UP+A-continue/save during a fairy fountain refill returns you to your starting screen on the overworld with full health."
         "Bomb upgrade man never has a bombable north wall (nor do rooms containing dungeon NPCs who give hints)."
         "Standing just halfway out the east door of a dungeon room makes the player immune to some attacks; this 'safety door' strategy can be effective to shoot beam swords at gleeoks or lanmola, for example."
         |]
     let advancedTips = [|
-        // advanced
         "Zelda's shutter will always be the only shutter door in a room. If you see 2+ shutter doors, none of them are Zelda's. Exceptions: If Zelda is adjacent to Gannon, Gannon's room may have multiple shutter doors. If Gannon is not required, Zelda can be anywhere, including rooms without shutters."
         "If you have 0 keys, and a room has both a shutter and a locked door, and you press against the locked door the moment the shutter opens, you can go through the door without a key, unlocking it (khananakey)."
         "If using 'Level 9 Entry: Random' flag, if the old man at the door tells you some nonsense, that means you need all 8 triforces to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc."
         "In Shapes (1Q) dungeons, after clearing monsters, dungeon room 'five pairs' can only drop in dungeon 1, and dungeon room 'maze' can only drop in dungeon 4."
         "In 1QL5, the floor drop spawn for 'tee' room is on the island; in L4, it's bottom right of the tee room; in most other dungeons, it's top right of the tee room."
-        "The dungeon room floor drop near the East door is unique to 1QL1."
         "These dungeon room never drop after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
         "If the 'Add 2nd Quest Doors' randomizer flag is used, walk-through-walls will never appear in levels 1, 3, or 7, but walk-through-walls may appear in any other dungeon."
+        "In 1Q/Shapes dungeons, a room with a standing-drop or kill-prize-drop or shutter-door never has a push-block-that-reveals-a-new-stair. Exception: if 'Remove Most Open Stairs' flag is used, then a non-shutter room with a standing item can have a push-block-stair."
         |]
     let zTrackerTips = [|
         "In Z-Tracker, mouse-hovering the question mark (at the top, just left of the timer) will show off all the other places you can mouse-hover to get various bits of useful information."
@@ -69,8 +65,8 @@ module Factoids =
 
 //////////////////////////////////////////////
 
-let oldManHintCounts1Q = [| 1; 1; 1; 1; 3; 2; 2; 2; 3 |]   // 1 hungry goriya that can be shuffled anywhere
-let oldManHintCounts2Q = [| 0; 0; 0; 2; 0; 1; 0; 1; 2 |]   // correct?   also 2 hungry goriya that can be shuffled anywhere?
+let oldManCounts1Q = [| 1; 1; 1; 1; 3; 2; 3; 2; 3 |]   // hints, 2 BU, 1 HG, (0/1-3) muggers shuffled (but no BU in 9)
+let oldManCounts2Q = [| 0; 0; 1; 3; 0; 1; 2; 2; 1 |]   // unshuffled: 3 and 8 have HG; 4 and 8 have BU; 4 and 7,7 have mugger    
 
 let l1q1 =
     [|
