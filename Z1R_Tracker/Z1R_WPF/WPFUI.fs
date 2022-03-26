@@ -1801,7 +1801,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         | None -> ()
     )
 
-    Graphics.WarpMouseCursorTo(Point(425.,135.))  // the very first call to this lags the system for some reason, so get it out of the way at startup
+    Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
     return drawTimeline
     }
 

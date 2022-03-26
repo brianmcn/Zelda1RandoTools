@@ -21,6 +21,9 @@ make new take-any-heart screenshot
 
 
 
+probably more description/screenshot of options menu, say initial defaults tailored to new folks
+
+
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
@@ -28,23 +31,8 @@ maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 
 
-change each 'asterisk' beep warning into a more detailed message about what is wrong?
- - text on timeline reminder area?
-
-
 homer: which blocker blocked item v which blocked triforce
  - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
-
-
-voice feedback saying what mark, so less need to watch what you clicked?
-
-
-Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
- - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
-
-
-in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
- - ghostbusters help now
 
 
 
@@ -90,6 +78,21 @@ https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
  
 
 SMALL
+
+change each 'asterisk' beep warning into a more detailed message about what is wrong?
+ - text on timeline reminder area?
+
+
+voice feedback saying what mark, so less need to watch what you clicked?
+
+
+Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
+ - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
+
+
+in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
+ - ghostbusters help now
+
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
 

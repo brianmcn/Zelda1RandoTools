@@ -120,6 +120,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         click(ea)
         wh.Set() |> ignore
         )
+(*  This was intended to let e.g. a single mousedown-mousemove-mouseup drag-right from TakeAny to select heart, but it it sometimes fires spuriously; commenting out requires two separate clicks (mousedowns)
     let mutable isFirstTimeMouseUp = true
     c.MouseUp.Add(fun ea ->
         if isFirstTimeMouseUp && currentSelection = -1 then
@@ -129,6 +130,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
             click(ea)
             wh.Set() |> ignore
         )
+*)
     Graphics.WarpMouseCursorTo(center)
     do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly
     let tb = new TextBox(Text="Indicate which option you chose", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=16., IsHitTestVisible=false,
