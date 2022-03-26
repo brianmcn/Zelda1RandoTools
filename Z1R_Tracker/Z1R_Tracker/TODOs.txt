@@ -21,15 +21,6 @@ make new take-any-heart screenshot
 
 
 
-consider extra line of description on 'sword2' ow, for people who don't know that 'white sword cave' can have thing other than white sword
-
-
-hint decoder - was not immediately obvious to NP to click the ???, maybe make that more obviously clickable
-
-
-on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out? a 'found' checkmark?
-
-
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 

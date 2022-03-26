@@ -456,8 +456,8 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "AnyRoad3"         , 1                                                  , "Any Road 3/4"
     "AnyRoad4"         , 1                                                  , "Any Road 4/4"
     "Sword3"           , 1                                                  , "Magical Sword Cave\n(10-14 hearts to lift)"
-    "Sword2"           , 1                                                  , "White Sword Cave\n(4-6 hearts to lift)"
-    "Sword1"           , 1                                                  , "Wood Sword Cave"
+    "Sword2"           , 1                                                  , "'White Sword' Cave\n(4-6 hearts to lift)\nNote: might have\nany item, not just\nwhite sword"
+    "Sword1"           , 1                                                  , "Wood Sword Cave\n(can always lift)"
     // 1Q has 12 shops, distributed 4,4,3,1                                
     // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         
     "ArrowShop"        , 999                                                , "Shop with\nWood Arrows\n(60-100 rupees)"
@@ -1263,7 +1263,7 @@ type HintZone =
         | FOREST -> 'F'
     override this.ToString() =
         match this with
-        | UNKNOWN -> "?????"
+        | UNKNOWN -> "(Unknown)"
         | DEATH_MOUNTAIN -> "Death Mountain"
         | LAKE -> "Lake"
         | LOST_HILLS -> "Lost Hills"

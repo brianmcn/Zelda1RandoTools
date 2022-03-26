@@ -377,7 +377,20 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 b.Background <- Brushes.Black
             else
                 b.Background <- Views.hintHighlightBrush
-            button.Content <- mkTxt(hintZone.ToString())
+            let tb = 
+                if hintZone = TrackerModel.HintZone.UNKNOWN then
+                    let tb = mkTxt("Select location")
+                    tb.Foreground <- Brushes.Gray
+                    tb
+                else
+                    mkTxt(hintZone.ToString())
+            tb.Background <- Graphics.almostBlack
+            let c = new Canvas(Width=tb.Width, Height=tb.Height)
+            c.Children.Add(tb) |> ignore
+            let chevron = new TextBox(FontSize=16., Foreground=Brushes.Gray, Background=Graphics.almostBlack, IsReadOnly=true, IsHitTestVisible=false, 
+                                        BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text="\U000025BC")
+            canvasAdd(c, chevron, 150., 0.)
+            button.Content <- c
         updateViewFunctions.[thisRow] <- updateView
         let mutable popupIsActive = false  // second level of popup, need local copy
         let activatePopup(activationDelta) =
@@ -466,7 +479,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                         DockPanel.SetDock(m, Dock.Right)
                         dp.Children.Add(m) |> ignore
                         otherSP.Children.Add(dp) |> ignore
-                    let otherBottomTB = makeHintText("Here are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
+                    let otherBottomTB = makeHintText("\nHere are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
                     otherBottomTB.BorderThickness <- Thickness(0.,4.,0.,4.)
                     otherSP.Children.Add(otherBottomTB) |> ignore
                     let featsCheckBox  = new CheckBox(Content=makeHintText("No feat of strength... (Power Bracelet / pushing graves not required)"))

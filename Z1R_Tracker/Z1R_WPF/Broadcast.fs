@@ -164,14 +164,20 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         dp.Children.Add(timeline) |> ignore
         dp.Children.Add(topc) |> ignore
         
+        let mutable timerX = 600.
         if size=1 || size=2 then
             let factor = if size=1 then 0.333333 else 0.666666
             let trans = new ScaleTransform(factor, factor)
             dp.LayoutTransform <- trans
+            OverworldItemGridUI.broadcastTimeTextBox.LayoutTransform <- trans
+            timerX <- timerX * factor
             broadcastWindow.Height <- H*factor + 40.
+        else
+            OverworldItemGridUI.broadcastTimeTextBox.LayoutTransform <- null
         let c = new Canvas(Width=W, Height=H)
         c.Children.Add(dp) |> ignore
-        canvasAdd(c, OverworldItemGridUI.broadcastTimeTextBox, 600., 0.)
+        OverworldItemGridUI.broadcastTimeTextBox.Parent :?> Canvas |> (fun c -> if c <> null then c.Children.Remove(OverworldItemGridUI.broadcastTimeTextBox))  // deparent from prior window
+        canvasAdd(c, OverworldItemGridUI.broadcastTimeTextBox, timerX, 0.)
         c.Children.Add(topBar) |> ignore
         broadcastWindow.Content <- c
         
