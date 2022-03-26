@@ -176,7 +176,6 @@ type MyWindow() as this =
     inherit MyWindowBase()
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                             items  ow map  prog  dungeon tabs                                    timeline   
     let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
     let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
@@ -250,7 +249,6 @@ type MyWindow() as this =
             ipf.Save(System.IO.Path.Combine(cwd, "ZTracker.lnk"), false)
 
         Graphics.theWindow <- this
-        WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
         this.ResizeMode <- ResizeMode.NoResize
@@ -293,7 +291,10 @@ type MyWindow() as this =
         if TrackerModel.Options.SmallerAppWindow.Value then 
             let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
-        this.Content <- cm.RootCanvas
+        let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
+        wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
+        wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
+        this.Content <- wholeCanvas
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
         ApplyKonamiCodeEasterEgg(cm, mainDock)
         appMainCanvas.Children.Add(mainDock) |> ignore
@@ -575,7 +576,7 @@ type MyWindow() as this =
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     if loadData.IsNone then
                         WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-                    Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+                    Graphics.canvasAdd(wholeCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                 } |> Async.StartImmediate
             )
 
@@ -608,7 +609,9 @@ type MyWindow() as this =
         // update time
         let ts = DateTime.Now - this.StartTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
+        let time = sprintf "%2d:%02d:%02d" h m s
+        OverworldItemGridUI.hmsTimeTextBox.Text <- time
+        OverworldItemGridUI.broadcastTimeTextBox.Text <- time
         // update timeline
         //if f10Press || (ts.TotalSeconds |> round |> int)%1 = 0 then
         //    updateTimeline((ts.TotalSeconds |> round |> int)/1)

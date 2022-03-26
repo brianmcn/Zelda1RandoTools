@@ -38,6 +38,8 @@ let THRU_TIMELINE_H = START_TIMELINE_H + float TCH
 let LEFT_OFFSET = 78.0
 let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
 let ITEM_PROGRESS_FIRST_ITEM = 130.
+let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
+let broadcastTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 
 // some global mutable variables needed across various UI components
 let mutable popupIsActive = false
@@ -60,7 +62,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    extrasImage:Image, timeTextBox:TextBox, resetTimerEvent:Event<unit>) =
+                    extrasImage:Image, resetTimerEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
     let owItemGrid = makeGrid(5, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
@@ -189,7 +191,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda),  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
         if b then 
-            notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text
+            notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
             TrackerModel.LastChangedTime.PauseAll()
             if TrackerModel.Options.SaveOnCompletion.Value then
                 try

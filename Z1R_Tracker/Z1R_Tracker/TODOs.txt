@@ -1,5 +1,4 @@
-﻿
-REMINDERS
+﻿REMINDERS
 
 Z-Tracker targets .Net Framework 4.8.  That's because Framework 4.x is part of the Windows OS, and so that makes Z-Tracker a small .zip file.
 I could target .NET 6.0 in the future, but it would require users to have the .NET runtime installed as a pre-req (or else 'Publish' the app 
@@ -10,18 +9,10 @@ I should be able to upgrade to VS2022 and keep targetting as I am today.
 see also https://devblogs.microsoft.com/visualstudio/support-ends-for-older-versions-of-visual-studio-feb2022/ and https://github.com/dotnet/core/blob/main/releases.md
 
 
-TODOs
-
-Just a place to dump feature ideas (small or big) or fixes/improvements
-
-
-
 CURRENT PRIORITIES
-
 
 update docs with changes
 update whats new with changes
-
 
 make a new Mouse Hover Explainer screenshot
 make new BLOCKERS screenshots
@@ -29,6 +20,11 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
+
+consider extra line of description on 'sword2' ow, for people who don't know that 'white sword cave' can have thing other than white sword
+
+
+hint decoder - was not immediately obvious to NP to click the ???, maybe make that more obviously clickable
 
 
 on hint decoder, if you already found 1 and 5, maybe aquametus/diggdogger lines greyed out? a 'found' checkmark?
@@ -54,6 +50,7 @@ voice feedback saying what mark, so less need to watch what you clicked?
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
  - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
+
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
  - ghostbusters help now
@@ -97,23 +94,6 @@ https://bitbucket.org/Garmichael/infinite-hyrule/src/master/
 
 https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
 
-
-save state
-   DONE- item boxes, triforces, HDN color/label
-   DONE- shopping area items
-   DONE- stating items/extra drops
-   DONE- hint storage
-   DONE- time
-   DONE- start spot
-   DONE- overworld (OWQuest, overworldMapMarks, overworldMapExtraData, mapLastChangedTime/recompute)
-   DONE- blockers
-   DONE- dungeon marks
-        - hDoors, vDoors, 
-        - roomStates, roomIsCircled (validate usedTransports after import), turn off 'door infer' while setting, turn off 'first time clicking' while setting
-             - poking roomIsCircled, then calling SetNewValue() seems like it would work
-                  - but for 'empty' dungeons, want to repoke the 'first time clicking' to reactivate it, or rather the opposite (turn off for non-empty dungeons)
-   DONE- notes
-   DONE- timeline
 
 
  
@@ -192,9 +172,6 @@ https://discord.com/channels/674255646518149130/710648312214061098/9378200675576
 Some kind of map presets could be good, and 4 types of shops as well, in terms of 'other free marks' people might want to add, hmm.
  - can I imagine a separate marking layer for 'user specified'?  (Bogie had 'custom reminders' on certain spots, effectively) well now middle-click circle OW spot could kinda do that
  - rather than full save/load, what if way to load preset overworld map only?
-
-
-consider other color for FQ/SQ border outlines (red too akin to your wall marks) purple?
 
 
 consider hover-feedback-of-all-clickables (e.g. triforce could slightly-darken-color-on-hover)
