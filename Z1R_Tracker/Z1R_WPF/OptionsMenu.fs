@@ -23,11 +23,12 @@ let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
     cb.Unchecked.Add(fun _ -> b.Value <- false; effect())
 
 let data1o = [|
-    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false, fun()->()
-    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, fun()->()
-    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, fun()->()
-    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true, fun()->()
-    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked (starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false, fun()->()
+    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false, (fun()->()), None
+    "Show screen scrolls", "Routing lines assume the player can screen scroll\nScreen scrolls appear as curved lines", TrackerModel.Options.Overworld.RoutesCanScreenScroll, true, (fun()->()), Some(Thickness(20.,0.,0.,0.))
+    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, (fun()->()), None
+    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, (fun()->()), None
+    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true, (fun()->()), None
+    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked\n(starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false, (fun()->()), None
     |]
 
 let data1d = [|
@@ -73,8 +74,10 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let options1sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(10.,0.,10.,0.))
     let tb = new TextBox(Text="Overworld settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options1sp.Children.Add(tb) |> ignore
-    for text,tip,b,needFU,oe in data1o do
+    for text,tip,b,needFU,oe,marginOpt in data1o do
         let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true))
+        if marginOpt.IsSome then
+            cb.Margin <- marginOpt.Value
         cb.ToolTip <- tip
         link(cb, b, needFU, oe)
         options1sp.Children.Add(cb) |> ignore

@@ -24,6 +24,12 @@ let makeLine(v1,v2,color) =
     let x2,y2 = coords(v2)
     let line = new Shapes.Line(X1=x1, X2=x2, Y1=y1, Y2=y2, Stroke=color, StrokeThickness=3., IsHitTestVisible=false)
     line
+let makeCurve(v1,v2,color) =
+    let x1,y1 = coords(v1)
+    let x2,y2 = coords(v2)
+    let pf = new PathFigure(Point(x1,y1), [new BezierSegment(Point(x1,y1-12.), Point(x2,y2-12.), Point(x2,y2), true)], false)
+    let curve = new Shapes.Path(Stroke=color, StrokeThickness=3., IsHitTestVisible=false, Data=new PathGeometry([pf]))
+    curve
 
 let MaxGYR = 12 // default
 let All = 128
@@ -33,6 +39,12 @@ let color3 = new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy))
 let color4 = new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
 let color5 = new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
 let color6 = new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
+let colorAlt1 = new SolidColorBrush(Color.FromArgb(230uy, 160uy, 220uy, 255uy))
+let colorAlt2 = new SolidColorBrush(Color.FromArgb(200uy, 160uy, 220uy, 255uy))
+let colorAlt3 = new SolidColorBrush(Color.FromArgb(175uy, 160uy, 220uy, 255uy))
+let colorAlt4 = new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy))
+let colorAlt5 = new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy))
+let colorAlt6 = new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy))
 let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
@@ -53,9 +65,17 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
             elif cost <= 22 then color4
             elif cost <= 30 then color5
             else                 color6
+        let colorAlt(cost) =
+            // white path that is bright near the cursor, but opacity falls off quickly as you get more cost-distance away
+            //if   cost <=  4 then colorAlt1   // too bright
+            if   cost <=  8 then colorAlt2
+            elif cost <= 14 then colorAlt3
+            elif cost <= 22 then colorAlt4
+            elif cost <= 30 then colorAlt5
+            else                 colorAlt6
         let d = findAllBestPaths(adjacencyDict, v, goal)
         let visited = new System.Collections.Generic.HashSet<_>()
-        let accumulatedLines = ResizeArray()
+        let accumulatedLines = ResizeArray<Shapes.Shape>()
         let rec draw(g) = 
             if visited.Add(g) then
                 let ok, r = d.TryGetValue(g)
@@ -80,6 +100,13 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                                 xs |> Seq.exists (fun (v,_c) -> v=g)
                             else
                                 false
+                        let preferLadder = 
+                            TrackerModel.playerComputedStateSummary.HaveLadder && (
+                                match p,g with
+                                | Vertex(7,1,_), Vertex(7,1,_) -> true
+                                | Vertex(7,2,_), Vertex(7,2,_) -> true
+                                | _ -> false
+                                )
                         if drawRouteMarks then 
                             if isRecorderWarpDestination(g) && not canWalk then
                                 ()  // don't bother drawing lines to every recorder warp destination - is patently obvious and just clutters screen
@@ -91,6 +118,12 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                                 line.StrokeDashArray.Add(1.0)  // number of thicknesses on...
                                 line.StrokeDashArray.Add(1.0)  // number of thicknesses off...
                                 accumulatedLines.Add(line)
+                            elif allPossibleScreenScrolls.Contains(p,g) && not(preferLadder) then
+                                if p=Vertex(0,6,FULL) && g=Vertex(15,5,FULL) then   // world wrap
+                                    accumulatedLines.Add(makeCurve(Vertex(-1,6,FULL), Vertex(0,6,FULL), if fadeOut then colorAlt(cost) else colorAlt(0)))
+                                    accumulatedLines.Add(makeCurve(Vertex(15,5,FULL), Vertex(16,5,FULL), if fadeOut then colorAlt(cost) else colorAlt(0)))
+                                else
+                                    accumulatedLines.Add(makeCurve(g, p, if fadeOut then colorAlt(cost) else colorAlt(0)))
                             else
                                 // normal walk is solid line with fading color based on cost
                                 accumulatedLines.Add(makeLine(g, p, if fadeOut then color(cost) else color(0)))

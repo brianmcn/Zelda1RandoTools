@@ -21,12 +21,29 @@ make new take-any-heart screenshot
 
 
 
+update 1.0 and 1.1 docs to point to most recent version somehow
+
+
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
+
+consider re-working MonsterDetail/FloorDropDetail to use scrollwheel
+
+
+August40th: I've been playing with minor drops shuffled & there's no good way to mark minor items fron Armos, coast, or WS cave. 
+
+
+
+in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece 
+ - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
+ - dungeon items: tri & items as you get them, to know when dungeon is 'done'
+ - dungeon maps: can do nothing... marking all stairs in 9... could mark blocker room in prior dungeon, and blocker type in blockers... eventually all of 9...
+ - dungeon rooms: default maybe-pushblock room complete/uncomplete (maybe ? and X mapping from zhelper) is most common, after that transports, only occasionally other marks
+ - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
 
 (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 

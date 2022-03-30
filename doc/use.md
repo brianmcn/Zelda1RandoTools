@@ -277,7 +277,7 @@ magnifier in the [Options Menu](#main-om) if you find it distracting.)
  - routing takes into account your current items (e.g. will not cross river if have no ladder)
  - routing understands any-road warps
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
- - routing assumes no screen-scrolling or other fancy walking glitches
+ - routing only includes screen-scrolling if the corresponding [Options Menu](#main-om) setting is turned on
  - routing knows special map topology (e.g. Lost Hills)
 
 The routeworthy spots nearest the mouse cursor will be highlighted using [GYR highlights](#general-gyr).

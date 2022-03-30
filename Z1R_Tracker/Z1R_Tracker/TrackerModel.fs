@@ -26,6 +26,7 @@ module Options =
         member this.Value with get() = v and set(x) = v <- x
     module Overworld =
         let mutable DrawRoutes = Bool(true)
+        let mutable RoutesCanScreenScroll = Bool(false)
         let mutable HighlightNearby = Bool(true)
         let mutable ShowMagnifier = Bool(true)
         let mutable MirrorOverworld = Bool(false)
@@ -68,6 +69,7 @@ module Options =
 
     type ReadWrite() =
         member val DrawRoutes = true with get,set
+        member val RoutesCanScreenScroll = false with get,set
         member val HighlightNearby = true with get,set
         member val ShowMagnifier = true with get,set
         member val MirrorOverworld = false with get,set
@@ -116,6 +118,7 @@ module Options =
     let private writeImpl(filename) =
         let data = ReadWrite()
         data.DrawRoutes <- Overworld.DrawRoutes.Value
+        data.RoutesCanScreenScroll <- Overworld.RoutesCanScreenScroll.Value
         data.HighlightNearby <- Overworld.HighlightNearby.Value
         data.ShowMagnifier <- Overworld.ShowMagnifier.Value
         data.MirrorOverworld <- Overworld.MirrorOverworld.Value
@@ -175,6 +178,7 @@ module Options =
             cachedSettingJson <- System.IO.File.ReadAllText(filename)
             let data = JsonSerializer.Deserialize<ReadWrite>(cachedSettingJson, new JsonSerializerOptions(AllowTrailingCommas=true))
             Overworld.DrawRoutes.Value <- data.DrawRoutes
+            Overworld.RoutesCanScreenScroll.Value <- data.RoutesCanScreenScroll
             Overworld.HighlightNearby.Value <- data.HighlightNearby
             Overworld.ShowMagnifier.Value <- data.ShowMagnifier
             Overworld.MirrorOverworld.Value <- data.MirrorOverworld

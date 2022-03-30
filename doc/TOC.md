@@ -1,6 +1,6 @@
 # Table of contents
 
-Here are the main documentation sections for Z-Tracker v1.1.
+Here are the main documentation sections for Z-Tracker v1.2.  (To find out the most recent 'release' version, visit [here](https://github.com/brianmcn/Zelda1RandoTools/).)
 
 - [Downloading and Installing Z-Tracker](install.md)
 - [Quick Start Guide](quick-start.md)

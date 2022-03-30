@@ -1007,7 +1007,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()
-                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations)
+                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then

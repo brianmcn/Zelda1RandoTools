@@ -191,6 +191,7 @@ over the question mark, the diagram below appears:
 
 A number of minor improvements:
  - there's now a legend under the overworld magnifier
+ - there's now an option for overworld-routing to show & utilize screen scrolling
  - the current dungeon tab highlights corresponding blockers area
  - dungeon doors/rooms give mouseover feedback, to make it easier to click the intended target
  - there's an option to automatically infer some dungeon door marks (see [the documentation](use.md#main-dt) for Doors)
