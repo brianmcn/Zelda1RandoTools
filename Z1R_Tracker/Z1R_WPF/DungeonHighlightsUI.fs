@@ -8,6 +8,12 @@ let canvasAdd = Graphics.canvasAdd
 
 let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomState.DungeonRoomState[,], currentOutlineDisplayState:int[],
                         horizontalDoors:Dungeon.Door[,], verticalDoors:Dungeon.Door[,], blockersHoverEvent:Event<_>) =
+    let startAnimationFuncs = ResizeArray()
+    let endAnimationFuncs = ResizeArray()
+
+    let anim = new Animation.DoubleAnimation(1.0, 1.3, new Duration(System.TimeSpan.FromSeconds(0.75)))
+    anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
+    anim.AutoReverse <- true
     // horizontal doors
     let horizontalDoorHighlights = Array2D.zeroCreate 7 8
     for i = 0 to 6 do
@@ -16,11 +22,10 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=Brushes.Cyan, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
             let st = new ScaleTransform(1.0, 1.0, CenterX=d.Width/2., CenterY=d.Height/2.)
             rect.RenderTransform <- st
-            let anim = new Animation.DoubleAnimation(1.0, 1.3, new Duration(System.TimeSpan.FromSeconds(0.75)))
-            anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
-            anim.AutoReverse <- true
-            st.BeginAnimation(ScaleTransform.ScaleXProperty, anim)
-            st.BeginAnimation(ScaleTransform.ScaleYProperty, anim)
+            startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, anim))
+            endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, null))
+            startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, anim))
+            endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, null))
             d.Children.Add(rect) |> ignore
             horizontalDoorHighlights.[i,j] <- rect
             canvasAdd(dungeonBodyHighlightCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
@@ -32,14 +37,17 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=Brushes.Cyan, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
             let st = new ScaleTransform(1.0, 1.0, CenterX=d.Width/2., CenterY=d.Height/2.)
             rect.RenderTransform <- st
-            let anim = new Animation.DoubleAnimation(1.0, 1.3, new Duration(System.TimeSpan.FromSeconds(0.75)))
-            anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
-            anim.AutoReverse <- true
-            st.BeginAnimation(ScaleTransform.ScaleXProperty, anim)
-            st.BeginAnimation(ScaleTransform.ScaleYProperty, anim)
+            startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, anim))
+            endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, null))
+            startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, anim))
+            endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, null))
             d.Children.Add(rect) |> ignore
             verticalDoorHighlights.[i,j] <- rect
             canvasAdd(dungeonBodyHighlightCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
+
+    let len = 2.2
+    let anim = new Animation.DoubleAnimation(0., len+len, new Duration(System.TimeSpan.FromSeconds(0.75)))
+    anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
     // rooms
     let roomHighlights = Array2D.zeroCreate 8 8
     for i = 0 to 7 do
@@ -47,11 +55,9 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             let brush = new SolidColorBrush(Colors.Magenta)
             let extra = 6
             let ellipse = new Shapes.Ellipse(Width=float(13*3+12+2*extra), Height=float(9*3+12+2*extra), Stroke=brush, StrokeThickness=6., IsHitTestVisible=false, Opacity=0.)
-            let len = 2.2
             ellipse.StrokeDashArray <- new DoubleCollection( seq[len;len] )
-            let anim = new Animation.DoubleAnimation(0., len+len, new Duration(System.TimeSpan.FromSeconds(0.75)))
-            anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
-            ellipse.BeginAnimation(Shapes.Ellipse.StrokeDashOffsetProperty, anim)
+            startAnimationFuncs.Add(fun() -> ellipse.BeginAnimation(Shapes.Ellipse.StrokeDashOffsetProperty, anim))
+            endAnimationFuncs.Add(fun() -> ellipse.BeginAnimation(Shapes.Ellipse.StrokeDashOffsetProperty, null))
 //            let canim = new Animation.ColorAnimation(Colors.Magenta, Colors.Cyan, new Duration(System.TimeSpan.FromSeconds(0.75)))
 //            canim.AutoReverse <- true
 //            canim.RepeatBehavior <- Animation.RepeatBehavior.Forever
@@ -122,6 +128,8 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
                             j < 7 && verticalDoors.[i,j].IsYesOrLocked then
                         roomHighlights.[i,j].Opacity <- 1.0
         // Note: ladder blocks are kind of implicit, you either mark a door behind a moat, or it would show as a potential bomb wall
+        for f in startAnimationFuncs do
+            f()
     let unhighlight() =
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -132,6 +140,8 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
         for i = 0 to 7 do
             for j = 0 to 7 do
                 roomHighlights.[i,j].Opacity <- 0.0
+        for f in endAnimationFuncs do
+            f()
     blockersHoverEvent.Publish.Add(fun b ->
         if b then
             highlight()
