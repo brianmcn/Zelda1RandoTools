@@ -555,11 +555,11 @@ type MyWindow() as this =
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
 
-                    let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
+                    let tb = new TextBox(Text="Loading UI... ", IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
                     stackPanel.Children.Add(tb) |> ignore
                     let showProgress() = 
                         async {
-                            tb.Text <- tb.Text.Replace(".\n", "..\n")
+                            tb.Text <- tb.Text.Replace(". ", ".. ")
                             do! Async.Sleep(1) // pump to make 'Loading UI' text update
                             do! Async.SwitchToContext ctxt
                         }

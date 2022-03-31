@@ -87,7 +87,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
             cm.AfterCreatePopupCanvas.Add(fun pc ->
                 let vb = new VisualBrush(pc)
                 vb.ViewboxUnits <- BrushMappingMode.Absolute
-                vb.Viewbox <- Rect(Point(0.,0.), Point(appMainCanvas.Width,appMainCanvas.Height))
+                vb.Viewbox <- Rect(Point(0.,0.), Point(appMainCanvas.Width,appMainCanvas.Height+CustomComboBoxes.BROADCAST_KLUDGE))
                 vb.Stretch <- Stretch.None
                 let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
                 bwRect.Fill <- vb

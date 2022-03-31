@@ -58,6 +58,7 @@ using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, Syst
     filestream.Close();
 }
 *)
+let BROADCAST_KLUDGE = 50.  // the bottom-half broadcast window has the bottom of timeline peek out beyond the popup-sunglasses, causing bottom-timeline to be bright; this 'fixes' it
 type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     static let mutable theOnlyCanvasManager = None
     do
@@ -74,7 +75,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
     let height = rootCanvas.Height
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false)
+    let sunglasses = new Canvas(Width=width, Height=height+BROADCAST_KLUDGE, Background=Brushes.Black, IsHitTestVisible=false)
     member _this.Width = width
     member _this.Height = height
     member _this.RootCanvas = rootCanvas           // basically, no one should touch this, except to set mainWindow.Content <- cm.RootCanvas

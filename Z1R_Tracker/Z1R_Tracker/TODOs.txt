@@ -34,12 +34,6 @@ maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 Finish docs of dungeon room/detail UI, once it's all done
 
 
-broadcast window bottom 20-ish pixels do not get greyed during popup
-
-
-startup page, Loading UI often cutoff, remove some blank vertical space
-
-
 August40th: I've been playing with minor drops shuffled & there's no good way to mark minor items fron Armos, coast, or WS cave. 
 
 
