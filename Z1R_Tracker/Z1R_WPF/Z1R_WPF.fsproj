@@ -98,7 +98,6 @@
     <Compile Include="DungeonRoomState.fs" />
     <Compile Include="HotKeys.fs" />
     <Compile Include="CustomComboBoxes.fs" />
-    <Compile Include="DungeonRoomStateUI.fs" />
     <Compile Include="PieMenus.fs" />
     <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />
@@ -106,6 +105,7 @@
     <Compile Include="Views.fs" />
     <Compile Include="DungeonSaveAndLoad.fs" />
     <Compile Include="DungeonHighlightsUI.fs" />
+    <Compile Include="DungeonPopups.fs" />
     <Compile Include="DungeonUI.fs" />
     <Compile Include="SpeechRecognition.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />

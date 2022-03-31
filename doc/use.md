@@ -41,7 +41,7 @@ scrolling, and then click once you have reached your desired choice, or you can 
 is often faster when there is a very long list of choices, such as the overworld map tiles).  Clicking outside of a popup will cancel the popup 
 and abort making any changes to the element.
 
-When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
+When mouse-hovering an element with choices, scroll-wheel always activates a popup.  
 
 In certain cases noted below, clicking also activates the popup.
 
@@ -430,7 +430,11 @@ If you want to change a RoomType (to mark a transport staircase, hungry Goriya, 
  - a grid of 34 possible types of rooms appear
  - choose the one you want with your mouse, and left-click it
 
+TODO
+
 ![Dungeon room chooser screenshot](screenshots/dungeon-room-chooser.png)
+
+TODO
 
 If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
 but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
@@ -438,6 +442,8 @@ to the current room's "preview" tile.  Once you are done, click the preview tile
 and a right-click marks it uncompleted.  (After clicking a detail, its grid briefly goes half-transparent, as visual feedback that your detail has been applied
 to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, 
 double-right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
+
+TODO
 
 ![Dungeon room detail screenshot](screenshots/dungeon-room-detail.png)
 

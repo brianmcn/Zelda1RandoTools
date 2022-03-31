@@ -710,3 +710,5 @@ let blockerCurrentBMP(current) =
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)
     PlaySoundForSpeechRecognizedAndUsedToMark()
+let SilentlyWarpMouseCursorTo(pos:Point) =
+    Win32.SetCursor(pos.X, pos.Y)

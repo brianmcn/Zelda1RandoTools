@@ -42,6 +42,10 @@ always available in the dungeon room selection popup menu.
 
 ![Dungeon room types](screenshots/dungeon-room-types.png)
 
+### Simpler Dungeon Room UI for Monster Detail and Floor Drop Detail
+
+TODO
+
 ### Special NPC room highlights
 
 You can make Bomb-Upgrade rooms and NPC-with-Hint rooms stand out visually:

@@ -627,7 +627,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     canvasAdd(c, dashCanvas, -BUFFER, -BUFFER)
                     CustomComboBoxes.MakePrettyDashes(dashCanvas, Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
                     let pos = Point(roomPos.X+13.*3./2., roomPos.Y+9.*3./2.)
-                    do! DungeonRoomStateUI.DoModalDungeonRoomSelectAndDecorate(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
+                    do! DungeonPopups.DoDungeonRoomSelectPopup(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
                     c.Children.Remove(dashCanvas)
                     Graphics.WarpMouseCursorTo(pos)
                     redraw()
@@ -699,11 +699,35 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     highlightOutline.Opacity <- 0.0
                     trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
                     )
-                c.MouseWheel.Add(fun _ -> 
+                let doMonsterDetailPopup() = 
+                    async {
+                        let pos = c.TranslatePoint(Point(-6.,-6.),cm.AppMainCanvas)
+                        let! mdOpt = DungeonPopups.DoMonsterDetailPopup(cm, pos.X, pos.Y, roomStates.[i,j].MonsterDetail)
+                        match mdOpt with
+                        | Some(md) ->
+                            let workingCopy = roomStates.[i,j].Clone()
+                            workingCopy.MonsterDetail <- md
+                            SetNewValue(workingCopy)
+                        | None -> ()
+                    } |> Async.StartImmediate
+                let doFloorDropDetailPopup() = 
+                    async {
+                        let pos = c.TranslatePoint(Point(18.,6.),cm.AppMainCanvas)
+                        let! fdOpt = DungeonPopups.DoFloorDropDetailPopup(cm, pos.X, pos.Y, roomStates.[i,j].FloorDropDetail)
+                        match fdOpt with
+                        | Some(fd) ->
+                            let workingCopy = roomStates.[i,j].Clone()
+                            workingCopy.FloorDropDetail <- fd
+                            SetNewValue(workingCopy)
+                        | None -> ()
+                    } |> Async.StartImmediate
+                c.MouseWheel.Add(fun x -> 
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
-                            // scroll wheel activates the popup selector
-                            activatePopup(false) |> Async.StartImmediate
+                            if x.Delta>0 then
+                                doMonsterDetailPopup()
+                            else
+                                doFloorDropDetailPopup()
                     )
                 Graphics.setupClickVersusDrag(c, (fun ea ->
                     if not popupIsActive then
@@ -735,37 +759,43 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             horizontalDoors |> Array2D.iteri (fun x y c -> c.State <- backupHorizontalDoors.[x,y])
                                             verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                                 else
-                                    // plain left click
-                                    let workingCopy = roomStates.[i,j].Clone()
-                                    if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
-                                        // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
-                                        workingCopy.RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                        workingCopy.IsComplete <- true
-                                        SetNewValue(workingCopy)
+                                    if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        doMonsterDetailPopup()
                                     else
-                                        if isFirstTimeClickingAnyRoomInThisDungeonTab then
-                                            workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
+                                        // plain left click
+                                        let workingCopy = roomStates.[i,j].Clone()
+                                        if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
+                                            // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
+                                            workingCopy.RoomType <- DungeonRoomState.RoomType.MaybePushBlock
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
-                                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false
-                                            numeral.Opacity <- 0.0
                                         else
-                                            match roomStates.[i,j].RoomType.NextEntranceRoom() with
-                                            | Some(next) -> 
-                                                workingCopy.RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                            if isFirstTimeClickingAnyRoomInThisDungeonTab then
+                                                workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
+                                                workingCopy.IsComplete <- true
                                                 SetNewValue(workingCopy)
-                                            | None ->
-                                                // toggle completedness
-                                                workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
-                                                SetNewValue(workingCopy)
-                                    redraw()
+                                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                                numeral.Opacity <- 0.0
+                                            else
+                                                match roomStates.[i,j].RoomType.NextEntranceRoom() with
+                                                | Some(next) -> 
+                                                    workingCopy.RoomType <- next  // cycle the entrance arrow around cardinal positions
+                                                    SetNewValue(workingCopy)
+                                                | None ->
+                                                    // toggle completedness
+                                                    workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
+                                                    SetNewValue(workingCopy)
+                                        redraw()
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
-                                    // plain right click
-                                    do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
-                                    isFirstTimeClickingAnyRoomInThisDungeonTab <- false
-                                    numeral.Opacity <- 0.0
-                                    redraw()
+                                    if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        doFloorDropDetailPopup()
+                                    else
+                                        // plain right click
+                                        do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
+                                        isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                        numeral.Opacity <- 0.0
+                                        redraw()
                             elif ea.ChangedButton = Input.MouseButton.Middle then
                                 if not grabHelper.IsGrabMode then  // cannot middle click rooms in grab mode
                                     // middle click toggles floor drops, or if none, toggle circles
