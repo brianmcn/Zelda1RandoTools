@@ -35,10 +35,13 @@ Finish docs of dungeon room/detail UI, once it's all done
 
 
 August40th: I've been playing with minor drops shuffled & there's no good way to mark minor items fron Armos, coast, or WS cave. 
+ - just doc a strategy (white-click basements at start, Notes dungeons 'all done')
 
 
+decide if coast raft spot should be considered reachable if mirrored & routing & screen scrolls all checked
 
-in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece 
+
+in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
  - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
  - dungeon items: tri & items as you get them, to know when dungeon is 'done'
  - dungeon maps: can do nothing... marking all stairs in 9... could mark blocker room in prior dungeon, and blocker type in blockers... eventually all of 9...
@@ -46,10 +49,6 @@ in quick-start, maybe prioritize what people should track, so noobs can bite off
  - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
 
 (some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-
-
-homer: which blocker blocked item v which blocked triforce
- - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
 
 
 
@@ -137,6 +136,10 @@ I've been asked about this for Z-Tracker as well, but have only very recently le
 
 
 consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
+
+
+homer: which blocker blocked item v which blocked triforce
+ - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
 
 
 clyceer: wants to drag in grab mode, rather than click-click

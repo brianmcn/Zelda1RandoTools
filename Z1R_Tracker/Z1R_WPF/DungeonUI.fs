@@ -493,6 +493,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
             )
         let mutable animateDungeonRoomTile = fun _ -> ()
+        let highlightColumnCanvases = Array.init 8 (fun _ -> new Canvas(Background=Brushes.White, Width=51., Height=float TH, Opacity=0.0))
+        let highlightColumn(colOpt) =
+            for i = 0 to 7 do
+                highlightColumnCanvases.[i].Opacity <- 0.0
+            match colOpt with
+            | None -> ()
+            | Some c -> highlightColumnCanvases.[c].Opacity <- 0.2
         for i = 0 to 7 do
             let HFF = new FontFamily("Courier New")
             if i<>7 then
@@ -509,12 +516,22 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let mutable img = null
                         let update() =
                             dungeonHeaderCanvas.Children.Remove(img)
+                            dungeonHeaderCanvas.Children.Remove(highlightColumnCanvases.[i])
                             img <- makeLetter(fun() -> Dungeon.MakeLetterBmpInZeldaFont(((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
                                                                                                 Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color)))
                             canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
+                            canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
                         update()
                         OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> update())
-                        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> update())
+                        TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> 
+                            if Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color) then
+                                for i = 0 to 7 do
+                                    highlightColumnCanvases.[i].Background <- Brushes.Black
+                            else
+                                for i = 0 to 7 do
+                                    highlightColumnCanvases.[i].Background <- Brushes.White
+                            update()
+                            )
                     else
                         let gsc = new GradientStopCollection()
                         gsc.Add(new GradientStop(Colors.Red, 0.))
@@ -545,10 +562,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     let bmpFunc() = Dungeon.MakeLetterBmpInZeldaFont((sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
                     let mutable img = makeLetter(bmpFunc)
                     canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
+                    canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
                     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Publish.Add(fun _ -> 
                         dungeonHeaderCanvas.Children.Remove(img)
+                        dungeonHeaderCanvas.Children.Remove(highlightColumnCanvases.[i])
                         img <- makeLetter(bmpFunc)
                         canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
+                        canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
                         )
             OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
@@ -688,6 +708,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                 highlight(warn, Brushes.Yellow)
                         else
                             highlightRow(Some j)
+                            highlightColumn(Some i)
                             highlightOutline.Opacity <- 0.6
                             trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
@@ -696,6 +717,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         if grabHelper.IsGrabMode then
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
                     highlightRow(None)
+                    highlightColumn(None)
                     highlightOutline.Opacity <- 0.0
                     trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
                     )
