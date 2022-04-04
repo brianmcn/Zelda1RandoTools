@@ -387,14 +387,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
             Canvas.SetBottom(b, 0.)
-            Canvas.SetLeft(b, -260.)
-            hoverCanvas.Children.Add(b) |> ignore
+            Canvas.SetLeft(b, 0.)
+            rightwardCanvas.Children.Clear()
+            rightwardCanvas.Children.Add(b) |> ignore
             let vb = new VisualBrush(dungeonCanvas)
             trackerDungeonMoused.Trigger(vb)
             )
         hoverCanvas.MouseLeave.Add(fun _ -> 
-            hoverCanvas.Children.Clear()
-            canvasAdd(hoverCanvas, miniBorder, 0., 0.)
+            rightwardCanvas.Children.Clear()
             trackerDungeonMoused.Trigger(null)
             )
         // big icons for monsters & floor drops

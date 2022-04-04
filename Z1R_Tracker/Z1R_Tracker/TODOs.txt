@@ -368,3 +368,21 @@ Thus, in shapes,
  - Kill->Drop implies no push-stair
 
 
+
+These 5 rooms NEVER drop in ANY Shapes dungeon
+    Gannon (can have standing drop)
+    Zelda           Bomb droppers: BrCrhBrBhh
+    3 Rows                         1234567890
+    Circle Wall                    * .  * *
+    Single Block   (Vertical Bars? Lava Moat?)
+These 9 rooms NEVER drop in SOME Shapes dungeons
+               Never drops in   Can drop in
+Five Pair      2 3 4 5 6 7 8 9  1
+Maze           1 2 3 5 6 7 8 9  4
+Pointless Moat 2 3 6 7 8 9      1 4 5
+Diamond Stair  1 4 5            2 3 6 7 8 9
+Single 6       1 4 5            2 3 6 7 8 9
+Spiral Stair   1 4 5            2 3 6 7 8 9
+Gleeok         1 5              2 3 4 6 7 8 9
+Grid           4 5              1 2 3 6 7 8 9
+T              1                2 3 4 5 6 7 8 9
