@@ -23,7 +23,7 @@ let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
     cb.Unchecked.Add(fun _ -> b.Value <- false; effect())
 
 let data1o = [|
-    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, false, (fun()->()), None
+    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, true, (fun()->()), None
     "Show screen scrolls", "Routing lines assume the player can screen scroll\nScreen scrolls appear as curved lines", TrackerModel.Options.Overworld.RoutesCanScreenScroll, true, (fun()->()), Some(Thickness(20.,0.,0.,0.))
     "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, (fun()->()), None
     "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, (fun()->()), None

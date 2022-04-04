@@ -1084,7 +1084,9 @@ let recomputeMapStateSummary() =
                         (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) ||
                         (owInstance.Bombable(i,j) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())) ||
                         (owInstance.Burnable(i,j) && playerComputedStateSummary.CandleLevel=0) then
-                        ()
+                        ()  // not routeworthy, as the player can't uncover the spot... except...
+                        if i=15 && j=2 && Options.Overworld.DrawRoutes.Value && Options.Overworld.RoutesCanScreenScroll.Value && Options.Overworld.MirrorOverworld.Value then
+                            owRouteworthySpots.[i,j] <- true  // can screen scroll to coast island; even though is out-of-logic, is good to teach that is possible
                     else
                         owRouteworthySpots.[i,j] <- true
                         owGettableLocations.Add(i,j)
