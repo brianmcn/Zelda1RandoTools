@@ -418,7 +418,7 @@ As a result, in the scenario described before, you could mark up the room thusly
 
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
 
-### Practical use
+### <a id="main-drpu"></a> Practical use
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
  - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
@@ -430,22 +430,15 @@ If you want to change a RoomType (to mark a transport staircase, hungry Goriya, 
  - a grid of 34 possible types of rooms appear
  - choose the one you want with your mouse, and left-click it
 
-TODO
-
 ![Dungeon room chooser screenshot](screenshots/dungeon-room-chooser.png)
 
-TODO
+If you want to mark a MonsterDetail for a room, you can scroll-up (or shift-left-click) to open the MonsterDetail popup:
 
-If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
-but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
-to the current room's "preview" tile.  Once you are done, click the preview tile to save your edits to the dungeon map; a left-click marks the room completed,
-and a right-click marks it uncompleted.  (After clicking a detail, its grid briefly goes half-transparent, as visual feedback that your detail has been applied
-to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, 
-double-right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
+![Dungeon room monster detail screenshot](screenshots/dungeon-room-monster-detail.png)
 
-TODO
+Or if you want to mark a FloorDropDetail for a room, you can scroll-down (or shift-right-click) to open the FloorDropDetail popup:
 
-![Dungeon room detail screenshot](screenshots/dungeon-room-detail.png)
+![Dungeon room monster detail screenshot](screenshots/dungeon-room-floor-drop-detail.png)
 
 If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' the floor drop by middle-clicking the room on the map.  Un-gotten floor drops
 appear as a bright icon, and gotten floor drops appear darkened.
@@ -489,6 +482,8 @@ upper right icon area:
 ![z-tracker dungeon map screenshot](screenshots/rupee-key-bomb-z-tracker.png)
 
 In that screenshot, the mouse is over a room in the 5th row, so the highlight appears next to the top half of the 'key' icon.
+
+(The corresponding column letter also gets a subtle highlight when a dungeon room is moused over--see the second 'L' of LEVEL-1 in the screenshot.)
 
 #### <a id="main-dungeon-old-man-count"></a>Old Man Count
 

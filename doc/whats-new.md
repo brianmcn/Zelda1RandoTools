@@ -42,9 +42,9 @@ always available in the dungeon room selection popup menu.
 
 ![Dungeon room types](screenshots/dungeon-room-types.png)
 
-### Simpler Dungeon Room UI for Monster Detail and Floor Drop Detail
+### Simpler Dungeon Room UI for choosing rooms, Monster Detail, and Floor Drop Detail
 
-TODO
+For details, see the [main documentation](use.md#main-drpu) on this topic.
 
 ### Special NPC room highlights
 
