@@ -114,7 +114,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
 
 ### A number of minor fixes and changes
 
- - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly
+ - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly, no longer obscures dungeon map
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're already inside dungeon X right now
  - you can now mark up to 3 Blockers per dungeon
