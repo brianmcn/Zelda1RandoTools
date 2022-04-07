@@ -65,7 +65,6 @@ module Options =
     let mutable BroadcastWindowLT = ""
     let mutable HotKeyWindowLTWH = ""
     let mutable OverlayLocatorWindowLTWH = ""
-    let mutable BigIconsInDungeons = false
 
     type ReadWrite() =
         member val DrawRoutes = true with get,set
@@ -111,7 +110,6 @@ module Options =
         member val BroadcastWindowLT = "" with get,set
         member val HotKeyWindowLTWH = "" with get, set
         member val OverlayLocatorWindowLTWH = "" with get, set
-        member val BigIconsInDungeons = false with get, set
 
     let mutable private cachedSettingJson = null
 
@@ -158,7 +156,6 @@ module Options =
         data.BroadcastWindowLT <- BroadcastWindowLT
         data.HotKeyWindowLTWH <- HotKeyWindowLTWH
         data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
-        data.BigIconsInDungeons <- BigIconsInDungeons
 
         let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
         if json <> cachedSettingJson then
@@ -218,7 +215,6 @@ module Options =
             BroadcastWindowLT <- data.BroadcastWindowLT
             HotKeyWindowLTWH <- data.HotKeyWindowLTWH
             OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
-            BigIconsInDungeons <- data.BigIconsInDungeons
         with e ->
             cachedSettingJson <- null
             printfn "Unable to read settings file '%s':" filename 

@@ -88,8 +88,9 @@
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
     <EmbeddedResource Include="icons\open_cave20x20.png" />
-    <EmbeddedResource Include="icons\icons3x3.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />
+    <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
+	<EmbeddedResource Include="icons\zelda_items16x16.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />

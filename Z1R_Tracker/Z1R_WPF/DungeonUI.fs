@@ -144,8 +144,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     Child=new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=16., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
-    // TrackerModel.Options.BigIconsInDungeons  // whether user has checked they prefer big icons
-    let mutable bigIconsSwapPreview = false     // whether we are currently in the mouse hover to show big icons
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     theDungeonTabControl <- dungeonTabs
@@ -386,7 +384,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             i.Stretch <- Stretch.UniformToFill
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
-            Canvas.SetBottom(b, 0.)
+            Canvas.SetBottom(b, 0.-dungeonTabsWholeCanvas.Height)
             Canvas.SetLeft(b, 0.)
             rightwardCanvas.Children.Clear()
             rightwardCanvas.Children.Add(b) |> ignore
@@ -396,53 +394,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         hoverCanvas.MouseLeave.Add(fun _ -> 
             rightwardCanvas.Children.Clear()
             trackerDungeonMoused.Trigger(null)
-            )
-        // big icons for monsters & floor drops
-        let bigIconsButtonPicture = new StackPanel(Orientation=Orientation.Horizontal)
-        bigIconsButtonPicture.Children.Add(DungeonRoomState.FloorDropDetail.Triforce.Bmp(false) |> Graphics.BMPtoImage) |> ignore
-        bigIconsButtonPicture.Children.Add(DungeonRoomState.FloorDropDetail.Triforce.Bmp(true) |> Graphics.BMPtoImage) |> ignore
-        let bigIconsButton = new Button(Content=bigIconsButtonPicture, Background=Graphics.almostBlack)
-        bigIconsButton.Click.Add(fun _ ->
-            TrackerModel.Options.BigIconsInDungeons <- not TrackerModel.Options.BigIconsInDungeons
-            TrackerModel.Options.writeSettings()
-            redrawAllRooms()
-            )
-        bigIconsButton.ToolTip <- "Click to permanently toggle whether larger or\nsmaller corner icons are shown on dungeon rooms"
-        canvasAdd(contentCanvas, bigIconsButton, LD_X, LD_Y+220.)
-        bigIconsButton.MouseEnter.Add(fun _ ->
-            bigIconsSwapPreview <- true
-            redrawAllRooms()
-            let mds, fds = new System.Collections.Generic.HashSet<_>(), new System.Collections.Generic.HashSet<_>()
-            for i = 0 to 7 do
-                for j = 0 to 7 do
-                    match roomStates.[i,j].MonsterDetail with
-                    | DungeonRoomState.MonsterDetail.Unmarked -> ()
-                    | x -> mds.Add(x) |> ignore
-                    match roomStates.[i,j].FloorDropDetail with
-                    | DungeonRoomState.FloorDropDetail.Unmarked -> ()
-                    | x -> fds.Add(x) |> ignore
-            let columns = new StackPanel(Orientation=Orientation.Horizontal)
-            let ms = new StackPanel(Orientation=Orientation.Vertical)
-            mds |> Seq.iter (fun x -> ms.Children.Add(x.LegendIcon()) |> ignore)
-            columns.Children.Add(ms) |> ignore
-            let fs = new StackPanel(Orientation=Orientation.Vertical)
-            fds |> Seq.iter (fun x -> fs.Children.Add(x.LegendIcon()) |> ignore)
-            columns.Children.Add(fs) |> ignore
-            let all = new StackPanel(Orientation=Orientation.Vertical)
-            all.Children.Add(DungeonRoomState.mkTxt("All monster & floor drop icons marked:")) |> ignore
-            all.Children.Add(columns) |> ignore
-            if mds.Count=0 && fds.Count=0 then
-                all.Children.Add(DungeonRoomState.mkTxt("(none)")) |> ignore
-            let border = new Border(BorderBrush=Brushes.Gray, Background=Brushes.Black, BorderThickness=Thickness(3.), Child=all)
-            Canvas.SetLeft(border, 0.)
-            Canvas.SetBottom(border, 0.)
-            rightwardCanvas.Height <- dungeonTabs.ActualHeight
-            rightwardCanvas.Children.Add(border) |> ignore
-            )
-        bigIconsButton.MouseLeave.Add(fun _ ->
-            bigIconsSwapPreview <- false
-            redrawAllRooms()
-            rightwardCanvas.Children.Clear()
             )
         // grab button for this tab
         let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
@@ -581,7 +532,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
-                    let image = roomStates.[i,j].CurrentDisplay(TrackerModel.Options.BigIconsInDungeons <> bigIconsSwapPreview)
+                    let image = roomStates.[i,j].CurrentDisplay()
                     image.IsHitTestVisible <- false
                     canvasAdd(c, image, -BUFFER, -BUFFER)
                     canvasAdd(c, highlightOutline, -1.-BUFFER, -1.-BUFFER)

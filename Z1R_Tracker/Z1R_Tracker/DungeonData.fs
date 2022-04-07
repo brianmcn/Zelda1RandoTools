@@ -10,7 +10,7 @@ module Factoids =
         "For the Any Roads, from your current entrance, the 3 staircases go +1/+2/+3 steps along the 1-2-3-4-1-2-3-4-... chain."
         "To stun a Dodongo with a single bomb, walk halfway between two tiles when placing the bomb; Dodongo can only eat bombs placed evenly on the tile grid.  After being stunned, Dodongo can be killed with a sword for a bomb pack drop."
         "When there is a standing item drop on the floor of a dungeon room when you first walk in, there cannot be another prize drop for killing all monsters in the room."
-        "If a dungeon room has a pushblock, it will always be the leftmost block in the center row."
+        "If a dungeon room has a pushblock, it will always be the leftmost block of the middle row."
         "Overworld push-blocks (such as rocks that can be pushed with power bracelet) must be pushed up/down from directly below/above the block.  In contrast, dungeon pushblocks are pushable in all 4 directions."
         "Generally/roughly, the higher the dungeon number, the larger the dungeon is likely to be, and the less likely a given wall will be bombable."
         "If you UP+A out of a door repair charge room before the NPC finishes speaking and starts taking your money, you can avoid the charge."

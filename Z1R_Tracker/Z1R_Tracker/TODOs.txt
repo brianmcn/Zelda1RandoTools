@@ -21,7 +21,8 @@ make new take-any-heart screenshot
 
 
 
-update 1.0 and 1.1 docs to point to most recent version somehow
+more MonsterDetail choices?
+more features 'hidden' behind options, to simplify default UI?
 
 
 probably more description/screenshot of options menu, say initial defaults tailored to new folks

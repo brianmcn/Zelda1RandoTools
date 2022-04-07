@@ -590,8 +590,8 @@ let MakeMappedHotKeysDisplay() =
     let dungeonRoomPanel = makePanel(thingies, HotKeys.DungeonRoomHotKeyProcessor, (fun c ->
         match c with 
         | Choice1Of3 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
-        | Choice2Of3 md -> (let i = md.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
-        | Choice3Of3 fd -> (let i = fd.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
+        | Choice2Of3 md -> (let i = md.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
+        | Choice3Of3 fd -> (let i = fd.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
         ), 39, "DUNGEON")
     let globalPanel = makePanel(HotKeys.GlobalHotkeyTargets.All, HotKeys.GlobalHotKeyProcessor, (fun state -> state.AsHotKeyDisplay()), 30, "GLOBALS")
     let all = new StackPanel(Orientation=Orientation.Horizontal)

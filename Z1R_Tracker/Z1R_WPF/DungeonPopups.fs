@@ -47,11 +47,11 @@ let dungeonRoomExplainer, setOpacity =
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- true
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     gridAdd(g, border(sp), 2, 0)
 
     let tb = right <| mkTxt("Right-click")
@@ -62,15 +62,15 @@ let dungeonRoomExplainer, setOpacity =
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.Chevy
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.Transport1
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     sp.Children.Add(ellipsis |> Graphics.BMPtoImage) |> ignore
     gridAdd(g, border(sp), 2, 1)
 
@@ -82,17 +82,17 @@ let dungeonRoomExplainer, setOpacity =
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
     drs.MonsterDetail <- MonsterDetail.Gleeok
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
     drs.MonsterDetail <- MonsterDetail.Digdogger
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     sp.Children.Add(ellipsis |> Graphics.BMPtoImage) |> ignore
     gridAdd(g, border(sp), 2, 2)
 
@@ -104,17 +104,17 @@ let dungeonRoomExplainer, setOpacity =
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
     drs.FloorDropDetail <- FloorDropDetail.Triforce
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     let drs = new DungeonRoomState()
     drs.RoomType <- RoomType.MaybePushBlock
     drs.IsComplete <- false
     drs.FloorDropDetail <- FloorDropDetail.BombPack
-    sp.Children.Add(drs.CurrentDisplay(true)|>marginAndSunglasses) |> ignore
+    sp.Children.Add(drs.CurrentDisplay()|>marginAndSunglasses) |> ignore
     sp.Children.Add(ellipsis |> Graphics.BMPtoImage) |> ignore
     gridAdd(g, border(sp), 2, 3)
 
@@ -123,11 +123,11 @@ let dungeonRoomExplainer, setOpacity =
         fun op -> dp.Opacity <- op
 
 let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = async {
-    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has monster icon drawn on it, not the box
+    let innerc = new Canvas(Width=18., Height=18., Background=Brushes.Black)  // just has monster icon drawn on it, not the box
     Graphics.SilentlyWarpMouseCursorTo(Point(boxX+12., boxY+12.))
     let redraw(md:MonsterDetail) =
         innerc.Children.Clear()
-        let bmp = md.Bmp(true)
+        let bmp = md.Bmp()
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             image.Opacity <- sunglassesOpacity
@@ -137,7 +137,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
     let all = MonsterDetail.All()
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 8 do
-            let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp(true) |> Graphics.BMPtoImage)
+            let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp() |> Graphics.BMPtoImage)
             let isSelectable = n < all.Length
             let ident = if n>=all.Length then MonsterDetail.Unmarked else all.[n]
             yield fe, isSelectable, ident
@@ -170,16 +170,16 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
             dungeonRoomExplainer, -3.-boxX, 342.-boxY
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 24, 24), gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
 let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail) = async {
-    let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has floordrop icon drawn on it, not the box
-    Graphics.SilentlyWarpMouseCursorTo(Point(boxX+12., boxY+12.))
+    let innerc = new Canvas(Width=18., Height=18., Background=Brushes.Black)  // just has floordrop icon drawn on it, not the box
+    Graphics.SilentlyWarpMouseCursorTo(Point(boxX+9., boxY+9.))
     let redraw(fd:FloorDropDetail) =
         innerc.Children.Clear()
-        let bmp = fd.Bmp(true)
+        let bmp = fd.Bmp()
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             image.Opacity <- sunglassesOpacity
@@ -189,7 +189,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
     let all = FloorDropDetail.All()
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 8 do
-            let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp(true) |> Graphics.BMPtoImage)
+            let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp() |> Graphics.BMPtoImage)
             let isSelectable = n < all.Length
             let ident = if n>=all.Length then FloorDropDetail.Unmarked else all.[n]
             yield fe, isSelectable, ident
@@ -222,7 +222,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
             dungeonRoomExplainer, -3.-boxX, 342.-boxY
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 24, 24), gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
@@ -275,7 +275,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
     let redrawTile(curState:RoomType) =
         tileCanvas.Children.Clear()
         fullRoom.RoomType <- curState
-        let fullRoomDisplay = fullRoom.CurrentDisplay(false)
+        let fullRoomDisplay = fullRoom.CurrentDisplay()
         fullRoomDisplay.RenderTransform <- new ScaleTransform(SCALE, SCALE)
         RenderOptions.SetBitmapScalingMode(fullRoomDisplay, BitmapScalingMode.NearestNeighbor)
         fullRoomDisplay.Opacity <- tileSunglasses
