@@ -288,10 +288,11 @@ type MyWindow() as this =
             Graphics.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
+        let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
         if TrackerModel.Options.SmallerAppWindow.Value then 
             let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
-        let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
+            hmsTimerCanvas.RenderTransform <- trans
         wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
         wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
         this.Content <- wholeCanvas
@@ -576,7 +577,7 @@ type MyWindow() as this =
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
                     if loadData.IsNone then
                         WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-                    Graphics.canvasAdd(wholeCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+                    Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
                 } |> Async.StartImmediate
             )
 

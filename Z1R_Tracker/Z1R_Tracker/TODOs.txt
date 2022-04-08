@@ -25,6 +25,12 @@ more MonsterDetail choices?
 more features 'hidden' behind options, to simplify default UI?
 
 
+Noraystra - bait block dot on dungeon tab (like bomb upgrade)?  actually could probably fit 14x6 version of meat-shank icon to left of numeral, for example
+ - is useful gloabl info even if doesn't block things; knowing you have already seen it means no further meat needed... so greyed out version could be good too
+ - does raise the question of if/whether this should auto-populate blockers somehow
+    - could imagine 3rd blocker space always having logic where e.g. display is - if user marked me empty, and current dungeon has bait block, then display bait, maybe with a halo
+
+
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
