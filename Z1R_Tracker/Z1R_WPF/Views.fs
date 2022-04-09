@@ -157,13 +157,16 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
             let update() = stairImg.Opacity <- if TrackerModel.Options.IsSecondQuestDungeons.Value && TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
             OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
         | TrackerModel.StairKind.LikeL3 ->
             let update() = stairImg.Opacity <- if not(TrackerModel.Options.IsSecondQuestDungeons.Value) && TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
             OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
         | TrackerModel.StairKind.Always ->
             let update() = stairImg.Opacity <- if TrackerModel.Options.ShowBasementInfo.Value then 1.0 else 0.0
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
         | _ -> ()
         canvasAdd(c, stairImg, 3., 3.)
     let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)

@@ -24,7 +24,7 @@ module Factoids =
         "If you screen transition (e.g. from East to West) on the Overworld before entering a dungeon, you may unlock a doorway or uncover a free bomb-hole on the wall you came from (e.g. East)."
     //        "(how does it work for up-a-ing from a room where you opened that side (via bomb (shutter?))"
         "If a room has a shutter door, a push block cannot reveal a new staircase (just will open the shutter if pushable)."
-        "Consider the room that has the triforce in vanilla; in Shapes dungeons, when that room does not have a standing item upon entry, it will always drop the Map after killing all enemies."
+        "Consider the room that has the triforce in vanilla; in Shapes dungeons, when that room does not have a standing item upon entry, it will always drop the Map after killing all enemies. (Exception: in L9 adjacent to Zelda's room, there may be no drop.)"
         "When playing 'swordless', the only way to defeat a gleeok is with a wand, and the only way to defeat wizzrobes is with explosions (from bombs or boomstick)."
         "If a dungeon is on screen A15, recorder-ing to that dungeon will cause the whirlwind drop you at B15, as there's not space on A15 to land."
         "If you clear a dungeon room containing traps or bubbles, it will stay clear forever until you leave the dungeon (as traps & bubbles are considered enemies)."
@@ -38,7 +38,7 @@ module Factoids =
         "If using 'Level 9 Entry: Random' flag, if the old man at the door tells you some nonsense, that means you need all 8 triforces to get in. Otherwise he will say 'only those with X triforces' or 'only those with candle' etc."
         "In Shapes (1Q) dungeons, after clearing monsters, dungeon room 'five pairs' can only drop in dungeon 1, and dungeon room 'maze' can only drop in dungeon 4."
         "In 1QL5, the floor drop spawn for 'tee' room is on the island; in L4, it's bottom right of the tee room; in most other dungeons, it's top right of the tee room."
-        "These dungeon room never drop after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
+        "These dungeon room never drop in 1Q/Shapes after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
         "If the 'Add 2nd Quest Doors' randomizer flag is used, walk-through-walls will never appear in levels 1, 3, or 7, but walk-through-walls may appear in any other dungeon."
         "In 1Q/Shapes dungeons, a room with a standing-drop or kill-prize-drop or shutter-door never has a push-block-that-reveals-a-new-stair. Exception: if 'Remove Most Open Stairs' flag is used, then a non-shutter room with a standing item can have a push-block-stair."
         |]
