@@ -25,7 +25,7 @@ let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
 let data1o = [|
     "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, true, (fun()->()), None
     "Show screen scrolls", "Routing lines assume the player can screen scroll\nScreen scrolls appear as curved lines", TrackerModel.Options.Overworld.RoutesCanScreenScroll, true, (fun()->()), Some(Thickness(20.,0.,0.,0.))
-    "Highlight nearby", "Highlight nearest unmarked overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, (fun()->()), None
+    "Highlight nearby", "Highlight nearest unmarked gettable overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, (fun()->()), None
     "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, (fun()->()), None
     "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true, (fun()->()), None
     "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked\n(starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false, (fun()->()), None
@@ -34,7 +34,7 @@ let data1o = [|
 let data1d = [|
     "BOARD instead of LEVEL", "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N", TrackerModel.Options.BOARDInsteadOfLEVEL, false, BOARDInsteadOfLEVELOptionChanged.Trigger
     "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
-    "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as basement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
+    "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
     "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModel.Options.DoDoorInference, false, fun()->()
     |]
 
