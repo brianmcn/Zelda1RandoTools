@@ -508,6 +508,11 @@ highlighting this information in the header tab and on the map in color, it is e
 see which dungeon number and which room in that dungeon you need to return to.  (Just like most other rooms, left-clicking toggles the completed-ness of the room, so when 
 you purchase a bomb upgrade, you can just left-click the room to un-mark it blue and make its tab-dot disappear.)
 
+Additionally, if a **Hungry Goriya (meat block)** room is marked in a dungeon, the bait icon appears on the dungeon tab.  It gets a green checkmark if the room is
+marked completed:
+
+![Bait block rooms](screenshots/bait-block-rooms.png)
+
 ## <a id="main-blockers"></a> Blockers
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.

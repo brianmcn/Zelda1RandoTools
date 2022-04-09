@@ -160,12 +160,28 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
         let header = new TextBox(Width=13., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        let baitMeatImage = Graphics.bait_bmp |> Graphics.BMPtoImage
+        let baitMeatCheckmarkHeaderCanvas = new Canvas(Opacity=0.)
         let bombUpgradeMarkHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.DodgerBlue, Opacity=0.)
         let oldManUnreadHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.Red, Opacity=0.)
         do
-            let headerSp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
+            // bait meat
+            let baitMeatHeaderCanvas = new Canvas(Width=8., Height=16., ClipToBounds=true)
+            baitMeatImage.Opacity <- 0.
+            baitMeatImage.Stretch <- Stretch.Uniform
+            baitMeatImage.Height <- 14.
+            canvasAdd(baitMeatHeaderCanvas, baitMeatImage, -6., 1.)
+            // checkmark over bait meat
+            let line1 = new Shapes.Line(X1=1., Y1=10., X2=4., Y2=13., Stroke=Brushes.Lime, StrokeThickness=2.5)
+            baitMeatCheckmarkHeaderCanvas.Children.Add(line1) |> ignore
+            let line2 = new Shapes.Line(X1=4., Y1=13., X2=8., Y2=4., Stroke=Brushes.Lime, StrokeThickness=2.5)
+            baitMeatCheckmarkHeaderCanvas.Children.Add(line2) |> ignore
+            canvasAdd(baitMeatHeaderCanvas, baitMeatCheckmarkHeaderCanvas, 0., 0.)
+            // BU/OM dots
+            let headerSp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Width=28.)
+            headerSp.Children.Add(baitMeatHeaderCanvas) |> ignore
             headerSp.Children.Add(header) |> ignore
-            let headerInfo = new StackPanel(Orientation=Orientation.Vertical, Width=9.)
+            let headerInfo = new StackPanel(Orientation=Orientation.Vertical, Width=7.)
             headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
             headerInfo.Children.Add(bombUpgradeMarkHeaderCanvas) |> ignore
             headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
@@ -203,7 +219,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             highlightRow
         let mutable oldManCount = 0
         let oldManCountTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(0.), Width=45.,
-                                        HorizontalContentAlignment=HorizontalAlignment.Center, Foreground=Brushes.Orange, Background=Brushes.Black)
+                                        HorizontalContentAlignment=HorizontalAlignment.Center, Foreground=Brushes.Orange, Background=Brushes.Black, Focusable=false)
         let oldManBorder = new Border(Child=oldManCountTB, Width=45., BorderThickness=Thickness(0.), Background=Brushes.Black)
         oldManBorder.ToolTip <- "'Old Man Count' - the number of 'old men'\n(NPC-with-hint/Bomb-Upgrade/Hungry-Goriya/\nLife-or-Money) rooms you have marked, and\nthe total number expected in this dungeon"
         ToolTipService.SetShowDuration(oldManBorder, 8000)
@@ -355,11 +371,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for f in roomRedrawFuncs do
                 f()
         let updateHeaderCanvases() =
+            baitMeatImage.Opacity <- 0.
+            baitMeatCheckmarkHeaderCanvas.Opacity <- 0.
             bombUpgradeMarkHeaderCanvas.Opacity <- 0.
             oldManUnreadHeaderCanvas.Opacity <- 0.
             for i = 0 to 7 do
                 for j = 0 to 7 do
                     let rs = roomStates.[i,j]
+                    if rs.RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock then
+                        baitMeatImage.Opacity <- 1.
+                        if not(rs.IsComplete) then
+                            baitMeatCheckmarkHeaderCanvas.Opacity <- 0.
+                        else
+                            baitMeatCheckmarkHeaderCanvas.Opacity <- 1.
                     if rs.RoomType = DungeonRoomState.RoomType.BombUpgrade && not(rs.IsComplete) then
                         bombUpgradeMarkHeaderCanvas.Opacity <- 1.
                     if rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
@@ -940,7 +964,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let button = new Button(Content=new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(0.), 
                                                     Text="FQ/SQ", IsReadOnly=true, IsHitTestVisible=false),
                                         BorderThickness=Thickness(1.), Margin=Thickness(0.), Padding=Thickness(0.))
-        canvasAdd(dungeonTabsWholeCanvas, button, 360., 0.)
+        canvasAdd(dungeonTabsWholeCanvas, button, 405., 0.)
         
         let mkTxt(txt,color) =
             new TextBox(Width=50., Height=30., FontSize=15., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
@@ -1036,7 +1060,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 outlineDrawingCanvases.[SI].Children.Clear()
                 currentOutlineDisplayState.[SI] <- 0
             )
-        canvasAdd(dungeonTabsWholeCanvas, fqcb, 350., 0.) 
+        canvasAdd(dungeonTabsWholeCanvas, fqcb, 402., 0.) 
 
         sqcb.Click.Add(fun _ -> 
             let SI = dungeonTabs.SelectedIndex
@@ -1047,7 +1071,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 outlineDrawingCanvases.[SI].Children.Clear()
                 currentOutlineDisplayState.[SI] <- 0
             )
-        canvasAdd(dungeonTabsWholeCanvas, sqcb, 400., 0.) 
+        canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 
     let exportDungeonModelsJsonLines() = DungeonSaveAndLoad.SaveAllDungeons [| for f in exportFunctions do yield f() |]
     let importDungeonModels(dma : DungeonSaveAndLoad.DungeonModel[]) =

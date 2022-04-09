@@ -48,9 +48,11 @@ For details, see the [main documentation](use.md#main-drpu) on this topic.
 
 ### Special NPC room highlights
 
-You can make Bomb-Upgrade rooms and NPC-with-Hint rooms stand out visually:
+You can make Bomb-Upgrade rooms and NPC-with-Hint rooms stand out visually, and surface the existence of these rooms and Hungry-Goriya-Bait-Block rooms in the tab headers:
 
 ![Special NPC rooms](screenshots/special-npc-room-color.png)
+
+![Bait block rooms](screenshots/bait-block-rooms.png)
 
 See [Special NPC rooms](use.md#main-dungeon-special-rooms) for details.
 
