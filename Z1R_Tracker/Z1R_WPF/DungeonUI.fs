@@ -128,6 +128,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
+    rightwardCanvas.Height <- dungeonTabsWholeCanvas.Height
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let currentOutlineDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ
     let doVanillaOutlineRedraw(canvasToRedraw:Canvas, state) =
@@ -408,7 +409,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             i.Stretch <- Stretch.UniformToFill
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
-            Canvas.SetBottom(b, 0.-dungeonTabsWholeCanvas.Height)
+            Canvas.SetBottom(b, 0.)
             Canvas.SetLeft(b, 0.)
             rightwardCanvas.Children.Clear()
             rightwardCanvas.Children.Add(b) |> ignore
@@ -918,7 +919,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             Canvas.SetLeft(overlay, 0.)
             Canvas.SetBottom(overlay, 0.)
             mini.MouseEnter.Add(fun _ ->
-                rightwardCanvas.Height <- dungeonTabs.ActualHeight
                 rightwardCanvas.Children.Clear()
                 rightwardCanvas.Children.Add(overlay) |> ignore
                 levelTabSelected.Trigger(i+1)

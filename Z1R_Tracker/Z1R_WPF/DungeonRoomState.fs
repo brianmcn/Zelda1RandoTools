@@ -18,6 +18,8 @@ type MonsterDetail =
     | BlueBubble  
     | RedBubble   
     | Dodongo     
+    | Patra
+    | BlueWizzrobe
     member this.AsHotKeyName() =
         match this with
         | Unmarked    -> "MonsterDetail_Unmarked"
@@ -27,6 +29,8 @@ type MonsterDetail =
         | BlueBubble  -> "MonsterDetail_BlueBubble"
         | RedBubble   -> "MonsterDetail_RedBubble"
         | Dodongo     -> "MonsterDetail_Dodongo"
+        | Patra       -> "MonsterDetail_Patra"
+        | BlueWizzrobe-> "MonsterDetail_BlueWizzrobe"
     member this.IsNotMarked = this = MonsterDetail.Unmarked
     member this.Bmp() =
         match this with
@@ -37,6 +41,8 @@ type MonsterDetail =
         | BlueBubble  -> Graphics.blue_bubble_bmp
         | RedBubble   -> Graphics.red_bubble_bmp
         | Dodongo     -> Graphics.dodongo_bmp
+        | Patra       -> Graphics.patra_bmp
+        | BlueWizzrobe-> Graphics.wizzrobe_bmp
     member this.DisplayDescription =
         match this with
         | Unmarked    -> "(None)"
@@ -46,8 +52,12 @@ type MonsterDetail =
         | BlueBubble  -> "Blue Bubble"
         | RedBubble   -> "Red Bubble"
         | Dodongo     -> "Dodongo"
+        | Patra       -> "Patra"
+        | BlueWizzrobe-> "Blue Wizzrobe"
     static member All() = 
-        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
+        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; 
+           MonsterDetail.Dodongo; MonsterDetail.Patra; MonsterDetail.BlueWizzrobe; 
+           MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
     static member FromHotKeyName(hkn) =
         let mutable r = MonsterDetail.Unmarked
         for x in MonsterDetail.All() do

@@ -21,11 +21,18 @@ make new take-any-heart screenshot
 
 
 
-more MonsterDetail choices?
 more features 'hidden' behind options, to simplify default UI?
+
+discoverability of second-shop-item, some kind of explanation header on left-click menu
+
+
+speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
 
 
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
+
+
+Now that big/small icons thingy gone, maybe the 'highlight continuations' hover-target should move from 'blockers' into the dungeon area
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
