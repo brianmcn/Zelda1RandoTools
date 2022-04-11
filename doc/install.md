@@ -10,7 +10,7 @@ The app is released as a .zip file folder of the executable and all its helper f
 
 The current beta release for Windows is version 1.2.1e, and currently can be downloaded only from the z1r discord server, in the 'Randomizer Tracker' section, as a recent message on the '#z-tracker' subchannel.  
 Here's an invite link to the z1r discord: https://www.discord.me/z1randomizer
-and here is a direct link to the message in the z1r discord with the Z-Tracker download: https://discord.com/channels/368763663986982912/920498784142774332/960588160830668891
+and here is a direct link to the message in the z1r discord with the Z-Tracker download: https://discord.com/channels/368763663986982912/920498784142774332/963163675869450321
 
 ### <a id="defender"></a> Windows Defender
 
