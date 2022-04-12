@@ -41,10 +41,6 @@ probably more description/screenshot of options menu, say initial defaults tailo
 Now that big/small icons thingy gone, maybe the 'highlight continuations' hover-target should move from 'blockers' into the dungeon area
 
 
-Could pre-load some fixed bits of the UI, to make startup faster
- - caching magnifier BMPs on disk would save about a second
-
-
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
@@ -78,6 +74,7 @@ ABOVE IS DONE
      - get rid of hotkeys/settings/crash log
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
+ - delete Magnifier directory
  - delete ZTracker.lnk (has my machine's paths hardcoded)
  - If used program, then maybe also do these:
      - delete LT numbers from settings (my screen window position)

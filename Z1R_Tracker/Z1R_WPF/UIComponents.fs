@@ -44,91 +44,99 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
-            for x = 0 to 15 do
-                for y = 0 to 10 do
-                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
-                    for px = 0 to int ENLARGE - 1 do
-                        for py = 0 to int ENLARGE - 1 do
-                            // diagonal rocks
-                            let c = 
-                                // The diagonal rock data is based on the first quest map. A few screens are different in 2nd/mixed quest.
-                                // So we apply a kludge to load the correct diagonal data.
-                                let i,j = 
-                                    if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
-                                        14,5
-                                    elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
-                                        2,4
-                                    elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
-                                        2,4
+            let bmp = 
+                let magnifierFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Magnifier\quest.%d.ow.%2d.%2d.bmp""" owMapNum i j)
+                if System.IO.File.Exists(magnifierFilename) then
+                    System.Drawing.Bitmap.FromFile(magnifierFilename) :?> System.Drawing.Bitmap
+                else
+                    let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
+                    for x = 0 to 15 do
+                        for y = 0 to 10 do
+                            let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                            for px = 0 to int ENLARGE - 1 do
+                                for py = 0 to int ENLARGE - 1 do
+                                    // diagonal rocks
+                                    let c = 
+                                        // The diagonal rock data is based on the first quest map. A few screens are different in 2nd/mixed quest.
+                                        // So we apply a kludge to load the correct diagonal data.
+                                        let i,j = 
+                                            if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
+                                                14,5
+                                            elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
+                                                2,4
+                                            elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
+                                                2,4
+                                            else
+                                                i,j
+                                        if OverworldData.owNEupperRock.[i,j].[x,y] then
+                                            if px+py > int ENLARGE - 1 then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owSEupperRock.[i,j].[x,y] then
+                                            if px < py then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owNElowerRock.[i,j].[x,y] then
+                                            if px+py < int ENLARGE - 1 then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owSElowerRock.[i,j].[x,y] then
+                                            if px > py then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
+                                            else 
+                                                c
+                                        else 
+                                            c
+                                    // edges of squares
+                                    let c = 
+                                        if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
+                                            System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                                        else
+                                            c
+                                    bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
+                    // make the entrances 'pop'
+                    // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
+                    for x = 1 to 14 do
+                        for y = 1 to 9 do
+                            let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                            let border = 
+                                if c.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // black open cave
+                                    let c2 = owMapBMPs.[i,j].GetPixel((x-1)*3, y*3)
+                                    if c2.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // also black to the left, this is vanilla 6 two-wide entrance, only show one
+                                        None
                                     else
-                                        i,j
-                                if OverworldData.owNEupperRock.[i,j].[x,y] then
-                                    if px+py > int ENLARGE - 1 then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owSEupperRock.[i,j].[x,y] then
-                                    if px < py then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owNElowerRock.[i,j].[x,y] then
-                                    if px+py < int ENLARGE - 1 then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owSElowerRock.[i,j].[x,y] then
-                                    if px > py then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
-                                    else 
-                                        c
-                                else 
-                                    c
-                            // edges of squares
-                            let c = 
-                                if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
-                                    System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                                        Some(System.Drawing.Color.FromArgb(0xFF,0x00,0xCC,0xCC))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0x00,0xFF,0xFF).ToArgb() then  // cyan bomb spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF,0x00).ToArgb() then  // yellow recorder spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0x00).ToArgb() then  // red burn spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0xFF).ToArgb() then  // magenta pushblock spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
                                 else
-                                    c
-                            bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
-            // make the entrances 'pop'
-            // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
-            for x = 1 to 14 do
-                for y = 1 to 9 do
-                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
-                    let border = 
-                        if c.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // black open cave
-                            let c2 = owMapBMPs.[i,j].GetPixel((x-1)*3, y*3)
-                            if c2.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // also black to the left, this is vanilla 6 two-wide entrance, only show one
-                                None
-                            else
-                                Some(System.Drawing.Color.FromArgb(0xFF,0x00,0xCC,0xCC))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0x00,0xFF,0xFF).ToArgb() then  // cyan bomb spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF,0x00).ToArgb() then  // yellow recorder spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0x00).ToArgb() then  // red burn spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0xFF).ToArgb() then  // magenta pushblock spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        else
-                            None
-                    match border with
-                    | Some bc -> 
-                        // thin black outline
-                        for px = x*int ENLARGE - POP - 1 to (x+1)*int ENLARGE - 1 + POP + 1 do
-                            for py = y*int ENLARGE - POP - 1 to (y+1)*int ENLARGE - 1 + POP + 1 do
-                                bmp.SetPixel(px, py, System.Drawing.Color.Black)
-                        // border color
-                        for px = x*int ENLARGE - POP to (x+1)*int ENLARGE - 1 + POP do
-                            for py = y*int ENLARGE - POP to (y+1)*int ENLARGE - 1 + POP do
-                                bmp.SetPixel(px, py, bc)
-                        // inner actual pixel
-                        for px = x*int ENLARGE to (x+1)*int ENLARGE - 1 do
-                            for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
-                                bmp.SetPixel(px, py, c)
-                    | None -> ()
+                                    None
+                            match border with
+                            | Some bc -> 
+                                // thin black outline
+                                for px = x*int ENLARGE - POP - 1 to (x+1)*int ENLARGE - 1 + POP + 1 do
+                                    for py = y*int ENLARGE - POP - 1 to (y+1)*int ENLARGE - 1 + POP + 1 do
+                                        bmp.SetPixel(px, py, System.Drawing.Color.Black)
+                                // border color
+                                for px = x*int ENLARGE - POP to (x+1)*int ENLARGE - 1 + POP do
+                                    for py = y*int ENLARGE - POP to (y+1)*int ENLARGE - 1 + POP do
+                                        bmp.SetPixel(px, py, bc)
+                                // inner actual pixel
+                                for px = x*int ENLARGE to (x+1)*int ENLARGE - 1 do
+                                    for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
+                                        bmp.SetPixel(px, py, c)
+                            | None -> ()
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(magnifierFilename)) |> ignore
+                    bmp.Save(magnifierFilename)
+                    bmp
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     let makeArrow(text) = 
         let tb = new TextBox(Text=text, FontSize=20., Foreground=arrowColor, Background=bgColor, IsReadOnly=true, BorderThickness=Thickness(0.))
