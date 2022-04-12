@@ -558,20 +558,27 @@ type MyWindow() as this =
 
                     let tb = new TextBox(Text="Loading UI... ", IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
                     stackPanel.Children.Add(tb) |> ignore
-                    let showProgress() = 
+                    let totalsw = System.Diagnostics.Stopwatch.StartNew()
+                    let sw = System.Diagnostics.Stopwatch.StartNew()
+                    let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging
+                    let showProgress(label) = 
                         async {
+                            displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
+                            displayStartupTimeDiagnostics(label)
                             tb.Text <- tb.Text.Replace(". ", ".. ")
                             do! Async.Sleep(1) // pump to make 'Loading UI' text update
                             do! Async.SwitchToContext ctxt
+                            sw.Restart()
                         }
                     // move mainDock to topmost while app is built behind it
                     Canvas.SetZIndex(mainDock, 9999)
-                    do! showProgress()
+                    do! showProgress("start")
                     match loadData with
                     | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
                     | _ -> ()
                     let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
                     updateTimeline <- u
+                    displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
                     appMainCanvas.Children.Remove(mainDock)  // remove for good
                     HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
                     WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())

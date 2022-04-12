@@ -23,7 +23,13 @@ make new take-any-heart screenshot
 
 more features 'hidden' behind options, to simplify default UI?
 
-discoverability of second-shop-item, some kind of explanation header on left-click menu
+
+second-shop-item - need some kind of text explanation header on left-click menu
+also need to make left-click discoverable:
+ - could have a circle-plus as second item button, to visually indicate clicking (but clutters the map - could be transient?)
+ - could have status bar that suggests what left/right/scroll do on the currently hovered element
+ - could have first-time-coaching with extra popup when users mark first shop item (and option to turn it off 'dont show this again')
+ - could have more visual 'tip' on the startup tips
 
 
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
@@ -33,6 +39,10 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 Now that big/small icons thingy gone, maybe the 'highlight continuations' hover-target should move from 'blockers' into the dungeon area
+
+
+Could pre-load some fixed bits of the UI, to make startup faster
+ - caching magnifier BMPs on disk would save about a second
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage

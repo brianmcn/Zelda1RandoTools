@@ -390,7 +390,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
         MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent)
 
-    do! showProgress()
+    do! showProgress("link")
 
     // overworld map grouping, as main point of support for mirroring
     let mutable animateOverworldTile = fun _ -> ()
@@ -405,7 +405,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl,
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
 
-    do! showProgress()
+    do! showProgress("overworld start 1")
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
     canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
@@ -448,7 +448,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, owDarkeningMapGrid, 0., 0.)
 
     // layer to place 'hiding' icons - dynamic darkening icons that are below route-drawing but above the previous layers
-    do  // HFQ/HSQ
+    if isMixed then // HFQ/HSQ
         let owHidingMapGrid = makeGrid(16, 8, int OMTW, 11*3)
         let owHidingMapGridCanvases = Array2D.zeroCreate 16 8
         owHidingMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -526,7 +526,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // middle click overworld circles
     let owCircles = Array2D.init 16 8 (fun _ _ -> new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Cyan, StrokeThickness=3.0, IsHitTestVisible=false, Opacity=0.0))
 
+    do! showProgress("overworld magnifier")
     let onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent = UIComponents.MakeMagnifier(mirrorOverworldFEs, owMapNum, owMapBMPs)
+    do! showProgress("overworld start 2")
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()
     // ow map
@@ -550,6 +552,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let ntf = UIHelpers.NotTooFrequently(System.TimeSpan.FromSeconds(0.25))
     routeDrawingCanvas.MouseLeave.Add(fun _ -> routeDrawingCanvas.Children.Clear())
+    do! showProgress("overworld before 16x8 loop")
     for i = 0 to 15 do
         for j = 0 to 7 do
             let c = new Canvas(Width=OMTW, Height=float(11*3))
@@ -799,7 +802,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         | None -> ()
                     )
         if i%3 = 2 then
-            do! showProgress()
+            do! showProgress(sprintf "overworld %d" i)
     if speechRecognitionInstance <> null then
         speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
@@ -815,7 +818,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensCheckBox())
 
-    do! showProgress()
+    do! showProgress("overworld finish, legend")
 
     let overworldCirclesCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  
     overworldCirclesCanvas.IsHitTestVisible <- false
@@ -935,7 +938,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     nearMouseHUDButton.MouseRightButtonDown.Add(fun _ -> nearMouseHUD(true))
 #endif
 
-    do! showProgress()
+    do! showProgress("blockers")
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -1262,7 +1265,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
-    do! showProgress()
+    do! showProgress("notes, gettables")
 
     // blockers
     let blockerGrid = UIComponents.MakeBlockers(cm, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
@@ -1315,7 +1318,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             routeDrawingCanvas.Children.Clear()
         )
 
-    do! showProgress()
+    do! showProgress("coords/zone overlays")
 
     // current max hearts
     canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
@@ -1350,7 +1353,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // mouse hover explainer
     UIComponents.MakeMouseHoverExplainer(appMainCanvas)
 
-    do! showProgress()
+    do! showProgress("locators/timeline/reminders")
 
     canvasAdd(overworldCanvas, owLocatorGrid, 0., 0.)
     canvasAdd(overworldCanvas, owLocatorCanvas, 0., 0.)
@@ -1641,7 +1644,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         Input.Keyboard.Focus(w) |> ignore  // refocus keyboard to main window so MyKey still works
         )  
 
-    do! showProgress()
+    do! showProgress("broadcast/load/animation")
 
     // broadcast window
     Broadcast.MakeBroadcastWindow(cm, blockerGrid, dungeonTabsOverlayContent, refocusMainWindow)
@@ -1802,6 +1805,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     )
 
     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
+    do! showProgress("all done")
     return drawTimeline
     }
 

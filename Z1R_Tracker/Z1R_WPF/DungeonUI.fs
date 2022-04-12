@@ -123,6 +123,16 @@ type TrackerLocation =
     | DUNGEON
 
 let mutable theDungeonTabControl = null : TabControl
+let HFF = new FontFamily("Courier New")
+let rainbowBrush = 
+    let gsc = new GradientStopCollection()
+    gsc.Add(new GradientStop(Colors.Red, 0.))
+    gsc.Add(new GradientStop(Colors.Orange, 0.2))
+    gsc.Add(new GradientStop(Colors.Yellow, 0.4))
+    gsc.Add(new GradientStop(Colors.LightGreen, 0.6))
+    gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
+    gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
+    new LinearGradientBrush(gsc, 90.)
 
 let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, 
                     levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
@@ -367,7 +377,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomStates = masterRoomStates.[level-1]
         let roomIsCircled = Array2D.zeroCreate 8 8
         let usedTransports = Array.zeroCreate 9 // slot 0 unused
-        let roomRedrawFuncs = ResizeArray()
+        let roomRedrawFuncs = ResizeArray(64)
         let redrawAllRooms() =
             for f in roomRedrawFuncs do
                 f()
@@ -477,7 +487,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             | None -> ()
             | Some c -> highlightColumnCanvases.[c].Opacity <- 0.2
         for i = 0 to 7 do
-            let HFF = new FontFamily("Courier New")
             if i<>7 then
                 let makeLetter(bmpFunc) =
                     let bmp = bmpFunc() 
@@ -509,14 +518,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             update()
                             )
                     else
-                        let gsc = new GradientStopCollection()
-                        gsc.Add(new GradientStop(Colors.Red, 0.))
-                        gsc.Add(new GradientStop(Colors.Orange, 0.2))
-                        gsc.Add(new GradientStop(Colors.Yellow, 0.4))
-                        gsc.Add(new GradientStop(Colors.LightGreen, 0.6))
-                        gsc.Add(new GradientStop(Colors.LightBlue, 0.8))
-                        gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
-                        let rainbowBrush = new LinearGradientBrush(gsc, 90.)
                         let tb = new TextBox(Width=float(13*3-16), Height=float(TH+8), FontSize=float(TH+8), Foreground=Brushes.Black, Background=rainbowBrush, IsReadOnly=true, IsHitTestVisible=false,
                                                 Text=sprintf"%c"labelChar, BorderThickness=Thickness(0.), FontFamily=HFF, FontWeight=FontWeights.Bold,
                                                 HorizontalContentAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
@@ -546,7 +547,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                         canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
                         )
-            OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate tb.Text the first time
             // room map
             for j = 0 to 7 do
                 let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
@@ -883,7 +883,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             currentOutlineDisplayState.[level-1] <- dm.VanillaMapOverlay
             doVanillaOutlineRedraw(outlineDrawingCanvases.[level-1], currentOutlineDisplayState.[level-1])
             )
-        do! showProgress()
+        do! showProgress(sprintf "finish dungeon level %d" level)
     // end -- for level in 1 to 9 do
     do
         // summary tab
@@ -1077,5 +1077,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     let importDungeonModels(dma : DungeonSaveAndLoad.DungeonModel[]) =
         for i = 0 to 8 do
             importFunctions.[i](dma.[i])
+    OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate BOARD v LEVEL text for all tabs the first time
     return dungeonTabsWholeCanvas, grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
     }
