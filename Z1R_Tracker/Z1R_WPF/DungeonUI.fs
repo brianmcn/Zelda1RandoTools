@@ -137,7 +137,7 @@ let rainbowBrush =
 let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, 
                     levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
-    let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3))  // need to set height, as caller uses it
+    let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3 + 6))  // need to set height, as caller uses it
     rightwardCanvas.Height <- dungeonTabsWholeCanvas.Height
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
     let currentOutlineDisplayState = Array.zeroCreate 9   // 0=nothing, 1-9 = FQ, 10-18 = SQ

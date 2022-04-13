@@ -169,6 +169,20 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.ToolTip <- "When you click Zelda to complete the seed, automatically save the full tracker state to a file"
     options3sp.Children.Add(cb) |> ignore
 
+    let cb = new CheckBox(Content=new TextBox(Text="Snoop for seed&flags",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SnoopSeedAndFlags.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- true; SaveAndLoad.MaybePollSeedAndFlags())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- false)
+    cb.ToolTip <- "Periodically check for other system windows (e.g. fceux)\nthat appear to have a seed and flag in the title, to\ninclude with save data and optionally display"
+    options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Display seed&flags",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.DisplaySeedAndFlags.Value
+    cb.Checked.Add(fun _ -> TrackerModel.Options.DisplaySeedAndFlags.Value <- true; SaveAndLoad.seedAndFlagsUpdated.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModel.Options.DisplaySeedAndFlags.Value <- false; SaveAndLoad.seedAndFlagsUpdated.Trigger())
+    cb.ToolTip <- "Display seed & flags (if known) in the bottom corner of Notes box"
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Listen for speech",IsReadOnly=true))
     if microphoneFailedToInitialize then
         cb.IsEnabled <- false

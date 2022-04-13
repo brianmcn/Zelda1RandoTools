@@ -119,6 +119,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - fixed: mini-mini-map (the dungeon hover-blue-bars) now shows text like "BOARD-5" properly, no longer obscures dungeon map
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're already inside dungeon X right now
+ - improved performance: faster application startup time; smaller zip download
  - you can now mark up to 3 Blockers per dungeon
  - hovering certain blockers (bait/key/bomb/bow&arrow) will highlight the corresponding marked shops on the overworld map
  - made dungeon LEVEL/BOARD header use Zelda font
@@ -132,6 +133,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - when you reset the timer, you immediately get put into the 'place the start spot location icon' popup to mark your start screen
  - you can now middle-click-drag across multiple dungeon rooms to mark them as 'off the map' spots
  - Show/Run Custom button now can 'RUN' URLs, which get launched in your default browser
+ - you can have tracker snoop for window (e.g. emulator window) whose title contains seed & flags, and display/save that info
 
 ---
 

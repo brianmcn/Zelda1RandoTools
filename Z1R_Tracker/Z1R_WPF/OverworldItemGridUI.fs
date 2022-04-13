@@ -351,6 +351,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
+            SaveAndLoad.MaybePollSeedAndFlags()
             let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
             let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
             let mutable userPressedReset = false

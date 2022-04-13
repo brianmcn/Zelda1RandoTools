@@ -47,6 +47,8 @@ module Options =
         let mutable Blockers = Bool(true)
     let mutable AnimateTileChanges = Bool(true)
     let mutable SaveOnCompletion = Bool(false)
+    let mutable SnoopSeedAndFlags = Bool(false)
+    let mutable DisplaySeedAndFlags = Bool(true)
     let mutable ListenForSpeech = Bool(false)
     let mutable RequirePTTForSpeech = Bool(false)
     let mutable PlaySoundWhenUseSpeech = Bool(true)
@@ -88,9 +90,10 @@ module Options =
         member val Visual_HaveKeyLadder = true with get,set
         member val Visual_Blockers = true with get,set
         
-        
         member val AnimateTileChanges = true with get,set
         member val SaveOnCompletion = false with get,set
+        member val SnoopSeedAndFlags = false with get,set
+        member val DisplaySeedAndFlags = true with get,set
         member val ListenForSpeech = false with get,set
         member val RequirePTTForSpeech = false with get,set
         member val PlaySoundWhenUseSpeech = true with get,set
@@ -138,6 +141,8 @@ module Options =
 
         data.AnimateTileChanges <- AnimateTileChanges.Value
         data.SaveOnCompletion <- SaveOnCompletion.Value
+        data.SnoopSeedAndFlags <- SnoopSeedAndFlags.Value
+        data.DisplaySeedAndFlags <- DisplaySeedAndFlags.Value
         data.ListenForSpeech <- ListenForSpeech.Value
         data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
         data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
@@ -197,6 +202,8 @@ module Options =
 
             AnimateTileChanges.Value <- data.AnimateTileChanges
             SaveOnCompletion.Value <- data.SaveOnCompletion
+            SnoopSeedAndFlags.Value <- data.SnoopSeedAndFlags
+            DisplaySeedAndFlags.Value <- data.DisplaySeedAndFlags
             ListenForSpeech.Value <- data.ListenForSpeech
             RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
             PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech

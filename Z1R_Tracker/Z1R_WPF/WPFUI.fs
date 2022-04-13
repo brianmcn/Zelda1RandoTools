@@ -1282,6 +1282,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         notesTextBox.Text <- System.IO.File.ReadAllText(notesFilename)
     canvasAdd(appMainCanvas, notesTextBox, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
 
+    let seedAndFlagsDisplayCanvas = new Canvas(Width=notesTextBox.Width, Height=notesTextBox.Height)
+    canvasAdd(appMainCanvas, seedAndFlagsDisplayCanvas, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    let seedAndFlagsTB = new TextBox(FontSize=16., Background=Brushes.Transparent, Foreground=Brushes.Orange, 
+                                        IsHitTestVisible=false, IsReadOnly=true, Focusable=false, Text="\n", BorderThickness=Thickness(0.))
+    Canvas.SetRight(seedAndFlagsTB, 0.)
+    Canvas.SetBottom(seedAndFlagsTB, 0.)
+    seedAndFlagsDisplayCanvas.Children.Add(seedAndFlagsTB) |> ignore
+    SaveAndLoad.seedAndFlagsUpdated.Publish.Add(fun _ ->
+        if TrackerModel.Options.DisplaySeedAndFlags.Value then
+            seedAndFlagsTB.Text <- sprintf "Seed & Flags: %s\n%s" SaveAndLoad.lastKnownSeed SaveAndLoad.lastKnownFlags
+        else
+            seedAndFlagsTB.Text <- "\n"
+        )
+
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- notesTextBox.Width
     canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
@@ -1713,6 +1727,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
+        // Seed & Flags
+        if data.Seed <> null then
+            SaveAndLoad.lastKnownSeed <- data.Seed
+            SaveAndLoad.seedAndFlagsUpdated.Trigger()
+        if data.Flags <> null then
+            SaveAndLoad.lastKnownFlags <- data.Flags
+            SaveAndLoad.seedAndFlagsUpdated.Trigger()
         // Timeline
         if data.Timeline <> null then
             for td in data.Timeline do

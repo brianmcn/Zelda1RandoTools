@@ -103,6 +103,8 @@ type AllData() =
     member val Notes = "" with get,set
     member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
+    member val Seed = "" with get,set
+    member val Flags = "" with get,set
     member val Timeline : TimelineDatum[] = null with get,set
 
 let LoadAll(filename) =  // can throw

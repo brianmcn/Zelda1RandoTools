@@ -266,7 +266,25 @@ type SaveType =
     | FinishedSave   // user clicked Zelda and SaveOnCompletion option is on
     | AutoSave       // each time a minute has passed
 
+let mutable lastKnownSeed, lastKnownFlags = "", ""
+let seedAndFlagsUpdated = new Event<_>()
+let seedAndFlagsRegex = new System.Text.RegularExpressions.Regex("_(\d+)_([a-zA-Z0-9!]+)", System.Text.RegularExpressions.RegexOptions.None)
+let MaybePollSeedAndFlags() =
+    if TrackerModel.Options.SnoopSeedAndFlags.Value then
+        let procs = System.Diagnostics.Process.GetProcesses()
+        for p in procs do
+            if not(System.String.IsNullOrEmpty(p.MainWindowTitle)) then
+                let m = seedAndFlagsRegex.Match(p.MainWindowTitle)
+                if m.Success then
+                    let seed = m.Groups.[1].Value
+                    let flags = m.Groups.[2].Value
+                    if seed.Length > 6 && flags.Length > 6 then   // just a guess-filter
+                        lastKnownSeed <- seed
+                        lastKnownFlags <- flags
+                        seedAndFlagsUpdated.Trigger()
+
 let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], saveType) =  // can throw
+    MaybePollSeedAndFlags()
     let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
         yield sprintf """{"""
@@ -283,6 +301,10 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
         yield sprintf """    ],"""
+        if lastKnownSeed <> "" then
+            yield sprintf """    "Seed": "%s",""" lastKnownSeed
+        if lastKnownFlags <> "" then
+            yield sprintf """    "Flags": "%s",""" lastKnownFlags
         // write the timeline 'pretty' at the bottom of the file, for people who want to easily see/parse splits
         yield sprintf """    "Timeline": ["""
         let tis = [|for KeyValue(_,ti) in TrackerModel.TimelineItemModel.All do yield ti |] |> Array.sortBy (fun ti -> ti.FinishedTotalSeconds)
