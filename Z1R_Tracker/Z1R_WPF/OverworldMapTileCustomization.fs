@@ -14,33 +14,28 @@ let canvasAdd = Graphics.canvasAdd
 
 module OW_ITEM_GRID_LOCATIONS =
     let OFFSET = 280.  // the x coordinate of grid; the y is always 30. (just below the numbered triforces in HDN)
-    // there is a 5x4 grid of icons, each 30x30, here are their 0-based grid coords
+    // there is a 6x4 grid of icons, each 30x30, here are their 0-based grid coords
     let WHITE_SWORD_ICON = 0,0
     let WHITE_SWORD_ITEM_BOX = 1,0
     let MAGS_BOX = 2,0
     let WOOD_SWORD_BOX = 3,0
-    let BOOMSTICK_BOX = 4,0
+    let BOOMSTICK_BOX = 5,0
+    let BOMB_BOX = 5,1
 
     let LADDER_ICON = 0,1
     let LADDER_ITEM_BOX = 1,1
     let BLUE_CANDLE_BOX = 2,1
     let WOOD_ARROW_BOX = 3,1
-    let BLUE_RING_BOX = 4,1
+    let BLUE_RING_BOX = 4,0
 
     let ARMOS_ICON = 0,2
     let ARMOS_ITEM_BOX = 1,2
-    // nothing at 2,2
-    let GANON_BOX = 3,2
-    let ZELDA_BOX = 4,2
+    let GANON_BOX = 2,2
+    let ZELDA_BOX = 3,2
 
     let HEARTS = 0,3  // and 1,2 and 2,3 and 3,3; nothing at 4,3
 
-    let BOMB_RIGHT_OF_BLUE_RING = 40.  // bomb icon is 40 pixels right of blue ring
-
     let Locate(gridX, gridY) = (OFFSET + 30.*float gridX, 30. + 30.*float gridY)
-    let LocateBomb() =
-        let x,y = Locate(BLUE_RING_BOX)
-        x+BOMB_RIGHT_OF_BLUE_RING, y
 
 ///////////////////////////////////////////////
 

@@ -134,6 +134,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - you can now middle-click-drag across multiple dungeon rooms to mark them as 'off the map' spots
  - Show/Run Custom button now can 'RUN' URLs, which get launched in your default browser
  - you can have tracker snoop for window (e.g. emulator window) whose title contains seed & flags, and display/save that info
+ - reconfigured top right area of tracker to improve Broadcast Window view while in dungeons
 
 ---
 

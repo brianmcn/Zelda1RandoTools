@@ -64,7 +64,7 @@ let mutable hideLocator = fun() -> ()
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
                     extrasImage:Image, resetTimerEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
-    let owItemGrid = makeGrid(5, 4, 30, 30)
+    let owItemGrid = makeGrid(6, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
     // ow 'take any' hearts
     for i = 0 to 3 do
@@ -206,8 +206,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
-    let BOMBX, BOMBY = OW_ITEM_GRID_LOCATIONS.LocateBomb()
-    canvasAdd(appMainCanvas, bombIcon, BOMBX, BOMBY)
+    gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -215,7 +214,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
-    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+150., 30.)
+    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
 
     let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
     highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"

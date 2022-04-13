@@ -110,7 +110,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                 if found then
                     makeIconTarget(draw, x, y, RouteDestination.SHOP(shopDest))
             // shops
-            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), LocateBomb(), TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), Locate(BOMB_BOX), TrackerModel.MapSquareChoiceDomainHelper.BOMB)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.boom_book_bmp, 4., 4.)), Locate(BOOMSTICK_BOX), TrackerModel.MapSquareChoiceDomainHelper.BOOK)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), Locate(BLUE_RING_BOX), TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), Locate(WOOD_ARROW_BOX), TrackerModel.MapSquareChoiceDomainHelper.ARROW)

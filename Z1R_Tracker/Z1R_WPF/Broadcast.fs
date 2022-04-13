@@ -133,18 +133,26 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         sp.Children.Add(dun) |> ignore
         let bottomc = new Canvas(Width=W, Height=H)
         canvasAdd(bottomc, sp, 0., 0.)
-        let afterSoldItemBoxesX = OW_ITEM_GRID_LOCATIONS.OFFSET + 150.
-        let blackArea = new Canvas(Width=120., Height=30., Background=Brushes.Black)
-        canvasAdd(bottomc, blackArea, afterSoldItemBoxesX, 30.)
-        let scale = (W - afterSoldItemBoxesX) / W
-        owm.RenderTransform <- new ScaleTransform(scale,scale)
-        canvasAdd(bottomc, owm, afterSoldItemBoxesX, 60.)
+        let afterSoldItemBoxesX = OW_ITEM_GRID_LOCATIONS.OFFSET + 120.
+        let scaleW = (W - afterSoldItemBoxesX) / W
+        let scaleH = (180.-45.)/(THRU_MAIN_MAP_H-150.)
+        owm.RenderTransform <- new ScaleTransform(scaleW,scaleH)
+        canvasAdd(bottomc, owm, afterSoldItemBoxesX, 45.)
+        // WANT!
         let kitty = new Image()
         let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
         kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
-        kitty.Width <- 60.
-        kitty.Height <- 60.
-        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+90. + 20., 0.)
+        kitty.Width <- 45.
+        kitty.Height <- 45.
+        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+120. + 20., 0.)
+        let ztlogo = new Image()
+        let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
+        ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
+        ztlogo.Width <- 30.
+        ztlogo.Height <- 30.
+        let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
+        canvasAdd(bottomc, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 11.)
+
         dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 180., bottomc)
 
         // draw fake mice on top level 
@@ -165,8 +173,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         dp.Children.Add(topc) |> ignore
         
         let mutable timerX = 600.
+        let factor = if size=1 then 0.333333 elif size=2 then 0.666666 else 1.0
         if size=1 || size=2 then
-            let factor = if size=1 then 0.333333 else 0.666666
             let trans = new ScaleTransform(factor, factor)
             dp.LayoutTransform <- trans
             OverworldItemGridUI.broadcastTimeTextBox.LayoutTransform <- trans
@@ -177,7 +185,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         let c = new Canvas(Width=W, Height=H)
         c.Children.Add(dp) |> ignore
         OverworldItemGridUI.broadcastTimeTextBox.Parent :?> Canvas |> (fun c -> if c <> null then c.Children.Remove(OverworldItemGridUI.broadcastTimeTextBox))  // deparent from prior window
-        canvasAdd(c, OverworldItemGridUI.broadcastTimeTextBox, timerX, 0.)
+        canvasAdd(c, OverworldItemGridUI.broadcastTimeTextBox, timerX, -10. * factor)
         c.Children.Add(topBar) |> ignore
         broadcastWindow.Content <- c
         

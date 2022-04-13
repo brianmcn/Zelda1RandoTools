@@ -21,9 +21,6 @@ make new take-any-heart screenshot
 
 
 
-improve broadcast: move G&Z left, ring up, boombook right, then ow map can be larger in broadcast dungeon
-
-
 more features 'hidden' behind options, to simplify default UI?
 
 
