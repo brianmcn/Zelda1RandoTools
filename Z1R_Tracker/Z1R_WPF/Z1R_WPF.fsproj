@@ -31,13 +31,13 @@
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-	<AllowedReferenceRelatedFileExtensions>
-	  <!-- Prevent default XML and PDB files copied to output in RELEASE. 
+    <AllowedReferenceRelatedFileExtensions>
+      <!-- Prevent default XML and PDB files copied to output in RELEASE. 
            Only *.allowedextension files will be included, which doesn't exist in my case.
        -->
 		  .allowedextension
 	</AllowedReferenceRelatedFileExtensions>
-	<DebugType>pdbonly</DebugType>
+    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>bin\Release\</OutputPath>
@@ -96,7 +96,7 @@
     <EmbeddedResource Include="icons\open_cave20x20.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />
     <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
-	<EmbeddedResource Include="icons\zelda_items16x16.png" />
+    <EmbeddedResource Include="icons\zelda_items16x16.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />

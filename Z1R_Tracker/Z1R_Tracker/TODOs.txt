@@ -230,7 +230,6 @@ possible reminder: if bow/silvers/ladder are marked red on tracker for more than
 
 marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context - imagine if Blocker_Bow was listened for in dungeon area after rooms and hooked to next free blocker box
  - kigalas also suggested auto-blocker-ing based on dungeon markup, and I explained my misgivings
-marc: Binding request for 2.x to get it noted: switch dungeon tab, e.g. [Ctrl+2] -> switch to dungeon 2
 
 if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
   - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
@@ -247,17 +246,6 @@ mouse thumb button for rare thing, like mark all dungeon room doors as open or b
 [11:41 AM] potato_pony: , . / as keyboard alternatives to left/middle/right click?
 [11:41 AM] Lorgon111: I mean, it's probably like ten hours of recoding everything, so I will probably never do it, but stuff like that would be the right thing.
 [11:42 AM] potato_pony: lol i hear ya
-
-
-maybe make separate project for generation-tools, e.g.
- - make magnifier bmps offline, save to a resource file, then load resource
- - would also allow me to draw on the generated ones for e.g.
-        draw arrows on LostHills/LostWoods, I almost got 'lost' in mirror overworld, but this should be good teaching tool, so the 'path' and alternative exit should be there somehow
-         - maybe can draw it on magnifier?
-        i saw homer count aloud '1234' and '12345' on the river spots to know where to bomb, magnifier could display even more help, on certain screens?
-         - river, NW corner, south bomb coast, mid-candle-row, any others?
-
-
 
 
 hide dungeon numbers:
@@ -295,8 +283,6 @@ consider controller-button push-to-talk to explicitly activate speech recognitio
 
 Speech recogn – can multiple be running at once? Different grammars, context based on mouse location/popups etc
 select item box via voice?  select dungeon room via voice?
-
-other possible hotkey stuff?  (start/stop timer, got mags, ... ?)  other possible keys (shift/ctrl, thumb button, gamepad, remap left/right click in various contexts, ...?)
 
 broadcast window doesnt capture drag-drop mouse movement
 
@@ -346,7 +332,7 @@ jkoper: An interesting application of this zoomed grid, Lorgon, might be if you'
 check for memory leaks
 startup performance
 https://github.com/microsoft/perfview
--OR- turn off tail calls and use VS profiler
+-OR- turn off tail calls IN BOTH PROJECTS and use VS profiler
 
 
 BIG

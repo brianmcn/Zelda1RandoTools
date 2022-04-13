@@ -234,7 +234,7 @@ type MyWindow() as this =
         TrackerModel.Options.readSettings()
         settingsWereSuccessfullyRead <- true
         WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        
+
         do
             let shellLink = 
                 let ty = System.Type.GetTypeFromCLSID (System.Guid "00021401-0000-0000-C000-000000000046")
@@ -556,7 +556,8 @@ type MyWindow() as this =
                         printfn "Speech recognition will be disabled"
                         OptionsMenu.microphoneFailedToInitialize <- true
 
-                    let tb = new TextBox(Text="Loading UI... ", IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
+                    let loadingText = new System.Text.StringBuilder("Loading UI...")
+                    let tb = new TextBox(Text=loadingText.ToString(), IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
                     stackPanel.Children.Add(tb) |> ignore
                     let totalsw = System.Diagnostics.Stopwatch.StartNew()
                     let sw = System.Diagnostics.Stopwatch.StartNew()
@@ -565,7 +566,8 @@ type MyWindow() as this =
                         async {
                             displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
                             displayStartupTimeDiagnostics(label)
-                            tb.Text <- tb.Text.Replace(". ", ".. ")
+                            loadingText.Append('.') |> ignore
+                            tb.Text <- loadingText.ToString()
                             do! Async.Sleep(1) // pump to make 'Loading UI' text update
                             do! Async.SwitchToContext ctxt
                             sw.Restart()

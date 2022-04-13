@@ -116,12 +116,13 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (
 let sword2LeftSideFullTileBmp =
     let interiorBmp = Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.SWORD2].[0]
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+    let TRANS_BG = Graphics.TRANS_BG
     for px = 0 to 16*3-1 do
         for py = 0 to 11*3-1 do
             if px>=1*3 && px<6*3 && py>=1*3 && py<10*3 then 
                 fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-1*3, py-1*3))
             else
-                fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+                fullTileBmp.SetPixel(px, py, TRANS_BG)
     fullTileBmp
 
 let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
@@ -209,6 +210,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
     elif ms.IsDungeon then
         let combine(number:System.Drawing.Bitmap, letter:System.Drawing.Bitmap) =
             let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+            let TRANS_BG = Graphics.TRANS_BG
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
                     if px>=3*3 && px<8*3 && py>=1*3 && py<10*3 then 
@@ -216,7 +218,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
                     elif px>=7*3 && px<12*3 && py>=1*3 && py<10*3 then // sharing one 'pixel'
                         fullTileBmp.SetPixel(px, py, letter.GetPixel(px-7*3, py-1*3))  
                     else
-                        fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+                        fullTileBmp.SetPixel(px, py, TRANS_BG)
             fullTileBmp
         if TrackerModel.IsHiddenDungeonNumbers() then 
             let isGreen = TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder
