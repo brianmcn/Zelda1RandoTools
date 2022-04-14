@@ -26,10 +26,6 @@ speech: "tracker where is bomb shop" or "tracker where is level five" ? "link ro
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
 
 
-summary tab ought only highlight 'uncompleted' dungeons, not all of them
-(runner should consider turning off 'gettable' in the late-game)
-
-
 more features 'hidden' behind options, to simplify default UI?
 
 

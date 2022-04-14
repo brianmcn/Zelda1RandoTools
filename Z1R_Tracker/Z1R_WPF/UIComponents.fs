@@ -869,6 +869,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
     let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; -70.,0.; -70.,36.; 38.,36.; 38.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(blockers, "Highlight potential\ndungeon continuations", 570., 320.)
+    let COL = Brushes.Green
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET-82., START_DUNGEON_AND_NOTES_AREA_H+2.
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; 0.,20.; 22.,20.; 22.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(blockers, "Highlight\nincomplete\ndungeons", 339., 320.)
 
     for dd in delayedDescriptions do   // ensure these draw atop all the PolyLines
         canvasAdd(dd)

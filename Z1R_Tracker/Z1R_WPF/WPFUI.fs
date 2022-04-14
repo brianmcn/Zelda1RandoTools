@@ -1246,10 +1246,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     for j = 0 to 7 do
                         let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                         if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
-                            if cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 = level-11 then
+                            let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
+                            if curLevel = level-11 then
                                 owLocatorTilesZone.[i,j].MakeBoldGreen()
-                            else
+                            elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
                                 owLocatorTilesZone.[i,j].MakeGreen()
+                            else
+                                () // do nothing - don't highlight completed dungeons
                 drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 
                     if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0)
             else

@@ -888,10 +888,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     do
         // summary tab
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
-        let labelChar = 'S'
-        let header = new TextBox(Width=22., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
+        let header = new TextBox(Width=22., Background=Brushes.Transparent, Foreground=Brushes.White, Text="S", IsReadOnly=true, IsHitTestVisible=false, 
                                  HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
-        levelTab.Header <- header
+        let headerGrid = new Grid(Background=Graphics.almostBlack, Width=header.Width)
+        headerGrid.Children.Add(header) |> ignore
+        // hovering the "S" tab behaves like hovering the blank space in the upper left of the displayed syummary tab
+        headerGrid.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
+        headerGrid.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
+        levelTab.Header <- headerGrid
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
         //contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))  // just the mini's call Enter
         contentCanvas.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
@@ -928,6 +932,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 rightwardCanvas.Children.Clear()
                 if dungeonTabs.SelectedIndex=9 then  // we may have clicked on D4, and MouseLeave fires after tab is switched
                     levelTabSelected.Trigger(10)
+                contentCanvasMouseLeaveFunc(10+i+1)
                 )
             mini.MouseDown.Add(fun _ ->
                 rightwardCanvas.Children.Clear()
