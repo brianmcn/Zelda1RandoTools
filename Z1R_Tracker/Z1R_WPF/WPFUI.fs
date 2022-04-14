@@ -14,7 +14,6 @@ module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCAT
 let voice = OptionsMenu.voice
 
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
-let mutable silenceAllRemindersDuringCurrentLoad = false
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
 let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualUpdateToSynchronizeWithReminder) =
     if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value()) then  // if won the game, quit sending reminders
@@ -26,7 +25,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value,   TrackerModel.Options.VisualReminders.HaveKeyLadder.Value
             | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
-        if not(silenceAllRemindersDuringCurrentLoad) && (shouldRemindVoice || shouldRemindVisual) then 
+        if not(isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
             reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     SendReminderImpl(category, text, icons, None)
@@ -1287,7 +1286,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let seedAndFlagsTB = new TextBox(FontSize=16., Background=Brushes.Transparent, Foreground=Brushes.Orange, 
                                         IsHitTestVisible=false, IsReadOnly=true, Focusable=false, Text="\n", BorderThickness=Thickness(0.))
     Canvas.SetRight(seedAndFlagsTB, 0.)
-    Canvas.SetBottom(seedAndFlagsTB, 0.)
+    Canvas.SetBottom(seedAndFlagsTB, 3.)
     seedAndFlagsDisplayCanvas.Children.Add(seedAndFlagsTB) |> ignore
     SaveAndLoad.seedAndFlagsUpdated.Publish.Add(fun _ ->
         if TrackerModel.Options.DisplaySeedAndFlags.Value then
@@ -1681,7 +1680,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         let a = data.Overworld.Map
         if a.Length <> 16 * 8 * 3 then
             failwith "bad load data at data.Overworld.Map"
-        silenceAllRemindersDuringCurrentLoad <- true
+        isCurrentlyLoadingASave <- true
         let mutable anySetProblems = false
         for j = 0 to 7 do
             for i = 0 to 15 do
@@ -1751,7 +1750,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         TrackerModel.forceUpdate()
         doUIUpdateEvent.Trigger()
         // done
-        silenceAllRemindersDuringCurrentLoad <- false
+        isCurrentlyLoadingASave <- false
     | _ -> ()
 
     // animation

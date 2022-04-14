@@ -21,6 +21,15 @@ make new take-any-heart screenshot
 
 
 
+hover the 'S' of summary tab to show all dungeons (like mousing inside summary tab), add to MHE
+speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
+ - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
+
+
+summary tab ought only highlight 'uncompleted' dungeons, not all of them
+(runner should consider turning off 'gettable' in the late-game)
+
+
 more features 'hidden' behind options, to simplify default UI?
 
 
@@ -32,13 +41,9 @@ also need to make left-click discoverable:
  - could have more visual 'tip' on the startup tips
 
 
-speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
 
 
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
-
-Now that big/small icons thingy gone, maybe the 'highlight continuations' hover-target should move from 'blockers' into the dungeon area
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
@@ -370,13 +375,15 @@ Thus, in shapes,
 
 
 
-These 5 rooms NEVER drop in ANY Shapes dungeon
-    Gannon (can have standing drop)
+These 7 rooms NEVER drop in ANY Shapes dungeon
+    Gannon (can only have standing drop, or drop map)
     Zelda           Bomb droppers: BrCrhBrBhh
     3 Rows                         1234567890
     Circle Wall                    * .  * *
-    Single Block   (Vertical Bars? Lava Moat?)
-These 9 rooms NEVER drop in SOME Shapes dungeons
+    Single Block
+    <spike trap angles>
+    *Vertical Rows  
+These 10 rooms NEVER drop in CERTAIN Shapes dungeons
                Never drops in   Can drop in
 Five Pair      2 3 4 5 6 7 8 9  1
 Maze           1 2 3 5 6 7 8 9  4
@@ -387,3 +394,7 @@ Spiral Stair   1 4 5            2 3 6 7 8 9
 Gleeok         1 5              2 3 4 6 7 8 9
 Grid           4 5              1 2 3 6 7 8 9
 T              1                2 3 4 5 6 7 8 9
+*Lava Moat      2 3 4 5 6 7 8 9  1
+
+*only if second quest rooms enabled
+(whole table assume 'Remove Most Open Stairs' not in use)
