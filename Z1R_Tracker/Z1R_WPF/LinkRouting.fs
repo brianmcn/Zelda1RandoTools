@@ -17,7 +17,7 @@ type RouteDestination =
     | HINTZONE of TrackerModel.HintZone * bool // bool is couldBeLetterDungeon
     | UNMARKEDINSTANCEFUNC of (int*int -> bool)
 
-let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive,
+let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries,
                         updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp, owInstance:OverworldData.OverworldInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas) =
     let appMainCanvas = cm.AppMainCanvas
     // help the player route to locations
@@ -67,19 +67,19 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             let fakeSunglassesOverBottomThird = new Canvas(Width=16.*OMTW, Height=1999., Background=Brushes.Black, Opacity=0.50)
             canvasAdd(wholeAppCanvas, fakeSunglassesOverBottomThird, 0., 150.+8.*11.*3.)
             let explanation = 
-                new TextBox(Background=Brushes.Black, Foreground=Brushes.Orange, FontSize=18.,
+                new TextBox(Background=Brushes.Black, Foreground=Brushes.Orange, FontSize=16.,
                             Text="--Temporarily show routing only to a specific destination--\n"+
                                     "Choose a route destination:\n"+
                                     " - click an overworld map tile to route to that tile\n"+
-                                    " - click a highlighted shop icon to route to any shops you've marked with that item\n"+
-                                    " - click a highlighted triforce to route to that dungeon if location known or hinted\n"+
-                                    " - click highlighted white/magical sword to route to that cave, if location known or hinted\n"+
-                                    " - click highlighted open-cave icon to route to all unmarked open caves\n"+
+                                    " - click a highlighted shop icon or blocker to route to any\n     shops you've marked with that item\n"+
+                                    " - click a highlighted triforce to route to that dungeon if\n     location known or hinted\n"+
+                                    " - click highlighted white/magical sword to route to that\n      cave, if location known or hinted\n"+
+                                    " - click highlighted open-cave icon to route to all\n     unmarked open caves\n"+
                                     " - click anywhere else to cancel temporary routing\n"+
                                     "Link will 'chase' an icon in upper right while this is active")
                                     // TODO item progress, route to all burnables/powerbraceletables/etc?
-            let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=explanation, Width=OMTW*16.-6., Height=230., IsHitTestVisible=false)
-            canvasAdd(wholeAppCanvas, b, 0., 150.+8.*11.*3. + 100.)
+            let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Child=explanation, Width=444., Height=290., IsHitTestVisible=false)
+            canvasAdd(wholeAppCanvas, b, 0., 150.+8.*11.*3.)
 
             // bright, clickable targets
             let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -115,6 +115,17 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_ring_bmp, 4., 4.)), Locate(BLUE_RING_BOX), TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.wood_arrow_bmp, 4., 4.)), Locate(WOOD_ARROW_BOX), TrackerModel.MapSquareChoiceDomainHelper.ARROW)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.blue_candle_bmp, 4., 4.)), Locate(BLUE_CANDLE_BOX), TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE)
+            for bq in blockerQueries do
+                match bq() with
+                | Some(shopId, (x,y)) ->
+                    let bmp = 
+                        if shopId   = TrackerModel.MapSquareChoiceDomainHelper.BOMB then Graphics.bomb_bmp
+                        elif shopId = TrackerModel.MapSquareChoiceDomainHelper.ARROW then Graphics.wood_arrow_bmp
+                        elif shopId = TrackerModel.MapSquareChoiceDomainHelper.KEY then Graphics.key_bmp
+                        elif shopId = TrackerModel.MapSquareChoiceDomainHelper.MEAT then Graphics.bait_bmp
+                        else failwith "unexpected blockerQueries result"
+                    makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage bmp, 4., 4.)), (x,y), shopId)
+                | None -> ()
             // open caves
             let openCave(c:Canvas) = canvasAdd(c, Graphics.BMPtoImage Graphics.openCaveIconBmp, 0., 0.)
             makeIconTargetImpl(20., 20., openCave, openCave, (540., 120.), RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))

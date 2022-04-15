@@ -508,7 +508,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
 
 open HotKeys.MyKey
 
-let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
+let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
     let appMainCanvas = cm.AppMainCanvas
     // blockers
     let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
@@ -544,13 +544,22 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
         // hovering a blocker box with a sellable item will highlight the corresponding shops (currently only way to mouse-hover to see key/meat shops)
         c.MouseEnter.Add(fun _ -> 
             match current.HardCanonical() with
-            | TrackerModel.DungeonBlocker.BAIT -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
-            | TrackerModel.DungeonBlocker.KEY -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.KEY)
-            | TrackerModel.DungeonBlocker.BOMB -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
-            | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            | TrackerModel.DungeonBlocker.BAIT ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
+            | TrackerModel.DungeonBlocker.KEY ->            showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.KEY)
+            | TrackerModel.DungeonBlocker.BOMB ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
+        blockerQueries.Add(fun () ->
+            let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
+            match current.HardCanonical() with
+            | TrackerModel.DungeonBlocker.BAIT ->           Some(TrackerModel.MapSquareChoiceDomainHelper.MEAT, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.KEY ->            Some(TrackerModel.MapSquareChoiceDomainHelper.KEY, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.BOMB ->           Some(TrackerModel.MapSquareChoiceDomainHelper.BOMB, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  Some(TrackerModel.MapSquareChoiceDomainHelper.ARROW, (pos.X, pos.Y))
+            | _ -> None
+            )
         TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
             current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
             redraw(current) |> ignore

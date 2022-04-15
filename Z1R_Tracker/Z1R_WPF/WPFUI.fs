@@ -84,6 +84,7 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
                             unmarked.[i,j] <- true  // for cbld case
                         else
                             interestingButInaccesible.Add(i,j)
+    let mutable lightUpDestinations = false
     match routeDestinationOption with
     | Some(RouteDestination.SHOP(targetItem)) ->
         for x = 0 to 15 do
@@ -91,10 +92,12 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
                 let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
                 if msp.State = targetItem || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItem)) then
                     owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxBoldGYR, maxPaleGYR)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 0, 0)
+        lightUpDestinations <- true
     | Some(RouteDestination.OW_MAP(x,y)) ->
         owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, maxBoldGYR, maxPaleGYR)
+        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 0, 0)
+        lightUpDestinations <- true
     | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
         processHint(hz,couldBeLetterDungeon)
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.All, 0)
@@ -106,12 +109,19 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.MaxGYR, OverworldRouteDrawing.All)
     | None ->
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxBoldGYR, maxPaleGYR)
-    for i,j in interestingButInaccesible do
+    for x,y in interestingButInaccesible do
         let rect = new Graphics.TileHighlightRectangle()
         rect.MakeRed()
         for s in rect.Shapes do
-            Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
-
+            Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(x), float(y*11*3))
+    if lightUpDestinations then
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                if owTargetworthySpots.[x,y] then
+                    let rect = new Graphics.TileHighlightRectangle()
+                    rect.MakeGreen()
+                    for s in rect.Shapes do
+                        Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(x), float(y*11*3))
 
 let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
@@ -403,7 +413,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
     mirrorOverworldFEs.Add(overworldCanvas)
 
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, updateNumberedTriforceDisplayImpl,
+    let blockerQueries = ResizeArray()
+    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
 
     do! showProgress("overworld start 1")
@@ -1272,7 +1283,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     do! showProgress("notes, gettables")
 
     // blockers
-    let blockerGrid = UIComponents.MakeBlockers(cm, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
+    let blockerGrid = UIComponents.MakeBlockers(cm, blockerQueries, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
 
     // notes    
     notesTextBox <- new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height,
