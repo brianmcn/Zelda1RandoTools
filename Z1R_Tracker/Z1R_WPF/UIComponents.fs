@@ -797,7 +797,7 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     addLabel(armos, "Show locations of any unmarked armos", 120., 240.)
 
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
-    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 98.,28.; 98.,2.; 58.,2.; 58.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 88.,28.; 88.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(shopping, "Show locations of shops containing each item (or blocker", 400., 240.)
     let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
     let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 10.,0.; -70.,0.; -70.,36.; 36.,36.; 36.,0.; 10.,0. ] |> Seq.map (fun (x,y) -> Point(210.+dx+x,dy+y))))

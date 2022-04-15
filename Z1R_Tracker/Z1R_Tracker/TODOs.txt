@@ -21,12 +21,15 @@ make new take-any-heart screenshot
 
 
 
-hover the 'S' of summary tab to show all dungeons (like mousing inside summary tab), add to MHE
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
+ - also be able to change tab via voice? toggle show-gettables?
 
 
 more features 'hidden' behind options, to simplify default UI?
+
+
+'dont forget you have raft' if have raft, raft spot unchecked, and you mark nearby spot? hm
 
 
 second-shop-item - need some kind of text explanation header on left-click menu
