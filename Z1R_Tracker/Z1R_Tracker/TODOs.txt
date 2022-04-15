@@ -23,7 +23,15 @@ make new take-any-heart screenshot
 
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
- - also be able to change tab via voice? toggle show-gettables?
+ - also be able to change tab via voice? toggle show-gettables? (hotkey show gettables?)
+
+"link show me"   <----- this is best first step
+ - sword1/2/3
+ - dungeon 1-9, or A-H or 9
+ - arrow, blue ring, boomstick, bomb, candle, potion(or takeany), meat, key, shield shop
+ - armos, open caves, incomplete dungeons
+"switch to tab" 1-9, or A-H or 9 (already has global hotkeys)
+hotkeys for the hoverable-link-routing?  
 
 
 more features 'hidden' behind options, to simplify default UI?
@@ -296,6 +304,7 @@ MEDIUM
 
 
 puzzle-piecing maps 1-6,7-9?
+ - having a dedicated 'paint full map' feature, which is better than current left/right-drag, and does inverse of middle-drag to off-map the rest of the tiles, would help
 
 
 TheDoctorBlue wants to operate entire tracker with numpad, consider?

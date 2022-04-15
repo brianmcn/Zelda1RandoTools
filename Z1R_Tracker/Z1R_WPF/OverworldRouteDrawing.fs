@@ -152,7 +152,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
             let rec iterate(N,recentCost) =
                 if not pq.IsEmpty then
                     let nextCost,(i,j) = pq.Dequeue()
-                    if N > 0 || nextCost = recentCost then
+                    if maxBoldGYR > 0 && (N > 0 || nextCost = recentCost) then
                         toHighlight.Add(i,j,true)
                         iterate(N-1,nextCost)
                     elif N > -M then
