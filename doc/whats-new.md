@@ -122,6 +122,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - improved performance: faster application startup time; smaller zip download
  - you can now mark up to 3 Blockers per dungeon
  - hovering certain blockers (bait/key/bomb/bow&arrow) will highlight the corresponding marked shops on the overworld map
+ - Link can now route to blocker-shops (e.g. bait/key blocker), or to potion shops (Link's potion shop icon appears over take-any hearts)
  - made dungeon LEVEL/BOARD header use Zelda font
  - dungeons show an [old man count](use.md#main-dungeon-old-man-count), tracking the number of NPC rooms you have marked versus the expect number (e.g. "OM:2/3")
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details

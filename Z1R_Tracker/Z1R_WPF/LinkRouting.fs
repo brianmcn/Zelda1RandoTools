@@ -99,6 +99,17 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                     dismissHavingChosenATarget()
                     )
             let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, (x, y), routeDest)
+            do // makePotionIconTarget
+                let mutable found = false
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
+                            (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
+                            found <- true
+                if found then
+                    makeIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP].[0], 4., 4.)), 
+                                                            330., 120., RouteDestination.SHOP(TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP))
             let makeShopIconTarget(draw, (x, y), shopDest) =
                 let mutable found = false
                 for i = 0 to 15 do
