@@ -25,13 +25,25 @@ speech: "tracker where is bomb shop" or "tracker where is level five" ? "link ro
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
  - also be able to change tab via voice? toggle show-gettables? (hotkey show gettables?)
 
-"link show me"   <----- this is best first step
+"link show me"   <---- seems like best option maybe
  - sword1/2/3
  - dungeon 1-9, or A-H or 9
  - arrow, blue ring, boomstick, bomb, candle, potion(or takeany), meat, key, shield shop
  - armos, open caves, incomplete dungeons
 "switch to tab" 1-9, or A-H or 9 (already has global hotkeys)
 hotkeys for the hoverable-link-routing?  
+
+or how about a single hotkey that will
+ - warp mouse to center 'choose a route dest' popup, with all the choices (except overworld tiles, which it partially obscures and does not offer alternative)
+ - warp back after selection
+and maybe double-clicking Link also does that hotkey-like popup.
+The list of choices is
+ - shops (incl. potions)
+ - dungeons (known or hinted)
+ - sword caves (known or hinted)
+ - open caves
+ - (not map tiles)
+
 
 
 more features 'hidden' behind options, to simplify default UI?
