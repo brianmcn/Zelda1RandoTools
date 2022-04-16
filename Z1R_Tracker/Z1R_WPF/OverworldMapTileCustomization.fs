@@ -287,6 +287,19 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
             let i = n + TrackerModel.MapSquareChoiceDomainHelper.ARROW
             upcast Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp()), true, n
             )
+        let edTB1 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., Margin=Thickness(2.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="Choose 2nd shop item", 
+                                    Foreground=Brushes.Orange, Background=Brushes.Black)
+        let edTB2 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(2.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="(Left clicking tile invokes\nthis 2nd item popup,\nRight clicking tile invokes\nwhole tile popup)", 
+                                    Foreground=Brushes.Orange, Background=Brushes.Black)
+        let edSp = new StackPanel(Orientation=Orientation.Vertical)
+        edSp.Children.Add(edTB1) |> ignore
+        edSp.Children.Add(edTB2) |> ignore
+        let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edSp)
+        let extraDecorations = [(upcast edBorder : FrameworkElement), gridxPosition, -102.]
         let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                         gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                         (fun (currentState) -> 
@@ -295,7 +308,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
+                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
         let r =
             match g with
             | Some(currentState) ->

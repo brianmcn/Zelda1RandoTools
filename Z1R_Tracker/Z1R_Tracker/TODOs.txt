@@ -52,8 +52,7 @@ more features 'hidden' behind options, to simplify default UI?
 'dont forget you have raft' if have raft, raft spot unchecked, and you mark nearby spot? hm
 
 
-second-shop-item - need some kind of text explanation header on left-click menu
-also need to make left-click discoverable:
+ideally need to make second-shop-item left-click discoverable:
  - could have a circle-plus as second item button, to visually indicate clicking (but clutters the map - could be transient?)
  - could have status bar that suggests what left/right/scroll do on the currently hovered element
  - could have first-time-coaching with extra popup when users mark first shop item (and option to turn it off 'dont show this again')
