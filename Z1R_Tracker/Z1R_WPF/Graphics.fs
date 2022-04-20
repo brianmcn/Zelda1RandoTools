@@ -296,17 +296,20 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
         a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29], a.[30])
 
+let bg16x16 = System.Drawing.Color.FromArgb(35, 40, 00)
 let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bmp, dodongo_bmp, red_bubble_bmp, blue_bubble_bmp) =
     let imageStream = GetResourceStream("zelda_bosses16x16.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
         for i = 0 to bmp.Width/16 - 1 do
             let r = new System.Drawing.Bitmap(18,18)  // border around it
+            for px = 0 to 17 do
+                for py = 0 to 17 do
+                    r.SetPixel(px, py, bg16x16)
             for px = 0 to 15 do
                 for py = 0 to 15 do
                     let color = bmp.GetPixel(px + i*16, py)
-                    //let color = if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then System.Drawing.Color.Transparent else color
-                    r.SetPixel(px+1, py+1, color)
+                    if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
             yield r
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8])
@@ -317,11 +320,13 @@ let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_ma
     let a = [|  
         for i = 0 to bmp.Width/16 - 1 do
             let r = new System.Drawing.Bitmap(18,18)  // border around it
+            for px = 0 to 17 do
+                for py = 0 to 17 do
+                    r.SetPixel(px, py, bg16x16)
             for px = 0 to 15 do
                 for py = 0 to 15 do
                     let color = bmp.GetPixel(px + i*16, py)
-                    //let color = if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then System.Drawing.Color.Transparent else color
-                    r.SetPixel(px+1, py+1, color)
+                    if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
             yield r
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7])

@@ -162,6 +162,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.MIXED_SECOND), 3
             | _ -> failwith "bad load data at root.Overworld.Quest"
         | _ -> failwith "bad/unsupported (owMapNum,loadData)"
+    do! showProgress("after ow map load")
     if owMapNum < 0 || owMapNum > 3 then
         failwith "bad owMapNum"
     TrackerModel.initializeAll(owInstance, kind)

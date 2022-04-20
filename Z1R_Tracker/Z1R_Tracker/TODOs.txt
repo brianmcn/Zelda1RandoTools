@@ -20,6 +20,18 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
+each door/room has a highlight
+                let highlightOutline = new Shapes.Rectangle(Width=14., Height=18., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
+just have one per grid and move it
+
+
+
+
+
+
+Mocco71's magnifier shows rectangles rather than unicode arrows on lost hills...
+consider https://stackoverflow.com/questions/30476257/drawing-arrow-with-xaml
+or my arrow code from e.g. coast item
 
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice

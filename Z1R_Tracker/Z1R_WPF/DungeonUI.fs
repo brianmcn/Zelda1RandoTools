@@ -349,7 +349,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 horizontalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 installDoorBehavior(door, d)
-                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- 0.6)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
         // vertical doors
         let verticalDoors = Array2D.zeroCreate 8 7
@@ -370,8 +370,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 verticalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 installDoorBehavior(door, d)
-                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- 0.6)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
+        // for room animation, later
+        let backRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Opacity=1.0, IsHitTestVisible=false)
+        canvasAdd(dungeonBodyCanvas, backRoomHighlightTile, 0., 0.)
         // rooms
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = masterRoomStates.[level-1]
@@ -552,15 +555,18 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
                 let c = new Canvas(Width=float(13*3)-2.*BUFFER, Height=float(9*3)-2.*BUFFER, Background=Brushes.Black, IsHitTestVisible=true)
                 canvasAdd(dungeonBodyCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
-                let highlightOutline = new Shapes.Rectangle(Width=float(13*3)+2., Height=float(9*3)+2., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
+                let highlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
                     let image = roomStates.[i,j].CurrentDisplay()
                     image.IsHitTestVisible <- false
+                    if roomStates.[i,j].RoomType <> DungeonRoomState.RoomType.OffTheMap then
+                        canvasAdd(c, highlightOutline, -2.-BUFFER, -2.-BUFFER)
                     canvasAdd(c, image, -BUFFER, -BUFFER)
-                    canvasAdd(c, highlightOutline, -1.-BUFFER, -1.-BUFFER)
+                    if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                        canvasAdd(c, highlightOutline, -2.-BUFFER, -2.-BUFFER)
                     if roomIsCircled.[i,j] then
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
                         //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
@@ -685,7 +691,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         else
                             highlightRow(Some j)
                             highlightColumn(Some i)
-                            highlightOutline.Opacity <- 0.6
+                            highlightOutline.Opacity <- Dungeon.highlightOpacity
                             trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
                 c.MouseLeave.Add(fun _ ->
@@ -839,12 +845,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             let c(t) = Color.FromArgb(t,255uy,165uy,0uy)
             let scb = new SolidColorBrush(c(0uy))
             let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(180uy)), Duration=new Duration(TimeSpan.FromSeconds(1.0)), AutoReverse=true)
-            let roomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Stroke=scb, Opacity=1.0, IsHitTestVisible=false)
-            canvasAdd(dungeonBodyCanvas, roomHighlightTile, 0., 0.)
+            let frontRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Stroke=scb, Opacity=1.0, IsHitTestVisible=false)
+            canvasAdd(dungeonBodyCanvas, frontRoomHighlightTile, 0., 0.)
             let animateRoomTile(x,y) = 
                 if TrackerModel.Options.AnimateTileChanges.Value then
-                    Canvas.SetLeft(roomHighlightTile, float(x*51)-3.)
-                    Canvas.SetTop(roomHighlightTile, float(y*39)-3.)
+                    if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                        Canvas.SetLeft(frontRoomHighlightTile, float(x*51)-3.)
+                        Canvas.SetTop(frontRoomHighlightTile, float(y*39)-3.)
+                        frontRoomHighlightTile.Stroke <- scb
+                        backRoomHighlightTile.Stroke <- null
+                    else
+                        Canvas.SetLeft(backRoomHighlightTile, float(x*51)-3.)
+                        Canvas.SetTop(backRoomHighlightTile, float(y*39)-3.)
+                        frontRoomHighlightTile.Stroke <- null
+                        backRoomHighlightTile.Stroke <- scb
                     scb.BeginAnimation(SolidColorBrush.ColorProperty, ca)
             animateDungeonRoomTile <- animateRoomTile
         // "sunglasses"

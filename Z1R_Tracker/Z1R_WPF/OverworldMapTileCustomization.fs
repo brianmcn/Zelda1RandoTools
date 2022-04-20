@@ -291,6 +291,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
                                     Text="Choose 2nd shop item", 
                                     Foreground=Brushes.Orange, Background=Brushes.Black)
+(*
         let edTB2 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(2.),
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
                                     Text="(Left clicking tile invokes\nthis 2nd item popup,\nRight clicking tile invokes\nwhole tile popup)", 
@@ -299,7 +300,9 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
         edSp.Children.Add(edTB1) |> ignore
         edSp.Children.Add(edTB2) |> ignore
         let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edSp)
-        let extraDecorations = [(upcast edBorder : FrameworkElement), gridxPosition, -102.]
+*)
+        let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edTB1)
+        let extraDecorations = [(upcast edBorder : FrameworkElement), gridxPosition, -33.] //-102.]
         let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                         gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                         (fun (currentState) -> 

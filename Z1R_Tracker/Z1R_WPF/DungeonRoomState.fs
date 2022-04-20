@@ -386,7 +386,7 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
         | MonsterDetail.Unmarked -> ()
         | md ->
             let monsterIcon = Graphics.BMPtoImage(md.Bmp())
-            canvasAdd(c, monsterIcon, -5., -5.)
+            canvasAdd(c, monsterIcon, -5., -3.)
             if isCompleted then
                 let shouldDarken =
                     match md with
@@ -394,14 +394,14 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
                     | _ -> true
                 if shouldDarken then
                     let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                    canvasAdd(c, dp, -5., -5.)
+                    canvasAdd(c, dp, -5., -3.)
         match floorDropDetail with
         | FloorDropDetail.Unmarked -> ()
         | fd ->
             let floorDropIcon = Graphics.BMPtoImage(fd.Bmp())
-            canvasAdd(c, floorDropIcon, 44.-K, 32.-K)
+            canvasAdd(c, floorDropIcon, 44.-K, 30.-K)
             if not floorDropShouldAppearBright then
                 let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                canvasAdd(c, dp, 44.-K, 32.-K)
+                canvasAdd(c, dp, 44.-K, 30.-K)
         c
 
