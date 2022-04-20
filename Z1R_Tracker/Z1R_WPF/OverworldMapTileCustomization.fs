@@ -161,7 +161,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let tile = makeTwoItemShopBmp(item1, item2)
         tile, []
-    // secrets default to being dark
+    // secrets and potion letter default to being dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
             Graphics.theFullTileBmpTable.[ms.State].[0], []
@@ -177,10 +177,13 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
             Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
             Graphics.theFullTileBmpTable.[ms.State].[1], []
-    // door repair & potion letter always dark (but light in the grid selector)
-    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
-        Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
+            Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
+    // door repair always dark (but light in the grid selector)
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
         Graphics.theFullTileBmpTable.[ms.State].[1], []
     // take any and sword1 default to being light (accelerators often darken them)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
@@ -251,6 +254,7 @@ let toggleables = [|
     TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
     TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
     TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
+    TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER
     |]
 let ToggleOverworldTileIfItIsToggleable(i, j, state) =
     if toggleables |> Array.contains state then
