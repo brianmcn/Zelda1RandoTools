@@ -1750,10 +1750,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
         // Seed & Flags
-        if data.Seed <> null then
+        if data.Seed <> null && data.Seed <> "" then
             SaveAndLoad.lastKnownSeed <- data.Seed
             SaveAndLoad.seedAndFlagsUpdated.Trigger()
-        if data.Flags <> null then
+        if data.Flags <> null && data.Flags <> "" then
             SaveAndLoad.lastKnownFlags <- data.Flags
             SaveAndLoad.seedAndFlagsUpdated.Trigger()
         // Timeline
