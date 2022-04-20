@@ -20,15 +20,6 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
-each door/room has a highlight
-                let highlightOutline = new Shapes.Rectangle(Width=14., Height=18., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
-just have one per grid and move it
-
-
-
-
-
-
 Mocco71's magnifier shows rectangles rather than unicode arrows on lost hills...
 consider https://stackoverflow.com/questions/30476257/drawing-arrow-with-xaml
 or my arrow code from e.g. coast item

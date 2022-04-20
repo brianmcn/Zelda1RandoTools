@@ -332,15 +332,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let yes = Dungeon.yes
         let locked = Dungeon.locked
         let horizontalDoors = Array2D.zeroCreate 7 8
+        let hDoorHighlightOutline = new Shapes.Rectangle(Width=12., Height=16., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         for i = 0 to 6 do
             for j = 0 to 7 do
                 let d = new Canvas(Width=12., Height=16., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=unknown, StrokeThickness=2., Fill=unknown)
                 let line = new Shapes.Line(X1 = 6., Y1 = -12., X2 = 6., Y2 = 28., StrokeThickness=3., Stroke=no, Opacity=0.)
-                let highlightOutline = new Shapes.Rectangle(Width=14., Height=18., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
-                canvasAdd(d, highlightOutline, -1., -1.)
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
@@ -349,19 +348,22 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 horizontalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 installDoorBehavior(door, d)
-                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- Dungeon.highlightOpacity)
-                d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then 
+                                                Canvas.SetLeft(hDoorHighlightOutline, float(i*(39+12)+39))
+                                                Canvas.SetTop(hDoorHighlightOutline, float(j*(27+12)+6))
+                                                hDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
+                d.MouseLeave.Add(fun _ -> hDoorHighlightOutline.Opacity <- 0.0)
+        canvasAdd(dungeonBodyCanvas, hDoorHighlightOutline, 0., 0.)
         // vertical doors
+        let vDoorHighlightOutline = new Shapes.Rectangle(Width=24., Height=12., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         let verticalDoors = Array2D.zeroCreate 8 7
         for i = 0 to 7 do
             for j = 0 to 6 do
                 let d = new Canvas(Width=24., Height=12., Background=Brushes.Black)
                 let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=unknown, StrokeThickness=2., Fill=unknown)
                 let line = new Shapes.Line(X1 = -14., Y1 = 6., X2 = 38., Y2 = 6., StrokeThickness=3., Stroke=no, Opacity=0.)
-                let highlightOutline = new Shapes.Rectangle(Width=26., Height=14., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 d.Children.Add(rect) |> ignore
                 d.Children.Add(line) |> ignore
-                canvasAdd(d, highlightOutline, -1., -1.)
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.
@@ -370,8 +372,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 verticalDoors.[i,j] <- door
                 canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 installDoorBehavior(door, d)
-                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then highlightOutline.Opacity <- Dungeon.highlightOpacity)
-                d.MouseLeave.Add(fun _ -> highlightOutline.Opacity <- 0.0)
+                d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then 
+                                                Canvas.SetLeft(vDoorHighlightOutline, float(i*(39+12)+8))
+                                                Canvas.SetTop(vDoorHighlightOutline, float(j*(27+12)+27))
+                                                vDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
+                d.MouseLeave.Add(fun _ -> vDoorHighlightOutline.Opacity <- 0.0)
+        canvasAdd(dungeonBodyCanvas, vDoorHighlightOutline, 0., 0.)
         // for room animation, later
         let backRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Opacity=1.0, IsHitTestVisible=false)
         canvasAdd(dungeonBodyCanvas, backRoomHighlightTile, 0., 0.)
@@ -489,6 +495,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             match colOpt with
             | None -> ()
             | Some c -> highlightColumnCanvases.[c].Opacity <- 0.2
+        let roomHighlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
+        canvasAdd(dungeonBodyCanvas, roomHighlightOutline, 0., 0.)
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
@@ -555,18 +563,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
                 let c = new Canvas(Width=float(13*3)-2.*BUFFER, Height=float(9*3)-2.*BUFFER, Background=Brushes.Black, IsHitTestVisible=true)
                 canvasAdd(dungeonBodyCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
-                let highlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
                     let image = roomStates.[i,j].CurrentDisplay()
                     image.IsHitTestVisible <- false
-                    if roomStates.[i,j].RoomType <> DungeonRoomState.RoomType.OffTheMap then
-                        canvasAdd(c, highlightOutline, -2.-BUFFER, -2.-BUFFER)
                     canvasAdd(c, image, -BUFFER, -BUFFER)
-                    if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.OffTheMap then
-                        canvasAdd(c, highlightOutline, -2.-BUFFER, -2.-BUFFER)
                     if roomIsCircled.[i,j] then
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
                         //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
@@ -691,7 +694,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         else
                             highlightRow(Some j)
                             highlightColumn(Some i)
-                            highlightOutline.Opacity <- Dungeon.highlightOpacity
+                            roomHighlightOutline.Opacity <- Dungeon.highlightOpacity
+                            Canvas.SetLeft(roomHighlightOutline, float(i*51)-2.)
+                            Canvas.SetTop(roomHighlightOutline, float(j*39)-2.)
                             trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
                 c.MouseLeave.Add(fun _ ->
@@ -700,7 +705,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
                     highlightRow(None)
                     highlightColumn(None)
-                    highlightOutline.Opacity <- 0.0
+                    roomHighlightOutline.Opacity <- 0.0
                     trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
                     )
                 let doMonsterDetailPopup() = 
