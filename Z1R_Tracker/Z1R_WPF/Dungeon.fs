@@ -12,28 +12,49 @@ let highlight = new SolidColorBrush(Color.FromRgb(200uy, 200uy, 200uy)) :> Brush
 let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
 let no = new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy)) :> Brush
 let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush
-let locked = new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy))  :> Brush
+let yellow = new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy))  :> Brush
+let purple = new SolidColorBrush(Color.FromRgb(140uy, 30uy, 140uy))  :> Brush
 
 [<RequireQualifiedAccess>]
 type DoorState = 
-    | UNKNOWN | NO | YES | LOCKED
+    | UNKNOWN | NO | YES | YELLOW | PURPLE
     member this.AsInt() =
         match this with
         | UNKNOWN -> 0
         | NO -> 1
         | YES -> 2
-        | LOCKED -> 3
+        | YELLOW -> 3
+        | PURPLE -> 4
     static member FromInt(x) =
         if x=0 then DoorState.UNKNOWN
         elif x=1 then DoorState.NO
         elif x=2 then DoorState.YES
-        elif x=3 then DoorState.LOCKED
+        elif x=3 then DoorState.YELLOW
+        elif x=4 then DoorState.PURPLE
         else failwith "bad DoorState.FromInt() value"
 
 type Door(state:DoorState, redraw) =
     let mutable state = state
     member _this.State with get() = state and set(x) = state <- x; redraw(x)
-    member _this.IsYesOrLocked = state=DoorState.YES || state=DoorState.LOCKED
+    member _this.Next() =
+        state <-
+            match state with
+            | DoorState.UNKNOWN -> DoorState.YES
+            | DoorState.YES -> DoorState.NO
+            | DoorState.NO -> DoorState.YELLOW
+            | DoorState.YELLOW -> DoorState.PURPLE
+            | DoorState.PURPLE -> DoorState.UNKNOWN
+        redraw(state)
+    member _this.Prev() =
+        state <-
+            match state with
+            | DoorState.UNKNOWN -> DoorState.PURPLE
+            | DoorState.YES -> DoorState.UNKNOWN
+            | DoorState.NO -> DoorState.YES
+            | DoorState.YELLOW -> DoorState.NO
+            | DoorState.PURPLE -> DoorState.YELLOW
+        redraw(state)
+    member _this.IsTraversible = state=DoorState.YES || state=DoorState.YELLOW || state=DoorState.PURPLE
 
 type GrabHelper() =
     let mutable isGrabMode = false

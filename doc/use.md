@@ -41,7 +41,7 @@ scrolling, and then click once you have reached your desired choice, or you can 
 is often faster when there is a very long list of choices, such as the overworld map tiles).  Clicking outside of a popup will cancel the popup 
 and abort making any changes to the element.
 
-When mouse-hovering an element with choices, scroll-wheel always activates a popup.  
+When mouse-hovering an element with choices, scroll-wheel typically activates a popup.  
 
 In certain cases noted below, clicking also activates the popup.
 
@@ -321,14 +321,15 @@ the top of the app.  Other dungeon tracking marks have no semantic meaning to th
 When your mouse is inside a dungeon map area, the location of that dungeon will be highlighted with crosshairs on the overworld map.  When your mouse is inside the dungeon 
 summary tab area, the location of all dungeons get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once.
 
-#### Doors
+#### <a id="main-dt-doors"></a> Doors
 
-Doors between rooms are simple, and have four states:
+Doors between rooms are simple, and have five states:
 
  - dark gray is unknown (default)
- - green (left click) is "can go" (used for most kinds of doors/shutters/bombholes/etc)
- - red (right click) is "cannot go" (e.g. unbombable wall)
- - yellow (middle click) is "maybe" (you likely might use it for locked doors, or perhaps one-ways or shutters, up to you)
+ - green (left-click) is "can go" (used for most kinds of doors/shutters/bombholes/etc)
+ - red (right-click) is "cannot go" (e.g. unbombable wall)
+ - yellow (middle-click) is a "maybe" (you might use it for locked doors, for example)
+ - purple (available via scroll-wheel/shift-click, which cycle thru all states) is also a "maybe" (you might use it for shutters, for example)
 
 Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green door) toggles it back into unknown gray.
 

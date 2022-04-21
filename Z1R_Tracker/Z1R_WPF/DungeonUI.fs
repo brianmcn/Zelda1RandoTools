@@ -431,20 +431,30 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             doorCanvas.MouseDown.Add(fun ea ->
                 if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
                     if ea.ChangedButton = Input.MouseButton.Left then
-                        if door.State <> Dungeon.DoorState.YES then
-                            door.State <- Dungeon.DoorState.YES
+                        if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                            door.Prev()
                         else
-                            door.State <- Dungeon.DoorState.UNKNOWN
+                            if door.State <> Dungeon.DoorState.YES then
+                                door.State <- Dungeon.DoorState.YES
+                            else
+                                door.State <- Dungeon.DoorState.UNKNOWN
                     elif ea.ChangedButton = Input.MouseButton.Right then
-                        if door.State <> Dungeon.DoorState.NO then
-                            door.State <- Dungeon.DoorState.NO
+                        if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                            door.Next()
                         else
-                            door.State <- Dungeon.DoorState.UNKNOWN
+                            if door.State <> Dungeon.DoorState.NO then
+                                door.State <- Dungeon.DoorState.NO
+                            else
+                                door.State <- Dungeon.DoorState.UNKNOWN
                     elif ea.ChangedButton = Input.MouseButton.Middle then
-                        if door.State <> Dungeon.DoorState.LOCKED then
-                            door.State <- Dungeon.DoorState.LOCKED
+                        if door.State <> Dungeon.DoorState.YELLOW then
+                            door.State <- Dungeon.DoorState.YELLOW
                         else
                             door.State <- Dungeon.DoorState.UNKNOWN
+                )
+            doorCanvas.MouseWheel.Add(fun ea ->
+                if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
+                    if ea.Delta<0 then door.Next() else door.Prev()
                 )
         
         // horizontal doors
@@ -452,7 +462,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let unknown = Dungeon.unknown
         let no = Dungeon.no
         let yes = Dungeon.yes
-        let locked = Dungeon.locked
+        let yellow = Dungeon.yellow
+        let purple = Dungeon.purple
         let horizontalDoors = Array2D.zeroCreate 7 8
         let hDoorHighlightOutline = new Shapes.Rectangle(Width=12., Height=16., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         let hDoorCanvas = new Canvas()  // nesting canvases improves perf
@@ -466,7 +477,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.; if line.Parent = null then d.Children.Add(line) |> ignore  // only add lines to tree on-demand
-                    | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.YELLOW     -> rect.Stroke <- yellow; rect.Fill <- yellow; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.PURPLE     -> rect.Stroke <- purple; rect.Fill <- purple; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 horizontalDoors.[i,j] <- door
                 canvasAdd(hDoorCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
@@ -491,7 +503,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 let door = new Dungeon.Door(Dungeon.DoorState.UNKNOWN, (function 
                     | Dungeon.DoorState.YES        -> rect.Stroke <- yes; rect.Fill <- yes; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.; if line.Parent = null then d.Children.Add(line) |> ignore  // only add lines to tree on-demand
-                    | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.YELLOW     -> rect.Stroke <- yellow; rect.Fill <- yellow; rect.Opacity <- 1.; line.Opacity <- 0.
+                    | Dungeon.DoorState.PURPLE     -> rect.Stroke <- purple; rect.Fill <- purple; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 verticalDoors.[i,j] <- door
                 canvasAdd(vDoorCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))

@@ -124,10 +124,10 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                     roomHighlights.[i,j].Opacity <- 1.0
                 // blocked? un-traversed doorway (could be key, moat, just forgotten, ...)
                 if isThereARoom(i,j)=2 then
-                    if i > 0 && horizontalDoors.[i-1,j].IsYesOrLocked ||
-                            i < 7 && horizontalDoors.[i,j].IsYesOrLocked ||
-                            j > 0 && verticalDoors.[i,j-1].IsYesOrLocked ||
-                            j < 7 && verticalDoors.[i,j].IsYesOrLocked then
+                    if i > 0 && horizontalDoors.[i-1,j].IsTraversible ||
+                            i < 7 && horizontalDoors.[i,j].IsTraversible ||
+                            j > 0 && verticalDoors.[i,j-1].IsTraversible ||
+                            j < 7 && verticalDoors.[i,j].IsTraversible then
                         roomHighlights.[i,j].Opacity <- 1.0
         // Note: ladder blocks are kind of implicit, you either mark a door behind a moat, or it would show as a potential bomb wall
         for f in startAnimationFuncs do

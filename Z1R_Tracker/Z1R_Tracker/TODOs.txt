@@ -20,6 +20,10 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
+add tip:
+In Z-Tracker, a dungeon lights up green when you can warp to it via the recorder whirlwind. (Assuming the commonly-played z1r flag that allows you to recorder to any dungeon entrance where you already have the triforce.)
+ - optional icon/graphic with tip?
+
 
 See homer DMs
 Consider shift-click and/or scroll for mouse, and maybe hotkeys (maybe arrow targetting room, or hotkey hovering door), just noodle a bit
@@ -27,8 +31,6 @@ Consider shift-click and/or scroll for mouse, and maybe hotkeys (maybe arrow tar
 Easy & consistent: scroll wheel brings up popup, purple is 4th color at bottom list, also has one-ways etc (could just add purple as first draft)
 
 More generally, arbitrary marks
-
-Possible tip? Wiz, darknut, lynel, goriya, 2 each OW v dungeon
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)
 -	To inform lategame need to buy meat, for example
@@ -38,8 +40,6 @@ Accelerator hotkeys? Eg take any, all keyboard. Specific to each, and hotkey ons
 Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
 
 Broadcast option: always focus overworld ? bighead scenario
-
-Try perf debug version on my surface for startup time
 
 
 
@@ -445,3 +445,23 @@ T              1                2 3 4 5 6 7 8 9
 
 *only if second quest rooms enabled
 (whole table assume 'Remove Most Open Stairs' not in use)
+
+
+
+
+
+Enemy Groups:
+
+I heard someone say that, of (wizzrobe, darknut, lynel, goriya), exactly 2 will be in overworld and exactly 2 in dungeons, is that true?  Any other rules of monster-bucketing I should know?  (What was the thing with dungeons? Are there 3 different sets of dungeons monsters, and each set appears in 2 or 3 or 4 dungeons each, or something?)
+[12:00 AM] AdirondackRick: If I remember correctly, and Fred can correct me if I'm wrong:
+
+There are three different set of dungeon monsters, and they are guaranteed to appear in a minimum of 2 dungeons.   That means one set could realistically appear in a maximum of 5 dungeons, but I don't know the validity of that 5.
+Lorgon111
+I heard someone say that, of (wizzrobe, darknut, lynel, goriya), exactly 2 will be in overworld and exactly 2 in dungeons, is that true?  Any other rules of monster-bucketing I should know?  (What was the thing with dungeons? Are there 3 different sets of dungeons monsters, and each set appears in 2 or 3 or 4 dungeons each, or something?)
+[12:52 AM] jkoper: I would guess the actual group is wizzrobe, darknut, lynel, goriya, and moblin, with two of those being on the overworld and three in dungeons.  The stalfos, gibdos, tektites, and pols voice probably fill the other slots.  I'm definitely doing a little guessing here, but it really depends on the number of sprite slots each enemy needs.
+[8:43 AM] fcoughlin: There are four “groups”: overworld, the group in vanilla 1/2/7, group in vanilla 3/5/8, and group in vanilla 4/6/9.
+
+When I shuffle groups, there will still be four groups. One is overworld, for the three dungeons, each group will be in at least two dungeons (remaining three dungeons are random, so in theory you could have 5 dungeons in one group). 
+
+What enemies end in which groups comes 100% from sprite limits. There’s a fixed number of bytes per enemy group, and as a result, only some things can work together.
+[8:51 AM] AdirondackRick: Now with all this being said, it’s worth notice there’s one enemy that shares two dungeon groups in each seed. In vanilla, it’s the Zols, but it could be gibdos, pols voices, staffols, ropes — anything that doesn’t have a red/blue pairing.  So it’s realistic for one enemy in particular to be seen in as many as seven of the nine dungeons.
