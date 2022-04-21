@@ -6,11 +6,13 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 
-let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomState.DungeonRoomState[,], currentOutlineDisplayState:int[],
+let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonRoomState.DungeonRoomState[,], currentOutlineDisplayState:int[],
                         horizontalDoors:Dungeon.Door[,], verticalDoors:Dungeon.Door[,], blockersHoverEvent:Event<_>) =
     let startAnimationFuncs = ResizeArray()
     let endAnimationFuncs = ResizeArray()
 
+    let setupCanvas = new Canvas()
+    let mutable finishedSetup = false
     let anim = new Animation.DoubleAnimation(1.0, 1.3, new Duration(System.TimeSpan.FromSeconds(0.75)))
     anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
     anim.AutoReverse <- true
@@ -28,7 +30,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, null))
             d.Children.Add(rect) |> ignore
             horizontalDoorHighlights.[i,j] <- rect
-            canvasAdd(dungeonBodyHighlightCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
+            canvasAdd(setupCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
     // vertical doors
     let verticalDoorHighlights = Array2D.zeroCreate 8 7
     for i = 0 to 7 do
@@ -43,7 +45,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             endAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleYProperty, null))
             d.Children.Add(rect) |> ignore
             verticalDoorHighlights.[i,j] <- rect
-            canvasAdd(dungeonBodyHighlightCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
+            canvasAdd(setupCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
 
     let len = 2.2
     let anim = new Animation.DoubleAnimation(0., len+len, new Duration(System.TimeSpan.FromSeconds(0.75)))
@@ -62,7 +64,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
 //            canim.AutoReverse <- true
 //            canim.RepeatBehavior <- Animation.RepeatBehavior.Forever
 //            brush.BeginAnimation(SolidColorBrush.ColorProperty, canim)
-            canvasAdd(dungeonBodyHighlightCanvas, ellipse, float(i*51-12/2-extra), float(j*39-12/2-extra))
+            canvasAdd(setupCanvas, ellipse, float(i*51-12/2-extra), float(j*39-12/2-extra))
             roomHighlights.[i,j] <- ellipse
     let isThereARoom(x,y) =  // 0=no, 1=yes, 2=maybe
         if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
@@ -144,6 +146,10 @@ let makeHighlights(level, dungeonBodyHighlightCanvas, roomStates:DungeonRoomStat
             f()
     blockersHoverEvent.Publish.Add(fun b ->
         if b then
+            if not finishedSetup then
+                finishedSetup <- true
+                //printfn "finishing dungeon %d highlight setup" level
+                dungeonBodyHighlightCanvas.Children.Add(setupCanvas) |> ignore   // this is a heavy thing, do it on-demand rather than during 'Loading UI' at start
             highlight()
         else
             unhighlight()

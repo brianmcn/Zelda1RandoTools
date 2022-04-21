@@ -561,15 +561,15 @@ type MyWindow() as this =
                     stackPanel.Children.Add(tb) |> ignore
                     let totalsw = System.Diagnostics.Stopwatch.StartNew()
                     let sw = System.Diagnostics.Stopwatch.StartNew()
-                    let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging
+                    let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging startup perf
                     let showProgress(label) = 
                         async {
-                            displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
-                            displayStartupTimeDiagnostics(label)
                             loadingText.Append('.') |> ignore
                             tb.Text <- loadingText.ToString()
                             do! Async.Sleep(1) // pump to make 'Loading UI' text update
                             do! Async.SwitchToContext ctxt
+                            displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
+                            displayStartupTimeDiagnostics(label)
                             sw.Restart()
                         }
                     // move mainDock to topmost while app is built behind it

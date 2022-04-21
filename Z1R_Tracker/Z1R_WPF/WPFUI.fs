@@ -120,16 +120,14 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
     for x,y in interestingButInaccesible do
         let rect = new Graphics.TileHighlightRectangle()
         rect.MakeRed()
-        for s in rect.Shapes do
-            Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(x), float(y*11*3))
+        Graphics.canvasAdd(routeDrawingCanvas, rect.Shape, OMTW*float(x), float(y*11*3))
     if lightUpDestinations then
         for x = 0 to 15 do
             for y = 0 to 7 do
                 if owTargetworthySpots.[x,y] then
                     let rect = new Graphics.TileHighlightRectangle()
                     rect.MakeGreen()
-                    for s in rect.Shapes do
-                        Graphics.canvasAdd(routeDrawingCanvas, s, OMTW*float(x), float(y*11*3))
+                    Graphics.canvasAdd(routeDrawingCanvas, rect.Shape, OMTW*float(x), float(y*11*3))
 
 let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
@@ -822,8 +820,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                             } |> Async.StartImmediate
                         | None -> ()
                     )
-        if i%3 = 2 then
-            do! showProgress(sprintf "overworld %d" i)
     if speechRecognitionInstance <> null then
         speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
@@ -959,7 +955,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     nearMouseHUDButton.MouseRightButtonDown.Add(fun _ -> nearMouseHUD(true))
 #endif
 
-    do! showProgress("blockers")
+    do! showProgress("misc")
 
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
@@ -1250,8 +1246,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             let z = new Graphics.TileHighlightRectangle()
             z.Hide()
             owLocatorTilesZone.[i,j] <- z
-            for s in z.Shapes do
-                gridAdd(owLocatorGrid, s, i, j)
+            gridAdd(owLocatorGrid, z.Shape, i, j)
 
     // Dungeon level trackers
     let rightwardCanvas = new Canvas()
@@ -1289,11 +1284,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(appMainCanvas, dungeonTabs, 0., START_DUNGEON_AND_NOTES_AREA_H)
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
 
-    do! showProgress("notes, gettables")
-
+    do! showProgress("blockers")
+    
     // blockers
     let blockerGrid = UIComponents.MakeBlockers(cm, blockerQueries, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
 
+    do! showProgress("notes, gettables")
     // notes    
     notesTextBox <- new TextBox(Width=appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET, Height=dungeonTabs.Height - blockerGrid.Height,
                             FontSize=20., Foreground=Brushes.LimeGreen , Background=Brushes.Black, AcceptsReturn=true)
@@ -1337,8 +1333,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 if cur = -1 then  // they may have marked the raft spots (e.g. Any Road), so only if unmarked...
                     let thr = new Graphics.TileHighlightRectangle()
                     thr.MakePaleRed()
-                    for s in thr.Shapes do
-                        canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
+                    canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
         )
     owRemainingScreensTextBox.MouseLeave.Add(fun _ ->
         routeDrawingCanvas.Children.Clear()
@@ -1361,7 +1356,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     // current max hearts
     canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
     // coordinate grid
+    let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
+    let zoneCanvas = new Canvas()
     let owCoordsGrid = makeGrid(16, 8, int OMTW, 11*3)
+    let mutable placeholderFinished = false
+    let ensurePlaceholderFinished() =
+        if not placeholderFinished then
+            placeholderFinished <- true
+            canvasAdd(placeholderCanvas, owCoordsGrid, 0., 0.)
+            canvasAdd(placeholderCanvas, zoneCanvas, 0., 0.)
     let owCoordsTBs = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -1375,18 +1378,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             canvasAdd(c, tb, 2., 6.)
             gridAdd(owCoordsGrid, c, i, j) 
     mirrorOverworldFEs.Add(owCoordsGrid)
-    canvasAdd(overworldCanvas, owCoordsGrid, 0., 0.)
+    canvasAdd(overworldCanvas, placeholderCanvas, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let cb = new CheckBox(Content=showCoords)
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
+    cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
     cb.Unchecked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
-    showCoords.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
+    showCoords.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85)))
     showCoords.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
     canvasAdd(appMainCanvas, cb, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
 
     // zone overlay
-    let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = UIComponents.MakeZoneOverlay(appMainCanvas, overworldCanvas, mirrorOverworldFEs, OW_ITEM_GRID_LOCATIONS.OFFSET)
+    let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = UIComponents.MakeZoneOverlay(appMainCanvas, zoneCanvas, ensurePlaceholderFinished, mirrorOverworldFEs, OW_ITEM_GRID_LOCATIONS.OFFSET)
 
     // mouse hover explainer
     UIComponents.MakeMouseHoverExplainer(appMainCanvas)

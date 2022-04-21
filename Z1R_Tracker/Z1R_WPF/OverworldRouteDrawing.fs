@@ -185,8 +185,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         thr.MakeGreen()
                     else
                         thr.MakePaleGreen()
-                for s in thr.Shapes do
-                    canvasAdd(routeDrawingCanvas, s, OMTW*float(i), float(j*11*3))
+                canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
         for line in accumulatedLines do
             canvasAdd(routeDrawingCanvas, line, 0., 0.)  // we want the lines drawn atop everything else
 

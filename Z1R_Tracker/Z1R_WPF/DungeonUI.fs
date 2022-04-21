@@ -137,6 +137,7 @@ let rainbowBrush =
 let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, 
                     levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
+    do! showProgress(sprintf "begin makeDungeonTabs")
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3 + 6))  // need to set height, as caller uses it
     rightwardCanvas.Height <- dungeonTabsWholeCanvas.Height
     let outlineDrawingCanvases = Array.zeroCreate 9  // where we draw non-shapes-dungeons overlays
@@ -333,6 +334,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let locked = Dungeon.locked
         let horizontalDoors = Array2D.zeroCreate 7 8
         let hDoorHighlightOutline = new Shapes.Rectangle(Width=12., Height=16., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
+        let hDoorCanvas = new Canvas()  // nesting canvases improves perf
         for i = 0 to 6 do
             for j = 0 to 7 do
                 let d = new Canvas(Width=12., Height=16., Background=Brushes.Black)
@@ -346,17 +348,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 horizontalDoors.[i,j] <- door
-                canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
+                canvasAdd(hDoorCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 installDoorBehavior(door, d)
                 d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then 
                                                 Canvas.SetLeft(hDoorHighlightOutline, float(i*(39+12)+39))
                                                 Canvas.SetTop(hDoorHighlightOutline, float(j*(27+12)+6))
                                                 hDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> hDoorHighlightOutline.Opacity <- 0.0)
+        dungeonBodyCanvas.Children.Add(hDoorCanvas) |> ignore
         canvasAdd(dungeonBodyCanvas, hDoorHighlightOutline, 0., 0.)
         // vertical doors
         let vDoorHighlightOutline = new Shapes.Rectangle(Width=24., Height=12., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         let verticalDoors = Array2D.zeroCreate 8 7
+        let vDoorCanvas = new Canvas()  // nesting canvases improves perf
         for i = 0 to 7 do
             for j = 0 to 6 do
                 let d = new Canvas(Width=24., Height=12., Background=Brushes.Black)
@@ -370,13 +374,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.LOCKED     -> rect.Stroke <- locked; rect.Fill <- locked; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
                 verticalDoors.[i,j] <- door
-                canvasAdd(dungeonBodyCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
+                canvasAdd(vDoorCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 installDoorBehavior(door, d)
                 d.MouseEnter.Add(fun _ -> if not popupIsActive && not grabHelper.IsGrabMode then 
                                                 Canvas.SetLeft(vDoorHighlightOutline, float(i*(39+12)+8))
                                                 Canvas.SetTop(vDoorHighlightOutline, float(j*(27+12)+27))
                                                 vDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> vDoorHighlightOutline.Opacity <- 0.0)
+        dungeonBodyCanvas.Children.Add(vDoorCanvas) |> ignore
         canvasAdd(dungeonBodyCanvas, vDoorHighlightOutline, 0., 0.)
         // for room animation, later
         let backRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Opacity=1.0, IsHitTestVisible=false)
@@ -497,6 +502,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             | Some c -> highlightColumnCanvases.[c].Opacity <- 0.2
         let roomHighlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         canvasAdd(dungeonBodyCanvas, roomHighlightOutline, 0., 0.)
+        let roomCanvas = new Canvas()  // nesting canvases improves perf
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
@@ -562,7 +568,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for j = 0 to 7 do
                 let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
                 let c = new Canvas(Width=float(13*3)-2.*BUFFER, Height=float(9*3)-2.*BUFFER, Background=Brushes.Black, IsHitTestVisible=true)
-                canvasAdd(dungeonBodyCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
+                canvasAdd(roomCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
@@ -842,6 +848,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             redraw()
                     )
                 c.AllowDrop <- true
+        dungeonBodyCanvas.Children.Add(roomCanvas) |> ignore
         let outlineDrawingCanvas = new Canvas()  // where we draw non-shapes-dungeons overlays
         outlineDrawingCanvases.[level-1] <- outlineDrawingCanvas
         canvasAdd(dungeonCanvas, outlineDrawingCanvas, 0., 0.)

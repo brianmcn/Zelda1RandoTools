@@ -632,22 +632,20 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             else
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
-                let d = new DockPanel(LastChildFill=true)
-                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., Height=14., IsHitTestVisible=false,
+                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then sp.Background <- blockerHighlightBrush else sp.Background <- Brushes.Black)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=labelChar.ToString(), Width=10., Height=14., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.),
                                         TextAlignment=TextAlignment.Center, Margin=Thickness(2.,0.,0.,0.))
                 sp.Children.Add(tb) |> ignore
                 for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
                     sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore
-                d.Children.Add(sp) |> ignore
-                gridAdd(blockerGrid, d, i, j)
+                gridAdd(blockerGrid, sp, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
     canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
     blockerGrid
 
-let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, mirrorOverworldFEs:ResizeArray<FrameworkElement>, oiglOFFSET) =
+let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOverworldFEs:ResizeArray<FrameworkElement>, oiglOFFSET) =
     // zone overlay
     let owMapZoneColorCanvases, owMapZoneBlackCanvases =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
@@ -754,9 +752,9 @@ let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, mirrorOverworldFEs:Re
             zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
-    zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.Checked.Add(fun _ -> ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
-    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then (ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true)))
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     canvasAdd(appMainCanvas, zone_checkbox, oiglOFFSET+200., 52.)
 

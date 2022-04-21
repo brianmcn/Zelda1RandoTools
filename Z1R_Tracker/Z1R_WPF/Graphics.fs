@@ -180,23 +180,21 @@ let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Co
 let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
 let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
 type TileHighlightRectangle() as this =
-    let shapes = [|
-        new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
-        |]
-    let Draw(s:Shapes.Rectangle, isPale) =
+    let s = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
+    let Draw(isPale) =
         s.Opacity <- 1.0
         s.StrokeThickness <- if isPale then 2.0 else 4.0
     do
         this.MakeGreen()
-    member _this.MakeRed() = for s in shapes do (s.Stroke <- red; Draw(s,false))
-    member _this.MakeYellow() = for s in shapes do (s.Stroke <- yellow; Draw(s,false))
-    member _this.MakeBoldGreen() = for s in shapes do (s.Stroke <- green; Draw(s,false); s.StrokeThickness <- 6.0)
-    member _this.MakeGreen() = for s in shapes do (s.Stroke <- green; Draw(s,false))
-    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- palered; Draw(s,true))
-    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- paleyellow; Draw(s,true))
-    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- palegreen; Draw(s,true))
-    member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
-    member _this.Shapes = shapes
+    member _this.MakeRed() = s.Stroke <- red; Draw(false)
+    member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
+    member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
+    member _this.MakeGreen() = s.Stroke <- green; Draw(false)
+    member _this.MakePaleRed() = s.Stroke <- palered; Draw(true)
+    member _this.MakePaleYellow() = s.Stroke <- paleyellow; Draw(true)
+    member _this.MakePaleGreen() = s.Stroke <- palegreen; Draw(true)
+    member _this.Hide() = s.Opacity <- 0.0
+    member _this.Shape = s
 
 
 // see also
@@ -708,13 +706,13 @@ let ringLevelToBmp(ringLevel) =
     | 2 -> red_ring_bmp
     | _ -> failwith "bad RingLevel"
 
+let blockers_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 0uy, 180uy, 0uy), 0.)
+                                               new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.3)
+                                               new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.7)
+                                               new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
+                                               ])
+let blockers_maybeBG = new LinearGradientBrush(blockers_gsc, Point(0.,0.), Point(1.,1.))
 let blockerCurrentBMP(current) =
-    let gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 0uy, 180uy, 0uy), 0.)
-                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.3)
-                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.7)
-                                          new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
-                                         ])
-    let maybeBG = new LinearGradientBrush(gsc, Point(0.,0.), Point(1.,1.))
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
     innerc.Children.Clear()
     innerc.Background <- match current with
@@ -725,7 +723,7 @@ let blockerCurrentBMP(current) =
                             | TrackerModel.DungeonBlocker.MAYBE_KEY
                             | TrackerModel.DungeonBlocker.MAYBE_MONEY
                             | TrackerModel.DungeonBlocker.MAYBE_RECORDER                            
-                                -> maybeBG :> Brush
+                                -> blockers_maybeBG :> Brush
                             | _ -> Brushes.Black :> Brush
     let bmp = 
         match current with
