@@ -206,8 +206,8 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         if not(TrackerModel.sword2Box.IsDone()) then
             let extraDecorationsF(boxPos:Point) =
                 let extraDecorations = computeExtraDecorationArrow(sword2x, sword2y, boxPos)
-                extraDecorations
-            sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, extraDecorationsF), OMTW-30., 1.]
+                seq extraDecorations
+            sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.IsDungeon then

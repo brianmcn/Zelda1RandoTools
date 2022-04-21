@@ -455,7 +455,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)
 
     // layer to place darkening icons - dynamic icons that are below route-drawing but above the fixed base layer
-    // this layer is also used to draw map icons that get drawn below routing, such as potion shops
     let owDarkeningMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owDarkeningMapGridCanvases = Array2D.zeroCreate 16 8
     owDarkeningMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
@@ -614,8 +613,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                     let extraDecorationsF(boxPos:Point) =
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
-                        OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos)
-                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, extraDecorationsF)
+                        seq(OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos))
+                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, Some extraDecorationsF)
                     mirrorOverworldFEs.Add(coastBoxOnOwGrid)
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
                     //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got

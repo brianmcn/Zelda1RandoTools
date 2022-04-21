@@ -224,7 +224,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
 
-    let extrasPanel,epRefresh =
+    let mutable extrasPanelAndepRefresh = None
+    let makeExtrasPanelAndepRefresh() =
         let mutable refreshTDD = fun () -> ()
         let mkTxt(size,txt) = 
             new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=size, Margin=Thickness(5.),
@@ -335,6 +336,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             let whole = new Canvas(Width=cm.Width, Height=cm.Height)
             let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
             whole.Children.Add(mouseClickInterceptor) |> ignore
+            if extrasPanelAndepRefresh.IsNone then
+                extrasPanelAndepRefresh <- Some(makeExtrasPanelAndepRefresh())  // created on-demand, to improve app startup time
+            let extrasPanel, epRefresh = extrasPanelAndepRefresh.Value
             epRefresh()
             whole.Children.Add(extrasPanel) |> ignore
             mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it

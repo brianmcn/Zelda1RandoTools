@@ -161,9 +161,17 @@ let mediaColor(c:System.Drawing.Color) =
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
+    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
     let bmimage = new System.Windows.Media.Imaging.BitmapImage()
     bmimage.BeginInit()
-    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
+    
+    // this is slower in practice
+    //bmimage.CacheOption <- System.Windows.Media.Imaging.BitmapCacheOption.OnLoad    // can 'use' ms with this
+    
+    // this is faster in practice
+    bmimage.CreateOptions <- System.Windows.Media.Imaging.BitmapCreateOptions.DelayCreation
+    bmimage.CacheOption <- System.Windows.Media.Imaging.BitmapCacheOption.OnDemand    // must 'let' ms with this
+    
     bmimage.StreamSource <- ms
     bmimage.EndInit()
     let i = new Image()
@@ -475,15 +483,28 @@ let zhDungeonNums =
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]
 
+let readCacheFileOrCreateBmp(filename, createF : unit -> System.Drawing.Bitmap) =
+    if System.IO.File.Exists(filename) then
+        System.Drawing.Bitmap.FromFile(filename) :?> System.Drawing.Bitmap
+    else
+        let bmp = createF()
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filename)) |> ignore
+        bmp.Save(filename)
+        bmp
+
 let overworldMapBMPs(n) =
     let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8
     for x = 0 to 15 do
         for y = 0 to 7 do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
+            let tile = 
+                let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Overworld\quest.%d.ow.%2d.%2d.bmp""" n x y)
+                readCacheFileOrCreateBmp(filename, fun () ->
+                    let tile = new System.Drawing.Bitmap(16*3,11*3)
+                    for px = 0 to 16*3-1 do
+                        for py = 0 to 11*3-1 do
+                            tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
+                    tile)
             tiles.[x,y] <- tile
     tiles
 

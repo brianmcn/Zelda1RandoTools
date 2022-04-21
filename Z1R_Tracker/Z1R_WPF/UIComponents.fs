@@ -46,9 +46,7 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
         for j = 0 to 7 do
             let bmp = 
                 let magnifierFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Magnifier\quest.%d.ow.%2d.%2d.bmp""" owMapNum i j)
-                if System.IO.File.Exists(magnifierFilename) then
-                    System.Drawing.Bitmap.FromFile(magnifierFilename) :?> System.Drawing.Bitmap
-                else
+                Graphics.readCacheFileOrCreateBmp(magnifierFilename, fun () ->
                     let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
                     for x = 0 to 15 do
                         for y = 0 to 10 do
@@ -134,9 +132,7 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
                                     for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
                                         bmp.SetPixel(px, py, c)
                             | None -> ()
-                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(magnifierFilename)) |> ignore
-                    bmp.Save(magnifierFilename)
-                    bmp
+                    bmp)
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     let makeArrow(text) = 
         let tb = new TextBox(Text=text, FontSize=20., Foreground=arrowColor, Background=bgColor, IsReadOnly=true, BorderThickness=Thickness(0.))

@@ -148,7 +148,7 @@ TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
     for f in redrawBoxes do
         f()
     )
-let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOver) = 
+let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     if box.Stair <> TrackerModel.StairKind.Never then
         let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
@@ -205,7 +205,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     let activateComboBox(activationDelta) =
         popupIsActive <- true
         let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
+        let extraDecorations = match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with | Some f -> f(pos) | None -> seq[]
         async {
             let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
             match r with
@@ -261,20 +261,23 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))
     // hover behavior
-    let hoverCanvas = new Canvas()
-    c.MouseEnter.Add(fun _ ->
-        cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
-        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
-        hoverCanvas.Children.Clear()
-        for fe, x, y in extraDecorations do
-            canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
-        canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
-        )
-    c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
+    match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
+    | Some f ->
+        let hoverCanvas = new Canvas()
+        c.MouseEnter.Add(fun _ ->
+            cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
+            let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
+            let extraDecorations = f(pos)
+            hoverCanvas.Children.Clear()
+            for fe, x, y in extraDecorations do
+                canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
+            canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
+            )
+        c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
+    | None -> ()
     // redraw on changes
     redrawBoxes.Add(fun() -> redraw())
     box.Changed.Add(fun _ -> redraw())
     c
 let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
-    MakeBoxItemWithExtraDecorations(cm, box, false, fun(_)->[])
+    MakeBoxItemWithExtraDecorations(cm, box, false, None)
