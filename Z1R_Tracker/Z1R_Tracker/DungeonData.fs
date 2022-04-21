@@ -47,13 +47,14 @@ module Factoids =
         "In Z-Tracker, each overworld shop can be marked with two different items for sale.  Left click a shop tile to choose a second item to add to the shop."
         "In Z-Tracker, when you locate a dungeon entrance on the overworld map, its triforce numeral lights up white on the top of the tracker, so that it is easy to see which dungeons you have/haven't yet found."
         "In Z-Tracker, you can 'paint out' a bunch of rooms in a dungeon by holding down the mouse button and dragging over multiple rooms.  The mouse left-button paints 'completed' rooms, and the right-button paints 'uncompleted' rooms."
-        "In Z-Tracker, left-clicking a dungeon door makes it a green door (can go), right-clicking makes it a red wall (can't go), and middle-clicking makes it a yellow door (other, perhaps a locked door)."
+        "In Z-Tracker, left-clicking a dungeon door makes it a green door (can go), right-clicking makes it a red wall (can't go), middle-clicking makes it a yellow door (other, perhaps a locked door), and scrolling or shift-clicking can cycle to purple doors (other, perhaps a shutter)."
         "In Z-Tracker, left-clicking a dungeon's entrance room cycles the entrance arrow (SWNE), and left-clicking most other rooms toggles them completed (darker) or uncompleted (brighter)."
         "In Z-Tracker, if you leave a dungeon because you are blocked (e.g. needing a Ladder or a Key), you can add a mark in the BLOCKERS section for that dungeon number, to remind you why you left."
         "In Z-Tracker, you can edit the key items and triforce you got from a dungeon, using the box right next to the dungeon map, rather than having to mouse all the way back up to the top of the app."
         "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking per-minute 'splits' of when you got each triforce piece (as well as every other key item)."
         "In Z-Tracker, you can edit HotKeys.txt in the application folder to set up various keyboard shortcuts.  You can create a Notes.txt file to pre-populate the Notes text in the app, as well."
         "In Z-Tracker, the overworld map highlights various tiles with a green rectangle if you can uncover a location there, a yellow rectangle if the screen may or may not yield a location and you can uncover it, or a red rectangle if you don't have the item to uncover a location there."
+        "In Z-Tracker, a dungeon lights up green when you can warp to it via the recorder whirlwind. (This assumes the commonly-played z1r flags that allow you to recorder to any dungeon entrance where you already have the triforce.)"
         "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on twitter (@lorgon111)."
         |]
     let allTips = [|

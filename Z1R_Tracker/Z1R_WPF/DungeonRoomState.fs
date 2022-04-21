@@ -20,6 +20,9 @@ type MonsterDetail =
     | Dodongo     
     | Patra
     | BlueWizzrobe
+    | BlueDarknut
+    | Manhandla
+    | Other
     member this.AsHotKeyName() =
         match this with
         | Unmarked    -> "MonsterDetail_Unmarked"
@@ -31,6 +34,9 @@ type MonsterDetail =
         | Dodongo     -> "MonsterDetail_Dodongo"
         | Patra       -> "MonsterDetail_Patra"
         | BlueWizzrobe-> "MonsterDetail_BlueWizzrobe"
+        | BlueDarknut -> "MonsterDetail_BlueDarknut"
+        | Manhandla   -> "MonsterDetail_Manhandla"
+        | Other       -> "MonsterDetail_Other"
     member this.IsNotMarked = this = MonsterDetail.Unmarked
     member this.Bmp() =
         match this with
@@ -43,21 +49,27 @@ type MonsterDetail =
         | Dodongo     -> Graphics.dodongo_bmp
         | Patra       -> Graphics.patra_bmp
         | BlueWizzrobe-> Graphics.wizzrobe_bmp
+        | BlueDarknut -> Graphics.blue_darknut_bmp
+        | Manhandla   -> Graphics.manhandla_bmp
+        | Other       -> Graphics.other_monster_bmp
     member this.DisplayDescription =
         match this with
         | Unmarked    -> "(None)"
         | Gleeok      -> "Gleeok"
-        | Bow         -> "Gohma (need Bow)"
+        | Bow         -> "Gohma"
         | Digdogger   -> "Digdogger"
         | BlueBubble  -> "Blue Bubble"
         | RedBubble   -> "Red Bubble"
         | Dodongo     -> "Dodongo"
         | Patra       -> "Patra"
         | BlueWizzrobe-> "Blue Wizzrobe"
+        | BlueDarknut -> "Blue Darknut"
+        | Manhandla   -> "Manhandla"
+        | Other       -> "Other"
     static member All() = 
-        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; 
-           MonsterDetail.Dodongo; MonsterDetail.Patra; MonsterDetail.BlueWizzrobe; 
-           MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
+        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
+           MonsterDetail.Patra; MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Manhandla;
+           MonsterDetail.Other; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
     static member FromHotKeyName(hkn) =
         let mutable r = MonsterDetail.Unmarked
         for x in MonsterDetail.All() do

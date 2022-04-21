@@ -20,17 +20,6 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
-add tip:
-In Z-Tracker, a dungeon lights up green when you can warp to it via the recorder whirlwind. (Assuming the commonly-played z1r flag that allows you to recorder to any dungeon entrance where you already have the triforce.)
- - optional icon/graphic with tip?
-
-
-See homer DMs
-Consider shift-click and/or scroll for mouse, and maybe hotkeys (maybe arrow targetting room, or hotkey hovering door), just noodle a bit
--	What if 4 hotkeys for rooms that mean ‘activate NESW door popup’?
-Easy & consistent: scroll wheel brings up popup, purple is 4th color at bottom list, also has one-ways etc (could just add purple as first draft)
-
-More generally, arbitrary marks
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)
 -	To inform lategame need to buy meat, for example

@@ -35,14 +35,16 @@ To make it less likely to accidentally map a dungeon in the wrong tab, the dunge
 
 ![Dungeon numeral](screenshots/dungeon-numeral.png)
 
-### More dungeon room types
+### More types of dungeon rooms and monsters; Simpler UI for choosing rooms, Monster Detail, and Floor Drop Detail
 
 The dungeon room shape "Lava Moat" has been added, and now the existing room types "Bomb Upgrade", "Hungry Goriya", "Gannon", "Zelda", and "Off the map" are now
-always available in the dungeon room selection popup menu.
+always available in the dungeon room selection popup menu.  
 
 ![Dungeon room types](screenshots/dungeon-room-types.png)
 
-### Simpler Dungeon Room UI for choosing rooms, Monster Detail, and Floor Drop Detail
+Many more monster types can be optionally marked in a room:
+
+![Dungeon room types](screenshots/dungeon-room-monster-detail.png)
 
 For details, see the [main documentation](use.md#main-drpu) on this topic.
 

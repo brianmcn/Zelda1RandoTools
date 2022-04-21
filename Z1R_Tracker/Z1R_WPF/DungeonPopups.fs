@@ -136,7 +136,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
     redraw(currentMonsterDetail) |> ignore
     let all = MonsterDetail.All()
     let gridElementsSelectablesAndIDs = [|
-        for n = 0 to 8 do
+        for n = 0 to 11 do
             let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp() |> Graphics.BMPtoImage)
             let isSelectable = n < all.Length
             let ident = if n>=all.Length then MonsterDetail.Unmarked else all.[n]
@@ -146,7 +146,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
     let onClick(_ea,ident) =
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
         DismissPopupWithResult(ident)
-    let gridX, gridY = 27., -3.
+    let gridX, gridY = 21., -3.
     let redrawTile(ident) =
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         let innerc = redraw(ident)
@@ -170,7 +170,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
             dungeonRoomExplainer, -3.-boxX, 342.-boxY
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (4, 3, 18, 18), gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
@@ -198,7 +198,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
     let onClick(_ea,ident) =
         // we're getting a click with mouse event args ea on one of the selectable items in the grid, namely ident. take appropriate action.
         DismissPopupWithResult(ident)
-    let gridX, gridY = 27., -3.
+    let gridX, gridY = 21., -3.
     let redrawTile(ident) =
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         let innerc = redraw(ident)
@@ -212,7 +212,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
         innerc.Children.Add(dp) |> ignore
         DockPanel.SetDock(textBorder, Dock.Right)
         Canvas.SetTop(dp, -3.)
-        Canvas.SetLeft(dp, 121.)
+        Canvas.SetLeft(dp, 99.)
     let extraDecorations = 
         let text = new TextBox(Text="Select a Floor Drop Detail for this room", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                     BorderThickness=Thickness(0.), FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)

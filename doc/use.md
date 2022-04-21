@@ -451,10 +451,6 @@ middle-click-yellow-circle a room to quickly mark it, rather than go through the
 such as an unreachable key in the middle of a circle-moat room when I don't have the ladder, then I use the FloorDropDetail UI to capture that specific bit
 of information.)
 
-The MonsterDetail and FloorDropDetail information appear as tiny icons in the corners of rooms on the map.  If you want to briefly make these icons larger 
-and see a legend, you can mouse-hover the button in the very bottom right of the dungeon tab.  If you want to permanently keep the icons on their larger
-size, click that button to toggle the size.
-
 While the vast majority of RoomType choices represent staircases (e.g. transport 2, item basement), NPCs (e.g. bomb ugrade, hungry Goriya), or geometry-
 blockers (e.g. chutes, moats), there are also four special RoomTypes to mark the entrance to the dungeon, along with which direction you entered from.
 As a convenience, the very first room you left-click on in the dungeon will automatically become the 'Dungeon entrance (from south)' tile, as this is the most 
