@@ -15,7 +15,7 @@ let dungeonRoomExplainer, setOpacity =
     let mkTxt(txt) = new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                     BorderThickness=Thickness(0.), FontSize=16., VerticalAlignment=VerticalAlignment.Center)
     let border(fe) = new Border(Child=fe, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
-    let marginAndSunglasses(c:Canvas) = c.Margin <- Thickness(5.,0.,0.,0.); c.Opacity <- sunglassesOpacity; c
+    let marginAndSunglasses(c:FrameworkElement) = c.Margin <- Thickness(5.,0.,0.,0.); c.Opacity <- sunglassesOpacity; c
     let left(tb:TextBox) = 
         tb.HorizontalContentAlignment <- HorizontalAlignment.Left
         tb.HorizontalAlignment <- HorizontalAlignment.Left

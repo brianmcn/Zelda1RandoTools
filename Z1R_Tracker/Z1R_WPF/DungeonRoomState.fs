@@ -367,41 +367,45 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.FloorDropDetail with get() = floorDropDetail and set(x) = floorDropDetail <- x
     member this.FloorDropAppearsBright with get() = floorDropShouldAppearBright
     member this.ToggleFloorDropBrightness() = floorDropShouldAppearBright <- not floorDropShouldAppearBright
-    member this.CurrentDisplay() =
-        let K = 18.
-        let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
-        match roomType with
-        | RoomType.OffTheMap ->
-            canvasAdd(c, new Canvas(Width=float(21*3), Height=float(17*3), Background=Brushes.Black, Opacity=0.6), -12., -12.)
-        | _ ->
-            let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
-            canvasAdd(c, roomIcon, 0., 0.)
-        match roomType with
-        | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
-        | RoomType.StartEnterFromW -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), -1.*3., 3.*3.)
-        | RoomType.StartEnterFromN -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., -1.*3.)
-        | RoomType.StartEnterFromS -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., 9.*3.)
-        | _ -> ()
-        match monsterDetail with
-        | MonsterDetail.Unmarked -> ()
-        | md ->
-            let monsterIcon = Graphics.BMPtoImage(md.Bmp())
-            canvasAdd(c, monsterIcon, -5., -3.)
-            if isCompleted then
-                let shouldDarken =
-                    match md with
-                    | MonsterDetail.BlueBubble | MonsterDetail.RedBubble -> false
-                    | _ -> true
-                if shouldDarken then
+    member this.CurrentDisplay() : FrameworkElement =
+        // optimize the common case to avoid new-ing up an extra canvas
+        if roomType = RoomType.Unmarked && monsterDetail = MonsterDetail.Unmarked && floorDropDetail = FloorDropDetail.Unmarked then
+            upcast (Graphics.BMPtoImage (roomType.UncompletedBmp()))
+        else
+            let K = 18.
+            let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
+            match roomType with
+            | RoomType.OffTheMap ->
+                canvasAdd(c, new Canvas(Width=float(21*3), Height=float(17*3), Background=Brushes.Black, Opacity=0.6), -12., -12.)
+            | _ ->
+                let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
+                canvasAdd(c, roomIcon, 0., 0.)
+            match roomType with
+            | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
+            | RoomType.StartEnterFromW -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), -1.*3., 3.*3.)
+            | RoomType.StartEnterFromN -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., -1.*3.)
+            | RoomType.StartEnterFromS -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., 9.*3.)
+            | _ -> ()
+            match monsterDetail with
+            | MonsterDetail.Unmarked -> ()
+            | md ->
+                let monsterIcon = Graphics.BMPtoImage(md.Bmp())
+                canvasAdd(c, monsterIcon, -5., -3.)
+                if isCompleted then
+                    let shouldDarken =
+                        match md with
+                        | MonsterDetail.BlueBubble | MonsterDetail.RedBubble -> false
+                        | _ -> true
+                    if shouldDarken then
+                        let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
+                        canvasAdd(c, dp, -5., -3.)
+            match floorDropDetail with
+            | FloorDropDetail.Unmarked -> ()
+            | fd ->
+                let floorDropIcon = Graphics.BMPtoImage(fd.Bmp())
+                canvasAdd(c, floorDropIcon, 44.-K, 30.-K)
+                if not floorDropShouldAppearBright then
                     let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                    canvasAdd(c, dp, -5., -3.)
-        match floorDropDetail with
-        | FloorDropDetail.Unmarked -> ()
-        | fd ->
-            let floorDropIcon = Graphics.BMPtoImage(fd.Bmp())
-            canvasAdd(c, floorDropIcon, 44.-K, 30.-K)
-            if not floorDropShouldAppearBright then
-                let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                canvasAdd(c, dp, 44.-K, 30.-K)
-        c
+                    canvasAdd(c, dp, 44.-K, 30.-K)
+            upcast c
 
