@@ -20,11 +20,11 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
+overworld arbitrary tile mark? (also, how run some ui bits without middle/scroll?)
+
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)
 -	To inform lategame need to buy meat, for example
-
-Accelerator hotkeys? Eg take any, all keyboard. Specific to each, and hotkey onscreen on popup
 
 Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
 

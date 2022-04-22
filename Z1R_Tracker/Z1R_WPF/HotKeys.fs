@@ -54,6 +54,18 @@ let AllDungeonRoomNames = [|
     for x in DungeonRoomState.FloorDropDetail.All() do
         yield "DungeonRoom_" + x.AsHotKeyName()
     |]
+// always Bottom/Left/Top/Right order, how PieMenus code works
+let TakeAnyNames = [|
+    "Contextual_TakeAny_None"
+    "Contextual_TakeAny_Potion"
+    "Contextual_TakeAny_Candle"
+    "Contextual_TakeAny_Heart"
+    |]
+let TakeThisNames = [|
+    "Contextual_TakeThis_None"
+    "Contextual_TakeThis_Candle"
+    "Contextual_TakeThis_Sword"
+|]
 
 [<RequireQualifiedAccess>]
 type GlobalHotkeyTargets =
@@ -169,24 +181,27 @@ let MakeDefaultHotKeyFile(filename:string) =
         lines.Add("Item_" + TrackerModel.ITEMS.AsHotKeyName(i) + " = ")
     lines.Add("Item_Nothing = ")
     lines.Add("")
-    // overworld map tiles
     lines.Add("# OVERWORLD - these hotkey bindings take effect when mouse-hovering an overworld map tile")
     lines.Add("# Note that Level1-Level8 refer to dungeons A-H if using the 'Hide Dungeon Numbers' flag setting")
     for i = 0 to TrackerModel.dummyOverworldTiles.Length-1 do
         lines.Add("Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) + " = ")
     lines.Add("Overworld_Nothing = ")
     lines.Add("")
-    // blockers
     lines.Add("# BLOCKERS - these hotkey bindings take effect when mouse-hovering a blocker box")
     for b in TrackerModel.DungeonBlocker.All do
         lines.Add(b.AsHotKeyName() + " = ")
     lines.Add("")
-    // dungeon rooms
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
     for x in AllDungeonRoomNames do
         lines.Add(x + " = ")
     lines.Add("")
-    lines.Add("# GLOBAL - these hotkey bindings take effect anywhere, and cannot conflict with any others")
+    lines.Add("# CONTEXTUAL CHOICES - these hotkey bindings only take effect when the corresponding menus are on-screen")
+    for x in TakeAnyNames do
+        lines.Add(x + " = ")
+    for x in TakeThisNames do
+        lines.Add(x + " = ")
+    lines.Add("")
+    lines.Add("# GLOBAL - these hotkey bindings take effect anywhere, and cannot conflict with any other non-contextuals")
     for x in GlobalHotkeyTargets.All do
         lines.Add("Global_" + x.AsHotKeyName() + " = ")
     lines.Add("")
@@ -258,6 +273,12 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
             r
         else
             stateToKeys.[state]
+    member this.AsPrettyHotKeyOpt(state) =
+        let keys = this.StateToKeys(state)
+        if keys.Count > 0 then
+            Some(sprintf "HotKey = %s" (PrettyKey(keys.[0])))
+        else
+            None
     member this.AppendHotKeyToDescription(desc, state) =
         let keys = this.StateToKeys(state)
         if keys.Count > 0 then
@@ -269,6 +290,8 @@ let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
 let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail> >("DungeonRoom")
+let TakeAnyHotKeyProcessor = new HotKeyProcessor<int>("TakeAny")
+let TakeThisHotKeyProcessor = new HotKeyProcessor<int>("TakeThis")
 let GlobalHotKeyProcessor = new HotKeyProcessor<GlobalHotkeyTargets>("Global")
 
 let HotKeyFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
@@ -318,6 +341,16 @@ let PopulateHotKeyTables() =
                         Add(DungeonRoomHotKeyProcessor, chOpt, Choice3Of3 x)
                         found <- true
             if not found then
+                for i = 0 to 3 do do
+                    if name = TakeAnyNames.[i] then
+                        Add(TakeAnyHotKeyProcessor, chOpt, i)
+                        found <- true
+            if not found then
+                for i = 0 to 2 do do
+                    if name = TakeThisNames.[i] then
+                        Add(TakeThisHotKeyProcessor, chOpt, i)
+                        found <- true
+            if not found then
                 for x in GlobalHotkeyTargets.All do
                     if name = "Global_"+ x.AsHotKeyName() then
                         Add(GlobalHotKeyProcessor, chOpt, x)
@@ -335,5 +368,6 @@ let PopulateHotKeyTables() =
             error "an 'Overworld_...'"
         if BlockerHotKeyProcessor.ContainsKey(k) then
             error "a 'Blocker_...'"
+        // don't bother with contextual hotkey conflicts, they're ok
         if DungeonRoomHotKeyProcessor.ContainsKey(k) then
             error "a 'DungeonRoom_...'"

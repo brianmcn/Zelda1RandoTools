@@ -12,11 +12,12 @@ Contents of this document:
 
 You can bind hotkeys (any keyboard keys) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
 
-There are five mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers),
-[dungeon rooms](use.md#main-dr), and a 'global' context, used both for toggling the boxes in the [other item area](use.md#main-oia) and for switching dungeon
-tabs via a hotkey.  The non-global contexts can each map the same keys, so for example 'b' could be set up to mean 'bow' when the mouse is over an item box,
-'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon
-room.  Any hotkeys in the global context must be unique (not bound in any other context).
+There are seven mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers),
+[dungeon rooms](use.md#main-dr), ['Take Any' and 'Take This'](use.md#take-any-accelerator) menus, and finally a 'global' context, used both for toggling
+the boxes in the [other item area](use.md#main-oia) and for switching dungeon tabs via a hotkey.  The non-global contexts can each map the same keys, so 
+for example 'b' could be set up to mean 'bow' when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when 
+the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.  Any hotkeys in the global context must be unique (not bound 
+in any other context, with the exception that TakeAny and TakeThis can override globals when those menus are on-screen).
 
 While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide ways to display your current hotkey
 information.  First, each popup menu will display any hotkeys that have been bound, alongside the description in the mouseover popup:

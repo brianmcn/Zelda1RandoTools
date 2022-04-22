@@ -114,6 +114,8 @@ a certain item, but you forget what you set it to.
 
 Also, you can now map 'global' hotkeys to toggle items in the upper right of the tracker (e.g. wood arrow, bomb, zelda), or to switch among the 10 dungeon tabs.
 
+Plus, you can now hotkey the 'Take Any' (heart) and 'Take This' (wood sword) cave options.
+
 Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKeys](extras.md#hotkeys) for details.
 
 ### A number of minor fixes and changes

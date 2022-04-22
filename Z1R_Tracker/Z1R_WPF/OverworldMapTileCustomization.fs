@@ -616,6 +616,7 @@ let MakeMappedHotKeysDisplay() =
     all.Children.Add(overworldPanel) |> ignore
     all.Children.Add(blockerPanel) |> ignore
     all.Children.Add(dungeonRoomPanel) |> ignore
+    // Note: contextual keys not displayed here, only on their corresponding menus
     all.Children.Add(globalPanel) |> ignore
     if total = 0 then
         let tb = DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")
