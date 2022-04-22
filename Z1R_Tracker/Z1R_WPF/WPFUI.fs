@@ -1191,8 +1191,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                         if n = -1 then
                             SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
                         else
-                            SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
-                                            [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
+                            if n = TrackerModel.ITEMS.WHITESWORD && TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+                                ()   // silly to ask to grab white sword if already have mags (though note this reminder could be useful in swordless when both are bomb upgrades)
+                            else
+                                SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
+                                                [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
                         ladderTime.SetNow()
             // remind whistle spots
             if (DateTime.Now - recorderTime.Time).Minutes > 2 then  // every 3 mins

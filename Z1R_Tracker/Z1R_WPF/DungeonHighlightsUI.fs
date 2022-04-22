@@ -122,6 +122,9 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                 // blocked by meat
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock && not(roomStates.[i,j].IsComplete) then
                     roomHighlights.[i,j].Opacity <- 1.0
+                // a '?' stair may have been forgotten to traverse
+                if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.StaircaseToUnknown then
+                    roomHighlights.[i,j].Opacity <- 1.0
                 // blocked? un-traversed doorway (could be key, moat, just forgotten, ...)
                 if isThereARoom(i,j)=2 then
                     if i > 0 && horizontalDoors.[i-1,j].IsTraversible ||
