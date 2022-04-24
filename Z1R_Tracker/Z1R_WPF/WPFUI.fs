@@ -276,11 +276,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
-        let fullTriforceBmp =
+        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->
             match kind with
-            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> Graphics.fullLetteredFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->fullTriforceBmp))
+            | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> 
+                if TrackerModel.GetDungeon(i).LabelChar <> '?' then
+                    let num = int(TrackerModel.GetDungeon(i).LabelChar) - int '1'
+                    Graphics.fullNumberedFoundTriforce_bmps.[num]
+                else
+                    Graphics.fullLetteredFoundTriforce_bmps.[i]
+            ))
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
     gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
@@ -559,7 +564,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             if v <> 0 then
                 canvasAdd(c, makeOwCircle(brush), 11.5*OMTW/48.-3., 0.)
             if (v >= 48 && v <= 57) || (v >= 65 && v <= 90) then
-                let tb = new TextBox(Text=sprintf "%c" (char v), FontSize=12., Foreground=brush, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.))
+                let tb = new TextBox(Text=sprintf "%c" (char v), FontSize=12., FontWeight=FontWeights.Bold, Foreground=brush, Background=Brushes.Black, 
+                                        IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.))
                 c.Children.Add(tb) |> ignore
                 Canvas.SetLeft(tb, 0.)
                 Canvas.SetBottom(tb, 0.)

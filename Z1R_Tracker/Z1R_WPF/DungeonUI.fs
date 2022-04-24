@@ -742,7 +742,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         updateOldManCountText()
                         usedTransportsAddState(roomStates.[i,j])
                         // conservative door inference
-                        if TrackerModel.Options.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone then
+                        if TrackerModel.Options.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
                             // they appear to have walked into this room from an adjacent room
                             let possibleEntries = ResizeArray()
                             if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
