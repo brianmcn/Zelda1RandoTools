@@ -992,7 +992,13 @@ let recomputePlayerStateSummary() =
 let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
 
 let mapLastChangedTime = new LastChangedTime()
-let overworldMapCircles = Array2D.create 16 8 false
+let overworldMapCircles = Array2D.create 16 8 0   // 0 means none, 1 means just circle, 48-57 means circle with 0-9 label, 65-90 means circle with A-Z label; +100 of those or +200 of those changes color
+let toggleOverworldMapCircle(i,j) =
+    overworldMapCircles.[i,j] <- 
+        if overworldMapCircles.[i,j]%100=0 then 
+            overworldMapCircles.[i,j]+1 
+        else 
+            overworldMapCircles.[i,j] - overworldMapCircles.[i,j]%100
 let mutable overworldMapMarks : Cell[,] = null
 let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate (MapSquareChoiceDomainHelper.DARK_X+1))
 // extra data key-value store, used by 

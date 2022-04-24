@@ -20,7 +20,12 @@ make new take-any-heart screenshot
 (review all screenshots)
 
 
-overworld arbitrary tile mark? (also, how run some ui bits without middle/scroll?)
+If mark G/Z, dont infer doors
+if mouse hover a shop item, but no shop exists, give feedback
+maybe i misread map because darx_x opacity is too dark? try lighter?
+
+
+decide on experimental overworld arbitrary marks: extra circle circles, circle labels, and colored dontcares
 
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)

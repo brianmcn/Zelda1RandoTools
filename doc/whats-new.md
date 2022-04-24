@@ -72,8 +72,8 @@ This is a new feature to help locate paths to the rest of the rooms in a dungeon
 
 ### Circle arbitrary overworld tiles
 
-You can now middle click an overworld tile to toggle a cyan circle on that overworld spot.  Use this however you like, perhaps to remind you of a screen with easy-to-kill
-bomb-droppers, for example.
+You can now circle arbitrary overworld spots (perhaps to remind you of a screen with easy-to-kill bomb-droppers).  You can even add some labels and colors to these marks
+(you might want this if using Z-Tracker to play other randomizer variants, such as z1m1, for example).  See [the full documentation](use.md#circle-overworld) for details.
 
 ![Overworld circle](screenshots/overworld-middle-click-circle.png)
 
@@ -140,6 +140,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - Show/Run Custom button now can 'RUN' URLs, which get launched in your default browser
  - you can have tracker snoop for window (e.g. emulator window) whose title contains seed & flags, and display/save that info
  - reconfigured top right area of tracker to improve Broadcast Window view while in dungeons
+ - improved readability of 'Coords' display
 
 ---
 

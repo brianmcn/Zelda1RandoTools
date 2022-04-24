@@ -156,10 +156,10 @@ let SaveOverworld(prefix) =
         for i = 0 to 15 do
             let cur = TrackerModel.overworldMapMarks.[i,j].Current()
             let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
-            let ed = if cur = -1 then -1 else TrackerModel.getOverworldMapExtraData(i,j,k)
-            let circle = if TrackerModel.overworldMapCircles.[i,j] then 1 else 0
+            let ed = if cur = -1 then -1 else TrackerModel.getOverworldMapExtraData(i,j,k)   // TODO why -1 case, not exist?
+            let circle = TrackerModel.overworldMapCircles.[i,j]
             let comma = if j=7 && i=15 then "" else ","
-            sb.Append(sprintf "%2d,%2d,%d%s  " cur ed circle comma) |> ignore
+            sb.Append(sprintf "%2d,%2d,%3d%s  " cur ed circle comma) |> ignore
         lines.Add(sb.ToString())
     lines.Add(sprintf """    ]""")
     lines.Add(sprintf """},""")
