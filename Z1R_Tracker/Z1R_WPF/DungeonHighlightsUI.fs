@@ -96,17 +96,21 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                         2 // there is a room there, but the player has not marked the room as existing on map, and so we want to make it a possible bomb target to get into, so report 'maybe'
                     else
                         0
+    let isThereANonZeldaRoom(x,y) = if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.Zelda then 0 else isThereARoom(x,y)
     let highlight() =
         // possible bomb walls
         for i = 0 to 6 do
             for j = 0 to 7 do
                 if horizontalDoors.[i,j].State = Dungeon.DoorState.UNKNOWN then
-                    if isThereARoom(i,j)+isThereARoom(i+1,j)=3 then // one yes and one maybe
-                        horizontalDoorHighlights.[i,j].Opacity <- 1.0
+                    if isThereANonZeldaRoom(i,j)+isThereANonZeldaRoom(i+1,j)=3 then // one yes and one maybe
+                        if level = 9 && (roomStates.[i,j].RoomType = DungeonRoomState.RoomType.StartEnterFromS || roomStates.[i+1,j].RoomType = DungeonRoomState.RoomType.StartEnterFromS) then
+                            () // do nothing, left/right walls of L9 lobby unbombable
+                        else
+                            horizontalDoorHighlights.[i,j].Opacity <- 1.0
         for i = 0 to 7 do
             for j = 0 to 6 do
                 if verticalDoors.[i,j].State = Dungeon.DoorState.UNKNOWN then
-                    if isThereARoom(i,j)+isThereARoom(i,j+1)=3 then // one yes and one maybe
+                    if isThereANonZeldaRoom(i,j)+isThereANonZeldaRoom(i,j+1)=3 then // one yes and one maybe
                         // npc hints & bomb upgrades never can bomb north
                         if roomStates.[i,j+1].RoomType <> DungeonRoomState.RoomType.OldManHint && roomStates.[i,j+1].RoomType <> DungeonRoomState.RoomType.BombUpgrade then
                             verticalDoorHighlights.[i,j].Opacity <- 1.0
