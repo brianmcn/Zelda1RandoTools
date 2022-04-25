@@ -400,6 +400,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         dungeonHeaderCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonHeaderCanvas, 0., 0.)
         let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
+        // Clip: allow e.g. mouse highlight box slightly off left edge, or gleeok head slightly off top, but don't allow e.g. OFF to go way over right edge into side panel etc.
+        dungeonBodyCanvas.Clip <- new RectangleGeometry(Rect(-3., -3., dungeonBodyCanvas.Width+6., dungeonBodyCanvas.Height+6.))  
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
         let dungeonBodyHighlightCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. blocker highlights here
         dungeonBodyHighlightCanvas.ClipToBounds <- true

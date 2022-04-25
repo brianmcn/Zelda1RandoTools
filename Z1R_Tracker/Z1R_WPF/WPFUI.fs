@@ -1046,9 +1046,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         redrawItemProgressBar()
-        // place start icon in top layer
-        if TrackerModel.startIconX <> -1 then
-            canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
 
         let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
                 animateOverworldTile loc
@@ -1232,6 +1229,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 else
                     failwith "bad reminder"
             })
+        // place start icon in top layer at very top (above e.g. completed dungeon highlight)
+        if TrackerModel.startIconX <> -1 then
+            canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
         )
     let threshold = TimeSpan.FromMilliseconds(500.0)
     let recentlyAgo = TimeSpan.FromMinutes(3.0)
