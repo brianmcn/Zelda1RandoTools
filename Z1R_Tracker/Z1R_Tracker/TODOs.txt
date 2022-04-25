@@ -57,12 +57,18 @@ speech: "tracker where is bomb shop" or "tracker where is level five" ? "link ro
  - also be able to change tab via voice? toggle show-gettables? (hotkey show gettables?)
 
 "link show me"   <---- seems like best option maybe
- - sword1/2/3
- - dungeon 1-9, or A-H or 9
- - arrow, blue ring, boomstick, bomb, candle, potion(or takeany), meat, key, shield shop
- - armos, open caves, incomplete dungeons
-"switch to tab" 1-9, or A-H or 9 (already has global hotkeys)
-hotkeys for the hoverable-link-routing?  
+ - "sword" {1/2/3}
+ - "level" {1-9, or A-H or 9}
+ - {arrow, blue ring, boomstick, bomb, candle, potion(or takeany), meat/bait, key, shield} shop
+ - "arm owes", "open caves", "dungeons"
+need to factor RouteIntention apart from RouteDestination
+type RouteIntention =
+    | SHOP of int            // shop types or potion   -- should also refactor into set of known map locations dest
+    | LEVEL_INDEX of int     // -> OW_MAP or HINT_ZONE or none
+    | SWORD of int           // -> OW_MAP or HINT_ZONE or none
+    | ARMOS
+    | OPEN CAVES
+need like a failure icon to appear next to link for e.g. hover ring but no ring shop, or speak it
 
 or how about a single hotkey that will
  - warp mouse to center 'choose a route dest' popup, with all the choices (except overworld tiles, which it partially obscures and does not offer alternative)

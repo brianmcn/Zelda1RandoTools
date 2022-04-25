@@ -12,8 +12,7 @@ let OMTW = OverworldRouteDrawing.OMTW
 
 [<RequireQualifiedAccess>]
 type RouteDestination =
-    | SHOP of int
-    | OW_MAP of int * int
+    | OW_MAP of ResizeArray<int * int>
     | HINTZONE of TrackerModel.HintZone * bool // bool is couldBeLetterDungeon
     | UNMARKEDINSTANCEFUNC of (int*int -> bool)
 
@@ -100,26 +99,26 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                     )
             let makeIconTarget(draw, x, y, routeDest) = makeIconTargetImpl(30., 30., draw, draw, (x, y), routeDest)
             do // makePotionIconTarget
-                let mutable found = false
+                let spots = ResizeArray()
                 for i = 0 to 15 do
                     for j = 0 to 7 do
                         let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                         if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
                             (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
-                            found <- true
-                if found then
+                            spots.Add(i,j)
+                if spots.Count > 0 then
                     makeIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP].[0], 4., 4.)), 
-                                                            330., 120., RouteDestination.SHOP(TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP))
+                                                            330., 120., RouteDestination.OW_MAP(spots))
             let makeShopIconTarget(draw, (x, y), shopDest) =
-                let mutable found = false
+                let spots = ResizeArray()
                 for i = 0 to 15 do
                     for j = 0 to 7 do
                         let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                         if OverworldMapTileCustomization.MapStateProxy(cur).IsThreeItemShop && 
                                 (cur = shopDest || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(shopDest))) then
-                            found <- true
-                if found then
-                    makeIconTarget(draw, x, y, RouteDestination.SHOP(shopDest))
+                            spots.Add(i,j)
+                if spots.Count > 0 then
+                    makeIconTarget(draw, x, y, RouteDestination.OW_MAP(spots))
             // shops
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.bomb_bmp, 4., 4.)), Locate(BOMB_BOX), TrackerModel.MapSquareChoiceDomainHelper.BOMB)
             makeShopIconTarget((fun c-> canvasAdd(c, Graphics.BMPtoImage Graphics.boom_book_bmp, 4., 4.)), Locate(BOOMSTICK_BOX), TrackerModel.MapSquareChoiceDomainHelper.BOOK)
@@ -147,7 +146,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                     // located, letters
                     let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
                     if (x,y) <> TrackerModel.NOTFOUND then
-                        makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance),false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
+                        makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance),false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(ResizeArray[x,y]))
                     else
                         // hint letter due to numbered hint
                         let label = TrackerModel.GetDungeon(i).LabelChar
@@ -168,7 +167,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                     if index <> -1 then
                         let loc = TrackerModel.mapStateSummary.DungeonLocations.[index]
                         if loc <> TrackerModel.NOTFOUND then
-                            makeIconTarget((fun c -> updateNumberedTriforceDisplayImpl(c,n)), OFFSET+float n*30., 0., RouteDestination.OW_MAP(loc))
+                            makeIconTarget((fun c -> updateNumberedTriforceDisplayImpl(c,n)), OFFSET+float n*30., 0., RouteDestination.OW_MAP(ResizeArray[loc]))
                         else
                             hint()
                     else
@@ -177,18 +176,18 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                 for i = 0 to 7 do
                     let x,y = TrackerModel.mapStateSummary.DungeonLocations.[i]
                     if (x,y) <> TrackerModel.NOTFOUND then
-                        makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(x,y))
+                        makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.OW_MAP(ResizeArray[x,y]))
                     elif TrackerModel.GetLevelHint(i) <> TrackerModel.HintZone.UNKNOWN then
                         makeIconTarget((fun c -> canvasAdd(c, Views.MakeTriforceDisplayView(cm,i,Some(owInstance), false), 0., 0.)), 0.+float i*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(i), false))
             let x,y = TrackerModel.mapStateSummary.DungeonLocations.[8]
             if (x,y) <> TrackerModel.NOTFOUND then
-                makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(Some(owInstance)), 0., 0.)), 0.+8.*30., 30., RouteDestination.OW_MAP(x,y))
+                makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(Some(owInstance)), 0., 0.)), 0.+8.*30., 30., RouteDestination.OW_MAP(ResizeArray[x,y]))
             elif TrackerModel.GetLevelHint(8) <> TrackerModel.HintZone.UNKNOWN then
                 makeIconTarget((fun c -> canvasAdd(c, Views.MakeLevel9View(Some(owInstance)), 0., 0.)), 0.+8.*30., 30., RouteDestination.HINTZONE(TrackerModel.GetLevelHint(8), false))
             // swords
             if TrackerModel.mapStateSummary.Sword2Location <> TrackerModel.NOTFOUND || TrackerModel.GetLevelHint(9) <> TrackerModel.HintZone.UNKNOWN then
                 let (x,y) as loc = TrackerModel.mapStateSummary.Sword2Location
-                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(9), false)
+                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(ResizeArray[x,y]) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(9), false)
                 makeIconTargetImpl(30., 30., redrawWhiteSwordCanvas, 
                     (fun c -> 
                         // white sword seems dodgy for link to chase, since it's actually the cave which likely has something else, so draw the map marker instead
@@ -196,7 +195,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                         canvasAdd(c, image, 7., 1.)), Locate(WHITE_SWORD_ICON), dest)
             if TrackerModel.mapStateSummary.Sword3Location <> TrackerModel.NOTFOUND || TrackerModel.GetLevelHint(10) <> TrackerModel.HintZone.UNKNOWN then
                 let (x,y) as loc = TrackerModel.mapStateSummary.Sword3Location
-                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(x,y) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(10), false)
+                let dest = if loc <> TrackerModel.NOTFOUND then RouteDestination.OW_MAP(ResizeArray[x,y]) else RouteDestination.HINTZONE(TrackerModel.GetLevelHint(10), false)
                 makeIconTarget(redrawMagicalSwordCanvas, fst(Locate(MAGS_BOX)), snd(Locate(MAGS_BOX)), dest)
             wholeAppCanvas.MouseDown.Add(fun ea ->
                 let pos = ea.GetPosition(wholeAppCanvas)
@@ -205,7 +204,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                     let i = pos.X / OMTW |> int
                     let j = (pos.Y-150.) / (11.*3.) |> int
                     let i = if isMirrored() then 15-i else i
-                    changeCurrentRouteTarget(RouteDestination.OW_MAP(i,j))
+                    changeCurrentRouteTarget(RouteDestination.OW_MAP(ResizeArray[i,j]))
                     // draw crosshairs icon
                     currentTargetIcon.Children.Clear()
                     canvasAdd(currentTargetIcon, new Canvas(Width=30., Height=30., Background=Graphics.overworldCommonestFloorColorBrush), 0., 0.)

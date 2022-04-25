@@ -86,24 +86,9 @@ let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRo
                             interestingButInaccesible.Add(i,j)
     let mutable lightUpDestinations = false
     match routeDestinationOption with
-    | Some(RouteDestination.SHOP(targetItem)) ->
-        if targetItem = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP then
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    let cur = TrackerModel.overworldMapMarks.[x,y].Current()
-                    if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
-                        (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(x,y,cur)<>cur) then
-                        owTargetworthySpots.[x,y] <- true
-        else
-            for x = 0 to 15 do
-                for y = 0 to 7 do
-                    let msp = MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current())
-                    if msp.State = targetItem || (msp.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(x,y,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(targetItem)) then
-                        owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 0, 0)
-        lightUpDestinations <- true
-    | Some(RouteDestination.OW_MAP(x,y)) ->
-        owTargetworthySpots.[x,y] <- true
+    | Some(RouteDestination.OW_MAP(spots)) ->
+        for x,y in spots do
+            owTargetworthySpots.[x,y] <- true
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, owTargetworthySpots, unmarked, point, i, j, true, false, 0, 0)
         lightUpDestinations <- true
     | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
