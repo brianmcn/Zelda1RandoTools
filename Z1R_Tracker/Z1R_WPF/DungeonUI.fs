@@ -1007,7 +1007,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         canvasAdd(dungeonCanvas, darkenRect, 0., 0.)
         canvasAdd(dungeonBodyCanvas, numeral, 0., 0.)  // so numeral displays atop all else
         // highlights
-        DungeonHighlightsUI.makeHighlights(level, dungeonBodyHighlightCanvas, roomStates, currentOutlineDisplayState, horizontalDoors, verticalDoors, blockersHoverEvent)
+        DungeonHighlightsUI.makeHighlights(level, dungeonBodyHighlightCanvas, roomStates, usedTransports, currentOutlineDisplayState, horizontalDoors, verticalDoors, blockersHoverEvent)
         // save and load
         exportFunctions.[level-1] <- (fun () ->
             let r = new DungeonSaveAndLoad.DungeonModel()

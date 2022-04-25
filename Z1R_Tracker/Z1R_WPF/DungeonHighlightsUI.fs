@@ -6,7 +6,7 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 
-let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonRoomState.DungeonRoomState[,], currentOutlineDisplayState:int[],
+let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonRoomState.DungeonRoomState[,], usedTransports:int[], currentOutlineDisplayState:int[],
                         horizontalDoors:Dungeon.Door[,], verticalDoors:Dungeon.Door[,], blockersHoverEvent:Event<_>) =
     let startAnimationFuncs = ResizeArray()
     let endAnimationFuncs = ResizeArray()
@@ -114,10 +114,9 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
         for i = 0 to 7 do
             for j = 0 to 7 do
                 // blocked by bow/recorder/bomb
-                if roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Bow ||
+                if (roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Bow ||
                     roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Dodongo ||
-                    roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Digdogger then  
-                    // Note: even if room is 'complete', still considers blocker because e.g. standing Key, gohma, shutter
+                    roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Digdogger) && not roomStates.[i,j].IsComplete then  
                     roomHighlights.[i,j].Opacity <- 1.0
                 // blocked by meat
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock && not(roomStates.[i,j].IsComplete) then
@@ -125,6 +124,12 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                 // a '?' stair may have been forgotten to traverse
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.StaircaseToUnknown then
                     roomHighlights.[i,j].Opacity <- 1.0
+                // only marked one of a transport pair
+                match roomStates.[i,j].RoomType.KnownTransportNumber with
+                | None -> ()
+                | Some n -> 
+                    if usedTransports.[n] = 1 then
+                        roomHighlights.[i,j].Opacity <- 1.0
                 // blocked? un-traversed doorway (could be key, moat, just forgotten, ...)
                 if isThereARoom(i,j)=2 then
                     if i > 0 && horizontalDoors.[i-1,j].IsTraversible ||

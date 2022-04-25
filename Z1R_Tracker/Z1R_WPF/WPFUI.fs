@@ -429,7 +429,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
                                                         (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
 
-    do! showProgress("overworld start 1")
+    do! showProgress("overworld start start 1")
 
     let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
     canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
@@ -924,9 +924,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     
     // legend
-    let makeStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+    let makeBasicStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+    let makeStartIcon() = 
+        let back = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false)
+        back.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+        let front = makeBasicStartIcon()
+        let c = new Canvas(Width=front.Width, Height=front.Height)
+        c.Children.Add(back) |> ignore
+        c.Children.Add(front) |> ignore
+        c
     let startIcon = makeStartIcon()
-    let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, resizeMapTileImage, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent)
+    let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, resizeMapTileImage, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
     let redrawItemProgressBar = UIComponents.MakeItemProgressBar(appMainCanvas, owInstance)
     
     // Version
