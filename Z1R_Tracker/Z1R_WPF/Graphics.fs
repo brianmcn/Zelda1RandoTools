@@ -220,7 +220,12 @@ let setupClickVersusDrag(e:FrameworkElement, onClick, onStartDrag) =  // will on
             ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
                 && not isDragging && startPoint.IsSome then
             let pos = ea.GetPosition(null)
-            if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
+            // This is the windows setting for click v drag
+            //     if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
+            // However it defaults to just 4 pixels, and some folks were inadvertantly dragging when they wanted to click.
+            // The only place setupClickVersusDrag() is called in for 'painting rooms' in dungeon UI.  You would always need to go across the distance of 1 door (12.0) to paint multiple rooms.
+            // So make size that the threshold, for less accidental-drag behavior.
+            if Math.Abs(pos.X - startPoint.Value.X) > 12.0 || Math.Abs(pos.Y - startPoint.Value.Y) > 12.0 then
                 isDragging <- true
                 onStartDrag(ea)
                 isDragging <- false

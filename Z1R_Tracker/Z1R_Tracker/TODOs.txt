@@ -50,7 +50,7 @@ or my arrow code from e.g. coast item
 
 
 if mouse hover a shop item, but no shop exists, give feedback
- - is related to speech, ensure fail-because-not-shop is visually communicated on Link, whereas fail-because-no-interpret-speech has no visual indicator
+ - is related to speech, ensure fail-because-not-shop is visually communicated on Link (red ghostbusters?), whereas fail-because-no-interpret-speech has no visual indicator
 
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice

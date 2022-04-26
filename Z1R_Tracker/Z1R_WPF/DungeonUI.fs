@@ -523,6 +523,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomCanvases = Array2D.zeroCreate 8 8 
         let roomStates = masterRoomStates.[level-1]
         let roomIsCircled = Array2D.zeroCreate 8 8
+        let roomCircles = Array2D.zeroCreate 8 8
         let usedTransports = Array.zeroCreate 9 // slot 0 unused
         let roomRedrawFuncs = ResizeArray(64)
         let redrawAllRooms() =
@@ -636,7 +637,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomHighlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
         canvasAdd(dungeonBodyCanvas, roomHighlightOutline, 0., 0.)
         let roomCanvas = new Canvas()  // nesting canvases improves perf
+        let roomCirclesCanvas = new Canvas()
         dungeonBodyCanvas.Children.Add(roomCanvas) |> ignore
+        dungeonBodyCanvas.Children.Add(roomCirclesCanvas) |> ignore
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
@@ -702,11 +705,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             for j = 0 to 7 do
                 let BUFFER = 2.  // I often accidentally click room when trying to target doors with mouse, make canvas smaller and draw outside it, so clicks on very edge not seen
                 let c = new Canvas(Width=float(13*3)-2.*BUFFER, Height=float(9*3)-2.*BUFFER, Background=Brushes.Black, IsHitTestVisible=true)
-                canvasAdd(roomCanvas, c, float(i*51)+BUFFER, float(j*39)+BUFFER)
+                let ROOM_X, ROOM_Y = float(i*51)+BUFFER, float(j*39)+BUFFER
+                canvasAdd(roomCanvas, c, ROOM_X, ROOM_Y)
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
                     c.Children.Clear()
+                    roomCirclesCanvas.Children.Remove(roomCircles.[i,j])
                     let image = roomStates.[i,j].CurrentDisplay()
                     image.IsHitTestVisible <- false
                     canvasAdd(c, image, -BUFFER, -BUFFER)
@@ -714,7 +719,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
                         //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
                         ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;12.5;8.;15.;8.;15.;] )
-                        canvasAdd(c, ellipse, -6.-BUFFER, -6.-BUFFER)
+                        roomCircles.[i,j] <- ellipse
+                        canvasAdd(roomCirclesCanvas, ellipse, ROOM_X-6.-BUFFER, ROOM_Y-6.-BUFFER)
                 redraw()
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let usedTransportsRemoveState(roomState:DungeonRoomState.DungeonRoomState) =

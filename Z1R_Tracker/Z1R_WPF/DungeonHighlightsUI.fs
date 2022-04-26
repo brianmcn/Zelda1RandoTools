@@ -125,6 +125,9 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                 // blocked by meat
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock && not(roomStates.[i,j].IsComplete) then
                     roomHighlights.[i,j].Opacity <- 1.0
+                // an incomplete room that might have a push-block may yet reveal a transport
+                if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.MaybePushBlock && not(roomStates.[i,j].IsComplete) then
+                    roomHighlights.[i,j].Opacity <- 1.0
                 // a '?' stair may have been forgotten to traverse
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.StaircaseToUnknown then
                     roomHighlights.[i,j].Opacity <- 1.0
