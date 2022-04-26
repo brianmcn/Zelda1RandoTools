@@ -21,18 +21,46 @@ make new take-any-heart screenshot
 
 
 
+homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
+blockers is not ideal highlight target, and is large
+maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
+also provide a popup explanation/legend of what it is (and figure out what it is)
+ - maybe it is two things: rooms i marked to come back to, and rooms yet to be found
+
+
+
+long discussion with homer regarding blockers
+ - does the blocker block the triforce, the map, a key item, or just 'finding a whole lot more of the dungeon'? ...
+ - communicating the tri-/item- specific blocks on the empty boxes in the top-tracker
+So I guess what I envision is, after you mark, say, that dungeon 1 has a bow&arrow block, there is some way to click/scroll/something on that blocker box to bring up a 
+new popup which is along the lines of "this blocker applies to which parts of dungeon 1" and you have checkboxes for "tri, heart, floor item, basement item" (basically 
+just checkboxes alongside the same icons as the full dungeon column) and you checkbox one or more of them to say 'please advertise this blocker icon inside the 
+top-tracker' and it displays the tiny blocker icon (with some yet-to-be-determined logic regarding bright/grayed/etc) in the corner of the ones you checkboxed 
+I guess another way to think about something that is equivalent to what I'm saying is, there already exist 3 tiny icons in the bottom of each triforce & item box in the tracker, 
+which display the 3 blockers of the dungeon.  Except they're currently all marked invisible.  I'd be inventing a new thing to mark which of the boxes you want to un-invisible-ize.
+
+
+Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
+ - would probably need adjustable minutes settings on Options menu
+ - no sensible defaults for noobs, so perhaps not on by default
+ - if do implement adjustable numbers, probably make existing timed reminders also adjustable (coast item re-remind, PB/R/B re-remind, ladder/any-key one-time)
+
+
 idea for option to transparent out certain marks (secrets, shops-already-got, ...) to reduce visual clutter
 
 
 also, can imagine just arbitrary text and arbitrary icons (from a directory) to put arbitrary stuff on an overworld tile or item box (or floating over the app anywhere)
  - and include default icons, e.g. extra potion shops in z1m1, drop a copy of potion shop icon anywhere
+ - keep in mind how save&load would work too, for a model
 
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)
--	To inform lategame need to buy meat, for example
+- To inform lategame need to buy meat, for example
+- he changed his mind, spot summary is sufficient if he knows where to look
 If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
 (was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
-in the upper right corner of the app.  And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
+in the upper right corner of the app.  
+***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
 
 Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)

@@ -117,14 +117,24 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
         // rooms with blockers
         for i = 0 to 7 do
             for j = 0 to 7 do
+                // TODO these will not lead to more rooms, though
+                // TODO why not gleeok, maybe swordless without wand?
                 // blocked by bow/recorder/bomb
                 if (roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Bow ||
                     roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Dodongo ||
                     roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Digdogger) && not roomStates.[i,j].IsComplete then  
                     roomHighlights.[i,j].Opacity <- 1.0
+                
+                
+                // TODO this will not lead to more rooms, though
                 // blocked by meat
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock && not(roomStates.[i,j].IsComplete) then
                     roomHighlights.[i,j].Opacity <- 1.0
+                
+
+                // TODO what is the goal of this feature? above is more "reminding of certain blockers" and below is "finding more rooms you've never been in"
+                
+                
                 // an incomplete room that might have a push-block may yet reveal a transport
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.MaybePushBlock && not(roomStates.[i,j].IsComplete) then
                     roomHighlights.[i,j].Opacity <- 1.0

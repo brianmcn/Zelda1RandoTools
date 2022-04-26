@@ -45,6 +45,9 @@ When mouse-hovering an element with choices, scroll-wheel typically activates a 
 
 In certain cases noted below, clicking also activates the popup.
 
+Shift-left-click/shift-right-click often behave as an alternative to scroll-up/scroll-down for the purpose of activating popup menus.  This is to
+accomodate folks playing on a laptop touchpad or using a mouse without a scroll-wheel.
+
 ## <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
 
 A number of features will highlight tiles on the overworld map to help you quickly visualize locations.  The highlights appear as rectangles around

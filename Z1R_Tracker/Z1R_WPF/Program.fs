@@ -251,7 +251,7 @@ type MyWindow() as this =
         Graphics.theWindow <- this
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
-        this.ResizeMode <- ResizeMode.NoResize
+        this.ResizeMode <- ResizeMode.CanMinimize
         this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         let APP_WIDTH, APP_HEIGHT = 
