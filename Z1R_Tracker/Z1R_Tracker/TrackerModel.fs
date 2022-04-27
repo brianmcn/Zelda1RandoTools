@@ -1221,12 +1221,21 @@ type CombatUnblockerDetail =
     | BETTER_SWORD
     | BETTER_ARMOR
     | WAND
+type DungeonBlockerAppliesTo() =
+    static member MAX = 6
+    member val Data = Array.create DungeonBlockerAppliesTo.MAX false // map, compass, tri, box1, box2, box3
 type DungeonBlockersContainer() =
     static let dungeonBlockers = Array2D.create 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+    static let appliesTo = Array2D.init 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON (fun _ _ -> new DungeonBlockerAppliesTo())
     static let changed = new Event<unit>()
     static member AnyBlockerChanged = changed.Publish
     static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
     static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
+    static member GetDungeonBlockerAppliesTo(i,j,k) = appliesTo.[i,j].Data.[k]
+    static member SetDungeonBlockerAppliesTo(i,j,k,b) = appliesTo.[i,j].Data.[k] <- b; changed.Trigger()
+    static member AsJsonString(i,j) = 
+        let body = appliesTo.[i,j].Data |> Array.map (fun b -> b.ToString().ToLowerInvariant()) |> Array.fold (fun s x -> s+x+", ") ""
+        sprintf """{ "Kind": "%s", "AppliesTo": [ %s ] }""" (dungeonBlockers.[i,j].AsHotKeyName()) (body.Substring(0, body.Length-2))
     static member MAX_BLOCKERS_PER_DUNGEON = 3
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -45,7 +45,7 @@ just checkboxes alongside the same icons as the full dungeon column) and you che
 top-tracker' and it displays the tiny blocker icon (with some yet-to-be-determined logic regarding bright/grayed/etc) in the corner of the ones you checkboxed 
 I guess another way to think about something that is equivalent to what I'm saying is, there already exist 3 tiny icons in the bottom of each triforce & item box in the tracker, 
 which display the 3 blockers of the dungeon.  Except they're currently all marked invisible.  I'd be inventing a new thing to mark which of the boxes you want to un-invisible-ize.
-
+   - IN PROGRESS: there is UI to edit values, backing store to save & load, but not yet any display behavior
 
 Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
  - would probably need adjustable minutes settings on Options menu
@@ -514,3 +514,13 @@ When I shuffle groups, there will still be four groups. One is overworld, for th
 
 What enemies end in which groups comes 100% from sprite limits. There’s a fixed number of bytes per enemy group, and as a result, only some things can work together.
 [8:51 AM] AdirondackRick: Now with all this being said, it’s worth notice there’s one enemy that shares two dungeon groups in each seed. In vanilla, it’s the Zols, but it could be gibdos, pols voices, staffols, ropes — anything that doesn’t have a red/blue pairing.  So it’s realistic for one enemy in particular to be seen in as many as seven of the nine dungeons.
+
+
+
+Rooms that can have push blocks open shutters:
+
+1Q rooms that can push are: Single Block, Double Block, Diamond Stair, Spiral Stair, Reverse C
+2Q has: Maze, Spike Trap, Grid, Three Rows, Five Pair, Gohma, Zigzag (Turnstile aka 4-way-block obviously pushes, too, but no stair)
+
+Thus, if 'Add 2Q rooms' is checked then almost every room with a 'block' in the middle row is a room that could have a push-block that opens 
+a shutter (only exceptions: Triforce and Vertical Chute, Vertical Rows). 

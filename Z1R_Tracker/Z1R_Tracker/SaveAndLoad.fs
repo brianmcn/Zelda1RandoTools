@@ -37,6 +37,11 @@ type Items() =
     member val Dungeons : Dungeon[] = null with get,set
 
 [<AllowNullLiteral>]
+type Blocker() =
+    member val Kind = "" with get,set
+    member val AppliesTo : bool[] = null with get,set  // map, compass, tri, box1, box2, box3
+
+[<AllowNullLiteral>]
 type Hints() =
     member val LocationHints : int[] = null with get,set
     member val NoFeatOfStrengthHint = false with get,set
@@ -235,17 +240,18 @@ let SaveStartingItemsAndExtras(prefix) =
 
 let SaveBlockers(prefix) =
     let lines = ResizeArray()
-    lines.Add(""""Blockers": [""")
+    lines.Add(""""Blockers": [ [""")
     for i = 0 to 7 do
-        let mutable s = ""
         for j = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
-            s <- s + "\"" + TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,j).AsHotKeyName() + "\""
+            let s = new System.Text.StringBuilder("    ")
+            s.Append(TrackerModel.DungeonBlockersContainer.AsJsonString(i,j)) |> ignore
             if j < TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 then
-                s <- s + ", "
-            else
-                s <- s + " "
-        lines.Add(sprintf """    [ %s]%s""" s (if i<>7 then "," else ""))
-    lines.Add("""],""")
+                s.Append(", ") |> ignore
+            lines.Add(s.ToString())
+        if i <> 7 then
+            lines.Add("], [")
+        else
+            lines.Add("] ],")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveHints(prefix) =

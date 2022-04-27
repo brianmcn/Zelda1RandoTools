@@ -594,8 +594,57 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 | None -> () 
                 popupIsActive <- false
                 } |> Async.StartImmediate
+        let doPanel(pos:Point) =
+            let border = new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Background=Brushes.Black, Width=110.)
+            let style = new Style(typeof<TextBox>)
+            style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
+            style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
+            style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+            style.Setters.Add(new Setter(TextBox.IsHitTestVisibleProperty, false))
+            style.Setters.Add(new Setter(TextBox.IsReadOnlyProperty, true))
+            border.Resources.Add(typeof<TextBox>, style)
+            let style = new Style(typeof<CheckBox>)
+            style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
+            border.Resources.Add(typeof<CheckBox>, style)
+            let panel = new StackPanel(Orientation=Orientation.Vertical)
+            let hPanel = new System.Windows.Controls.Primitives.UniformGrid(Rows=1, Columns=2)
+            let allButton = Graphics.makeButton("All", Some(16.), Some(Brushes.Orange))
+            let noneButton = Graphics.makeButton("None", Some(16.), Some(Brushes.Orange))
+            hPanel.Children.Add(allButton) |> ignore
+            hPanel.Children.Add(noneButton) |> ignore
+            let decorationCanvas = new Canvas()
+            canvasAdd(decorationCanvas, new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Width=30., Height=30.), 77., -33.)
+            panel.Children.Add(decorationCanvas) |> ignore
+            panel.Children.Add(new TextBox(Text="Applies to...")) |> ignore
+            panel.Children.Add(hPanel) |> ignore
+            let cbs = ResizeArray()
+            for name,i in ["Map",0; "Compass",1; "Triforce",2; "Item Box 1",3; "Item Box 2",4; "Item Box 3",5] do
+                if i < 5 || TrackerModel.GetDungeon(dungeonIndex).Boxes.Length > 2 then 
+                    let cb = new CheckBox(Content=new TextBox(Text=name))
+                    cb.IsChecked <- TrackerModel.DungeonBlockersContainer.GetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i)
+                    cb.Checked.Add(fun _ -> TrackerModel.DungeonBlockersContainer.SetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i, true))
+                    cb.Unchecked.Add(fun _ -> TrackerModel.DungeonBlockersContainer.SetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i, false))
+                    panel.Children.Add(cb) |> ignore
+                    cbs.Add(cb)
+            allButton.Click.Add(fun _ -> for cb in cbs do cb.IsChecked <- true)
+            noneButton.Click.Add(fun _ -> for cb in cbs do cb.IsChecked <- false)
+            border.Child <- panel
+            let wh = new System.Threading.ManualResetEvent(false)
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, pos.X-80., pos.Y+30., border)
+            } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
-        c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
+        c.MouseDown.Add(fun ea ->
+            if not popupIsActive then
+                if ea.ChangedButton = Input.MouseButton.Middle || 
+                        (ea.ChangedButton = Input.MouseButton.Left && (Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift))) then
+                    // middle-click or shift-left-click activates the checkbox panel
+                    let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
+                    doPanel(pos)
+                else
+                    activate(0)
+            )
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
