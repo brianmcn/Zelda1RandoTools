@@ -19,7 +19,14 @@ make new BLOCKERS screenshots
 make new take-any-heart screenshot
 (review all screenshots)
 
-
+since 1.2.1e...
+ - dungeon tracker visual tweaks/fixes; add more monster types and another door state
+ - option to snoop&display seed&flags
+ - link can route to potion shops or blockers
+ - hotkeys for TakeAny/TakeThis 4-way-menu
+ - color & label overworld circles (shift-left-click/shift-right-click)
+ - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; can hover items to see exact time
+ 
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
 blockers is not ideal highlight target, and is large
@@ -51,6 +58,7 @@ idea for option to transparent out certain marks (secrets, shops-already-got, ..
 
 also, can imagine just arbitrary text and arbitrary icons (from a directory) to put arbitrary stuff on an overworld tile or item box (or floating over the app anywhere)
  - and include default icons, e.g. extra potion shops in z1m1, drop a copy of potion shop icon anywhere
+     - this can also accomodate scenario of z1r sprite-shuffle, when not sure of 2 caves each of which might be white sword cave
  - keep in mind how save&load would work too, for a model
 
 
@@ -63,9 +71,13 @@ in the upper right corner of the app.
 ***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
 
-Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
 
 Broadcast option: always focus overworld ? bighead scenario
+Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
+
+
+Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
+
 
 
 

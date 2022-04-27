@@ -21,6 +21,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
+    let timeToolTip = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(3.0), FontSize=16.0, IsHitTestVisible=false)
     let line1 = new Shapes.Line(X1=0., Y1=iconAreaHeight+BIG_HASH/2., X2=lineWidth, Y2=iconAreaHeight+BIG_HASH/2., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
     let curTime = new Shapes.Line(X1=0., Y1=iconAreaHeight, X2=0., Y2=iconAreaHeight+BIG_HASH, Stroke=Brushes.White, StrokeThickness=LINE_THICKNESS)
     let mutable iconAreaFilled = Array2D.zeroCreate (int lineWidth + 1) numRows
@@ -73,7 +74,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                 let tick = float ti.FinishedTotalSeconds/(60.*float minutesPerTick) |> int
                 if not(buckets.ContainsKey(tick)) then
                     buckets.Add(tick, ResizeArray())
-                buckets.[tick].Add(ti.Bmp)
+                buckets.[tick].Add(ti.Bmp, ti.FinishedTotalSeconds)
         for tick = 0 to numTicks do
             if buckets.ContainsKey(tick) then
                 let rowBmps = ResizeArray()
@@ -97,8 +98,18 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                     let line = new Shapes.Line(X1=x(tick), Y1=float(bottomRow+1)*(iconSize+ICON_SPACING)-ICON_SPACING, X2=x(tick), Y2=iconAreaHeight+BIG_HASH/2., Stroke=Brushes.Gray, StrokeThickness=LINE_THICKNESS)
                     canvasAdd(itemCanvas, line, 0., 0.)
                     // items
-                    for row,bmp in rowBmps do
+                    for row,(bmp,totalSeconds) in rowBmps do
                         let img = Graphics.BMPtoImage bmp
                         img.Width <- iconSize
                         img.Height <- iconSize
+                        img.MouseEnter.Add(fun _ ->
+                            itemCanvas.Children.Remove(timeToolTip)
+                            timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""")
+                            let x = xminOrig
+                            let x = min x (float(16*16*3 - 100))  // don't go off right screen edge
+                            canvasAdd(itemCanvas, timeToolTip, x, float row*(iconSize+ICON_SPACING)-35.)
+                            )
+                        img.MouseLeave.Add(fun _ ->
+                            itemCanvas.Children.Remove(timeToolTip)
+                            )
                         canvasAdd(itemCanvas, img, float xminOrig, float row*(iconSize+ICON_SPACING))

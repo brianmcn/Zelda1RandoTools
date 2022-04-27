@@ -98,6 +98,8 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                         0
     let isThereANonZeldaRoom(x,y) = if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.Zelda then 0 else isThereARoom(x,y)
     let highlight() =
+        // TODO maybe the bomb walls should be the separate thingy?
+        
         // possible bomb walls
         for i = 0 to 6 do
             for j = 0 to 7 do

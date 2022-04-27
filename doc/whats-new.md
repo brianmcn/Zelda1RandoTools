@@ -86,8 +86,9 @@ veterans who may get confused/disoriented when playing using the rando flag "Mir
 
 ### Timeline improvements
 
-The timeline now updates instantly as you get items, rather than only updating once per minute.  (The splits for each item/triforce are stored at one-second granularity and can 
-be easily read from the bottom of the save file if you click 'Save' at the end of the seed, for those who like saving their exact split times.)
+The timeline now updates instantly as you get items, rather than only updating once per minute.  The splits for each item/triforce are stored at one-second granularity and can
+be seen by mouse-hovering a particular item in the timeline.  In 'Hidden Dungeon Numbers', lettered triforces will now change to numbered ones on the timeline after the numbers
+are known.
 
 There are now more time labels on the timeline, making it easier to read:
 
