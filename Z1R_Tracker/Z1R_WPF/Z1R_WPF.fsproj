@@ -122,6 +122,7 @@
     <Compile Include="HUDs.fs" />
     <Compile Include="Broadcast.fs" />
     <Compile Include="UIHelpers.fs" />
+    <Compile Include="DrawingLayer.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\README.txt">

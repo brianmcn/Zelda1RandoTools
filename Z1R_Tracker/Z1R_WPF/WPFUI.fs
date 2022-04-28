@@ -121,7 +121,7 @@ let RIGHT_COL = 440.
 let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
 
-let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
+let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
     let refocusMainWindow() =   // keep hotkeys working
         async {
@@ -991,7 +991,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), SaveAndLoad.ManualSave)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), SaveAndLoad.ManualSave)
                     let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
@@ -1704,6 +1704,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    let drawButton = Graphics.makeButton("D\nr\na\nw", Some(12.), Some(Brushes.Orange))
+    canvasAdd(appMainCanvas, drawButton, 0., START_TIMELINE_H+25.)
+    drawButton.Click.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            async {
+                do! DrawingLayer.InteractWithDrawingLayer(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height, drawingCanvas)
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
 
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 
@@ -1762,7 +1772,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
     do! showProgress("broadcast/load/animation")
 
     // broadcast window
-    Broadcast.MakeBroadcastWindow(cm, blockerGrid, dungeonTabsOverlayContent, refocusMainWindow)
+    Broadcast.MakeBroadcastWindow(cm, drawingCanvas, blockerGrid, dungeonTabsOverlayContent, refocusMainWindow)
 
 #if NOT_RACE_LEGAL
     HUDs.MakeHUDs(cm, trackerDungeonMoused, trackerLocationMoused)
@@ -1827,6 +1837,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
+        // Drawing Layer
+        DrawingLayer.LoadDrawingLayer(data.DrawingLayerIcons, drawingCanvas)
         // Seed & Flags
         if data.Seed <> null && data.Seed <> "" then
             SaveAndLoad.lastKnownSeed <- data.Seed
@@ -1882,7 +1894,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, owMapNum, hear
         timer.Interval <- TimeSpan.FromSeconds(60.0)
         timer.Tick.Add(fun _ -> 
             try
-                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), SaveAndLoad.AutoSave) |> ignore
+                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), SaveAndLoad.AutoSave) |> ignore
                 async {
                     diskIcon.Opacity <- 0.7
                     do! Async.Sleep(300)

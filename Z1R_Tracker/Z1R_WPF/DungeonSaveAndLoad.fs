@@ -89,6 +89,36 @@ let SaveAllDungeons(models: DungeonModel[]) =
             yield sprintf "    }%s" (if i=8 then "" else ", {")
     |]
 
+/////////////////////////////////////////////////////////////////////////////
+// DrawingLayer model
+
+[<RequireQualifiedAccess>]
+type DrawingLayerIcon =
+    | ZTracker of string  // resource key
+    | ExtraIcon of string // s, refers to file (appdir)\ExtraIcons\s.png
+
+let AllDrawingLayerStamps = ResizeArray<DrawingLayerIcon*int*int*System.Windows.Controls.Image>()  // also contains Image, but only Icon/X/Y needed for save&load
+
+[<AllowNullLiteral>]
+type DrawingLayerIconModel() =
+    member val Extra = false with get,set
+    member val Name = "" with get,set
+    member val X = 0 with get,set
+    member val Y = 0 with get,set
+
+let SaveDrawingLayer() =
+    [|
+        for i = 0 to AllDrawingLayerStamps.Count-1 do
+            let (icon,x,y,_) = AllDrawingLayerStamps.[i]
+            let extra, name =
+                match icon with
+                | DrawingLayerIcon.ZTracker x -> false,x
+                | DrawingLayerIcon.ExtraIcon x -> true,x
+            yield sprintf """        { "Extra": %s, "Name": "%s", "X": %d, "Y": %d }%s""" (extra.ToString().ToLowerInvariant()) name x y (if i=AllDrawingLayerStamps.Count-1 then "" else ",")
+    |]
+
+/////////////////////////////////////////////////////////////////////////////
+
 open SaveAndLoad
         
 type AllData() =
@@ -103,6 +133,7 @@ type AllData() =
     member val Notes = "" with get,set
     member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
+    member val DrawingLayerIcons : DrawingLayerIconModel[] = null with get,set
     member val Seed = "" with get,set
     member val Flags = "" with get,set
     member val Timeline : TimelineDatum[] = null with get,set

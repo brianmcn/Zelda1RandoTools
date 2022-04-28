@@ -289,13 +289,20 @@ type MyWindow() as this =
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
         let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
+        this.Content <- wholeCanvas
+        let drawingCanvasHolder = new Canvas()  // gets the app RenderTransform (can't RenderTransform the drawingCanvas itself without screwing up Broadcast Window)
+        let drawingCanvas = new Canvas(IsHitTestVisible=false)
+        drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
         if TrackerModel.Options.SmallerAppWindow.Value then 
             let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
             hmsTimerCanvas.RenderTransform <- trans
+            drawingCanvasHolder.RenderTransform <- trans
         wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
         wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
-        this.Content <- wholeCanvas
+        wholeCanvas.Children.Add(drawingCanvasHolder) |> ignore
+        cm.AfterCreatePopupCanvas.Add(fun _ -> drawingCanvas.Opacity <- 0.)
+        cm.BeforeDismissPopupCanvas.Add(fun _ -> drawingCanvas.Opacity <- 1.)
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
         ApplyKonamiCodeEasterEgg(cm, mainDock)
         appMainCanvas.Children.Add(mainDock) |> ignore
@@ -578,7 +585,7 @@ type MyWindow() as this =
                     match loadData with
                     | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
                     | _ -> ()
-                    let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
+                    let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
                     updateTimeline <- u
                     displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
                     appMainCanvas.Children.Remove(mainDock)  // remove for good

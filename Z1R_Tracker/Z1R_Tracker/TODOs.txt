@@ -19,6 +19,7 @@ make new BLOCKERS screenshots
 make new take-any-heart screenshot
 (review all screenshots)
 
+
 since 1.2.1e...
  - dungeon tracker visual tweaks/fixes; add more monster types and another door state
  - option to snoop&display seed&flags
@@ -26,6 +27,10 @@ since 1.2.1e...
  - hotkeys for TakeAny/TakeThis 4-way-menu
  - color & label overworld circles (shift-left-click/shift-right-click)
  - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; can hover items to see exact time
+ - DrawingLayer
+
+
+fix up DrawingLayer, add documentation
  
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
@@ -54,12 +59,6 @@ Reminders: If you have not got armos item, or found white sword cave, or witness
 
 
 idea for option to transparent out certain marks (secrets, shops-already-got, ...) to reduce visual clutter
-
-
-also, can imagine just arbitrary text and arbitrary icons (from a directory) to put arbitrary stuff on an overworld tile or item box (or floating over the app anywhere)
- - and include default icons, e.g. extra potion shops in z1m1, drop a copy of potion shop icon anywhere
-     - this can also accomodate scenario of z1r sprite-shuffle, when not sure of 2 caves each of which might be white sword cave
- - keep in mind how save&load would work too, for a model
 
 
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)

@@ -31,7 +31,7 @@ let allWithinOneScreen(w:Window) =
             ()
     ok
 
-let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dungeonTabsOverlayContent:Canvas, refocusMainWindow) =
+let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, blockerGrid:Grid, dungeonTabsOverlayContent:Canvas, refocusMainWindow) =
     let appMainCanvas = cm.AppMainCanvas
     let makeBroadcastWindow(size, showOverworldMagnifier) =
         let W = 768.
@@ -72,14 +72,15 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
 
-        let makeViewRect(upperLeft:Point, lowerRight:Point) =
-            let vb = new VisualBrush(appMainCanvas)
+        let makeViewRectImpl(upperLeft:Point, lowerRight:Point, c) =
+            let vb = new VisualBrush(c)
             vb.ViewboxUnits <- BrushMappingMode.Absolute
             vb.Viewbox <- Rect(upperLeft, lowerRight)
             vb.Stretch <- Stretch.None
             let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
             bwRect.Fill <- vb
             bwRect
+        let makeViewRect(upperLeft:Point, lowerRight:Point) = makeViewRectImpl(upperLeft, lowerRight, appMainCanvas)
         let dealWithPopups(topViewboxRelativeToApp, topViewboxRelativeToThisBroadcast, c) =
             let popups = new System.Collections.Generic.Stack<_>()
             let popupCanvasArea = new Canvas()
@@ -105,6 +106,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
         // construct the top broadcast canvas (topc)
         let notesY = START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height
         let top = makeViewRect(Point(0.,0.), Point(W,notesY))
+        let drawingOverTop = makeViewRectImpl(Point(0.,0.), Point(W,notesY), drawingCanvas)
         let H = top.Height + (THRU_TIMELINE_H - START_TIMELINE_H)  // the top one is the larger of the two, so always have window that size
         let topc = new Canvas(Width=W, Height=H)
         canvasAdd(topc, top, 0., 0.)
@@ -117,6 +119,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, blockerGrid:Grid, dun
             Canvas.SetLeft(magnifierView, 0.)
             Canvas.SetBottom(magnifierView, 0.)
             topc.Children.Add(magnifierView) |> ignore
+        canvasAdd(topc, drawingOverTop, 0., 0.)
         dealWithPopups(0., 0., topc)
 
         // construct the bottom broadcast canvas (bottomc)
