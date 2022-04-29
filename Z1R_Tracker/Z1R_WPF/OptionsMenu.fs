@@ -12,6 +12,7 @@ let broadcastWindowOptionChanged = new Event<unit>()
 let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 let showBasementInfoOptionChanged = new Event<unit>()
+let bookForHelpfulHintsOptionChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
     let effect() = 
@@ -36,6 +37,7 @@ let data1d = [|
     "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
     "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
     "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModel.Options.DoDoorInference, false, fun()->()
+    "Book for Helpful Hints", "Check this if both 'Book To Understand Old Men' flag is on, and\n'Helpful' hints are available. The tracker will let you left-click\nOld Man Hint rooms to toggle whether you have read them yet.", TrackerModel.Options.BookForHelpfulHints, false, bookForHelpfulHintsOptionChanged.Trigger
     |]
 
 let data2 = [|
@@ -79,6 +81,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         if marginOpt.IsSome then
             cb.Margin <- marginOpt.Value
         cb.ToolTip <- tip
+        ToolTipService.SetShowDuration(cb, 10000)
         link(cb, b, needFU, oe)
         options1sp.Children.Add(cb) |> ignore
     let tb = new TextBox(Text="Dungeon settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
@@ -86,6 +89,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     for text,tip,b,needFU,oe in data1d do
         let cb = new CheckBox(Content=new TextBox(Text=text,IsReadOnly=true))
         cb.ToolTip <- tip
+        ToolTipService.SetShowDuration(cb, 10000)
         link(cb, b, needFU, oe)
         options1sp.Children.Add(cb) |> ignore
     optionsAllsp.Children.Add(options1sp) |> ignore
@@ -143,6 +147,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         Graphics.gridAdd(options2Grid, cbVisual, 1, row)
         let tb = new TextBox(Text=text,IsReadOnly=true, Background=Brushes.Transparent)
         tb.ToolTip <- tip
+        ToolTipService.SetShowDuration(tb, 10000)
         Graphics.gridAdd(options2Grid, tb, 2, row)
         row <- row + 1
 
@@ -160,6 +165,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- true)
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- false)
     cb.ToolTip <- "When you change an overworld map spot or a dungeon room type, briefly animate the rectangle to highlight what changed"
+    ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Save on completion",IsReadOnly=true))
@@ -167,6 +173,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- true)
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- false)
     cb.ToolTip <- "When you click Zelda to complete the seed, automatically save the full tracker state to a file"
+    ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Snoop for seed&flags",IsReadOnly=true))
@@ -174,6 +181,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- true; SaveAndLoad.MaybePollSeedAndFlags())
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- false)
     cb.ToolTip <- "Periodically check for other system windows (e.g. fceux)\nthat appear to have a seed and flag in the title, to\ninclude with save data and optionally display"
+    ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Display seed&flags",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
@@ -188,9 +196,11 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         cb.IsEnabled <- false
         cb.IsChecked <- System.Nullable.op_Implicit false
         cb.ToolTip <- "Disabled (microphone was not initialized properly during startup)"
+        ToolTipService.SetShowDuration(cb, 10000)
         ToolTipService.SetShowOnDisabled(cb, true)
     else
         cb.ToolTip <- "Use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
+        ToolTipService.SetShowDuration(cb, 10000)
         link(cb, TrackerModel.Options.ListenForSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
@@ -199,9 +209,11 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         cb.IsEnabled <- false
         cb.IsChecked <- System.Nullable.op_Implicit false
         cb.ToolTip <- "Disabled (microphone was not initialized properly during startup)"
+        ToolTipService.SetShowDuration(cb, 10000)
         ToolTipService.SetShowOnDisabled(cb, true)
     else
         cb.ToolTip <- "Play a confirmation sound whenever speech recognition is used to make an update to the tracker"
+        ToolTipService.SetShowDuration(cb, 10000)
         link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
@@ -211,15 +223,18 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         cb.IsEnabled <- false
         cb.IsChecked <- System.Nullable.op_Implicit false
         cb.ToolTip <- "Disabled (microphone was not initialized properly during startup)"
+        ToolTipService.SetShowDuration(cb, 10000)
         ToolTipService.SetShowOnDisabled(cb, true)
     elif gamepadFailedToInitialize then
         cb.IsEnabled <- false
         cb.IsChecked <- System.Nullable.op_Implicit false
         cb.ToolTip <- "Disabled (gamepad was not initialized properly during startup)"
+        ToolTipService.SetShowDuration(cb, 10000)
         ToolTipService.SetShowOnDisabled(cb, true)
     else
         link(cb, TrackerModel.Options.RequirePTTForSpeech, false)
         cb.ToolTip <- "Only listen for speech when Push-To-Talk button is held (SNES gamepad left shoulder button)"
+        ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 *)
 
@@ -228,6 +243,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger())
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Open a separate, smaller window, for stream capture.\nYou still interact with the original large window,\nbut the smaller window will focus the view on either the overworld or\nthe dungeon tabs, based on your mouse position."
+    ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let rb3 = new RadioButton(Content=new TextBox(Text="Full size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
@@ -250,6 +266,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     cb.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- true; broadcastWindowOptionChanged.Trigger())
     cb.Unchecked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Whether to include the overworld magnifier when it is on-screen, which will obscure some other elements"
+    ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     optionsAllsp.Children.Add(options3sp) |> ignore

@@ -545,9 +545,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             baitMeatCheckmarkHeaderCanvas.Opacity <- 1.
                     if rs.RoomType = DungeonRoomState.RoomType.BombUpgrade && not(rs.IsComplete) then
                         bombUpgradeMarkHeaderCanvas.Opacity <- 1.
-                    if rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
+                    if TrackerModel.Options.BookForHelpfulHints.Value && rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
                         oldManUnreadHeaderCanvas.Opacity <- 1.
             levelTab.InvalidateProperty(TabItem.HeaderProperty)
+        OptionsMenu.bookForHelpfulHintsOptionChanged.Publish.Add(fun _ -> 
+            redrawAllRooms()        // old man rooms might be complete or incomplete, re-color them to show actual backing state
+            updateHeaderCanvases()  // and add/remove red dot as appropriate
+            )  
         // minimap-draw-er
         let hoverCanvas = new Canvas(Width=26., Height=26., Background=Brushes.Black, IsHitTestVisible=true)
         let minimini = Dungeon.MakeMiniMiniMapBmp() |> Graphics.BMPtoImage

@@ -509,6 +509,9 @@ highlighting this information in the header tab and on the map in color, it is e
 see which dungeon number and which room in that dungeon you need to return to.  (Just like most other rooms, left-clicking toggles the completed-ness of the room, so when 
 you purchase a bomb upgrade, you can just left-click the room to un-mark it blue and make its tab-dot disappear.)
 
+The NPC-with-Hint colors are optional, and off by default, since people rarely play with both 'Book To Understand Old Men' and 'Helpful' hints turned on.  You can change
+this setting by checking 'Book for Helpful Hints' in the [Options Menu](#main-om).  The Bomb-Upgrade colors are always on/available.
+
 Additionally, if a **Hungry Goriya (meat block)** room is marked in a dungeon, the bait icon appears on the dungeon tab.  It gets a green checkmark if the room is
 marked completed:
 

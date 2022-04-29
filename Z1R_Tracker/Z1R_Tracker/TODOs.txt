@@ -25,13 +25,13 @@ since 1.2.1e...
  - option to snoop&display seed&flags
  - link can route to potion shops or blockers
  - hotkeys for TakeAny/TakeThis 4-way-menu
- - color & label overworld circles (shift-left-click/shift-right-click)
  - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; can hover items to see exact time
- - DrawingLayer
+ - color & label overworld circles (shift-left-click/shift-right-click)
+ - DrawingLayer (draw button)
 
 
 fix up DrawingLayer, add documentation
- 
+
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
 blockers is not ideal highlight target, and is large

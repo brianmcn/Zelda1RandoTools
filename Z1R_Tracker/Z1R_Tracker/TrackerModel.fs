@@ -56,6 +56,7 @@ module Options =
     let mutable IsSecondQuestDungeons = Bool(false)
     let mutable ShowBasementInfo = Bool(true)
     let mutable DoDoorInference = Bool(false)
+    let mutable BookForHelpfulHints = Bool(false)
     let mutable ShowBroadcastWindow = Bool(false)
     let mutable BroadcastWindowSize = 3
     let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
@@ -101,6 +102,7 @@ module Options =
         member val IsSecondQuestDungeons = false with get,set
         member val ShowBasementInfo = true with get,set
         member val DoDoorInference = false with get,set
+        member val BookForHelpfulHints = false with get,set
         member val ShowBroadcastWindow = false with get,set
         member val BroadcastWindowSize = 3 with get,set
         member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
@@ -150,6 +152,7 @@ module Options =
         data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
         data.ShowBasementInfo <- ShowBasementInfo.Value
         data.DoDoorInference <- DoDoorInference.Value
+        data.BookForHelpfulHints <- BookForHelpfulHints.Value
         data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
         data.BroadcastWindowSize <- BroadcastWindowSize
         data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
@@ -211,6 +214,7 @@ module Options =
             IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
             ShowBasementInfo.Value <- data.ShowBasementInfo
             DoDoorInference.Value <- data.DoDoorInference
+            BookForHelpfulHints.Value <- data.BookForHelpfulHints
             ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
             BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
             BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
