@@ -144,6 +144,12 @@ let makeImage(bmp:System.Drawing.Bitmap) =
             // right-click = remove self
             elif ea.ChangedButton = Input.MouseButton.Right then
                 remove() |> ignore
+            // middle click toggles half-size
+            elif ea.ChangedButton = Input.MouseButton.Middle then
+                if img.RenderTransform = null || obj.ReferenceEquals(img.RenderTransform, Transform.Identity) then
+                    img.RenderTransform <- new ScaleTransform(0.5, 0.5)
+                else
+                    img.RenderTransform <- null
         | _ -> ()
         )
     img
@@ -153,10 +159,14 @@ let LoadDrawingLayer(model:DrawingLayerIconModel[], drawingCanvas) =
         for icon in model do
             if icon.Extra then
                 if ExtraIconsResourceTable.ContainsKey(icon.Name) then
-                    AllDrawingLayerStamps.Add(DrawingLayerIcon.ExtraIcon icon.Name, icon.X, icon.Y, makeImage(ExtraIconsResourceTable.[icon.Name]))
+                    let img = makeImage(ExtraIconsResourceTable.[icon.Name])
+                    if icon.HalfSize then img.RenderTransform <- new ScaleTransform(0.5, 0.5)
+                    AllDrawingLayerStamps.Add(DrawingLayerIcon.ExtraIcon icon.Name, icon.X, icon.Y, img)
             else
                 if ZTrackerResourceTable.ContainsKey(icon.Name) then
-                    AllDrawingLayerStamps.Add(DrawingLayerIcon.ZTracker icon.Name, icon.X, icon.Y, makeImage(ZTrackerResourceTable.[icon.Name]))
+                    let img = makeImage(ZTrackerResourceTable.[icon.Name])
+                    if icon.HalfSize then img.RenderTransform <- new ScaleTransform(0.5, 0.5)
+                    AllDrawingLayerStamps.Add(DrawingLayerIcon.ZTracker icon.Name, icon.X, icon.Y, img)
     for _,x,y,img in AllDrawingLayerStamps do
         canvasAdd(drawingCanvas, img, float x, float y)
 
@@ -213,18 +223,21 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
         interactionCanvas.Children.Remove(mouseCarry) // if the mouse move into the bottom zone, remove the trailing icon
         )
 
-    let mkTxtBT(text,bt) = new TextBox(Text=text, BorderBrush=Brushes.DarkSlateGray, BorderThickness=Thickness(bt), FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, 
+    let alt = new SolidColorBrush(Color.FromRgb(0x5Fuy,0x2Fuy,0x5Fuy))
+    let mkTxtImpl(text,bt,bg) = new TextBox(Text=text, BorderBrush=bg, BorderThickness=Thickness(bt), FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, 
                                             IsHitTestVisible=false, IsReadOnly=true)
-    let mkTxt(text) = mkTxtBT(text, 1.)
+    let mkTxtBT(text,bt) = mkTxtImpl(text, bt, Brushes.DarkSlateGray)
+    let mkTxt(text) = mkTxtImpl(text, 1., Brushes.DarkSlateGray)
+    let mkTxtAlt(text) = mkTxtImpl(text, 1., alt)
 
     let hsp = new StackPanel(Orientation=Orientation.Horizontal)
     hsp.Children.Add(mkTxt("Left click a button below\nto 'pick up' an icon")) |> ignore
     hsp.Children.Add(new DockPanel(Width=8.)) |> ignore
     hsp.Children.Add(mkTxt("Then left click above\nto place it anywhere")) |> ignore
     hsp.Children.Add(new DockPanel(Width=8.)) |> ignore
-    hsp.Children.Add(mkTxt("Left click a placed icon\nto pick it up again")) |> ignore
+    hsp.Children.Add(mkTxtAlt("Left click a placed icon\nto pick it up again")) |> ignore
     hsp.Children.Add(new DockPanel(Width=8.)) |> ignore
-    hsp.Children.Add(mkTxt("Right click a placed\nicon to remove it")) |> ignore
+    hsp.Children.Add(mkTxtAlt("Right click a placed\nicon to remove it")) |> ignore
     hsp.Children.Add(new DockPanel(Width=8.)) |> ignore
     hsp.Children.Add(mkTxt("When finished, click\nbutton to the right")) |> ignore
     hsp.Children.Add(new DockPanel(Width=8.)) |> ignore
@@ -232,6 +245,8 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
     hsp.Children.Add(doneEditingButton) |> ignore
     canvasAdd(bottomCanvas, hsp, 10., 10.)
     doneEditingButton.Click.Add(fun _ -> wh.Set() |> ignore)
+
+    canvasAdd(bottomCanvas, mkTxtAlt("Middle click a placed icon to toggle it half-size"), 275., 45.)
 
     // Native icons
     let ztIconGrid = new System.Windows.Controls.Primitives.UniformGrid(Rows=8, Columns=12)
@@ -247,8 +262,8 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
             mouse <- Some(DrawingLayerIcon.ZTracker(k), makeImage(v))
             )
         ztIconGrid.Children.Add(button) |> ignore
-    canvasAdd(bottomCanvas, mkTxtBT("Here are some default icons that come with Z-Tracker:", 0.), 10., 70.)
-    canvasAdd(bottomCanvas, ztIconGrid, 10., 90.)
+    canvasAdd(bottomCanvas, mkTxtBT("Here are some default icons that come with Z-Tracker:", 0.), 10., 80.)
+    canvasAdd(bottomCanvas, ztIconGrid, 10., 100.)
     // ExtraIcons
     let extraIconGrid = new System.Windows.Controls.Primitives.UniformGrid(Rows=7, Columns=8)
     for (KeyValue(k,v)) in ExtraIconsResourceTable do
@@ -265,11 +280,11 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
         extraIconGrid.Children.Add(button) |> ignore
     let X = 460.
     let openFolderButton = Graphics.makeButton("Open ExtraIcons Folder", Some(12.), Some(Brushes.Orange))
-    canvasAdd(bottomCanvas, openFolderButton, X, 70.)
-    canvasAdd(bottomCanvas, mkTxtBT("<- add .png files here", 0.), X+150., 70.)
-    canvasAdd(bottomCanvas, mkTxtBT("(must re-start Z-Tracker to reload these icons)", 0.), X, 90.)
-    canvasAdd(bottomCanvas, mkTxtBT("Here are icons found in your ExtraIcons folder:", 0.), X, 110.)
-    canvasAdd(bottomCanvas, extraIconGrid, X, 130.)
+    canvasAdd(bottomCanvas, openFolderButton, X, 80.)
+    canvasAdd(bottomCanvas, mkTxtBT("<- add .png files here", 0.), X+150., 80.)
+    canvasAdd(bottomCanvas, mkTxtBT("(must re-start Z-Tracker to reload these icons)", 0.), X, 100.)
+    canvasAdd(bottomCanvas, mkTxtBT("Here are icons found in your ExtraIcons folder:", 0.), X, 120.)
+    canvasAdd(bottomCanvas, extraIconGrid, X, 140.)
     openFolderButton.Click.Add(fun _ ->
         let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", extraIconsDirectory)
         System.Diagnostics.Process.Start(psi) |> ignore

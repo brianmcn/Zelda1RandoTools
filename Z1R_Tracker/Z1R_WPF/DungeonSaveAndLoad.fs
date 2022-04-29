@@ -105,16 +105,19 @@ type DrawingLayerIconModel() =
     member val Name = "" with get,set
     member val X = 0 with get,set
     member val Y = 0 with get,set
+    member val HalfSize = false with get,set
 
 let SaveDrawingLayer() =
     [|
         for i = 0 to AllDrawingLayerStamps.Count-1 do
-            let (icon,x,y,_) = AllDrawingLayerStamps.[i]
+            let (icon,x,y,img) = AllDrawingLayerStamps.[i]
             let extra, name =
                 match icon with
                 | DrawingLayerIcon.ZTracker x -> false,x
                 | DrawingLayerIcon.ExtraIcon x -> true,x
-            yield sprintf """        { "Extra": %s, "Name": "%s", "X": %d, "Y": %d }%s""" (extra.ToString().ToLowerInvariant()) name x y (if i=AllDrawingLayerStamps.Count-1 then "" else ",")
+            let halfSize = not(img.RenderTransform = null || obj.ReferenceEquals(img.RenderTransform, System.Windows.Media.Transform.Identity))
+            yield sprintf """        { "Extra": %s, "Name": "%s", "X": %d, "Y": %d, "HalfSize": %s }%s""" (extra.ToString().ToLowerInvariant()) name x y 
+                            (halfSize.ToString().ToLowerInvariant()) (if i=AllDrawingLayerStamps.Count-1 then "" else ",") 
     |]
 
 /////////////////////////////////////////////////////////////////////////////
