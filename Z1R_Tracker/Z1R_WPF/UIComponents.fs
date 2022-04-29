@@ -531,7 +531,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
                 | _ -> rect.Stroke <- Brushes.LightGray
                 c.Children.Add(rect) |> ignore
-                canvasAdd(c, Graphics.blockerCurrentBMP(n) , 3., 3.)
+                canvasAdd(c, Graphics.blockerCurrentDisplay(n) , 3., 3.)
                 c
             c, redraw
         let c,redraw = make()
@@ -577,16 +577,9 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
-            let canBeBlocked(db:TrackerModel.DungeonBlocker) =
-                match db.HardCanonical() with
-                | TrackerModel.DungeonBlocker.LADDER -> not TrackerModel.playerComputedStateSummary.HaveLadder
-                | TrackerModel.DungeonBlocker.RECORDER -> not TrackerModel.playerComputedStateSummary.HaveRecorder
-                | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> not (TrackerModel.playerComputedStateSummary.HaveBow && TrackerModel.playerComputedStateSummary.ArrowLevel > 0)
-                | TrackerModel.DungeonBlocker.KEY -> not TrackerModel.playerComputedStateSummary.HaveAnyKey
-                | _ -> true
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), canBeBlocked(db), db), 
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentDisplay(db)), db.PlayerCouldBeBlockedByThis(), db), 
                                 System.Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                 match r with

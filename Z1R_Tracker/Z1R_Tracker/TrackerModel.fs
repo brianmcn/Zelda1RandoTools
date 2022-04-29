@@ -718,7 +718,12 @@ type StairKind = // does this box represent a dungeon basement item? we only bot
     | Always
     | LikeL2  // 2nd box of 2 is basement in 2nd quest
     | LikeL3  // 2nd box of 3 is a basement in 1st quest
-type Box(stair:StairKind) =
+[<RequireQualifiedAccess>]
+type BoxOwner =   // for deciding what Blocker-projections to display in it
+    | DungeonIndexAndNth of int*int // { 0-8 for 1-9 or A-H,9 ; 0-2 for first-third box }
+    | Dungeon1or4                   // the third box of 1 or 4 depending upon SecondQuestDungeons value
+    | None                          // an item box that does not below to a dungeon, e.g. CoastItem
+type Box(stair:StairKind, owner) =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
     let mutable playerHas = PlayerHas.NO
@@ -726,6 +731,7 @@ type Box(stair:StairKind) =
     member _this.Changed = changed.Publish
     member _this.PlayerHas() = playerHas
     member _this.Stair = stair
+    member _this.Owner = owner
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
@@ -756,9 +762,9 @@ type Box(stair:StairKind) =
         changed.Trigger()
     member _this.IsDone() = cell.Current() <> -1 && playerHas <> PlayerHas.NO   // the player knows the item here and has gotten or intentionally skipped it
 
-let ladderBox = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let armosBox  = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let sword2Box = (let b = Box(StairKind.Never) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let ladderBox = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let armosBox  = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let sword2Box = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
 
 [<RequireQualifiedAccess>]
 type DungeonTrackerInstanceKind =
@@ -767,7 +773,7 @@ type DungeonTrackerInstanceKind =
 
 type DungeonTrackerInstance(kind) =
     static let mutable theInstance = None
-    let finalBoxOf1Or4 = new Box(StairKind.Always)  // only relevant in DEFAULT
+    let finalBoxOf1Or4 = new Box(StairKind.Always, BoxOwner.Dungeon1or4)  // only relevant in DEFAULT
     let makeDungeons() = 
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> [| 
@@ -814,16 +820,16 @@ and Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
     let boxes = Array.init numBoxes (fun j -> 
         if DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS then
-            new Box(StairKind.Never)
+            new Box(StairKind.Never, BoxOwner.DungeonIndexAndNth(id,j))
         else
             if id=8 || (j=1 && not(id=0 || id=1 || id=2)) || j=2 then
-                new Box(StairKind.Always)
+                new Box(StairKind.Always, BoxOwner.DungeonIndexAndNth(id,j))
             elif j=1 && id=1 then
-                new Box(StairKind.LikeL2)
+                new Box(StairKind.LikeL2, BoxOwner.DungeonIndexAndNth(id,j))
             elif j=1 && id=2 then
-                new Box(StairKind.LikeL3)
+                new Box(StairKind.LikeL3, BoxOwner.DungeonIndexAndNth(id,j))
             else
-                new Box(StairKind.Never)
+                new Box(StairKind.Never, BoxOwner.DungeonIndexAndNth(id,j))
         )
     let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
     let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
@@ -903,6 +909,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWand = haveWand
     member _this.HaveBookOrShield = haveBook
     member _this.BoomerangLevel = boomerangLevel
+
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
 let playerComputedStateSummaryLastComputedTime = new LastChangedTime()
 let recomputePlayerStateSummary() =
@@ -1166,6 +1173,14 @@ type DungeonBlocker =
             if db.AsHotKeyName()=hkn then
                 r <- db
         r
+    member this.PlayerCouldBeBlockedByThis() =
+        match this.HardCanonical() with
+        | DungeonBlocker.LADDER -> not playerComputedStateSummary.HaveLadder
+        | DungeonBlocker.RECORDER -> not playerComputedStateSummary.HaveRecorder
+        | DungeonBlocker.BOW_AND_ARROW -> not (playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel > 0)
+        | DungeonBlocker.KEY -> not playerComputedStateSummary.HaveAnyKey
+        | DungeonBlocker.COMBAT -> not(playerComputedStateSummary.SwordLevel=3 && playerComputedStateSummary.RingLevel=2)
+        | _ -> true
     member this.AsHotKeyName() =
         match this with
         | DungeonBlocker.COMBAT -> "Blocker_Combat"
@@ -1235,6 +1250,7 @@ type DungeonBlockersContainer() =
     static member AnyBlockerChanged = changed.Publish
     static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
     static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
+    // i = dungeon index, j = which blocker instance (0-2), k = which item (m/c/t/1/2/3)
     static member GetDungeonBlockerAppliesTo(i,j,k) = appliesTo.[i,j].Data.[k]
     static member SetDungeonBlockerAppliesTo(i,j,k,b) = appliesTo.[i,j].Data.[k] <- b; changed.Trigger()
     static member AsJsonString(i,j) = 

@@ -738,7 +738,18 @@ let blockers_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(2
                                                new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
                                                ])
 let blockers_maybeBG = new LinearGradientBrush(blockers_gsc, Point(0.,0.), Point(1.,1.))
-let blockerCurrentBMP(current) =
+let blockerHardCanonicalBMP(current) = 
+    match current with
+    | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
+    | TrackerModel.DungeonBlocker.BOW_AND_ARROW | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW -> bow_and_arrow_bmp
+    | TrackerModel.DungeonBlocker.RECORDER | TrackerModel.DungeonBlocker.MAYBE_RECORDER -> recorder_bmp
+    | TrackerModel.DungeonBlocker.LADDER | TrackerModel.DungeonBlocker.MAYBE_LADDER -> ladder_bmp
+    | TrackerModel.DungeonBlocker.BAIT | TrackerModel.DungeonBlocker.MAYBE_BAIT -> bait_bmp
+    | TrackerModel.DungeonBlocker.KEY | TrackerModel.DungeonBlocker.MAYBE_KEY -> key_bmp
+    | TrackerModel.DungeonBlocker.BOMB | TrackerModel.DungeonBlocker.MAYBE_BOMB -> bomb_bmp
+    | TrackerModel.DungeonBlocker.MONEY | TrackerModel.DungeonBlocker.MAYBE_MONEY -> rupee_bmp
+    | TrackerModel.DungeonBlocker.NOTHING -> null
+let blockerCurrentDisplay(current) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
     innerc.Children.Clear()
     innerc.Background <- match current with
@@ -751,17 +762,7 @@ let blockerCurrentBMP(current) =
                             | TrackerModel.DungeonBlocker.MAYBE_RECORDER                            
                                 -> blockers_maybeBG :> Brush
                             | _ -> Brushes.Black :> Brush
-    let bmp = 
-        match current with
-        | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
-        | TrackerModel.DungeonBlocker.BOW_AND_ARROW | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW -> bow_and_arrow_bmp
-        | TrackerModel.DungeonBlocker.RECORDER | TrackerModel.DungeonBlocker.MAYBE_RECORDER -> recorder_bmp
-        | TrackerModel.DungeonBlocker.LADDER | TrackerModel.DungeonBlocker.MAYBE_LADDER -> ladder_bmp
-        | TrackerModel.DungeonBlocker.BAIT | TrackerModel.DungeonBlocker.MAYBE_BAIT -> bait_bmp
-        | TrackerModel.DungeonBlocker.KEY | TrackerModel.DungeonBlocker.MAYBE_KEY -> key_bmp
-        | TrackerModel.DungeonBlocker.BOMB | TrackerModel.DungeonBlocker.MAYBE_BOMB -> bomb_bmp
-        | TrackerModel.DungeonBlocker.MONEY | TrackerModel.DungeonBlocker.MAYBE_MONEY -> rupee_bmp
-        | TrackerModel.DungeonBlocker.NOTHING -> null
+    let bmp = blockerHardCanonicalBMP(current)
     if bmp <> null then
         let image = BMPtoImage(bmp)
         image.IsHitTestVisible <- false

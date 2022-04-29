@@ -59,6 +59,7 @@ let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) ->
 let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
 let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
 let mutable showLocatorPotionAndTakeAny = fun() -> ()
+let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 

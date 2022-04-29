@@ -598,7 +598,7 @@ let MakeMappedHotKeysDisplay() =
     let overworldPanel = makePanel([-1..TrackerModel.dummyOverworldTiles.Length-1], HotKeys.OverworldHotKeyProcessor, (fun state ->
         MapStateProxy(state).DefaultInteriorBmp() |> bmpElseSize(15,27)), 15, "OVERWORLD")
     let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 
-        upcast Graphics.blockerCurrentBMP(state)), 24, "BLOCKERS")
+        upcast Graphics.blockerCurrentDisplay(state)), 24, "BLOCKERS")
     let thingies = [| 
         yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of3
         yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of3

@@ -36,13 +36,14 @@ let ReminderTextBox(txt) : FrameworkElement =
 
 let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
 
-let makeGhostBuster() =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
+let makeGhostBusterImpl(color) =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
     let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)
-    let circle = new Shapes.Ellipse(Width=30., Height=30., StrokeThickness=3., Stroke=Brushes.Gray)
-    let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=Brushes.Gray)
+    let circle = new Shapes.Ellipse(Width=30., Height=30., StrokeThickness=3., Stroke=color)
+    let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=color)
     canvasAdd(c, circle, 0., 0.)
     canvasAdd(c, slash, 0., 0.)
     c
+let makeGhostBuster() = makeGhostBusterImpl(Brushes.Gray)
 let mainTrackerGhostbusters = Array.init 8 (fun _ -> makeGhostBuster())
 let updateGhostBusters() =
     if TrackerModel.IsHiddenDungeonNumbers() then
@@ -179,6 +180,49 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let mainTracker = makeGrid(9, 5, H, H)
     canvasAdd(appMainCanvas, mainTracker, 0., 0.)
 
+    // items (we draw these before drawing triforces, as triforce display can draw slightly atop the item boxes, when there's a triforce-specific-blocker drawn)
+    let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
+        let c = Views.MakeBoxItem(cm, box)
+        box.Changed.Add(fun _ -> if requiresForceUpdate then TrackerModel.forceUpdate())
+        c.MouseEnter.Add(fun _ -> 
+            match box.CellCurrent() with
+            | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
+            | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
+            | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
+            | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
+            | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
+            | _ -> ()
+            )
+        c.MouseLeave.Add(fun _ -> hideLocator())
+        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)))
+        c
+    let finalCanvasOf1Or4 = 
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            null
+        else        
+            boxItemImpl("Level1or4Box3", TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        for i = 0 to 8 do
+            for j = 0 to 2 do
+                let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+                gridAdd(mainTracker, c, i, j+2)
+                if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
+                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                mainTrackerCanvases.[i,j+2] <- c
+                if j=2 && i<> 8 then
+                    canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
+    else
+        for i = 0 to 8 do
+            for j = 0 to 2 do
+                let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
+                gridAdd(mainTracker, c, i, j+2)
+                if j=0 || j=1 || i=7 then
+                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                mainTrackerCanvases.[i,j+2] <- c
+    let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
+    extrasImage.ToolTip <- "Starting items and extra drops"
+    ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
+    gridAdd(mainTracker, extrasImage, 8, 4)
     // numbered triforce display - the extra row of triforce in IsHiddenDungeonNumbers
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
         let level = i+1
@@ -276,21 +320,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
-    let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
-        let c = Views.MakeBoxItem(cm, box)
-        box.Changed.Add(fun _ -> if requiresForceUpdate then TrackerModel.forceUpdate())
-        c.MouseEnter.Add(fun _ -> 
-            match box.CellCurrent() with
-            | 3 -> showLocatorInstanceFunc(owInstance.PowerBraceletable)
-            | 4 -> showLocatorInstanceFunc(owInstance.Ladderable)
-            | 7 -> showLocatorInstanceFunc(owInstance.Raftable)
-            | 8 -> showLocatorInstanceFunc(owInstance.Whistleable)
-            | 9 -> showLocatorInstanceFunc(owInstance.Burnable)
-            | _ -> ()
-            )
-        c.MouseLeave.Add(fun _ -> hideLocator())
-        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)))
-        c
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
     gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
@@ -309,34 +338,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     for trackerIndex = 0 to 8 do    
         let d = TrackerModel.GetDungeon(trackerIndex)
         d.HasBeenLocatedChanged.Add(fun _ -> updateFoundDungeonsCount())
-    // items
-    let finalCanvasOf1Or4 = 
-        if TrackerModel.IsHiddenDungeonNumbers() then
-            null
-        else        
-            boxItemImpl("Level1or4Box3", TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
-    if TrackerModel.IsHiddenDungeonNumbers() then
-        for i = 0 to 8 do
-            for j = 0 to 2 do
-                let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-                gridAdd(mainTracker, c, i, j+2)
-                if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
-                mainTrackerCanvases.[i,j+2] <- c
-                if j=2 && i<> 8 then
-                    canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
-    else
-        for i = 0 to 8 do
-            for j = 0 to 2 do
-                let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-                gridAdd(mainTracker, c, i, j+2)
-                if j=0 || j=1 || i=7 then
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
-                mainTrackerCanvases.[i,j+2] <- c
-    let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
-    extrasImage.ToolTip <- "Starting items and extra drops"
-    ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
-    gridAdd(mainTracker, extrasImage, 8, 4)
     do 
         let RedrawForSecondQuestDungeonToggle() =
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
@@ -1042,6 +1043,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // redraw white/magical swords (may have located/unlocated/hinted)
         redrawWhiteSwordCanvas(white_sword_canvas)
         redrawMagicalSwordCanvas(mags_canvas)
+        // update specific-blockers that may have been (un)blocked
+        for f in Views.redrawBoxes do f()
+        for f in Views.redrawTriforces do f()
 
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
@@ -1543,21 +1547,29 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     showShopLocatorInstanceFunc <- (fun item ->
         routeDrawingCanvas.Children.Clear()
+        let mutable anyFound = false
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if MapStateProxy(cur).IsThreeItemShop && 
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
                     owLocatorTilesZone.[i,j].MakeGreen()
+                    anyFound <- true
+        if not(anyFound) then
+            showLocatorNoneFound()
         )
     showLocatorPotionAndTakeAny <- (fun () ->
         routeDrawingCanvas.Children.Clear()
+        let mutable anyFound = false
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
                     (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
                     owLocatorTilesZone.[i,j].MakeGreen()
+                    anyFound <- true
+        if not(anyFound) then
+            showLocatorNoneFound()
         )
     recorderDestinationLegendIcon.MouseEnter.Add(fun _ ->
         routeDrawingCanvas.Children.Clear()
@@ -1633,6 +1645,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                     showLocatorHintedZone(hinted_zone,false)
         )
+    let currentTargetGhostBuster = makeGhostBusterImpl(Brushes.Red)
+    currentTargetGhostBuster.Opacity <- 0.
+    canvasAdd(appMainCanvas, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
+    showLocatorNoneFound <- (fun () ->
+        currentTargetGhostBuster.Opacity <- 1.
+        ensureRespectingOwGettableScreensCheckBox()
+        )
     hideLocator <- (fun () ->
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
         allOwMapZoneBlackCanvases |> Array2D.iteri (fun _x _y zbc -> zbc.Opacity <- 0.0)
@@ -1640,6 +1659,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 owLocatorTilesZone.[i,j].Hide()
         owLocatorCanvas.Children.Clear()
+        currentTargetGhostBuster.Opacity <- 0.
         ensureRespectingOwGettableScreensCheckBox()
         )
 
