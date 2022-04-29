@@ -266,8 +266,11 @@ type MyWindow() as this =
             this.Left <- float matches.Groups.[1].Value
             this.Top <- float matches.Groups.[2].Value
         this.LocationChanged.Add(fun _ ->
-            TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
-            TrackerModel.Options.writeSettings()
+            if this.Left < -30000.0 || this.Top < -30000.0 then
+                ()  // when you Minimize the window, -32000,-32000 are reported. Don't save that, as it's hard to recover window later
+            else
+                TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+                TrackerModel.Options.writeSettings()
             )
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
