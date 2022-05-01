@@ -729,7 +729,7 @@ type Box(stair:StairKind, owner) =
     let mutable playerHas = PlayerHas.NO
     let changed = new Event<_>()
     member _this.Changed = changed.Publish
-    member _this.PlayerHas() = playerHas
+    member _this.PlayerHas() = playerHas           // note that the state (cell = -1, playerHas = SKIPPED) is used to mean 'white-highlighted box' in the UI
     member _this.Stair = stair
     member _this.Owner = owner
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
@@ -1652,25 +1652,32 @@ type TimelineItemModel(desc: TimelineItemDescription) =
     // TODO keep history of all changes maybe
     static let all = new System.Collections.Generic.Dictionary<_,_>()
     let mutable finishedTotalSeconds = -1
+    let mutable itemPlayerHas = PlayerHas.YES             // for non-item-box things, is always YES.  for item boxes, reflects the state of the box, suggests UI display.
     static let timelineChanged = new Event<_>()
-    let stamp(b) = 
+    let stamp(b,ph) = 
         let span = System.DateTime.Now - theStartTime.Time
         let s = int span.TotalSeconds
         if b then
             finishedTotalSeconds <- s
         else
             finishedTotalSeconds <- -1
+        itemPlayerHas <- ph
         timelineChanged.Trigger(int span.TotalMinutes)
     do
         // listen for changes
         match desc with
-        | TimelineItemDescription.ExtrasOrShopping(_,bp) -> bp.Changed.Add(fun _ -> stamp(bp.Value()))
-        | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1))
-        | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce()))
-        | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.PlayerHas()=PlayerHas.YES))
-    member this.StampTotalSeconds(s) = finishedTotalSeconds <- s
+        | TimelineItemDescription.ExtrasOrShopping(_,bp) -> bp.Changed.Add(fun _ -> stamp(bp.Value(), PlayerHas.YES))
+        | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1, PlayerHas.YES))
+        | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce(), PlayerHas.YES))
+        | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.CellCurrent() <> -1 && b.PlayerHas()<>PlayerHas.NO, b.PlayerHas()))
+    member this.StampTotalSeconds(s,ph) =  // used when Loading a Save file
+        match desc with
+        | TimelineItemDescription.ItemBox(_,_) -> itemPlayerHas <- ph
+        | _ -> ()
+        finishedTotalSeconds <- s
     member this.Identifier = desc.Identifier
     member this.FinishedTotalSeconds = finishedTotalSeconds
+    member this.Has = itemPlayerHas
     static member TimelineChanged = timelineChanged.Publish
     static member All = all
     static member MakeAll() =

@@ -369,9 +369,10 @@ let DoModalGridSelect<'State,'Result>
 
 ////////////////////////////////
 
-let placeSkippedItemXDecoration(innerc:Canvas) =
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=30., Y2=30.)) |> ignore
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=30., Y1=0., X2=0., Y2=30.)) |> ignore
+let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size)) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
+let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 let itemBoxMouseButtonExplainerDecoration =
     let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
     let mouseBMP = Graphics.mouseIconButtonColorsBMP

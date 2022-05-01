@@ -225,6 +225,28 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
     canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
 
+    // these panels need to be created once, at startup time, as they have side effects that populate the timelineItems set
+    let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("White sword", "WhiteSword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", "SilverArrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Bow", "Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Wand", "Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", "RedCandle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", "Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", "MagicBoomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
+    let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Red ring", "RedRing", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", "PowerBracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Ladder", "Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Raft", "Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Recorder", "Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Any key", "AnyKey", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Book", "Book", Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook)) |> ignore
     let mutable extrasPanelAndepRefresh = None
     let makeExtrasPanelAndepRefresh() =
         let mutable refreshTDD = fun () -> ()
@@ -267,29 +289,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 )
             triforcePanel.Children.Add(innerc) |> ignore
         leftPanel.Children.Add(triforcePanel) |> ignore
-        let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("White sword", "WhiteSword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", "SilverArrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Bow", "Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Wand", "Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", "RedCandle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", "Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", "MagicBoomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
         leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
         leftPanel.Children.Add(weaponsRowPanel) |> ignore
-        let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Red ring", "RedRing", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", "PowerBracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Ladder", "Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Raft", "Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Recorder", "Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Any key", "AnyKey", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Book", "Book", Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook)) |> ignore
         leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
         leftPanel.Children.Add(utilityRowPanel) |> ignore
         let maxHeartsPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)

@@ -145,6 +145,7 @@ type StartingItemsAndExtrasModel() =
 type TimelineDatum() =
     member val Ident = "" with get,set
     member val Seconds = -1 with get,set
+    member val Has = 1 with get,set
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -319,7 +320,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         let tis = [|for KeyValue(_,ti) in TrackerModel.TimelineItemModel.All do yield ti |] |> Array.sortBy (fun ti -> ti.FinishedTotalSeconds)
         for i=0 to tis.Length-1 do
             let ti = tis.[i]
-            yield sprintf """        { "Ident": "%-20s, "Seconds": %6d }%s""" (ti.Identifier+"\"") (ti.FinishedTotalSeconds) (if i=tis.Length-1 then "" else ",")
+            yield sprintf """        { "Ident": "%-20s, "Seconds": %6d, "Has": %d }%s""" (ti.Identifier+"\"") (ti.FinishedTotalSeconds) (ti.Has.AsInt()) (if i=tis.Length-1 then "" else ",")
         yield sprintf """    ]"""
         yield sprintf """}"""
         |]

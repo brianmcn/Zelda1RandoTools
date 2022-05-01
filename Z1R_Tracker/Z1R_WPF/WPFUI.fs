@@ -1871,7 +1871,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for td in data.Timeline do
                 if td.Seconds <= data.TimeInSeconds then
                     match TrackerModel.TimelineItemModel.All.TryGetValue(td.Ident) with
-                    | true, v -> v.StampTotalSeconds(td.Seconds)
+                    | true, v -> v.StampTotalSeconds(td.Seconds, TrackerModel.PlayerHas.FromInt(td.Has))
                     | _ -> ()
         drawTimeline(data.TimeInSeconds / 60)
         // Timer

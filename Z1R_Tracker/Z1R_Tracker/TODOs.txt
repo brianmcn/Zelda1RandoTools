@@ -23,16 +23,39 @@ make new take-any-heart screenshot
 since 1.2.1e...
  - dungeon tracker visual tweaks/fixes; add more monster types and another door state
  - option to snoop&display seed&flags
- - link can route to potion shops or blockers
+ - link can route to potion shops or blockers; mouse-hovering a shop item (or blocker shop item) with no map shops gives visual feedback
  - hotkeys for TakeAny/TakeThis 4-way-menu
- - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; can hover items to see exact time
+ - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; shows skipped items; can hover items to see exact time
  - specific-blockers
  - z1m1 help
     - color & label overworld circles (shift-left-click/shift-right-click)
     - DrawingLayer (draw button)
 
 
+bigger options menu means some tips get cut off on start screen, again (need easy way to test)
+
+
+crash recovery - i can imagine that i can detect crash that happened past 5 mins at startup, and start screen can yell 'hey, try load auto-save' if one exists from that time period, 
+   as extra popup at start or something
+
+homer: wants middle click in cyan and pink varieties, not just yellow, in dungeons too? (existing mark-shape, 2-corner-ellipse, is sufficient
+ - try to be consistent with overworld? hm.... shift-right-click is already used for floordrop... i guess no-mouse means can't circle dungeon rooms today? hm
+
+
 fix up DrawingLayer, add documentation
+ - bordcast view should project upper-left icons when in dungeon view
+
+
+possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of
+ - and maybe can mark 'walls', like 4 edges can toggle on/off, similar to middle click circles somehow maybe? would need solid wall, no-wall, and 'fuzz' for like maze/non-trivial connectedness
+ - fairy would be useful icon, maybe also rock, bush? (I guess PB/candle maybe, but to mark need-try-bomb/push or need-try burn...)
+
+
+homer:  timeline representation of right clicked items. I feel split on this one bc you don't want to muddy up the timeline but I do think it's a relevant 
+snapshot of the seed. For example above you don't see that after the red ring I found the magic boomer and the wand (which I left behind) and obviously I 
+didn't click silvers once I found them bc I was running. I also feel like when you saw the blocked item could be interesting and relevant, ex. I saw the 
+bow early early then all this time elapsed and then I got ladder and then I got bow. It would obviously have to be grayed out or something to differentiate. 
+ - DONE skipped items.  yet to do: making a 'witness coast' item with different logic
 
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
@@ -56,6 +79,7 @@ which display the 3 blockers of the dungeon.  Except they're currently all marke
    - has some display behavior, and logic for if-get-item/tri and for if-get-unblocker
    - has no HotKeys yet (display left of checkboxes)
    - no documentation yet
+
 
 Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
  - would probably need adjustable minutes settings on Options menu
@@ -84,6 +108,7 @@ Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, 
 
 
 
+many folks request voice choices, see if easy to do via SpeechSynthesizer.GetInstalledVoices
 
 
 
