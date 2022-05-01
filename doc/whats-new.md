@@ -88,7 +88,7 @@ veterans who may get confused/disoriented when playing using the rando flag "Mir
 
 The timeline now updates instantly as you get items, rather than only updating once per minute.  The splits for each item/triforce are stored at one-second granularity and can
 be seen by mouse-hovering a particular item in the timeline.  In 'Hidden Dungeon Numbers', lettered triforces will now change to numbered ones on the timeline after the numbers
-are known.
+are known.  Items marked as 'skipped' (by middle-clicking them) now show up in the timeline ('X'-ed out, as in the top-tracker).
 
 There are now more time labels on the timeline, making it easier to read:
 

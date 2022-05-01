@@ -32,11 +32,12 @@ since 1.2.1e...
     - DrawingLayer (draw button)
 
 
-bigger options menu means some tips get cut off on start screen, again (need easy way to test)
+drawlayer-ing in Hellwalker OOM'd on penz, explore leaks
 
 
 crash recovery - i can imagine that i can detect crash that happened past 5 mins at startup, and start screen can yell 'hey, try load auto-save' if one exists from that time period, 
    as extra popup at start or something
+
 
 homer: wants middle click in cyan and pink varieties, not just yellow, in dungeons too? (existing mark-shape, 2-corner-ellipse, is sufficient
  - try to be consistent with overworld? hm.... shift-right-click is already used for floordrop... i guess no-mouse means can't circle dungeon rooms today? hm
@@ -49,13 +50,6 @@ fix up DrawingLayer, add documentation
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of
  - and maybe can mark 'walls', like 4 edges can toggle on/off, similar to middle click circles somehow maybe? would need solid wall, no-wall, and 'fuzz' for like maze/non-trivial connectedness
  - fairy would be useful icon, maybe also rock, bush? (I guess PB/candle maybe, but to mark need-try-bomb/push or need-try burn...)
-
-
-homer:  timeline representation of right clicked items. I feel split on this one bc you don't want to muddy up the timeline but I do think it's a relevant 
-snapshot of the seed. For example above you don't see that after the red ring I found the magic boomer and the wand (which I left behind) and obviously I 
-didn't click silvers once I found them bc I was running. I also feel like when you saw the blocked item could be interesting and relevant, ex. I saw the 
-bow early early then all this time elapsed and then I got ladder and then I got bow. It would obviously have to be grayed out or something to differentiate. 
- - DONE skipped items.  yet to do: making a 'witness coast' item with different logic
 
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
@@ -81,15 +75,6 @@ which display the 3 blockers of the dungeon.  Except they're currently all marke
    - no documentation yet
 
 
-Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
- - would probably need adjustable minutes settings on Options menu
- - no sensible defaults for noobs, so perhaps not on by default
- - if do implement adjustable numbers, probably make existing timed reminders also adjustable (coast item re-remind, PB/R/B re-remind, ladder/any-key one-time)
-
-
-idea for option to transparent out certain marks (secrets, shops-already-got, ...) to reduce visual clutter
-
-
 Homer would like door repair count onscreen (maybe option to show e.g. PB remain subscript too?)
 - To inform lategame need to buy meat, for example
 - he changed his mind, spot summary is sufficient if he knows where to look
@@ -102,14 +87,6 @@ that publishes 'extra info you want' with a bunch of options to e.g. always show
 
 Broadcast option: always focus overworld ? bighead scenario
 Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
-
-
-Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
-
-
-
-many folks request voice choices, see if easy to do via SpeechSynthesizer.GetInstalledVoices
-
 
 
 Mocco71's magnifier shows rectangles rather than unicode arrows on lost hills...
@@ -232,6 +209,18 @@ https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
  
 
 SMALL
+
+Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
+ - would probably need adjustable minutes settings on Options menu
+ - no sensible defaults for noobs, so perhaps not on by default
+ - if do implement adjustable numbers, probably make existing timed reminders also adjustable (coast item re-remind, PB/R/B re-remind, ladder/any-key one-time)
+
+
+idea for option to transparent out certain marks (secrets, shops-already-got, ...) to reduce visual clutter
+
+
+consider 'witness coast item' as a timeline item (would need separate TimelineItemDescription that stamps when cell<>-1 && has=NO)
+
 
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
@@ -427,6 +416,11 @@ puzzle-piecing maps 1-6,7-9?
 TheDoctorBlue wants to operate entire tracker with numpad, consider?
  - imagine hotkeys that map to 'move mouse ULDR', and then also... what?
 bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
+Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
+
+
+
+many folks request voice choices, see if easy to do via SpeechSynthesizer.GetInstalledVoices
 
 
 

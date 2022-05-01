@@ -328,6 +328,7 @@ type MyWindow() as this =
 
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 8., 0., 0.)
+        let smallSpacing = Thickness(0., 3., 0., 0.)
 
         do        
             let menu(wh:Threading.ManualResetEvent) = 
@@ -492,11 +493,16 @@ type MyWindow() as this =
             |]
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
-            startButton.Margin <- spacing
             startButton.Width <- WIDTH/2.
             if n=999 then
-                let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
+                let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=smallSpacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
                 stackPanel.Children.Add(tb) |> ignore
+            if n=0 then
+                startButton.Margin <-Thickness(0.)
+            elif n=999 then
+                startButton.Margin <- smallSpacing
+            else
+                startButton.Margin <- spacing
             stackPanel.Children.Add(startButton) |> ignore
             startButton.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
@@ -603,7 +609,8 @@ type MyWindow() as this =
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
         let tb = MakeTipTextBox("Random tip:")
         tipsp.Children.Add(tb) |> ignore
-        let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])
+        let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])   // correct app behavior
+        //let tb = MakeTipTextBox(DungeonData.Factoids.allTips |> Array.sortBy (fun s -> s.Length) |> Seq.last)   // show the longest tip (to test screen layout)
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
         stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 30., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
