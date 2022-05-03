@@ -25,26 +25,28 @@ since 1.2.1e...
  - option to snoop&display seed&flags
  - link can route to potion shops or blockers; mouse-hovering a shop item (or blocker shop item) with no map shops gives visual feedback
  - hotkeys for TakeAny/TakeThis 4-way-menu
- - timeline shows triforce numbers rather than letters in Hidden Dungeon Numbers; shows skipped items; can hover items to see exact time
- - specific-blockers
+ - Timeline improvements: shows triforce numbers rather than letters in Hidden Dungeon Numbers; shows skipped items; can mouse-hover items to see exact time
+ - specific-blockers (optionally, middle-click a blocker, can project blocked info onto un-gotten triforce/item boxes)
  - z1m1 help
     - color & label overworld circles (shift-left-click/shift-right-click)
     - DrawingLayer (draw button)
 
 
-drawlayer-ing in Hellwalker OOM'd on penz, explore leaks
+homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have
 
 
+if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
+
+
+drawlayer-ing in Hellwalker OOM'd on penz, explore leaks - didn't find any
 crash recovery - i can imagine that i can detect crash that happened past 5 mins at startup, and start screen can yell 'hey, try load auto-save' if one exists from that time period, 
-   as extra popup at start or something
-
-
-homer: wants middle click in cyan and pink varieties, not just yellow, in dungeons too? (existing mark-shape, 2-corner-ellipse, is sufficient
- - try to be consistent with overworld? hm.... shift-right-click is already used for floordrop... i guess no-mouse means can't circle dungeon rooms today? hm
+   as extra popup at start or something...
+ - on crash, write some tiny file token say crashed
+ - at startup, if that file exists, and there is an auto-save from past N minutes, dialog to offer option to try load,
+      else un-write that file to say safe startup again...
 
 
 fix up DrawingLayer, add documentation
- - bordcast view should project upper-left icons when in dungeon view
 
 
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of
@@ -132,18 +134,6 @@ The list of choices is
 more features 'hidden' behind options, to simplify default UI?
 
 
-'dont forget you have raft' if have raft, raft spot unchecked, and you mark nearby spot? hm
-
-
-ideally need to make second-shop-item left-click discoverable:
- - could have a circle-plus as second item button, to visually indicate clicking (but clutters the map - could be transient?)
- - could have status bar that suggests what left/right/scroll do on the currently hovered element
- - could have first-time-coaching with extra popup when users mark first shop item (and option to turn it off 'dont show this again')
- - could have more visual 'tip' on the startup tips
-
-
-
-
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
@@ -180,7 +170,7 @@ ABOVE IS DONE
      - get rid of hotkeys/settings/crash log
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
- - delete Magnifier directory
+ - delete Magnifier/Overworld/ExtraIcons directory
  - delete ZTracker.lnk (has my machine's paths hardcoded)
  - If used program, then maybe also do these:
      - delete LT numbers from settings (my screen window position)
@@ -216,14 +206,15 @@ Reminders: If you have not got armos item, or found white sword cave, or witness
  - if do implement adjustable numbers, probably make existing timed reminders also adjustable (coast item re-remind, PB/R/B re-remind, ladder/any-key one-time)
 
 
-idea for option to transparent out certain marks (secrets, shops-already-got, ...) to reduce visual clutter
-
-
-consider 'witness coast item' as a timeline item (would need separate TimelineItemDescription that stamps when cell<>-1 && has=NO)
-
-
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
+
+
+ideally need to make second-shop-item left-click discoverable:
+ - could have a circle-plus as second item button, to visually indicate clicking (but clutters the map - could be transient?)
+ - could have status bar that suggests what left/right/scroll do on the currently hovered element
+ - could have first-time-coaching with extra popup when users mark first shop item (and option to turn it off 'dont show this again')
+ - could have more visual 'tip' on the startup tips
 
 
 voice feedback saying what mark, so less need to watch what you clicked?
@@ -231,6 +222,7 @@ voice feedback saying what mark, so less need to watch what you clicked?
 
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
  - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
+ - another possible extra-floating-window ui maybe
 
 
 in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
@@ -262,32 +254,15 @@ I've been asked about this for Z-Tracker as well, but have only very recently le
  - always on top (yes/no) (in case you want to place it over the edge of some other window)
 
 
-consider removing choicedomain restrictions, prefer warnings? (deal with spot summary)  alternate user-supplied marks?
-
-
-homer: which blocker blocked item v which blocked triforce
- - e.g. if mark triforce room and mark boss in that room, could it auto-populate blockers? (design issues abound)
+homer: wants middle click in cyan and pink varieties, not just yellow, in dungeons too? (existing mark-shape, 2-corner-ellipse, is sufficient
+ - try to be consistent with overworld? hm.... shift-right-click is already used for floordrop... i guess no-mouse means can't circle dungeon rooms today? hm
+ - there is no good UI scheme for dungeons, rooms are already too overloaded.  if i ever make hotkeys substituable for mouse clicks, then could map it
 
 
 clyceer: wants to drag in grab mode, rather than click-click
 
 
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
-
-
-homer: i will noodle on that to, for hotkey folks, right click is useless and wasted, maybe consider scroll to bring up popup and use right click other way
- - consider best use of scrollwheel on dungeon doors/rooms
-Consider dungeon-door scrollwheel to popup more options (would require figuring out what other states are useful, and finding decent art for them)
-
-
-timeline & mistakes
- - ideal: people mark an item when they get it, and maybe it shows up immediately (fixed)
- - mistake 1: people mark item they don't have yet, then maybe later unmark (good)
- - mistake 2: people mark wrong item, then change item type (good)
- - mistake 3: people forget to mark item when they get it (can't yet address)
- - mistake 4: people accidentally unmark item they did have (upon re-mark, will update time later)
-maybe imagine timeline items know their entire interaction history, and there's a UI to interact with them where user can select among prior interactions to mark correct one, or
-just edit the timeline item directly to change display/time? need to think thru each mistake scenario and ideal interaction to fix (if desired)
 
 
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
@@ -320,40 +295,17 @@ consider hover-feedback-of-all-clickables (e.g. triforce could slightly-darken-c
 
 hotkeys
  - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
- - any consideration of spacebar or capital-letter-distiguishing?
-
-
-dungeon room ui:
-imagine if could add blue wiz or blue darknut or blue lanmo decoration
-(how easy is it to 'undo' an accidental room mark, bring back to 'unmarked'?  clear all marks versus clear the room type?)
-which rooms visually pop? uncompleted and left-floor-drop-behind?
-consider also eventual replay-the-seed scenarios (if/when i have save/reload functionality)
-
-
-homer:
- - in sprite shuffle, might want to mark 2 white sword caves because cant tell
-        - sprite shuffle, see 'something' off coast, might mark wand, but actually white sword, choicedomain makes a little tricky
-
-
 
 
 'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
  - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
+     - but really you'd paint OFF-the-map spots, and then could work
  - related: where can zelda fit (some explicit mark for shutter doors?)
  - gesture could be hover-ganon and hover-zelda, and there is room to bring those icons down into inset, i think
 
 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
-
-marc note about bow dungeon room and bow blocker via dungeon-mouse-location-context - imagine if Blocker_Bow was listened for in dungeon area after rooms and hooked to next free blocker box
- - kigalas also suggested auto-blocker-ing based on dungeon markup, and I explained my misgivings
-
-if you get a 'meet' hint about white/magic sword cave location, could/should there be an accelerator? same for hint shop (long mouse moves)
-  - for hint shop, there could be a special right-click action which accelerates into the hint decoder popup and warps back on complete
-        - could make populateOverworldAcceratorTable() method to pass in some values more easily maybe
-    ah, but hint shop already has a left click action, which is bright->dark toggle, and is 'needed' e.g. for sword cave hints or hint shops you bought out
-    and you can't assume the user wants to mark a hint
 
 mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? thumb button must be live-without-able
 [11:38 AM] potato_pony: ahhh, i don't hvae a middle click 
@@ -364,23 +316,6 @@ mouse thumb button for rare thing, like mark all dungeon room doors as open or b
 [11:41 AM] potato_pony: , . / as keyboard alternatives to left/middle/right click?
 [11:41 AM] Lorgon111: I mean, it's probably like ten hours of recoding everything, so I will probably never do it, but stuff like that would be the right thing.
 [11:42 AM] potato_pony: lol i hear ya
-
-
-hide dungeon numbers:
- - auto-fill-in last number, or other inferences?!?  I think no, maybe voice-reminder-suggestion is better.  Player should 'own' tracker marks, it should only suggest?
-        - or it could be another popup, highlight final number, say it must be N by process of elimination, player can confirm or cancel?
- - irrecoverable error can occur when startup in non-hidden-dungeons mode, mark some map, and it's hidden dungeons, hmm (eventually, save/load state might help)
- - i had a hint that D3 was by a lake, and found a dungeon by a lake, can I auto-infer it is D3 sometimes?
- - hints are generally much harder to use, might be opportunities to have tracker be smart and help 
-      - gleeok lurks with the magic key: today, in non-HDN, I mark an un-got key in 4 manually - if can move this into hint decoder, then HDN can apply some logics (immediate or later)
-        similar, even in non-HDN: Right now hint decoder for white sword location halo, and top UI for white sword item mark, nice if both in one place (when get hint of item & location)
- - I am not sure if 'can put same number on multiple dungeons' is a bug or feature yet
-
-
-I can't capture some hints e.g. ""play a melody to obtain the white sword"" - if i could record that hint, maybe i can deduce stuff
-
-
-
 
 
 my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
@@ -504,6 +439,7 @@ These 7 rooms NEVER drop in ANY Shapes dungeon
     *Vertical Rows  
 These 10 rooms NEVER drop in CERTAIN Shapes dungeons
                Never drops in   Can drop in
+*Lava Moat     2 3 4 5 6 7 8 9  1
 Five Pair      2 3 4 5 6 7 8 9  1
 Maze           1 2 3 5 6 7 8 9  4
 Pointless Moat 2 3 6 7 8 9      1 4 5
@@ -513,7 +449,6 @@ Spiral Stair   1 4 5            2 3 6 7 8 9
 Gleeok         1 5              2 3 4 6 7 8 9
 Grid           4 5              1 2 3 6 7 8 9
 T              1                2 3 4 5 6 7 8 9
-*Lava Moat      2 3 4 5 6 7 8 9  1
 
 *only if second quest rooms enabled
 (whole table assume 'Remove Most Open Stairs' not in use)

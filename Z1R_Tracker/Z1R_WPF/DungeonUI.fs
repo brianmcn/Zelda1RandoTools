@@ -399,7 +399,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let dungeonHeaderCanvas = new Canvas(Height=float(TH), Width=float(39*8 + 12*7))         // draw e.g. BOARD-5 here
         dungeonHeaderCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonHeaderCanvas, 0., 0.)
-        let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. rooms here
+        let dungeonBodyCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)  // draw e.g. rooms here; has background color to be a surface to see all mouse interactions
         // Clip: allow e.g. mouse highlight box slightly off left edge, or gleeok head slightly off top, but don't allow e.g. OFF to go way over right edge into side panel etc.
         dungeonBodyCanvas.Clip <- new RectangleGeometry(Rect(-3., -3., dungeonBodyCanvas.Width+6., dungeonBodyCanvas.Height+6.))  
         canvasAdd(dungeonCanvas, dungeonBodyCanvas, 0., float TH)
@@ -644,6 +644,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomCirclesCanvas = new Canvas()
         dungeonBodyCanvas.Children.Add(roomCanvas) |> ignore
         dungeonBodyCanvas.Children.Add(roomCirclesCanvas) |> ignore
+        let roomDragDrop = new Graphics.DragDropSurface<_>(dungeonBodyCanvas, (fun (ea,initiatorFunc) ->
+            let mutable whichButtonStr = ""
+            if not popupIsActive then
+                // drag and drop to quickly 'paint' rooms
+                if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
+                    if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
+                        whichButtonStr <- "L"
+                    elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
+                        whichButtonStr <- "R"
+                    elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
+                        whichButtonStr <- "M"
+            if whichButtonStr <> "" then
+                initiatorFunc(whichButtonStr)
+                DragDrop.DoDragDrop(roomCanvas, whichButtonStr, DragDropEffects.Link) |> ignore
+            ))
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
@@ -888,7 +903,22 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             else
                                 doFloorDropDetailPopup()
                     )
-                Graphics.setupClickVersusDrag(c, (fun ea ->
+                let dragBehavior(whichButtonStr) =
+                    if not popupIsActive then
+                        if roomStates.[i,j].RoomType.IsNotMarked then
+                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                            numeral.Opacity <- 0.0
+                            if whichButtonStr = "L" then
+                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                roomStates.[i,j].IsComplete <- true
+                            elif whichButtonStr = "R" then
+                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                roomStates.[i,j].IsComplete <- false
+                            elif whichButtonStr = "M" then
+                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                                roomStates.[i,j].IsComplete <- true
+                            redraw()
+                roomDragDrop.RegisterClickable(c, (fun ea ->
                     if not popupIsActive then
                         async {
                             if ea.ChangedButton = Input.MouseButton.Left then
@@ -964,32 +994,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         roomStates.[i,j].ToggleFloorDropBrightness()
                                     redraw()
                         } |> Async.StartImmediate
-                    ), (fun ea ->
-                    if not popupIsActive then
-                        // drag and drop to quickly 'paint' rooms
-                        if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
-                            if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
-                                DragDrop.DoDragDrop(c, "L", DragDropEffects.Link) |> ignore
-                            elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
-                                DragDrop.DoDragDrop(c, "R", DragDropEffects.Link) |> ignore
-                            elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
-                                DragDrop.DoDragDrop(c, "M", DragDropEffects.Link) |> ignore
-                    ))
+                    ), dragBehavior)
                 c.DragOver.Add(fun ea ->
-                    if not popupIsActive then
-                        if roomStates.[i,j].RoomType.IsNotMarked then
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
-                            numeral.Opacity <- 0.0
-                            if ea.Data.GetData(DataFormats.StringFormat) :?> string = "L" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                roomStates.[i,j].IsComplete <- true
-                            elif ea.Data.GetData(DataFormats.StringFormat) :?> string = "R" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                roomStates.[i,j].IsComplete <- false
-                            elif ea.Data.GetData(DataFormats.StringFormat) :?> string = "M" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
-                                roomStates.[i,j].IsComplete <- true
-                            redraw()
+                    let whichButtonStr = ea.Data.GetData(DataFormats.StringFormat) :?> string
+                    dragBehavior(whichButtonStr)
                     )
                 c.AllowDrop <- true
         canvasAdd(dungeonCanvas, outlineDrawingCanvases.[level-1], 0., 0.)

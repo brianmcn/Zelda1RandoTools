@@ -208,35 +208,49 @@ type TileHighlightRectangle() as this =
 // see also
 // https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag
 // https://stackoverflow.com/questions/12802122/wpf-handle-drag-and-drop-as-well-as-left-click
-let setupClickVersusDrag(e:FrameworkElement, onClick, onStartDrag) =  // will only call onClick on 'clicks', will tell you when drag starts, you can call DoDragDrop or not
+type DragDropSurface<'T>(surface:FrameworkElement, onStartDrag : _ * ('T -> unit) -> unit ) = // surface is the entire element we can drag across that encompasses all the multiple items and sees all mouse interactions in the area
     let mutable isDragging = false
-    let mutable startPoint = None
-    e.PreviewMouseDown.Add(fun ea -> 
-        startPoint <- Some(ea.GetPosition(null))
-        )
-    e.PreviewMouseMove.Add(fun ea ->
-        if (ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed ||
-            ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed ||
-            ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
-                && not isDragging && startPoint.IsSome then
-            let pos = ea.GetPosition(null)
-            // This is the windows setting for click v drag
-            //     if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
-            // However it defaults to just 4 pixels, and some folks were inadvertantly dragging when they wanted to click.
-            // The only place setupClickVersusDrag() is called in for 'painting rooms' in dungeon UI.  You would always need to go across the distance of 1 door (12.0) to paint multiple rooms.
-            // So make size that the threshold, for less accidental-drag behavior.
-            if Math.Abs(pos.X - startPoint.Value.X) > 12.0 || Math.Abs(pos.Y - startPoint.Value.Y) > 12.0 then
-                isDragging <- true
-                onStartDrag(ea)
-                isDragging <- false
-        )
-    e.MouseUp.Add(fun ea ->
-        if not isDragging then
-            if startPoint.IsSome then
-                onClick(ea)
-            // else e.g. dragged into and released
-        startPoint <- None
-        )
+    let mutable startPoint : Point option = None
+    let mutable clickFunc = None
+    let mutable initiateDragFunc = None
+    do
+        surface.PreviewMouseMove.Add(fun ea ->
+            if (ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed ||
+                ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed ||
+                ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
+                    && not isDragging && startPoint.IsSome then
+                let pos = ea.GetPosition(surface)
+                // This is the windows setting for click v drag
+                //     if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
+                // However it defaults to just 4 pixels, and some folks were inadvertantly dragging when they wanted to click.
+                // The only place setupClickVersusDrag() is called in for 'painting rooms' in dungeon UI.  You would always need to go across the distance of 1 door (12.0) to paint multiple rooms.
+                // So make size that the threshold, for less accidental-drag behavior.
+                if Math.Abs(pos.X - startPoint.Value.X) > 12.0 || Math.Abs(pos.Y - startPoint.Value.Y) > 12.0 then
+                    //printfn "%A  -  %A" startPoint pos
+                    isDragging <- true
+                    onStartDrag(ea, initiateDragFunc.Value)
+                    isDragging <- false
+                    startPoint <- None
+                    clickFunc <- None
+                    initiateDragFunc <- None
+            )
+        surface.MouseUp.Add(fun ea ->
+            //printfn "MouseUp"
+            if not isDragging then
+                if clickFunc.IsSome then
+                    clickFunc.Value(ea)
+                // else e.g. dragged into and released
+            startPoint <- None
+            clickFunc <- None
+            initiateDragFunc <- None
+            )
+    member this.RegisterClickable(e:FrameworkElement, onClick, onInitiateDrag) =     // each individual element says how it should respond to a click, or to being an initiator of a drag
+        e.PreviewMouseDown.Add(fun ea -> 
+            //printfn "PrevMD %A" (Input.Mouse.GetPosition(surface))
+            startPoint <- Some(ea.GetPosition(surface))
+            clickFunc <- Some(onClick)
+            initiateDragFunc <- Some(onInitiateDrag)
+            )
 
 ////////////////////////////////////////////////////
 

@@ -123,6 +123,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         dealWithPopups(0., 0., topc)
 
         // construct the bottom broadcast canvas (bottomc)
+        let afterSoldItemBoxesX = OW_ITEM_GRID_LOCATIONS.OFFSET + 120.
+        let drawingOverTop = makeViewRectImpl(Point(0.,0.), Point(afterSoldItemBoxesX,150.), drawingCanvas)
         let dun = makeViewRect(Point(0.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), Point(W,START_TIMELINE_H))
         let tri = makeViewRect(Point(0.,0.), Point(W,150.))
         let pro = makeViewRect(Point(ITEM_PROGRESS_FIRST_ITEM,THRU_MAP_AND_LEGEND_H), 
@@ -136,7 +138,6 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         sp.Children.Add(dun) |> ignore
         let bottomc = new Canvas(Width=W, Height=H)
         canvasAdd(bottomc, sp, 0., 0.)
-        let afterSoldItemBoxesX = OW_ITEM_GRID_LOCATIONS.OFFSET + 120.
         let scaleW = (W - afterSoldItemBoxesX) / W
         let scaleH = (180.-45.)/(THRU_MAIN_MAP_H-150.)
         owm.RenderTransform <- new ScaleTransform(scaleW,scaleH)
@@ -155,7 +156,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         ztlogo.Height <- 30.
         let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
         canvasAdd(bottomc, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 11.)
-
+        canvasAdd(bottomc, drawingOverTop, 0., 0.)
         dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 180., bottomc)
 
         // draw fake mice on top level 
