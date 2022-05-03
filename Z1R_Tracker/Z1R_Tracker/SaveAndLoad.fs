@@ -1,5 +1,7 @@
 ﻿module SaveAndLoad
 
+let AutoSaveFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-zz-autosave.json")
+
 [<AllowNullLiteral>]
 type Overworld() =
     member val Quest = -1 with get,set
@@ -328,7 +330,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         match saveType with
         | ManualSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-manual-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
         | FinishedSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-completed-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
-        | AutoSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-zz-autosave.json")
+        | AutoSave -> AutoSaveFilename
     //let filename = "J:\\-impossiblesdkgfjhsdg;kdahfskjgfdhsgfh;lahjds;ljfdhs;ljfhldashfldashlfadshgflhjdgflajdgfjkl"  // test errors
     System.IO.File.WriteAllLines(filename, lines)
     match saveType with

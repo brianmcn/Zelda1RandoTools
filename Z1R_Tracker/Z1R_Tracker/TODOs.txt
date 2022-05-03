@@ -30,20 +30,15 @@ since 1.2.1e...
  - z1m1 help
     - color & label overworld circles (shift-left-click/shift-right-click)
     - DrawingLayer (draw button)
+since 1.2.1m...
+ - fix drag-paint dungeon rooms
+ - crash-detection-popup to help folks with recovery
 
 
 homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
-
-
-drawlayer-ing in Hellwalker OOM'd on penz, explore leaks - didn't find any
-crash recovery - i can imagine that i can detect crash that happened past 5 mins at startup, and start screen can yell 'hey, try load auto-save' if one exists from that time period, 
-   as extra popup at start or something...
- - on crash, write some tiny file token say crashed
- - at startup, if that file exists, and there is an auto-save from past N minutes, dialog to offer option to try load,
-      else un-write that file to say safe startup again...
 
 
 fix up DrawingLayer, add documentation

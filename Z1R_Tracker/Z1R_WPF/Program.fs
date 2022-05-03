@@ -184,19 +184,23 @@ type MyWindow() as this =
     let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
+    let dateTimeFormat = "yyyy-MM-dd-HH:mm:ss"
     do
         let logCrashInfo(s:string) =
             printfn "%s" s
             try
                 if not loggedAnyCrash then
                     loggedAnyCrash <- true
-                    System.IO.File.AppendAllText(crashLogFilename, sprintf "BEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss")))
+                    System.IO.File.AppendAllText(crashLogFilename, sprintf "\n\nBEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString(dateTimeFormat)))
                 System.IO.File.AppendAllText(crashLogFilename, sprintf "%s\n" s)
             with _ -> ()
+        let finishCrashInfo() =
+            System.IO.File.AppendAllText(crashLogFilename, sprintf "END CRASH LOG\n%s\n" (DateTime.Now.ToString(dateTimeFormat)))
         let handle(ex:System.Exception) =
             match ex with
             | :? TrackerModel.IntentionalApplicationShutdown as ias ->
                 logCrashInfo <| sprintf "%s" ias.Message
+                finishCrashInfo()
             | :? HotKeys.UserError as hue ->
                 logCrashInfo ""
                 logCrashInfo "Error parsing HotKeys.txt:"
@@ -206,6 +210,7 @@ type MyWindow() as this =
                 logCrashInfo "You should fix this error by editing the text file."
                 logCrashInfo "Or you can delete it, and an empty hotkeys template file will be created in its place."
                 logCrashInfo ""
+                finishCrashInfo()
                 System.Threading.Thread.Sleep(2000)
                 let fileToSelect = HotKeys.HotKeyFilename
                 let args = sprintf "/Select, \"%s\"" fileToSelect
@@ -213,11 +218,13 @@ type MyWindow() as this =
                 System.Diagnostics.Process.Start(psi) |> ignore
             | _ ->
                 logCrashInfo <| sprintf "%s" (ex.ToString())
+                finishCrashInfo()
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
             let ex = e.Exception
             logCrashInfo <| sprintf "An unhandled exception from UI thread:"
             handle(ex)
             e.Handled <- true
+            finishCrashInfo()
             Application.Current.Shutdown()
             )
         System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
@@ -225,8 +232,10 @@ type MyWindow() as this =
             | :? System.Exception as ex ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread:"
                 handle(ex)
+                finishCrashInfo()
             | _ ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
+                finishCrashInfo()
             )
 
         HotKeys.PopulateHotKeyTables()
@@ -479,6 +488,73 @@ type MyWindow() as this =
 
         stackPanel.Children.Add(new DockPanel(Height=20.)) |> ignore
 
+        let ctxt = System.Threading.SynchronizationContext.Current
+        let doStartup(n, loadData : DungeonSaveAndLoad.AllData option) = async {
+            // loadData takes precedence over user selections
+            let heartShuffle = loadData.IsSome || (hscb.IsChecked.HasValue && hscb.IsChecked.Value)
+            let kind = 
+                if loadData.IsSome then
+                    if loadData.Value.Items.HiddenDungeonNumbers then 
+                        TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS 
+                    else 
+                        TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                else
+                    if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                        TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                    else
+                        TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+            if loadData.IsSome then
+                TrackerModel.Options.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+
+            let mutable speechRecognitionInstance = null
+            if TrackerModel.Options.ListenForSpeech.Value then
+                printfn "Initializing microphone for speech recognition..."
+                try
+                    speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
+                    SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
+                    SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                with ex ->
+                    printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
+                    printfn "%s" (ex.ToString())
+                    printfn ""
+                    OptionsMenu.microphoneFailedToInitialize <- true
+            else
+                printfn "Speech recognition will be disabled"
+                OptionsMenu.microphoneFailedToInitialize <- true
+
+            let loadingText = new System.Text.StringBuilder("Loading UI...")
+            let tb = new TextBox(Text=loadingText.ToString(), IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
+            stackPanel.Children.Add(tb) |> ignore
+            let totalsw = System.Diagnostics.Stopwatch.StartNew()
+            let sw = System.Diagnostics.Stopwatch.StartNew()
+            let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging startup perf
+            let showProgress(label) = 
+                async {
+                    loadingText.Append('.') |> ignore
+                    tb.Text <- loadingText.ToString()
+                    do! Async.Sleep(1) // pump to make 'Loading UI' text update
+                    do! Async.SwitchToContext ctxt
+                    displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
+                    displayStartupTimeDiagnostics(label)
+                    sw.Restart()
+                }
+            // move mainDock to topmost while app is built behind it
+            Canvas.SetZIndex(mainDock, 9999)
+            do! showProgress("start")
+            match loadData with
+            | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
+            | _ -> ()
+            let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
+            updateTimeline <- u
+            displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
+            appMainCanvas.Children.Remove(mainDock)  // remove for good
+            HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
+            WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
+            if loadData.IsNone then
+                WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
+            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+            }
+
         let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
@@ -508,7 +584,6 @@ type MyWindow() as this =
                 if startButtonHasBeenClicked then () else
                 startButtonHasBeenClicked <- true
                 turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
-                let ctxt = System.Threading.SynchronizationContext.Current
                 async {
                     TrackerModel.Options.writeSettings()
 
@@ -539,70 +614,7 @@ type MyWindow() as this =
                             let msg = sprintf "Failed to load a save file."
                             let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
                             ignore r
-
-                    // loadData takes precedence over user selections
-                    let heartShuffle = loadData.IsSome || (hscb.IsChecked.HasValue && hscb.IsChecked.Value)
-                    let kind = 
-                        if loadData.IsSome then
-                            if loadData.Value.Items.HiddenDungeonNumbers then 
-                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS 
-                            else 
-                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                        else
-                            if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
-                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
-                            else
-                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                    if loadData.IsSome then
-                        TrackerModel.Options.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
-
-                    let mutable speechRecognitionInstance = null
-                    if TrackerModel.Options.ListenForSpeech.Value then
-                        printfn "Initializing microphone for speech recognition..."
-                        try
-                            speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
-                            SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
-                            SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
-                        with ex ->
-                            printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
-                            printfn "%s" (ex.ToString())
-                            printfn ""
-                            OptionsMenu.microphoneFailedToInitialize <- true
-                    else
-                        printfn "Speech recognition will be disabled"
-                        OptionsMenu.microphoneFailedToInitialize <- true
-
-                    let loadingText = new System.Text.StringBuilder("Loading UI...")
-                    let tb = new TextBox(Text=loadingText.ToString(), IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
-                    stackPanel.Children.Add(tb) |> ignore
-                    let totalsw = System.Diagnostics.Stopwatch.StartNew()
-                    let sw = System.Diagnostics.Stopwatch.StartNew()
-                    let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging startup perf
-                    let showProgress(label) = 
-                        async {
-                            loadingText.Append('.') |> ignore
-                            tb.Text <- loadingText.ToString()
-                            do! Async.Sleep(1) // pump to make 'Loading UI' text update
-                            do! Async.SwitchToContext ctxt
-                            displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
-                            displayStartupTimeDiagnostics(label)
-                            sw.Restart()
-                        }
-                    // move mainDock to topmost while app is built behind it
-                    Canvas.SetZIndex(mainDock, 9999)
-                    do! showProgress("start")
-                    match loadData with
-                    | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
-                    | _ -> ()
-                    let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
-                    updateTimeline <- u
-                    displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
-                    appMainCanvas.Children.Remove(mainDock)  // remove for good
-                    HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
-                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
-                    if loadData.IsNone then
-                        WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-                    Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+                    do! doStartup(n,loadData)
                 } |> Async.StartImmediate
             )
 
@@ -630,6 +642,29 @@ type MyWindow() as this =
         // "dark theme"
         mainDock.Background <- Brushes.Black
         addDarkTheme(mainDock.Resources)
+
+        if System.IO.File.Exists(crashLogFilename) then
+            let lines = System.IO.File.ReadAllLines(crashLogFilename)
+            if lines.Length > 1 then
+                match DateTime.TryParseExact(lines.[lines.Length-1], dateTimeFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None) with  // (DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss")))
+                | false, _ -> ()
+                | true, crashTime ->
+                    if DateTime.Now - crashTime < TimeSpan.FromMinutes(10.) then
+                        // it crashed in the past 10 minutes
+                        if System.IO.File.Exists(SaveAndLoad.AutoSaveFilename) then
+                            let autoSaveTime = System.IO.File.GetLastWriteTime(SaveAndLoad.AutoSaveFilename)
+                            if autoSaveTime > (crashTime - TimeSpan.FromMinutes(2.)) then
+                                async {
+                                // there was an autosave just before the crash
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, 
+                                                                            "It appears that Z-Tracker recently crashed.\n\n"+
+                                                                                "There is a recent auto-save from a\n"+
+                                                                                "minute or so before the crash.\n\n"+
+                                                                                "Would you like to try loading the auto-save?", ["Yes, load auto-save"; "No"])
+                                if r <> "No" then
+                                    let loadData = Some(DungeonSaveAndLoad.LoadAll(SaveAndLoad.AutoSaveFilename))
+                                    do! doStartup(999, loadData)
+                                } |> Async.StartImmediate
         
     override this.Update(f10Press) =
         base.Update(f10Press)

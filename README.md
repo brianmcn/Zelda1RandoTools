@@ -14,7 +14,7 @@ Sample screenshots:
 
 ## Motivation
 
-This is a tracking tool for those play seeds of fcouglin's [Zelda 1 Randomizer](https://sites.google.com/site/zeldarandomizer/).
+This is a tracking tool for those play seeds of fcouglin's Zelda 1 Randomizer ([z1r discord](https://discord.gg/BEwVJUxxrW), [z1r wiki](https://z1r.fandom.com/wiki/Zelda_1_Randomizer_Wiki), [old z1r site](https://sites.google.com/site/zeldarandomizer/)).
 
 This tool is inspired by [ZHelper](http://questwizard.net/zhelper/), a tool commonly used by z1r racers.
 
