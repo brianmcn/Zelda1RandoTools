@@ -171,7 +171,7 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Image, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
+let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
 
     // map legend
@@ -181,26 +181,25 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Imag
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
 
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
     let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
-    canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
+    canvasAdd(legendCanvas, Graphics.BMPtoImage firstDungeonBMP, 0., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
 
     let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
-    canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.1*OMTW, 0.)
+    canvasAdd(legendCanvas, Graphics.BMPtoImage firstDungeonBMP, 2.1*OMTW, 0.)
     drawCompletedDungeonHighlight(legendCanvas,2.1,0,false)
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.5*OMTW, 0.)
+    canvasAdd(legendCanvas, Graphics.BMPtoImage firstGreenDungeonBMP, 2.5*OMTW, 0.)
     drawCompletedDungeonHighlight(legendCanvas,2.5,0,false)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
 
-    let recorderDestinationLegendIcon = shrink firstGreenDungeonBMP
+    let recorderDestinationLegendIcon = Graphics.BMPtoImage firstGreenDungeonBMP
     canvasAdd(legendCanvas, recorderDestinationLegendIcon, 4.8*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    let anyRoadLegendIcon = shrink(Graphics.theFullTileBmpTable.[9].[0])
+    let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
     canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)

@@ -35,7 +35,28 @@ since 1.2.1m...
  - crash-detection-popup to help folks with recovery
 
 
+loading a bad save 'crashes' (next start brings up prior-crash dialog)
+maybe bad hotkeys too?
+i need to ensure those do NOT bring up the prior-crash dialog, maybe by writing an extra line to the log
+
+
+current-recorder-destination
+ - legend RD icon becomes a (wider) button
+ - hovering shows all possible destinations (as today)
+ - left-clicking changes the CRD, which is visualized by being the number in the legend icons
+ - does 12345678 with no validation of triforces-had
+ - probably global hotkeys for the two actions as well
+
+
 homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have
+ - accumulating reminder like tris, or on-screen, or separate popups
+ - (could even 'you have marked 1 of 3 old men' in a dungeon reminder otpion, maybe, if wanna go nuts)
+
+
+would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
+
+
+OM:1/3 could maybe make font larger if change OM: to his 16x16 icon (need to move side panel down slightly)
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)

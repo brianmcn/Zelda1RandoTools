@@ -120,7 +120,6 @@ let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let H = 30
 let RIGHT_COL = 440.
 let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
-let resizeMapTileImage = OverworldMapTileCustomization.resizeMapTileImage
 
 let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
@@ -428,7 +427,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = resizeMapTileImage(Graphics.BMPtoImage(owMapBMPs.[i,j]))
+            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owOpaqueMapGrid, c, i, j)
@@ -440,7 +439,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             canvasAdd(c, rightShade, OMTW-3., 0.)
             // permanent icons
             if owInstance.AlwaysEmpty(i,j) then
-                let icon = resizeMapTileImage <| Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0]) // "X"
+                let icon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0]) // "X"
                 icon.Opacity <- X_OPACITY
                 canvasAdd(c, icon, 0., 0.)
     canvasAdd(overworldCanvas, owOpaqueMapGrid, 0., 0.)
@@ -621,7 +620,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owMapGrid, c, i, j)
             // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
-            let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
             image.Opacity <- 0.001
             canvasAdd(c, image, 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
@@ -694,14 +693,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
                     c.Children.Clear()
                     // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
-                    let image = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+                    let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
                     image.Opacity <- 0.001
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
                     if iconBMP <> null then 
-                        let icon = resizeMapTileImage(Graphics.BMPtoImage iconBMP)
+                        let icon = Graphics.BMPtoImage iconBMP
                         if ms.IsX then
                             icon.Opacity <- X_OPACITY
                             canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
@@ -771,7 +770,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let GCOUNT = GCOL*GROW
                     let pos = c.TranslatePoint(Point(), appMainCanvas)
                     let ST = CustomComboBoxes.borderThickness
-                    let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(owMapBMPs.[i,j])
+                    let tileImage = Graphics.BMPtoImage(owMapBMPs.[i,j])
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let gridWidth = float(GCOL*(5*3+2*int ST)+int ST)
@@ -815,7 +814,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         canvasAdd(tileCanvas, tileImage, 0., 0.)
                                         let bmp,_ = GetIconBMPAndExtraDecorations(cm, MapStateProxy(currentState), i, j)
                                         if bmp <> null then
-                                            let icon = bmp |> Graphics.BMPtoImage |> resizeMapTileImage
+                                            let icon = bmp |> Graphics.BMPtoImage
                                             if MapStateProxy(currentState).IsX then
                                                 icon.Opacity <- X_OPACITY
                                             canvasAdd(tileCanvas, icon, 0., 0.)
@@ -920,7 +919,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
-    let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, resizeMapTileImage, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
+    let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
     let redrawItemProgressBar = UIComponents.MakeItemProgressBar(appMainCanvas, owInstance)
     
     // Version

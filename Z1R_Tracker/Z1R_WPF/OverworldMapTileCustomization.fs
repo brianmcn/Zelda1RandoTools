@@ -55,13 +55,6 @@ type MapStateProxy(state) =
         else
             Graphics.theInteriorBmpTable.[state].[0]
 
-let resizeMapTileImage(image:Image) =
-    image.Width <- OMTW
-    image.Height <- float(11*3)
-    image.Stretch <- Stretch.Fill
-    image.StretchDirection <- StretchDirection.Both
-    image
-            
 let computeExtraDecorationArrow(topX, topY, pos:Point) =
     // in appMainCanvas coordinates:
     // bottom middle of the box, as an arrow target
@@ -275,7 +268,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
         let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let ST = CustomComboBoxes.borderThickness
-        let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
+        let tileImage = Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
         let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
         canvasAdd(tileCanvas, tileImage, 0., 0.)
         let originalState = if item2 = -1 then item1 else item2
@@ -311,7 +304,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
                         gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                         (fun (currentState) -> 
                             tileCanvas.Children.Clear()
-                            let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))
+                            let tileImage = Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
