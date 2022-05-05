@@ -292,7 +292,7 @@ let MaybePollSeedAndFlags() =
                         lastKnownFlags <- flags
                         seedAndFlagsUpdated.Trigger()
 
-let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], saveType) =  // can throw
+let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], currentRecorderDestinationIndex, saveType) =  // can throw
     MaybePollSeedAndFlags()
     let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
@@ -306,6 +306,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield! SaveBlockers("    ")
         yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
+        yield sprintf """    "CurrentRecorderDestinationIndex": %d,""" currentRecorderDestinationIndex
         yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)

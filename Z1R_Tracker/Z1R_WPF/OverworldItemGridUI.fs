@@ -47,6 +47,7 @@ let mutable popupIsActive = false
 let mutable displayIsCurrentlyMirrored = false
 let mutable notesTextBox = null : TextBox
 let mutable isCurrentlyLoadingASave = false
+let mutable currentRecorderDestinationIndex = 0
 
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
@@ -197,7 +198,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             TrackerModel.LastChangedTime.PauseAll()
             if TrackerModel.Options.SaveOnCompletion.Value && not(isCurrentlyLoadingASave) then
                 try
-                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), SaveAndLoad.FinishedSave) |> ignore
+                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
                 with e ->
                     ()
         else

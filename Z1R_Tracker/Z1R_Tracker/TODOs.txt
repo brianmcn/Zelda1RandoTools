@@ -33,19 +33,12 @@ since 1.2.1e...
 since 1.2.1m...
  - fix drag-paint dungeon rooms
  - crash-detection-popup to help folks with recovery
+ - clickable recorder destination (note where you are whistled to)
 
 
 loading a bad save 'crashes' (next start brings up prior-crash dialog)
-maybe bad hotkeys too?
+maybe bad hotkeys too?  no crash should get dialog if crash 'before main window start'
 i need to ensure those do NOT bring up the prior-crash dialog, maybe by writing an extra line to the log
-
-
-current-recorder-destination
- - legend RD icon becomes a (wider) button
- - hovering shows all possible destinations (as today)
- - left-clicking changes the CRD, which is visualized by being the number in the legend icons
- - does 12345678 with no validation of triforces-had
- - probably global hotkeys for the two actions as well
 
 
 homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have

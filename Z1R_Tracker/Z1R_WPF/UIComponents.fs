@@ -177,27 +177,46 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
     // map legend
     let legendCanvas = new Canvas()
     canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
+    let dungeonIconCanvas = new Canvas()
+    legendCanvas.Children.Add(dungeonIconCanvas) |> ignore
+    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW*0.6, Height=float(11*3-4), Background=Graphics.almostBlack, ClipToBounds=true)
+    let recorderDestinationButton = new Button(Content=recorderDestinationButtonCanvas)
 
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
-
-    let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
-    canvasAdd(legendCanvas, Graphics.BMPtoImage firstDungeonBMP, 0., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
-
-    let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
-    canvasAdd(legendCanvas, Graphics.BMPtoImage firstDungeonBMP, 2.1*OMTW, 0.)
-    drawCompletedDungeonHighlight(legendCanvas,2.1,0,false)
-    canvasAdd(legendCanvas, Graphics.BMPtoImage firstGreenDungeonBMP, 2.5*OMTW, 0.)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0,false)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
-
-    let recorderDestinationLegendIcon = Graphics.BMPtoImage firstGreenDungeonBMP
-    canvasAdd(legendCanvas, recorderDestinationLegendIcon, 4.8*OMTW, 0.)
+    canvasAdd(legendCanvas, recorderDestinationButton, 4.8*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
+
+    let updateCurrentRecorderDestinationNumeral() =
+        dungeonIconCanvas.Children.Clear()
+        recorderDestinationButtonCanvas.Children.Clear()
+        let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
+        let greenDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[1]
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 2.1*OMTW, 0.)
+        drawCompletedDungeonHighlight(dungeonIconCanvas,2.1,0,false)
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage greenDungeonBMP, 2.5*OMTW, 0.)
+        drawCompletedDungeonHighlight(dungeonIconCanvas,2.5,0,false)
+        let recorderDestinationLegendIcon = Graphics.BMPtoImage greenDungeonBMP
+        canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, -8., -2.)
+    updateCurrentRecorderDestinationNumeral()
+
+    recorderDestinationButtonCanvas.MouseDown.Add(fun ea ->
+        let delta = 
+            if ea.ChangedButton = Input.MouseButton.Left then
+                1
+            elif ea.ChangedButton = Input.MouseButton.Right then
+                -1
+            else 
+                0
+        currentRecorderDestinationIndex <- (currentRecorderDestinationIndex + 8 + delta) % 8
+        updateCurrentRecorderDestinationNumeral()
+        )
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
     canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
@@ -244,7 +263,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                 } |> Async.StartImmediate
         )
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
-    recorderDestinationLegendIcon, anyRoadLegendIcon
+    recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral
 
 let MakeItemProgressBar(appMainCanvas, owInstance:OverworldData.OverworldInstance) =
     // item progress

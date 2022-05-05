@@ -134,6 +134,7 @@ type AllData() =
     member val Blockers : Blocker[][] = null with get,set
     member val Hints : Hints = null with get,set
     member val Notes = "" with get,set
+    member val CurrentRecorderDestinationIndex = 0 with get,set
     member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
     member val DrawingLayerIcons : DrawingLayerIconModel[] = null with get,set

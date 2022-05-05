@@ -142,6 +142,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - you can have tracker snoop for window (e.g. emulator window) whose title contains seed & flags, and display/save that info
  - reconfigured top right area of tracker to improve Broadcast Window view while in dungeons
  - improved readability of 'Coords' display
+ - recorder destination in map legend is now clickable, to cycle dungeon numbers 1-8, to optionally keep track of where you just recordered to
 
 ---
 

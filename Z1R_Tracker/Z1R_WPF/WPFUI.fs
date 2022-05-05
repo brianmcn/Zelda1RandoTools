@@ -919,7 +919,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
-    let recorderDestinationLegendIcon, anyRoadLegendIcon = UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
+    let recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral = UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
     let redrawItemProgressBar = UIComponents.MakeItemProgressBar(appMainCanvas, owInstance)
     
     // Version
@@ -991,7 +991,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), SaveAndLoad.ManualSave)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.ManualSave)
                     let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
@@ -1570,7 +1570,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if not(anyFound) then
             showLocatorNoneFound()
         )
-    recorderDestinationLegendIcon.MouseEnter.Add(fun _ ->
+    recorderDestinationButton.MouseEnter.Add(fun _ ->
         routeDrawingCanvas.Children.Clear()
         for i = 0 to 15 do
             for j = 0 to 7 do
@@ -1578,7 +1578,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && MapStateProxy(cur).IsDungeon && TrackerModel.GetDungeon(cur).PlayerHasTriforce() then
                     owLocatorTilesZone.[i,j].MakeGreen()
         )
-    recorderDestinationLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
+    recorderDestinationButton.MouseLeave.Add(fun _ -> hideLocator())
     anyRoadLegendIcon.MouseEnter.Add(fun _ ->
         routeDrawingCanvas.Children.Clear()
         for i = 0 to 15 do
@@ -1853,6 +1853,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         hideRaftSpots TrackerModel.SailNotHintWasGiven
         // Notes
         notesTextBox.Text <- data.Notes
+        // CRDI
+        currentRecorderDestinationIndex <- data.CurrentRecorderDestinationIndex
+        updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
@@ -1913,7 +1916,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         timer.Interval <- TimeSpan.FromSeconds(60.0)
         timer.Tick.Add(fun _ -> 
             try
-                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), SaveAndLoad.AutoSave) |> ignore
+                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.AutoSave) |> ignore
                 async {
                     diskIcon.Opacity <- 0.7
                     do! Async.Sleep(300)

@@ -295,7 +295,13 @@ tracker for "The Legend of Zelda" randomizer.
 
 ### <a id="main-buttons"></a> Buttons
 
-There are a number of buttons near the bottom right of the overworld map.
+There are a number of buttons below the overworld map.
+
+The version-number display is a button that shows what version of Z-Tracker you are running and offers a link to the website.
+
+The "Recorder Destination" icon is a button which changes the dungeon numbers displayed in the Legend.  You can cycle through 1 to 8; left-clicking the button goes +1 and 
+right-clicking it goes -1.  You can optionally use this "glorified counter" to keep track of which dungeon you just recorder-whirlwind-ed to, so that, a few minutes from now, 
+when you next try to use the recorder to warp, you will remember where the recorder thinks you are.
 
 You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.  This behavior also activates automatically when you reset the timer.
 
