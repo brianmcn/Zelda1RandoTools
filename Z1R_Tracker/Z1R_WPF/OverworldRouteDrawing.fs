@@ -131,6 +131,21 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
         // draw routes to everywhere
         //for v in adjacencyDict.Keys do
         //    draw(v)
+        if false then   // just turn on if want to visualize full map topography
+            // draw all possible routes
+            accumulatedLines.Clear()
+            let preferLadder, cost = false, 0
+            for p in adjacencyDict.Keys do
+                for g,_cost in adjacencyDict.[p] do
+                    if allPossibleScreenScrolls.Contains(p,g) && not(preferLadder) then
+                        if p=Vertex(0,6,FULL) && g=Vertex(15,5,FULL) then   // world wrap
+                            accumulatedLines.Add(makeCurve(Vertex(-1,6,FULL), Vertex(0,6,FULL), if fadeOut then colorAlt(cost) else colorAlt(0)))
+                            accumulatedLines.Add(makeCurve(Vertex(15,5,FULL), Vertex(16,5,FULL), if fadeOut then colorAlt(cost) else colorAlt(0)))
+                        else
+                            accumulatedLines.Add(makeCurve(g, p, if fadeOut then colorAlt(cost) else colorAlt(0)))
+                    else
+                        // normal walk is solid line with fading color based on cost
+                        accumulatedLines.Add(makeLine(g, p, if fadeOut then color(cost) else color(0)))
         let pq = PriorityQueue()
         // draw routes only to routeworthy (accessible and interesting) spots
         for i = 0 to 15 do

@@ -1009,7 +1009,7 @@ let recomputePlayerStateSummary() =
 //////////////////////////////////////////////////////////////////////////////////////////
 // Map
 
-let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
+let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST)
 
 let mapLastChangedTime = new LastChangedTime()
 let overworldMapCircles = Array2D.create 16 8 0   // 0 means none, 1 means just circle, 48-57 means circle with 0-9 label, 65-90 means circle with A-Z label; +100 of those or +200 of those changes color

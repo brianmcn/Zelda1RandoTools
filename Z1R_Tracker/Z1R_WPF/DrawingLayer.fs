@@ -82,6 +82,9 @@ let ZTrackerResourceTable =
             "BlueBubble", unborder <| Graphics.blue_bubble_bmp
             "Darknut", unborder <| Graphics.blue_darknut_bmp
             "Yellow", unborder <| Graphics.other_monster_bmp
+            // some others
+            "OldMan", unborder <| Graphics.old_man_bmp
+            "Fairy", Graphics.fairy_bmp
             // 16x16 items
             "Triforce", unborder <| Graphics.zi_triforce_bmp
             "FiveRupee", unborder <| Graphics.zi_fiver_bmp

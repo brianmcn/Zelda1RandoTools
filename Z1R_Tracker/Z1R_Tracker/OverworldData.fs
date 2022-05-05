@@ -21,11 +21,13 @@ let hintMeanings = [|
     "Meet (npc) at", "Magical Sword"
     |]
 
+[<RequireQualifiedAccess>]
 type OWQuest = 
     | FIRST
     | SECOND
     | MIXED_FIRST
     | MIXED_SECOND
+    | BLANK
     member this.IsFirstQuestOW = match this with |FIRST|MIXED_FIRST -> true | _ -> false
     member this.AsInt() =
         match this with
@@ -33,11 +35,13 @@ type OWQuest =
         | SECOND -> 1
         | MIXED_FIRST -> 2
         | MIXED_SECOND -> 3
+        | BLANK -> 4
     member this.FromInt(x) =
         if x=0 then FIRST
         elif x=1 then SECOND
         elif x=2 then MIXED_FIRST
         elif x=3 then MIXED_SECOND
+        elif x=4 then BLANK
         else failwith "bad OWQuest.FromInt value"
 
 let owMapZone = [|
@@ -266,55 +270,67 @@ type OverworldInstance(quest) =
     member this.Quest = quest
     member this.AlwaysEmpty(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestAlwaysEmpty.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestAlwaysEmpty.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  PrivateInternals.owMapSquaresMixedQuestAlwaysEmpty.[y].Chars(x) = 'X'
-        | MIXED_SECOND -> PrivateInternals.owMapSquaresMixedQuestAlwaysEmpty.[y].Chars(x) = 'X'
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestAlwaysEmpty.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestAlwaysEmpty.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  PrivateInternals.owMapSquaresMixedQuestAlwaysEmpty.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_SECOND -> PrivateInternals.owMapSquaresMixedQuestAlwaysEmpty.[y].Chars(x) = 'X'
+        | OWQuest.BLANK ->        false
     member this.Ladderable(x,y) =
         match quest with
-        | FIRST ->        false
+        | OWQuest.FIRST ->        false
+        | OWQuest.BLANK ->        false
         | _ ->            PrivateInternals.owMapSquaresSecondQuestLadderable.[y].Chars(x) = 'X'
     member this.HasArmos(x,y) =
-        PrivateInternals.owMapSquaresArmos.[y].Chars(x) = 'X'
+        match quest with
+        | OWQuest.BLANK -> false
+        | _ -> PrivateInternals.owMapSquaresArmos.[y].Chars(x) = 'X'
     member this.Raftable(x,y) =
-        PrivateInternals.owMapSquaresRaftable.[y].Chars(x) = 'X'
+        match quest with
+        | OWQuest.BLANK -> false
+        | _ -> PrivateInternals.owMapSquaresRaftable.[y].Chars(x) = 'X'
     member this.Whistleable(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X')
-        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X')
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X')
+        | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestWhistleable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestWhistleable.[y].Chars(x) = 'X')
+        | OWQuest.BLANK ->        false
     member this.PowerBraceletable(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
-        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
+        | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestPowerBraceletable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestPowerBraceletable.[y].Chars(x) = 'X')
+        | OWQuest.BLANK ->        false
     member this.GravePushable(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
-        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
+        | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestGravePushable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestGravePushable.[y].Chars(x) = 'X')
+        | OWQuest.BLANK ->        false
     member this.Burnable(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
-        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
+        | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBurnable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBurnable.[y].Chars(x) = 'X')
+        | OWQuest.BLANK ->        false
     member this.Bombable(x,y) =
         match quest with
-        | FIRST ->        PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X'
-        | SECOND ->       PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X'
-        | MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
-        | MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
+        | OWQuest.FIRST ->        PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X'
+        | OWQuest.SECOND ->       PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
+        | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
+        | OWQuest.BLANK ->        false
     member this.Nothingable(x,y) = not(this.Bombable(x,y) || this.Burnable(x,y) || this.Ladderable(x,y) || this.PowerBraceletable(x,y) || this.Raftable(x,y) || this.Whistleable(x,y))
     member this.SometimesEmpty(x,y) =
         match quest with
-        | FIRST ->        false
-        | SECOND ->       false
-        | MIXED_FIRST ->  PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
-        | MIXED_SECOND -> PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
+        | OWQuest.FIRST ->        false
+        | OWQuest.SECOND ->       false
+        | OWQuest.MIXED_FIRST ->  PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
+        | OWQuest.MIXED_SECOND -> PrivateInternals.owMapSquaresMixedQuestSometimesEmpty.[y].Chars(x) = 'X'
+        | OWQuest.BLANK ->        true
 
 // yellow brown rocks in the top half of '\'
 let overworldSouthEastUpperRockTiles = [|

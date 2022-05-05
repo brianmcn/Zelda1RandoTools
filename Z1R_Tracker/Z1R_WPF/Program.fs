@@ -547,6 +547,7 @@ type MyWindow() as this =
             match loadData with
             | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
             | _ -> ()
+            //let n = if n=3 then 4 else n // TODO how should BLANK option appear on startup screen? also want to warn folks to turn off DrawRoutes/HighlightNearby/ShowGettable/Magnifier
             let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
             updateTimeline <- u
             displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
