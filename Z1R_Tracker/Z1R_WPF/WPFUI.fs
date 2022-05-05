@@ -25,6 +25,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value,   TrackerModel.Options.VisualReminders.HaveKeyLadder.Value
             | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
+            | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModel.Options.VoiceReminders.DoorRepair.Value,      TrackerModel.Options.VisualReminders.DoorRepair.Value
         if not(isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
             reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
@@ -1240,7 +1241,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let recentlyAgo = TimeSpan.FromMinutes(3.0)
     let ladderTime, recorderTime, powerBraceletTime, boomstickTime = 
         new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo)
-    let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain = 0, 0
+    let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain, owPreviouslyAnnounceDoorRepairCount = 0, 0, 0
     let timer = new System.Windows.Threading.DispatcherTimer()
     timer.Interval <- TimeSpan.FromSeconds(1.0)
     timer.Tick.Add(fun _ -> 
@@ -1298,6 +1299,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
                         SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
                         boomstickTime.SetNow()
+            // remind door repair spots
+            if TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE) > owPreviouslyAnnounceDoorRepairCount then
+                let n = TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
+                let max = TrackerModel.mapSquareChoiceDomain.MaxUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
+                let icons = [upcb(Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE].[0]); ReminderTextBox(sprintf"%d/9"n)]
+                SendReminder(TrackerModel.ReminderCategory.DoorRepair, sprintf "You found %s%d of %d door repairs" (if n=max then "all " else "") n max, icons)
+                owPreviouslyAnnounceDoorRepairCount <- n
             // one-time reminders
             match oneTimeRemindAnyKey with
             | None -> ()

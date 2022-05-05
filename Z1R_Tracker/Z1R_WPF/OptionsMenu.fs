@@ -53,6 +53,8 @@ let data2 = [|
         TrackerModel.Options.VoiceReminders.HaveKeyLadder,   TrackerModel.Options.VisualReminders.HaveKeyLadder
     "Blockers", "Reminder when you may have become unblocked on a previously-aborted dungeon", 
         TrackerModel.Options.VoiceReminders.Blockers,        TrackerModel.Options.VisualReminders.Blockers
+    "Door Repair Count", "Each time you uncover a door repair charge, remind the count of how many you have found", 
+        TrackerModel.Options.VoiceReminders.DoorRepair,        TrackerModel.Options.VisualReminders.DoorRepair
     |]
 
 let makeOptionsCanvas(width, includePopupExplainer) = 

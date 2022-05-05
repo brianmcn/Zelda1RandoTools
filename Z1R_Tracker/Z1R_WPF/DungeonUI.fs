@@ -326,7 +326,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
             )
         let tileSunglasses = 0.75
-        let blockerGridHeight = float(36*3)  // brittle, but that's the current constant
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
         levelTab.Content <- contentCanvas
         // rupee/blank/key/bomb row highlighter

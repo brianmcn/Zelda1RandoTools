@@ -16,6 +16,7 @@ type ReminderCategory =
     | RecorderPBSpotsAndBoomstickBook
     | HaveKeyLadder
     | Blockers
+    | DoorRepair
 
 type IntentionalApplicationShutdown(msg) =
     inherit System.Exception(msg)
@@ -38,6 +39,7 @@ module Options =
         let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
+        let mutable DoorRepair = Bool(true)
     module VisualReminders =
         let mutable DungeonFeedback = Bool(true)
         let mutable SwordHearts = Bool(true)
@@ -45,6 +47,7 @@ module Options =
         let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
         let mutable HaveKeyLadder = Bool(true)
         let mutable Blockers = Bool(true)
+        let mutable DoorRepair = Bool(true)
     let mutable AnimateTileChanges = Bool(true)
     let mutable SaveOnCompletion = Bool(false)
     let mutable SnoopSeedAndFlags = Bool(false)
@@ -83,6 +86,7 @@ module Options =
         member val Voice_RecorderPBSpotsAndBoomstickBook = true with get,set
         member val Voice_HaveKeyLadder = true with get,set
         member val Voice_Blockers = true with get,set
+        member val Voice_DoorRepair = true with get,set
 
         member val Visual_DungeonFeedback = true with get,set
         member val Visual_SwordHearts = true with get,set
@@ -90,6 +94,7 @@ module Options =
         member val Visual_RecorderPBSpotsAndBoomstickBook = true with get,set
         member val Visual_HaveKeyLadder = true with get,set
         member val Visual_Blockers = true with get,set
+        member val Visual_DoorRepair = true with get,set
         
         member val AnimateTileChanges = true with get,set
         member val SaveOnCompletion = false with get,set
@@ -133,6 +138,7 @@ module Options =
         data.Voice_RecorderPBSpotsAndBoomstickBook <- VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value
         data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
         data.Voice_Blockers <-        VoiceReminders.Blockers.Value
+        data.Voice_DoorRepair <-      VoiceReminders.DoorRepair.Value
 
         data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
         data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
@@ -140,6 +146,7 @@ module Options =
         data.Visual_RecorderPBSpotsAndBoomstickBook <- VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
         data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
         data.Visual_Blockers <-        VisualReminders.Blockers.Value
+        data.Visual_DoorRepair <-      VisualReminders.DoorRepair.Value
 
         data.AnimateTileChanges <- AnimateTileChanges.Value
         data.SaveOnCompletion <- SaveOnCompletion.Value
@@ -195,6 +202,7 @@ module Options =
             VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value <- data.Voice_RecorderPBSpotsAndBoomstickBook
             VoiceReminders.HaveKeyLadder.Value <-   data.Voice_HaveKeyLadder
             VoiceReminders.Blockers.Value <-        data.Voice_Blockers
+            VoiceReminders.DoorRepair.Value <-      data.Voice_DoorRepair
 
             VisualReminders.DungeonFeedback.Value <- data.Visual_DungeonFeedback
             VisualReminders.SwordHearts.Value <-     data.Visual_SwordHearts
@@ -202,6 +210,7 @@ module Options =
             VisualReminders.RecorderPBSpotsAndBoomstickBook.Value <- data.Visual_RecorderPBSpotsAndBoomstickBook
             VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
             VisualReminders.Blockers.Value <-        data.Visual_Blockers
+            VisualReminders.DoorRepair.Value <-      data.Visual_DoorRepair
 
             AnimateTileChanges.Value <- data.AnimateTileChanges
             SaveOnCompletion.Value <- data.SaveOnCompletion

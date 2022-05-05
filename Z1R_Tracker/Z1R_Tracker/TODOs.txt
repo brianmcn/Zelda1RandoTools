@@ -34,11 +34,7 @@ since 1.2.1m...
  - fix drag-paint dungeon rooms
  - crash-detection-popup to help folks with recovery
  - clickable recorder destination (note where you are whistled to)
-
-
-homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have
- - accumulating reminder like tris, or on-screen, or separate popups
- - (could even 'you have marked 1 of 3 old men' in a dungeon reminder otpion, maybe, if wanna go nuts)
+ - door repair count reminders
 
 
 would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
