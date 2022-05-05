@@ -1039,12 +1039,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             r
             )
         importFunctions.[level-1] <- (fun (dm:DungeonSaveAndLoad.DungeonModel) ->
-            for i = 0 to 6 do
-                for j = 0 to 7 do
-                    horizontalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.HorizontalDoors.[j].[i]
-            for i = 0 to 7 do
-                for j = 0 to 6 do
-                    verticalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.VerticalDoors.[j].[i]
             for i = 0 to 7 do
                 for j = 0 to 7 do
                     roomIsCircled.[i,j] <- dm.RoomIsCircled.[j].[i]
@@ -1055,6 +1049,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                             numeral.Opacity <- 0.0 
                         setNewValueFunctions.[i,j](rs)
+            // we set the door after the rooms, because DoDoorInference may have inferred some values during the setNewValueFunctions calls, and want to overwrite
+            for i = 0 to 6 do
+                for j = 0 to 7 do
+                    horizontalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.HorizontalDoors.[j].[i]
+            for i = 0 to 7 do
+                for j = 0 to 6 do
+                    verticalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.VerticalDoors.[j].[i]
             currentOutlineDisplayState.[level-1] <- dm.VanillaMapOverlay
             doVanillaOutlineRedraw(outlineDrawingCanvases.[level-1], currentOutlineDisplayState.[level-1])
             )

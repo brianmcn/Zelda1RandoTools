@@ -36,11 +36,6 @@ since 1.2.1m...
  - clickable recorder destination (note where you are whistled to)
 
 
-loading a bad save 'crashes' (next start brings up prior-crash dialog)
-maybe bad hotkeys too?  no crash should get dialog if crash 'before main window start'
-i need to ensure those do NOT bring up the prior-crash dialog, maybe by writing an extra line to the log
-
-
 homer: Idea: for the door repair thing (and maybe the large secret/medium/small) when you click 'door repair' a little pop up displays 2/9 or 9/9 or however many you have
  - accumulating reminder like tris, or on-screen, or separate popups
  - (could even 'you have marked 1 of 3 old men' in a dungeon reminder otpion, maybe, if wanna go nuts)

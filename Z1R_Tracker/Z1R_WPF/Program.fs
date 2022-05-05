@@ -183,6 +183,7 @@ type MyWindow() as this =
     let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
     let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
+    let mutable gotThruStartup = false
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
     let dateTimeFormat = "yyyy-MM-dd-HH:mm:ss"
     do
@@ -194,8 +195,10 @@ type MyWindow() as this =
                     System.IO.File.AppendAllText(crashLogFilename, sprintf "\n\nBEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString(dateTimeFormat)))
                 System.IO.File.AppendAllText(crashLogFilename, sprintf "%s\n" s)
             with _ -> ()
-        let finishCrashInfo() =
-            System.IO.File.AppendAllText(crashLogFilename, sprintf "END CRASH LOG\n%s\n" (DateTime.Now.ToString(dateTimeFormat)))
+        let finishCrashInfoImpl(extra) =
+            let finalText = if gotThruStartup then extra else "(during startup)\n"  // this intentionally interacts with crash recovery dialog
+            System.IO.File.AppendAllText(crashLogFilename, sprintf "END CRASH LOG\n%s\n%s" (DateTime.Now.ToString(dateTimeFormat)) finalText)
+        let finishCrashInfo() = finishCrashInfoImpl("")
         let handle(ex:System.Exception) =
             match ex with
             | :? TrackerModel.IntentionalApplicationShutdown as ias ->
@@ -553,6 +556,7 @@ type MyWindow() as this =
             if loadData.IsNone then
                 WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
             Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+            gotThruStartup <- true
             }
 
         let mutable startButtonHasBeenClicked = false
@@ -599,13 +603,16 @@ type MyWindow() as this =
                         let r = ofd.ShowDialog(this)
                         if r.HasValue && r.Value then
                             try
-                                loadData <- Some(DungeonSaveAndLoad.LoadAll(ofd.FileName))
-                                if loadData.Value.Version <> OverworldData.VersionString then
+                                let json = System.IO.File.ReadAllText(ofd.FileName)
+                                let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
+                                if ver.Version <> OverworldData.VersionString then
                                     let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
-                                                        OverworldData.VersionString loadData.Value.Version
+                                                        OverworldData.VersionString ver.Version
                                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
                                     ignore r
                                     loadData <- None
+                                else
+                                    loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
                             with e ->
                                 let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
                                 let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
@@ -646,7 +653,7 @@ type MyWindow() as this =
         if System.IO.File.Exists(crashLogFilename) then
             let lines = System.IO.File.ReadAllLines(crashLogFilename)
             if lines.Length > 1 then
-                match DateTime.TryParseExact(lines.[lines.Length-1], dateTimeFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None) with  // (DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss")))
+                match DateTime.TryParseExact(lines.[lines.Length-1], dateTimeFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None) with
                 | false, _ -> ()
                 | true, crashTime ->
                     if DateTime.Now - crashTime < TimeSpan.FromMinutes(10.) then
@@ -662,8 +669,11 @@ type MyWindow() as this =
                                                                                 "minute or so before the crash.\n\n"+
                                                                                 "Would you like to try loading the auto-save?", ["Yes, load auto-save"; "No"])
                                 if r <> "No" then
-                                    let loadData = Some(DungeonSaveAndLoad.LoadAll(SaveAndLoad.AutoSaveFilename))
+                                    let json = System.IO.File.ReadAllText(SaveAndLoad.AutoSaveFilename)
+                                    let loadData = Some(DungeonSaveAndLoad.LoadAll(json))
                                     do! doStartup(999, loadData)
+                                    // successful reload of autosave, call this so next startup won't also trigger recovery dialog
+                                    finishCrashInfoImpl("successful reload of autosave")
                                 } |> Async.StartImmediate
         
     override this.Update(f10Press) =

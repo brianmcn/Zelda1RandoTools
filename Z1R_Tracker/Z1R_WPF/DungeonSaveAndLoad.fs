@@ -123,7 +123,10 @@ let SaveDrawingLayer() =
 /////////////////////////////////////////////////////////////////////////////
 
 open SaveAndLoad
-        
+
+type JustVersion() =
+    member val Version = "" with get,set
+
 type AllData() =
     member val Version = "" with get,set
     member val TimeInSeconds = 0 with get,set
@@ -142,7 +145,6 @@ type AllData() =
     member val Flags = "" with get,set
     member val Timeline : TimelineDatum[] = null with get,set
 
-let LoadAll(filename) =  // can throw
-    let json = System.IO.File.ReadAllText(filename)
+let LoadAll(json:string) =  // can throw
     let data = System.Text.Json.JsonSerializer.Deserialize<AllData>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
     data
