@@ -44,9 +44,6 @@ homer: Idea: for the door repair thing (and maybe the large secret/medium/small)
 would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
 
 
-OM:1/3 could maybe make font larger if change OM: to his 16x16 icon (need to move side panel down slightly)
-
-
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
 
 

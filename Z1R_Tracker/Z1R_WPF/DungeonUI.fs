@@ -352,26 +352,28 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 | Some r -> rowHighlighter.Opacity <- 1.0; Grid.SetRow(rowHighlighter, r)
             highlightRow
         let mutable oldManCount = 0
-        let oldManCountTB = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(0.), Width=45.,
-                                        HorizontalContentAlignment=HorizontalAlignment.Center, Foreground=Brushes.Orange, Background=Brushes.Black, Focusable=false)
-        let oldManBorder = new Border(Child=oldManCountTB, Width=45., BorderThickness=Thickness(0.), Background=Brushes.Black)
+        let oldManCountTB = new TextBox(IsHitTestVisible=false, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16., Margin=Thickness(0.), Width=45.,
+                                        HorizontalContentAlignment=HorizontalAlignment.Left, Foreground=Brushes.Orange, Background=Brushes.Transparent, Focusable=false)
+        let oldManBorder = new Canvas(Width=44., Height=16., Background=Brushes.Black)
+        canvasAdd(oldManBorder, Graphics.BMPtoImage Graphics.old_man_bmp, 2., 0.)
+        canvasAdd(oldManBorder, oldManCountTB, 18., -3.)
         oldManBorder.ToolTip <- "'Old Man Count' - the number of 'old men'\n(NPC-with-hint/Bomb-Upgrade/Hungry-Goriya/\nLife-or-Money) rooms you have marked, and\nthe total number expected in this dungeon"
         ToolTipService.SetShowDuration(oldManBorder, 8000)
         let updateOldManCountText() = 
             if TrackerModel.IsHiddenDungeonNumbers() then
                 if TrackerModel.GetDungeon(level-1).LabelChar <> '?' then
                     let i = int(TrackerModel.GetDungeon(level-1).LabelChar) - int('1')
-                    oldManCountTB.Text <- sprintf "OM:%d/%d" oldManCount (TrackerModel.GetOldManCount(i))
+                    oldManCountTB.Text <- sprintf "%d/%d" oldManCount (TrackerModel.GetOldManCount(i))
                 else
-                    oldManCountTB.Text <- sprintf "OM:%d" oldManCount
+                    oldManCountTB.Text <- sprintf "%d" oldManCount
             else
-                oldManCountTB.Text <- sprintf "OM:%d/%d" oldManCount (TrackerModel.GetOldManCount(level-1))
+                oldManCountTB.Text <- sprintf "%d/%d" oldManCount (TrackerModel.GetOldManCount(level-1))
         updateOldManCountText()
         if TrackerModel.IsHiddenDungeonNumbers() then
             TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateOldManCountText())
-        canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 67.)
+        canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.)
         // local dungeon tracker
-        let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, blockerGridHeight - float(TH)
+        let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, 90.
         let pos = Point(0. + LD_X, posY + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
         let mutable localDungeonTrackerPanel = null
         do
