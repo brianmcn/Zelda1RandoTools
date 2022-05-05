@@ -511,20 +511,43 @@ let readCacheFileOrCreateBmp(filename, createF : unit -> System.Drawing.Bitmap) 
         bmp.Save(filename)
         bmp
 
+let mutable alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap = "", false   // startup screen can set these
+let CanHideAndReveal() = not(System.String.IsNullOrEmpty(alternativeOverworldMapFilename))
+let ShouldInitiallyHideOverworldMap() = CanHideAndReveal() && shouldInitiallyHideOverworldMap
+let blankTileBmp =
+    let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+    for px = 0 to 16*3-1 do
+        for py = 0 to 11*3-1 do
+            if px >= 15*3 || py >= 10*3 then
+                fullTileBmp.SetPixel(px, py, System.Drawing.Color.Black)
+            else
+                fullTileBmp.SetPixel(px, py, System.Drawing.Color.DarkSlateGray)
+    fullTileBmp
 let overworldMapBMPs(n) =
     let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8
-    for x = 0 to 15 do
-        for y = 0 to 7 do
-            let tile = 
-                let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Overworld\quest.%d.ow.%2d.%2d.bmp""" n x y)
-                readCacheFileOrCreateBmp(filename, fun () ->
-                    let tile = new System.Drawing.Bitmap(16*3,11*3)
-                    for px = 0 to 16*3-1 do
-                        for py = 0 to 11*3-1 do
-                            tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
-                    tile)
-            tiles.[x,y] <- tile
+    if n=4 && not(System.String.IsNullOrEmpty(alternativeOverworldMapFilename)) then
+        let image = new System.Drawing.Bitmap(alternativeOverworldMapFilename) :> System.Drawing.Image
+        let bitmap = new System.Drawing.Bitmap( image, new System.Drawing.Size( 256*3, 88*3 ) )
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let tile = new System.Drawing.Bitmap(16*3,11*3)
+                for px = 0 to 16*3-1 do
+                    for py = 0 to 11*3-1 do
+                        tile.SetPixel(px, py, bitmap.GetPixel((x*16*3 + px), (y*11*3 + py)))
+                tiles.[x,y] <- tile
+    else
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let tile = 
+                    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Overworld\quest.%d.ow.%2d.%2d.bmp""" n x y)
+                    readCacheFileOrCreateBmp(filename, fun () ->
+                        let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        for px = 0 to 16*3-1 do
+                            for py = 0 to 11*3-1 do
+                                tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
+                        tile)
+                tiles.[x,y] <- tile
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)

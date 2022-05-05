@@ -21,6 +21,10 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
     let DTOCW,DTOCH = 3.*16.*ENLARGE + 4.*BT, 3.*11.*ENLARGE + 4.*BT
     let dungeonTabsOverlayContent = new Canvas(Width=DTOCW, Height=DTOCH)
+    if owMapNum=4 then  // disable magnifier on blank/custom map
+        let onMouseForMagnifier(_,_) = ()
+        onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
+    else
     mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
     let dtocPlusLegend = new StackPanel(Orientation=Orientation.Vertical)
     dtocPlusLegend.Children.Add(dungeonTabsOverlayContent) |> ignore

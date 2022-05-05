@@ -547,7 +547,6 @@ type MyWindow() as this =
             match loadData with
             | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
             | _ -> ()
-            //let n = if n=3 then 4 else n // TODO how should BLANK option appear on startup screen? also want to warn folks to turn off DrawRoutes/HighlightNearby/ShowGettable/Magnifier
             let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
             updateTimeline <- u
             displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
@@ -565,6 +564,45 @@ type MyWindow() as this =
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
                 TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
             )
+        let startButtonBehavior(n) = 
+            if startButtonHasBeenClicked then () else
+            startButtonHasBeenClicked <- true
+            turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
+            async {
+                TrackerModel.Options.writeSettings()
+
+                if false then   // this feature is currently unused
+                    Gamepad.ControllerFailureEvent.Publish.Add(handle)
+                    OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+
+                let mutable loadData = None
+                if n = 999 then
+                    let ofd = new Microsoft.Win32.OpenFileDialog()
+                    ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                    ofd.Filter <- "ZTracker saves|zt-save-*.json"
+                    let r = ofd.ShowDialog(this)
+                    if r.HasValue && r.Value then
+                        try
+                            let json = System.IO.File.ReadAllText(ofd.FileName)
+                            let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
+                            if ver.Version <> OverworldData.VersionString then
+                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                                    OverworldData.VersionString ver.Version
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                ignore r
+                                loadData <- None
+                            else
+                                loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
+                        with e ->
+                            let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
+                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                            ignore r
+                    else
+                        let msg = sprintf "Failed to load a save file."
+                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                        ignore r
+                do! doStartup(n,loadData)
+            } |> Async.StartImmediate
         let quests = [|
             0, "First Quest Overworld"
             1, "Second Quest Overworld"
@@ -574,7 +612,6 @@ type MyWindow() as this =
             |]
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
-            startButton.Width <- WIDTH/2.
             if n=999 then
                 let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=smallSpacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
                 stackPanel.Children.Add(tb) |> ignore
@@ -584,47 +621,99 @@ type MyWindow() as this =
                 startButton.Margin <- smallSpacing
             else
                 startButton.Margin <- spacing
-            stackPanel.Children.Add(startButton) |> ignore
-            startButton.Click.Add(fun _ -> 
-                if startButtonHasBeenClicked then () else
-                startButtonHasBeenClicked <- true
-                turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
-                async {
-                    TrackerModel.Options.writeSettings()
+            if n=0 then
+                let dp = new DockPanel(LastChildFill=true, Width=WIDTH/2.)
+                let otherButton = Graphics.makeButton(". . .", None, None)
+                let tb = new TextBox(Text="See more\noptions",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(2.), Opacity=0.)
+                appMainCanvas.Children.Add(tb) |> ignore
+                otherButton.MouseEnter.Add(fun _ ->
+                    let pos = otherButton.TransformToAncestor(appMainCanvas).Transform(Point(otherButton.ActualWidth+3., 0.))
+                    Canvas.SetLeft(tb, pos.X)
+                    Canvas.SetTop(tb, pos.Y)
+                    tb.Opacity <- 1.0
+                    )
+                otherButton.MouseLeave.Add(fun _ -> tb.Opacity <- 0.0)
+                otherButton.Margin <-Thickness(6.,0.,0.,0.)
+                dp.Children.Add(otherButton) |> ignore
+                otherButton.Click.Add(fun _ -> 
+                    let dialog1 = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+                    addDarkTheme(dialog1.Resources)
+                    let tb1 = new TextBox(IsReadOnly=true, BorderThickness=Thickness(0.), Foreground=Brushes.Orange)
+                    tb1.Text <- "Z-Tracker was designed for use with fcoughlin's Zelda 1 Randomizer.\n\n" +
+                                
+                                "There are other randomizers/ROM-hacks for Zelda 1 which use other\n" + 
+                                "(sometimes randomized) overworld maps.  Z-Tracker may not work with\n" +
+                                "these perfectly, but the options here are designed to allow you to use\n" +
+                                "Z-Tracker with non-standard overworld maps, for a slightly degraded, but\n" +
+                                "workable tracking experience.\n\n" + 
 
-                    if false then   // this feature is currently unused
-                        Gamepad.ControllerFailureEvent.Publish.Add(handle)
-                        OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+                                "There are two main options:\n" +
+                                " - use a 'blank' 16x8 grid for overworld map tracking\n" +
+                                " - use a custom .png map file, supplied by your other randomizer/ROMhack\n\n" +
 
-                    let mutable loadData = None
-                    if n = 999 then
-                        let ofd = new Microsoft.Win32.OpenFileDialog()
-                        ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                        ofd.Filter <- "ZTracker saves|zt-save-*.json"
-                        let r = ofd.ShowDialog(this)
-                        if r.HasValue && r.Value then
-                            try
-                                let json = System.IO.File.ReadAllText(ofd.FileName)
-                                let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
-                                if ver.Version <> OverworldData.VersionString then
-                                    let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
-                                                        OverworldData.VersionString ver.Version
-                                    let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                                    ignore r
-                                    loadData <- None
-                                else
-                                    loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
-                            with e ->
-                                let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
-                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                                ignore r
-                        else
-                            let msg = sprintf "Failed to load a save file."
-                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                            ignore r
-                    do! doStartup(n,loadData)
-                } |> Async.StartImmediate
-            )
+                                "If you do supply a custom map file, you can also choose whether you want the map\n" +
+                                "to be fully revealed/visible at the outset, or whether each of the 16x8 tiles\n" +
+                                "should be individually hidden, until you click each tile to reveal it.\n\n" +
+
+                                "Choose an option below:"
+                    dialog1.Children.Add(tb1) |> ignore
+                    let wh = new System.Threading.ManualResetEvent(false)
+                    let mutable choice = None
+                    for txt,n in [
+                                    "I just want a blank 16x8 grid", 0
+                                    "I want to select a map file on disk, and have it fully revealed at the start", 1
+                                    "I want to select a map file on disk, but have each tile hidden at the start", 2
+                                 ] do
+                        let button = Graphics.makeButton(txt, None, None)
+                        button.Margin <- Thickness(0., 10., 0., 0.)
+                        dialog1.Children.Add(button) |> ignore
+                        button.Click.Add(fun _ -> if choice.IsNone then choice <- Some(n); wh.Set() |> ignore)
+                    async {
+                        do! CustomComboBoxes.DoModal(cm, wh, 30., 30., new Border(Child=dialog1, BorderThickness=Thickness(3.), BorderBrush=Brushes.Orange, Background=Brushes.Black, Padding=Thickness(5.)))
+                        Graphics.alternativeOverworldMapFilename <- ""
+                        let choice = choice.Value
+                        if choice<>0 then
+                            let ofd = new Microsoft.Win32.OpenFileDialog()
+                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                            ofd.Filter <- "Overworld map images|*.png"
+                            let r = ofd.ShowDialog(this)
+                            if r.HasValue && r.Value then
+                                Graphics.alternativeOverworldMapFilename <- ofd.FileName
+                        Graphics.shouldInitiallyHideOverworldMap <- (choice=2)
+                        // TODO saves for those two values (actually, only map file needs to be saved; initially only happens at startup, and hidden is always supported if backing state hides it)
+                        let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
+
+                                    "Some Z-Tracker features won't interact well with a non-standard overworld map.  " +
+                                    "When the app begins, consider doing this:\n" +
+                                    " - uncheck the 'N gettable' checkbox above the overworld map grid\n" +
+                                    " - click the 'Options...' menu at the bottom, and uncheck:\n" +
+                                    "    - Draw Routes\n" + 
+                                    "    - Highlight Nearby\n" + 
+                                    "    - Mirror Overworld\n\n" + 
+
+                                    "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
+                                    "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
+                                    "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
+                                    "abitrary markup to the app in a few ways:\n" +
+                                    " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
+                                    "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
+                                    " - shift-left-click an overworld tile, to circle and label it\n" +
+                                    "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
+                                    " - type text into the 'Notes' text box\n"+
+                                    "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
+
+                                    "Do whatever works for you.  Good luck!"
+                        let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
+                        startButtonBehavior(4)
+                    } |> Async.StartImmediate
+                    )
+                DockPanel.SetDock(otherButton, Dock.Right)
+                dp.Children.Add(startButton) |> ignore
+                stackPanel.Children.Add(dp) |> ignore
+            else
+                startButton.Width <- WIDTH/2.
+                stackPanel.Children.Add(startButton) |> ignore
+            startButton.Click.Add(fun _ -> startButtonBehavior(n))
 
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
         let tb = MakeTipTextBox("Random tip:")

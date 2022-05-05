@@ -150,7 +150,7 @@ let DoModalDocked(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, 
 
 /////////////////////////////////////////
 
-let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>) = async { // returns buttonText if a button was pressed, or null if dismissed
+let DoModalMessageBoxCore(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>, x, y) = async { // returns buttonText if a button was pressed, or null if dismissed
     let grid = new Grid()
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(1.0, GridUnitType.Star)))
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength.Auto))
@@ -162,7 +162,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     mainDock.Children.Add(image) |> ignore
     DockPanel.SetDock(image, Dock.Left)
     let mainTextBlock = new TextBox(Text=mainText, Background=Brushes.Transparent, BorderThickness=Thickness(0.), IsReadOnly=true, 
-                                        TextWrapping=TextWrapping.Wrap, MaxWidth=500., Width=System.Double.NaN, 
+                                        TextWrapping=TextWrapping.Wrap, MaxWidth=cm.AppMainCanvas.Width-x-100., Width=System.Double.NaN, 
                                         VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(12.,20.,41.,15.))
     mainDock.Children.Add(mainTextBlock) |> ignore
     grid.Children.Add(mainDock) |> ignore
@@ -185,7 +185,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     grid.Children.Add(buttonDock) |> ignore
     Grid.SetRow(buttonDock, 1)
 
-    let b = new Border(Child=grid, Background=Brushes.Black, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray)
+    let b = new Border(Child=grid, Background=Brushes.Black, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray, MaxWidth=cm.AppMainCanvas.Width-x-10.)
     let style = new Style(typeof<TextBox>)
     style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
     style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
@@ -196,9 +196,11 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
     b.Resources.Add(typeof<Button>, style)
 
-    do! DoModal(cm, wh, 150., 200., b)
+    do! DoModal(cm, wh, x, y, b)
     return result
     }
+let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>) = 
+    DoModalMessageBoxCore(cm, icon, mainText, buttonTexts, 150., 200.)
 
 /////////////////////////////////////////
 

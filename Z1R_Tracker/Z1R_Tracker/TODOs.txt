@@ -53,6 +53,8 @@ fix up DrawingLayer, add documentation
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - and maybe can mark 'walls', like 4 edges can toggle on/off, similar to middle click circles somehow maybe? would need solid wall, no-wall, and 'fuzz' for like maze/non-trivial connectedness
  - fairy would be useful icon (already added), maybe also rock, bush? (I guess PB/candle maybe, but to mark need-try-bomb/push or need-try burn...)
+ - load a non-blank map from a .png file
+      - and have a way to only-reveal-map-on-click? (start with a completely opaque tile obscuring it)
 
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it

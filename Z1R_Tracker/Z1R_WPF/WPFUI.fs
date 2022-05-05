@@ -705,8 +705,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if iconBMP <> null then 
                         let icon = Graphics.BMPtoImage iconBMP
                         if ms.IsX then
-                            icon.Opacity <- X_OPACITY
-                            canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
+                            if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=ms.State then
+                                // used when Graphics.CanHideAndReveal()
+                                let blankTile = Graphics.BMPtoImage Graphics.blankTileBmp
+                                canvasAdd(c, blankTile, 0., 0.)
+                            else
+                                icon.Opacity <- X_OPACITY
+                                canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         else
                             icon.Opacity <- 1.0
                             drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)     // darken below icon and routing marks
@@ -851,7 +856,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 let pos = c.TranslatePoint(Point(), appMainCanvas)
                                 let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                                 if msp.IsX then
-                                    activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
+                                    if Graphics.CanHideAndReveal() then
+                                        let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
+                                        if ex=msp.State then
+                                            TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)
+                                        else
+                                            TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
+                                        redrawGridSpot()
+                                    else
+                                        activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
                                 else
                                     async {
                                         let! needRedraw, needUIUpdate = DoLeftClick(cm,msp,i,j,pos,popupIsActiveRef)
@@ -888,6 +901,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             } |> Async.StartImmediate
                         | None -> ()
                     )
+                if Graphics.ShouldInitiallyHideOverworldMap() then
+                    TrackerModel.overworldMapMarks.[i,j].Set(TrackerModel.MapSquareChoiceDomainHelper.DARK_X)
+                    TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.DARK_X,TrackerModel.MapSquareChoiceDomainHelper.DARK_X)
+                    redrawGridSpot()
     if speechRecognitionInstance <> null then
         speechRecognitionInstance.AttachSpeechRecognizedToApp(appMainCanvas, (fun recognizedText ->
                                 if currentlyMousedOWX >= 0 then // can hear speech before we have moused over any (uninitialized location)
