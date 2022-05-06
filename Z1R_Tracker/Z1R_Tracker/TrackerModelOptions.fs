@@ -32,6 +32,19 @@ module VisualReminders =
     let mutable HaveKeyLadder = Bool(true)
     let mutable Blockers = Bool(true)
     let mutable DoorRepair = Bool(true)
+module OverworldTilesToHide =
+    let mutable Sword3 = Bool(false)
+    let mutable Sword2 = Bool(false)
+    let mutable Sword1 = Bool(false)
+    let mutable LargeSecret = Bool(false)
+    let mutable MediumSecret = Bool(false)
+    let mutable SmallSecret = Bool(false)
+    let mutable DoorRepair = Bool(false)
+    let mutable MoneyMakingGame = Bool(false)
+    let mutable TheLetter = Bool(false)
+    let mutable Armos = Bool(false)
+    let mutable HintShop = Bool(false)
+    let mutable TakeAny = Bool(false)
 let mutable AnimateTileChanges = Bool(true)
 let mutable SaveOnCompletion = Bool(false)
 let mutable SnoopSeedAndFlags = Bool(false)
@@ -80,6 +93,19 @@ type ReadWrite() =
     member val Visual_Blockers = true with get,set
     member val Visual_DoorRepair = true with get,set
         
+    member val HideOverworldTile_Sword3 = false with get,set
+    member val HideOverworldTile_Sword2 = false with get,set
+    member val HideOverworldTile_Sword1 = false with get,set
+    member val HideOverworldTile_LargeSecret = false with get,set
+    member val HideOverworldTile_MediumSecret = false with get,set
+    member val HideOverworldTile_SmallSecret = false with get,set
+    member val HideOverworldTile_DoorRepair = false with get,set
+    member val HideOverworldTile_MoneyMakingGame = false with get,set
+    member val HideOverworldTile_TheLetter = false with get,set
+    member val HideOverworldTile_Armos = false with get,set
+    member val HideOverworldTile_HintShop = false with get,set
+    member val HideOverworldTile_TakeAny = false with get,set
+
     member val AnimateTileChanges = true with get,set
     member val SaveOnCompletion = false with get,set
     member val SnoopSeedAndFlags = false with get,set
@@ -131,6 +157,19 @@ let private writeImpl(filename) =
     data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
     data.Visual_Blockers <-        VisualReminders.Blockers.Value
     data.Visual_DoorRepair <-      VisualReminders.DoorRepair.Value
+
+    data.HideOverworldTile_Sword3 <- OverworldTilesToHide.Sword3.Value
+    data.HideOverworldTile_Sword2 <- OverworldTilesToHide.Sword2.Value
+    data.HideOverworldTile_Sword1 <- OverworldTilesToHide.Sword1.Value
+    data.HideOverworldTile_LargeSecret <- OverworldTilesToHide.LargeSecret.Value
+    data.HideOverworldTile_MediumSecret <- OverworldTilesToHide.MediumSecret.Value
+    data.HideOverworldTile_SmallSecret <- OverworldTilesToHide.SmallSecret.Value
+    data.HideOverworldTile_DoorRepair <- OverworldTilesToHide.DoorRepair.Value
+    data.HideOverworldTile_MoneyMakingGame <- OverworldTilesToHide.MoneyMakingGame.Value
+    data.HideOverworldTile_TheLetter <- OverworldTilesToHide.TheLetter.Value
+    data.HideOverworldTile_Armos <- OverworldTilesToHide.Armos.Value
+    data.HideOverworldTile_HintShop <- OverworldTilesToHide.HintShop.Value
+    data.HideOverworldTile_TakeAny <- OverworldTilesToHide.TakeAny.Value
 
     data.AnimateTileChanges <- AnimateTileChanges.Value
     data.SaveOnCompletion <- SaveOnCompletion.Value
@@ -195,6 +234,19 @@ let private read(filename) =
         VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
         VisualReminders.Blockers.Value <-        data.Visual_Blockers
         VisualReminders.DoorRepair.Value <-      data.Visual_DoorRepair
+
+        OverworldTilesToHide.Sword3.Value <- data.HideOverworldTile_Sword3
+        OverworldTilesToHide.Sword2.Value <- data.HideOverworldTile_Sword2
+        OverworldTilesToHide.Sword1.Value <- data.HideOverworldTile_Sword1
+        OverworldTilesToHide.LargeSecret.Value <- data.HideOverworldTile_LargeSecret
+        OverworldTilesToHide.MediumSecret.Value <- data.HideOverworldTile_MediumSecret
+        OverworldTilesToHide.SmallSecret.Value <- data.HideOverworldTile_SmallSecret
+        OverworldTilesToHide.DoorRepair.Value <- data.HideOverworldTile_DoorRepair
+        OverworldTilesToHide.MoneyMakingGame.Value <- data.HideOverworldTile_MoneyMakingGame
+        OverworldTilesToHide.TheLetter.Value <- data.HideOverworldTile_TheLetter
+        OverworldTilesToHide.Armos.Value <- data.HideOverworldTile_Armos
+        OverworldTilesToHide.HintShop.Value <- data.HideOverworldTile_HintShop
+        OverworldTilesToHide.TakeAny.Value <- data.HideOverworldTile_TakeAny
 
         AnimateTileChanges.Value <- data.AnimateTileChanges
         SaveOnCompletion.Value <- data.SaveOnCompletion

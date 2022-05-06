@@ -146,13 +146,37 @@ let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
                             tile.SetPixel(px, py, c)
         tile
 
-let mutable hideCertainOverworldTileMarks = false  // TODO make this an OptionsMenu thing
-let mutable temporarilyDisplayHiddenOverworldTileMarks = true
+let mutable temporarilyDisplayHiddenOverworldTileMarks = false
 let ShouldHide(state) =
     if temporarilyDisplayHiddenOverworldTileMarks || TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() then
         false
     else
-        hideCertainOverworldTileMarks
+        if state = TrackerModel.MapSquareChoiceDomainHelper.SWORD3 then
+            TrackerModelOptions.OverworldTilesToHide.Sword3.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.SWORD2 then
+            TrackerModelOptions.OverworldTilesToHide.Sword2.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
+            TrackerModelOptions.OverworldTilesToHide.Sword1.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.LargeSecret.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.MediumSecret.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.SmallSecret.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+            TrackerModelOptions.OverworldTilesToHide.DoorRepair.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.MONEY_MAKING_GAME then
+            TrackerModelOptions.OverworldTilesToHide.MoneyMakingGame.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
+            TrackerModelOptions.OverworldTilesToHide.TheLetter.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then
+            TrackerModelOptions.OverworldTilesToHide.Armos.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
+            TrackerModelOptions.OverworldTilesToHide.HintShop.Value
+        elif state = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
+            TrackerModelOptions.OverworldTilesToHide.TakeAny.Value
+        else
+            failwith "bad ShouldHide(state)"
 
 let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (shouldAppearLikeDarkX,iconBmp,[decos])
     if ms.State = -1 then
