@@ -14,7 +14,7 @@ let secondQuestDungeonsOptionChanged = new Event<unit>()
 let showBasementInfoOptionChanged = new Event<unit>()
 let bookForHelpfulHintsOptionChanged = new Event<unit>()
 
-let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
+let link(cb:CheckBox, b:TrackerModelOptions.Bool, needFU, otherEffect) =
     let effect() = 
         if needFU then 
             TrackerModel.forceUpdate()
@@ -24,37 +24,37 @@ let link(cb:CheckBox, b:TrackerModel.Options.Bool, needFU, otherEffect) =
     cb.Unchecked.Add(fun _ -> b.Value <- false; effect())
 
 let data1o = [|
-    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModel.Options.Overworld.DrawRoutes, true, (fun()->()), None
-    "Show screen scrolls", "Routing lines assume the player can screen scroll\nScreen scrolls appear as curved lines", TrackerModel.Options.Overworld.RoutesCanScreenScroll, true, (fun()->()), Some(Thickness(20.,0.,0.,0.))
-    "Highlight nearby", "Highlight nearest unmarked gettable overworld tiles when mousing", TrackerModel.Options.Overworld.HighlightNearby, false, (fun()->()), None
-    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModel.Options.Overworld.ShowMagnifier, false, (fun()->()), None
-    "Mirror overworld", "Flip the overworld map East<->West", TrackerModel.Options.Overworld.MirrorOverworld, true, (fun()->()), None
-    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked\n(starts with dungeons when unchecked)", TrackerModel.Options.Overworld.ShopsFirst, false, (fun()->()), None
+    "Draw routes", "Constantly display routing lines when mousing over overworld tiles", TrackerModelOptions.Overworld.DrawRoutes, true, (fun()->()), None
+    "Show screen scrolls", "Routing lines assume the player can screen scroll\nScreen scrolls appear as curved lines", TrackerModelOptions.Overworld.RoutesCanScreenScroll, true, (fun()->()), Some(Thickness(20.,0.,0.,0.))
+    "Highlight nearby", "Highlight nearest unmarked gettable overworld tiles when mousing", TrackerModelOptions.Overworld.HighlightNearby, false, (fun()->()), None
+    "Show magnifier", "Display magnified view of overworld tiles when mousing", TrackerModelOptions.Overworld.ShowMagnifier, false, (fun()->()), None
+    "Mirror overworld", "Flip the overworld map East<->West", TrackerModelOptions.Overworld.MirrorOverworld, true, (fun()->()), None
+    "Shops before dungeons", "In the overworld map tile popup, the grid starts with shops when this is checked\n(starts with dungeons when unchecked)", TrackerModelOptions.Overworld.ShopsFirst, false, (fun()->()), None
     |]
 
 let data1d = [|
-    "BOARD instead of LEVEL", "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N", TrackerModel.Options.BOARDInsteadOfLEVEL, false, BOARDInsteadOfLEVELOptionChanged.Trigger
-    "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
-    "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModel.Options.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
-    "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModel.Options.DoDoorInference, false, fun()->()
-    "Book for Helpful Hints", "Check this if both 'Book To Understand Old Men' flag is on, and\n'Helpful' hints are available. The tracker will let you left-click\nOld Man Hint rooms to toggle whether you have read them yet.", TrackerModel.Options.BookForHelpfulHints, false, bookForHelpfulHintsOptionChanged.Trigger
+    "BOARD instead of LEVEL", "Check this to change the dungeon column labels to BOARD-N instead of LEVEL-N", TrackerModelOptions.BOARDInsteadOfLEVEL, false, BOARDInsteadOfLEVELOptionChanged.Trigger
+    "Second quest dungeons", "Check this if dungeon 4, rather than dungeon 1, has 3 items (no effect when Hidden Dungeon Numbers)", TrackerModelOptions.IsSecondQuestDungeons, false, secondQuestDungeonsOptionChanged.Trigger
+    "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModelOptions.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
+    "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModelOptions.DoDoorInference, false, fun()->()
+    "Book for Helpful Hints", "Check this if both 'Book To Understand Old Men' flag is on, and\n'Helpful' hints are available. The tracker will let you left-click\nOld Man Hint rooms to toggle whether you have read them yet.", TrackerModelOptions.BookForHelpfulHints, false, bookForHelpfulHintsOptionChanged.Trigger
     |]
 
 let data2 = [|
     "Dungeon feedback", "Note when dungeons are located/completed, triforces obtained, and go-time", 
-        TrackerModel.Options.VoiceReminders.DungeonFeedback, TrackerModel.Options.VisualReminders.DungeonFeedback
+        TrackerModelOptions.VoiceReminders.DungeonFeedback, TrackerModelOptions.VisualReminders.DungeonFeedback
     "Sword hearts", "Remind to consider white/magical sword when you get 4-6 or 10-14 hearts", 
-        TrackerModel.Options.VoiceReminders.SwordHearts,     TrackerModel.Options.VisualReminders.SwordHearts
+        TrackerModelOptions.VoiceReminders.SwordHearts,     TrackerModelOptions.VisualReminders.SwordHearts
     "Coast Item", "Reminder to fetch to coast item when you have the ladder", 
-        TrackerModel.Options.VoiceReminders.CoastItem,       TrackerModel.Options.VisualReminders.CoastItem
+        TrackerModelOptions.VoiceReminders.CoastItem,       TrackerModelOptions.VisualReminders.CoastItem
     "Recorder/PB/Boomstick", "Periodic reminders of how many recorder/power-bracelet spots remain, or that the boomstick is available", 
-        TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook
+        TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook
     "Have any key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", 
-        TrackerModel.Options.VoiceReminders.HaveKeyLadder,   TrackerModel.Options.VisualReminders.HaveKeyLadder
+        TrackerModelOptions.VoiceReminders.HaveKeyLadder,   TrackerModelOptions.VisualReminders.HaveKeyLadder
     "Blockers", "Reminder when you may have become unblocked on a previously-aborted dungeon", 
-        TrackerModel.Options.VoiceReminders.Blockers,        TrackerModel.Options.VisualReminders.Blockers
+        TrackerModelOptions.VoiceReminders.Blockers,        TrackerModelOptions.VisualReminders.Blockers
     "Door Repair Count", "Each time you uncover a door repair charge, remind the count of how many you have found", 
-        TrackerModel.Options.VoiceReminders.DoorRepair,        TrackerModel.Options.VisualReminders.DoorRepair
+        TrackerModelOptions.VoiceReminders.DoorRepair,        TrackerModelOptions.VisualReminders.DoorRepair
     |]
 
 let makeOptionsCanvas(width, includePopupExplainer) = 
@@ -104,12 +104,12 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let volumeText = new TextBox(Text="Volume",IsReadOnly=true, Margin=Thickness(0.))
     options2Topsp.Children.Add(volumeText) |> ignore
     let slider = new Slider(Orientation=Orientation.Horizontal, Maximum=100., TickFrequency=10., TickPlacement=Primitives.TickPlacement.Both, IsSnapToTickEnabled=true, Width=200.)
-    slider.Value <- float TrackerModel.Options.Volume
+    slider.Value <- float TrackerModelOptions.Volume
     slider.ValueChanged.Add(fun _ -> 
-        TrackerModel.Options.Volume <- int slider.Value
-        Graphics.volumeChanged.Trigger(TrackerModel.Options.Volume)
-        if not(TrackerModel.Options.IsMuted) then 
-            voice.Volume <- TrackerModel.Options.Volume
+        TrackerModelOptions.Volume <- int slider.Value
+        Graphics.volumeChanged.Trigger(TrackerModelOptions.Volume)
+        if not(TrackerModelOptions.IsMuted) then 
+            voice.Volume <- TrackerModelOptions.Volume
         )
     let dp = new DockPanel(VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(0.))
     dp.Children.Add(slider) |> ignore
@@ -118,9 +118,9 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     // stop
     let muteCB = new CheckBox(Content=new TextBox(Text="Stop all",IsReadOnly=true))
     muteCB.ToolTip <- "Turn off all reminders"
-    muteCB.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.IsMuted
-    muteCB.Checked.Add(fun _ -> TrackerModel.Options.IsMuted <- true; voice.Volume <- 0)
-    muteCB.Unchecked.Add(fun _ -> TrackerModel.Options.IsMuted <- false; voice.Volume <- TrackerModel.Options.Volume)
+    muteCB.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.IsMuted
+    muteCB.Checked.Add(fun _ -> TrackerModelOptions.IsMuted <- true; voice.Volume <- 0)
+    muteCB.Unchecked.Add(fun _ -> TrackerModelOptions.IsMuted <- false; voice.Volume <- TrackerModelOptions.Volume)
     options2sp.Children.Add(muteCB) |> ignore
     // other settings
     let options2Grid = new Grid()
@@ -163,33 +163,33 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     options3sp.Children.Add(tb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Animate tile changes",IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.AnimateTileChanges.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- true)
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.AnimateTileChanges.Value <- false)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.AnimateTileChanges.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.AnimateTileChanges.Value <- true)
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.AnimateTileChanges.Value <- false)
     cb.ToolTip <- "When you change an overworld map spot or a dungeon room type, briefly animate the rectangle to highlight what changed"
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Save on completion",IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SaveOnCompletion.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- true)
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SaveOnCompletion.Value <- false)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.SaveOnCompletion.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.SaveOnCompletion.Value <- true)
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.SaveOnCompletion.Value <- false)
     cb.ToolTip <- "When you click Zelda to complete the seed, automatically save the full tracker state to a file"
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Snoop for seed&flags",IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.SnoopSeedAndFlags.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- true; SaveAndLoad.MaybePollSeedAndFlags())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.SnoopSeedAndFlags.Value <- false)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.SnoopSeedAndFlags.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.SnoopSeedAndFlags.Value <- true; SaveAndLoad.MaybePollSeedAndFlags())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.SnoopSeedAndFlags.Value <- false)
     cb.ToolTip <- "Periodically check for other system windows (e.g. fceux)\nthat appear to have a seed and flag in the title, to\ninclude with save data and optionally display"
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Display seed&flags",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.DisplaySeedAndFlags.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.DisplaySeedAndFlags.Value <- true; SaveAndLoad.seedAndFlagsUpdated.Trigger())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.DisplaySeedAndFlags.Value <- false; SaveAndLoad.seedAndFlagsUpdated.Trigger())
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.DisplaySeedAndFlags.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.DisplaySeedAndFlags.Value <- true; SaveAndLoad.seedAndFlagsUpdated.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.DisplaySeedAndFlags.Value <- false; SaveAndLoad.seedAndFlagsUpdated.Trigger())
     cb.ToolTip <- "Display seed & flags (if known) in the bottom corner of Notes box"
     options3sp.Children.Add(cb) |> ignore
 
@@ -203,7 +203,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     else
         cb.ToolTip <- "Use the microphone to listen for spoken map update commands\nExample: say 'tracker set bomb shop' while hovering an unmarked map tile"
         ToolTipService.SetShowDuration(cb, 10000)
-        link(cb, TrackerModel.Options.ListenForSpeech, false, fun()->())
+        link(cb, TrackerModelOptions.ListenForSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Confirmation sound",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
@@ -216,7 +216,7 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     else
         cb.ToolTip <- "Play a confirmation sound whenever speech recognition is used to make an update to the tracker"
         ToolTipService.SetShowDuration(cb, 10000)
-        link(cb, TrackerModel.Options.PlaySoundWhenUseSpeech, false, fun()->())
+        link(cb, TrackerModelOptions.PlaySoundWhenUseSpeech, false, fun()->())
     options3sp.Children.Add(cb) |> ignore
 
 (*  // this is not (yet) a fully supported feature, so don't publish it on the options menu
@@ -234,16 +234,16 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         ToolTipService.SetShowDuration(cb, 10000)
         ToolTipService.SetShowOnDisabled(cb, true)
     else
-        link(cb, TrackerModel.Options.RequirePTTForSpeech, false)
+        link(cb, TrackerModelOptions.RequirePTTForSpeech, false)
         cb.ToolTip <- "Only listen for speech when Push-To-Talk button is held (SNES gamepad left shoulder button)"
         ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 *)
 
     let cb = new CheckBox(Content=new TextBox(Text="Broadcast window",IsReadOnly=true))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.ShowBroadcastWindow.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger())
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.ShowBroadcastWindow.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.ShowBroadcastWindow.Value <- true; broadcastWindowOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.ShowBroadcastWindow.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Open a separate, smaller window, for stream capture.\nYou still interact with the original large window,\nbut the smaller window will focus the view on either the overworld or\nthe dungeon tabs, based on your mouse position."
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
@@ -251,22 +251,22 @@ let makeOptionsCanvas(width, includePopupExplainer) =
     let rb3 = new RadioButton(Content=new TextBox(Text="Full size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
     let rb2 = new RadioButton(Content=new TextBox(Text="2/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
     let rb1 = new RadioButton(Content=new TextBox(Text="1/3 size broadcast",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-    match TrackerModel.Options.BroadcastWindowSize with
+    match TrackerModelOptions.BroadcastWindowSize with
     | 3 -> rb3.IsChecked <- System.Nullable.op_Implicit true
     | 2 -> rb2.IsChecked <- System.Nullable.op_Implicit true
     | 1 -> rb1.IsChecked <- System.Nullable.op_Implicit true
     | _ -> failwith "impossible BroadcastWindowSize"
-    rb3.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 3; broadcastWindowOptionChanged.Trigger())
-    rb2.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 2; broadcastWindowOptionChanged.Trigger())
-    rb1.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowSize <- 1; broadcastWindowOptionChanged.Trigger())
+    rb3.Checked.Add(fun _ -> TrackerModelOptions.BroadcastWindowSize <- 3; broadcastWindowOptionChanged.Trigger())
+    rb2.Checked.Add(fun _ -> TrackerModelOptions.BroadcastWindowSize <- 2; broadcastWindowOptionChanged.Trigger())
+    rb1.Checked.Add(fun _ -> TrackerModelOptions.BroadcastWindowSize <- 1; broadcastWindowOptionChanged.Trigger())
     options3sp.Children.Add(rb3) |> ignore
     options3sp.Children.Add(rb2) |> ignore
     options3sp.Children.Add(rb1) |> ignore
 
     let cb = new CheckBox(Content=new TextBox(Text="Include overworld magnifier",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-    cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value
-    cb.Checked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- true; broadcastWindowOptionChanged.Trigger())
-    cb.Unchecked.Add(fun _ -> TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value <- false; broadcastWindowOptionChanged.Trigger())
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value <- true; broadcastWindowOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Whether to include the overworld magnifier when it is on-screen, which will obscure some other elements"
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore

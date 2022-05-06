@@ -336,7 +336,7 @@ let convertToCanonicalVertex(x,y,st:System.Collections.Generic.Dictionary<_,_>,p
         failwith "impossible st"
 let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoads, isMirror) =
     let a = ResizeArray()
-    if TrackerModel.Options.Overworld.RoutesCanScreenScroll.Value then
+    if TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value then
         if isMirror then
             a.AddRange(staticMirrorScreenScrolls)
             if ladder then

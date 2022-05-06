@@ -293,7 +293,7 @@ type RoomType =
         | HChute                  -> Graphics.dungeonRoomBmpPairs.[8]
         | Turnstile               -> Graphics.dungeonRoomBmpPairs.[16]
         | OldManHint              -> 
-            if TrackerModel.Options.BookForHelpfulHints.Value then Graphics.dungeonRoomBmpPairs.[12]
+            if TrackerModelOptions.BookForHelpfulHints.Value then Graphics.dungeonRoomBmpPairs.[12]
             else snd Graphics.dungeonRoomBmpPairs.[12], snd Graphics.dungeonRoomBmpPairs.[12]
         | BombUpgrade             -> Graphics.dungeonRoomBmpPairs.[15]
         | LifeOrMoney             -> Graphics.dungeonRoomBmpPairs.[14]

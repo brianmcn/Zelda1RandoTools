@@ -12,21 +12,21 @@ type Win32() =
     
     static member SetCursor(x,y) = 
         let transformedPoint = 
-            if TrackerModel.Options.SmallerAppWindow.Value then 
-                Point(x*TrackerModel.Options.SmallerAppWindowScaleFactor,y*TrackerModel.Options.SmallerAppWindowScaleFactor) 
+            if TrackerModelOptions.SmallerAppWindow.Value then 
+                Point(x*TrackerModelOptions.SmallerAppWindowScaleFactor,y*TrackerModelOptions.SmallerAppWindowScaleFactor) 
             else Point(x,y)
         let pos = theWindow.PointToScreen(transformedPoint)
         SetCursorPos(int pos.X, int pos.Y) |> ignore
 
 let volumeChanged = new Event<int>()
 let soundPlayer = new MediaPlayer()
-soundPlayer.Volume <- float TrackerModel.Options.Volume / 300.
+soundPlayer.Volume <- float TrackerModelOptions.Volume / 300.
 soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
 let PlaySoundForSpeechRecognizedAndUsedToMark() =
     soundPlayer.Position <- TimeSpan(0L)
     soundPlayer.Play()
 let soundPlayer2 = new MediaPlayer()
-soundPlayer2.Volume <- float TrackerModel.Options.Volume / 300.
+soundPlayer2.Volume <- float TrackerModelOptions.Volume / 300.
 soundPlayer2.Open(new Uri("reminder_clink.wav", UriKind.Relative))
 let PlaySoundForReminder() =
     soundPlayer2.Position <- TimeSpan(0L)

@@ -170,7 +170,7 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+60., dy-2.)
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+80., dy-2.)
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_LEFT), dx+3.,  dy+28.)
-        if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
+        if TrackerModelOptions.Overworld.ShowMagnifier.Value then 
             dungeonTabsOverlay.Opacity <- 1.0
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent

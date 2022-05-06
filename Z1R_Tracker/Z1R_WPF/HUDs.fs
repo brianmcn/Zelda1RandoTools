@@ -307,9 +307,9 @@ let MakeHUDs(cm:CustomComboBoxes.CanvasManager, trackerDungeonMoused:Event<_>, t
         sizerWindow.ResizeMode <- ResizeMode.CanResize
         sizerWindow.SizeToContent <- SizeToContent.Manual
         let save() = 
-            TrackerModel.Options.OverlayLocatorWindowLTWH <- sprintf "%d,%d,%d,%d" (int sizerWindow.Left) (int sizerWindow.Top) (int sizerWindow.Width) (int sizerWindow.Height)
-            TrackerModel.Options.writeSettings()
-        let leftTopWidthHeight = TrackerModel.Options.OverlayLocatorWindowLTWH
+            TrackerModelOptions.OverlayLocatorWindowLTWH <- sprintf "%d,%d,%d,%d" (int sizerWindow.Left) (int sizerWindow.Top) (int sizerWindow.Width) (int sizerWindow.Height)
+            TrackerModelOptions.writeSettings()
+        let leftTopWidthHeight = TrackerModelOptions.OverlayLocatorWindowLTWH
         let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
         if not isRightClick && matches.Success then
             sizerWindow.Left <- float matches.Groups.[1].Value

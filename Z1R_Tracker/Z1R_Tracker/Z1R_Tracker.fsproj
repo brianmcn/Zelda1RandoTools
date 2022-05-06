@@ -63,6 +63,7 @@
     <None Include="README.txt" />
     <Compile Include="OverworldData.fs" />
     <Compile Include="DungeonData.fs" />
+    <Compile Include="TrackerModelOptions.fs" />
     <Compile Include="TrackerModel.fs" />
     <Compile Include="OverworldRouting.fs" />
     <Compile Include="SaveAndLoad.fs" />

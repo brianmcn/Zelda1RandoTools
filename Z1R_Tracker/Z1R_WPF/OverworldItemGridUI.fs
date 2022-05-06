@@ -65,7 +65,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    extrasImage:Image, resetTimerEvent:Event<unit>) =
+                    extrasImage:Image, resetTimerEvent:Event<unit>, requestRedrawOverworldEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
     let owItemGrid = makeGrid(6, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
@@ -191,12 +191,17 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     gridAddTuple(owItemGrid, basicBoxImpl("Killed Gannon (mark timeline)", "Gannon", Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
-    gridAddTuple(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda),  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    // TODO tooltip update, MHE
+    let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda)
+    gridAddTuple(owItemGrid, zelda_box,  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    // hover zelda to display hidden overworld icons (note that Armos/Sword2/Sword3 will not be darkened)
+    zelda_box.MouseEnter.Add(fun _ -> OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- true; requestRedrawOverworldEvent.Trigger())
+    zelda_box.MouseLeave.Add(fun _ -> OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- false; requestRedrawOverworldEvent.Trigger())
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
         if b then 
             notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
             TrackerModel.LastChangedTime.PauseAll()
-            if TrackerModel.Options.SaveOnCompletion.Value && not(isCurrentlyLoadingASave) then
+            if TrackerModelOptions.SaveOnCompletion.Value && not(isCurrentlyLoadingASave) then
                 try
                     SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
                 with e ->

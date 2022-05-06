@@ -201,7 +201,7 @@ type MyWindow() as this =
         let finishCrashInfo() = finishCrashInfoImpl("")
         let handle(ex:System.Exception) =
             match ex with
-            | :? TrackerModel.IntentionalApplicationShutdown as ias ->
+            | :? TrackerModelOptions.IntentionalApplicationShutdown as ias ->
                 logCrashInfo <| sprintf "%s" ias.Message
                 finishCrashInfo()
             | :? HotKeys.UserError as hue ->
@@ -243,9 +243,9 @@ type MyWindow() as this =
 
         HotKeys.PopulateHotKeyTables()
         let mutable settingsWereSuccessfullyRead = false
-        TrackerModel.Options.readSettings()
+        TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
-        WPFUI.voice.Volume <- TrackerModel.Options.Volume
+        WPFUI.voice.Volume <- TrackerModelOptions.Volume
 
         do
             let shellLink = 
@@ -267,12 +267,12 @@ type MyWindow() as this =
         this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         let APP_WIDTH, APP_HEIGHT = 
-            if TrackerModel.Options.SmallerAppWindow.Value then 
-                round(WIDTH_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_HEIGHT)
+            if TrackerModelOptions.SmallerAppWindow.Value then 
+                round(WIDTH_SANS_CHROME*TrackerModelOptions.SmallerAppWindowScaleFactor + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*TrackerModelOptions.SmallerAppWindowScaleFactor + CHROME_HEIGHT)
             else 
                 WIDTH, HEIGHT
         //printfn "%f, %f" APP_WIDTH APP_HEIGHT
-        let leftTop = TrackerModel.Options.MainWindowLT
+        let leftTop = TrackerModelOptions.MainWindowLT
         let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
         if matches.Success then
             this.Left <- float matches.Groups.[1].Value
@@ -281,8 +281,8 @@ type MyWindow() as this =
             if this.Left < -30000.0 || this.Top < -30000.0 then
                 ()  // when you Minimize the window, -32000,-32000 are reported. Don't save that, as it's hard to recover window later
             else
-                TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
-                TrackerModel.Options.writeSettings()
+                TrackerModelOptions.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+                TrackerModelOptions.writeSettings()
             )
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
@@ -308,8 +308,8 @@ type MyWindow() as this =
         let drawingCanvasHolder = new Canvas()  // gets the app RenderTransform (can't RenderTransform the drawingCanvas itself without screwing up Broadcast Window)
         let drawingCanvas = new Canvas(IsHitTestVisible=false)
         drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
-        if TrackerModel.Options.SmallerAppWindow.Value then 
-            let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
+        if TrackerModelOptions.SmallerAppWindow.Value then 
+            let trans = new ScaleTransform(TrackerModelOptions.SmallerAppWindowScaleFactor, TrackerModelOptions.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
             hmsTimerCanvas.RenderTransform <- trans
             drawingCanvasHolder.RenderTransform <- trans
@@ -354,13 +354,13 @@ type MyWindow() as this =
                 sp.Children.Add(mkTxt("Changes to this setting will only take effect the next time you start the application.")) |> ignore
                 let MODE6,MODE5,MODE4 = "Default", "5/6 size", "2/3 size"
                 let curMode = 
-                    if TrackerModel.Options.SmallerAppWindow.Value then 
-                        if TrackerModel.Options.SmallerAppWindowScaleFactor = 2.0/3.0 then 
+                    if TrackerModelOptions.SmallerAppWindow.Value then 
+                        if TrackerModelOptions.SmallerAppWindowScaleFactor = 2.0/3.0 then 
                             MODE4
-                        elif TrackerModel.Options.SmallerAppWindowScaleFactor = 5.0/6.0 then 
+                        elif TrackerModelOptions.SmallerAppWindowScaleFactor = 5.0/6.0 then 
                             MODE5
                         else
-                            sprintf "scale factor: %f" TrackerModel.Options.SmallerAppWindowScaleFactor
+                            sprintf "scale factor: %f" TrackerModelOptions.SmallerAppWindowScaleFactor
                     else 
                         MODE6
                 sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window is '%s'.  You can change the setting here:" curMode)) |> ignore
@@ -368,14 +368,14 @@ type MyWindow() as this =
                 let rb6 = new RadioButton(Content=new TextBox(Text=MODE6, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 let rb5 = new RadioButton(Content=new TextBox(Text=MODE5, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 let rb4 = new RadioButton(Content=new TextBox(Text=MODE4, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
-                if TrackerModel.Options.SmallerAppWindow.Value then
+                if TrackerModelOptions.SmallerAppWindow.Value then
                     if curMode=MODE5 then
                         rb5.IsChecked <- System.Nullable.op_Implicit true
                     else
                         rb4.IsChecked <- System.Nullable.op_Implicit true
                 else
                     rb6.IsChecked <- System.Nullable.op_Implicit true
-                let mutable desireSmaller = TrackerModel.Options.SmallerAppWindow.Value
+                let mutable desireSmaller = TrackerModelOptions.SmallerAppWindow.Value
                 let mutable desireScale = 2.0/3.0
                 rb6.Checked.Add(fun _ -> desireSmaller <- false)
                 rb5.Checked.Add(fun _ -> desireSmaller <- true; desireScale <- 5.0/6.0)
@@ -390,9 +390,9 @@ type MyWindow() as this =
                 let cb = Graphics.makeButton("Don't make any changes\n(exit this popup menu)", Some(16.), None)
                 cb.Click.Add(fun _ -> wh.Set() |> ignore)
                 sb.Click.Add(fun _ ->
-                    TrackerModel.Options.SmallerAppWindow.Value <- desireSmaller
-                    TrackerModel.Options.SmallerAppWindowScaleFactor <- desireScale
-                    TrackerModel.Options.writeSettings()
+                    TrackerModelOptions.SmallerAppWindow.Value <- desireSmaller
+                    TrackerModelOptions.SmallerAppWindowScaleFactor <- desireScale
+                    TrackerModelOptions.writeSettings()
                     this.Close()
                     )
                 buttons.Children.Add(sb) |> ignore
@@ -402,9 +402,9 @@ type MyWindow() as this =
                 addDarkTheme(sp.Resources)
                 new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp)
 
-            let fs = if TrackerModel.Options.SmallerAppWindow.Value then 16. else 12.
+            let fs = if TrackerModelOptions.SmallerAppWindow.Value then 16. else 12.
             let topBar = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-            let tb = new TextBox(Text=sprintf "Z-Tracker window too %s? " (if TrackerModel.Options.SmallerAppWindow.Value then "small" else "large"), 
+            let tb = new TextBox(Text=sprintf "Z-Tracker window too %s? " (if TrackerModelOptions.SmallerAppWindow.Value then "small" else "large"), 
                                     IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=fs, VerticalAlignment=VerticalAlignment.Center)
             topBar.Children.Add(tb) |> ignore
             let b = Graphics.makeButton("Click here for options", Some(fs), None)
@@ -418,13 +418,13 @@ type MyWindow() as this =
                 )
             topBar.Children.Add(b) |> ignore
             let workingAreaTooSmallForDefaultHeight = SystemParameters.WorkArea.Height < 1000.0
-            let likelyDoesntFit = workingAreaTooSmallForDefaultHeight && not(TrackerModel.Options.SmallerAppWindow.Value)
+            let likelyDoesntFit = workingAreaTooSmallForDefaultHeight && not(TrackerModelOptions.SmallerAppWindow.Value)
             let barColor = 
                 if likelyDoesntFit then 
                     new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy))   // reddish
                 else 
                     new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy))    // grayish
-            let dp = new DockPanel(Height=(if TrackerModel.Options.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
+            let dp = new DockPanel(Height=(if TrackerModelOptions.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
             dp.Children.Add(topBar) |> ignore
             stackPanel.Children.Add(dp) |> ignore
             let spacer = new DockPanel(Height=30., LastChildFill=false)
@@ -507,10 +507,10 @@ type MyWindow() as this =
                     else
                         TrackerModel.DungeonTrackerInstanceKind.DEFAULT
             if loadData.IsSome then
-                TrackerModel.Options.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+                TrackerModelOptions.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
 
             let mutable speechRecognitionInstance = null
-            if TrackerModel.Options.ListenForSpeech.Value then
+            if TrackerModelOptions.ListenForSpeech.Value then
                 printfn "Initializing microphone for speech recognition..."
                 try
                     speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
@@ -562,14 +562,14 @@ type MyWindow() as this =
         let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
-                TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
+                TrackerModelOptions.writeSettings()  // save any settings changes they made before closing the startup window
             )
         let startButtonBehavior(n) = 
             if startButtonHasBeenClicked then () else
             startButtonHasBeenClicked <- true
             turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
             async {
-                TrackerModel.Options.writeSettings()
+                TrackerModelOptions.writeSettings()
 
                 if false then   // this feature is currently unused
                     Gamepad.ControllerFailureEvent.Publish.Add(handle)

@@ -546,7 +546,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             baitMeatCheckmarkHeaderCanvas.Opacity <- 1.
                     if rs.RoomType = DungeonRoomState.RoomType.BombUpgrade && not(rs.IsComplete) then
                         bombUpgradeMarkHeaderCanvas.Opacity <- 1.
-                    if TrackerModel.Options.BookForHelpfulHints.Value && rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
+                    if TrackerModelOptions.BookForHelpfulHints.Value && rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
                         oldManUnreadHeaderCanvas.Opacity <- 1.
             levelTab.InvalidateProperty(TabItem.HeaderProperty)
         OptionsMenu.bookForHelpfulHintsOptionChanged.Publish.Add(fun _ -> 
@@ -676,7 +676,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let update() =
                             dungeonHeaderCanvas.Children.Remove(img)
                             dungeonHeaderCanvas.Children.Remove(highlightColumnCanvases.[i])
-                            img <- makeLetter(fun() -> Dungeon.MakeLetterBmpInZeldaFont(((if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
+                            img <- makeLetter(fun() -> Dungeon.MakeLetterBmpInZeldaFont(((if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
                                                                                                 Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color)))
                             canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                             canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
@@ -710,7 +710,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     } |> Async.StartImmediate
                             )
                 else
-                    let bmpFunc() = Dungeon.MakeLetterBmpInZeldaFont((sprintf "%s-%d " (if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
+                    let bmpFunc() = Dungeon.MakeLetterBmpInZeldaFont((sprintf "%s-%d " (if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
                     let mutable img = makeLetter(bmpFunc)
                     canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                     canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
@@ -770,7 +770,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         updateOldManCountText()
                         usedTransportsAddState(roomStates.[i,j])
                         // conservative door inference
-                        if TrackerModel.Options.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
+                        if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
                             // they appear to have walked into this room from an adjacent room
                             let possibleEntries = ResizeArray()
                             if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
@@ -1010,7 +1010,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             let frontRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Stroke=scb, Opacity=1.0, IsHitTestVisible=false)
             canvasAdd(dungeonBodyCanvas, frontRoomHighlightTile, 0., 0.)
             let animateRoomTile(x,y) = 
-                if TrackerModel.Options.AnimateTileChanges.Value then
+                if TrackerModelOptions.AnimateTileChanges.Value then
                     if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
                         Canvas.SetLeft(frontRoomHighlightTile, float(x*51)-3.)
                         Canvas.SetTop(frontRoomHighlightTile, float(y*39)-3.)

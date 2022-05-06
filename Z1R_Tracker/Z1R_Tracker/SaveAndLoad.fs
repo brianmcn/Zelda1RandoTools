@@ -155,7 +155,7 @@ let SaveOverworld(prefix) =
     let lines = ResizeArray()
     lines.Add(sprintf """"Overworld": {""")
     lines.Add(sprintf """    "Quest": %d,""" (TrackerModel.owInstance.Quest.AsInt()))
-    lines.Add(sprintf """    "MirrorOverworld": %b,""" (TrackerModel.Options.Overworld.MirrorOverworld.Value))
+    lines.Add(sprintf """    "MirrorOverworld": %b,""" (TrackerModelOptions.Overworld.MirrorOverworld.Value))
     lines.Add(sprintf """    "StartIconX": %d,""" TrackerModel.startIconX)
     lines.Add(sprintf """    "StartIconY": %d,""" TrackerModel.startIconY)
     lines.Add(sprintf """    "Map": [""")
@@ -179,7 +179,7 @@ let SaveItems(prefix) =
         lines.Add(sprintf """%s%s"CellCurrent": %d, "PlayerHas": %d""" prefix pre (box.CellCurrent()) (box.PlayerHas().AsInt()))
     lines.Add(sprintf """"Items": {""")
     lines.Add(sprintf """    "HiddenDungeonNumbers": %b,""" (TrackerModel.IsHiddenDungeonNumbers()))
-    lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModel.Options.IsSecondQuestDungeons.Value)
+    lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModelOptions.IsSecondQuestDungeons.Value)
     lines.Add(sprintf """    "WhiteSwordBox": {""")
     SaveBox("    ", TrackerModel.sword2Box)
     lines.Add(sprintf """    }, "LadderBox": {""")
@@ -279,7 +279,7 @@ let mutable lastKnownSeed, lastKnownFlags = "", ""
 let seedAndFlagsUpdated = new Event<_>()
 let seedAndFlagsRegex = new System.Text.RegularExpressions.Regex("_(\d+)_([a-zA-Z0-9!]+)", System.Text.RegularExpressions.RegexOptions.None)
 let MaybePollSeedAndFlags() =
-    if TrackerModel.Options.SnoopSeedAndFlags.Value then
+    if TrackerModelOptions.SnoopSeedAndFlags.Value then
         let procs = System.Diagnostics.Process.GetProcesses()
         for p in procs do
             if not(System.String.IsNullOrEmpty(p.MainWindowTitle)) then

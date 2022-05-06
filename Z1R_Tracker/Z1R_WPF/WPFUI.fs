@@ -19,13 +19,13 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
     if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value()) then  // if won the game, quit sending reminders
         let shouldRemindVoice, shouldRemindVisual =
             match category with
-            | TrackerModel.ReminderCategory.Blockers ->        TrackerModel.Options.VoiceReminders.Blockers.Value,        TrackerModel.Options.VisualReminders.Blockers.Value
-            | TrackerModel.ReminderCategory.CoastItem ->       TrackerModel.Options.VoiceReminders.CoastItem.Value,       TrackerModel.Options.VisualReminders.CoastItem.Value
-            | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModel.Options.VoiceReminders.DungeonFeedback.Value, TrackerModel.Options.VisualReminders.DungeonFeedback.Value
-            | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModel.Options.VoiceReminders.HaveKeyLadder.Value,   TrackerModel.Options.VisualReminders.HaveKeyLadder.Value
-            | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModel.Options.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModel.Options.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
-            | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModel.Options.VoiceReminders.SwordHearts.Value,     TrackerModel.Options.VisualReminders.SwordHearts.Value
-            | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModel.Options.VoiceReminders.DoorRepair.Value,      TrackerModel.Options.VisualReminders.DoorRepair.Value
+            | TrackerModel.ReminderCategory.Blockers ->        TrackerModelOptions.VoiceReminders.Blockers.Value,        TrackerModelOptions.VisualReminders.Blockers.Value
+            | TrackerModel.ReminderCategory.CoastItem ->       TrackerModelOptions.VoiceReminders.CoastItem.Value,       TrackerModelOptions.VisualReminders.CoastItem.Value
+            | TrackerModel.ReminderCategory.DungeonFeedback -> TrackerModelOptions.VoiceReminders.DungeonFeedback.Value, TrackerModelOptions.VisualReminders.DungeonFeedback.Value
+            | TrackerModel.ReminderCategory.HaveKeyLadder ->   TrackerModelOptions.VoiceReminders.HaveKeyLadder.Value,   TrackerModelOptions.VisualReminders.HaveKeyLadder.Value
+            | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
+            | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModelOptions.VoiceReminders.SwordHearts.Value,     TrackerModelOptions.VisualReminders.SwordHearts.Value
+            | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
         if not(isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
             reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
@@ -50,7 +50,7 @@ let updateGhostBusters() =
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 7 do
             let lc = TrackerModel.GetDungeon(i).LabelChar
-            let twoItemDungeons = if TrackerModel.Options.IsSecondQuestDungeons.Value then "123567" else "234567"
+            let twoItemDungeons = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
             if twoItemDungeons.Contains(lc.ToString()) then
                 mainTrackerGhostbusters.[i].Opacity <- 1.0
             else
@@ -345,7 +345,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
                 mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
                 mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
-                if TrackerModel.Options.IsSecondQuestDungeons.Value then
+                if TrackerModelOptions.IsSecondQuestDungeons.Value then
                     canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
                 else
                     canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
@@ -398,15 +398,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
         canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
 
+    let requestRedrawOverworldEvent = new Event<unit>()
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
-        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent)
+        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, requestRedrawOverworldEvent)
 
     do! showProgress("link")
 
     // overworld map grouping, as main point of support for mirroring
     let mutable animateOverworldTile = fun _ -> ()
     let animateOverworldTileIfOptionIsChecked(i,j) =
-        if TrackerModel.Options.AnimateTileChanges.Value then
+        if TrackerModelOptions.AnimateTileChanges.Value then
             animateOverworldTile(i,j)
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
@@ -634,9 +635,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         let mousePos = if displayIsCurrentlyMirrored then Point(OMTW - mousePos.X, mousePos.Y) else mousePos
                                         ntf.SendThunk(fun () -> 
                                             routeDrawingCanvas.Children.Clear()
-                                            drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
-                                                            (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                                            (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
+                                            drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
+                                                            (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                                            (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
                                             )
                                         onMouseForMagnifier(i,j)
                                         trackerLocationMoused.Trigger(DungeonUI.TrackerLocation.OVERWORLD, i, j)
@@ -700,19 +701,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     image.Opacity <- 0.001
                     canvasAdd(c, image, 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
-                    let iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
+                    let shouldAppearLikeDarkX,iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
                     if iconBMP <> null then 
-                        let icon = Graphics.BMPtoImage iconBMP
-                        if ms.IsX then
-                            if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=ms.State then
+                        if ms.IsX || shouldAppearLikeDarkX then
+                            if ms.IsX && TrackerModel.getOverworldMapExtraData(i,j,ms.State)=ms.State then
                                 // used when Graphics.CanHideAndReveal()
                                 let blankTile = Graphics.BMPtoImage Graphics.blankTileBmp
                                 canvasAdd(c, blankTile, 0., 0.)
                             else
+                                let icon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0])
                                 icon.Opacity <- X_OPACITY
                                 canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         else
+                            let icon = Graphics.BMPtoImage iconBMP
                             icon.Opacity <- 1.0
                             drawDarkening(owDarkeningMapGridCanvases.[i,j], 0., 0)     // darken below icon and routing marks
                             canvasAdd(c, icon, 0., 0.)                                 // add icon above routing
@@ -808,7 +810,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
                         yield null, false, -999  // null asks selector to 'leave a hole' here
                         |]
-                    let shopsOnTop = TrackerModel.Options.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
+                    let shopsOnTop = TrackerModelOptions.Overworld.ShopsFirst.Value // start with shops, rather than dungeons, on top of grid
                     let gridElementsSelectablesAndIDs = 
                         if shopsOnTop then [| yield! gridElementsSelectablesAndIDs.[16..]; yield! gridElementsSelectablesAndIDs.[..15] |] else gridElementsSelectablesAndIDs
                     let originalStateIndex = gridElementsSelectablesAndIDs |> Array.findIndex (fun (_,_,s) -> s = originalState)
@@ -820,7 +822,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                     (fun (currentState) -> 
                                         tileCanvas.Children.Clear()
                                         canvasAdd(tileCanvas, tileImage, 0., 0.)
-                                        let bmp,_ = GetIconBMPAndExtraDecorations(cm, MapStateProxy(currentState), i, j)
+                                        let _,bmp,_ = GetIconBMPAndExtraDecorations(cm, MapStateProxy(currentState), i, j)
                                         if bmp <> null then
                                             let icon = bmp |> Graphics.BMPtoImage
                                             if MapStateProxy(currentState).IsX then
@@ -917,6 +919,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         // I guess we could also ask 'cm' if a popup is active.
                                         owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 recognizedText
                             ))
+    requestRedrawOverworldEvent.Publish.Add(fun _ ->
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                owUpdateFunctions.[i,j] 0 null  // redraw tile
+        )
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensCheckBox())
 
@@ -975,9 +982,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         w.Owner <- Application.Current.MainWindow
         w.Content <- p
         let save() = 
-            TrackerModel.Options.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
-            TrackerModel.Options.writeSettings()
-        let leftTopWidthHeight = TrackerModel.Options.HotKeyWindowLTWH
+            TrackerModelOptions.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
+            TrackerModelOptions.writeSettings()
+        let leftTopWidthHeight = TrackerModelOptions.HotKeyWindowLTWH
         let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
         if not none && not isRightClick && matches.Success then
             w.Left <- float matches.Groups.[1].Value
@@ -1048,7 +1055,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
-        if displayIsCurrentlyMirrored <> TrackerModel.Options.Overworld.MirrorOverworld.Value then
+        if displayIsCurrentlyMirrored <> TrackerModelOptions.Overworld.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
             if displayIsCurrentlyMirrored then
@@ -1103,14 +1110,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Armos(x,y) = 
-                if TrackerModel.armosBox.IsDone() then
+                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to remove icon if player hides useless icons
+                if not(OverworldMapTileCustomization.hideCertainOverworldTileMarks) && TrackerModel.armosBox.IsDone() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten armos icon
             member _this.Sword3(x,y) = 
-                if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to remove icon if player hides useless icons
+                if not(OverworldMapTileCustomization.hideCertainOverworldTileMarks) && TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten magic sword cave icon
             member _this.Sword2(x,y) =
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
-                if TrackerModel.sword2Box.IsDone() then
+                if not(OverworldMapTileCustomization.hideCertainOverworldTileMarks) && TrackerModel.sword2Box.IsDone() then
                     drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten white sword item cave icon
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
@@ -1119,9 +1128,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
-                    drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, Point(0.,0.), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
-                                    (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
+                    drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, Point(0.,0.), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
+                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
                 else
                     ensureRespectingOwGettableScreensCheckBox()
             member _this.AnnounceCompletedDungeon(i) = 
@@ -1377,9 +1386,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     // when mouse in a dungeon map, show its location...
                     showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
                     // ...and behave like we are moused there
-                    drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModel.Options.Overworld.DrawRoutes.Value, 
-                                        (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                        (if TrackerModel.Options.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
+                    drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
+                                        (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                        (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
             ), (fun _level -> hideLocator()))
     exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
     canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
@@ -1408,7 +1417,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     Canvas.SetBottom(seedAndFlagsTB, 3.)
     seedAndFlagsDisplayCanvas.Children.Add(seedAndFlagsTB) |> ignore
     SaveAndLoad.seedAndFlagsUpdated.Publish.Add(fun _ ->
-        if TrackerModel.Options.DisplaySeedAndFlags.Value then
+        if TrackerModelOptions.DisplaySeedAndFlags.Value then
             seedAndFlagsTB.Text <- sprintf "Seed & Flags: %s\n%s" SaveAndLoad.lastKnownSeed SaveAndLoad.lastKnownFlags
         else
             seedAndFlagsTB.Text <- "\n"
@@ -1746,7 +1755,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let wh = new System.Threading.ManualResetEvent(false)
             async {
                 do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, optionsCanvas)
-                TrackerModel.Options.writeSettings()
+                TrackerModelOptions.writeSettings()
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
@@ -1773,7 +1782,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let rec messageLoop() = async {
             let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
             do! Async.SwitchToContext(cxt)
-            if not(TrackerModel.Options.IsMuted) then
+            if not(TrackerModelOptions.IsMuted) then
                 let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
                 for i in icons do
                     i.Margin <- Thickness(3.)
@@ -1830,7 +1839,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     match loadData with
     | Some(data) ->
         // Overworld
-        TrackerModel.Options.Overworld.MirrorOverworld.Value <- data.Overworld.MirrorOverworld
+        TrackerModelOptions.Overworld.MirrorOverworld.Value <- data.Overworld.MirrorOverworld
         TrackerModel.startIconX <- data.Overworld.StartIconX
         TrackerModel.startIconY <- data.Overworld.StartIconY
         let a = data.Overworld.Map

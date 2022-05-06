@@ -768,7 +768,7 @@ let MakeLoZMinimapDisplayBmp(rooms:bool[,], letter) =
     let w(x,y) = bmp.SetPixel(xoff+x,y,OFFWHITE)
     let LEVEL = [| ZeldaFont.L; ZeldaFont.E; ZeldaFont.V; ZeldaFont.E; ZeldaFont.L |]
     let BOARD = [| ZeldaFont.B; ZeldaFont.O; ZeldaFont.A; ZeldaFont.R; ZeldaFont.D |]
-    let which = if TrackerModel.Options.BOARDInsteadOfLEVEL.Value then BOARD else LEVEL
+    let which = if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then BOARD else LEVEL
     // L B
     for x = 0 to 7 do
         for y = 0 to 7 do

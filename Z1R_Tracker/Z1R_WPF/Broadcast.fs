@@ -56,7 +56,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
             else
                 topBar.Opacity <- 1.0
 
-        let leftTop = TrackerModel.Options.BroadcastWindowLT
+        let leftTop = TrackerModelOptions.BroadcastWindowLT
         let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
         if matches.Success then
             broadcastWindow.Left <- float matches.Groups.[1].Value
@@ -65,8 +65,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         broadcastWindow.Loaded.Add(fun _ -> updateTopBar())
         broadcastWindow.LocationChanged.Add(fun _ ->
             updateTopBar()
-            TrackerModel.Options.BroadcastWindowLT <- sprintf "%d,%d" (int broadcastWindow.Left) (int broadcastWindow.Top)
-            TrackerModel.Options.writeSettings()
+            TrackerModelOptions.BroadcastWindowLT <- sprintf "%d,%d" (int broadcastWindow.Left) (int broadcastWindow.Top)
+            TrackerModelOptions.writeSettings()
             )
         broadcastWindow.Width <- scaleSize + 16.
         broadcastWindow.Owner <- Application.Current.MainWindow
@@ -224,8 +224,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
             )
         broadcastWindow
     let mutable broadcastWindow = null
-    if TrackerModel.Options.ShowBroadcastWindow.Value then
-        broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize, TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value)
+    if TrackerModelOptions.ShowBroadcastWindow.Value then
+        broadcastWindow <- makeBroadcastWindow(TrackerModelOptions.BroadcastWindowSize, TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value)
         broadcastWindow.Show()
         refocusMainWindow()
     OptionsMenu.broadcastWindowOptionChanged.Publish.Add(fun () ->
@@ -234,8 +234,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
             broadcastWindow.Close()
             broadcastWindow <- null
         // maybe restart
-        if TrackerModel.Options.ShowBroadcastWindow.Value then
-            broadcastWindow <- makeBroadcastWindow(TrackerModel.Options.BroadcastWindowSize, TrackerModel.Options.BroadcastWindowIncludesOverworldMagnifier.Value)
+        if TrackerModelOptions.ShowBroadcastWindow.Value then
+            broadcastWindow <- makeBroadcastWindow(TrackerModelOptions.BroadcastWindowSize, TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value)
             broadcastWindow.Show()
             refocusMainWindow()
         )
