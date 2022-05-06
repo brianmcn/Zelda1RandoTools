@@ -1920,6 +1920,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let c(t) = Color.FromArgb(t,0uy,255uy,255uy)  // Color.FromArgb(t,255uy,165uy,0uy)
         let rgb = new RadialGradientBrush(GradientOrigin=Point(0.5,0.5), Center=Point(0.5,0.5), RadiusX=0.5, RadiusY=0.5)
         rgb.GradientStops.Add(new GradientStop(c(0uy), 0.0))
+        rgb.GradientStops.Add(new GradientStop(c(0uy), 0.4))
         rgb.GradientStops.Add(new GradientStop(c(0uy), 1.0))
 
         let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(140uy)), Duration=new Duration(TimeSpan.FromSeconds(1.5)), AutoReverse=true)
@@ -1930,7 +1931,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if (x,y) <> TrackerModel.NOTFOUND then
                 Canvas.SetLeft(owHighlightTile, OMTW*float(x))
                 Canvas.SetTop(owHighlightTile, float(11*3*y))
-                rgb.GradientStops.[1].BeginAnimation(GradientStop.ColorProperty, ca)
+                rgb.GradientStops.[2].BeginAnimation(GradientStop.ColorProperty, ca)
         animateOverworldTile <- animateOWTile
 
     TrackerModel.forceUpdate()

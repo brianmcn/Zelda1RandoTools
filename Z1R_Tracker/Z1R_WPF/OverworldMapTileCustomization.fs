@@ -190,11 +190,12 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
         else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
     // hint shop default to being light, user can darken if bought all, or if was white/magic sword hint they already saw
+    // actually, helpful hints are so rarely played, make default dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
-        else
             Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD2 then
         if not(TrackerModel.sword2Box.IsDone()) then
             let extraDecorationsF(boxPos:Point) =

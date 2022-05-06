@@ -37,6 +37,16 @@ since 1.2.1m...
  - door repair count reminders
 
 
+
+once find all door repairs, make them appear as dontcare (option)... or maybe always make them appear as dontcare? hmmm...
+ - homer discussion
+I suppose also TheLetter, Sword1, HintShop, MMG, S/M/L-secrets, I can imagine options for each of these to make them display as DontCare on the map.
+And then I can imagine that after you click Zelda, all the things display again, so if you want to review, you can see it at the end of the seed.  (Or you could just click the options to display them again.)
+Obviously there are scenarios where you want them always displayed (e.g. groundhog/router-relish).
+ - also maybe they always show during the 'change animation' and only disappear after that
+ - also may want a hover target which is 'display everything'?  hovering zelda could work, since clicking her would also show
+
+
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
 related:
 If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
@@ -44,10 +54,13 @@ If I keep the 'remaining door repair count' on-screen, where is the best place f
 in the upper right corner of the app.  
 ***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
-
+ - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
 
 
 fix up DrawingLayer, add documentation
+
+
+optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
 
 
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
