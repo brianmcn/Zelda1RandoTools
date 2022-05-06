@@ -292,6 +292,49 @@ type MapSquareChoiceDomainHelper =
             let r,_,_ = dummyOverworldTiles.[n] in r
         else
             failwith "bad overworld tile id"
+    static member TilesThatSupportHidingOverworldMarks = 
+        [| 
+            MapSquareChoiceDomainHelper.SWORD3
+            MapSquareChoiceDomainHelper.SWORD2
+            MapSquareChoiceDomainHelper.SWORD1
+            MapSquareChoiceDomainHelper.LARGE_SECRET
+            MapSquareChoiceDomainHelper.MEDIUM_SECRET
+            MapSquareChoiceDomainHelper.SMALL_SECRET
+            MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE
+            MapSquareChoiceDomainHelper.MONEY_MAKING_GAME
+            MapSquareChoiceDomainHelper.THE_LETTER
+            MapSquareChoiceDomainHelper.ARMOS
+            MapSquareChoiceDomainHelper.HINT_SHOP
+            MapSquareChoiceDomainHelper.TAKE_ANY
+        |]
+    static member AsTrackerModelOptionsOverworldTilesToHide(n) =
+        if n = MapSquareChoiceDomainHelper.SWORD3 then
+            TrackerModelOptions.OverworldTilesToHide.Sword3
+        elif n = MapSquareChoiceDomainHelper.SWORD2 then
+            TrackerModelOptions.OverworldTilesToHide.Sword2
+        elif n = MapSquareChoiceDomainHelper.SWORD1 then
+            TrackerModelOptions.OverworldTilesToHide.Sword1
+        elif n = MapSquareChoiceDomainHelper.LARGE_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.LargeSecret
+        elif n = MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.MediumSecret
+        elif n = MapSquareChoiceDomainHelper.SMALL_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.SmallSecret
+        elif n = MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+            TrackerModelOptions.OverworldTilesToHide.DoorRepair
+        elif n = MapSquareChoiceDomainHelper.MONEY_MAKING_GAME then
+            TrackerModelOptions.OverworldTilesToHide.MoneyMakingGame
+        elif n = MapSquareChoiceDomainHelper.THE_LETTER then
+            TrackerModelOptions.OverworldTilesToHide.TheLetter
+        elif n = MapSquareChoiceDomainHelper.ARMOS then
+            TrackerModelOptions.OverworldTilesToHide.Armos
+        elif n = MapSquareChoiceDomainHelper.HINT_SHOP then
+            TrackerModelOptions.OverworldTilesToHide.HintShop
+        elif n = MapSquareChoiceDomainHelper.TAKE_ANY then
+            TrackerModelOptions.OverworldTilesToHide.TakeAny
+        else 
+            failwith "bad AsTrackerModelOptionsOverworldTilesToHide"
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

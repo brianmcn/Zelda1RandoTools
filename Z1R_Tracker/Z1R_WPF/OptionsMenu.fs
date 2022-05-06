@@ -13,6 +13,7 @@ let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 let showBasementInfoOptionChanged = new Event<unit>()
 let bookForHelpfulHintsOptionChanged = new Event<unit>()
+let requestRedrawOverworldEvent = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModelOptions.Bool, needFU, otherEffect) =
     let effect() = 
@@ -57,19 +58,22 @@ let data2 = [|
         TrackerModelOptions.VoiceReminders.DoorRepair,        TrackerModelOptions.VisualReminders.DoorRepair
     |]
 
-let makeOptionsCanvas(width, includePopupExplainer) = 
+let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer) = 
+    let width = cm.AppMainCanvas.Width
     let all = new Border(BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black)
     let optionsAllsp = new StackPanel(Orientation=Orientation.Horizontal, Width=width, Background=Brushes.Black)
-    let style = new Style(typeof<TextBox>)
-    style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
-    style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.DarkGray))
-    style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
-    style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
-    style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
-    all.Resources.Add(typeof<TextBox>, style)
-    let style = new Style(typeof<CheckBox>)
-    style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
-    all.Resources.Add(typeof<CheckBox>, style)
+    let AddStyle(e:FrameworkElement) = 
+        let style = new Style(typeof<TextBox>)
+        style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
+        style.Setters.Add(new Setter(TextBox.BorderBrushProperty, Brushes.DarkGray))
+        style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
+        style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+        style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+        e.Resources.Add(typeof<TextBox>, style)
+        let style = new Style(typeof<CheckBox>)
+        style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
+        e.Resources.Add(typeof<CheckBox>, style)
+    AddStyle(all)
 
     let header(tb:TextBox) = 
         tb.Margin <- Thickness(0., 0., 0., 6.)
@@ -86,6 +90,63 @@ let makeOptionsCanvas(width, includePopupExplainer) =
         ToolTipService.SetShowDuration(cb, 10000)
         link(cb, b, needFU, oe)
         options1sp.Children.Add(cb) |> ignore
+    let moreButton = Graphics.makeButton(" More settings... ",None,None)
+    moreButton.HorizontalAlignment <- HorizontalAlignment.Left
+    options1sp.Children.Add(moreButton) |> ignore
+    let mutable popupIsActive = false
+    moreButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            let wh = new System.Threading.ManualResetEvent(false)
+            let sp = new StackPanel(Orientation=Orientation.Vertical)
+            let tb = new TextBox(Text="Overworld marks to hide", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
+            sp.Children.Add(tb) |> ignore
+            let desc = "Sometimes you want to mark certain map tiles (e.g. Door Repairs) so the tracker can help you (e.g. by keeping count), but " +
+                        "you don't want to clutter your overworld map with icons (e.g. Door icons) that you don't need to see or come back to.  " +
+                        "In these cases, you can opt to 'hide' certain icons, so that they appear like \"Don't Care\" spots (just grayed out tile " +
+                        "with no icon) rather than with an icon on the map.\n\n" + 
+                        "Check each tile that you would prefer to hide after you mark it."
+            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+            sp.Children.Add(tb) |> ignore
+            let len = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.Length
+            let firstHalf = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[0..(len/2-1)]
+            let secondHalf = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[(len/2)..]
+            let boxes = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(20.,5.,0.,5.))
+            let first = new StackPanel(Orientation=Orientation.Vertical)
+            let second = new StackPanel(Orientation=Orientation.Vertical)
+            boxes.Children.Add(first) |> ignore
+            boxes.Children.Add(second) |> ignore
+            sp.Children.Add(boxes) |> ignore
+            let addTo(sp:StackPanel, a) = 
+                for tile in a do
+                    let desc = let _,_,s = TrackerModel.dummyOverworldTiles.[tile] in s
+                    let desc = 
+                        let i = desc.IndexOf('\n')
+                        if i <> -1 then
+                            desc.Substring(0, i)
+                        else
+                        desc
+                    let cb = new CheckBox(Content=new TextBox(Text=desc,IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+                    let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(tile)
+                    link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+                    sp.Children.Add(cb) |> ignore
+            addTo(first, firstHalf)
+            addTo(second, secondHalf)
+            let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
+                        "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
+                        "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
+                        "a bright icon in that case.\n\n" + 
+                        "You can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
+            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+            sp.Children.Add(tb) |> ignore
+            AddStyle(sp)
+            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), Width=650.)
+            async {
+                do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
+                popupIsActive <- false
+            } |> Async.StartImmediate
+        )
+
     let tb = new TextBox(Text="Dungeon settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options1sp.Children.Add(tb) |> ignore
     for text,tip,b,needFU,oe in data1d do

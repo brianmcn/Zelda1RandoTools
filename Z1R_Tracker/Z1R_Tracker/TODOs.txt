@@ -35,6 +35,7 @@ since 1.2.1m...
  - crash-detection-popup to help folks with recovery
  - clickable recorder destination (note where you are whistled to)
  - door repair count reminders
+ - hide certain overworld icons (but still track them)
 
 
 
@@ -48,7 +49,9 @@ Obviously there are scenarios where you want them always displayed (e.g. groundh
  - also may want a hover target which is 'display everything'?  hovering zelda could work, since clicking her would also show
 anyway, i have to figure out how to put all this on options menu (checkboxes for each tile you might hide), and i think since it makes sense for 'click zelda' to 
 'display everything again', i think 'hover zelda' will probably temporarily display it while hovering, in case you need quickly see the info you chose to hide, for some reason
- - need MHE update in that case
+ALL DONE except:
+ - animation to briefly show hidden when marked
+ - need MHE update
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)

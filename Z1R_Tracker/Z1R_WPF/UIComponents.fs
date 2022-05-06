@@ -858,6 +858,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let whiteSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(whiteSword, "Show location of white sword cave, if known or hinted", 30., 270.)
 
+    let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 28.,28.; 28.,2.; 2.,2.; 2.,28.; 28.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(shopping, "Show icons you opted to hide", 410., 150.)
+
     let COL = Brushes.CornflowerBlue
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
     let armos = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
@@ -895,9 +899,9 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
 
     let COL = Brushes.MediumVioletRed
     let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 476.,92.; 436.,92.; 436.,130.; 535.,130.; 535.,116.; 550.,116.; 550.,50. ] |> Seq.map Point))
-    addLabel(zonesEtAl, "As described", 600., 150.)
+    addLabel(zonesEtAl, "As described", 630., 150.)
 
-    let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 600.,150. ] |> Seq.map Point))
+    let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 630.,150. ] |> Seq.map Point))
     canvasAdd(c, spotSummary, 0., 0.)
 
     let COL = Brushes.MediumVioletRed
@@ -921,7 +925,7 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     c.Children.Add(desc) |> ignore
     let COL = Brushes.MediumVioletRed
     let dx,dy = LEFT_OFFSET + 4.8*OMTW + 15., THRU_MAIN_MAP_H + 3.
-    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; -8.,2.; -8.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     recorderDest.Points.Add(Point(330.,340.))
     canvasAdd(c, recorderDest, 0., 0.)
     let desc = mkTxt("Show recorder destinations")

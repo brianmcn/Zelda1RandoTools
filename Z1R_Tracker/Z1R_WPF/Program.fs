@@ -729,7 +729,7 @@ type MyWindow() as this =
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
                                 Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), false)
+        let options = OptionsMenu.makeOptionsCanvas(cm, false)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)

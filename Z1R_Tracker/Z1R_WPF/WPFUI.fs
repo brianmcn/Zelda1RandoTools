@@ -398,17 +398,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
         canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
 
-    let requestRedrawOverworldEvent = new Event<unit>()
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
-        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, requestRedrawOverworldEvent)
+        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent)
 
     do! showProgress("link")
 
     // overworld map grouping, as main point of support for mirroring
     let mutable animateOverworldTile = fun _ -> ()
-    let animateOverworldTileIfOptionIsChecked(i,j) =
-        if TrackerModelOptions.AnimateTileChanges.Value then
-            animateOverworldTile(i,j)
+    let animateOverworldTileIfOptionIsChecked(i,j) = animateOverworldTile(i,j)  // the option is checked in the body - all OW tile changes should call this
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
     canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
@@ -919,7 +916,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         // I guess we could also ask 'cm' if a popup is active.
                                         owUpdateFunctions.[currentlyMousedOWX,currentlyMousedOWY] 777 recognizedText
                             ))
-    requestRedrawOverworldEvent.Publish.Add(fun _ ->
+    OptionsMenu.requestRedrawOverworldEvent.Publish.Add(fun _ ->
         for i = 0 to 15 do
             for j = 0 to 7 do
                 owUpdateFunctions.[i,j] 0 null  // redraw tile
@@ -1078,7 +1075,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         redrawItemProgressBar()
 
         let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
-                animateOverworldTile loc
                 let ctxt = System.Threading.SynchronizationContext.Current
                 hideLocator()  // we may be moused in a dungeon right now
                 showLocatorExactLocation loc
@@ -1717,7 +1713,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     moreOptionsButton.MaxHeight <- 25.
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(appMainCanvas.Width, true)
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(cm, true)
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 
@@ -1932,15 +1928,26 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         rgb.GradientStops.Add(new GradientStop(c(0uy), 0.4))
         rgb.GradientStops.Add(new GradientStop(c(0uy), 1.0))
 
-        let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(140uy)), Duration=new Duration(TimeSpan.FromSeconds(1.5)), AutoReverse=true)
+        let msDuration = 1500
+        let ca = new Animation.ColorAnimation(From=Nullable<_>(c(0uy)), To=Nullable<_>(c(140uy)), Duration=new Duration(TimeSpan.FromMilliseconds(float msDuration)), AutoReverse=true)
         let owHighlightTile = new Shapes.Rectangle(Width=OMTW, Height=11. * 3., StrokeThickness = 0., Fill=rgb, Opacity=1.0, IsHitTestVisible=false)
         canvasAdd(overworldCanvas, owHighlightTile, OMTW*float(6), float(11*3*6))
 
+        let ctxt = System.Threading.SynchronizationContext.Current
         let animateOWTile(x,y) = 
             if (x,y) <> TrackerModel.NOTFOUND then
-                Canvas.SetLeft(owHighlightTile, OMTW*float(x))
-                Canvas.SetTop(owHighlightTile, float(11*3*y))
-                rgb.GradientStops.[2].BeginAnimation(GradientStop.ColorProperty, ca)
+                OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- true
+                owUpdateFunctions.[x,y] 0 null  // redraw tile, with icon shown
+                if TrackerModelOptions.AnimateTileChanges.Value then
+                    Canvas.SetLeft(owHighlightTile, OMTW*float(x))
+                    Canvas.SetTop(owHighlightTile, float(11*3*y))
+                    rgb.GradientStops.[2].BeginAnimation(GradientStop.ColorProperty, ca)
+                async {
+                    do! Async.Sleep(msDuration)
+                    do! Async.SwitchToContext(ctxt)
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- false
+                    owUpdateFunctions.[x,y] 0 null  // redraw tile, with icon possibly hidden
+                } |> Async.StartImmediate
         animateOverworldTile <- animateOWTile
 
     TrackerModel.forceUpdate()
