@@ -1,5 +1,88 @@
 ﻿module DrawingLayer
 
+module ExtraZTbmps =
+    open System.Drawing
+
+    let Vertical =
+        let r = new Bitmap(16,16)
+        for py = 0 to 15 do
+            r.SetPixel(8, py, Color.Red)
+        r
+    let Horizontal =
+        let r = new Bitmap(16,16)
+        for px = 0 to 15 do
+            r.SetPixel(px, 8, Color.Red)
+        r
+    let top(r:Bitmap) =
+        for px = 0 to 15 do
+            r.SetPixel(px, 0, Color.Red)
+    let bottom(r:Bitmap) =
+        for px = 0 to 15 do
+            r.SetPixel(px, 15, Color.Red)
+    let left(r:Bitmap) =
+        for py = 0 to 15 do
+            r.SetPixel(0, py, Color.Red)
+    let right(r:Bitmap) =
+        for py = 0 to 15 do
+            r.SetPixel(15, py, Color.Red)
+    let UL =
+        let r = new Bitmap(16,16)
+        top(r)
+        left(r)
+        r
+    let UR =
+        let r = new Bitmap(16,16)
+        top(r)
+        right(r)
+        r
+    let LL =
+        let r = new Bitmap(16,16)
+        bottom(r)
+        left(r)
+        r
+    let LR =
+        let r = new Bitmap(16,16)
+        bottom(r)
+        right(r)
+        r
+    let OnlyLeft =
+        let r = new Bitmap(16,16)
+        top(r)
+        bottom(r)
+        right(r)
+        r
+    let OnlyUp =
+        let r = new Bitmap(16,16)
+        left(r)
+        bottom(r)
+        right(r)
+        r
+    let OnlyRight =
+        let r = new Bitmap(16,16)
+        left(r)
+        bottom(r)
+        top(r)
+        r
+    let OnlyDown =
+        let r = new Bitmap(16,16)
+        left(r)
+        right(r)
+        top(r)
+        r
+    let All = 
+        [|
+            "Vertical", Vertical
+            "Horizontal", Horizontal
+            "UL", UL
+            "UR", UR
+            "LL", LL
+            "LR", LR
+            "OnlyLeft", OnlyLeft
+            "OnlyUp", OnlyUp
+            "OnlyRight", OnlyRight
+            "OnlyDown", OnlyDown
+        |]
+
 open System.Windows
 open System.Windows.Controls
 open System.Windows.Media
@@ -85,14 +168,18 @@ let ZTrackerResourceTable =
             // some others
             "OldMan", unborder <| Graphics.old_man_bmp
             "Fairy", Graphics.fairy_bmp
+            "CheckMark", Graphics.iconCheckMark_bmp
+            "Rock", unborder <| Graphics.zi_rock 
+            "Tree", unborder <| Graphics.zi_tree
             // 16x16 items
             "Triforce", unborder <| Graphics.zi_triforce_bmp
             "FiveRupee", unborder <| Graphics.zi_fiver_bmp
             "Map", unborder <| Graphics.zi_map_bmp
             "Compass", unborder <| Graphics.zi_compass_bmp
         |]
-        for i = 0 to Graphics.theInteriorBmpTable.Length-1 do
+        for i = 0 to Graphics.theInteriorBmpTable.Length-2 do  // -2 rather than -1 because DarkX is not useful as an icon
             yield sprintf "Overworld%2d" i, Graphics.theInteriorBmpTable.[i].[0]
+        yield! ExtraZTbmps.All
     |] |> dict
 
 open DungeonSaveAndLoad  // has Model types for DrawingLayer
@@ -265,8 +352,8 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
             mouse <- Some(DrawingLayerIcon.ZTracker(k), makeImage(v))
             )
         ztIconGrid.Children.Add(button) |> ignore
-    canvasAdd(bottomCanvas, mkTxtBT("Here are some default icons that come with Z-Tracker:", 0.), 10., 80.)
-    canvasAdd(bottomCanvas, ztIconGrid, 10., 100.)
+    canvasAdd(bottomCanvas, mkTxtBT("Here are some default icons that come with Z-Tracker:", 0.), 10., 65.)
+    canvasAdd(bottomCanvas, ztIconGrid, 10., 85.)
     // ExtraIcons
     let extraIconGrid = new System.Windows.Controls.Primitives.UniformGrid(Rows=7, Columns=8)
     for (KeyValue(k,v)) in ExtraIconsResourceTable do

@@ -39,6 +39,21 @@ since 1.2.1m...
  - overworld randomizers (blank map or user-specified-overworld-map file.png)
 
 
+'Loading UI' cuts off
+
+
+consider hand-editing bomb-on-floor icon to make look larger (in progress)
+
+
+homer shop-hovering blue ring "it didn't glow like the sun for me" (animate? in general, if you are explicitly temp asking for it, can be loud)
+ - DONE? have an implementation, is it too loud? does it need an option? add whatsnewdoc
+
+
+possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
+ - TODO remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code, maybe SpotSummary removal
+MetalMachine: routing lines should turn off; me: but i suppose i could flag it as 'in this special mode, ignore user preferences and always turn off maybe' 
+ - (and remove those from options menu when active, and also mirror overworld, i guess zones...)
+
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
 related:
@@ -56,16 +71,9 @@ fix up DrawingLayer, add documentation
 optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
 
 
-possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
- - and maybe can mark 'walls', like 4 edges can toggle on/off, similar to middle click circles somehow maybe? would need solid wall, no-wall, and 'fuzz' for like maze/non-trivial connectedness
- - fairy would be useful icon (already added), maybe also rock, bush? (I guess PB/candle maybe, but to mark need-try-bomb/push or need-try burn...)
- - load a non-blank map from a .png file
-      - and have a way to only-reveal-map-on-click? (start with a completely opaque tile obscuring it)
- - TODO remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code, maybe SpotSummary removal
-
-
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
 blockers is not ideal highlight target, and is large
+ - at least give it a thin border around its textbox and offer some local feedback when its hovered
 maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
 also provide a popup explanation/legend of what it is (and figure out what it is)
  - maybe it is two things: rooms i marked to come back to, and rooms yet to be found

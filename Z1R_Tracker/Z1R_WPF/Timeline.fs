@@ -75,7 +75,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                 let tick = float ti.FinishedTotalSeconds/(60.*float minutesPerTick) |> int
                 if not(buckets.ContainsKey(tick)) then
                     buckets.Add(tick, ResizeArray())
-                buckets.[tick].Add(ti.Bmp, ti.FinishedTotalSeconds, ti.Has)
+                buckets.[tick].Add(ti.Bmp, ti.FinishedTotalSeconds, ti.Has, ti.Identifier)
         for tick = 0 to numTicks do
             if buckets.ContainsKey(tick) then
                 let rowBmps = ResizeArray()
@@ -99,7 +99,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                     let line = new Shapes.Line(X1=x(tick), Y1=float(bottomRow+1)*(iconSize+ICON_SPACING)-ICON_SPACING, X2=x(tick), Y2=iconAreaHeight+BIG_HASH/2., Stroke=Brushes.Gray, StrokeThickness=LINE_THICKNESS)
                     canvasAdd(itemCanvas, line, 0., 0.)
                     // items
-                    for row,(bmp,totalSeconds,has) in rowBmps do
+                    for row,(bmp,totalSeconds,has,ident) in rowBmps do
                         let c = new Canvas(Width=iconSize, Height=iconSize)
                         let img = Graphics.BMPtoImage ((if has = TrackerModel.PlayerHas.NO then Graphics.greyscale else id) bmp)
                         img.Width <- iconSize
@@ -108,7 +108,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                         if has = TrackerModel.PlayerHas.SKIPPED then CustomComboBoxes.placeSkippedItemXDecorationImpl(c, iconSize)
                         c.MouseEnter.Add(fun _ ->
                             itemCanvas.Children.Remove(timeToolTip)
-                            timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""")
+                            timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""") + "\n" + ident
                             let x = xminOrig
                             let x = min x (float(16*16*3 - 100))  // don't go off right screen edge
                             canvasAdd(itemCanvas, timeToolTip, x, float row*(iconSize+ICON_SPACING)-35.)

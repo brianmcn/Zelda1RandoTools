@@ -202,6 +202,14 @@ type TileHighlightRectangle() as this =
     member _this.MakePaleYellow() = s.Stroke <- paleyellow; Draw(true)
     member _this.MakePaleGreen() = s.Stroke <- palegreen; Draw(true)
     member _this.Hide() = s.Opacity <- 0.0
+    member _this.MakeGreenWithBriefAnimation() = 
+        Draw(false)
+        let da = new System.Windows.Media.Animation.DoubleAnimation(12.0, 4.0, new Duration(System.TimeSpan.FromSeconds(0.5)))
+        s.BeginAnimation(Shapes.Rectangle.StrokeThicknessProperty, da)
+        let ca = new System.Windows.Media.Animation.ColorAnimation(From=Colors.Cyan, To=Colors.Lime, Duration=new Duration(System.TimeSpan.FromSeconds(0.5)))
+        let brush = new SolidColorBrush()
+        s.Stroke <- brush
+        brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
     member _this.Shape = s
 
 
@@ -321,7 +329,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
         a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29], a.[30])
 
-let bg16x16 = System.Drawing.Color.FromArgb(35, 40, 00)
+let bg16x16 = System.Drawing.Color.FromArgb(45, 50, 00)
 let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bmp, dodongo_bmp, red_bubble_bmp, blue_bubble_bmp, blue_darknut_bmp, other_monster_bmp, old_man_bmp) =
     let imageStream = GetResourceStream("zelda_bosses16x16.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
@@ -330,7 +338,10 @@ let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bm
             let r = new System.Drawing.Bitmap(18,18)  // border around it
             for px = 0 to 17 do
                 for py = 0 to 17 do
-                    r.SetPixel(px, py, bg16x16)
+                    if px=0 || px=17 || py=0 || py=17 then
+                        r.SetPixel(px, py, bg16x16)
+                    else
+                        r.SetPixel(px, py, System.Drawing.Color.Black)
             for px = 0 to 15 do
                 for py = 0 to 15 do
                     let color = bmp.GetPixel(px + i*16, py)
@@ -339,7 +350,7 @@ let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bm
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10], a.[11])
 
-let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_map_bmp, zi_compass_bmp, zi_other_item_bmp) =
+let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_map_bmp, zi_compass_bmp, zi_other_item_bmp, zi_alt_bomb_bmp, zi_rock, zi_tree) =
     let imageStream = GetResourceStream("zelda_items16x16.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -347,14 +358,17 @@ let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_ma
             let r = new System.Drawing.Bitmap(18,18)  // border around it
             for px = 0 to 17 do
                 for py = 0 to 17 do
-                    r.SetPixel(px, py, bg16x16)
+                    if px=0 || px=17 || py=0 || py=17 then
+                        r.SetPixel(px, py, bg16x16)
+                    else
+                        r.SetPixel(px, py, System.Drawing.Color.Black)
             for px = 0 to 15 do
                 for py = 0 to 15 do
                     let color = bmp.GetPixel(px + i*16, py)
                     if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
             yield r
     |]
-    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7])
+    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10])
 
 let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp, iconDisk_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
@@ -512,8 +526,6 @@ let readCacheFileOrCreateBmp(filename, createF : unit -> System.Drawing.Bitmap) 
         bmp
 
 let mutable alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap = "", false   // startup screen can set these
-let CanHideAndReveal() = not(System.String.IsNullOrEmpty(alternativeOverworldMapFilename))
-let ShouldInitiallyHideOverworldMap() = CanHideAndReveal() && shouldInitiallyHideOverworldMap
 let blankTileBmp =
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
     for px = 0 to 16*3-1 do

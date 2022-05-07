@@ -855,7 +855,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 let pos = c.TranslatePoint(Point(), appMainCanvas)
                                 let msp = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                                 if msp.IsX then
-                                    if Graphics.CanHideAndReveal() then
+                                    if Graphics.shouldInitiallyHideOverworldMap then
                                         let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
                                         async {
                                             if ex=msp.State then
@@ -905,7 +905,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             } |> Async.StartImmediate
                         | None -> ()
                     )
-                if Graphics.ShouldInitiallyHideOverworldMap() then
+                if Graphics.shouldInitiallyHideOverworldMap then
                     TrackerModel.overworldMapMarks.[i,j].Set(TrackerModel.MapSquareChoiceDomainHelper.DARK_X)
                     TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.DARK_X,TrackerModel.MapSquareChoiceDomainHelper.DARK_X)
                     redrawGridSpot()
@@ -1365,7 +1365,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
                             let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
                             if curLevel = level-11 then
-                                owLocatorTilesZone.[i,j].MakeBoldGreen()
+                                owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
                             elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
                                 owLocatorTilesZone.[i,j].MakeGreen()
                             else
@@ -1580,7 +1580,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if MapStateProxy(cur).IsThreeItemShop && 
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
-                    owLocatorTilesZone.[i,j].MakeGreen()
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
                     anyFound <- true
         if not(anyFound) then
             showLocatorNoneFound()
@@ -1593,7 +1593,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
                     (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
-                    owLocatorTilesZone.[i,j].MakeGreen()
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
                     anyFound <- true
         if not(anyFound) then
             showLocatorNoneFound()
@@ -1604,7 +1604,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && MapStateProxy(cur).IsDungeon && TrackerModel.GetDungeon(cur).PlayerHasTriforce() then
-                    owLocatorTilesZone.[i,j].MakeGreen()
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     recorderDestinationButton.MouseLeave.Add(fun _ -> hideLocator())
     anyRoadLegendIcon.MouseEnter.Add(fun _ ->
@@ -1613,7 +1613,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur >= TrackerModel.MapSquareChoiceDomainHelper.WARP_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.WARP_4 then
-                    owLocatorTilesZone.[i,j].MakeGreen()
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     anyRoadLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
     showLocator <- (fun sld ->

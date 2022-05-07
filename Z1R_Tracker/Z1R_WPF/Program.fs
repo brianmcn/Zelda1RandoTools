@@ -679,8 +679,8 @@ type MyWindow() as this =
                             let r = ofd.ShowDialog(this)
                             if r.HasValue && r.Value then
                                 Graphics.alternativeOverworldMapFilename <- ofd.FileName
-                        Graphics.shouldInitiallyHideOverworldMap <- (choice=2)
-                        // TODO saves for those two values (actually, only map file needs to be saved; initially only happens at startup, and hidden is always supported if backing state hides it)
+                        Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
+                        // TODO saves for those two values
                         let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
 
                                     "Some Z-Tracker features won't interact well with a non-standard overworld map.  " +
