@@ -148,10 +148,13 @@ let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
 
 let mutable temporarilyDisplayHiddenOverworldTileMarks = false
 let ShouldHide(state) =
-    if temporarilyDisplayHiddenOverworldTileMarks || TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() then
-        false
-    else
-        TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(state).Value
+    let r = 
+        if temporarilyDisplayHiddenOverworldTileMarks || TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() then
+            false
+        else
+            TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(state).Value
+    //printfn "SH(%d)=%A" state r
+    r
 
 let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (shouldAppearLikeDarkX,iconBmp,[decos])
     if ms.State = -1 then
@@ -185,9 +188,12 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
     // door repair always dark (but light in the grid selector)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
         ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[1], []
-    // armos always itself
+    // armos dark if player already got
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then
-        ShouldHide(ms.State) && TrackerModel.armosBox.IsDone(), Graphics.theFullTileBmpTable.[ms.State].[0], []
+        if TrackerModel.armosBox.IsDone() then
+            ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[1], []
+        else
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     // MMG always bright
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.MONEY_MAKING_GAME then
         ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[0], []
@@ -216,10 +222,10 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
                 seq extraDecorations
             false, sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
         else
-            ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[0], []
+            ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD3 then
         if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
-            ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[0], []
+            ShouldHide(ms.State), Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
             false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.IsDungeon then

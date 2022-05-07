@@ -191,7 +191,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     gridAddTuple(owItemGrid, basicBoxImpl("Killed Gannon (mark timeline)", "Gannon", Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
-    // TODO tooltip update, MHE
     let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda)
     gridAddTuple(owItemGrid, zelda_box,  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
     // hover zelda to display hidden overworld icons (note that Armos/Sword2/Sword3 will not be darkened)

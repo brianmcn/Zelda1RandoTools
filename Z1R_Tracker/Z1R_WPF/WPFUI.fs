@@ -1105,18 +1105,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
-            member _this.Armos(x,y) = 
-                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to remove icon if player hides useless icons
-                if not(OverworldMapTileCustomization.ShouldHide(TrackerModel.MapSquareChoiceDomainHelper.ARMOS)) && TrackerModel.armosBox.IsDone() then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten armos icon
-            member _this.Sword3(x,y) = 
-                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to remove icon if player hides useless icons
-                if not(OverworldMapTileCustomization.ShouldHide(TrackerModel.MapSquareChoiceDomainHelper.SWORD3)) && TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten magic sword cave icon
-            member _this.Sword2(x,y) =
-                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to place/unplace the box and/or shift the icon
-                if not(OverworldMapTileCustomization.ShouldHide(TrackerModel.MapSquareChoiceDomainHelper.SWORD2)) && TrackerModel.sword2Box.IsDone() then
-                    drawCompletedIconHighlight(recorderingCanvas,float x,y,false)  // darken a gotten white sword item cave icon
+            member _this.Armos(x,y)  = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
+            member _this.Sword3(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
+            member _this.Sword2(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
                 routeDrawingCanvas.Children.Clear()

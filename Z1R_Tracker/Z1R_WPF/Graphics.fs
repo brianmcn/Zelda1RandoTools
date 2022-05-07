@@ -603,11 +603,13 @@ do
         )
     // 13  sword3
     theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0))
+    theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0) |> darkenImpl 0.6)
     // 14  sword2
     theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1))
+    theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1) |> darkenImpl 0.6)
     // 15  sword1
     theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2))
-    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2) |> darken)
+    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2) |> darkenImpl 0.6)
     // 16-23  item shops (as single-item icons)
     for i = 0 to TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS-1 do
         let bmp = new System.Drawing.Bitmap(5*3,9*3)
@@ -640,6 +642,7 @@ do
     theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(13) |> darkenImpl 0.7)
     // 31  armos
     theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(7))
+    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(7) |> darken)
     // 32  hint shop
     theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3))
     theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3) |> darkenImpl 0.7)

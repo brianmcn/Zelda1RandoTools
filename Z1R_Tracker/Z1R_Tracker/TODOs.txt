@@ -39,21 +39,6 @@ since 1.2.1m...
 
 
 
-once find all door repairs, make them appear as dontcare (option)... or maybe always make them appear as dontcare? hmmm...
- - homer discussion
-I suppose also TheLetter, Sword1, HintShop, MMG, S/M/L-secrets, I can imagine options for each of these to make them display as DontCare on the map.
- - also armos, sword2, sword3 when they are 'gotten'
-And then I can imagine that after you click Zelda, all the things display again, so if you want to review, you can see it at the end of the seed.  (Or you could just click the options to display them again.)
-Obviously there are scenarios where you want them always displayed (e.g. groundhog/router-relish).
- - also maybe they always show during the 'change animation' and only disappear after that
- - also may want a hover target which is 'display everything'?  hovering zelda could work, since clicking her would also show
-anyway, i have to figure out how to put all this on options menu (checkboxes for each tile you might hide), and i think since it makes sense for 'click zelda' to 
-'display everything again', i think 'hover zelda' will probably temporarily display it while hovering, in case you need quickly see the info you chose to hide, for some reason
-ALL DONE except:
- - animation to briefly show hidden when marked
- - need MHE update
-
-
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
 related:
 If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
