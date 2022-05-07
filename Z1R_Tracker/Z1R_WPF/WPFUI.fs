@@ -857,11 +857,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 if msp.IsX then
                                     if Graphics.CanHideAndReveal() then
                                         let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
-                                        if ex=msp.State then
-                                            TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)
-                                        else
-                                            TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
-                                        redrawGridSpot()
+                                        async {
+                                            if ex=msp.State then
+                                                // hidden -> unmarked           (and recall that unmarked left clicks to DontCare)
+                                                TrackerModel.setOverworldMapExtraData(i,j,msp.State,0)
+                                                do! SetNewValue(-1,msp.State)  
+                                            else
+                                                // DontCare -> hidden           (thus left click is a 3-cycle hidden, unmarked, DontCare)
+                                                TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
+                                            redrawGridSpot()
+                                        } |> Async.StartImmediate
                                     else
                                         activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
                                 else
