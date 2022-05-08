@@ -69,7 +69,7 @@ let ensureRespectingOwGettableScreensCheckBox() =
 
 type RouteDestination = LinkRouting.RouteDestination
 
-let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR) =
+let drawRoutesToImpl(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR) =
     let maxPaleGYR = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.All else maxPaleGYR
     let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
     let interestingButInaccesible = ResizeArray()
@@ -131,6 +131,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             do! Async.SwitchToContext(ctxt)
             mainWindow.Focus() |> ignore
         } |> Async.StartImmediate
+    match loadData with
+    | Some(data) ->
+        Graphics.alternativeOverworldMapFilename <- data.AlternativeOverworldMapFilename
+        Graphics.shouldInitiallyHideOverworldMap <- data.ShouldInitiallyHideOverworldMap
+        // rest of data is loaded at end, but these are needed at start
+    | _ -> ()
     // initialize based on startup parameters
     let owMapBMPs, isMixed, owInstance, owMapNum =
         match owMapNum, loadData with
@@ -151,6 +157,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do! showProgress("after ow map load")
     if owMapNum < 0 || owMapNum > 4 then
         failwith "bad owMapNum"
+    let isStandardHyrule = owMapNum <> 4   // should features assume we know the overworld map as standard/mirrored z1r
+    let drawRoutesTo(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR) =
+        if isStandardHyrule then drawRoutesToImpl(routeDestinationOption, routeDrawingCanvas, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR)
+        else ()
     TrackerModel.initializeAll(owInstance, kind)
     if not heartShuffle then
         for i = 0 to 7 do
@@ -399,7 +409,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
 
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
-        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent)
+        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
 
     do! showProgress("link")
 
@@ -412,8 +422,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     mirrorOverworldFEs.Add(overworldCanvas)
 
     let blockerQueries = ResizeArray()
-    let stepAnimateLink = LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
-                                                        (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
+    let stepAnimateLink = 
+        if isStandardHyrule then   // Routing only works on standard map
+            LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
+                                           (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
+        else fun () -> ()
 
     do! showProgress("overworld start start 1")
 
@@ -956,7 +969,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
 
     // hint decoder
-    UIComponents.MakeHintDecoderUI(cm)
+    if isStandardHyrule then   // Hints only apply to z1r and standard map zones
+        UIComponents.MakeHintDecoderUI(cm)
 
     // WANT!
     let kitty = new Image()
@@ -1020,7 +1034,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.ManualSave)
+                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.ManualSave)
                     let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
@@ -1440,7 +1455,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         routeDrawingCanvas.Children.Clear()
         ensureRespectingOwGettableScreensCheckBox()
         )
-    canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
+    if isStandardHyrule then   // Gettables only makes sense in standard map
+        canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
+    else
+        owGettableScreensCheckBox.IsChecked <- false
     owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
     owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
     owGettableScreensTextBox.MouseEnter.Add(fun _ -> 
@@ -1494,7 +1512,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     canvasAdd(appMainCanvas, cb, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
 
     // zone overlay
-    let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = UIComponents.MakeZoneOverlay(appMainCanvas, zoneCanvas, ensurePlaceholderFinished, mirrorOverworldFEs, OW_ITEM_GRID_LOCATIONS.OFFSET)
+    let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = 
+        if isStandardHyrule then   // Zones only makes sense in standard map
+            UIComponents.MakeZoneOverlay(appMainCanvas, zoneCanvas, ensurePlaceholderFinished, mirrorOverworldFEs, OW_ITEM_GRID_LOCATIONS.OFFSET)
+        else
+            new CheckBox(IsChecked=false), (fun _ -> ()), (fun _ -> ()), Array2D.init 16 8 (fun _ _ -> new Canvas())
 
     // mouse hover explainer
     UIComponents.MakeMouseHoverExplainer(appMainCanvas)
@@ -1709,7 +1731,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     moreOptionsButton.MaxHeight <- 25.
     moreOptionsButton.Measure(new Size(System.Double.PositiveInfinity, 25.))
 
-    let optionsCanvas = OptionsMenu.makeOptionsCanvas(cm, true)
+    let optionsCanvas = OptionsMenu.makeOptionsCanvas(cm, true, isStandardHyrule)
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 
@@ -1889,6 +1911,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         importDungeonModels(data.DungeonMaps)
         // Drawing Layer
         DrawingLayer.LoadDrawingLayer(data.DrawingLayerIcons, drawingCanvas)
+        // Graphics.alternativeOverworldMapFilename & Graphics.shouldInitiallyHideOverworldMap were loaded much earlier
         // Seed & Flags
         if data.Seed <> null && data.Seed <> "" then
             SaveAndLoad.lastKnownSeed <- data.Seed
@@ -1956,7 +1979,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         timer.Interval <- TimeSpan.FromSeconds(60.0)
         timer.Tick.Add(fun _ -> 
             try
-                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.AutoSave) |> ignore
+                SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.AutoSave) |> ignore
                 async {
                     diskIcon.Opacity <- 0.7
                     do! Async.Sleep(300)

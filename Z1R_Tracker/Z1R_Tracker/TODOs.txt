@@ -40,17 +40,8 @@ since 1.2.1m...
      - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
 
 
-'Loading UI' cuts off
-
-
-consider hand-editing bomb-on-floor icon to make look larger (in progress)
-
-
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
- - TODO remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code, maybe SpotSummary removal
-MetalMachine: routing lines should turn off; me: but i suppose i could flag it as 'in this special mode, ignore user preferences and always turn off maybe' 
- - (and remove those from options menu when active, and also mirror overworld, i guess zones...)
- - TODO in program.fs (save file, shouldInitiallyHide)
+ - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
 fix up DrawingLayer, add documentation
 
 I should try Shin Zelda Densetsu, and take some screenshots
@@ -65,9 +56,6 @@ in the upper right corner of the app.
 ***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
-
-
-optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
 
 
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
@@ -207,6 +195,9 @@ https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
  
 
 SMALL
+
+optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
+
 
 would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
 

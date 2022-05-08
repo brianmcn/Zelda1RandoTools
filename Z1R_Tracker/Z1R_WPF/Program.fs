@@ -680,16 +680,7 @@ type MyWindow() as this =
                             if r.HasValue && r.Value then
                                 Graphics.alternativeOverworldMapFilename <- ofd.FileName
                         Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
-                        // TODO saves for those two values
                         let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
-
-                                    "Some Z-Tracker features won't interact well with a non-standard overworld map.  " +
-                                    "When the app begins, consider doing this:\n" +
-                                    " - uncheck the 'N gettable' checkbox above the overworld map grid\n" +
-                                    " - click the 'Options...' menu at the bottom, and uncheck:\n" +
-                                    "    - Draw Routes\n" + 
-                                    "    - Highlight Nearby\n" + 
-                                    "    - Mirror Overworld\n\n" + 
 
                                     "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
                                     "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
@@ -729,7 +720,7 @@ type MyWindow() as this =
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
                                 Margin=Thickness(0.,0.,0.,5.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
-        let options = OptionsMenu.makeOptionsCanvas(cm, false)
+        let options = OptionsMenu.makeOptionsCanvas(cm, false, true)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)

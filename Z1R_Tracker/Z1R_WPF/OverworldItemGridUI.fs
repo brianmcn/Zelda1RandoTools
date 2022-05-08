@@ -65,7 +65,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    extrasImage:Image, resetTimerEvent:Event<unit>) =
+                    extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule) =
     let appMainCanvas = cm.AppMainCanvas
     let owItemGrid = makeGrid(6, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
@@ -202,7 +202,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             TrackerModel.LastChangedTime.PauseAll()
             if TrackerModelOptions.SaveOnCompletion.Value && not(isCurrentlyLoadingASave) then
                 try
-                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
+                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
                 with e ->
                     ()
         else
@@ -223,12 +224,13 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
 
-    let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
-    highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
-    ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
-    highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
-    highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+    if isStandardHyrule then
+        let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
+        highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
+        ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
+        highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
+        highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
+        canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
 
     // these panels need to be created once, at startup time, as they have side effects that populate the timelineItems set
     let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
@@ -392,11 +394,12 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
                                     BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
     let spotSummaryCanvas = new Canvas()
-    spotSummaryTB.MouseEnter.Add(fun _ ->
-        spotSummaryCanvas.Children.Clear()
-        spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
-        )   
-    spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
-    canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
+    if isStandardHyrule then   // Spot Summary only makes sense in standard map
+        spotSummaryTB.MouseEnter.Add(fun _ ->
+            spotSummaryCanvas.Children.Clear()
+            spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
+            )   
+        spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
+        canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
     white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas

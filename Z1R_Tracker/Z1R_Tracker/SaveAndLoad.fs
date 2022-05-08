@@ -292,7 +292,8 @@ let MaybePollSeedAndFlags() =
                         lastKnownFlags <- flags
                         seedAndFlagsUpdated.Trigger()
 
-let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], currentRecorderDestinationIndex, saveType) =  // can throw
+let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], 
+                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, saveType) =  // can throw
     MaybePollSeedAndFlags()
     let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
@@ -314,6 +315,8 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    "DrawingLayerIcons": ["""
         yield! drawingLayerJsonLines
         yield sprintf """    ],"""
+        yield sprintf """    "AlternativeOverworldMapFilename": %s,""" (System.Text.Json.JsonSerializer.Serialize<string>(alternativeOverworldMapFilename))
+        yield sprintf """    "ShouldInitiallyHideOverworldMap": %s,""" (shouldInitiallyHideOverworldMap.ToString().ToLowerInvariant())
         if lastKnownSeed <> "" then
             yield sprintf """    "Seed": "%s",""" lastKnownSeed
         if lastKnownFlags <> "" then

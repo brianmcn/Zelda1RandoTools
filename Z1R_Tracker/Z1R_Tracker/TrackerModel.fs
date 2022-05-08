@@ -899,6 +899,9 @@ let recomputeMapStateSummary() =
                     else
                         owRouteworthySpots.[i,j] <- true
                         owGettableLocations.Add(i,j)
+                | n when n=MapSquareChoiceDomainHelper.DARK_X ->
+                    if getOverworldMapExtraData(i, j, n)=n then
+                        owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
                 | _ -> () // shop or whatnot
                 let cur = overworldMapMarks.[i,j].Current()
                 if MapSquareChoiceDomainHelper.IsItem(cur) then
