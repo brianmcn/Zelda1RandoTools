@@ -231,6 +231,14 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer) 
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 
+    let cb = new CheckBox(Content=new TextBox(Text="Animate shop highlights",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.AnimateShopHighlights.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.AnimateShopHighlights.Value <- true)
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.AnimateShopHighlights.Value <- false)
+    cb.ToolTip <- "When you mouse hover certain icons to highlight corresponding shops on the map, briefly animate the rectangle"
+    ToolTipService.SetShowDuration(cb, 10000)
+    options3sp.Children.Add(cb) |> ignore
+
     let cb = new CheckBox(Content=new TextBox(Text="Save on completion",IsReadOnly=true))
     cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.SaveOnCompletion.Value
     cb.Checked.Add(fun _ -> TrackerModelOptions.SaveOnCompletion.Value <- true)

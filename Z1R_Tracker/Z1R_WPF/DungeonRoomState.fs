@@ -106,7 +106,7 @@ type FloorDropDetail =
         | Triforce     -> Graphics.zi_triforce_bmp
         | Heart        -> Graphics.zi_heart_bmp
         | OtherKeyItem -> Graphics.zi_other_item_bmp
-        | BombPack     -> Graphics.zi_bomb_bmp
+        | BombPack     -> Graphics.zi_alt_bomb_bmp
         | Key          -> Graphics.zi_key_bmp
         | FiveRupee    -> Graphics.zi_fiver_bmp
         | Map          -> Graphics.zi_map_bmp

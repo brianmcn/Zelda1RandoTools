@@ -46,6 +46,7 @@ module OverworldTilesToHide =
     let mutable HintShop = Bool(false)
     let mutable TakeAny = Bool(false)
 let mutable AnimateTileChanges = Bool(true)
+let mutable AnimateShopHighlights = Bool(true)
 let mutable SaveOnCompletion = Bool(false)
 let mutable SnoopSeedAndFlags = Bool(false)
 let mutable DisplaySeedAndFlags = Bool(true)
@@ -107,6 +108,7 @@ type ReadWrite() =
     member val HideOverworldTile_TakeAny = false with get,set
 
     member val AnimateTileChanges = true with get,set
+    member val AnimateShopHighlights = true with get,set
     member val SaveOnCompletion = false with get,set
     member val SnoopSeedAndFlags = false with get,set
     member val DisplaySeedAndFlags = true with get,set
@@ -172,6 +174,7 @@ let private writeImpl(filename) =
     data.HideOverworldTile_TakeAny <- OverworldTilesToHide.TakeAny.Value
 
     data.AnimateTileChanges <- AnimateTileChanges.Value
+    data.AnimateShopHighlights <- AnimateShopHighlights.Value
     data.SaveOnCompletion <- SaveOnCompletion.Value
     data.SnoopSeedAndFlags <- SnoopSeedAndFlags.Value
     data.DisplaySeedAndFlags <- DisplaySeedAndFlags.Value
@@ -249,6 +252,7 @@ let private read(filename) =
         OverworldTilesToHide.TakeAny.Value <- data.HideOverworldTile_TakeAny
 
         AnimateTileChanges.Value <- data.AnimateTileChanges
+        AnimateShopHighlights.Value <- data.AnimateShopHighlights
         SaveOnCompletion.Value <- data.SaveOnCompletion
         SnoopSeedAndFlags.Value <- data.SnoopSeedAndFlags
         DisplaySeedAndFlags.Value <- data.DisplaySeedAndFlags

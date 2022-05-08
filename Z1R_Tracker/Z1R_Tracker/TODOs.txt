@@ -36,7 +36,8 @@ since 1.2.1m...
  - clickable recorder destination (note where you are whistled to)
  - door repair count reminders
  - hide certain overworld icons (but still track them)
- - overworld randomizers (blank map or user-specified-overworld-map file.png)
+ - overworld randomizers/romhacks (blank map or user-specified-overworld-map file.png)
+     - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
 
 
 'Loading UI' cuts off
@@ -45,14 +46,15 @@ since 1.2.1m...
 consider hand-editing bomb-on-floor icon to make look larger (in progress)
 
 
-homer shop-hovering blue ring "it didn't glow like the sun for me" (animate? in general, if you are explicitly temp asking for it, can be loud)
- - DONE? have an implementation, is it too loud? does it need an option? add whatsnewdoc
-
-
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - TODO remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code, maybe SpotSummary removal
 MetalMachine: routing lines should turn off; me: but i suppose i could flag it as 'in this special mode, ignore user preferences and always turn off maybe' 
  - (and remove those from options menu when active, and also mirror overworld, i guess zones...)
+ - TODO in program.fs (save file, shouldInitiallyHide)
+fix up DrawingLayer, add documentation
+
+I should try Shin Zelda Densetsu, and take some screenshots
+
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
@@ -63,9 +65,6 @@ in the upper right corner of the app.
 ***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
-
-
-fix up DrawingLayer, add documentation
 
 
 optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"

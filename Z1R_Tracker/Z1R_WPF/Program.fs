@@ -489,7 +489,7 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        stackPanel.Children.Add(new DockPanel(Height=20.)) |> ignore
+        stackPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
 
         let ctxt = System.Threading.SynchronizationContext.Current
         let doStartup(n, loadData : DungeonSaveAndLoad.AllData option) = async {
@@ -722,12 +722,12 @@ type MyWindow() as this =
         //let tb = MakeTipTextBox(DungeonData.Factoids.allTips |> Array.sortBy (fun s -> s.Length) |> Seq.last)   // show the longest tip (to test screen layout)
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
-        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 30., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 20., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
-                                Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
+                                Margin=Thickness(0.,0.,0.,5.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
         let options = OptionsMenu.makeOptionsCanvas(cm, false)
         bottomSP.Children.Add(options) |> ignore
