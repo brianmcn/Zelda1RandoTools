@@ -556,6 +556,24 @@ the common mistake of e.g. the player forgetting they have the ladder, and then 
 
 When one of dungeons 1-8 is the currently selected dungeon tab, the corresponding blockers section gets a subtle highlight.
 
+#### Specific-Blockers
+
+For those players that want to track with even more precision, you can mark specifically what each blocker blocks.  For example, imagine you walk into a dungeon,
+and get an immediate compass that points to the next room, where a Gohma inhabits a Circle Moat.  The Triforce will be both Ladder-blocked (by the Circle Moat)
+and Bow-and-Arrow-blocked (by the Gohma).  You can add Ladder and Bow-and-Arrow blockers to this dungeon's blockers, however it is likely you could still find
+the floor item or basement item in this dungeon without being blocked.  Specific-Blockers are useful here.  Middle-click (or shift-left-click) a blocker box 
+to reveal a sub-menu like this:
+
+![Specific Blockers checklist screenshot](screenshots/specific-blockers-checklist.png)
+
+where you can specify exactly which things are blocked by this particular blocker.  If we mark that the Ladder and Bow-and-Arrow blockers each only block the
+Triforce, then Z-Tracker helps remember that by projecting those blockers on the main [Dungeon Item Area](#main-dia) thusly:
+
+![Specific Blockers projection screenshot](screenshots/specific-blockers-projection.png)
+
+The tiny blocker icons appear over a Triforce or Item Box when the corresponding checkbox is ticked.  If you become (partially) unblocked (e.g. get the Ladder),
+the corresponding tiny-blocker-icon turns green.  Once you obtain the blocked item (e.g. get the Triforce), all the tiny blocker icons disappear.
+
 
 ## <a id="main-notes"></a> Notes
 

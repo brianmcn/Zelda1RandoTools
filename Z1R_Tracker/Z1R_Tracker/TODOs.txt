@@ -67,22 +67,6 @@ also provide a popup explanation/legend of what it is (and figure out what it is
 
 
 
-long discussion with homer regarding blockers
- - does the blocker block the triforce, the map, a key item, or just 'finding a whole lot more of the dungeon'? ...
- - communicating the tri-/item- specific blocks on the empty boxes in the top-tracker
-So I guess what I envision is, after you mark, say, that dungeon 1 has a bow&arrow block, there is some way to click/scroll/something on that blocker box to bring up a 
-new popup which is along the lines of "this blocker applies to which parts of dungeon 1" and you have checkboxes for "tri, heart, floor item, basement item" (basically 
-just checkboxes alongside the same icons as the full dungeon column) and you checkbox one or more of them to say 'please advertise this blocker icon inside the 
-top-tracker' and it displays the tiny blocker icon (with some yet-to-be-determined logic regarding bright/grayed/etc) in the corner of the ones you checkboxed 
-I guess another way to think about something that is equivalent to what I'm saying is, there already exist 3 tiny icons in the bottom of each triforce & item box in the tracker, 
-which display the 3 blockers of the dungeon.  Except they're currently all marked invisible.  I'd be inventing a new thing to mark which of the boxes you want to un-invisible-ize.
-   - IN PROGRESS: there is UI to edit values, backing store to save & load
-   - has some display behavior, and logic for if-get-item/tri and for if-get-unblocker
-   - has no HotKeys yet (display left of checkboxes)
-   - no documentation yet
-
-
-
 Broadcast option: always focus overworld ? bighead scenario
 Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
 
