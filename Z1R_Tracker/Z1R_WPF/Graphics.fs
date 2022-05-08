@@ -531,12 +531,14 @@ let readCacheFileOrCreateBmp(filename, createF : unit -> System.Drawing.Bitmap) 
 let mutable alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap = "", false   // startup screen can set these
 let blankTileBmp =
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+    let main = System.Drawing.Color.DarkSlateGray
+    let alt = System.Drawing.Color.FromArgb(int main.R + 48, int main.G + 48, int main.B + 48)
     for px = 0 to 16*3-1 do
         for py = 0 to 11*3-1 do
             if px >= 15*3 || py >= 10*3 then
                 fullTileBmp.SetPixel(px, py, System.Drawing.Color.Black)
             else
-                fullTileBmp.SetPixel(px, py, System.Drawing.Color.DarkSlateGray)
+                fullTileBmp.SetPixel(px, py, (if (px/3+py/3)%2=0 then main else alt))
     fullTileBmp
 let overworldMapBMPs(n) =
     let m = overworldImage
