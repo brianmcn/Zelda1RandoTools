@@ -1784,6 +1784,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 } |> Async.StartImmediate
         )
 
+    // TODO hook this up somewhere useful
+    kitty.MouseDown.Add(fun _ -> 
+        if not popupIsActive then
+            popupIsActive <- true
+            async {
+                do! UserCustomLayer.InteractWithUserCustom(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height)
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        )
+
     // reminder display
     let cxt = System.Threading.SynchronizationContext.Current 
     let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)

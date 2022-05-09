@@ -40,12 +40,40 @@ since 1.2.1m...
      - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
 
 
+pressing 'FQ' on summary tab crashes app (it should apply FQ to all, probably - that is a needed feature)
+
+marking first door repair cause armos icon to reappear
+
+unhook click from kitty (temp way to invoke z1m1 map)
+
+z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
+
+z1m1: to save metroid, think of a list of decos L,T,W,H,label,isClicked and then at startup you just copy a json template that gets modified for inside the save
+
+z1m1: could I timeline the decos? like if TimelineIcon is not "" then use ExtraIcons\blah.png as the icon, and click time as the time? hmmm
+
+z1m1: I dont have a way to mark hyrule portals or door within-Zebes - would need a way to add/remove decos
+
+z1m1: want a 'checklist' of items, could just add to right side of map with unlabeled deco boxes next to icons, to track what I have got
+
+
+
+
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
 fix up DrawingLayer, add documentation
 
 I should try Shin Zelda Densetsu, and take some screenshots
 
+
+for z1m1, imagine having a button that swaps overworld map for different window? ideally make map background and clickable positions be user-data? drawing extra 
+stuff (portal locations), hm, maybe extra pane of glass for the extra surface, and still use draw button? hm...
+ - for a non-z1m1-specific thingy, imagine data-driven:
+    - need a 'background image', which would be the metroid minimap
+    - need a list of 'coordinate boxes' which are clickable to mark you got the thing (with coords based on user-supplied image; image and coords scaled to fit in app)
+       - probably also has text label (possibly one char) which I display using ViewBox(TextBox) to make font size as large as reasonable to fix the user box?
+       - imagine json schema: Left, Top, Width, Height, Label, ToolTip, BackgroundColor (for text), FillColor (when clicked)
+    - need a way to draw something at arbitrary location, to mark portals
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
