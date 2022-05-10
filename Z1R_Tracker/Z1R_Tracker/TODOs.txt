@@ -40,8 +40,6 @@ since 1.2.1m...
      - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
 
 
-pressing 'FQ' on summary tab crashes app (it should apply FQ to all, probably - that is a needed feature)
-
 marking first door repair cause armos icon to reappear
 
 unhook click from kitty (temp way to invoke z1m1 map)

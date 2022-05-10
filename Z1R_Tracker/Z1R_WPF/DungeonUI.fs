@@ -258,25 +258,36 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let sqcb = new Button(Content=new TextBox(Text="SQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
         sqcb.ToolTip <- "Show vanilla second quest dungeon outlines"
 
+        let turnOnQuestMap(SI, delta) =
+            currentOutlineDisplayState.[SI] <- SI+delta
+            doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+        let turnOffQuestMap(SI) =
+            outlineDrawingCanvases.[SI].Children.Clear()
+            currentOutlineDisplayState.[SI] <- 0
+        let pressQuestButton(SI, isfq) =
+            let delta = if isfq then 1 else 10
+            if currentOutlineDisplayState.[SI]<>SI+delta then turnOnQuestMap(SI, delta)
+            else turnOffQuestMap(SI)
         fqcb.Click.Add(fun _ -> 
             let SI = dungeonTabs.SelectedIndex
-            if currentOutlineDisplayState.[SI]<>SI+1 then
-                currentOutlineDisplayState.[SI] <- SI+1
-                doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+            if SI=9 then                                        // pressing FQ on summary tab turns them all on or all off
+                if currentOutlineDisplayState.[0]<>1 then
+                    for d = 0 to 8 do turnOnQuestMap(d, 1)
+                else
+                    for d = 0 to 8 do turnOffQuestMap(d)
             else
-                outlineDrawingCanvases.[SI].Children.Clear()
-                currentOutlineDisplayState.[SI] <- 0
+                pressQuestButton(SI, true)
             )
         canvasAdd(dungeonTabsWholeCanvas, fqcb, 402., 0.) 
-
         sqcb.Click.Add(fun _ -> 
             let SI = dungeonTabs.SelectedIndex
-            if currentOutlineDisplayState.[SI]<>SI+10 then
-                currentOutlineDisplayState.[SI] <- SI+10
-                doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+            if SI=9 then                                        // pressing SQ on summary tab turns them all on or all off
+                if currentOutlineDisplayState.[0]<>10 then
+                    for d = 0 to 8 do turnOnQuestMap(d, 10)
+                else
+                    for d = 0 to 8 do turnOffQuestMap(d)
             else
-                outlineDrawingCanvases.[SI].Children.Clear()
-                currentOutlineDisplayState.[SI] <- 0
+                pressQuestButton(SI, true)
             )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 
