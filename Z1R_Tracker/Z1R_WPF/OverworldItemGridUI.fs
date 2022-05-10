@@ -194,8 +194,12 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda)
     gridAddTuple(owItemGrid, zelda_box,  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
     // hover zelda to display hidden overworld icons (note that Armos/Sword2/Sword3 will not be darkened)
-    zelda_box.MouseEnter.Add(fun _ -> OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- true; OptionsMenu.requestRedrawOverworldEvent.Trigger())
-    zelda_box.MouseLeave.Add(fun _ -> OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- false; OptionsMenu.requestRedrawOverworldEvent.Trigger())
+    zelda_box.MouseEnter.Add(fun _ -> 
+        for i=0 to 15 do for j=0 to 7 do OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
+        OptionsMenu.requestRedrawOverworldEvent.Trigger())
+    zelda_box.MouseLeave.Add(fun _ -> 
+        for i=0 to 15 do for j=0 to 7 do OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
+        OptionsMenu.requestRedrawOverworldEvent.Trigger())
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
         if b then 
             notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text

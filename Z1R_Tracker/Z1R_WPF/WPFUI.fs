@@ -1965,7 +1965,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let ctxt = System.Threading.SynchronizationContext.Current
         let animateOWTile(x,y) = 
             if (x,y) <> TrackerModel.NOTFOUND then
-                OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- true
+                OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[x,y] <- true
                 owUpdateFunctions.[x,y] 0 null  // redraw tile, with icon shown
                 if TrackerModelOptions.AnimateTileChanges.Value then
                     Canvas.SetLeft(owHighlightTile, OMTW*float(x))
@@ -1974,7 +1974,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 async {
                     do! Async.Sleep(msDuration)
                     do! Async.SwitchToContext(ctxt)
-                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks <- false
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[x,y] <- false
                     owUpdateFunctions.[x,y] 0 null  // redraw tile, with icon possibly hidden
                 } |> Async.StartImmediate
         animateOverworldTile <- animateOWTile

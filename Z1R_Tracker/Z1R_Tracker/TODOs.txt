@@ -40,8 +40,6 @@ since 1.2.1m...
      - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
 
 
-marking first door repair cause armos icon to reappear
-
 unhook click from kitty (temp way to invoke z1m1 map)
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
