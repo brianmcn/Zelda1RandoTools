@@ -1434,12 +1434,14 @@ type TimelineItemDescription =   // a way to identify which unique timeline item
     | TakeAnyHeart of int
     | Triforce of int
     | ItemBox of string * Box
+    | UserCustom of string * Event<bool>
     member this.Identifier =
         match this with
         | TimelineItemDescription.ExtrasOrShopping(i,_) -> i
         | TimelineItemDescription.TakeAnyHeart n -> sprintf "TakeAnyHeart%d" (n+1)
         | TimelineItemDescription.Triforce n -> sprintf "Triforce%d" (n+1)
         | TimelineItemDescription.ItemBox(i,_) -> i
+        | TimelineItemDescription.UserCustom(s,_) -> s
 type TimelineItemModel(desc: TimelineItemDescription) =
     // TODO keep history of all changes maybe
     static let all = new System.Collections.Generic.Dictionary<_,_>()
@@ -1462,6 +1464,7 @@ type TimelineItemModel(desc: TimelineItemDescription) =
         | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1, PlayerHas.YES))
         | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce(), PlayerHas.YES))
         | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.CellCurrent() <> -1 && b.PlayerHas()<>PlayerHas.NO, b.PlayerHas()))
+        | TimelineItemDescription.UserCustom(_,e) -> e.Publish.Add(fun b -> stamp(b,PlayerHas.YES))
     member this.StampTotalSeconds(s,ph) =  // used when Loading a Save file
         match desc with
         | TimelineItemDescription.ItemBox(_,_) -> itemPlayerHas <- ph

@@ -49,6 +49,7 @@ z1m1: to save metroid, think of a list of decos L,T,W,H,label,isClicked and then
 z1m1: could I timeline the decos? like if TimelineIcon is not "" then use ExtraIcons\blah.png as the icon, and click time as the time? hmmm
 
 z1m1: I dont have a way to mark hyrule portals or door within-Zebes - would need a way to add/remove decos
+ - maybe middle click cycles solid circles, similar to shift-right-click on overworld
 
 z1m1: want a 'checklist' of items, could just add to right side of map with unlabeled deco boxes next to icons, to track what I have got
 

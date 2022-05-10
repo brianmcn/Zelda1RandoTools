@@ -1789,7 +1789,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if not popupIsActive then
             popupIsActive <- true
             async {
-                do! UserCustomLayer.InteractWithUserCustom(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height)
+                do! UserCustomLayer.InteractWithUserCustom(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height, timelineItems)
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
