@@ -149,6 +149,23 @@ type TimelineDatum() =
     member val Seconds = -1 with get,set
     member val Has = 1 with get,set
 
+[<AllowNullLiteral>]
+type UserCustomCheckbox() =
+    member val Left = 0 with get,set
+    member val Top = 0 with get,set
+    member val Width = 0 with get,set
+    member val Height = 0 with get,set
+    member val DisplayLabel = "" with get,set
+    member val IsChecked = false with get,set
+    member val TimelineIconFilename = "" with get,set       // empty string means not for timeline, else pulls icon from ExtraIcons
+
+[<AllowNullLiteral>]
+type UserCustomChecklist() =
+    member val BackgroundImageFilename = "" with get,set    // pulls image from ExtraIcons
+    member val Items : UserCustomCheckbox[] = null with get,set
+
+let mutable theUserCustomChecklist = null : UserCustomChecklist
+
 //////////////////////////////////////////////////////////////////////////////
 
 let SaveOverworld(prefix) =
@@ -312,6 +329,14 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
         yield sprintf """    ],"""
+        if theUserCustomChecklist <> null then
+            yield sprintf """    "UserCustomChecklist": {"""
+            yield sprintf """        "BackgroundImageFilename": "%s",""" theUserCustomChecklist.BackgroundImageFilename
+            yield sprintf """        "Items": ["""
+            for i=0 to theUserCustomChecklist.Items.Length-1 do
+                yield sprintf """            %s%s""" (System.Text.Json.JsonSerializer.Serialize<UserCustomCheckbox>(theUserCustomChecklist.Items.[i])) 
+                                                        (if i=theUserCustomChecklist.Items.Length-1 then "" else ",")
+            yield sprintf """    ] },"""
         yield sprintf """    "DrawingLayerIcons": ["""
         yield! drawingLayerJsonLines
         yield sprintf """    ],"""

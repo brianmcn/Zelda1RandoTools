@@ -966,6 +966,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     
     // Version
     let vb = CustomComboBoxes.makeVersionButtonWithBehavior(cm)
+    // vb.Click.Add(fun _ -> failwith "crash")                     // Uncomment this for crash testing
     canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
 
     // hint decoder
@@ -1048,6 +1049,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     //System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e).Throw()
             } |> Async.StartImmediate
         )
+
+    let uccTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
+                                        Text="UCC", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
+    let uccButton = new Button(Content=uccTB)
+    if System.IO.File.Exists(UserCustomLayer.checklistFilename) then
+        canvasAdd(appMainCanvas, uccButton, 16.*OMTW - kitty.Width - 50., THRU_MAIN_MAP_H + 42.)
+        uccButton.Click.Add(fun _ -> 
+            if not popupIsActive then
+                popupIsActive <- true
+                async {
+                    do! UserCustomLayer.InteractWithUserCustom(cm, timelineItems)
+                    popupIsActive <- false
+                    } |> Async.StartImmediate
+            )
 
 #if NOT_RACE_LEGAL
     // minimap overlay button
@@ -1414,10 +1429,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         notesTextBox.Text <- "Notes\n"
     else
         notesTextBox.Text <- System.IO.File.ReadAllText(notesFilename)
-    canvasAdd(appMainCanvas, notesTextBox, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, notesTextBox, BLOCKERS_AND_NOTES_OFFSET, THRU_BLOCKERS_H) 
 
     let seedAndFlagsDisplayCanvas = new Canvas(Width=notesTextBox.Width, Height=notesTextBox.Height)
-    canvasAdd(appMainCanvas, seedAndFlagsDisplayCanvas, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height) 
+    canvasAdd(appMainCanvas, seedAndFlagsDisplayCanvas, BLOCKERS_AND_NOTES_OFFSET, THRU_BLOCKERS_H) 
     let seedAndFlagsTB = new TextBox(FontSize=16., Background=Brushes.Transparent, Foreground=Brushes.Orange, 
                                         IsHitTestVisible=false, IsReadOnly=true, Focusable=false, Text="\n", BorderThickness=Thickness(0.))
     Canvas.SetRight(seedAndFlagsTB, 0.)
@@ -1779,17 +1794,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if not popupIsActive then
             popupIsActive <- true
             async {
-                do! DrawingLayer.InteractWithDrawingLayer(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height, drawingCanvas)
-                popupIsActive <- false
-                } |> Async.StartImmediate
-        )
-
-    // TODO hook this up somewhere useful
-    kitty.MouseDown.Add(fun _ -> 
-        if not popupIsActive then
-            popupIsActive <- true
-            async {
-                do! UserCustomLayer.InteractWithUserCustom(cm, START_DUNGEON_AND_NOTES_AREA_H + blockerGrid.Height, timelineItems)
+                do! DrawingLayer.InteractWithDrawingLayer(cm, drawingCanvas)
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
@@ -1919,6 +1924,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         importDungeonModels(data.DungeonMaps)
+        // UserCustom
+        if data.UserCustomChecklist <> null && data.UserCustomChecklist.Items <> null then
+            SaveAndLoad.theUserCustomChecklist <- data.UserCustomChecklist
+            // note that line below must happen before we populate Timeline further below, as it updates TrackerModel.TimelineItemModel.All to include UserCustom stuff
+            do! UserCustomLayer.InitializeUserCustom(cm, timelineItems)
         // Drawing Layer
         DrawingLayer.LoadDrawingLayer(data.DrawingLayerIcons, drawingCanvas)
         // Graphics.alternativeOverworldMapFilename & Graphics.shouldInitiallyHideOverworldMap were loaded much earlier

@@ -1,7 +1,6 @@
 ﻿module UserCustomLayer
 
-// TODO eventually load this from a json file
-
+(*
 let rawDataMetroid = 
     [|
     //brinstar
@@ -65,30 +64,53 @@ let rawDataMetroid =
     113,241,"M",""
     168,241,"U",""
     // checklist
-    265,165," ","Kraid"
-    301,165," ","Ridley"
-    265,185," ","MorphBall"
-    301,185," ","IceBeam"
-    265,205," ","WaveBeam"
-    301,205," ","LongBeam"
-    265,225," ","Bombs"
-    301,225," ","HighJump"
-    265,245," ","ScrewAttack"
-    301,245," ","Varia"
+    265,165," ","Kraid.png"
+    301,165," ","Ridley.png"
+    265,185," ","MorphBall.png"
+    301,185," ","IceBeam.png"
+    265,205," ","WaveBeam.png"
+    301,205," ","LongBeam.png"
+    265,225," ","Bombs.png"
+    301,225," ","HighJump.png"
+    265,245," ","ScrewAttack.png"
+    301,245," ","Varia.png"
     |] |> Array.map (fun (x,y,label,ti) -> (x,y,6,6,label,ti))
-
-let backgroundImageFile = """C:\Users\Admin1\Desktop\z1m1-metroid-ingame-regions-and-checklist.png"""
-
-let backgroundImageBmp = System.Drawing.Bitmap.FromFile(backgroundImageFile) :?> System.Drawing.Bitmap
+let backgroundImageFile = """z1m1-metroid-ingame-regions-and-checklist.png"""
+*)
 
 open System.Windows
 open System.Windows.Controls
 open System.Windows.Media
 
+let extraIconsDirectory = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ExtraIcons")
+let checklistFilename = System.IO.Path.Combine(extraIconsDirectory, "UserCustomChecklist.json")
+
 let mutable theCanvas = null
-let Initialize(cm:CustomComboBoxes.CanvasManager, thruBlockersHeight, timelineItems:ResizeArray<_>) =
-    if theCanvas = null then
-        let W,H = cm.AppMainCanvas.Width, thruBlockersHeight
+let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:ResizeArray<_>) = async {
+    if SaveAndLoad.theUserCustomChecklist = null then
+        let mutable errorText = ""
+        if System.IO.File.Exists(checklistFilename) then
+            try
+                let json = System.IO.File.ReadAllText(checklistFilename)
+                SaveAndLoad.theUserCustomChecklist <- System.Text.Json.JsonSerializer.Deserialize<SaveAndLoad.UserCustomChecklist>(json)
+            with e ->
+                errorText <- sprintf "Error loading UserCustomChecklist.json\n\n%s" (e.ToString())
+        else
+            errorText <- "No UserCustomChecklist.json file exists."
+        if errorText <> "" then
+            if errorText.Length > 600 then
+                errorText <- errorText.Substring(0, 600) + "..."
+            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, errorText, ["Open ExtraIcons folder"; "Ok"])
+            if r <> "Ok" then
+                let fileToSelect = checklistFilename
+                let args = sprintf "/Select, \"%s\"" fileToSelect
+                let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
+                System.Diagnostics.Process.Start(psi) |> ignore
+    if SaveAndLoad.theUserCustomChecklist <> null && theCanvas = null then
+        let backgroundImageFilename = System.IO.Path.Combine(extraIconsDirectory, SaveAndLoad.theUserCustomChecklist.BackgroundImageFilename)
+        let backgroundImageBmp = System.Drawing.Bitmap.FromFile(backgroundImageFilename) :?> System.Drawing.Bitmap
+
+        let W,H = cm.AppMainCanvas.Width, OverworldItemGridUI.THRU_BLOCKERS_H
         let hRatio = H / float(backgroundImageBmp.Height)
         let wRatio = W / float(backgroundImageBmp.Width)
         let scale = min hRatio wRatio
@@ -102,13 +124,15 @@ let Initialize(cm:CustomComboBoxes.CanvasManager, thruBlockersHeight, timelineIt
 
         let mkTxt(text) = new TextBox(Text=text, BorderThickness=Thickness(0.), Foreground=Brushes.White, Background=Brushes.Black, IsHitTestVisible=false, IsReadOnly=true)
         let T = 3.
-        for x,y,w,h,label,ti in rawDataMetroid do
+        for n = 0 to SaveAndLoad.theUserCustomChecklist.Items.Length-1 do
+            let ucc = SaveAndLoad.theUserCustomChecklist.Items.[n]
+            let x,y,w,h,label,ti = ucc.Left, ucc.Top, ucc.Width, ucc.Height, ucc.DisplayLabel, ucc.TimelineIconFilename
             // timeline
             let ev = 
                 if ti <> "" then
                     let ident = "UserCustom_" + ti
                     if not(TrackerModel.TimelineItemModel.All.ContainsKey(ident)) then
-                        let bmpFile = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ExtraIcons\\"+ti+".png")
+                        let bmpFile = System.IO.Path.Combine(extraIconsDirectory, ti)
                         let orig = System.Drawing.Bitmap.FromFile(bmpFile) :?> System.Drawing.Bitmap
                         let bmp = 
                             if orig.Width=16 && orig.Height=16 then
@@ -137,27 +161,30 @@ let Initialize(cm:CustomComboBoxes.CanvasManager, thruBlockersHeight, timelineIt
                     None
             // canvas interaction
             let ws, hs = float w*scale, float h*scale
-            let mutable isChecked = false
             let tb = mkTxt(label)
             let b = new Button(BorderThickness=Thickness(T), Padding=Thickness(0.), Content=new Viewbox(Child=tb, Stretch=Stretch.Fill), 
                                 Width=2.*T+ws, Height=2.*T+hs)
             Graphics.canvasAdd(c, b, float x*scale-T, float y*scale-T)
-            b.Click.Add(fun _ ->
-                isChecked <- not isChecked
-                if isChecked then
+            let redraw() =
+                if SaveAndLoad.theUserCustomChecklist.Items.[n].IsChecked then
                     tb.Foreground <- Brushes.Black
                     tb.Background <- Brushes.Lime
                 else
                     tb.Foreground <- Brushes.White
                     tb.Background <- Brushes.Black
+            redraw()
+            b.Click.Add(fun _ ->
+                SaveAndLoad.theUserCustomChecklist.Items.[n].IsChecked <- not SaveAndLoad.theUserCustomChecklist.Items.[n].IsChecked
+                redraw()
                 if ev.IsSome then
-                    ev.Value.Trigger(isChecked)
+                    ev.Value.Trigger(SaveAndLoad.theUserCustomChecklist.Items.[n].IsChecked)
                 )
         theCanvas <- c
-    theCanvas
+    }
 
-let InteractWithUserCustom(cm:CustomComboBoxes.CanvasManager, thruBlockersHeight, timelineItems) = async {
-    let c = Initialize(cm, thruBlockersHeight, timelineItems)
-    let wh = new System.Threading.ManualResetEvent(false)
-    do! CustomComboBoxes.DoModal(cm, wh, 0., 0., c)
+let InteractWithUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems) = async {
+    do! InitializeUserCustom(cm, timelineItems)
+    if theCanvas <> null then
+        let wh = new System.Threading.ManualResetEvent(false)
+        do! CustomComboBoxes.DoModal(cm, wh, 0., 0., theCanvas)
     }

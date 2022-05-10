@@ -183,6 +183,7 @@ type MyWindow() as this =
     let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
     let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
+    let mutable promptedCrashRecovery = false
     let mutable gotThruStartup = false
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
     let dateTimeFormat = "yyyy-MM-dd-HH:mm:ss"
@@ -557,6 +558,8 @@ type MyWindow() as this =
                 WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
             Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
             gotThruStartup <- true
+            if promptedCrashRecovery then
+                finishCrashInfoImpl("prompted for crash recovery, user chose not to, successfully started")
             }
 
         let mutable startButtonHasBeenClicked = false
@@ -755,6 +758,8 @@ type MyWindow() as this =
                                     do! doStartup(999, loadData)
                                     // successful reload of autosave, call this so next startup won't also trigger recovery dialog
                                     finishCrashInfoImpl("successful reload of autosave")
+                                else
+                                    promptedCrashRecovery <- true
                                 } |> Async.StartImmediate
         
     override this.Update(f10Press) =

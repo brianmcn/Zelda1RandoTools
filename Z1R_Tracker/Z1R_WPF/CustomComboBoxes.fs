@@ -173,7 +173,7 @@ let DoModalMessageBoxCore(cm:CanvasManager, icon:System.Drawing.Icon, mainText, 
     let buttonDock = new DockPanel(Margin=Thickness(5.,0.,0.,0.))
     let mutable first = true
     for bt in buttonTexts |> Seq.rev do
-        let b = new Button(MinWidth=88., MaxWidth=160., Height=26., Margin=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Right, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
+        let b = new Button(MinWidth=88., MaxWidth=200., Height=26., Margin=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Right, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
         if first then
             b.Focus() |> ignore
             first <- false

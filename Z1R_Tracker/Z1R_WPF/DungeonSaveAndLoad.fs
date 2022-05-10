@@ -140,6 +140,7 @@ type AllData() =
     member val CurrentRecorderDestinationIndex = 0 with get,set
     member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
+    member val UserCustomChecklist : UserCustomChecklist = null with get,set
     member val DrawingLayerIcons : DrawingLayerIconModel[] = null with get,set
     member val AlternativeOverworldMapFilename = "" with get,set
     member val ShouldInitiallyHideOverworldMap = false with get,set

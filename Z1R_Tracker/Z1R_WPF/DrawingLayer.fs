@@ -97,7 +97,7 @@ let unborder(bmp:System.Drawing.Bitmap) =  // turn 18x18 into 16x16
     r
 
 let mutable anyErrorMessageRelatedToExtraIcons = ""
-let extraIconsDirectory = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ExtraIcons")
+let extraIconsDirectory = UserCustomLayer.extraIconsDirectory
 let ExtraIconsResourceTable =
     let arr = 
         let mutable currentFilename = ""
@@ -260,13 +260,13 @@ let LoadDrawingLayer(model:DrawingLayerIconModel[], drawingCanvas) =
     for _,x,y,img in AllDrawingLayerStamps do
         canvasAdd(drawingCanvas, img, float x, float y)
 
-let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas:Canvas) = async {
+let InteractWithDrawingLayer(cm:CanvasManager, drawingCanvas:Canvas) = async {
     let wh = new System.Threading.ManualResetEvent(false)
     let mutable thisSessionHasEnded = false  // we keep adding new handlers to RootCanvas, no way to remove them, but need to ensure old ones quit running
 
     let interactionCanvas = new Canvas(Width=cm.AppMainCanvas.Width, Height=cm.AppMainCanvas.Height)
     interactionCanvas.Children.Add(imgHighlightBorder) |> ignore
-    let topCanvasToHoldIcons = new Canvas(Width=cm.AppMainCanvas.Width, Height=thruBlockersHeight, IsHitTestVisible=true)
+    let topCanvasToHoldIcons = new Canvas(Width=cm.AppMainCanvas.Width, Height=OverworldItemGridUI.THRU_BLOCKERS_H, IsHitTestVisible=true)
     interactionCanvas.Children.Add(topCanvasToHoldIcons) |> ignore
     let mouseCarry = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(1.), Opacity=0., IsHitTestVisible=false)
     let DIFF = 31.
@@ -276,7 +276,7 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
             | None -> ()
             | Some(_icon, img) ->
                 let pos = ea.GetPosition(cm.AppMainCanvas)
-                if pos.Y < thruBlockersHeight then
+                if pos.Y < OverworldItemGridUI.THRU_BLOCKERS_H then
                     interactionCanvas.Children.Remove(mouseCarry)
                     interactionCanvas.Children.Add(mouseCarry) |> ignore
                     mouseCarry.Child <- img
@@ -290,7 +290,7 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
             | None -> ()
             | Some(icon, img) ->
                 let pos = ea.GetPosition(cm.AppMainCanvas)
-                if pos.Y < thruBlockersHeight then
+                if pos.Y < OverworldItemGridUI.THRU_BLOCKERS_H then
                     // left-click = place a stamp
                     if ea.ChangedButton = Input.MouseButton.Left then
                         AllDrawingLayerStamps.Add(icon, int (pos.X-DIFF), int (pos.Y-DIFF), img)
@@ -307,8 +307,8 @@ let InteractWithDrawingLayer(cm:CanvasManager, thruBlockersHeight, drawingCanvas
                         ea.Handled <- true
         )
 
-    let bottomCanvas = new Canvas(Width=interactionCanvas.Width, Height=interactionCanvas.Height - thruBlockersHeight, Background = Brushes.Black)
-    canvasAdd(interactionCanvas, bottomCanvas, 0., thruBlockersHeight)
+    let bottomCanvas = new Canvas(Width=interactionCanvas.Width, Height=interactionCanvas.Height - OverworldItemGridUI.THRU_BLOCKERS_H, Background = Brushes.Black)
+    canvasAdd(interactionCanvas, bottomCanvas, 0., OverworldItemGridUI.THRU_BLOCKERS_H)
     bottomCanvas.MouseMove.Add(fun _ea ->
         interactionCanvas.Children.Remove(mouseCarry) // if the mouse move into the bottom zone, remove the trailing icon
         )
