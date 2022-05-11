@@ -318,7 +318,7 @@ type MyWindow() as this =
         wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
         wholeCanvas.Children.Add(drawingCanvasHolder) |> ignore
         cm.AfterCreatePopupCanvas.Add(fun _ -> drawingCanvas.Opacity <- 0.)
-        cm.BeforeDismissPopupCanvas.Add(fun _ -> drawingCanvas.Opacity <- 1.)
+        cm.BeforeDismissPopupCanvas.Add(fun _ -> if cm.PopupCanvasStack.Count=0 then drawingCanvas.Opacity <- 1.)
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
         ApplyKonamiCodeEasterEgg(cm, mainDock)
         appMainCanvas.Children.Add(mainDock) |> ignore
