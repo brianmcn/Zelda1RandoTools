@@ -408,7 +408,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
         canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
 
-    let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas = 
+    let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras = 
         MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
 
     do! showProgress("link")
@@ -1059,7 +1059,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if not popupIsActive then
                 popupIsActive <- true
                 async {
-                    do! UserCustomLayer.InteractWithUserCustom(cm, timelineItems)
+                    do! UserCustomLayer.InteractWithUserCustom(cm, timelineItems, invokeExtras)
                     popupIsActive <- false
                     } |> Async.StartImmediate
             )
@@ -1928,7 +1928,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if data.UserCustomChecklist <> null && data.UserCustomChecklist.Items <> null then
             SaveAndLoad.theUserCustomChecklist <- data.UserCustomChecklist
             // note that line below must happen before we populate Timeline further below, as it updates TrackerModel.TimelineItemModel.All to include UserCustom stuff
-            do! UserCustomLayer.InitializeUserCustom(cm, timelineItems)
+            do! UserCustomLayer.InitializeUserCustom(cm, timelineItems, invokeExtras)
         // Drawing Layer
         DrawingLayer.LoadDrawingLayer(data.DrawingLayerIcons, drawingCanvas)
         // Graphics.alternativeOverworldMapFilename & Graphics.shouldInitiallyHideOverworldMap were loaded much earlier

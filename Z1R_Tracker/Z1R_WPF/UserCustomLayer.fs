@@ -85,8 +85,8 @@ open System.Windows.Media
 let extraIconsDirectory = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ExtraIcons")
 let checklistFilename = System.IO.Path.Combine(extraIconsDirectory, "UserCustomChecklist.json")
 
-let mutable theCanvas = null
-let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:ResizeArray<_>) = async {
+let mutable thePanel = null
+let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:ResizeArray<_>, invokeExtras:Async<unit>) = async {
     if SaveAndLoad.theUserCustomChecklist = null then
         let mutable errorText = ""
         if System.IO.File.Exists(checklistFilename) then
@@ -106,7 +106,7 @@ let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:Resize
                 let args = sprintf "/Select, \"%s\"" fileToSelect
                 let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
                 System.Diagnostics.Process.Start(psi) |> ignore
-    if SaveAndLoad.theUserCustomChecklist <> null && theCanvas = null then
+    if SaveAndLoad.theUserCustomChecklist <> null && thePanel = null then
         let backgroundImageFilename = System.IO.Path.Combine(extraIconsDirectory, SaveAndLoad.theUserCustomChecklist.BackgroundImageFilename)
         let backgroundImageBmp = System.Drawing.Bitmap.FromFile(backgroundImageFilename) :?> System.Drawing.Bitmap
 
@@ -179,12 +179,32 @@ let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:Resize
                 if ev.IsSome then
                     ev.Value.Trigger(SaveAndLoad.theUserCustomChecklist.Items.[n].IsChecked)
                 )
-        theCanvas <- c
+        let sp = StackPanel(Orientation=Orientation.Vertical, Width=cm.AppMainCanvas.Width, Background=Brushes.Black)
+        sp.Children.Add(c) |> ignore
+        let mkTxt(text) = new TextBox(Text=text, BorderThickness=Thickness(0.), FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsHitTestVisible=false, IsReadOnly=true)
+        sp.Children.Add(mkTxt(sprintf "User Custom Checklist: \"%s\"" SaveAndLoad.theUserCustomChecklist.Name)) |> ignore
+        sp.Children.Add(new DockPanel(Height=10.)) |> ignore
+        let hp = new StackPanel(Orientation=Orientation.Horizontal)
+        sp.Children.Add(hp) |> ignore
+        hp.Children.Add(mkTxt("Click outside this popup (below here) to exit the checklist, or\nclick the icon to the right to mark extra Zelda items obtained here: ")) |> ignore
+        let extrasImage = Graphics.dock(Graphics.BMPtoImage Graphics.iconExtras_bmp, Dock.Bottom)
+        let mutable popupIsActive = false
+        extrasImage.MouseDown.Add(fun _ -> 
+                async {
+                    if not popupIsActive then
+                        popupIsActive <- true
+                        do! invokeExtras
+                        popupIsActive <- false
+                } |> Async.StartImmediate
+            )
+        hp.Children.Add(extrasImage) |> ignore
+        sp.Children.Add(new DockPanel(Height=3., Background=Brushes.Gray)) |> ignore
+        thePanel <- sp
     }
 
-let InteractWithUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems) = async {
-    do! InitializeUserCustom(cm, timelineItems)
-    if theCanvas <> null then
+let InteractWithUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems, invokeExtras) = async {
+    do! InitializeUserCustom(cm, timelineItems, invokeExtras)
+    if thePanel <> null then
         let wh = new System.Threading.ManualResetEvent(false)
-        do! CustomComboBoxes.DoModal(cm, wh, 0., 0., theCanvas)
+        do! CustomComboBoxes.DoModal(cm, wh, 0., 0., thePanel)
     }

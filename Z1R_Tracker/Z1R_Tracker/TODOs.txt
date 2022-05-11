@@ -38,30 +38,23 @@ since 1.2.1m...
  - hide certain overworld icons (but still track them)
  - overworld randomizers/romhacks (blank map or user-specified-overworld-map file.png)
      - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
+ - User Custom Checklist - an extensibility feature that enables z1m1 tracking & timelining major items
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
-z1m1: I dont have a way to mark hyrule portals or door within-Zebes - would need a way to add/remove decos
- - maybe middle click cycles solid circles, similar to shift-right-click on overworld
+ - If you get a triforce in a basement, draw a triforce-triangle over that item box where you found it (and mark the numbered triforce gotten in 'extra items')
+ - Whatever the triforce item is, draw its icon in the empty space above the triforce
+ - then a dungeon is 'complete' when the spot above the triforce, and all the item boxes, are filled (e.g. you got the Q/E/U items out of 5, only Ms can remain)
+z1m1 note: there are 4 'free stuff' old men, that are letter/sword1/sword2/sword3.  you can't always distinguish, so mark next free one if you pick it up, or s2/s3 if cant (may need to swap)
+z1m1 note: when take-any has non-hyrule equipment i take, just mark 'take potion' to check off the cave and not update another equipment
+z1m1: I dont have a way to mark hyrule portals or extra doors within-Zebes (out of scope)
 TODO doc the UserCustomChecklist stuff
 
 
 
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
-fix up DrawingLayer, add documentation
-
-I should try Shin Zelda Densetsu, and take some screenshots
-
-
-for z1m1, imagine having a button that swaps overworld map for different window? ideally make map background and clickable positions be user-data? drawing extra 
-stuff (portal locations), hm, maybe extra pane of glass for the extra surface, and still use draw button? hm...
- - for a non-z1m1-specific thingy, imagine data-driven:
-    - need a 'background image', which would be the metroid minimap
-    - need a list of 'coordinate boxes' which are clickable to mark you got the thing (with coords based on user-supplied image; image and coords scaled to fit in app)
-       - probably also has text label (possibly one char) which I display using ViewBox(TextBox) to make font size as large as reasonable to fix the user box?
-       - imagine json schema: Left, Top, Width, Height, Label, ToolTip, BackgroundColor (for text), FillColor (when clicked)
-    - need a way to draw something at arbitrary location, to mark portals
+TODO documentation of '...' options from startup screen and brief docs about DrawingLayer
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)

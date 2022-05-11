@@ -201,46 +201,48 @@ let makeImage(bmp:System.Drawing.Bitmap) =
         img.StretchDirection <- StretchDirection.DownOnly
     img.IsHitTestVisible <- true
     img.MouseEnter.Add(fun _ea ->
-        imgHighlightBorder.Opacity <- 1.0
-        let pos = img.TranslatePoint(Point(), CanvasManager.TheOnlyCanvasManager.AppMainCanvas)
-        Canvas.SetLeft(imgHighlightBorder, pos.X-2.)
-        Canvas.SetTop(imgHighlightBorder, pos.Y-2.)
+        if mouse.IsNone then  // don't interact with existing images while mouse is carrying a new one
+            imgHighlightBorder.Opacity <- 1.0
+            let pos = img.TranslatePoint(Point(), CanvasManager.TheOnlyCanvasManager.AppMainCanvas)
+            Canvas.SetLeft(imgHighlightBorder, pos.X-2.)
+            Canvas.SetTop(imgHighlightBorder, pos.Y-2.)
         )
     img.MouseLeave.Add(fun _ea ->
         imgHighlightBorder.Opacity <- 0.0
         )
     img.MouseDown.Add(fun ea ->  // only lives in a IsHitTestVisible canvas during interaction mode, so can always have this code
-        let p = img.Parent
-        match p with
-        | :? Canvas as c -> 
-            let remove() =
-                c.Children.Remove(img)
-                let mutable toRemove = -1
-                for i = 0 to AllDrawingLayerStamps.Count-1 do
-                    let _,_,_,x = AllDrawingLayerStamps.[i]
-                    if obj.ReferenceEquals(x, img) then
-                        toRemove <- i
-                if toRemove <> -1 then
-                    let (icon,_,_,_) = AllDrawingLayerStamps.[toRemove]
-                    AllDrawingLayerStamps.RemoveAt(toRemove)
-                    ea.Handled <- true
-                    icon
-                else
-                    failwith "stamp not found"
-            // left-click pick up to move
-            if ea.ChangedButton = Input.MouseButton.Left then
-                let icon = remove()
-                mouse <- Some(icon, img)
-            // right-click = remove self
-            elif ea.ChangedButton = Input.MouseButton.Right then
-                remove() |> ignore
-            // middle click toggles half-size
-            elif ea.ChangedButton = Input.MouseButton.Middle then
-                if img.RenderTransform = null || obj.ReferenceEquals(img.RenderTransform, Transform.Identity) then
-                    img.RenderTransform <- new ScaleTransform(0.5, 0.5)
-                else
-                    img.RenderTransform <- null
-        | _ -> ()
+        if mouse.IsNone then  // don't interact with existing images while mouse is carrying a new one
+            let p = img.Parent
+            match p with
+            | :? Canvas as c -> 
+                let remove() =
+                    c.Children.Remove(img)
+                    let mutable toRemove = -1
+                    for i = 0 to AllDrawingLayerStamps.Count-1 do
+                        let _,_,_,x = AllDrawingLayerStamps.[i]
+                        if obj.ReferenceEquals(x, img) then
+                            toRemove <- i
+                    if toRemove <> -1 then
+                        let (icon,_,_,_) = AllDrawingLayerStamps.[toRemove]
+                        AllDrawingLayerStamps.RemoveAt(toRemove)
+                        ea.Handled <- true
+                        icon
+                    else
+                        failwith "stamp not found"
+                // left-click pick up to move
+                if ea.ChangedButton = Input.MouseButton.Left then
+                    let icon = remove()
+                    mouse <- Some(icon, img)
+                // right-click = remove self
+                elif ea.ChangedButton = Input.MouseButton.Right then
+                    remove() |> ignore
+                // middle click toggles half-size
+                elif ea.ChangedButton = Input.MouseButton.Middle then
+                    if img.RenderTransform = null || obj.ReferenceEquals(img.RenderTransform, Transform.Identity) then
+                        img.RenderTransform <- new ScaleTransform(0.5, 0.5)
+                    else
+                        img.RenderTransform <- null
+            | _ -> ()
         )
     img
 

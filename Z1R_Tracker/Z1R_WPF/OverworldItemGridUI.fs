@@ -343,24 +343,27 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let refresh() =
             maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
         panel, refresh
+    let invokeExtras = async {
+        let wh = new System.Threading.ManualResetEvent(false)
+        let whole = new Canvas(Width=cm.Width, Height=cm.Height)
+        let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
+        whole.Children.Add(mouseClickInterceptor) |> ignore
+        if extrasPanelAndepRefresh.IsNone then
+            extrasPanelAndepRefresh <- Some(makeExtrasPanelAndepRefresh())  // created on-demand, to improve app startup time
+        let extrasPanel, epRefresh = extrasPanelAndepRefresh.Value
+        epRefresh()
+        whole.Children.Add(extrasPanel) |> ignore
+        mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
+        do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
+        whole.Children.Clear() // to reparent extrasPanel again next popup
+        } 
     extrasImage.MouseDown.Add(fun _ -> 
-        if not popupIsActive then
-            popupIsActive <- true
-            let wh = new System.Threading.ManualResetEvent(false)
-            let whole = new Canvas(Width=cm.Width, Height=cm.Height)
-            let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
-            whole.Children.Add(mouseClickInterceptor) |> ignore
-            if extrasPanelAndepRefresh.IsNone then
-                extrasPanelAndepRefresh <- Some(makeExtrasPanelAndepRefresh())  // created on-demand, to improve app startup time
-            let extrasPanel, epRefresh = extrasPanelAndepRefresh.Value
-            epRefresh()
-            whole.Children.Add(extrasPanel) |> ignore
-            mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
             async {
-                do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
-                whole.Children.Clear() // to reparent extrasPanel again next popup
-                popupIsActive <- false
-                } |> Async.StartImmediate
+                if not popupIsActive then
+                    popupIsActive <- true
+                    do! invokeExtras
+                    popupIsActive <- false
+            } |> Async.StartImmediate
         )
 
     // timer reset
@@ -407,4 +410,4 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
         canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
-    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas
+    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras

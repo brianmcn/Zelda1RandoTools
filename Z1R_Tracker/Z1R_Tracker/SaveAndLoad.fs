@@ -161,6 +161,7 @@ type UserCustomCheckbox() =
 
 [<AllowNullLiteral>]
 type UserCustomChecklist() =
+    member val Name = "" with get,set
     member val BackgroundImageFilename = "" with get,set    // pulls image from ExtraIcons
     member val Items : UserCustomCheckbox[] = null with get,set
 
@@ -331,6 +332,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    ],"""
         if theUserCustomChecklist <> null then
             yield sprintf """    "UserCustomChecklist": {"""
+            yield sprintf """        "Name": "%s",""" theUserCustomChecklist.Name
             yield sprintf """        "BackgroundImageFilename": "%s",""" theUserCustomChecklist.BackgroundImageFilename
             yield sprintf """        "Items": ["""
             for i=0 to theUserCustomChecklist.Items.Length-1 do
