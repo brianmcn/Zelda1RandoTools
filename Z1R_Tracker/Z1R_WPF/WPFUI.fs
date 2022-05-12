@@ -124,9 +124,9 @@ let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 
 
 let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
+    let ctxt = System.Threading.SynchronizationContext.Current
     let refocusMainWindow() =   // keep hotkeys working
         async {
-            let ctxt = System.Threading.SynchronizationContext.Current
             do! Async.Sleep(500)  // give new window time to pop up
             do! Async.SwitchToContext(ctxt)
             mainWindow.Focus() |> ignore
@@ -1110,7 +1110,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         redrawItemProgressBar()
 
         let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
-                let ctxt = System.Threading.SynchronizationContext.Current
                 hideLocator()  // we may be moused in a dungeon right now
                 showLocatorExactLocation loc
                 do! Async.Sleep(3000)
@@ -1800,7 +1799,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
 
     // reminder display
-    let cxt = System.Threading.SynchronizationContext.Current 
     let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
     let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false, Background=Brushes.Black)
     let reminderDisplayInnerBorder = new Border(Child=reminderDisplayInnerDockPanel, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, HorizontalAlignment=HorizontalAlignment.Right)
@@ -1810,7 +1808,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
             let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
-            do! Async.SwitchToContext(cxt)
+            do! Async.SwitchToContext(ctxt)
             if not(TrackerModelOptions.IsMuted) then
                 let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
                 for i in icons do
@@ -1839,12 +1837,59 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if elapsed < minimumDuration then
                         let ms = (minimumDuration - elapsed).TotalMilliseconds |> int
                         do! Async.Sleep(ms)   // ensure ui displayed a minimum time
-                do! Async.SwitchToContext(cxt)
+                do! Async.SwitchToContext(ctxt)
                 reminderDisplayOuterDockPanel.Opacity <- 0.
             return! messageLoop()
             }
         messageLoop()
         )
+
+    // postgameDecorationCanvas atop timeline & reminders
+    do
+        let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width)
+        canvasAdd(appMainCanvas, postgameDecorationCanvas, 0., START_TIMELINE_H)
+        let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Red)
+        Canvas.SetRight(sp, 0.)
+        Canvas.SetTop(sp, 0.)
+        postgameDecorationCanvas.Children.Add(sp) |> ignore
+        let makeViewRectImpl(c:FrameworkElement) = new Shapes.Rectangle(Width=c.Width, Height=c.Height, Fill=new VisualBrush(c))
+        let timerClone = makeViewRectImpl(hmsTimeTextBox)
+        timerClone.LayoutTransform <- new ScaleTransform(20./timerClone.Height, 20./timerClone.Height)
+        sp.Children.Add(timerClone) |> ignore
+        sp.Children.Add(makeViewRectImpl(owRemainingScreensTextBox)) |> ignore
+        let screenshotFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "most-recent-completion-timeline.png")
+        TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
+            if b then
+                postgameDecorationCanvas.Opacity <- 1.
+                if not(isCurrentlyLoadingASave) then
+                    async {
+                        do! Async.Sleep(10)  // wait for finish drawing (e.g. zelda is not yet drawn on the timeline)
+                        do! Async.SwitchToContext(ctxt)
+                        try
+                            // screenshot timeline region
+                            let vb = new VisualBrush(appMainCanvas)
+                            vb.ViewboxUnits <- BrushMappingMode.Absolute
+                            vb.Viewbox <- Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
+                            vb.Stretch <- Stretch.None
+                            let visual = new DrawingVisual()
+                            do 
+                                use dc = visual.RenderOpen()
+                                dc.DrawRectangle(vb, null, Rect(Size(vb.Viewbox.Width, vb.Viewbox.Height)))
+                            let bitmap = new Imaging.RenderTargetBitmap(int vb.Viewbox.Width, int vb.Viewbox.Height, 96., 96., PixelFormats.Default)
+                            bitmap.Render(visual)
+                            let encoder = new Imaging.PngBitmapEncoder()
+                            encoder.Frames.Add(Imaging.BitmapFrame.Create(bitmap))
+                            do
+                                use stream = System.IO.File.Create(screenshotFilename)
+                                encoder.Save(stream)
+                            System.IO.File.SetCreationTime(screenshotFilename, System.DateTime.Now)
+                            System.IO.File.SetLastWriteTime(screenshotFilename, System.DateTime.Now)
+                        with e ->
+                            printfn "%s" (e.ToString())
+                    } |> Async.StartImmediate
+            else
+                postgameDecorationCanvas.Opacity <- 0.
+            )
 
     appMainCanvas.MouseDown.Add(fun _ -> 
         let w = Window.GetWindow(appMainCanvas)
@@ -1972,7 +2017,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let owHighlightTile = new Shapes.Rectangle(Width=OMTW, Height=11. * 3., StrokeThickness = 0., Fill=rgb, Opacity=1.0, IsHitTestVisible=false)
         canvasAdd(overworldCanvas, owHighlightTile, OMTW*float(6), float(11*3*6))
 
-        let ctxt = System.Threading.SynchronizationContext.Current
         let animateOWTile(x,y) = 
             if (x,y) <> TrackerModel.NOTFOUND then
                 OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[x,y] <- true
@@ -1992,7 +2036,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
     do  // auto-save every 1 min
-        let ctxt = System.Threading.SynchronizationContext.Current
         let diskIcon = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Gray, Child=Graphics.BMPtoImage(Graphics.iconDisk_bmp), Opacity=0.0)
         canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
         let timer = new System.Windows.Threading.DispatcherTimer()

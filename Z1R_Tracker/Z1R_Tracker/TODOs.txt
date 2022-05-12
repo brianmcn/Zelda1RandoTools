@@ -37,8 +37,9 @@ since 1.2.1m...
  - door repair count reminders
  - hide certain overworld icons (but still track them)
  - overworld randomizers/romhacks (blank map or user-specified-overworld-map file.png)
-     - shin zelda densetsu, infinite hyrule, zelda reloaded, z1m1, ...
+     - shin zelda densetsu, infinite hyrule, zelda reloaded, ...
  - User Custom Checklist - an extensibility feature that enables z1m1 tracking & timelining major items
+
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
