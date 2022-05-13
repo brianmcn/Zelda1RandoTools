@@ -146,6 +146,7 @@ type AllData() =
     member val ShouldInitiallyHideOverworldMap = false with get,set
     member val Seed = "" with get,set
     member val Flags = "" with get,set
+    member val OverworldSpotsRemainingOverTime : int[] = null with get,set
     member val Timeline : TimelineDatum[] = null with get,set
 
 let LoadAll(json:string) =  // can throw

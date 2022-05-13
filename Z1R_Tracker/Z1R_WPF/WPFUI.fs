@@ -26,7 +26,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModelOptions.VoiceReminders.SwordHearts.Value,     TrackerModelOptions.VisualReminders.SwordHearts.Value
             | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
-        if not(isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
+        if not(Timeline.isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
             reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     SendReminderImpl(category, text, icons, None)
@@ -1846,7 +1846,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     // postgameDecorationCanvas atop timeline & reminders
     do
-        let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width)
+        let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0.)
         canvasAdd(appMainCanvas, postgameDecorationCanvas, 0., START_TIMELINE_H)
         let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Red)
         Canvas.SetRight(sp, 0.)
@@ -1861,7 +1861,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
             if b then
                 postgameDecorationCanvas.Opacity <- 1.
-                if not(isCurrentlyLoadingASave) then
+                if not(Timeline.isCurrentlyLoadingASave) then
                     async {
                         do! Async.Sleep(10)  // wait for finish drawing (e.g. zelda is not yet drawn on the timeline)
                         do! Async.SwitchToContext(ctxt)
@@ -1919,7 +1919,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let a = data.Overworld.Map
         if a.Length <> 16 * 8 * 3 then
             failwith "bad load data at data.Overworld.Map"
-        isCurrentlyLoadingASave <- true
+        Timeline.isCurrentlyLoadingASave <- true
         let mutable anySetProblems = false
         for j = 0 to 7 do
             for i = 0 to 15 do
@@ -1985,6 +1985,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             SaveAndLoad.lastKnownFlags <- data.Flags
             SaveAndLoad.seedAndFlagsUpdated.Trigger()
         // Timeline
+        if data.OverworldSpotsRemainingOverTime <> null then
+            for i = 0 to (data.OverworldSpotsRemainingOverTime.Length/2)-1 do
+                TrackerModel.timelineDataOverworldSpotsRemain.Add(data.OverworldSpotsRemainingOverTime.[i*2], data.OverworldSpotsRemainingOverTime.[i*2+1])
         if data.Timeline <> null then
             for td in data.Timeline do
                 if td.Seconds <= data.TimeInSeconds then
@@ -2001,8 +2004,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         TrackerModel.forceUpdate()
         doUIUpdateEvent.Trigger()
         // done
-        isCurrentlyLoadingASave <- false
-    | _ -> ()
+        Timeline.isCurrentlyLoadingASave <- false
+        TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw timeline once (redraws are ignored while loading)
+    | _ ->
+        ()
 
     // animation
     do

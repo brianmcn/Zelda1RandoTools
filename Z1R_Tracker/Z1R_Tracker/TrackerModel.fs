@@ -1257,6 +1257,9 @@ let mutable priorBowArrow = false
 let mutable priorRecorder = false
 let mutable priorLadder = false
 let mutable priorAnyKey = false
+// timeline data
+let timelineDataOverworldSpotsRemain = ResizeArray<int*int>()  // (seconds, numSpotsRemain)
+let mutable priorOWSpotsRemain = 0
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
@@ -1274,6 +1277,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             ite.AnnounceConsiderSword3()
     // map
     ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain, mapStateSummary.OwGettableLocations.Count)
+    if mapStateSummary.OwSpotsRemain <> priorOWSpotsRemain then
+        priorOWSpotsRemain <- mapStateSummary.OwSpotsRemain
+        let span = System.DateTime.Now - theStartTime.Time
+        let s = int span.TotalSeconds
+        timelineDataOverworldSpotsRemain.Add(s, priorOWSpotsRemain) 
     for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d] <> NOTFOUND then
             let x,y = mapStateSummary.DungeonLocations.[d]
@@ -1465,6 +1473,9 @@ type TimelineItemModel(desc: TimelineItemDescription) =
         | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce(), PlayerHas.YES))
         | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.CellCurrent() <> -1 && b.PlayerHas()<>PlayerHas.NO, b.PlayerHas()))
         | TimelineItemDescription.UserCustom(_,e) -> e.Publish.Add(fun b -> stamp(b,PlayerHas.YES))
+    static member TriggerTimelineChanged() =  // used when Loading a Save file
+        let span = System.DateTime.Now - theStartTime.Time
+        timelineChanged.Trigger(int span.TotalMinutes)
     member this.StampTotalSeconds(s,ph) =  // used when Loading a Save file
         match desc with
         | TimelineItemDescription.ItemBox(_,_) -> itemPlayerHas <- ph

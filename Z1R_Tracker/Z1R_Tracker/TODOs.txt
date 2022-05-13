@@ -34,12 +34,23 @@ since 1.2.1m...
  - fix drag-paint dungeon rooms
  - crash-detection-popup to help folks with recovery
  - clickable recorder destination (note where you are whistled to)
+ - auto-timeline-screenshot on completion, for sharing
  - door repair count reminders
  - hide certain overworld icons (but still track them)
  - overworld randomizers/romhacks (blank map or user-specified-overworld-map file.png)
      - shin zelda densetsu, infinite hyrule, zelda reloaded, ...
  - User Custom Checklist - an extensibility feature that enables z1m1 tracking & timelining major items
 
+
+
+idea:  'overworld spots remaining over time' graph to project into the background of timeline?
+ - need like a 'timeline data series' source type (or just global instance), which can report any number of changes, each datum is (seconds, value)
+ - then can maybe imagine OWSpotsRemain as a graph going from max towards 0 on timeline with 0 at top and max at bottom, like a deep cyan thin line behind current timeline (labeled right axis?)
+    - need a few data sets to see if normal linear scale is appropriate; may need horizontal gridlines running across back to see/appreciate/compare values, hm
+ - IN PROGRESS, maybe done? run a few more
+
+
+loading a completed savefile takes a while, maybe add progress '...' or see if can speed up
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)

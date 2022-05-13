@@ -349,6 +349,10 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         if lastKnownFlags <> "" then
             yield sprintf """    "Flags": "%s",""" lastKnownFlags
         // write the timeline 'pretty' at the bottom of the file, for people who want to easily see/parse splits
+        let flat = [| for x,y in TrackerModel.timelineDataOverworldSpotsRemain do 
+                        yield x
+                        yield y |]
+        yield sprintf """    "OverworldSpotsRemainingOverTime": %s,""" (System.Text.Json.JsonSerializer.Serialize<int[]>(flat))
         yield sprintf """    "Timeline": ["""
         let tis = [|for KeyValue(_,ti) in TrackerModel.TimelineItemModel.All do yield ti |] |> Array.sortBy (fun ti -> ti.FinishedTotalSeconds)
         for i=0 to tis.Length-1 do

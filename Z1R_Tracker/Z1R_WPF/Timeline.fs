@@ -4,6 +4,8 @@ open System.Windows.Media
 open System.Windows.Controls
 open System.Windows
 
+let mutable isCurrentlyLoadingASave = false
+
 let canvasAdd = Graphics.canvasAdd
 type TimelineItem(ident : string, f) =
     let model = TrackerModel.TimelineItemModel.All.[ident]
@@ -21,6 +23,7 @@ let numTicks, ticksPerHash = 60, 5
 type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[], topRowReserveWidth:float) =
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
+    let graphCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let timeToolTip = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(3.0), FontSize=16.0, IsHitTestVisible=false)
     let line1 = new Shapes.Line(X1=0., Y1=iconAreaHeight+BIG_HASH/2., X2=lineWidth, Y2=iconAreaHeight+BIG_HASH/2., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
@@ -42,7 +45,8 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             let xpos = x - ft.Width/2.
             canvasAdd(timelineCanvas, new TextBlock(Text=sevenTexts.[n],FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
             n <- n + 1
-        canvasAdd(timelineCanvas, itemCanvas, 0., 0.)  // should be first, so e.g. curTime draws atop it
+        canvasAdd(timelineCanvas, graphCanvas, 0., 0.)
+        canvasAdd(timelineCanvas, itemCanvas, 0., 0.)
         for i = 0 to numTicks do
             if i%(2*ticksPerHash)=0 then
                 let line = new Shapes.Line(X1=x(i), Y1=iconAreaHeight, X2=x(i), Y2=iconAreaHeight+BIG_HASH, Stroke=TLC, StrokeThickness=LINE_THICKNESS)
@@ -58,13 +62,47 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             iconAreaFilled.[x, 0] <- 99
     member this.Canvas = timelineCanvas
     member this.Update(minute, timelineItems:seq<TimelineItem>) =
-        let tick = minute / minutesPerTick
-        if tick < 0 || tick > numTicks then
-            ()
-        else
-            this.DrawItemsAndGuidelines(timelineItems)
-            curTime.X1 <- xf(float (minute / minutesPerTick))
-            curTime.X2 <- xf(float (minute / minutesPerTick))
+        if not isCurrentlyLoadingASave then
+            let tick = minute / minutesPerTick
+            if tick < 0 || tick > numTicks then
+                ()
+            else
+                this.DrawGraph(tick)
+                this.DrawItemsAndGuidelines(timelineItems)
+                curTime.X1 <- xf(float (minute / minutesPerTick))
+                curTime.X2 <- xf(float (minute / minutesPerTick))
+    member private this.DrawGraph(curTick) =
+        if TrackerModel.timelineDataOverworldSpotsRemain.Count > 0 then
+            // populate data to graph
+            let sorted = TrackerModel.timelineDataOverworldSpotsRemain.ToArray() |> Array.sortBy fst
+            let remainPerTick = Array.create (numTicks+1) -1
+            let mutable highestTickPopulated = -1
+            for s,r in sorted do
+                let tickBucket = 1 + (s/60)/minutesPerTick
+                if tickBucket >= 0 && tickBucket <= numTicks then
+                    if tickBucket > highestTickPopulated then
+                        for i = highestTickPopulated+1 to tickBucket do
+                            remainPerTick.[i] <- r
+                            highestTickPopulated <- tickBucket
+                    else
+                        assert(tickBucket = highestTickPopulated)
+                        remainPerTick.[tickBucket] <- r
+            if curTick > highestTickPopulated then
+                let r = snd sorted.[sorted.Length-1]
+                for i = highestTickPopulated+1 to curTick do
+                    remainPerTick.[i] <- r
+                    highestTickPopulated <- curTick
+            // draw it
+            graphCanvas.Children.Clear()
+            let maxRemain = sorted |> Array.maxBy snd |> snd
+            remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
+            let y(r) = (iconAreaHeight / float maxRemain) * float r
+            for i = 1 to curTick do
+                if remainPerTick.[i-1] <> -1 && remainPerTick.[i] <> -1 then
+                    let x1,x2 = xf(float(i-1)), xf(float(i))
+                    let y1,y2 = y(remainPerTick.[i-1]), y(remainPerTick.[i])
+                    let segment = new Shapes.Line(X1=x1, Y1=y1, X2=x2, Y2=y2, Stroke=Brushes.DarkCyan, StrokeThickness=2.)
+                    canvasAdd(graphCanvas, segment, 0., 0.)
     member private this.DrawItemsAndGuidelines(timelineItems) =
         // redraw guidelines and items
         itemCanvas.Children.Clear()
