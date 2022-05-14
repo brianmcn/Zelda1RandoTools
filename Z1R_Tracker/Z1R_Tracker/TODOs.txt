@@ -14,11 +14,6 @@ CURRENT PRIORITIES
 update docs with changes
 update whats new with changes
 
-make a new Mouse Hover Explainer screenshot
-make new BLOCKERS screenshots
-make new take-any-heart screenshot
-(review all screenshots)
-
 
 since 1.2.1e...
  - dungeon tracker visual tweaks/fixes; add more monster types and another door state

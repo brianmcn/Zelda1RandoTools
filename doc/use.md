@@ -7,6 +7,7 @@ Contents of this document:
 - [General Features](#general)
   - [Popups](#general-popups)
   - [Green-Yellow-Red Highlights ("GYR")](#general-gyr)
+  - [Mouse Hovering](#general-mouse-hover)
 
 - [Main Z-Tracker Window](#main)
   - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
@@ -66,6 +67,12 @@ To illustrate, here is how the tiles near the vanilla start spot appear, in a mi
 but do not yet have a candle, and the "OW spots left" is mouse-hovered to highlight remaining spots:
 
 ![GYR screenshot](screenshots/gyr-highlights.png)
+
+## <a id="general-mouse-hover"></a> Mouse Hovering
+
+There are many places in Z-Tracker where you can hover the mouse to see extra information.  Hover the '?' icon near the upper right of the app to see them all:
+
+![Mouse Hover Explainer screenshot](screenshots/mouse-hover-explainer.png)
 
 # <a id="main"></a> Main Z-Tracker Window
 
