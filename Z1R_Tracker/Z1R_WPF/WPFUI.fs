@@ -1749,9 +1749,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 
-    let theTimeline1 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 1, [|"0h"; "10m"; "20m"; "30m"; "40m"; "50m"; "1h"|], moreOptionsButton.DesiredSize.Width-24.)
-    let theTimeline2 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 2, [|"0h"; "20m"; "40m"; "1h";  "80m"; "100m";"2h"|], moreOptionsButton.DesiredSize.Width-24.)
-    let theTimeline3 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 3, [|"0h"; "30m"; "1h";  "90m"; "2h";  "2.5h";"3h"|], moreOptionsButton.DesiredSize.Width-24.)
+    let theTimeline1 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 1, [|"0:00";"0:10";"0:20";"0:30";"0:40";"0:50";"1:00"|], moreOptionsButton.DesiredSize.Width-24.)
+    let theTimeline2 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 2, [|"0:00";"0:20";"0:40";"1:00";"1:20";"1:40";"2:00"|], moreOptionsButton.DesiredSize.Width-24.)
+    let theTimeline3 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 3, [|"0:00";"0:30";"1:00";"1:30";"2:00";"2:30";"3:00"|], moreOptionsButton.DesiredSize.Width-24.)
     theTimeline1.Canvas.Opacity <- 1.
     theTimeline2.Canvas.Opacity <- 0.
     theTimeline3.Canvas.Opacity <- 0.

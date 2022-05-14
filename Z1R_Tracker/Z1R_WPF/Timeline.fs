@@ -24,6 +24,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let graphCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
+    let owAxisLabel = new TextBox(Text="OW Completion", Foreground=Brushes.DarkCyan, Background=Brushes.Black, BorderThickness=Thickness(0.0), FontSize=12.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false, IsReadOnly=true)
     let itemCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let timeToolTip = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, BorderThickness=Thickness(3.0), FontSize=16.0, IsHitTestVisible=false)
     let line1 = new Shapes.Line(X1=0., Y1=iconAreaHeight+BIG_HASH/2., X2=lineWidth, Y2=iconAreaHeight+BIG_HASH/2., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
@@ -46,6 +47,10 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             canvasAdd(timelineCanvas, new TextBlock(Text=sevenTexts.[n],FontSize=12.,Foreground=TLC,Background=Brushes.Black), xpos, ypos)
             n <- n + 1
         canvasAdd(timelineCanvas, graphCanvas, 0., 0.)
+        owAxisLabel.RenderTransform <- new RotateTransform(-90.)
+        Canvas.SetLeft(owAxisLabel, graphCanvas.Width)
+        Canvas.SetBottom(owAxisLabel, -6.)
+        graphCanvas.Children.Add(owAxisLabel) |> ignore
         canvasAdd(timelineCanvas, itemCanvas, 0., 0.)
         for i = 0 to numTicks do
             if i%(2*ticksPerHash)=0 then
@@ -94,6 +99,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                     highestTickPopulated <- curTick
             // draw it
             graphCanvas.Children.Clear()
+            graphCanvas.Children.Add(owAxisLabel) |> ignore
             let maxRemain = sorted |> Array.maxBy snd |> snd
             remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
             let y(r) = (iconAreaHeight / float maxRemain) * float r

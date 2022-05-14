@@ -586,11 +586,18 @@ If a file called Notes.txt exists in the program folder, the Notes box will be p
 ## <a id="main-timeline"></a> Timeline
 
 The timeline is an affordance, either for the player who finishes a seed and wants a retrospective of their game, or for viewers who watch a stream and arrive late.
+
 As the player gets items, new items are posted to the timeline above the minute-marker. This makes it easy to look back and see e.g. that you got the wood sword 
 in the 12th minute.  The timeline data is stored in 'TotalSeconds', so you can see your splits for every item at one-second granularity by mouse-hovering an item
 in the timeline, or by clicking 'Save' and then inspecting the very end of the save file.
 
-![Timeline screenshot](screenshots/timeline-example.png)
+Also, as the player makes progress exploring the overworld, the timeline graphs this progress by showing the number of remaining unmarked screens on the overworld 
+trending up towards zero at the top of the graph.
+
+![Timeline screenshot](screenshots/most-recent-completion-timeline.png)
+
+When you click Zelda to finish the seed, your final time and final number of remaining unmarked overworld spots appear on the timeline, and a screenshot of the 
+timeline is taken and saved as "most-recent-completion-timeline.png" in your Z-Tracker directory, which you might share in a race-spoilers discussion.
 
 
 ## <a id="main-om"></a> Options Menu

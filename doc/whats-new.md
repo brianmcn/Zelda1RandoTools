@@ -86,15 +86,23 @@ veterans who may get confused/disoriented when playing using the rando flag "Mir
 
 ### Timeline improvements
 
-The timeline now updates instantly as you get items, rather than only updating once per minute.  The splits for each item/triforce are stored at one-second granularity and can
-be seen by mouse-hovering a particular item in the timeline.  In 'Hidden Dungeon Numbers', lettered triforces will now change to numbered ones on the timeline after the numbers
-are known.  Items marked as 'skipped' (by middle-clicking them) now show up in the timeline ('X'-ed out, as in the top-tracker).
+Many changes and improvements:
 
-There are now more time labels on the timeline, making it easier to read:
+ - The timeline now updates instantly as you get items, rather than only updating once per minute.  The splits for each item/triforce are stored at one-second granularity and can
+be seen by mouse-hovering a particular item in the timeline.  
 
-![Timeline labels](screenshots/timeline-example.png)
+ - In 'Hidden Dungeon Numbers', lettered triforces will now change to numbered ones on the timeline after the numbers are known.  
+ 
+ - Items marked as 'skipped' (by middle-clicking them) now show up in the timeline ('X'-ed out, as in the top-tracker).
 
-(The tracker was made 4 pixels taller to accomodate the labels.)
+ - There are now more time labels on the timeline, making it easier to read.
+
+ - The timeline now shows a graph of 'overworld progress over time' in its background, showing the trend of the 'remaining unmarked overworld spots' counting towards 0 at the top of the graph.
+
+ - When you click Zelda to finish the seed, your final time and final number of remaining unmarked overworld spots appear on the timeline, and a screenshot of the timeline is taken and 
+saved as "most-recent-completion-timeline.png" in your Z-Tracker directory, which you might share in a race-spoilers discussion.
+
+![New Timeline](screenshots/most-recent-completion-timeline.png)
 
 ### More application sizes
 
