@@ -141,6 +141,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - there's now a 5th [dungeon door state](use.md#main-dt-doors) (purple) which you can optionally use to distinguish shutters from key-locked-doors, or whatnot
  - dungeons show an [old man count](use.md#main-dungeon-old-man-count), tracking the number of NPC rooms you have marked versus the expect number (e.g. "OM:2/3")
  - mouse hovering a dungeon room shows a helpful row-locator graphic in the corner, see [Row location assistance](use.md#main-dungeon-row-location) for details
+ - if you mark any off-the-map rooms, mouse hovering the little blue bars in the corner of the dungeon tracker will also display the 'inverse map' (when painting 'holes' upon entering 9 with atlas)
  - when on the dungeon summary tab, all dungeon locations get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once
  - an empty dungeon item box display suggests whether it is a basement item or standing/floor drop ('Show basement info' in the Options Menu; 'on' by default)
  - speaking either "don't care" or "nothing" will mark off an overworld tile using [Speech Recognition](use.md#speech-recognition)

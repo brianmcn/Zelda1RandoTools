@@ -35,7 +35,11 @@ since 1.2.1m...
  - overworld randomizers/romhacks (blank map or user-specified-overworld-map file.png)
      - shin zelda densetsu, infinite hyrule, zelda reloaded, ...
  - User Custom Checklist - an extensibility feature that enables z1m1 tracking & timelining major items
+since 1.2.1q...
+ - if any OFF rooms marked, blue-bars hover shows inverse off-map too (to see if painted 9 right)
 
+
+should all 'incomplete' dungeon rooms be slightly brighter? not a ton of contrast right now
 
 
 loading a completed savefile takes a while, maybe add progress '...' or see if can speed up
@@ -425,6 +429,31 @@ Thus, in shapes,
  - Standing item implies no push-stair (unless RMOS in a no-shutter room, which uses state 5 above)
  - Shutter implies no push-stair
  - Kill->Drop implies no push-stair
+
+
+
+
+
+
+NEVER drop
+    Gannon (only standing drop, or drop map)
+    Zelda           Bomb droppers: BrCrhBrBhh
+    3 Rows                         1234567890
+    Circle Wall                    * .  * *
+    Single Block            Other: .....C....
+    <spike trap angles>
+    Vertical Rows  
+               Never drops in   Can drop in
+Five Pair      2 3 4 5 6 7 8 9  1
+Maze           1 2 3 5 6 7 8 9  4
+Pointless Moat 2 3 6 7 8 9      1 4 5
+Diamond Stair  1 4 5            2 3 6 7 8 9
+Single 6       1 4 5            2 3 6 7 8 9
+Spiral Stair   1 4 5            2 3 6 7 8 9
+Gleeok         1 5              2 3 4 6 7 8 9
+Grid           4 5              1 2 3 6 7 8 9
+T              1                2 3 4 5 6 7 8 9
+Lava Moat      2 3 4 5 6 7 8 9  1
 
 
 

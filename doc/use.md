@@ -364,7 +364,9 @@ Same with right mouse button, but for uncompleted rooms (or for middle mouse but
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
 Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
-easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.
+easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.  Finally, middle-click-drag 
+paints off-the-map rooms, which can be the fastest way to paint the boundaries of dungeon 9 if you enter the dungeon with a map/atlas.  If any off-the-map rooms
+are marked, the little-blue-bars hover also displays the 'inverse minimap' of just the rooms not marked off-the-map.
 
 Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 

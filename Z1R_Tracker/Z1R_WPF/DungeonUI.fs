@@ -575,13 +575,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         canvasAdd(hoverCanvas, miniBorder, 0., 0.)
         canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.)
         hoverCanvas.MouseEnter.Add(fun _ ->
-            let markedRooms = roomStates |> Array2D.map (fun s -> not(s.IsEmpty))
-            let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
-            let i = Graphics.BMPtoImage bmp
-            i.Width <- 240.
-            i.Height <- 120.
-            i.Stretch <- Stretch.UniformToFill
-            RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
+            let make(markedRooms) = 
+                let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
+                let i = Graphics.BMPtoImage bmp
+                i.Width <- 240.
+                i.Height <- 120.
+                i.Stretch <- Stretch.UniformToFill
+                RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
+                i
+            let normal = make(roomStates |> Array2D.map (fun s -> not(s.IsEmpty)))
+            let inverse = make(roomStates |> Array2D.map (fun s -> not(s.RoomType=DungeonRoomState.RoomType.OffTheMap)))
+            let i = new StackPanel(Orientation=Orientation.Vertical)
+            let mutable anyOff = false
+            roomStates |> Array2D.iter (fun s -> if(s.RoomType=DungeonRoomState.RoomType.OffTheMap) then anyOff <- true)
+            if anyOff then i.Children.Add(inverse) |> ignore
+            i.Children.Add(normal) |> ignore
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
             Canvas.SetBottom(b, 0.)
             Canvas.SetLeft(b, 0.)
