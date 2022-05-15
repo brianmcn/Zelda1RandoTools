@@ -360,13 +360,14 @@ Dungeon rooms are somewhat complicated, as there is a lot of state you might wan
 #### Multiple rooms at once
 
 If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
-Same with right mouse button, but for uncompleted rooms (or for middle mouse button, for 'off the map' rooms, see [below](#off-the-map)).  
+Same with right mouse button, but for uncompleted rooms.
 These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
 Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
 Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
-easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.  Finally, middle-click-drag 
-paints off-the-map rooms, which can be the fastest way to paint the boundaries of dungeon 9 if you enter the dungeon with a map/atlas.  If any off-the-map rooms
-are marked, the little-blue-bars hover also displays the 'inverse minimap' of just the rooms not marked off-the-map.
+easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.  
+
+Finally, middle-click-drag paints off-the-map rooms, which can be the fastest way to paint the boundaries of dungeon 9 if you enter the dungeon with a map/atlas.
+If any off-the-map rooms are marked, the little-blue-bars hover also displays the 'inverse minimap' of just the rooms not marked off-the-map; see [below](#off-the-map).
 
 Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
@@ -483,6 +484,9 @@ on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType
 marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
+
+Note how mouse-hovering the little blue bars displays both the minimap of the dungeon boundaries based on off-the-map marks (top) as well as just the rooms you have 
+marked/visited (bottom).
 
 #### <a id="main-dungeon-row-location"></a>Row location assistance
 
