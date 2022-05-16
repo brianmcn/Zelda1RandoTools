@@ -644,7 +644,7 @@ type MyWindow() as this =
                     let tb1 = new TextBox(IsReadOnly=true, BorderThickness=Thickness(0.), Foreground=Brushes.Orange)
                     tb1.Text <- "Z-Tracker was designed for use with fcoughlin's Zelda 1 Randomizer.\n\n" +
                                 
-                                "There are other randomizers/ROM-hacks for Zelda 1 which use other\n" + 
+                                "There are other randomizers/ROM-Hacks for Zelda 1 which use other\n" + 
                                 "(sometimes randomized) overworld maps.  Z-Tracker may not work with\n" +
                                 "these perfectly, but the options here are designed to allow you to use\n" +
                                 "Z-Tracker with non-standard overworld maps, for a slightly degraded, but\n" +
@@ -652,7 +652,7 @@ type MyWindow() as this =
 
                                 "There are two main options:\n" +
                                 " - use a 'blank' 16x8 grid for overworld map tracking\n" +
-                                " - use a custom .png map file, supplied by your other randomizer/ROMhack\n\n" +
+                                " - use a custom .png map file, supplied by your other randomizer/ROM-Hack\n\n" +
 
                                 "If you do supply a custom map file, you can also choose whether you want the map\n" +
                                 "to be fully revealed/visible at the outset, or whether each of the 16x8 tiles\n" +

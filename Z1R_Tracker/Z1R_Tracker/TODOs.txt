@@ -39,14 +39,7 @@ since 1.2.1q...
  - if any OFF rooms marked, blue-bars hover shows inverse off-map too (to see if painted 9 right)
 
 
-should all 'incomplete' dungeon rooms be slightly brighter? not a ton of contrast right now
-
-
-loading a completed savefile takes a while, maybe add progress '...' or see if can speed up
-
-
-open caves separate color, rather than hover-highlight? (or click the icon to toggle them shown different or something)  only until wood sword?
-similar thing for armos?
+loading a completed savefile takes a while, maybe add progress '...' (or see if can speed up)
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
@@ -57,12 +50,15 @@ z1m1 note: there are 4 'free stuff' old men, that are letter/sword1/sword2/sword
 z1m1 note: when take-any has non-hyrule equipment i take, just mark 'take potion' to check off the cave and not update another equipment
 z1m1: I dont have a way to mark hyrule portals or extra doors within-Zebes (out of scope)
 TODO doc the UserCustomChecklist stuff
+TODO consider adding z1 complete, m1 complete to UCC, so can timeline either finish first
 
 
 
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
 TODO documentation of '...' options from startup screen and brief docs about DrawingLayer
+
+also, doc all OptionsMenu
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
