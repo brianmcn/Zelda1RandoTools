@@ -133,6 +133,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - fixed: dungeon summary tab no longer sometime shows stale/missing info
  - fixed: fewer reminders to "consider dungeon X" when you're already inside dungeon X right now
  - fixed: clicking FQ or SQ on the dungeon summary tab (in non-hidden-dungeon-numbers) toggles all dungeons consistently into that vanilla map display
+ - fixed: issues with image crispness in Broadcast Window
  - you can now mark up to 3 Blockers per dungeon
  - hovering certain blockers (bait/key/bomb/bow&arrow) will highlight the corresponding marked shops on the overworld map
  - hovering to highlight shops can animate tiles to make them easier to see (OptionsMenu: "Animate Shop Highlights", on by default)
@@ -150,7 +151,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - there's now reminders for Door Repair Count on the Options Menu
  - you can now choose to hide certain overworld icons you don't want to see (Options Menu\Overworld\More settings)
  - when you reset the timer, you immediately get put into the 'place the start spot location icon' popup to mark your start screen
- - you can now middle-click-drag across multiple dungeon rooms to mark them as 'off the map' spots
+ - new dungeon map drag-painting implementation, see [full documentation](use.md#main-dr-drag) for details
  - Show/Run Custom button now can 'RUN' URLs, which get launched in your default browser
  - you can have tracker snoop for window (e.g. emulator window) whose title contains seed & flags, and display/save that info
  - reconfigured top right area of tracker to improve Broadcast Window view while in dungeons

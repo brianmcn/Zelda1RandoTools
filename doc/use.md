@@ -326,6 +326,8 @@ self-describing.  (Pressing the button will create a template ShowRunCustom.txt 
 You can click the '**Save**' button to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.  Use 
 this e.g. when you need to stop playing now and want to continue playing the same seed tomorrow.
 
+---
+
 ## <a id="main-dt"></a> Dungeon Tracker
 
 There are 10 tabs - one for each of the 9 dungeons, and a summary tab 'S' which shows minimaps/previews of dungeons 1-8.
@@ -338,7 +340,7 @@ the top of the app.  Other dungeon tracking marks have no semantic meaning to th
 When your mouse is inside a dungeon map area, the location of that dungeon will be highlighted with crosshairs on the overworld map.  When your mouse is inside the dungeon 
 summary tab area, the location of all dungeons get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once.
 
-#### <a id="main-dt-doors"></a> Doors
+### <a id="main-dt-doors"></a> Dungeon Doors
 
 Doors between rooms are simple, and have five states:
 
@@ -353,66 +355,11 @@ Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green
 There is an option in the [Options Menu](#main-om), off by default, to automatically infer some green doors.  (It will conservatively put a green door between rooms A and B 
 only if you just marked B, and B is not a transport stair, and A is the only adjacent room with a mark.)
 
-#### Rooms
-
-Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).
-
-#### Multiple rooms at once
-
-If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
-Same with right mouse button, but for uncompleted rooms.
-These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
-Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
-Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
-easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.  
-
-Finally, middle-click-drag paints off-the-map rooms, which can be the fastest way to paint the boundaries of dungeon 9 if you enter the dungeon with a map/atlas.
-If any off-the-map rooms are marked, the little-blue-bars hover also displays the 'inverse minimap' of just the rooms not marked off-the-map; see [below](#off-the-map).
-
-Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
-of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
-fix an offset map.
-
-#### Vanilla dungeon maps
-
-Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
-
-Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
-are compatible with your current room markup.
-
-![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
-
-#### <a id="main-hpdc"></a> Highlight potential dungeon continuations
-
-If you are having trouble finding all the rooms in a dungeon where you lack the map, and you want a visual reminder of what has yet to be checked, you can 
-mouse-hover the BLOCKERS label from the [Blockers](#main-blockers) section to display highlights that suggest what you still need to check.  This feature 
-is similar to (but distinct from) blockers, in that it is just based on your dungeon map markup.  In either the dungeon summary tab, or in a specific 
-dungeon tab, such as this:
-
-![Dungeon potential unhighlighted](screenshots/dungeon-potential-unhighlighted.png)
-
-when you mouse-hover BLOCKERS, the dungeon display adds highlights like this:
-
-![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
-
-The display highlights a few things:
- 
- - walls that might be bombable and lead to a new room
- - rooms you have marked as bow/recorder/bomb blocked due to bosses (using MonsterDetail, described later in Dungeon Rooms)
- - any uncompleted Hungry Goriya Meat Block rooms
- - rooms where you have marked a doorway to them, but have not marked that you've been in the room (typically key-blocked or ladder-blocked)
-
-You might find this feature useful when you return to a dungeon with more bombs, trying to find a bomb wall, or e.g. when you just got the recorder and want 
-to check the summary tab to see which dungeons had rooms your marked with Digdoggers.
-
-(If you already have the map of the dungeon, but are still missing a way to get to certain rooms, then it might be more useful to mouse-hover the little blue 
-bars near the bottom right corner of the dungeon tab, and compare it with the in-game mini-map.)
-
-## <a id="main-dr"></a> Dungeon Rooms
+### <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
 
-### Motivation
+#### Motivation
 
 To motivate Z-Tracker's feature set, consider a dungeon room with a Digdogger, a floor drop of a bomb pack, and a push-block leading to a staircase basement
 containing a key item like the Ladder.  Should this room be marked as a Digdogger room? A bomb pack room? An item staircase?  The salient information may change
@@ -439,7 +386,7 @@ As a result, in the scenario described before, you could mark up the room thusly
 
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
 
-### <a id="main-drpu"></a> Practical use
+#### <a id="main-drpu"></a> Practical use
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
  - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
@@ -479,16 +426,80 @@ the usual left-click behavior of toggling completedness.  This way you can immed
 zero extra mousing.
 
 <a id="off-the-map">There is one special RoomType, called OffTheMap</a>.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
-dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
-on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap appears as "OFF" in the room selection popup.  An example of 
-marking eight OffTheMap spots appears in this screenshot:
+dungeon map.  An example scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, you can just 'mark off the holes'.  
+RoomType.OffTheMap appears as "OFF" in the room selection popup.  An example of marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
 Note how mouse-hovering the little blue bars displays both the minimap of the dungeon boundaries based on off-the-map marks (top) as well as just the rooms you have 
 marked/visited (bottom).
 
-#### <a id="main-dungeon-row-location"></a>Row location assistance
+### <a id="main-dr-drag"></a> Dragging across multiple rooms at once to 'paint' a map
+
+To facilitate drawing maps quickly, the dungeon tracker has click-and-drag functionality.  Imagine you walk into dungeon 9 and you have the Atlas or get a map in one of the 
+initial rooms and see this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-9-goal.png)
+
+Ideally you'd like your tracker to look something like this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-9-map-goal.png)
+
+but that means marking 21 OffTheMap spots on the tracker.  Right-clicking each tile and going through the popup menu would take way too long, and even if you have a HotKey for OffTheMap, 
+it is still a bit tedious to hover all those rooms and press the key.  'Paint'ing to the rescue!  You can 'paint' a bunch of OffTheMap rooms at once by right-clicking a room and then 
+holding the right mouse button down as you drag across multiple rooms on the map.  So, for example, it is easy to paint the 14 OffTheMap rooms on the right edge of the screenshot above
+using one fluid motion.  Then HotKeys can be used to mark off the remaining 'holes'.
+
+While that strategy works well for dungeon 9, for smaller dungeons it would be more efficient to paint just what's "on the map" rather than off it.  Suppose you get three rooms into
+dungeon 1 and find this map:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-goal.png)
+
+and you want to eventually get to here
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-goal.png)
+
+starting from here
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step1.png)
+
+There is a button in the bottom right of the dungeon tracker that swaps OffTheMap and Unmarked rooms, and also swaps the right-click-drag behavior.  If you first click that button, 
+the map changes to this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step2.png)
+
+You can then right-click-drag to "paint" rooms back onto the map as Unmarked.  While you are dragging, a grid pops up to make it easier to see where you are painting:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step3.png)
+
+Once you think you're done painting all the rooms, you can mouse hover the blue bars near the bottom right corner of the tracker and compare the map you have painted to the
+in-game mini-map as a double-check.
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step4.png)
+
+Thus right-click-drag can be used to mark OffTheMap spots; or, after toggling most of the map OffTheMap with the corner button, right-click-drag can paint Unmarked rooms back onto the map.
+This enables quickly painting dungeon maps, both large and small.
+
+In addition to right-click-drag behavior, left-click-drag paints completed rooms, and middle-click-drag (or shift-left-click-drag) paints uncompleted rooms.  Here's a short example of 
+dragging across rows using the left-, middle-, and right-mouse buttons, on a fresh dungeon map:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-buttons.png)
+
+Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
+of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
+fix an offset map.
+
+### Vanilla dungeon maps
+
+Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+
+Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
+are compatible with your current room markup.
+
+![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
+
+
+### <a id="main-dungeon-row-location"></a>Row location assistance
 
 While it is relatively easy to see what column of the dungeon you are in, by witnessing what letter (of e.g. "LEVEL-1") the player marker is under on the in-game minimap:
 
@@ -505,14 +516,14 @@ In that screenshot, the mouse is over a room in the 5th row, so the highlight ap
 
 (The corresponding column letter also gets a subtle highlight when a dungeon room is moused over--see the second 'L' of LEVEL-1 in the screenshot.)
 
-#### <a id="main-dungeon-old-man-count"></a>Old Man Count
+### <a id="main-dungeon-old-man-count"></a>Old Man Count
 
 Each dungeon has a fixed number of expected encounters with 'old men' (NPCs who give hints, offer bomb upgrades, mug you, or want meat).  The number of such rooms you 
 have marked, along with the expected count for this dungeon, is displayed in the sidebar:
 
 ![z-tracker old man count screenshot](screenshots/old-man-count.png)
 
-#### <a id="main-dungeon-special-rooms"></a>Special NPC rooms
+### <a id="main-dungeon-special-rooms"></a>Special NPC rooms
 
 Two room types have colorful extra visual information in the tracker:
 
@@ -535,6 +546,34 @@ Additionally, if a **Hungry Goriya (meat block)** room is marked in a dungeon, t
 marked completed:
 
 ![Bait block rooms](screenshots/bait-block-rooms.png)
+
+### <a id="main-hpdc"></a> Highlight potential dungeon continuations
+
+If you are having trouble finding all the rooms in a dungeon where you lack the map, and you want a visual reminder of what has yet to be checked, you can 
+mouse-hover the BLOCKERS label from the [Blockers](#main-blockers) section to display highlights that suggest what you still need to check.  This feature 
+is similar to (but distinct from) blockers, in that it is just based on your dungeon map markup.  In either the dungeon summary tab, or in a specific 
+dungeon tab, such as this:
+
+![Dungeon potential unhighlighted](screenshots/dungeon-potential-unhighlighted.png)
+
+when you mouse-hover BLOCKERS, the dungeon display adds highlights like this:
+
+![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
+
+The display highlights a few things:
+ 
+ - walls that might be bombable and lead to a new room
+ - rooms you have marked as bow/recorder/bomb blocked due to bosses (using MonsterDetail, described later in Dungeon Rooms)
+ - any uncompleted Hungry Goriya Meat Block rooms
+ - rooms where you have marked a doorway to them, but have not marked that you've been in the room (typically key-blocked or ladder-blocked)
+
+You might find this feature useful when you return to a dungeon with more bombs, trying to find a bomb wall, or e.g. when you just got the recorder and want 
+to check the summary tab to see which dungeons had rooms your marked with Digdoggers.
+
+(If you already have the map of the dungeon, but are still missing a way to get to certain rooms, then it might be more useful to mouse-hover the little blue 
+bars near the bottom right corner of the dungeon tab, and compare it with the in-game mini-map.)
+
+---
 
 ## <a id="main-blockers"></a> Blockers
 

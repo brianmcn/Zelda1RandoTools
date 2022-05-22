@@ -212,6 +212,7 @@ type RoomType =
         | Gannon                  -> "RoomType_Gannon"
         | Zelda                   -> "RoomType_Zelda"
     member this.IsNotMarked = this = RoomType.Unmarked
+    member this.IsOffMap = this = RoomType.OffTheMap
     member this.IsOldMan = this = RoomType.OldManHint || this = RoomType.BombUpgrade || this = RoomType.HungryGoriyaMeatBlock || this = RoomType.LifeOrMoney
     member this.NextEntranceRoom() = 
         match this with
@@ -365,6 +366,8 @@ let scale(bmp, scale) =
         RenderOptions.SetBitmapScalingMode(icon, BitmapScalingMode.NearestNeighbor)
         icon
 
+let mutable isDoingDrapDragInInvertedMode = false
+let veryDarkRed = new SolidColorBrush(Color.FromArgb(255uy, 60uy, 0uy, 0uy))
 type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright) =
     let mutable isCompleted = isCompleted
     let mutable roomType = roomType
@@ -391,7 +394,10 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
             let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
             match roomType with
             | RoomType.OffTheMap ->
-                canvasAdd(c, new Canvas(Width=float(21*3), Height=float(17*3), Background=Brushes.Black, Opacity=0.6), -12., -12.)
+                let black = new Canvas(Width=13.*3.+12., Height=9.*3.+12., Background=Brushes.Black, Opacity=0.6)
+                canvasAdd(c, black, -6., -6.)
+                if isDoingDrapDragInInvertedMode then
+                    canvasAdd(black, new Shapes.Rectangle(Width=black.Width, Height=black.Height, Stroke=veryDarkRed, StrokeThickness=1.), 0., 0.)
             | _ ->
                 let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
                 canvasAdd(c, roomIcon, 0., 0.)

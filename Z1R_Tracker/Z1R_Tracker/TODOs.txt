@@ -37,6 +37,10 @@ since 1.2.1m...
  - User Custom Checklist - an extensibility feature that enables z1m1 tracking & timelining major items
 since 1.2.1q...
  - if any OFF rooms marked, blue-bars hover shows inverse off-map too (to see if painted 9 right)
+ - new dungeon map paint-drag stuff
+
+
+
 
 
 loading a completed savefile takes a while, maybe add progress '...' (or see if can speed up)

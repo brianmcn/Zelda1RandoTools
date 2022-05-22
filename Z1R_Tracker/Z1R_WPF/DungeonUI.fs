@@ -470,6 +470,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     if ea.Delta<0 then door.Next() else door.Prev()
                 )
         
+        let redrawAllDoorFuncs = ResizeArray()
+        let redrawAllDoors() = for f in redrawAllDoorFuncs do f()
         // horizontal doors
         let highlight = Dungeon.highlight
         let unknown = Dungeon.unknown
@@ -492,7 +494,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.; if line.Parent = null then d.Children.Add(line) |> ignore  // only add lines to tree on-demand
                     | Dungeon.DoorState.YELLOW     -> rect.Stroke <- yellow; rect.Fill <- yellow; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.PURPLE     -> rect.Stroke <- purple; rect.Fill <- purple; rect.Opacity <- 1.; line.Opacity <- 0.
-                    | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
+                    | Dungeon.DoorState.UNKNOWN    -> 
+                        rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.
+                        if masterRoomStates.[level-1].[i,j].RoomType.IsOffMap || masterRoomStates.[level-1].[i+1,j].RoomType.IsOffMap then
+                            rect.Stroke <- Brushes.Black
+                            rect.Fill <- Brushes.Black
+                        ))
                 horizontalDoors.[i,j] <- door
                 canvasAdd(hDoorCanvas, d, float(i*(39+12)+39), float(j*(27+12)+6))
                 installDoorBehavior(door, d)
@@ -501,6 +508,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                                 Canvas.SetTop(hDoorHighlightOutline, float(j*(27+12)+6))
                                                 hDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> hDoorHighlightOutline.Opacity <- 0.0)
+                redrawAllDoorFuncs.Add(fun () -> door.Redraw())
         canvasAdd(dungeonBodyCanvas, hDoorHighlightOutline, 0., 0.)
         // vertical doors
         let vDoorHighlightOutline = new Shapes.Rectangle(Width=24., Height=12., Stroke=highlight, StrokeThickness=2., Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
@@ -518,7 +526,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     | Dungeon.DoorState.NO         -> rect.Opacity <- 0.; line.Opacity <- 1.; if line.Parent = null then d.Children.Add(line) |> ignore  // only add lines to tree on-demand
                     | Dungeon.DoorState.YELLOW     -> rect.Stroke <- yellow; rect.Fill <- yellow; rect.Opacity <- 1.; line.Opacity <- 0.
                     | Dungeon.DoorState.PURPLE     -> rect.Stroke <- purple; rect.Fill <- purple; rect.Opacity <- 1.; line.Opacity <- 0.
-                    | Dungeon.DoorState.UNKNOWN    -> rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.))
+                    | Dungeon.DoorState.UNKNOWN    -> 
+                        rect.Stroke <- unknown; rect.Fill <- unknown; rect.Opacity <- 1.; line.Opacity <- 0.
+                        if masterRoomStates.[level-1].[i,j].RoomType.IsOffMap || masterRoomStates.[level-1].[i,j+1].RoomType.IsOffMap then
+                            rect.Stroke <- Brushes.Black
+                            rect.Fill <- Brushes.Black
+                        ))
                 verticalDoors.[i,j] <- door
                 canvasAdd(vDoorCanvas, d, float(i*(39+12)+8), float(j*(27+12)+27))
                 installDoorBehavior(door, d)
@@ -527,6 +540,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                                 Canvas.SetTop(vDoorHighlightOutline, float(j*(27+12)+27))
                                                 vDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
                 d.MouseLeave.Add(fun _ -> vDoorHighlightOutline.Opacity <- 0.0)
+                redrawAllDoorFuncs.Add(fun () -> door.Redraw())
         canvasAdd(dungeonBodyCanvas, vDoorHighlightOutline, 0., 0.)
         // for room animation, later
         let backRoomHighlightTile = new Shapes.Rectangle(Width=float(13*3)+6., Height=float(9*3)+6., StrokeThickness=3., Opacity=1.0, IsHitTestVisible=false)
@@ -602,6 +616,47 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             rightwardCanvas.Children.Clear()
             trackerDungeonMoused.Trigger(null)
             )
+        // toggler to invert Unmarked versus OffTheMap rooms
+        let mutable isInvertedMode = false   // true if they clicked to toggle swap of Unmarked and OffTheMap
+        let mutable updateInvertedModeButtonDisplay = fun () -> ()
+        do
+            let dp = new DockPanel(LastChildFill=true, Background=Brushes.Black)
+            let i1 = DungeonRoomState.RoomType.OffTheMap.CompletedBmp() |> Graphics.BMPtoImage
+            i1.Stretch <- Stretch.Uniform; i1.StretchDirection <- StretchDirection.Both; i1.Width <- 13.; i1.Height <- System.Double.NaN
+            dp.Children.Add(i1) |> ignore
+            let i2 = DungeonRoomState.RoomType.Unmarked.CompletedBmp() |> Graphics.BMPtoImage
+            i2.Stretch <- Stretch.Uniform; i2.StretchDirection <- StretchDirection.Both; i2.Width <- 13.; i2.Height <- System.Double.NaN
+            dp.Children.Add(i2) |> ignore
+            let display() =
+                DockPanel.SetDock(i1, if isInvertedMode then Dock.Right else Dock.Left)
+                DockPanel.SetDock(i2, if isInvertedMode then Dock.Left else Dock.Right)
+            display()
+            updateInvertedModeButtonDisplay <- display
+            let g = new Grid()
+            let c = new Canvas(Width=8., Height=8.)
+            let slash = new Shapes.Line(X1=0., X2=8., Y1=8., Y2=0., Stroke=Brushes.Orange, StrokeThickness=2.0)
+            c.Children.Add(slash) |> ignore
+            g.Children.Add(c) |> ignore
+            dp.Children.Add(g) |> ignore
+            let b = new Border(Child=dp, BorderThickness=Thickness(1.0), BorderBrush=Brushes.DarkGray, Width=40., Height=16.)
+            b.MouseEnter.Add(fun _ -> b.BorderBrush <- Brushes.DarkCyan)
+            b.MouseLeave.Add(fun _ -> b.BorderBrush <- Brushes.DarkGray)
+            b.MouseDown.Add(fun _ -> 
+                if grabHelper.IsGrabMode then
+                    ()
+                else
+                    isInvertedMode <- not isInvertedMode
+                    display()
+                    for x=0 to 7 do
+                        for y=0 to 7 do
+                            if roomStates.[x,y].RoomType.IsNotMarked then
+                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                            elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
+                    redrawAllRooms()
+                    redrawAllDoors()
+                )
+            canvasAdd(contentCanvas, b, LD_X+2., LD_Y+191.+32.)
         // grab button for this tab
         let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
                                 Text="GRAB", BorderThickness=Thickness(0.), Margin=Thickness(0.), Padding=Thickness(0.),
@@ -670,14 +725,28 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 // drag and drop to quickly 'paint' rooms
                 if not grabHelper.IsGrabMode then  // cannot initiate a drag in grab mode
                     if ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed then
-                        whichButtonStr <- "L"
+                        if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                            whichButtonStr <- "M"  // shift-left-click behaves like middle-click
+                        else
+                            whichButtonStr <- "L"
                     elif ea.RightButton = System.Windows.Input.MouseButtonState.Pressed then
-                        whichButtonStr <- "R"
+                        if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                            ()  // shift-right-click is not an action
+                        else
+                            whichButtonStr <- "R"
                     elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
                         whichButtonStr <- "M"
             if whichButtonStr <> "" then
                 initiatorFunc(whichButtonStr)
+                if isInvertedMode then
+                    // make OffTheMap rooms show a 'grid' to make it easier to draw in empty space
+                    DungeonRoomState.isDoingDrapDragInInvertedMode <- true
+                    redrawAllRooms()
                 DragDrop.DoDragDrop(roomCanvas, whichButtonStr, DragDropEffects.Link) |> ignore
+                // DoDragDrop is blocking, so we can do post-drop effects here
+                DungeonRoomState.isDoingDrapDragInInvertedMode <- false
+                redrawAllRooms()
+                redrawAllDoors()
             ))
         for i = 0 to 7 do
             if i<>7 then
@@ -806,6 +875,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                     door.State <- Dungeon.DoorState.YES
                         updateHeaderCanvases()
                         redraw()
+                        redrawAllDoors()   // in case off-the-map changed, this adjusts adjacent doors; TODO probably expensive during Load of a save file
                         animateDungeonRoomTile(i,j)
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
@@ -925,19 +995,26 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     )
                 let dragBehavior(whichButtonStr) =
                     if not popupIsActive then
-                        if roomStates.[i,j].RoomType.IsNotMarked then
+                        if isInvertedMode && whichButtonStr = "R" && roomStates.[i,j].RoomType = DungeonRoomState.RoomType.OffTheMap then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
-                            if whichButtonStr = "L" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                roomStates.[i,j].IsComplete <- true
-                            elif whichButtonStr = "R" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
-                                roomStates.[i,j].IsComplete <- false
-                            elif whichButtonStr = "M" then
-                                roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
-                                roomStates.[i,j].IsComplete <- true
+                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.Unmarked
+                            roomStates.[i,j].IsComplete <- false
                             redraw()
+                        else
+                            if roomStates.[i,j].RoomType.IsNotMarked then
+                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                                numeral.Opacity <- 0.0
+                                if whichButtonStr = "L" then
+                                    roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                    roomStates.[i,j].IsComplete <- true
+                                elif whichButtonStr = "R" && not isInvertedMode then
+                                    roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                                    roomStates.[i,j].IsComplete <- true
+                                elif whichButtonStr = "M" then
+                                    roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                    roomStates.[i,j].IsComplete <- false
+                                redraw()
                 roomDragDrop.RegisterClickable(c, (fun ea ->
                     if not popupIsActive then
                         async {
@@ -1056,6 +1133,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             r.RoomIsCircled <-   Array.init 8 (fun i -> Array.init 8 (fun j -> roomIsCircled.[i,j]))
             r.RoomStates <-      Array.init 8 (fun i -> Array.init 8 (fun j -> roomStates.[i,j] |> DungeonSaveAndLoad.DungeonRoomStateAsModel))
             r.VanillaMapOverlay <- currentOutlineDisplayState.[level-1]
+            r.IsInvertedMode <- isInvertedMode
             r
             )
         importFunctions.[level-1] <- (fun (dm:DungeonSaveAndLoad.DungeonModel) ->
@@ -1078,6 +1156,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     verticalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.VerticalDoors.[j].[i]
             currentOutlineDisplayState.[level-1] <- dm.VanillaMapOverlay
             doVanillaOutlineRedraw(outlineDrawingCanvases.[level-1], currentOutlineDisplayState.[level-1])
+            isInvertedMode <- dm.IsInvertedMode
+            updateInvertedModeButtonDisplay()
             )
         do! showProgress(sprintf "finish dungeon level %d" level)
     // end -- for level in 1 to 9 do

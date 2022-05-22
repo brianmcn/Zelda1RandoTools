@@ -54,6 +54,7 @@ type Door(state:DoorState, redraw) =
             | DoorState.YELLOW -> DoorState.NO
             | DoorState.PURPLE -> DoorState.YELLOW
         redraw(state)
+    member _this.Redraw() = redraw(state)
     member _this.IsTraversible = state=DoorState.YES || state=DoorState.YELLOW || state=DoorState.PURPLE
 
 type GrabHelper() =

@@ -171,7 +171,6 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         // set up the main broadcast window
         broadcastWindow.Height <- H + 40.
         let dp = new DockPanel(Width=W, Height=H)
-        dp.UseLayoutRounding <- true
         DockPanel.SetDock(timeline, Dock.Bottom)
         dp.Children.Add(timeline) |> ignore
         dp.Children.Add(topc) |> ignore
@@ -187,6 +186,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         else
             OverworldItemGridUI.broadcastTimeTextBox.LayoutTransform <- null
         let c = new Canvas(Width=W, Height=H)
+        c.UseLayoutRounding <- true
         c.Children.Add(dp) |> ignore
         OverworldItemGridUI.broadcastTimeTextBox.Parent :?> Canvas |> (fun c -> if c <> null then c.Children.Remove(OverworldItemGridUI.broadcastTimeTextBox))  // deparent from prior window
         canvasAdd(c, OverworldItemGridUI.broadcastTimeTextBox, timerX, -10. * factor)
