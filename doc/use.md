@@ -467,8 +467,8 @@ the map changes to this:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step2.png)
 
-Whereas right-click-dragging paints OffTheMap rooms over Unmarked rooms, left-click-dragging does the opposite, painting Unmarked rooms atop OffTheMap rooms.  Note that
-while you are dragging, a grid pops up to make it easier to see where you are painting:
+Whereas right-click-dragging paints OffTheMap rooms over Unmarked rooms, left-click-dragging does the opposite, painting Unmarked rooms atop OffTheMap rooms.  So next you can
+left-click-drag to paint the few existing rooms back onto the map.  Note that while you are dragging, a grid pops up to make it easier to see where you are painting:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step3.png)
 
