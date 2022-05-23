@@ -41,8 +41,6 @@ since 1.2.1q...
 
 
 
-
-
 loading a completed savefile takes a while, maybe add progress '...' (or see if can speed up)
 
 

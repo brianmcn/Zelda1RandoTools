@@ -20,7 +20,6 @@ Contents of this document:
   - [Overworld Map](#main-owm)
      - [Buttons](#main-buttons)
   - [Dungeon Tracker](#main-dt)
-  - [Dungeon Rooms](#main-dr)
   - [Blockers](#main-blockers)
   - [Notes](#main-notes)
   - [Timeline](#main-timeline)
@@ -445,9 +444,9 @@ Ideally you'd like your tracker to look something like this:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-9-map-goal.png)
 
-but that means marking 21 OffTheMap spots on the tracker.  Right-clicking each tile and going through the popup menu would take way too long, and even if you have a HotKey for OffTheMap, 
-it is still a bit tedious to hover all those rooms and press the key.  'Paint'ing to the rescue!  You can 'paint' a bunch of OffTheMap rooms at once by right-clicking a room and then 
-holding the right mouse button down as you drag across multiple rooms on the map.  So, for example, it is easy to paint the 14 OffTheMap rooms on the right edge of the screenshot above
+but that means marking 21 OffTheMap spots on the tracker.  Right-clicking each tile and going through the popup menu for each would take way too long, and even if you have a 
+HotKey for OffTheMap, it is still a bit tedious to hover all those rooms and press the key.  'Paint'ing to the rescue!  You can 'paint' a bunch of OffTheMap rooms at once by 
+right-click-dragging across multiple rooms on the map.  So, for example, it is easy to paint the 14 OffTheMap rooms on the right edge of the screenshot above
 using one fluid motion.  Then HotKeys can be used to mark off the remaining 'holes'.
 
 While that strategy works well for dungeon 9, for smaller dungeons it would be more efficient to paint just what's "on the map" rather than off it.  Suppose you get three rooms into
@@ -463,12 +462,13 @@ starting from here
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step1.png)
 
-There is a button in the bottom right of the dungeon tracker that swaps OffTheMap and Unmarked rooms, and also swaps the right-click-drag behavior.  If you first click that button, 
+There is a button in the bottom right of the dungeon tracker that swaps OffTheMap and Unmarked rooms.  If you first click that button, 
 the map changes to this:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step2.png)
 
-You can then right-click-drag to "paint" rooms back onto the map as Unmarked.  While you are dragging, a grid pops up to make it easier to see where you are painting:
+Whereas right-click-dragging paints OffTheMap rooms over Unmarked rooms, left-click-dragging does the opposite, painting Unmarked rooms atop OffTheMap rooms.  Note that
+while you are dragging, a grid pops up to make it easier to see where you are painting:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step3.png)
 
@@ -477,13 +477,11 @@ in-game mini-map as a double-check.
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step4.png)
 
-Thus right-click-drag can be used to mark OffTheMap spots; or, after toggling most of the map OffTheMap with the corner button, right-click-drag can paint Unmarked rooms back onto the map.
-This enables quickly painting dungeon maps, both large and small.
+Thus right-click-drag, left-click-drag, and the OffTheMap/Unmarked toggle button can be used to quickly paint dungeon maps, both large and small.
 
-In addition to right-click-drag behavior, left-click-drag paints completed rooms, and middle-click-drag (or shift-left-click-drag) paints uncompleted rooms.  Here's a short example of 
-dragging across rows using the left-, middle-, and right-mouse buttons, on a fresh dungeon map:
+Finally, middle-click-drag (or shift-left-click-drag) paints completed (default MaybePushBlock) rooms atop Unmarked rooms.
 
-![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-buttons.png)
+### "GRAB" to shift a portion of a map over a column/row
 
 Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
 of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
