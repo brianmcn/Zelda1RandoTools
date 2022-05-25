@@ -1920,6 +1920,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if a.Length <> 16 * 8 * 3 then
             failwith "bad load data at data.Overworld.Map"
         Timeline.isCurrentlyLoadingASave <- true
+        TrackerModel.currentlyIgnoringForceUpdatesDuringALoad <- true
         let mutable anySetProblems = false
         for j = 0 to 7 do
             for i = 0 to 15 do
@@ -1934,6 +1935,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 TrackerModel.overworldMapCircles.[i,j] <- circle
                 owUpdateFunctions.[i,j] 0 null  // redraw the tile
                 owCircleRedraws.[i,j]()
+        do! showProgress(sprintf "finished loading overworld")
         // Items
         if not(data.Items.WhiteSwordBox.TryApply(TrackerModel.sword2Box)) then anySetProblems <- true
         if not(data.Items.LadderBox.TryApply(TrackerModel.ladderBox)) then anySetProblems <- true
@@ -1942,16 +1944,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let ds = data.Items.Dungeons.[i]
             let dd = TrackerModel.GetDungeon(i)
             if not(ds.TryApply(dd)) then anySetProblems <- true
+        do! showProgress(sprintf "finished loading items")
         // PlayerProgressAndTakeAnyHearts
         data.PlayerProgressAndTakeAnyHearts.Apply()
         // StartingItemsAndExtras
         data.StartingItemsAndExtras.Apply()
         // Blockers
+        TrackerModel.DungeonBlockersContainer.StartIgnoreChangesDuringLoad()
         for i = 0 to 7 do
             for j = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
                 TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(i,j,TrackerModel.DungeonBlocker.FromHotKeyName(data.Blockers.[i].[j].Kind))
                 for k = 0 to TrackerModel.DungeonBlockerAppliesTo.MAX-1 do
                     TrackerModel.DungeonBlockersContainer.SetDungeonBlockerAppliesTo(i,j,k,data.Blockers.[i].[j].AppliesTo.[k])
+            do! showProgress(sprintf "finished loading blockers %d of 8" (i+1))
+        TrackerModel.DungeonBlockersContainer.FinishIgnoreChangesDuringLoad()
         if anySetProblems then
             () // TODO
         // Hints
@@ -1968,7 +1974,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
-        importDungeonModels(data.DungeonMaps)
+        do! importDungeonModels(showProgress, data.DungeonMaps)
         // UserCustom
         if data.UserCustomChecklist <> null && data.UserCustomChecklist.Items <> null then
             SaveAndLoad.theUserCustomChecklist <- data.UserCustomChecklist
@@ -2001,9 +2007,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         TrackerModel.recomputeMapStateSummary()
         TrackerModel.recomputePlayerStateSummary()
         TrackerModel.recomputeWhatIsNeeded() |> ignore
+        // done
+        TrackerModel.currentlyIgnoringForceUpdatesDuringALoad <- false
         TrackerModel.forceUpdate()
         doUIUpdateEvent.Trigger()
-        // done
         Timeline.isCurrentlyLoadingASave <- false
         TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw timeline once (redraws are ignored while loading)
     | _ ->

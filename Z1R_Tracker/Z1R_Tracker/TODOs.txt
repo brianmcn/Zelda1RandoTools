@@ -41,7 +41,10 @@ since 1.2.1q...
 
 
 
-loading a completed savefile takes a while, maybe add progress '...' (or see if can speed up)
+consider scrollwheel on OW-with-circle change color rather than change tile? hm
+
+also, doc all OptionsMenu
+
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
@@ -59,8 +62,6 @@ TODO consider adding z1 complete, m1 complete to UCC, so can timeline either fin
 possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just 16x8 of blank tiles you can mark all of (DONE-ish)
  - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
 TODO documentation of '...' options from startup screen and brief docs about DrawingLayer
-
-also, doc all OptionsMenu
 
 
 if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)

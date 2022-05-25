@@ -1038,13 +1038,16 @@ type DungeonBlockerAppliesTo() =
 type DungeonBlockersContainer() =
     static let dungeonBlockers = Array2D.create 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
     static let appliesTo = Array2D.init 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON (fun _ _ -> new DungeonBlockerAppliesTo())
+    static let mutable currentlyIgnoringChangesDuringLoad = false
     static let changed = new Event<unit>()
+    static member StartIgnoreChangesDuringLoad() = currentlyIgnoringChangesDuringLoad <- true
+    static member FinishIgnoreChangesDuringLoad() = currentlyIgnoringChangesDuringLoad <- false; changed.Trigger()
     static member AnyBlockerChanged = changed.Publish
     static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
-    static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
+    static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; if not currentlyIgnoringChangesDuringLoad then changed.Trigger()
     // i = dungeon index, j = which blocker instance (0-2), k = which item (m/c/t/1/2/3)
     static member GetDungeonBlockerAppliesTo(i,j,k) = appliesTo.[i,j].Data.[k]
-    static member SetDungeonBlockerAppliesTo(i,j,k,b) = appliesTo.[i,j].Data.[k] <- b; changed.Trigger()
+    static member SetDungeonBlockerAppliesTo(i,j,k,b) = appliesTo.[i,j].Data.[k] <- b; if not currentlyIgnoringChangesDuringLoad then changed.Trigger()
     static member AsJsonString(i,j) = 
         let body = appliesTo.[i,j].Data |> Array.map (fun b -> b.ToString().ToLowerInvariant()) |> Array.fold (fun s x -> s+x+", ") ""
         sprintf """{ "Kind": "%s", "AppliesTo": [ %s ] }""" (dungeonBlockers.[i,j].AsHotKeyName()) (body.Substring(0, body.Length-2))
@@ -1147,10 +1150,12 @@ let GetLevelHint, SetLevelHint, LevelHintChanged =
 let mutable NoFeatOfStrengthHintWasGiven = false
 let mutable SailNotHintWasGiven = false
 
+let mutable currentlyIgnoringForceUpdatesDuringALoad = false
 let forceUpdate() = 
-    // UI can force an update for a few bits that we don't model well yet
-    // TODO ideally dont want this, feels like kludge?
-    mapLastChangedTime.SetNow()
+    if not currentlyIgnoringForceUpdatesDuringALoad then
+        // UI can force an update for a few bits that we don't model well yet
+        // TODO ideally dont want this, feels like kludge?
+        mapLastChangedTime.SetNow()
                 
 //////////////////////////////////////////////////////////////////////////////////////////
 

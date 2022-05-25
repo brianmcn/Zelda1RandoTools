@@ -440,13 +440,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         if level = 1 then // just set this once
             dungeonTabs.Height <- contentCanvas.Height + 30.
 
-        // doors, rooms, and dragging prep        
+        // doors, rooms, and dragging prep
+        let mutable skipRedrawInsideCurrentImport = false
         let redrawAllDoorFuncs = ResizeArray()
-        let redrawAllDoors() = for f in redrawAllDoorFuncs do f()
+        let redrawAllDoors() = if not skipRedrawInsideCurrentImport then for f in redrawAllDoorFuncs do f()
         let roomRedrawFuncs = ResizeArray(64)
-        let redrawAllRooms() =
-            for f in roomRedrawFuncs do
-                f()
+        let redrawAllRooms() = if not skipRedrawInsideCurrentImport then for f in roomRedrawFuncs do f()
         let roomCanvas = new Canvas()
         let roomDragDrop = new Graphics.DragDropSurface<_>(dungeonBodyCanvas, (fun (ea,initiatorFunc) ->
             let mutable whichButtonStr = ""
@@ -813,17 +812,18 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 roomCanvases.[i,j] <- c
                 roomIsCircled.[i,j] <- false
                 let redraw() =
-                    c.Children.Clear()
-                    roomCirclesCanvas.Children.Remove(roomCircles.[i,j])
-                    let image = roomStates.[i,j].CurrentDisplay()
-                    image.IsHitTestVisible <- false
-                    canvasAdd(c, image, -BUFFER, -BUFFER)
-                    if roomIsCircled.[i,j] then
-                        let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
-                        //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
-                        ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;12.5;8.;15.;8.;15.;] )
-                        roomCircles.[i,j] <- ellipse
-                        canvasAdd(roomCirclesCanvas, ellipse, ROOM_X-6.-BUFFER, ROOM_Y-6.-BUFFER)
+                    if not skipRedrawInsideCurrentImport then
+                        c.Children.Clear()
+                        roomCirclesCanvas.Children.Remove(roomCircles.[i,j])
+                        let image = roomStates.[i,j].CurrentDisplay()
+                        image.IsHitTestVisible <- false
+                        canvasAdd(c, image, -BUFFER, -BUFFER)
+                        if roomIsCircled.[i,j] then
+                            let ellipse = new Shapes.Ellipse(Width=float(13*3+12), Height=float(9*3+12), Stroke=Brushes.Yellow, StrokeThickness=3., IsHitTestVisible=false)
+                            //ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;2.5;6.;5.;6.;5.;6.;5.;6.;5.] )
+                            ellipse.StrokeDashArray <- new DoubleCollection( seq[0.;12.5;8.;15.;8.;15.;] )
+                            roomCircles.[i,j] <- ellipse
+                            canvasAdd(roomCirclesCanvas, ellipse, ROOM_X-6.-BUFFER, ROOM_Y-6.-BUFFER)
                 redraw()
                 roomRedrawFuncs.Add(fun () -> redraw())
                 let usedTransportsRemoveState(roomState:DungeonRoomState.DungeonRoomState) =
@@ -1135,6 +1135,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             r
             )
         importFunctions.[level-1] <- (fun (dm:DungeonSaveAndLoad.DungeonModel) ->
+            skipRedrawInsideCurrentImport <- true
             for i = 0 to 7 do
                 for j = 0 to 7 do
                     roomIsCircled.[i,j] <- dm.RoomIsCircled.[j].[i]
@@ -1154,6 +1155,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     verticalDoors.[i,j].State <- Dungeon.DoorState.FromInt dm.VerticalDoors.[j].[i]
             currentOutlineDisplayState.[level-1] <- dm.VanillaMapOverlay
             doVanillaOutlineRedraw(outlineDrawingCanvases.[level-1], currentOutlineDisplayState.[level-1])
+            // just redraw everything once at the end
+            skipRedrawInsideCurrentImport <- false
+            redrawAllDoors()
+            redrawAllRooms()
             )
         do! showProgress(sprintf "finish dungeon level %d" level)
     // end -- for level in 1 to 9 do
@@ -1235,9 +1240,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
     selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
 
     let exportDungeonModelsJsonLines() = DungeonSaveAndLoad.SaveAllDungeons [| for f in exportFunctions do yield f() |]
-    let importDungeonModels(dma : DungeonSaveAndLoad.DungeonModel[]) =
+    let importDungeonModels(showProgress, dma : DungeonSaveAndLoad.DungeonModel[]) = async {
+        do! showProgress("starting dungeon load")
         for i = 0 to 8 do
             importFunctions.[i](dma.[i])
+            do! showProgress(sprintf "finished dungeon %d of 9" (i+1))
+        }
     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate BOARD v LEVEL text for all tabs the first time
     return dungeonTabsWholeCanvas, grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
     }
