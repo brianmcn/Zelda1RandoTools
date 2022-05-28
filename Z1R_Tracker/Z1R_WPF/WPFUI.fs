@@ -893,9 +893,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         elif ea.ChangedButton = Input.MouseButton.Right then
                             if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
                                 // shift right click cycles circle color
-                                TrackerModel.overworldMapCircles.[i,j] <- TrackerModel.overworldMapCircles.[i,j] + 100
-                                if TrackerModel.overworldMapCircles.[i,j] >= 300 then
-                                    TrackerModel.overworldMapCircles.[i,j] <- TrackerModel.overworldMapCircles.[i,j] - 300
+                                TrackerModel.nextOverworldMapCircleColor(i,j)
                                 owCircleRedraws.[i,j]()
                             else
                                 // right click activates the popup selector
@@ -905,7 +903,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             TrackerModel.toggleOverworldMapCircle(i,j)
                             owCircleRedraws.[i,j]()
                     )
-                c.MouseWheel.Add(fun x -> if not !popupIsActiveRef then activatePopup(if x.Delta<0 then 1 else -1))
+                c.MouseWheel.Add(fun x -> 
+                    if not !popupIsActiveRef then 
+                        if TrackerModel.overworldMapCircles.[i,j] <> 0 then   // if there's a circle, then it takes scrollwheel priority
+                            if x.Delta<0 then
+                                TrackerModel.nextOverworldMapCircleColor(i,j)
+                            else
+                                TrackerModel.prevOverworldMapCircleColor(i,j)
+                            owCircleRedraws.[i,j]()
+                        else
+                            activatePopup(if x.Delta<0 then 1 else -1)
+                    )
                 c.MyKeyAdd(fun ea ->
                     if not !popupIsActiveRef then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with

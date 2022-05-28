@@ -799,6 +799,14 @@ let toggleOverworldMapCircle(i,j) =
             overworldMapCircles.[i,j]+1 
         else 
             overworldMapCircles.[i,j] - overworldMapCircles.[i,j]%100
+let nextOverworldMapCircleColor(i,j) =
+    overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] + 100
+    if overworldMapCircles.[i,j] >= 300 then
+        overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] - 300
+let prevOverworldMapCircleColor(i,j) =
+    overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] + 200
+    if overworldMapCircles.[i,j] >= 300 then
+        overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] - 300
 let mutable overworldMapMarks : Cell[,] = null
 let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate (MapSquareChoiceDomainHelper.DARK_X+1))
 // extra data key-value store, used by 

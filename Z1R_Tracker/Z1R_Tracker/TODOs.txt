@@ -41,10 +41,9 @@ since 1.2.1q...
 
 
 
-consider scrollwheel on OW-with-circle change color rather than change tile? hm
-
 also, doc all OptionsMenu
 
+consider puzzle-piece-ing maps
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)

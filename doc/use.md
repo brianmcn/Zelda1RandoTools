@@ -269,7 +269,8 @@ to the top-tracker to interact with them.
 
 <a id="circle-overworld">You can middle-click any overworld tile to 'circle it'</a> (middle-clicking again toggles the circle back off); use this however you like, perhaps to
 remind you of a screen with easy-to-kill bomb-droppers, for example.  You can also shift-left-click to add a one-character label to the circle, or shift-right-click to change
-the color of the circle.  Here are some examples:
+the color of the circle.  (When a tile has a circle, scroll wheel will change the color of the circle, rather than its typical action of bringing up the overworld popup menu
+for that tile.)  Here are some examples:
 
 ![Overworld circle](screenshots/overworld-middle-click-circle.png)
 
