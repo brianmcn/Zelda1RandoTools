@@ -18,7 +18,7 @@ module Factoids =
     let intermediateTips = [|
         "A room with a gleeok cannot have a push block."
         "While most dungeon 'old man' rooms can be shuffled in 1Q/Shapes dungeons, there is one exception: a bomb upgrade can never appear in level 9."
-        "If you defeat 1 of 2 Lanmolas, or 1 of 3 small Digdoggers, and then leave the room, the monsters will all be gone when you return a moment later."
+        "If you defeat 1 of 2 Lanmolas/Moldorms, or 1 of 3 small Digdoggers, and then leave the room, the monsters will all be gone when you return a moment later."
         "A single dodongo in a room is a boss (will not respawn if killed and room is exited).  Three dodongos in a room is an enemy group (that can respawn)."
         "If you pirouette a dungeon entrance (walk out, walk right back in), you will unlock or bomb-hole a possible doorway on the wall opposite the entrance."
         "If you screen transition (e.g. from East to West) on the Overworld before entering a dungeon, you may unlock a doorway or uncover a free bomb-hole on the wall you came from (e.g. East)."
@@ -40,22 +40,21 @@ module Factoids =
         "In 1QL5, the floor drop spawn for 'tee' room is on the island; in L4, it's bottom right of the tee room; in most other dungeons, it's top right of the tee room."
         "These dungeon room never drop in 1Q/Shapes after clearing monsters: '3 full rows', 'Zelda room', 'circle wall', 'single block', and '<spike trap angles>'."
         "If the 'Add 2nd Quest Doors' randomizer flag is used, walk-through-walls will never appear in levels 1, 3, or 7, but walk-through-walls may appear in any other dungeon."
-        "In 1Q/Shapes dungeons, a room with a standing-drop or kill-prize-drop or shutter-door never has a push-block-that-reveals-a-new-stair. Exception: if 'Remove Most Open Stairs' flag is used, then a non-shutter room with a standing item can have a push-block-stair."
+        "In 1Q/Shapes dungeons, a room with a standing-drop or kill-prize-drop or shutter-door never has a push-block-that-reveals-a-new-stair. Exception: if 'Remove Most Open Stairs' flag is used, then a non-shutter room with a standing item can have a push-block-revealed-stair."
         |]
     let zTrackerTips = [|
         "In Z-Tracker, mouse-hovering the question mark (at the top, just left of the timer) will show off all the other places you can mouse-hover to get various bits of useful information."
         "In Z-Tracker, each overworld shop can be marked with two different items for sale.  Left click a shop tile to choose a second item to add to the shop."
         "In Z-Tracker, when you locate a dungeon entrance on the overworld map, its triforce numeral lights up white on the top of the tracker, so that it is easy to see which dungeons you have/haven't yet found."
-        "In Z-Tracker, you can 'paint out' a bunch of rooms in a dungeon by holding down the mouse button and dragging over multiple rooms.  The mouse left-button paints 'completed' rooms, and the right-button paints 'uncompleted' rooms."
         "In Z-Tracker, left-clicking a dungeon door makes it a green door (can go), right-clicking makes it a red wall (can't go), middle-clicking makes it a yellow door (other, perhaps a locked door), and scrolling or shift-clicking can cycle to purple doors (other, perhaps a shutter)."
         "In Z-Tracker, left-clicking a dungeon's entrance room cycles the entrance arrow (SWNE), and left-clicking most other rooms toggles them completed (darker) or uncompleted (brighter)."
         "In Z-Tracker, if you leave a dungeon because you are blocked (e.g. needing a Ladder or a Key), you can add a mark in the BLOCKERS section for that dungeon number, to remind you why you left."
         "In Z-Tracker, you can edit the key items and triforce you got from a dungeon, using the box right next to the dungeon map, rather than having to mouse all the way back up to the top of the app."
-        "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking per-minute 'splits' of when you got each triforce piece (as well as every other key item)."
+        "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking 'splits' of when you got each triforce piece (as well as every other key item)."
         "In Z-Tracker, you can edit HotKeys.txt in the application folder to set up various keyboard shortcuts.  You can create a Notes.txt file to pre-populate the Notes text in the app, as well."
         "In Z-Tracker, the overworld map highlights various tiles with a green rectangle if you can uncover a location there, a yellow rectangle if the screen may or may not yield a location and you can uncover it, or a red rectangle if you don't have the item to uncover a location there."
         "In Z-Tracker, a dungeon lights up green when you can warp to it via the recorder whirlwind. (This assumes the commonly-played z1r flags that allow you to recorder to any dungeon entrance where you already have the triforce.)"
-        "In Z-Tracker, you can middle-click an overworld tile to circle it, shift-left-click to label the circle, or shift-right-click to change the circle's color. Use these optional arbitrary marks in any way you find useful."
+        "In Z-Tracker, you can middle-click an overworld tile to circle it, shift-left-click to label the circle, or shift-right-click/scroll a circle to change its color. Use these optional arbitrary marks in any way you find useful."
         "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on twitter (@lorgon111)."
         |]
     let allTips = [|

@@ -38,10 +38,20 @@ since 1.2.1m...
 since 1.2.1q...
  - if any OFF rooms marked, blue-bars hover shows inverse off-map too (to see if painted 9 right)
  - new dungeon map paint-drag stuff
+since 1.2.1r...
+ - scroll OW circle color
 
 
 
 also, doc all OptionsMenu
+probably more description/screenshot of options menu, say initial defaults tailored to new folks
+
+
+put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
+maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
+
+
+
 
 consider puzzle-piece-ing maps
 
@@ -129,13 +139,6 @@ The list of choices is
 more features 'hidden' behind options, to simplify default UI?
 
 
-probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
-
-put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
-maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
-
-
 August40th: I've been playing with minor drops shuffled & there's no good way to mark minor items fron Armos, coast, or WS cave. 
  - just doc a strategy (white-click basements at start, Notes dungeons 'all done')
 
@@ -183,15 +186,6 @@ https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-se
 
 
 
-eventually:
-
-https://bitbucket.org/Garmichael/infinite-hyrule/src/master/
-
-https://github.com/snarfblam/ZMapper/releases/download/v1.0/ZMapper.1.0.zip
-
-
-
- 
 
 SMALL
 
@@ -232,12 +226,10 @@ in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet c
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
 
-> optional boxes or places to note consecutive, global, and recorder counts
+> optional boxes or places to note consecutive/global
 
 thinking about this again (especially now that I know how global works, and how to use it)
 I was kinda imagining a "+1 hotkey" would be the easiest interaction, but +1/-1 buttons near the counter could also work, or even a way to 'set' the current one by clicking on a row of 0-9 buttons
-
-for recorder, since it knows what tris you have, I was similarly thinking some kinda of +1/-1 interface and then like some highlight box moves over the appropriate tri up top maybe?
 
 still hard for me to imagine anyone tracking consecutive kills in a way other than counting aloud (edited)
 [1:20 PM] homerjsmash: for me i wouldn't increment it with each kill, more like i'm building a count on death mountain and then i have three screens of boulders and peahats, ok good enemies I can kill again.. was i on 5 or 6? lol
@@ -346,7 +338,6 @@ MEDIUM
 
 
 puzzle-piecing maps 1-6,7-9?
- - having a dedicated 'paint full map' feature, which is better than current left/right-drag, and does inverse of middle-drag to off-map the rest of the tiles, would help
 
 
 TheDoctorBlue wants to operate entire tracker with numpad, consider?
@@ -440,7 +431,7 @@ NEVER drop
     Circle Wall                    * .  * *
     Single Block            Other: .....C....
     <spike trap angles>
-    Vertical Rows  
+    Lava Moat
                Never drops in   Can drop in
 Five Pair      2 3 4 5 6 7 8 9  1
 Maze           1 2 3 5 6 7 8 9  4
@@ -451,7 +442,7 @@ Spiral Stair   1 4 5            2 3 6 7 8 9
 Gleeok         1 5              2 3 4 6 7 8 9
 Grid           4 5              1 2 3 6 7 8 9
 T              1                2 3 4 5 6 7 8 9
-Lava Moat      2 3 4 5 6 7 8 9  1
+Vertical Rows  2 3 4 5 6 7 8 9  1
 
 
 
@@ -462,10 +453,10 @@ These 7 rooms NEVER drop in ANY Shapes dungeon
     Circle Wall                    * .  * *
     Single Block
     <spike trap angles>
-    *Vertical Rows  
+    *Lava Moat
 These 10 rooms NEVER drop in CERTAIN Shapes dungeons
                Never drops in   Can drop in
-*Lava Moat     2 3 4 5 6 7 8 9  1
+*Vertical Rows 2 3 4 5 6 7 8 9  1
 Five Pair      2 3 4 5 6 7 8 9  1
 Maze           1 2 3 5 6 7 8 9  4
 Pointless Moat 2 3 6 7 8 9      1 4 5
