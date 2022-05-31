@@ -207,6 +207,65 @@ let populateStaticOverworldData(ladder, raft) =
         symmetricAdd(Vertex(15,2,FULL),Vertex(15,2,FULL),1)
         symmetricAdd(Vertex(5,4,FULL),Vertex(5,4,FULL),1)
     adjacencyTransitionCostTable
+let staticMirrorScreenScrolls = 
+    let table = ResizeArray()
+    // R -> L
+    table.Add(Vertex(3,0,FULL), Vertex(4,0,FULL), 2)
+    table.Add(Vertex(9,0,FULL), Vertex(10,0,FULL), 2)
+    table.Add(Vertex(1,1,FULL), Vertex(2,1,FULL), 2)
+    table.Add(Vertex(5,2,FULL), Vertex(6,2,FULL), 2)
+    table.Add(Vertex(14,2,FULL), Vertex(15,2,FULL), 2)
+    table.Add(Vertex(3,3,FULL), Vertex(4,3,FULL), 2)
+    table.Add(Vertex(8,3,FULL), Vertex(9,3,FULL), 2)
+    table.Add(Vertex(11,3,FULL), Vertex(12,3,FULL), 2)
+    table.Add(Vertex(1,4,FULL), Vertex(2,4,FULL), 2)
+    table.Add(Vertex(4,7,FULL), Vertex(5,7,WEST), 2)
+    // cross rivers / coast splits
+    table.Add(Vertex(7,1,EAST), Vertex(7,1,WEST), 2)
+    table.Add(Vertex(7,1,WEST), Vertex(7,1,EAST), 2)
+    table.Add(Vertex(7,2,EAST), Vertex(7,2,WEST), 2)
+    table.Add(Vertex(7,2,WEST), Vertex(7,2,EAST), 2)
+    table.Add(Vertex(5,5,EAST), Vertex(5,5,WEST), 2)
+    table.Add(Vertex(5,5,WEST), Vertex(5,5,EAST), 2)
+    table.Add(Vertex(13,1,EAST), Vertex(13,1,WEST), 2)
+    table.Add(Vertex(13,1,WEST), Vertex(13,1,EAST), 2)
+    table
+let staticNormalScreenScrolls = 
+    let table = ResizeArray()
+    // R -> L
+    table.Add(Vertex(12,0,FULL), Vertex(11,0,FULL), 2)
+    table.Add(Vertex(2,1,FULL), Vertex(1,1,FULL), 2)
+    table.Add(Vertex(6,2,FULL), Vertex(5,2,FULL), 2)
+    table.Add(Vertex(5,3,FULL), Vertex(4,3,FULL), 2)
+    table.Add(Vertex(14,3,FULL), Vertex(13,3,FULL), 2)
+    table.Add(Vertex(1,5,FULL), Vertex(0,5,FULL), 2)
+    table.Add(Vertex(5,7,EAST), Vertex(4,7,FULL), 2)
+    table.Add(Vertex(5,7,EAST), Vertex(5,7,WEST), 2)
+    // L -> R
+    ()
+    // cross rivers splits
+    table.Add(Vertex(7,1,EAST), Vertex(7,1,WEST), 2)
+    table.Add(Vertex(7,1,WEST), Vertex(7,1,EAST), 2)
+    table.Add(Vertex(7,2,EAST), Vertex(7,2,WEST), 2)
+    table.Add(Vertex(7,2,WEST), Vertex(7,2,EAST), 2)
+    table.Add(Vertex(5,5,EAST), Vertex(5,5,WEST), 2)
+    table.Add(Vertex(5,5,WEST), Vertex(5,5,EAST), 2)
+    // cross coast split
+    table.Add(Vertex(13,1,EAST), Vertex(13,1,WEST), 2)
+    table.Add(Vertex(13,1,WEST), Vertex(13,1,EAST), 2)
+    table
+let allPossibleScreenScrolls =
+    let mutable s = Set.empty
+    for f,t,_c in staticMirrorScreenScrolls do
+        s <- Set.add (f,t) s
+    for f,t,_c in staticNormalScreenScrolls do
+        s <- Set.add (f,t) s
+    // normal world wrap (requires ladder)
+    s <- Set.add (Vertex(0,6,FULL), Vertex(15,5,FULL)) s   
+    // mirror coast (requires ladder)
+    s <- Set.add(Vertex(15,4,FULL), Vertex(14,4,FULL)) s
+    s <- Set.add(Vertex(15,5,FULL), Vertex(14,5,FULL)) s
+    s
 
 let makeAdjacencyDict(adjacencyTransitionCostTable) =
     let d = new System.Collections.Generic.Dictionary<_,_>()
@@ -275,8 +334,19 @@ let convertToCanonicalVertex(x,y,st:System.Collections.Generic.Dictionary<_,_>,p
                     )
     else
         failwith "impossible st"
-let populateDynamic(ladder, raft, currentRecorderWarpDestinations,currentAnyRoads) =
-    let a = populateStaticOverworldData(ladder,raft)
+let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoads, isMirror) =
+    let a = ResizeArray()
+    if TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value then
+        if isMirror then
+            a.AddRange(staticMirrorScreenScrolls)
+            if ladder then
+                a.Add(Vertex(15,4,FULL), Vertex(14,4,FULL), 2)
+                a.Add(Vertex(15,5,FULL), Vertex(14,5,FULL), 2)
+        else
+            a.AddRange(staticNormalScreenScrolls)
+            if ladder then
+                a.Add(Vertex(0,6,FULL), Vertex(15,5,FULL), 3)   // world wrap
+    a.AddRange(populateStaticOverworldData(ladder,raft))
     let st = generateScreenTypeList(a)
     let allVertex = new System.Collections.Generic.HashSet<_>()
     for v1,v2,_ in a do
@@ -290,17 +360,17 @@ let populateDynamic(ladder, raft, currentRecorderWarpDestinations,currentAnyRoad
     addExtra(currentAnyRoads |> Seq.map (fun (x,y) -> convertToCanonicalVertex(x,y,st,STAIRS)), currentAnyRoads, ANY_ROAD_ARRIVAL, 4)
     let d = makeAdjacencyDict(a)
     st, d
-let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray())
+let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray(), false)
 let mutable adjacencyDictSansWarps = new System.Collections.Generic.Dictionary<_,_>()
 let mutable recorderDests : seq<int*int> = upcast ResizeArray()
 let mutable anyRoads : seq<int*int> = upcast ResizeArray()
-let repopulate(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads) =
+let repopulate(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads,isMirror) =
     recorderDests <- currentRecorderWarpDestinations
     anyRoads <- currentAnyRoads
-    let st,ad = populateDynamic(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads)
+    let st,ad = populateDynamic(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads,isMirror)
     screenTypes <- st
     adjacencyDict <- ad
-    let _st,ad = populateDynamic(ladder,raft,ResizeArray(),ResizeArray())
+    let _st,ad = populateDynamic(ladder,raft,ResizeArray(),ResizeArray(),isMirror)
     adjacencyDictSansWarps <- ad
 
 /////////////////////////////////////////////

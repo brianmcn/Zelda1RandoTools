@@ -58,6 +58,7 @@ using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, Syst
     filestream.Close();
 }
 *)
+let BROADCAST_KLUDGE = 50.  // the bottom-half broadcast window has the bottom of timeline peek out beyond the popup-sunglasses, causing bottom-timeline to be bright; this 'fixes' it
 type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     static let mutable theOnlyCanvasManager = None
     do
@@ -74,7 +75,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
     let height = rootCanvas.Height
-    let sunglasses = new Canvas(Width=appMainCanvas.Width, Height=appMainCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false)
+    let sunglasses = new Canvas(Width=width, Height=height+BROADCAST_KLUDGE, Background=Brushes.Black, IsHitTestVisible=false)
     member _this.Width = width
     member _this.Height = height
     member _this.RootCanvas = rootCanvas           // basically, no one should touch this, except to set mainWindow.Content <- cm.RootCanvas
@@ -149,7 +150,7 @@ let DoModalDocked(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, 
 
 /////////////////////////////////////////
 
-let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>) = async { // returns buttonText if a button was pressed, or null if dismissed
+let DoModalMessageBoxCore(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>, x, y) = async { // returns buttonText if a button was pressed, or null if dismissed
     let grid = new Grid()
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength(1.0, GridUnitType.Star)))
     grid.RowDefinitions.Add(new RowDefinition(Height=GridLength.Auto))
@@ -161,7 +162,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     mainDock.Children.Add(image) |> ignore
     DockPanel.SetDock(image, Dock.Left)
     let mainTextBlock = new TextBox(Text=mainText, Background=Brushes.Transparent, BorderThickness=Thickness(0.), IsReadOnly=true, 
-                                        TextWrapping=TextWrapping.Wrap, MaxWidth=500., Width=System.Double.NaN, 
+                                        TextWrapping=TextWrapping.Wrap, MaxWidth=cm.AppMainCanvas.Width-x-100., Width=System.Double.NaN, 
                                         VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(12.,20.,41.,15.))
     mainDock.Children.Add(mainTextBlock) |> ignore
     grid.Children.Add(mainDock) |> ignore
@@ -172,7 +173,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     let buttonDock = new DockPanel(Margin=Thickness(5.,0.,0.,0.))
     let mutable first = true
     for bt in buttonTexts |> Seq.rev do
-        let b = new Button(MinWidth=88., MaxWidth=160., Height=26., Margin=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Right, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
+        let b = new Button(MinWidth=88., MaxWidth=200., Height=26., Margin=Thickness(5.), HorizontalAlignment=HorizontalAlignment.Right, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch)
         if first then
             b.Focus() |> ignore
             first <- false
@@ -184,7 +185,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     grid.Children.Add(buttonDock) |> ignore
     Grid.SetRow(buttonDock, 1)
 
-    let b = new Border(Child=grid, Background=Brushes.Black, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray)
+    let b = new Border(Child=grid, Background=Brushes.Black, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray, MaxWidth=cm.AppMainCanvas.Width-x-10.)
     let style = new Style(typeof<TextBox>)
     style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
     style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
@@ -195,9 +196,11 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
     style.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.DarkGray))
     b.Resources.Add(typeof<Button>, style)
 
-    do! DoModal(cm, wh, 150., 200., b)
+    do! DoModal(cm, wh, x, y, b)
     return result
     }
+let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, buttonTexts:seq<string>) = 
+    DoModalMessageBoxCore(cm, icon, mainText, buttonTexts, 150., 200.)
 
 /////////////////////////////////////////
 
@@ -368,9 +371,10 @@ let DoModalGridSelect<'State,'Result>
 
 ////////////////////////////////
 
-let placeSkippedItemXDecoration(innerc:Canvas) =
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=30., Y2=30.)) |> ignore
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=30., Y1=0., X2=0., Y2=30.)) |> ignore
+let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size)) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
+let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 let itemBoxMouseButtonExplainerDecoration =
     let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
     let mouseBMP = Graphics.mouseIconButtonColorsBMP

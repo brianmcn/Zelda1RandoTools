@@ -4,37 +4,40 @@ open System.Windows.Controls
 open System.Windows.Media
 open System.Windows
 
+open HotKeys.MyKey
+
 let canvasAdd = Graphics.canvasAdd
 let OMTW = Graphics.OMTW
 
-let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
+let FourWayPieMenu(cm,h,displaysDocksBehaviors:((Canvas*_)*_*_)[],hkp:HotKeys.HotKeyProcessor<int>) = async {
     let wh = new System.Threading.ManualResetEvent(false)
     let c = new Canvas(IsHitTestVisible=true)
     let MARGIN = 10.
-    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=16.*OMTW-2.*MARGIN, Height=h, Background=Brushes.Black, Opacity=0.01)
+    let w = 16.*OMTW-2.*MARGIN
+    let someDrawnPixelToSeeMouseMoves = new Canvas(Width=w, Height=h, Background=Brushes.Black, Opacity=0.01)
     c.Children.Add(someDrawnPixelToSeeMouseMoves) |> ignore
-    let ps = ResizeArray()
+    let sbcs = ResizeArray()
     let mutable leftPanel,topPanel,rightPanel,bottomPanel = None,None,None,None
     let selfCleanupFuncs = ResizeArray()    
-    for p, dock, behavior in bordersDocksBehaviors do
+    for (p, setBorderColor), dock, behavior in displaysDocksBehaviors do
         match dock with
-        | Dock.Left   -> match leftPanel   with | Some _ -> failwith "multiple lefts"   | None -> leftPanel   <- Some(p, behavior)
-        | Dock.Right  -> match rightPanel  with | Some _ -> failwith "multiple rights"  | None -> rightPanel  <- Some(p, behavior)
-        | Dock.Top    -> match topPanel    with | Some _ -> failwith "multiple tops"    | None -> topPanel    <- Some(p, behavior)
-        | Dock.Bottom -> match bottomPanel with | Some _ -> failwith "multiple bottoms" | None -> bottomPanel <- Some(p, behavior)
+        | Dock.Left   -> match leftPanel   with | Some _ -> failwith "multiple lefts"   | None -> leftPanel   <- Some(setBorderColor, behavior)
+        | Dock.Right  -> match rightPanel  with | Some _ -> failwith "multiple rights"  | None -> rightPanel  <- Some(setBorderColor, behavior)
+        | Dock.Top    -> match topPanel    with | Some _ -> failwith "multiple tops"    | None -> topPanel    <- Some(setBorderColor, behavior)
+        | Dock.Bottom -> match bottomPanel with | Some _ -> failwith "multiple bottoms" | None -> bottomPanel <- Some(setBorderColor, behavior)
         | _ -> failwith "bad Dock value"
         let dp = new DockPanel(Width=16.*OMTW-2.*MARGIN, Height=h, LastChildFill=false)
         DockPanel.SetDock(p, dock)
         dp.Children.Add(p) |> ignore
         selfCleanupFuncs.Add(fun () -> dp.Children.Clear())  // deparent the panels so we can reuse them
         canvasAdd(c, dp, MARGIN, MARGIN)
-        ps.Add(p)
+        sbcs.Add(setBorderColor)
     let onCloseOrDismiss() =
-        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
+        sbcs |> Seq.iter (fun f -> f Brushes.Gray)
         for f in selfCleanupFuncs do f()
     let targetBrush = Brushes.Gray
-    let innerH = h - 2.*(let b,_,_ = bordersDocksBehaviors.[0] in b.Height)
-    let g = new Grid(Width=16.*OMTW-2.*MARGIN, Height=h)
+    let innerH = h - 2.*(let (fe,_),_,_ = displaysDocksBehaviors.[0] in fe.Height)
+    let g = new Grid(Width=w, Height=h)
     let circle = new Shapes.Ellipse(Width=innerH/1.5, Height=innerH/1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     g.Children.Add(circle) |> ignore
     let outerCircle = new Shapes.Ellipse(Width=innerH*1.5, Height=innerH*1.5, Stroke=targetBrush, StrokeThickness=3., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
@@ -62,31 +65,31 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         let pos = ea.GetPosition(c)
         let vector = Point.Subtract(pos, center)
         let distance = vector.Length
-        ps |> Seq.iter (fun p -> p.BorderBrush <- Brushes.Gray)
+        sbcs |> Seq.iter (fun f -> f Brushes.Gray)
         currentSelection <- -1
         if distance > innerR then
             if vector.X > 0. && vector.X > abs(vector.Y) then
                 match rightPanel with
-                | Some(p,_) ->
-                    p.BorderBrush <- Brushes.Yellow
+                | Some(f,_) ->
+                    f Brushes.Yellow
                     currentSelection <- int Dock.Right
                 | None -> currentSelection <- -1
             elif vector.X < 0. && abs(vector.X) > abs(vector.Y) then
                 match leftPanel with
-                | Some(p,_) ->
-                    p.BorderBrush <- Brushes.Yellow
+                | Some(f,_) ->
+                    f Brushes.Yellow
                     currentSelection <- int Dock.Left
                 | None -> currentSelection <- -1
             elif vector.Y < 0. && abs(vector.Y) > abs(vector.X) then
                 match topPanel with
-                | Some(p,_) ->
-                    p.BorderBrush <- Brushes.Yellow
+                | Some(f,_) ->
+                    f Brushes.Yellow
                     currentSelection <- int Dock.Top
                 | None -> currentSelection <- -1
             elif vector.Y > 0. && vector.Y > abs(vector.X) then
                 match bottomPanel with
-                | Some(p,_) ->
-                    p.BorderBrush <- Brushes.Yellow
+                | Some(f,_) ->
+                    f Brushes.Yellow
                     currentSelection <- int Dock.Bottom
                 | None -> currentSelection <- -1
             else
@@ -94,8 +97,7 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
         else
             currentSelection <- -1
         )
-    let click(ea:Input.MouseEventArgs) =
-        ea.Handled <- true
+    let doBehavior() =
         if currentSelection=int Dock.Left then
             match leftPanel with
             | Some(_,b) -> b()
@@ -114,11 +116,28 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
             | None -> failwith "impossible"
         else // cancel
             ()
+    c.MyKeyAdd(fun ea ->
+        ea.Handled <- true
+        match hkp.TryGetValue(ea.Key) with
+        | Some(which) -> 
+            if which=0 then currentSelection <- int Dock.Bottom
+            elif which=1 then currentSelection <- int Dock.Left
+            elif which=2 then currentSelection <- int Dock.Top
+            elif which=3 then currentSelection <- int Dock.Right
+            else failwith "unexpected hkp which"
+            doBehavior()
+            wh.Set() |> ignore
+        | None -> ()
+        )
+    let click(ea:Input.MouseEventArgs) =
+        ea.Handled <- true
+        doBehavior()
     c.MouseDown.Add(fun ea ->
         ea.Handled <- true
         click(ea)
         wh.Set() |> ignore
         )
+(*  This was intended to let e.g. a single mousedown-mousemove-mouseup drag-right from TakeAny to select heart, but it it sometimes fires spuriously; commenting out requires two separate clicks (mousedowns)
     let mutable isFirstTimeMouseUp = true
     c.MouseUp.Add(fun ea ->
         if isFirstTimeMouseUp && currentSelection = -1 then
@@ -128,9 +147,13 @@ let FourWayPieMenu(cm,h,bordersDocksBehaviors:(Border*_*_)[]) = async {
             click(ea)
             wh.Set() |> ignore
         )
+*)
     Graphics.WarpMouseCursorTo(center)
     do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly
-    do! CustomComboBoxes.DoModal(cm, wh, 0., 0., c)
+    let tb = new TextBox(Text="Indicate which option you chose", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=16., IsHitTestVisible=false,
+                            BorderThickness=Thickness(1.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+    canvasAdd(c, tb, 270., -15.)
+    do! CustomComboBoxes.DoModal(cm, wh, 0., 16., c)
     onCloseOrDismiss()
     }
 
@@ -167,7 +190,15 @@ let SWORD1 = TrackerModel.MapSquareChoiceDomainHelper.SWORD1
 
 // TAKE ANY ONE YOU WANT
 
-let takeAnyCandlePanel = 
+let addHotKey(c:Canvas,keyOpt) =
+    match keyOpt with
+    | Some(pretty) ->
+        let tb = new TextBox(Text=pretty, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=16., IsHitTestVisible=false,
+                                BorderThickness=Thickness(1.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
+        canvasAdd(c, tb, 125., 175.)
+    | None -> ()
+
+let takeAnyCandlePanel(keyOpt) = 
     let c1 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.no)
     let c2 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.yes)
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
@@ -178,9 +209,12 @@ let takeAnyCandlePanel =
     col.Children.Add(group) |> ignore
     col.Children.Add(resizeImage Graphics.takeAnyCandleBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+2.*BT, Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
-let takeAnyPotionPanel = 
+let takeAnyPotionPanel(keyOpt) = 
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.owHeartEmpty_bmp, makeSkippedHeart(), rightMarginSize, group)
@@ -188,9 +222,12 @@ let takeAnyPotionPanel =
     col.Children.Add(group) |> ignore
     col.Children.Add(resizeImage Graphics.takeAnyPotionBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+2.*BT, Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
-let takeAnyHeartPanel = 
+let takeAnyHeartPanel(keyOpt) = 
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.owHeartEmpty_bmp, Graphics.BMPtoImage Graphics.owHeartFull_bmp, rightMarginSize, group)
@@ -198,16 +235,22 @@ let takeAnyHeartPanel =
     col.Children.Add(group) |> ignore
     col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
-let takeAnyLeavePanel = 
+let takeAnyLeavePanel(keyOpt) = 
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], 0., group)
     col.Children.Add(resizeImage Graphics.takeAnyLeaveBMP) |> ignore
     col.Children.Add(group) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
 let TakeAnyPieMenuAsync(cm,h) =
     let whichHeart() =
@@ -235,20 +278,21 @@ let TakeAnyPieMenuAsync(cm,h) =
         if which <> -1 then
             TrackerModel.playerProgressAndTakeAnyHearts.SetTakeAnyHeart(which, 1)
         r <- true
+    let hkp = HotKeys.TakeAnyHotKeyProcessor
     let bordersDocksBehaviors = [|
-        takeAnyCandlePanel, Dock.Top,    candleBehavior
-        takeAnyPotionPanel, Dock.Left,   potionBehavior
-        takeAnyHeartPanel,  Dock.Right,  heartBehavior
-        takeAnyLeavePanel,  Dock.Bottom, fun()->()
+        takeAnyCandlePanel(hkp.AsPrettyHotKeyOpt(2)), Dock.Top,    candleBehavior
+        takeAnyPotionPanel(hkp.AsPrettyHotKeyOpt(1)), Dock.Left,   potionBehavior
+        takeAnyHeartPanel( hkp.AsPrettyHotKeyOpt(3)), Dock.Right,  heartBehavior
+        takeAnyLeavePanel( hkp.AsPrettyHotKeyOpt(0)), Dock.Bottom, fun()->()
         |]
     async {
-        do! FourWayPieMenu(cm, h, bordersDocksBehaviors)
+        do! FourWayPieMenu(cm, h, bordersDocksBehaviors, hkp)
         return r
     }
 
 // IT'S DANGEROUS TO GO ALONE - TAKE THIS
 
-let takeThisCandlePanel = 
+let takeThisCandlePanel(keyOpt) = 
     let c1 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.no)
     let c2 = makeItemBox(Graphics.blue_candle_bmp,CustomComboBoxes.yes)
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
@@ -258,9 +302,12 @@ let takeThisCandlePanel =
     col.Children.Add(group) |> ignore
     col.Children.Add(resizeImage Graphics.takeThisCandleBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
-let takeThisWoodSwordPanel = 
+let takeThisWoodSwordPanel(keyOpt) = 
     let c1 = makeItemBox(Graphics.brown_sword_bmp,CustomComboBoxes.no)
     let c2 = makeItemBox(Graphics.brown_sword_bmp,CustomComboBoxes.yes)
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
@@ -270,16 +317,22 @@ let takeThisWoodSwordPanel =
     col.Children.Add(group) |> ignore
     col.Children.Add(resizeImage Graphics.takeThisWoodSwordBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
-let takeThisLeavePanel = 
+let takeThisLeavePanel(keyOpt) = 
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], 0., group)
     col.Children.Add(resizeImage Graphics.takeThisLeaveBMP) |> ignore
     col.Children.Add(group) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-    b
+    let c = new Canvas(Width=b.Width, Height=b.Height)
+    c.Children.Add(b) |> ignore
+    addHotKey(c,keyOpt)
+    c, fun x -> b.BorderBrush <- x
 
 let TakeThisPieMenuAsync(cm,h) =
     let mutable r = false
@@ -289,12 +342,13 @@ let TakeThisPieMenuAsync(cm,h) =
     let swordBehavior() =
         TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Set(true)
         r <- true
+    let hkp = HotKeys.TakeThisHotKeyProcessor
     let bordersDocksBehaviors = [|
-        takeThisWoodSwordPanel, Dock.Top,    swordBehavior
-        takeThisCandlePanel,    Dock.Left,   candleBehavior
-        takeThisLeavePanel,     Dock.Bottom, fun()->()
+        takeThisWoodSwordPanel(hkp.AsPrettyHotKeyOpt(2)), Dock.Top,    swordBehavior
+        takeThisCandlePanel(hkp.AsPrettyHotKeyOpt(1)),    Dock.Left,   candleBehavior
+        takeThisLeavePanel(hkp.AsPrettyHotKeyOpt(0)),     Dock.Bottom, fun()->()
         |]
     async {
-        do! FourWayPieMenu(cm, h, bordersDocksBehaviors)
+        do! FourWayPieMenu(cm, h, bordersDocksBehaviors, hkp)
         return r
     }

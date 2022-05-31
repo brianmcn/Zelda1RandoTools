@@ -12,13 +12,16 @@ let MakeDefaultShowRunCustomFile(filename:string) =
 #     SHOW "FullPathToImageFileName"
 #     nnn,nnn,nnn,nnn SHOW "FullPathToImageFileName"
 #     RUN "FullPathToExe" CommandLineArguments
+#     RUN "FullUrlToAWebPage"
 # FullPathToImageFileName should be an image file, such as a .jpg or .png, which will be displayed in a window
 # nnn,nnn,nnn,nnn are the Left, Top, Width, Height of that window (to optionally save window size/location)
 # FullPathToExe should be an executable file like .exe
 # CommandLineArguments are extra text passed on the command line to the Exe
+# FullUrlToAWebPage should start with http:// or https:// and will open in your default browser
 
 # All of the SHOW and RUN lines will be activated when you click the 'Show/Run Custom' button in the app.
 
+# RUN "https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table"
         """ OverworldData.ProgramNameString)
 
 [<RequireQualifiedAccess>]
@@ -133,19 +136,24 @@ let DoShowRunCustom(refocusMainWindow) =
                 didAnything <- true
             | Line.RUN(comm,args) ->
                 if not(System.IO.File.Exists(comm)) then
-                    raise <| new HotKeys.UserError(sprintf "The file to RUN does not exist:\n%s" comm)
-                let dir = System.IO.Path.GetDirectoryName(comm)
-                System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo(
-                        WorkingDirectory = dir,
-                        FileName = comm,
-                        Arguments = args,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-                    )) |> ignore
-                didAnything <- true
+                    if (comm.ToLowerInvariant().StartsWith("http://") || comm.ToLowerInvariant().StartsWith("https://")) && System.Uri.IsWellFormedUriString(comm, System.UriKind.Absolute) then
+                        System.Diagnostics.Process.Start(comm) |> ignore    // open a URL in default browser
+                        didAnything <- true
+                    else
+                        raise <| new HotKeys.UserError(sprintf "The file to RUN does not exist:\n%s" comm)
+                else
+                    let dir = System.IO.Path.GetDirectoryName(comm)
+                    System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo(
+                            WorkingDirectory = dir,
+                            FileName = comm,
+                            Arguments = args,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                        )) |> ignore
+                    didAnything <- true
         if not didAnything then
             displayInfoOrError("info", sprintf "There were no custom SHOW or RUN commands to process.\nYou can add some by editing this file:\n%s" ShowRunCustomFilename)
     with

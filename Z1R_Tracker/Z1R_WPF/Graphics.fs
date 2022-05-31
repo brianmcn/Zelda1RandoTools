@@ -12,21 +12,21 @@ type Win32() =
     
     static member SetCursor(x,y) = 
         let transformedPoint = 
-            if TrackerModel.Options.SmallerAppWindow.Value then 
-                Point(x*TrackerModel.Options.SmallerAppWindowScaleFactor,y*TrackerModel.Options.SmallerAppWindowScaleFactor) 
+            if TrackerModelOptions.SmallerAppWindow.Value then 
+                Point(x*TrackerModelOptions.SmallerAppWindowScaleFactor,y*TrackerModelOptions.SmallerAppWindowScaleFactor) 
             else Point(x,y)
         let pos = theWindow.PointToScreen(transformedPoint)
         SetCursorPos(int pos.X, int pos.Y) |> ignore
 
 let volumeChanged = new Event<int>()
 let soundPlayer = new MediaPlayer()
-soundPlayer.Volume <- float TrackerModel.Options.Volume / 300.
+soundPlayer.Volume <- float TrackerModelOptions.Volume / 300.
 soundPlayer.Open(new Uri("confirm_speech.wav", UriKind.Relative))
 let PlaySoundForSpeechRecognizedAndUsedToMark() =
     soundPlayer.Position <- TimeSpan(0L)
     soundPlayer.Play()
 let soundPlayer2 = new MediaPlayer()
-soundPlayer2.Volume <- float TrackerModel.Options.Volume / 300.
+soundPlayer2.Volume <- float TrackerModelOptions.Volume / 300.
 soundPlayer2.Open(new Uri("reminder_clink.wav", UriKind.Relative))
 let PlaySoundForReminder() =
     soundPlayer2.Position <- TimeSpan(0L)
@@ -161,9 +161,17 @@ let mediaColor(c:System.Drawing.Color) =
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
+    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
     let bmimage = new System.Windows.Media.Imaging.BitmapImage()
     bmimage.BeginInit()
-    ms.Seek(0L, System.IO.SeekOrigin.Begin) |> ignore
+    
+    // this is slower in practice
+    //bmimage.CacheOption <- System.Windows.Media.Imaging.BitmapCacheOption.OnLoad    // can 'use' ms with this
+    
+    // this is faster in practice
+    bmimage.CreateOptions <- System.Windows.Media.Imaging.BitmapCreateOptions.DelayCreation
+    bmimage.CacheOption <- System.Windows.Media.Imaging.BitmapCacheOption.OnDemand    // must 'let' ms with this
+    
     bmimage.StreamSource <- ms
     bmimage.EndInit()
     let i = new Image()
@@ -173,73 +181,87 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let green = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50)))
+let yellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50)))
+let red = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50)))
+let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65)))
+let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
+let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
 type TileHighlightRectangle() as this =
-    (*
-    // full rectangles badly obscure routing paths, so we just draw corners
-    let L1,L2,R1,R2 = 2.+0.0, 2.+(OMTW-4.)/2.-6., 2.+(OMTW-4.)/2.+6., 2.+OMTW-4.
-    let T1,T2,B1,B2 = 2.+0.0, 2.+10.0, 2.+19.0, 2.+29.0
-    *)
-    let green = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50)))
-    let yellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50)))
-    let red = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50)))
-    let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65)))
-    let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
-    let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
-    let shapes = [|
-        new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
-        (*
-        new Shapes.Line(X1=L1, X2=L2, Y1=T1+1.5, Y2=T1+1.5, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=T1, Y2=T2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=L1, X2=L2, Y1=B2-1.5, Y2=B2-1.5, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=L1+1.5, X2=L1+1.5, Y1=B1, Y2=B2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=R1, X2=R2, Y1=T1+1.5, Y2=T1+1.5, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=T1, Y2=T2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=R1, X2=R2, Y1=B2-1.5, Y2=B2-1.5, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        new Shapes.Line(X1=R2-1.5, X2=R2-1.5, Y1=B1, Y2=B2, Stroke=Brushes.Transparent, StrokeThickness = 3., IsHitTestVisible=false)
-        *)
-        |]
-    let Draw(s:Shapes.Rectangle, isPale) =
+    let s = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
+    let Draw(isPale) =
         s.Opacity <- 1.0
         s.StrokeThickness <- if isPale then 2.0 else 4.0
     do
         this.MakeGreen()
-    member _this.MakeRed() = for s in shapes do (s.Stroke <- red; Draw(s,false)) //Brushes.Red; s.Opacity <- 0.7)
-    member _this.MakeYellow() = for s in shapes do (s.Stroke <- yellow; Draw(s,false)) //Brushes.Yellow; s.Opacity <- 0.75)
-    member _this.MakeGreen() = for s in shapes do (s.Stroke <- green; Draw(s,false)) //Brushes.Lime; s.Opacity <- 0.55)
-    member _this.MakePaleRed() = for s in shapes do (s.Stroke <- palered; Draw(s,true)) //Brushes.Red; s.Opacity <- 0.35)
-    member _this.MakePaleYellow() = for s in shapes do (s.Stroke <- paleyellow; Draw(s,true)) //Brushes.Yellow; s.Opacity <- 0.4)
-    member _this.MakePaleGreen() = for s in shapes do (s.Stroke <- palegreen; Draw(s,true)) //Brushes.Lime; s.Opacity <- 0.3)
-    member _this.Hide() = for s in shapes do (s.Opacity <- 0.0)
-    member _this.Shapes = shapes
+    member _this.MakeRed() = s.Stroke <- red; Draw(false)
+    member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
+    member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
+    member _this.MakeGreen() = s.Stroke <- green; Draw(false)
+    member _this.MakePaleRed() = s.Stroke <- palered; Draw(true)
+    member _this.MakePaleYellow() = s.Stroke <- paleyellow; Draw(true)
+    member _this.MakePaleGreen() = s.Stroke <- palegreen; Draw(true)
+    member _this.Hide() = s.Opacity <- 0.0
+    member _this.MakeGreenWithBriefAnimation() = 
+        if TrackerModelOptions.AnimateShopHighlights.Value then
+            Draw(false)
+            let da = new System.Windows.Media.Animation.DoubleAnimation(12.0, 4.0, new Duration(System.TimeSpan.FromSeconds(0.5)))
+            s.BeginAnimation(Shapes.Rectangle.StrokeThicknessProperty, da)
+            let ca = new System.Windows.Media.Animation.ColorAnimation(From=Colors.Cyan, To=Colors.Lime, Duration=new Duration(System.TimeSpan.FromSeconds(0.5)))
+            let brush = new SolidColorBrush()
+            s.Stroke <- brush
+            brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
+        else
+            this.MakeGreen()
+    member _this.Shape = s
 
 
 // see also
 // https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag
 // https://stackoverflow.com/questions/12802122/wpf-handle-drag-and-drop-as-well-as-left-click
-let setupClickVersusDrag(e:FrameworkElement, onClick, onStartDrag) =  // will only call onClick on 'clicks', will tell you when drag starts, you can call DoDragDrop or not
+type DragDropSurface<'T>(surface:FrameworkElement, onStartDrag : _ * ('T -> unit) -> unit ) = // surface is the entire element we can drag across that encompasses all the multiple items and sees all mouse interactions in the area
     let mutable isDragging = false
-    let mutable startPoint = None
-    e.PreviewMouseDown.Add(fun ea -> 
-        startPoint <- Some(ea.GetPosition(null))
-        )
-    e.PreviewMouseMove.Add(fun ea ->
-        if (ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed ||
-            ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed ||
-            ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
-                && not isDragging && startPoint.IsSome then
-            let pos = ea.GetPosition(null)
-            if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
-                isDragging <- true
-                onStartDrag(ea)
-                isDragging <- false
-        )
-    e.MouseUp.Add(fun ea ->
-        if not isDragging then
-            if startPoint.IsSome then
-                onClick(ea)
-            // else e.g. dragged into and released
-        startPoint <- None
-        )
+    let mutable startPoint : Point option = None
+    let mutable clickFunc = None
+    let mutable initiateDragFunc = None
+    do
+        surface.PreviewMouseMove.Add(fun ea ->
+            if (ea.LeftButton = System.Windows.Input.MouseButtonState.Pressed ||
+                ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed ||
+                ea.RightButton = System.Windows.Input.MouseButtonState.Pressed)
+                    && not isDragging && startPoint.IsSome then
+                let pos = ea.GetPosition(surface)
+                // This is the windows setting for click v drag
+                //     if Math.Abs(pos.X - startPoint.Value.X) > SystemParameters.MinimumHorizontalDragDistance || Math.Abs(pos.Y - startPoint.Value.Y) > SystemParameters.MinimumVerticalDragDistance then
+                // However it defaults to just 4 pixels, and some folks were inadvertantly dragging when they wanted to click.
+                // The only place setupClickVersusDrag() is called in for 'painting rooms' in dungeon UI.  You would always need to go across the distance of 1 door (12.0) to paint multiple rooms.
+                // So make size that the threshold, for less accidental-drag behavior.
+                if Math.Abs(pos.X - startPoint.Value.X) > 12.0 || Math.Abs(pos.Y - startPoint.Value.Y) > 12.0 then
+                    //printfn "%A  -  %A" startPoint pos
+                    isDragging <- true
+                    onStartDrag(ea, initiateDragFunc.Value)
+                    isDragging <- false
+                    startPoint <- None
+                    clickFunc <- None
+                    initiateDragFunc <- None
+            )
+        surface.MouseUp.Add(fun ea ->
+            //printfn "MouseUp"
+            if not isDragging then
+                if clickFunc.IsSome then
+                    clickFunc.Value(ea)
+                // else e.g. dragged into and released
+            startPoint <- None
+            clickFunc <- None
+            initiateDragFunc <- None
+            )
+    member this.RegisterClickable(e:FrameworkElement, onClick, onInitiateDrag) =     // each individual element says how it should respond to a click, or to being an initiator of a drag
+        e.PreviewMouseDown.Add(fun ea -> 
+            //printfn "PrevMD %A" (Input.Mouse.GetPosition(surface))
+            startPoint <- Some(ea.GetPosition(surface))
+            clickFunc <- Some(onClick)
+            initiateDragFunc <- Some(onInitiateDrag)
+            )
 
 ////////////////////////////////////////////////////
 
@@ -293,7 +315,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
         brown_sword_bmp, magical_sword_bmp, blue_candle_bmp, blue_ring_bmp,
-        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp, rupee_bmp) =
+        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp, rupee_bmp, basement_stair_bmp) =
     let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -308,9 +330,50 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
-        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29])
+        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29], a.[30])
 
-let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp = 
+let bg16x16 = System.Drawing.Color.FromArgb(45, 50, 00)
+let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bmp, dodongo_bmp, red_bubble_bmp, blue_bubble_bmp, blue_darknut_bmp, other_monster_bmp, old_man_bmp) =
+    let imageStream = GetResourceStream("zelda_bosses16x16.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|  
+        for i = 0 to bmp.Width/16 - 1 do
+            let r = new System.Drawing.Bitmap(18,18)  // border around it
+            for px = 0 to 17 do
+                for py = 0 to 17 do
+                    if px=0 || px=17 || py=0 || py=17 then
+                        r.SetPixel(px, py, bg16x16)
+                    else
+                        r.SetPixel(px, py, System.Drawing.Color.Black)
+            for px = 0 to 15 do
+                for py = 0 to 15 do
+                    let color = bmp.GetPixel(px + i*16, py)
+                    if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
+            yield r
+    |]
+    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10], a.[11])
+
+let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_map_bmp, zi_compass_bmp, zi_other_item_bmp, zi_alt_bomb_bmp, zi_rock, zi_tree) =
+    let imageStream = GetResourceStream("zelda_items16x16.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|  
+        for i = 0 to bmp.Width/16 - 1 do
+            let r = new System.Drawing.Bitmap(18,18)  // border around it
+            for px = 0 to 17 do
+                for py = 0 to 17 do
+                    if px=0 || px=17 || py=0 || py=17 then
+                        r.SetPixel(px, py, bg16x16)
+                    else
+                        r.SetPixel(px, py, System.Drawing.Color.Black)
+            for px = 0 to 15 do
+                for py = 0 to 15 do
+                    let color = bmp.GetPixel(px + i*16, py)
+                    if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
+            yield r
+    |]
+    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10])
+
+let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp, iconDisk_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -326,7 +389,7 @@ let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTr
     transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then System.Drawing.Color.LightGray else c)), 
         all.[1],
         transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then desaturateColor(c, 0.25) else c)), 
-        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6], all.[7]
+        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6], all.[7], all.[8]
 let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x77,0x77,0x99)
 let FOUND_NUMERAL_COLOR = System.Drawing.Color.White
 let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
@@ -404,6 +467,7 @@ let dungeonRoomBmpPairs =
             yield (ur,cr)
     |]
     a
+(*
 let dungeonRoomFloorDrops, dungeonRoomMonsters =
     let imageStream = GetResourceStream("icons3x3.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
@@ -429,6 +493,7 @@ let dungeonRoomFloorDrops, dungeonRoomMonsters =
             yield r, b
     |]
     a.[0..7], a.[8..]
+*)
 
 let overworldImage =
     let files = [|
@@ -454,16 +519,52 @@ let zhDungeonNums =
 let allItemBMPs = [| book_bmp; boomerang_bmp; bow_bmp; power_bracelet_bmp; ladder_bmp; magic_boomerang_bmp; key_bmp; raft_bmp; recorder_bmp; red_candle_bmp; red_ring_bmp; silver_arrow_bmp; wand_bmp; white_sword_bmp |]
 let allItemBMPsWithHeartShuffle = [| yield! allItemBMPs; for _i = 0 to 8 do yield heart_container_bmp |]
 
+let readCacheFileOrCreateBmp(filename, createF : unit -> System.Drawing.Bitmap) =
+    if System.IO.File.Exists(filename) then
+        System.Drawing.Bitmap.FromFile(filename) :?> System.Drawing.Bitmap
+    else
+        let bmp = createF()
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filename)) |> ignore
+        bmp.Save(filename)
+        bmp
+
+let mutable alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap = "", false   // startup screen can set these
+let blankTileBmp =
+    let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+    let main = System.Drawing.Color.DarkSlateGray
+    let alt = System.Drawing.Color.FromArgb(int main.R + 48, int main.G + 48, int main.B + 48)
+    for px = 0 to 16*3-1 do
+        for py = 0 to 11*3-1 do
+            if px >= 15*3 || py >= 10*3 then
+                fullTileBmp.SetPixel(px, py, System.Drawing.Color.Black)
+            else
+                fullTileBmp.SetPixel(px, py, (if (px/3+py/3)%2=0 then main else alt))
+    fullTileBmp
 let overworldMapBMPs(n) =
     let m = overworldImage
     let tiles = Array2D.zeroCreate 16 8
-    for x = 0 to 15 do
-        for y = 0 to 7 do
-            let tile = new System.Drawing.Bitmap(16*3,11*3)
-            for px = 0 to 16*3-1 do
-                for py = 0 to 11*3-1 do
-                    tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
-            tiles.[x,y] <- tile
+    if n=4 && not(System.String.IsNullOrEmpty(alternativeOverworldMapFilename)) then
+        let image = new System.Drawing.Bitmap(alternativeOverworldMapFilename) :> System.Drawing.Image
+        let bitmap = new System.Drawing.Bitmap( image, new System.Drawing.Size( 256*3, 88*3 ) )
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let tile = new System.Drawing.Bitmap(16*3,11*3)
+                for px = 0 to 16*3-1 do
+                    for py = 0 to 11*3-1 do
+                        tile.SetPixel(px, py, bitmap.GetPixel((x*16*3 + px), (y*11*3 + py)))
+                tiles.[x,y] <- tile
+    else
+        for x = 0 to 15 do
+            for y = 0 to 7 do
+                let tile = 
+                    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Overworld\quest.%d.ow.%2d.%2d.bmp""" n x y)
+                    readCacheFileOrCreateBmp(filename, fun () ->
+                        let tile = new System.Drawing.Bitmap(16*3,11*3)
+                        for px = 0 to 16*3-1 do
+                            for py = 0 to 11*3-1 do
+                                tile.SetPixel(px, py, m.GetPixel(256*n + (x*16*3 + px)/3, (y*11*3 + py)/3))
+                        tile)
+                tiles.[x,y] <- tile
     tiles
 
 let TRANS_BG = System.Drawing.Color.FromArgb(1, System.Drawing.Color.Black)  // transparent background (will be darkened in program layer)
@@ -519,11 +620,13 @@ do
         )
     // 13  sword3
     theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0))
+    theInteriorBmpTable.[13].Add(getInteriorIconFromStrip(0) |> darkenImpl 0.6)
     // 14  sword2
     theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1))
+    theInteriorBmpTable.[14].Add(getInteriorIconFromStrip(1) |> darkenImpl 0.6)
     // 15  sword1
     theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2))
-    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2) |> darken)
+    theInteriorBmpTable.[15].Add(getInteriorIconFromStrip(2) |> darkenImpl 0.6)
     // 16-23  item shops (as single-item icons)
     for i = 0 to TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS-1 do
         let bmp = new System.Drawing.Bitmap(5*3,9*3)
@@ -556,6 +659,7 @@ do
     theInteriorBmpTable.[30].Add(getInteriorIconFromStrip(13) |> darkenImpl 0.7)
     // 31  armos
     theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(7))
+    theInteriorBmpTable.[31].Add(getInteriorIconFromStrip(7) |> darken)
     // 32  hint shop
     theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3))
     theInteriorBmpTable.[32].Add(getInteriorIconFromStrip(3) |> darkenImpl 0.7)
@@ -685,13 +789,24 @@ let ringLevelToBmp(ringLevel) =
     | 2 -> red_ring_bmp
     | _ -> failwith "bad RingLevel"
 
-let blockerCurrentBMP(current) =
-    let gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 0uy, 180uy, 0uy), 0.)
-                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.3)
-                                          new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.7)
-                                          new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
-                                         ])
-    let maybeBG = new LinearGradientBrush(gsc, Point(0.,0.), Point(1.,1.))
+let blockers_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 0uy, 180uy, 0uy), 0.)
+                                               new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.3)
+                                               new GradientStop(Color.FromArgb(255uy, 40uy, 40uy, 40uy), 0.7)
+                                               new GradientStop(Color.FromArgb(255uy, 180uy, 0uy, 0uy), 1.0)
+                                               ])
+let blockers_maybeBG = new LinearGradientBrush(blockers_gsc, Point(0.,0.), Point(1.,1.))
+let blockerHardCanonicalBMP(current) = 
+    match current with
+    | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
+    | TrackerModel.DungeonBlocker.BOW_AND_ARROW | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW -> bow_and_arrow_bmp
+    | TrackerModel.DungeonBlocker.RECORDER | TrackerModel.DungeonBlocker.MAYBE_RECORDER -> recorder_bmp
+    | TrackerModel.DungeonBlocker.LADDER | TrackerModel.DungeonBlocker.MAYBE_LADDER -> ladder_bmp
+    | TrackerModel.DungeonBlocker.BAIT | TrackerModel.DungeonBlocker.MAYBE_BAIT -> bait_bmp
+    | TrackerModel.DungeonBlocker.KEY | TrackerModel.DungeonBlocker.MAYBE_KEY -> key_bmp
+    | TrackerModel.DungeonBlocker.BOMB | TrackerModel.DungeonBlocker.MAYBE_BOMB -> bomb_bmp
+    | TrackerModel.DungeonBlocker.MONEY | TrackerModel.DungeonBlocker.MAYBE_MONEY -> rupee_bmp
+    | TrackerModel.DungeonBlocker.NOTHING -> null
+let blockerCurrentDisplay(current) =
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Transparent, IsHitTestVisible=false)  // just has item drawn on it, not the box
     innerc.Children.Clear()
     innerc.Background <- match current with
@@ -702,19 +817,9 @@ let blockerCurrentBMP(current) =
                             | TrackerModel.DungeonBlocker.MAYBE_KEY
                             | TrackerModel.DungeonBlocker.MAYBE_MONEY
                             | TrackerModel.DungeonBlocker.MAYBE_RECORDER                            
-                                -> maybeBG :> Brush
+                                -> blockers_maybeBG :> Brush
                             | _ -> Brushes.Black :> Brush
-    let bmp = 
-        match current with
-        | TrackerModel.DungeonBlocker.COMBAT -> white_sword_bmp
-        | TrackerModel.DungeonBlocker.BOW_AND_ARROW | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW -> bow_and_arrow_bmp
-        | TrackerModel.DungeonBlocker.RECORDER | TrackerModel.DungeonBlocker.MAYBE_RECORDER -> recorder_bmp
-        | TrackerModel.DungeonBlocker.LADDER | TrackerModel.DungeonBlocker.MAYBE_LADDER -> ladder_bmp
-        | TrackerModel.DungeonBlocker.BAIT | TrackerModel.DungeonBlocker.MAYBE_BAIT -> bait_bmp
-        | TrackerModel.DungeonBlocker.KEY | TrackerModel.DungeonBlocker.MAYBE_KEY -> key_bmp
-        | TrackerModel.DungeonBlocker.BOMB | TrackerModel.DungeonBlocker.MAYBE_BOMB -> bomb_bmp
-        | TrackerModel.DungeonBlocker.MONEY | TrackerModel.DungeonBlocker.MAYBE_MONEY -> rupee_bmp
-        | TrackerModel.DungeonBlocker.NOTHING -> null
+    let bmp = blockerHardCanonicalBMP(current)
     if bmp <> null then
         let image = BMPtoImage(bmp)
         image.IsHitTestVisible <- false
@@ -724,3 +829,5 @@ let blockerCurrentBMP(current) =
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)
     PlaySoundForSpeechRecognizedAndUsedToMark()
+let SilentlyWarpMouseCursorTo(pos:Point) =
+    Win32.SetCursor(pos.X, pos.Y)

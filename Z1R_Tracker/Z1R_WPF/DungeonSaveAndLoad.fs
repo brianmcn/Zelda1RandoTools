@@ -39,6 +39,7 @@ type DungeonModel() =  // these are serialized in j,i order, to be more human-re
     member val VerticalDoors : int[][] = null with get,set
     member val RoomIsCircled : bool[][] = null with get,set
     member val RoomStates : DungeonRoomModel[][] = null with get,set
+    member val VanillaMapOverlay = 0 with get,set
 
 let SaveDungeonModel(prefix, model:DungeonModel) =
     let lines = ResizeArray()
@@ -77,7 +78,8 @@ let SaveDungeonModel(prefix, model:DungeonModel) =
                 lines.Add(sprintf """    { "IsCompleted": %b, "RoomType": "%s", "MonsterDetail": "%s", "FloorDropDetail": "%s", "FloorDropShouldAppearBright": %b }%s"""
                                         drm.IsCompleted drm.RoomType drm.MonsterDetail drm.FloorDropDetail drm.FloorDropShouldAppearBright (if i=7 then "" else ","))
         lines.Add(sprintf "    ]%s" (if j=7 then "" else ","))
-    lines.Add("""]""")
+    lines.Add("""],""")
+    lines.Add(sprintf """"VanillaMapOverlay": %d""" model.VanillaMapOverlay)
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveAllDungeons(models: DungeonModel[]) =
@@ -87,8 +89,44 @@ let SaveAllDungeons(models: DungeonModel[]) =
             yield sprintf "    }%s" (if i=8 then "" else ", {")
     |]
 
+/////////////////////////////////////////////////////////////////////////////
+// DrawingLayer model
+
+[<RequireQualifiedAccess>]
+type DrawingLayerIcon =
+    | ZTracker of string  // resource key
+    | ExtraIcon of string // s, refers to file (appdir)\ExtraIcons\s.png
+
+let AllDrawingLayerStamps = ResizeArray<DrawingLayerIcon*int*int*System.Windows.Controls.Image>()  // also contains Image, but only Icon/X/Y needed for save&load
+
+[<AllowNullLiteral>]
+type DrawingLayerIconModel() =
+    member val Extra = false with get,set
+    member val Name = "" with get,set
+    member val X = 0 with get,set
+    member val Y = 0 with get,set
+    member val HalfSize = false with get,set
+
+let SaveDrawingLayer() =
+    [|
+        for i = 0 to AllDrawingLayerStamps.Count-1 do
+            let (icon,x,y,img) = AllDrawingLayerStamps.[i]
+            let extra, name =
+                match icon with
+                | DrawingLayerIcon.ZTracker x -> false,x
+                | DrawingLayerIcon.ExtraIcon x -> true,x
+            let halfSize = not(img.RenderTransform = null || obj.ReferenceEquals(img.RenderTransform, System.Windows.Media.Transform.Identity))
+            yield sprintf """        { "Extra": %s, "Name": "%s", "X": %d, "Y": %d, "HalfSize": %s }%s""" (extra.ToString().ToLowerInvariant()) name x y 
+                            (halfSize.ToString().ToLowerInvariant()) (if i=AllDrawingLayerStamps.Count-1 then "" else ",") 
+    |]
+
+/////////////////////////////////////////////////////////////////////////////
+
 open SaveAndLoad
-        
+
+type JustVersion() =
+    member val Version = "" with get,set
+
 type AllData() =
     member val Version = "" with get,set
     member val TimeInSeconds = 0 with get,set
@@ -96,13 +134,21 @@ type AllData() =
     member val Items : Items = null with get,set
     member val PlayerProgressAndTakeAnyHearts : PlayerProgressAndTakeAnyHeartsModel = null with get,set
     member val StartingItemsAndExtras : StartingItemsAndExtrasModel = null with get,set
-    member val Blockers : string[][] = null with get,set
+    member val Blockers : Blocker[][] = null with get,set
     member val Hints : Hints = null with get,set
     member val Notes = "" with get,set
+    member val CurrentRecorderDestinationIndex = 0 with get,set
+    member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
+    member val UserCustomChecklist : UserCustomChecklist = null with get,set
+    member val DrawingLayerIcons : DrawingLayerIconModel[] = null with get,set
+    member val AlternativeOverworldMapFilename = "" with get,set
+    member val ShouldInitiallyHideOverworldMap = false with get,set
+    member val Seed = "" with get,set
+    member val Flags = "" with get,set
+    member val OverworldSpotsRemainingOverTime : int[] = null with get,set
     member val Timeline : TimelineDatum[] = null with get,set
 
-let LoadAll(filename) =  // can throw
-    let json = System.IO.File.ReadAllText(filename)
+let LoadAll(json:string) =  // can throw
     let data = System.Text.Json.JsonSerializer.Deserialize<AllData>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
     data

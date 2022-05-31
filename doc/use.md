@@ -7,6 +7,7 @@ Contents of this document:
 - [General Features](#general)
   - [Popups](#general-popups)
   - [Green-Yellow-Red Highlights ("GYR")](#general-gyr)
+  - [Mouse Hovering](#general-mouse-hover)
 
 - [Main Z-Tracker Window](#main)
   - ![Main Z-Tracker Window screenshot](screenshots/overview-smaller.png)
@@ -19,7 +20,6 @@ Contents of this document:
   - [Overworld Map](#main-owm)
      - [Buttons](#main-buttons)
   - [Dungeon Tracker](#main-dt)
-  - [Dungeon Rooms](#main-dr)
   - [Blockers](#main-blockers)
   - [Notes](#main-notes)
   - [Timeline](#main-timeline)
@@ -41,9 +41,12 @@ scrolling, and then click once you have reached your desired choice, or you can 
 is often faster when there is a very long list of choices, such as the overworld map tiles).  Clicking outside of a popup will cancel the popup 
 and abort making any changes to the element.
 
-When mouse-hovering an element with choices, scroll-wheel always activates the popup.  
+When mouse-hovering an element with choices, scroll-wheel typically activates a popup.  
 
 In certain cases noted below, clicking also activates the popup.
+
+Shift-left-click/shift-right-click often behave as an alternative to scroll-up/scroll-down for the purpose of activating popup menus.  This is to
+accomodate folks playing on a laptop touchpad or using a mouse without a scroll-wheel.
 
 ## <a id="general-gyr"></a> Green-Yellow-Red Highlights ("GYR")
 
@@ -63,6 +66,12 @@ To illustrate, here is how the tiles near the vanilla start spot appear, in a mi
 but do not yet have a candle, and the "OW spots left" is mouse-hovered to highlight remaining spots:
 
 ![GYR screenshot](screenshots/gyr-highlights.png)
+
+## <a id="general-mouse-hover"></a> Mouse Hovering
+
+There are many places in Z-Tracker where you can hover the mouse to see extra information.  Hover the '?' icon near the upper right of the app to see them all:
+
+![Mouse Hover Explainer screenshot](screenshots/mouse-hover-explainer.png)
 
 # <a id="main"></a> Main Z-Tracker Window
 
@@ -150,7 +159,7 @@ Note that you can also use the max-hearts feature here to reduce your maximum he
 
 **Boomstick Book** - click when you get it to mark the timeline, and click S/B to toggle whether Shield or Book icon is available as a dungeon item
 
-**Ganon/Zelda** - click when you kill ganon to mark the timeline; click zelda when you finish, to stop the timer and post your finish time as text in the NOTES section
+**Ganon/Zelda** - click when you kill ganon to mark the timeline; click zelda when you finish, to stop the timer and post your finish time as text in the [Notes](#main-notes) section
 
 **4 take-any hearts** - click or scroll to say you took a heart container (red heart) or chose another option (X); rather than marking these directly, you can interact
 with them via the [take any accelerator](#take-any-accelerator) on the overworld map
@@ -173,7 +182,8 @@ Question mark icon - Mouse hovering this brings up the "Mouse Hover Explainer" w
 
 Timer - Displays the amount of time you have spent on the seed
 
-'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.
+'Pause/Reset timer' button - Click this to pause the timer.  You will then be given options to click on, to either resume or reset the timer.  If you reset the timer,
+you will also activate the ['Start Spot' button](#main-buttons) to mark the starting screen on the overworld.
 
 <a id="spot-summary">'Spot Summary'</a> - Mouse-hovering 'Spot Summary' displays all the possible overworld locations that can be found, graying out the subset you have already found.
 This makes it easy to get an overview glance at what remains to be found, or see e.g. how many large secrets or door repair charges remain, if
@@ -257,6 +267,13 @@ reading this paragraph was comparably more difficult and time-consuming.
 accelerator on the tile as well.  As a result, you typically interact with these item boxes on their map tiles, rather than having to move your mouse 
 to the top-tracker to interact with them.
 
+<a id="circle-overworld">You can middle-click any overworld tile to 'circle it'</a> (middle-clicking again toggles the circle back off); use this however you like, perhaps to
+remind you of a screen with easy-to-kill bomb-droppers, for example.  You can also shift-left-click to add a one-character label to the circle, or shift-right-click to change
+the color of the circle.  (When a tile has a circle, scroll wheel will also change the color of the circle, rather than its typical action of bringing up the overworld popup menu
+for that tile.)  Here are some examples:
+
+![Overworld circle](screenshots/overworld-middle-click-circle.png)
+
 Hovering an overworld map tile shows a magnified version of nearby tiles, to make it easier to see e.g. which square to bomb, without having to squint.  (You can turn off the 
 magnifier in the [Options Menu](#main-om) if you find it distracting.)
 
@@ -271,7 +288,7 @@ magnifier in the [Options Menu](#main-om) if you find it distracting.)
  - routing takes into account your current items (e.g. will not cross river if have no ladder)
  - routing understands any-road warps
  - routing assumes recorder takes you to dungeons you already have gotten the triforce from (a common randomizer flag)
- - routing assumes no screen-scrolling or other fancy walking glitches
+ - routing only includes screen-scrolling if the corresponding [Options Menu](#main-om) setting is turned on
  - routing knows special map topology (e.g. Lost Hills)
 
 The routeworthy spots nearest the mouse cursor will be highlighted using [GYR highlights](#general-gyr).
@@ -285,9 +302,15 @@ tracker for "The Legend of Zelda" randomizer.
 
 ### <a id="main-buttons"></a> Buttons
 
-There are a number of buttons near the bottom right of the overworld map.
+There are a number of buttons below the overworld map.
 
-You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.
+The version-number display is a button that shows what version of Z-Tracker you are running and offers a link to the website.
+
+The "Recorder Destination" icon is a button which changes the dungeon numbers displayed in the Legend.  You can cycle through 1 to 8; left-clicking the button goes +1 and 
+right-clicking it goes -1.  You can optionally use this "glorified counter" to keep track of which dungeon you just recorder-whirlwind-ed to, so that, a few minutes from now, 
+when you next try to use the recorder to warp, you will remember where the recorder thinks you are.
+
+You can click the '**Start Spot**' button in the legend to mark your starting screen on the overworld map.  This behavior also activates automatically when you reset the timer.
 
 <a id="helpful-hint">Clicking the '**Hint decoder**' button</a> in the bottom right pops up the 'Aquamentus Awaits' table, where you can populate location hints for dungeons/swords. 
 Each hinted-but-not-yet-found location causes a 'halo' to appear on the triforce/sword icon in the upper portion of the tracker, and hovering the halo
@@ -296,9 +319,14 @@ page explains the other types of hints.
 
 You can click the '**Show HotKeys**' button in the legend to pop out a resizable window with a 'cheat sheet' of your [hotkey mappings](extras.md#hotkeys).
 
-You can click the '**Show/Run Custom**' button to run some custom actions.  This is an experimental feature, which may be useful to folks who commonly view images of maps or use 
-notes or other programs concurrently with the tracker.  You can control the behaviors of this button by editing the file ShowRunCustom.txt.  The text file format is self-describing.
-(Pressing the button will create a template ShowRunCustom.txt file if it does not exist, and offer you a chance to edit it.)
+You can click the '**Show/Run Custom**' button to run some custom actions.  This is an experimental feature, which may be useful to folks who commonly view images or web pages of 
+maps or use notes or other programs concurrently with the tracker.  You can control the behaviors of this button by editing the file ShowRunCustom.txt.  The text file format is 
+self-describing.  (Pressing the button will create a template ShowRunCustom.txt file if it does not exist, and offer you a chance to edit it.)
+
+You can click the '**Save**' button to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.  Use 
+this e.g. when you need to stop playing now and want to continue playing the same seed tomorrow.
+
+---
 
 ## <a id="main-dt"></a> Dungeon Tracker
 
@@ -309,51 +337,29 @@ the top of the app.  Other dungeon tracking marks have no semantic meaning to th
 
 ![Dungeon inset screenshot](screenshots/dungeon-inset.png)
 
-When your mouse is inside the dungeon map area, the location of that dungeon will be highlighted on the overworld map.
+When your mouse is inside a dungeon map area, the location of that dungeon will be highlighted with crosshairs on the overworld map.  When your mouse is inside the dungeon 
+summary tab area, the location of all dungeons get a thick green highlight on the overworld map, to make it easy to see all dungeon locations at once.
 
-#### Doors
+### <a id="main-dt-doors"></a> Dungeon Doors
 
-Doors between rooms are simple, and have four states:
+Doors between rooms are simple, and have five states:
 
  - dark gray is unknown (default)
- - green (left click) is "can go" (used for most kinds of doors/shutters/bombholes/etc)
- - red (right click) is "cannot go" (e.g. unbombable wall)
- - yellow (middle click) is "maybe" (you likely might use it for locked doors, or perhaps one-ways or shutters, up to you)
+ - green (left-click) is "can go" (used for most kinds of doors/shutters/bombholes/etc)
+ - red (right-click) is "cannot go" (e.g. unbombable wall)
+ - yellow (middle-click) is a "maybe" (you might use it for locked doors, for example)
+ - purple (available via scroll-wheel/shift-click, which cycle thru all states) is also a "maybe" (you might use it for shutters, for example)
 
 Clicking a door with its existing-state-mouse-button (e.g. left-clicking a green door) toggles it back into unknown gray.
 
 There is an option in the [Options Menu](#main-om), off by default, to automatically infer some green doors.  (It will conservatively put a green door between rooms A and B 
 only if you just marked B, and B is not a transport stair, and A is the only adjacent room with a mark.)
 
-#### Rooms
-
-Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  Read about them in [Dungeon Rooms section](#main-dr).
-
-#### Multiple rooms at once
-
-If you click-and-drag over the dungeon map with left mouse button, you can 'paint' a bunch of completed rooms by dragging over them.  
-Same with right mouse button, but for uncompleted rooms.  
-These features can be useful when you play part of a dungeon without mapping it, but then later decide you need to map it--quickly 'paint' what you have done.
-Or if you enter a dungeon with a book-atlas-map, you might want to 'paint' the uncompleted dungeon rooms before starting.
-Mouse-hovering the little blue bars near the bottom right corner of the dungeon tab will popup a display that mimics the in-game mini-map.  This can make it
-easier to compare the rooms-you-have-painted to the actual in-game minimap, to spot any errors you may have made transcribing the map.
-
-Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
-of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
-fix an offset map.
-
-#### Vanilla dungeon maps
-
-Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
-
-Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
-are compatible with your current room markup.
-
-## <a id="main-dr"></a> Dungeon Rooms
+### <a id="main-dr"></a> Dungeon Rooms
 
 Dungeon rooms are somewhat complicated, as there is a lot of state you might want to track.  You might want to utilize only a subset of the dungeon room features.
 
-### Motivation
+#### Motivation
 
 To motivate Z-Tracker's feature set, consider a dungeon room with a Digdogger, a floor drop of a bomb pack, and a push-block leading to a staircase basement
 containing a key item like the Ladder.  Should this room be marked as a Digdogger room? A bomb pack room? An item staircase?  The salient information may change
@@ -380,7 +386,7 @@ As a result, in the scenario described before, you could mark up the room thusly
 
 How much of this detail you choose to track is up to you, and the interface makes it easy to ignore details you don't care about.
 
-### Practical use
+#### <a id="main-drpu"></a> Practical use
 
 If all you care about it 'what rooms have I been in, and what rooms have I completed', then all you need is left-click:
  - left-click an unmarked room to mark it as the default-RoomType, as a completed room - completed rooms have a dark outline
@@ -389,19 +395,18 @@ If all you care about it 'what rooms have I been in, and what rooms have I compl
 ![Dungeon room completed example screenshot](screenshots/dungeon-room-completed-example.png)
 
 If you want to change a RoomType (to mark a transport staircase, hungry Goriya, chevy moat, ...), then right-click the room to bring up the RoomType popup:
- - a grid of 30 possible types of rooms appear
+ - a grid of 34 possible types of rooms appear
  - choose the one you want with your mouse, and left-click it
 
 ![Dungeon room chooser screenshot](screenshots/dungeon-room-chooser.png)
 
-If you want to change the MonsterDetail or FloorDropDetail for a room, then right-click the room to bring up the RoomType popup, choose the room type, 
-but this time right-click the RoomType selection to bring up the MonsterDetail/FloorDropDetail interface.  Click on details in the grids to apply them
-to the current room's "preview" tile.  Once you are done, click the preview tile to save your edits to the dungeon map; a left-click marks the room completed,
-and a right-click marks it uncompleted.  (After clicking a detail, its grid briefly goes half-transparent, as visual feedback that your detail has been applied
-to the "preview" tile.  The half-transparent grid is another 'save' click-target, like the preview tile, with the implication that you can, for example, 
-double-right-click the Gleeok MonsterDetail as a way to say 'add a Gleeok to this room tile and immediately save this as an uncompleted room and exit the popup.)
+If you want to mark a MonsterDetail for a room, you can scroll-up (or shift-left-click) to open the MonsterDetail popup:
 
-![Dungeon room detail screenshot](screenshots/dungeon-room-detail.png)
+![Dungeon room monster detail screenshot](screenshots/dungeon-room-monster-detail.png)
+
+Or if you want to mark a FloorDropDetail for a room, you can scroll-down (or shift-right-click) to open the FloorDropDetail popup:
+
+![Dungeon room monster detail screenshot](screenshots/dungeon-room-floor-drop-detail.png)
 
 If you have marked a FloorDropDetail, you can toggle whether you have 'gotten' the floor drop by middle-clicking the room on the map.  Un-gotten floor drops
 appear as a bright icon, and gotten floor drops appear darkened.
@@ -413,10 +418,6 @@ middle-click-yellow-circle a room to quickly mark it, rather than go through the
 such as an unreachable key in the middle of a circle-moat room when I don't have the ladder, then I use the FloorDropDetail UI to capture that specific bit
 of information.)
 
-The MonsterDetail and FloorDropDetail information appear as tiny icons in the corners of rooms on the map.  If you want to briefly make these icons larger 
-and see a legend, you can mouse-hover the checkbox in the very bottom right of the dungeon tab.  If you want to permanently keep the icons on their larger
-size, click that checkbox.
-
 While the vast majority of RoomType choices represent staircases (e.g. transport 2, item basement), NPCs (e.g. bomb ugrade, hungry Goriya), or geometry-
 blockers (e.g. chutes, moats), there are also four special RoomTypes to mark the entrance to the dungeon, along with which direction you entered from.
 As a convenience, the very first room you left-click on in the dungeon will automatically become the 'Dungeon entrance (from south)' tile, as this is the most 
@@ -424,20 +425,159 @@ common entrance direction, and furthermore, left-clicking any of the four 'entra
 the usual left-click behavior of toggling completedness.  This way you can immediately mark the entrance tile and direction with some left clicks and
 zero extra mousing.
 
-There is one special RoomType, called OffTheMap.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
-dungeon map.  The main scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, rather than 'paint out' all the 
-on-the-minimap rooms, it would be faster to just 'mark off the holes'.  RoomType.OffTheMap is not available in the room selection popup.  You can either use 
-it by mapping a hotkey, or you can also select it by right clicking a room to bring up the popup, right clicking the Unmarked tile in the grid, and then 
-right clicking the Unmarked preview-tile to save the room.  That is, triple-right-clicking an Unmarked room will turn it into OffTheMap.  An example of 
-marking eight OffTheMap spots appears in this screenshot:
+<a id="off-the-map">There is one special RoomType, called OffTheMap</a>.  This RoomType is displayed as a big black box over the room area, effectively making a 'hole' in the 
+dungeon map.  An example scenario for using it is in e.g. Shapes 9 when you have an Atlas; when first entering the dungeon, you can just 'mark off the holes'.  
+RoomType.OffTheMap appears as "OFF" in the room selection popup.  An example of marking eight OffTheMap spots appears in this screenshot:
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dungeon-room-off-the-map-example.png)
 
+Note how mouse-hovering the little blue bars displays both the minimap of the dungeon boundaries based on off-the-map marks (top) as well as just the rooms you have 
+marked/visited (bottom).
+
+### <a id="main-dr-drag"></a> Dragging across multiple rooms at once to 'paint' a map
+
+To facilitate drawing maps quickly, the dungeon tracker has click-and-drag functionality.  Imagine you walk into dungeon 9 and you have the Atlas or get a map in one of the 
+initial rooms and see this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-9-goal.png)
+
+Ideally you'd like your tracker to look something like this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-9-map-goal.png)
+
+but that means marking 21 OffTheMap spots on the tracker.  Right-clicking each tile and going through the popup menu for each would take way too long, and even if you have a 
+HotKey for OffTheMap, it is still a bit tedious to hover all those rooms and press the key.  'Paint'ing to the rescue!  You can 'paint' a bunch of OffTheMap rooms at once by 
+right-click-dragging across multiple rooms on the map.  So, for example, it is easy to paint the 14 OffTheMap rooms on the right edge of the screenshot above
+using one fluid motion.  Then HotKeys can be used to mark off the remaining 'holes'.
+
+While that strategy works well for dungeon 9, for smaller dungeons it would be more efficient to paint just what's "on the map" rather than off it.  Suppose you get three rooms into
+dungeon 1 and find this map:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-goal.png)
+
+and you want to eventually get to here
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-goal.png)
+
+starting from here
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step1.png)
+
+There is a button in the bottom right of the dungeon tracker that swaps OffTheMap and Unmarked rooms.  If you first click that button, 
+the map changes to this:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step2.png)
+
+Whereas right-click-dragging paints OffTheMap rooms over Unmarked rooms, left-click-dragging does the opposite, painting Unmarked rooms atop OffTheMap rooms.  So next you can
+left-click-drag to paint the few existing rooms back onto the map.  Note that while you are dragging, a grid pops up to make it easier to see where you are painting:
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step3.png)
+
+Once you think you're done painting all the rooms, you can mouse hover the blue bars near the bottom right corner of the tracker and compare the map you have painted to the
+in-game mini-map as a double-check.
+
+![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step4.png)
+
+Thus right-click-drag, left-click-drag, and the OffTheMap/Unmarked toggle button can be used to quickly paint dungeon maps, both large and small.
+
+Finally, middle-click-drag (or shift-left-click-drag) paints completed (default MaybePushBlock) rooms atop Unmarked rooms.
+
+### "GRAB" to shift a portion of a map over a column/row
+
+Sometimes you may mark up a bit of dungeon map, before noticing that (a portion of) your mapping is offset by a column.  You can click 'GRAB' in the corner 
+of the dungeon map to switch to 'grab mode', which allows you to pick up entire segments of dungeon rooms and doors and move them at once (cut & paste) to 
+fix an offset map.
+
+### Vanilla dungeon maps
+
+Non-hidden dungeon numbers: FQ and SQ checkboxes will show First Quest or Second Quest outlines for that dungeon number.
+
+Hidden dungeon numbers: 'FQ/SQ' button pops up all the vanilla dungeon shape outlines for you to choose from, with hover previews, and hinting which ones 
+are compatible with your current room markup.
+
+![Vanilla map selection](screenshots/vanilla-dungeon-compatibility.png)
+
+
+### <a id="main-dungeon-row-location"></a>Row location assistance
+
+While it is relatively easy to see what column of the dungeon you are in, by witnessing what letter (of e.g. "LEVEL-1") the player marker is under on the in-game minimap:
+
+![in-game minimap screenshot](screenshots/rupee-key-bomb-in-game.png)
+
+it can be harder to discern what row of the dungeon you are in.  Most players will look to the right of the mini-map, as rows 1&2 are next to the rupee count, rows 3&4 are 
+next to the blank space, rows 5&6 are next to the key count, and rows 7&8 are next to the bomb count.  To facilitate the same reading in Z-Tracker, the upper-right of each 
+dungeon map has a similar rupee/blank/key/bomb icon, and as you mouse over a room in the dungeon room grid, a little grey box appears next to the corresponding row in the 
+upper right icon area:
+
+![z-tracker dungeon map screenshot](screenshots/rupee-key-bomb-z-tracker.png)
+
+In that screenshot, the mouse is over a room in the 5th row, so the highlight appears next to the top half of the 'key' icon.
+
+(The corresponding column letter also gets a subtle highlight when a dungeon room is moused over--see the second 'L' of LEVEL-1 in the screenshot.)
+
+### <a id="main-dungeon-old-man-count"></a>Old Man Count
+
+Each dungeon has a fixed number of expected encounters with 'old men' (NPCs who give hints, offer bomb upgrades, mug you, or want meat).  The number of such rooms you 
+have marked, along with the expected count for this dungeon, is displayed in the sidebar:
+
+![z-tracker old man count screenshot](screenshots/old-man-count.png)
+
+### <a id="main-dungeon-special-rooms"></a>Special NPC rooms
+
+Two room types have colorful extra visual information in the tracker:
+
+ - **Bomb Upgrade** rooms, when marked uncompleted (unpurchased), and
+ - **NPC with Hint** rooms, when marked uncompleted (un-read, when using 'Book to understand old men' rando flag and encountering the NPC before getting the Book)
+
+These rooms appear with a blue and red outline respectively, and when they exist in a certain dungeon, the dungeon tab gets a dot of the corresponding color:
+
+![Special NPC rooms](screenshots/special-npc-room-color.png)
+
+The motivation here is that these are types of rooms you might want to return to later, even after completing the dungeon (getting the triforce and all the items).  By 
+highlighting this information in the header tab and on the map in color, it is easy to, for example, when you get enough rupees to purchase the bomb upgrade, immediately 
+see which dungeon number and which room in that dungeon you need to return to.  (Just like most other rooms, left-clicking toggles the completed-ness of the room, so when 
+you purchase a bomb upgrade, you can just left-click the room to un-mark it blue and make its tab-dot disappear.)
+
+The NPC-with-Hint colors are optional, and off by default, since people rarely play with both 'Book To Understand Old Men' and 'Helpful' hints turned on.  You can change
+this setting by checking 'Book for Helpful Hints' in the [Options Menu](#main-om).  The Bomb-Upgrade colors are always on/available.
+
+Additionally, if a **Hungry Goriya (meat block)** room is marked in a dungeon, the bait icon appears on the dungeon tab.  It gets a green checkmark if the room is
+marked completed:
+
+![Bait block rooms](screenshots/bait-block-rooms.png)
+
+### <a id="main-hpdc"></a> Highlight potential dungeon continuations
+
+If you are having trouble finding all the rooms in a dungeon where you lack the map, and you want a visual reminder of what has yet to be checked, you can 
+mouse-hover the BLOCKERS label from the [Blockers](#main-blockers) section to display highlights that suggest what you still need to check.  This feature 
+is similar to (but distinct from) blockers, in that it is just based on your dungeon map markup.  In either the dungeon summary tab, or in a specific 
+dungeon tab, such as this:
+
+![Dungeon potential unhighlighted](screenshots/dungeon-potential-unhighlighted.png)
+
+when you mouse-hover BLOCKERS, the dungeon display adds highlights like this:
+
+![Dungeon potential highlighted](screenshots/dungeon-potential-highlighted.png)
+
+The display highlights a few things:
+ 
+ - walls that might be bombable and lead to a new room
+ - rooms you have marked as bow/recorder/bomb blocked due to bosses (using MonsterDetail, described later in Dungeon Rooms)
+ - any uncompleted Hungry Goriya Meat Block rooms
+ - rooms where you have marked a doorway to them, but have not marked that you've been in the room (typically key-blocked or ladder-blocked)
+
+You might find this feature useful when you return to a dungeon with more bombs, trying to find a bomb wall, or e.g. when you just got the recorder and want 
+to check the summary tab to see which dungeons had rooms your marked with Digdoggers.
+
+(If you already have the map of the dungeon, but are still missing a way to get to certain rooms, then it might be more useful to mouse-hover the little blue 
+bars near the bottom right corner of the dungeon tab, and compare it with the in-game mini-map.)
+
+---
 
 ## <a id="main-blockers"></a> Blockers
 
 This is an area you can optionally use to mark 'dungeon blockers', for scenarios where you cannot complete a dungeon now and need to return later.
-You can mark up to 2 blockers per dungeon.  The icons have these suggested meanings:
+You can mark up to 3 blockers per dungeon.  The icons have these suggested meanings:
 
  - Bow & Arrow: you need a bow and arrow (Gohma block, or maybe tons of Pols Voice)
  - Recorder:    you are blocked by Digdogger
@@ -467,6 +607,24 @@ the common mistake of e.g. the player forgetting they have the ladder, and then 
 
 When one of dungeons 1-8 is the currently selected dungeon tab, the corresponding blockers section gets a subtle highlight.
 
+#### Specific-Blockers
+
+For those players that want to track with even more precision, you can mark specifically what each blocker blocks.  For example, imagine you walk into a dungeon,
+and get an immediate compass that points to the next room, where a Gohma inhabits a Circle Moat.  The Triforce will be both Ladder-blocked (by the Circle Moat)
+and Bow-and-Arrow-blocked (by the Gohma).  You can add Ladder and Bow-and-Arrow blockers to this dungeon's blockers, however it is likely you could still find
+the floor item or basement item in this dungeon without being blocked.  Specific-Blockers are useful here.  Middle-click (or shift-left-click) a blocker box 
+to reveal a sub-menu like this:
+
+![Specific Blockers checklist screenshot](screenshots/specific-blockers-checklist.png)
+
+where you can specify exactly which things are blocked by this particular blocker.  If we mark that the Ladder and Bow-and-Arrow blockers each only block the
+Triforce, then Z-Tracker helps remember that by projecting those blockers on the main [Dungeon Item Area](#main-dia) thusly:
+
+![Specific Blockers projection screenshot](screenshots/specific-blockers-projection.png)
+
+The tiny blocker icons appear over a Triforce or Item Box when the corresponding checkbox is ticked.  If you become (partially) unblocked (e.g. get the Ladder),
+the corresponding tiny-blocker-icon turns green.  Once you obtain the blocked item (e.g. get the Triforce), all the tiny blocker icons disappear.
+
 
 ## <a id="main-notes"></a> Notes
 
@@ -478,13 +636,19 @@ If a file called Notes.txt exists in the program folder, the Notes box will be p
 
 ## <a id="main-timeline"></a> Timeline
 
-The timeline is an affordance, for e.g. viewers who watch a stream and arrive late, or for the player who finishes a seed and wants a retrospective of their game.
-Every minute, the player's inventory (as captured in the top portion of the tracker) is read, and new items are posted to the timeline above the minute-marker. This 
-makes it easy to look back and see e.g. that you got the wood sword in the 12th minute.
+The timeline is an affordance, either for the player who finishes a seed and wants a retrospective of their game, or for viewers who watch a stream and arrive late.
 
-The timeline is non-interactive, it is just a display for capturing progress-over-time.  Here is a sample of how it appears:
+As the player gets items, new items are posted to the timeline above the minute-marker. This makes it easy to look back and see e.g. that you got the wood sword 
+in the 12th minute.  The timeline data is stored in 'TotalSeconds', so you can see your splits for every item at one-second granularity by mouse-hovering an item
+in the timeline, or by clicking 'Save' and then inspecting the very end of the save file.
 
-![Timeline screenshot](screenshots/timeline-example.png)
+Also, as the player makes progress exploring the overworld, the timeline graphs this progress by showing the number of remaining unmarked screens on the overworld 
+trending up towards zero at the top of the graph.
+
+![Timeline screenshot](screenshots/most-recent-completion-timeline.png)
+
+When you click Zelda to finish the seed, your final time and final number of remaining unmarked overworld spots appear on the timeline, and a screenshot of the 
+timeline is taken and saved as "most-recent-completion-timeline.png" in your Z-Tracker directory, which you might share in a race-spoilers discussion.
 
 
 ## <a id="main-om"></a> Options Menu
@@ -551,4 +715,6 @@ let wakePhrase = "tracker set"
                 "hint shop"         , 32
                 "take any"          , 33
                 "potion shop"       , 34
+                "don't care"        , 35
+                "nothing"           , 35
 ```

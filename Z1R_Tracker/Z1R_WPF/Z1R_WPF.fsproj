@@ -31,6 +31,12 @@
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowedReferenceRelatedFileExtensions>
+      <!-- Prevent default XML and PDB files copied to output in RELEASE. 
+           Only *.allowedextension files will be included, which doesn't exist in my case.
+       -->
+		  .allowedextension
+	</AllowedReferenceRelatedFileExtensions>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
@@ -88,23 +94,25 @@
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
     <EmbeddedResource Include="icons\open_cave20x20.png" />
-    <EmbeddedResource Include="icons\icons3x3.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />
+    <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
+    <EmbeddedResource Include="icons\zelda_items16x16.png" />
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />
     <Compile Include="OverworldRouteDrawing.fs" />
-    <Compile Include="Timeline.fs" />
     <Compile Include="DungeonRoomState.fs" />
     <Compile Include="HotKeys.fs" />
     <Compile Include="CustomComboBoxes.fs" />
-    <Compile Include="DungeonRoomStateUI.fs" />
+    <Compile Include="Timeline.fs" />
     <Compile Include="PieMenus.fs" />
     <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />
-    <Compile Include="Views.fs" />
     <Compile Include="OptionsMenu.fs" />
+    <Compile Include="Views.fs" />
     <Compile Include="DungeonSaveAndLoad.fs" />
+    <Compile Include="DungeonHighlightsUI.fs" />
+    <Compile Include="DungeonPopups.fs" />
     <Compile Include="DungeonUI.fs" />
     <Compile Include="SpeechRecognition.fs" />
     <Compile Include="OverworldMapTileCustomization.fs" />
@@ -113,6 +121,9 @@
     <Compile Include="UIComponents.fs" />
     <Compile Include="HUDs.fs" />
     <Compile Include="Broadcast.fs" />
+    <Compile Include="UIHelpers.fs" />
+    <Compile Include="UserCustomLayer.fs" />
+    <Compile Include="DrawingLayer.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\README.txt">

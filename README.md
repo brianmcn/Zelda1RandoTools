@@ -2,10 +2,8 @@
 
 ### A tracker for Zelda 1 Randomizer
 
-The most recent full release is v1.1.1, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.1/doc/TOC.md), which includes links for 
+The most recent release is v1.2.2, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.2/doc/TOC.md), which includes links for 
 downloading and installing Z-Tracker.
-
-(There is also a public beta release of v1.2, which you can learn more about [here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.2/doc/TOC.md).)
 
 Sample screenshots:
 
@@ -16,7 +14,7 @@ Sample screenshots:
 
 ## Motivation
 
-This is a tracking tool for those play seeds of fcouglin's [Zelda 1 Randomizer](https://sites.google.com/site/zeldarandomizer/).
+This is a tracking tool for those play seeds of fcouglin's Zelda 1 Randomizer ([z1r discord](https://discord.gg/BEwVJUxxrW), [z1r wiki](https://z1r.fandom.com/wiki/Zelda_1_Randomizer_Wiki), [old z1r site](https://sites.google.com/site/zeldarandomizer/)).
 
 This tool is inspired by [ZHelper](http://questwizard.net/zhelper/), a tool commonly used by z1r racers.  (Other alternatives for tracking z1r include using an EmoTracker pack,
 using pen & paper, or using electronic notetaking in spreadsheets/Notepad.)
@@ -33,4 +31,4 @@ I wanted to create my own tool that I thought was better suited to certain audie
 * For **those learning z1r**: provide some helpful assistance and steering that makes it easier for the new player to decide what to do next.  Some features help route a path through the overworld 
   to find all of the necessary locations, and others provide reminder feedback about item progress and places that ought to be returned to, to finish the seed.
 
-Z-Tracker is still in activate development as I write this (April 2022).  The current release is suitable both for casual seed runners as well as z1r racers.
+Z-Tracker is still in activate development as I write this (May 2022).  The current release is suitable both for casual seed runners as well as z1r racers.

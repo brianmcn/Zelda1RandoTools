@@ -31,6 +31,7 @@ let TH = DungeonUI.TH // text height
 let THRU_MAIN_MAP_H = float(150 + 8*11*3)
 let THRU_MAP_AND_LEGEND_H = THRU_MAIN_MAP_H + float(11*3)
 let THRU_MAIN_MAP_AND_ITEM_PROGRESS_H = THRU_MAP_AND_LEGEND_H + 30.
+let THRU_BLOCKERS_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 38.*3.
 let START_DUNGEON_AND_NOTES_AREA_H = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
 let THRU_DUNGEON_AND_NOTES_AREA_H = START_DUNGEON_AND_NOTES_AREA_H + float(TH + 30 + (3 + 27*8 + 12*7 + 3) + 3)  // 3 is for a little blank space after this but before timeline
 let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
@@ -38,28 +39,35 @@ let THRU_TIMELINE_H = START_TIMELINE_H + float TCH
 let LEFT_OFFSET = 78.0
 let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
 let ITEM_PROGRESS_FIRST_ITEM = 130.
+let hmsTimeTextBox = new TextBox(Width=148., Height=56., Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
+let broadcastTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 
 // some global mutable variables needed across various UI components
-let theStartTime = new TrackerModel.LastChangedTime()
+let mutable popupIsActive = false
 
 let mutable displayIsCurrentlyMirrored = false
 let mutable notesTextBox = null : TextBox
+let mutable currentRecorderDestinationIndex = 0
 
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
+
+let mutable exportDungeonModelsJsonLines = fun () -> null
+let mutable legendStartIconButtonBehavior = fun () -> ()
 
 let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
 let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
 let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
 let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
 let mutable showLocatorPotionAndTakeAny = fun() -> ()
+let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    extrasImage:Image, timeTextBox:TextBox, resetTimerEvent:Event<unit>) =
+                    extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule) =
     let appMainCanvas = cm.AppMainCanvas
-    let owItemGrid = makeGrid(5, 4, 30, 30)
+    let owItemGrid = makeGrid(6, 4, 30, 30)
     canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
     // ow 'take any' hearts
     for i = 0 to 3 do
@@ -80,7 +88,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseLeave.Add(fun _ -> hideLocator())
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "TakeAnyHeart%d" (i+1), fun()->if TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1 then Some(Graphics.owHeartFull_bmp) else None))
+        timelineItems.Add(new Timeline.TimelineItem(sprintf "TakeAnyHeart%d" (i+1), fun()->Graphics.owHeartFull_bmp))
     // ladder, armos, white sword items
     let ladderBoxImpl = boxItemImpl("LadderBox", TrackerModel.ladderBox, true)
     let armosBoxImpl  = boxItemImpl("ArmosBox", TrackerModel.armosBox, false)
@@ -136,7 +144,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseDown.Add(fun _ -> prop.Toggle())
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         match timelineID with
-        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->if obj.Equals(rect.Stroke,yes) then Some(bmp) else None))
+        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
         | None -> ()
         c
     let basicBoxImpl(tts, tid, img, prop) =
@@ -183,11 +191,25 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
     gridAddTuple(owItemGrid, basicBoxImpl("Killed Gannon (mark timeline)", "Gannon", Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
-    gridAddTuple(owItemGrid, basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda),  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", "Zelda",  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda)
+    gridAddTuple(owItemGrid, zelda_box,  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    // hover zelda to display hidden overworld icons (note that Armos/Sword2/Sword3 will not be darkened)
+    zelda_box.MouseEnter.Add(fun _ -> 
+        for i=0 to 15 do for j=0 to 7 do OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
+        OptionsMenu.requestRedrawOverworldEvent.Trigger())
+    zelda_box.MouseLeave.Add(fun _ -> 
+        for i=0 to 15 do for j=0 to 7 do OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
+        OptionsMenu.requestRedrawOverworldEvent.Trigger())
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
         if b then 
-            notesTextBox.Text <- notesTextBox.Text + "\n" + timeTextBox.Text
+            notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
             TrackerModel.LastChangedTime.PauseAll()
+            if TrackerModelOptions.SaveOnCompletion.Value && not(Timeline.isCurrentlyLoadingASave) then
+                try
+                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
+                with _e ->
+                    ()
         else
             TrackerModel.LastChangedTime.ResumeAll()
         )
@@ -196,8 +218,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
-    let BOMBX, BOMBY = OW_ITEM_GRID_LOCATIONS.LocateBomb()
-    canvasAdd(appMainCanvas, bombIcon, BOMBX, BOMBY)
+    gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
 
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
@@ -205,16 +226,40 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
-    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+150., 30.)
+    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
 
-    let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
-    highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
-    ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
-    highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
-    highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
-    canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+    if isStandardHyrule then
+        let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
+        highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
+        ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
+        highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
+        highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
+        canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
 
-    let extrasPanel =
+    // these panels need to be created once, at startup time, as they have side effects that populate the timelineItems set
+    let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("White sword", "WhiteSword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", "SilverArrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Bow", "Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Wand", "Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", "RedCandle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", "Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", "MagicBoomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
+    let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
+    utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Red ring", "RedRing", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", "PowerBracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Ladder", "Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Raft", "Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Recorder", "Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Any key", "AnyKey", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Book", "Book", Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook)) |> ignore
+    let mutable extrasPanelAndepRefresh = None
+    let makeExtrasPanelAndepRefresh() =
         let mutable refreshTDD = fun () -> ()
         let mkTxt(size,txt) = 
             new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=size, Margin=Thickness(5.),
@@ -255,29 +300,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 )
             triforcePanel.Children.Add(innerc) |> ignore
         leftPanel.Children.Add(triforcePanel) |> ignore
-        let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("White sword", "WhiteSword", Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", "SilverArrow", Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Bow", "Bow", Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Wand", "Wand", Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", "RedCandle", Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", "Boomerang", Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang)) |> ignore
-        weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", "MagicBoomerang", Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang)) |> ignore
         leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
         leftPanel.Children.Add(weaponsRowPanel) |> ignore
-        let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-        utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Red ring", "RedRing", Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", "PowerBracelet", Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Ladder", "Ladder", Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Raft", "Raft", Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Recorder", "Recorder", Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Any key", "AnyKey", Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey)) |> ignore
-        utilityRowPanel.Children.Add(basicBoxImpl("Book", "Book", Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook)) |> ignore
         leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
         leftPanel.Children.Add(utilityRowPanel) |> ignore
         let maxHeartsPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
@@ -315,33 +339,42 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             tdd.MouseDown.Add(fun ea -> ea.Handled <- true)
             panel.Children.Add(tdd) |> ignore
         refreshTDD()
-        panel
-    let mutable popupIsActive = false
+        let refresh() =
+            maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
+        panel, refresh
+    let invokeExtras = async {
+        let wh = new System.Threading.ManualResetEvent(false)
+        let whole = new Canvas(Width=cm.Width, Height=cm.Height)
+        let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
+        whole.Children.Add(mouseClickInterceptor) |> ignore
+        if extrasPanelAndepRefresh.IsNone then
+            extrasPanelAndepRefresh <- Some(makeExtrasPanelAndepRefresh())  // created on-demand, to improve app startup time
+        let extrasPanel, epRefresh = extrasPanelAndepRefresh.Value
+        epRefresh()
+        whole.Children.Add(extrasPanel) |> ignore
+        mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
+        do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
+        whole.Children.Clear() // to reparent extrasPanel again next popup
+        } 
     extrasImage.MouseDown.Add(fun _ -> 
-        if not popupIsActive then
-            popupIsActive <- true
-            let wh = new System.Threading.ManualResetEvent(false)
-            let whole = new Canvas(Width=cm.Width, Height=cm.Height)
-            let mouseClickInterceptor = new Canvas(Width=cm.Width, Height=cm.Height, Background=Brushes.Black, Opacity=0.01)
-            whole.Children.Add(mouseClickInterceptor) |> ignore
-            whole.Children.Add(extrasPanel) |> ignore
-            mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
             async {
-                do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
-                whole.Children.Clear() // to reparent extrasPanel again next popup
-                popupIsActive <- false
-                } |> Async.StartImmediate
+                if not popupIsActive then
+                    popupIsActive <- true
+                    do! invokeExtras
+                    popupIsActive <- false
+            } |> Async.StartImmediate
         )
 
     // timer reset
     let timerResetButton = Graphics.makeButton("Pause/Reset timer", Some(16.), Some(Brushes.Orange))
     canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
-    let mutable popupIsActive = false
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
+            SaveAndLoad.MaybePollSeedAndFlags()
             let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
             let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
+            let mutable userPressedReset = false
             let sp = new StackPanel(Orientation=Orientation.Vertical)
             sp.Children.Add(firstButton) |> ignore
             sp.Children.Add(new DockPanel(Height=300.)) |> ignore
@@ -352,6 +385,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 )
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
+                userPressedReset <- true
                 wh.Set() |> ignore
                 )
             async {
@@ -359,17 +393,20 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)
                 TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
+                if userPressedReset then
+                    legendStartIconButtonBehavior()  // jump into the 'place the start spot' popup
                 } |> Async.StartImmediate
         )
     // spot summary
     let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
                                     BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
     let spotSummaryCanvas = new Canvas()
-    spotSummaryTB.MouseEnter.Add(fun _ ->
-        spotSummaryCanvas.Children.Clear()
-        spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
-        )   
-    spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
-    canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
+    if isStandardHyrule then   // Spot Summary only makes sense in standard map
+        spotSummaryTB.MouseEnter.Add(fun _ ->
+            spotSummaryCanvas.Children.Clear()
+            spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
+            )   
+        spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
+        canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
 
-    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas
+    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras

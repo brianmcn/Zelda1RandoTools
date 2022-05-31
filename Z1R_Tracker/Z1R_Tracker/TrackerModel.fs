@@ -2,12 +2,6 @@
 
 // model to track the state of the tracker independent of any UI/graphics layer
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Options
-
-open System.Text.Json
-open System.Text.Json.Serialization
-
 [<RequireQualifiedAccess>]
 type ReminderCategory =
     | DungeonFeedback
@@ -16,236 +10,15 @@ type ReminderCategory =
     | RecorderPBSpotsAndBoomstickBook
     | HaveKeyLadder
     | Blockers
+    | DoorRepair
 
-type IntentionalApplicationShutdown(msg) =
-    inherit System.Exception(msg)
+///////////////////////////////////////////////////////////////////////////
 
-module Options =
-    type Bool(init) =
-        let mutable v = init
-        member this.Value with get() = v and set(x) = v <- x
-    module Overworld =
-        let mutable DrawRoutes = Bool(true)
-        let mutable HighlightNearby = Bool(true)
-        let mutable ShowMagnifier = Bool(true)
-        let mutable MirrorOverworld = Bool(false)
-        let mutable ShopsFirst = Bool(true)
-    module VoiceReminders =
-        let mutable DungeonFeedback = Bool(true)
-        let mutable SwordHearts = Bool(true)
-        let mutable CoastItem = Bool(true)
-        let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
-        let mutable HaveKeyLadder = Bool(true)
-        let mutable Blockers = Bool(true)
-    module VisualReminders =
-        let mutable DungeonFeedback = Bool(true)
-        let mutable SwordHearts = Bool(true)
-        let mutable CoastItem = Bool(true)
-        let mutable RecorderPBSpotsAndBoomstickBook = Bool(false)
-        let mutable HaveKeyLadder = Bool(true)
-        let mutable Blockers = Bool(true)
-    let mutable AnimateTileChanges = Bool(true)
-    let mutable ListenForSpeech = Bool(false)
-    let mutable RequirePTTForSpeech = Bool(false)
-    let mutable PlaySoundWhenUseSpeech = Bool(true)
-    let mutable BOARDInsteadOfLEVEL = Bool(false)
-    let mutable IsSecondQuestDungeons = Bool(false)
-    let mutable DoDoorInference = Bool(false)
-    let mutable ShowBroadcastWindow = Bool(false)
-    let mutable BroadcastWindowSize = 3
-    let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
-    let mutable SmallerAppWindow = Bool(false)
-    let mutable SmallerAppWindowScaleFactor = 2.0/3.0
-    let mutable IsMuted = false
-    let mutable Volume = 30
-    let mutable MainWindowLT = ""
-    let mutable BroadcastWindowLT = ""
-    let mutable HotKeyWindowLTWH = ""
-    let mutable OverlayLocatorWindowLTWH = ""
-    let mutable BigIconsInDungeons = false
-
-    type ReadWrite() =
-        member val DrawRoutes = true with get,set
-        member val HighlightNearby = true with get,set
-        member val ShowMagnifier = true with get,set
-        member val MirrorOverworld = false with get,set
-        member val ShopsFirst = false with get,set
-
-        member val Voice_DungeonFeedback = true with get,set
-        member val Voice_SwordHearts = true with get,set
-        member val Voice_CoastItem = true with get,set
-        member val Voice_RecorderPBSpotsAndBoomstickBook = true with get,set
-        member val Voice_HaveKeyLadder = true with get,set
-        member val Voice_Blockers = true with get,set
-
-        member val Visual_DungeonFeedback = true with get,set
-        member val Visual_SwordHearts = true with get,set
-        member val Visual_CoastItem = true with get,set
-        member val Visual_RecorderPBSpotsAndBoomstickBook = true with get,set
-        member val Visual_HaveKeyLadder = true with get,set
-        member val Visual_Blockers = true with get,set
-        
-        
-        member val AnimateTileChanges = false with get,set
-        member val ListenForSpeech = false with get,set
-        member val RequirePTTForSpeech = false with get,set
-        member val PlaySoundWhenUseSpeech = true with get,set
-        member val BOARDInsteadOfLEVEL = false with get,set
-        member val IsSecondQuestDungeons = false with get,set
-        member val DoDoorInference = false with get,set
-        member val ShowBroadcastWindow = false with get,set
-        member val BroadcastWindowSize = 3 with get,set
-        member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
-        member val SmallerAppWindow = false with get,set
-        member val SmallerAppWindowScaleFactor = 2.0/3.0 with get,set
-
-        member val IsMuted = false with get, set
-        member val Volume = 30 with get, set
-        member val MainWindowLT = "" with get,set
-        member val BroadcastWindowLT = "" with get,set
-        member val HotKeyWindowLTWH = "" with get, set
-        member val OverlayLocatorWindowLTWH = "" with get, set
-        member val BigIconsInDungeons = false with get, set
-
-    let mutable private cachedSettingJson = null
-
-    let private writeImpl(filename) =
-        let data = ReadWrite()
-        data.DrawRoutes <- Overworld.DrawRoutes.Value
-        data.HighlightNearby <- Overworld.HighlightNearby.Value
-        data.ShowMagnifier <- Overworld.ShowMagnifier.Value
-        data.MirrorOverworld <- Overworld.MirrorOverworld.Value
-        data.ShopsFirst <- Overworld.ShopsFirst.Value
-
-        data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
-        data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
-        data.Voice_CoastItem <-       VoiceReminders.CoastItem.Value
-        data.Voice_RecorderPBSpotsAndBoomstickBook <- VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value
-        data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
-        data.Voice_Blockers <-        VoiceReminders.Blockers.Value
-
-        data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
-        data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
-        data.Visual_CoastItem <-       VisualReminders.CoastItem.Value
-        data.Visual_RecorderPBSpotsAndBoomstickBook <- VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
-        data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
-        data.Visual_Blockers <-        VisualReminders.Blockers.Value
-
-        data.AnimateTileChanges <- AnimateTileChanges.Value
-        data.ListenForSpeech <- ListenForSpeech.Value
-        data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
-        data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
-        data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
-        data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
-        data.DoDoorInference <- DoDoorInference.Value
-        data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
-        data.BroadcastWindowSize <- BroadcastWindowSize
-        data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
-        data.SmallerAppWindow <- SmallerAppWindow.Value
-        data.SmallerAppWindowScaleFactor <- SmallerAppWindowScaleFactor
-        data.IsMuted <- IsMuted
-        data.Volume <- Volume
-        data.MainWindowLT <- MainWindowLT
-        data.BroadcastWindowLT <- BroadcastWindowLT
-        data.HotKeyWindowLTWH <- HotKeyWindowLTWH
-        data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
-        data.BigIconsInDungeons <- BigIconsInDungeons
-
-        let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
-        if json <> cachedSettingJson then
-            cachedSettingJson <- json
-            System.IO.File.WriteAllText(filename, cachedSettingJson)
-
-    let private write(filename) =
-        try
-            writeImpl(filename)
-        with e ->
-            printfn "failed to write settings file '%s':" filename
-            printfn "%s" (e.ToString())
-            printfn ""
-
-    let private read(filename) =
-        try
-            cachedSettingJson <- System.IO.File.ReadAllText(filename)
-            let data = JsonSerializer.Deserialize<ReadWrite>(cachedSettingJson, new JsonSerializerOptions(AllowTrailingCommas=true))
-            Overworld.DrawRoutes.Value <- data.DrawRoutes
-            Overworld.HighlightNearby.Value <- data.HighlightNearby
-            Overworld.ShowMagnifier.Value <- data.ShowMagnifier
-            Overworld.MirrorOverworld.Value <- data.MirrorOverworld
-            Overworld.ShopsFirst.Value <- data.ShopsFirst    
-
-            VoiceReminders.DungeonFeedback.Value <- data.Voice_DungeonFeedback
-            VoiceReminders.SwordHearts.Value <-     data.Voice_SwordHearts
-            VoiceReminders.CoastItem.Value <-       data.Voice_CoastItem
-            VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value <- data.Voice_RecorderPBSpotsAndBoomstickBook
-            VoiceReminders.HaveKeyLadder.Value <-   data.Voice_HaveKeyLadder
-            VoiceReminders.Blockers.Value <-        data.Voice_Blockers
-
-            VisualReminders.DungeonFeedback.Value <- data.Visual_DungeonFeedback
-            VisualReminders.SwordHearts.Value <-     data.Visual_SwordHearts
-            VisualReminders.CoastItem.Value <-       data.Visual_CoastItem
-            VisualReminders.RecorderPBSpotsAndBoomstickBook.Value <- data.Visual_RecorderPBSpotsAndBoomstickBook
-            VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
-            VisualReminders.Blockers.Value <-        data.Visual_Blockers
-
-            AnimateTileChanges.Value <- data.AnimateTileChanges
-            ListenForSpeech.Value <- data.ListenForSpeech
-            RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
-            PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
-            BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
-            IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
-            DoDoorInference.Value <- data.DoDoorInference
-            ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
-            BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
-            BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
-            SmallerAppWindow.Value <- data.SmallerAppWindow
-            SmallerAppWindowScaleFactor <- data.SmallerAppWindowScaleFactor
-            IsMuted <- data.IsMuted
-            Volume <- max 0 (min 100 data.Volume)
-            MainWindowLT <- data.MainWindowLT
-            BroadcastWindowLT <- data.BroadcastWindowLT
-            HotKeyWindowLTWH <- data.HotKeyWindowLTWH
-            OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
-            BigIconsInDungeons <- data.BigIconsInDungeons
-        with e ->
-            cachedSettingJson <- null
-            printfn "Unable to read settings file '%s':" filename 
-            if System.IO.File.Exists(filename) then
-                printfn "That file does exist on disk, but could not be read.  Here is the error detail:"
-                printfn "%s" (e.ToString())
-                printfn ""
-                printfn "If you were intentionally hand-editing the .json settings file, you may have made a mistake that must be corrected."
-                printfn ""
-                printfn "The application will shut down now. If you want to discard the broken settings file and start %s fresh with some default settings, then simply delete the file:" OverworldData.ProgramNameString
-                printfn ""
-                printfn "%s" filename
-                printfn ""
-                printfn "from disk before starting the application again."
-                printfn ""
-                raise <| IntentionalApplicationShutdown "Intentional application shutdown: failed to read settings file data."
-            else
-                printfn "Perhaps this is your first time using '%s' on this machine?" OverworldData.ProgramNameString
-                printfn "A default settings file will be created for you..."
-                try
-                    writeImpl(filename)
-                    printfn "... The settings file has been successfully created."
-                with e ->
-                    printfn "... Failed to write settings file.  Perhaps there is an issue with the file location?"
-                    printfn "'Filename'='%s'" filename
-                    printfn "Here is more information about the problem:"
-                    printfn "%s" (e.ToString())
-                    printfn ""
-
-    let mutable private settingsFile = null
-    
-    let readSettings() =
-        if settingsFile = null then
-            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
-        read(settingsFile)
-    let writeSettings() =
-        if settingsFile = null then
-            settingsFile <- System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_settings.json")
-        write(settingsFile)
+let GetOldManCount(i) =
+    if TrackerModelOptions.IsSecondQuestDungeons.Value then
+        DungeonData.oldManCounts2Q.[i]
+    else
+        DungeonData.oldManCounts1Q.[i]
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -440,8 +213,8 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "AnyRoad3"         , 1                                                  , "Any Road 3/4"
     "AnyRoad4"         , 1                                                  , "Any Road 4/4"
     "Sword3"           , 1                                                  , "Magical Sword Cave\n(10-14 hearts to lift)"
-    "Sword2"           , 1                                                  , "White Sword Cave\n(4-6 hearts to lift)"
-    "Sword1"           , 1                                                  , "Wood Sword Cave"
+    "Sword2"           , 1                                                  , "'White Sword' Cave\n(4-6 hearts to lift)\nNote: might have\nany item, not just\nwhite sword"
+    "Sword1"           , 1                                                  , "Wood Sword Cave\n(can always lift)"
     // 1Q has 12 shops, distributed 4,4,3,1                                
     // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         
     "ArrowShop"        , 999                                                , "Shop with\nWood Arrows\n(60-100 rupees)"
@@ -519,6 +292,49 @@ type MapSquareChoiceDomainHelper =
             let r,_,_ = dummyOverworldTiles.[n] in r
         else
             failwith "bad overworld tile id"
+    static member TilesThatSupportHidingOverworldMarks = 
+        [| 
+            MapSquareChoiceDomainHelper.SWORD3
+            MapSquareChoiceDomainHelper.SWORD2
+            MapSquareChoiceDomainHelper.SWORD1
+            MapSquareChoiceDomainHelper.LARGE_SECRET
+            MapSquareChoiceDomainHelper.MEDIUM_SECRET
+            MapSquareChoiceDomainHelper.SMALL_SECRET
+            MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE
+            MapSquareChoiceDomainHelper.MONEY_MAKING_GAME
+            MapSquareChoiceDomainHelper.THE_LETTER
+            MapSquareChoiceDomainHelper.ARMOS
+            MapSquareChoiceDomainHelper.HINT_SHOP
+            MapSquareChoiceDomainHelper.TAKE_ANY
+        |]
+    static member AsTrackerModelOptionsOverworldTilesToHide(n) =
+        if n = MapSquareChoiceDomainHelper.SWORD3 then
+            TrackerModelOptions.OverworldTilesToHide.Sword3
+        elif n = MapSquareChoiceDomainHelper.SWORD2 then
+            TrackerModelOptions.OverworldTilesToHide.Sword2
+        elif n = MapSquareChoiceDomainHelper.SWORD1 then
+            TrackerModelOptions.OverworldTilesToHide.Sword1
+        elif n = MapSquareChoiceDomainHelper.LARGE_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.LargeSecret
+        elif n = MapSquareChoiceDomainHelper.MEDIUM_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.MediumSecret
+        elif n = MapSquareChoiceDomainHelper.SMALL_SECRET then
+            TrackerModelOptions.OverworldTilesToHide.SmallSecret
+        elif n = MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+            TrackerModelOptions.OverworldTilesToHide.DoorRepair
+        elif n = MapSquareChoiceDomainHelper.MONEY_MAKING_GAME then
+            TrackerModelOptions.OverworldTilesToHide.MoneyMakingGame
+        elif n = MapSquareChoiceDomainHelper.THE_LETTER then
+            TrackerModelOptions.OverworldTilesToHide.TheLetter
+        elif n = MapSquareChoiceDomainHelper.ARMOS then
+            TrackerModelOptions.OverworldTilesToHide.Armos
+        elif n = MapSquareChoiceDomainHelper.HINT_SHOP then
+            TrackerModelOptions.OverworldTilesToHide.HintShop
+        elif n = MapSquareChoiceDomainHelper.TAKE_ANY then
+            TrackerModelOptions.OverworldTilesToHide.TakeAny
+        else 
+            failwith "bad AsTrackerModelOptionsOverworldTilesToHide"
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -569,6 +385,8 @@ type LastChangedTime(intervalHowFarInThePast) as this =
             match isFuture with
             | Some(interval) -> System.DateTime.Now - interval
             | None -> stamp + (System.DateTime.Now - whenPaused)
+
+let theStartTime = new LastChangedTime()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -683,13 +501,26 @@ type PlayerHas =
     member this.AsInt() = match this with | PlayerHas.NO -> 0 | PlayerHas.YES -> 1 | PlayerHas.SKIPPED -> 2
     static member FromInt(x) = if x=0 then PlayerHas.NO elif x=1 then PlayerHas.YES elif x=2 then PlayerHas.SKIPPED else failwith "bad PlayerHas value"
 
-type Box() =
+[<RequireQualifiedAccess>]
+type StairKind = // does this box represent a dungeon basement item? we only both with this for display purposes in non-hidden-dungeon-numbers
+    | Never
+    | Always
+    | LikeL2  // 2nd box of 2 is basement in 2nd quest
+    | LikeL3  // 2nd box of 3 is a basement in 1st quest
+[<RequireQualifiedAccess>]
+type BoxOwner =   // for deciding what Blocker-projections to display in it
+    | DungeonIndexAndNth of int*int // { 0-8 for 1-9 or A-H,9 ; 0-2 for first-third box }
+    | Dungeon1or4                   // the third box of 1 or 4 depending upon SecondQuestDungeons value
+    | None                          // an item box that does not below to a dungeon, e.g. CoastItem
+type Box(stair:StairKind, owner) =
     // this contains both a Cell (player-knowing-location-contents), and a bool (whether the players _has_ the thing there)
     let cell = new Cell(allItemWithHeartShuffleChoiceDomain)
     let mutable playerHas = PlayerHas.NO
     let changed = new Event<_>()
     member _this.Changed = changed.Publish
-    member _this.PlayerHas() = playerHas
+    member _this.PlayerHas() = playerHas           // note that the state (cell = -1, playerHas = SKIPPED) is used to mean 'white-highlighted box' in the UI
+    member _this.Stair = stair
+    member _this.Owner = owner
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
     member _this.CellPrev() = 
@@ -720,9 +551,9 @@ type Box() =
         changed.Trigger()
     member _this.IsDone() = cell.Current() <> -1 && playerHas <> PlayerHas.NO   // the player knows the item here and has gotten or intentionally skipped it
 
-let ladderBox = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let armosBox  = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
-let sword2Box = (let b = Box() in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let ladderBox = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let armosBox  = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
+let sword2Box = (let b = Box(StairKind.Never, BoxOwner.None) in b.SetPlayerHas(PlayerHas.SKIPPED); b)
 
 [<RequireQualifiedAccess>]
 type DungeonTrackerInstanceKind =
@@ -731,8 +562,8 @@ type DungeonTrackerInstanceKind =
 
 type DungeonTrackerInstance(kind) =
     static let mutable theInstance = None
-    let finalBoxOf1Or4 = new Box()  // only relevant in DEFAULT
-    let dungeons = 
+    let finalBoxOf1Or4 = new Box(StairKind.Always, BoxOwner.Dungeon1or4)  // only relevant in DEFAULT
+    let makeDungeons() = 
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> [| 
             for i = 0 to 7 do 
@@ -750,15 +581,20 @@ type DungeonTrackerInstance(kind) =
             new Dungeon(7, 3)
             new Dungeon(8, 2)
             |]
+    let mutable dungeons = null
+    let getDungeons() =
+        if dungeons = null then
+            dungeons <- makeDungeons()
+        dungeons
     member _this.Kind = kind
-    member _this.Dungeons(i) = dungeons.[i]
+    member _this.Dungeons(i) = getDungeons().[i]
     member _this.FinalBoxOf1Or4 =
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> failwith "FinalBoxOf1Or4 does not exist in HIDE_DUNGEON_NUMBERS"
         | DungeonTrackerInstanceKind.DEFAULT -> finalBoxOf1Or4
     member _this.AllBoxes() =
         [|
-        for d in dungeons do
+        for d in getDungeons() do
             yield! d.Boxes
         yield ladderBox
         yield armosBox
@@ -771,7 +607,19 @@ type DungeonTrackerInstance(kind) =
 
 and Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
-    let boxes = Array.init numBoxes (fun _ -> new Box())
+    let boxes = Array.init numBoxes (fun j -> 
+        if DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS then
+            new Box(StairKind.Never, BoxOwner.DungeonIndexAndNth(id,j))
+        else
+            if id=8 || (j=1 && not(id=0 || id=1 || id=2)) || j=2 then
+                new Box(StairKind.Always, BoxOwner.DungeonIndexAndNth(id,j))
+            elif j=1 && id=1 then
+                new Box(StairKind.LikeL2, BoxOwner.DungeonIndexAndNth(id,j))
+            elif j=1 && id=2 then
+                new Box(StairKind.LikeL3, BoxOwner.DungeonIndexAndNth(id,j))
+            else
+                new Box(StairKind.Never, BoxOwner.DungeonIndexAndNth(id,j))
+        )
     let mutable color = 0                // 0xRRGGBB format   // just ignore this for dungeon 9 (id=8)
     let mutable labelChar = '?'          // ?12345678         // just ignore this for dungeon 9 (id=8)
     let hiddenDungeonColorLabelChangeEvent = new Event<_>()
@@ -788,7 +636,7 @@ and Dungeon(id,numBoxes) =
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes
         | DungeonTrackerInstanceKind.DEFAULT ->
-            if id=0 && not(Options.IsSecondQuestDungeons.Value) || id=3 && Options.IsSecondQuestDungeons.Value then
+            if id=0 && not(TrackerModelOptions.IsSecondQuestDungeons.Value) || id=3 && TrackerModelOptions.IsSecondQuestDungeons.Value then
                 [| yield! boxes; yield DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4 |]
             else
                 boxes
@@ -800,7 +648,7 @@ and Dungeon(id,numBoxes) =
                 for b in boxes do
                     if b.IsDone() then
                         numBoxesDone <- numBoxesDone + 1
-                let twoBoxers = if Options.IsSecondQuestDungeons.Value then "123567" else "234567"
+                let twoBoxers = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
                 numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
             else
                 false
@@ -841,7 +689,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWhiteSwordItem = haveWhiteSwordItem
     member _this.HavePowerBracelet = havePowerBracelet
     member _this.HaveRaft = haveRaft
-    member _this.PlayerHearts = playerHearts // TODO can't handle money-or-life rooms losing heart, or flags that start with more hearts
+    member _this.PlayerHearts = playerHearts
     member _this.SwordLevel = swordLevel
     member _this.CandleLevel = candleLevel
     member _this.RingLevel = ringLevel
@@ -850,6 +698,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.HaveWand = haveWand
     member _this.HaveBookOrShield = haveBook
     member _this.BoomerangLevel = boomerangLevel
+
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
 let playerComputedStateSummaryLastComputedTime = new LastChangedTime()
 let recomputePlayerStateSummary() =
@@ -940,9 +789,24 @@ let recomputePlayerStateSummary() =
 //////////////////////////////////////////////////////////////////////////////////////////
 // Map
 
-let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.FIRST)
+let mutable owInstance = new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST)
 
 let mapLastChangedTime = new LastChangedTime()
+let overworldMapCircles = Array2D.create 16 8 0   // 0 means none, 1 means just circle, 48-57 means circle with 0-9 label, 65-90 means circle with A-Z label; +100 of those or +200 of those changes color
+let toggleOverworldMapCircle(i,j) =
+    overworldMapCircles.[i,j] <- 
+        if overworldMapCircles.[i,j]%100=0 then 
+            overworldMapCircles.[i,j]+1 
+        else 
+            overworldMapCircles.[i,j] - overworldMapCircles.[i,j]%100
+let nextOverworldMapCircleColor(i,j) =
+    overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] + 100
+    if overworldMapCircles.[i,j] >= 300 then
+        overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] - 300
+let prevOverworldMapCircleColor(i,j) =
+    overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] + 200
+    if overworldMapCircles.[i,j] >= 300 then
+        overworldMapCircles.[i,j] <- overworldMapCircles.[i,j] - 300
 let mutable overworldMapMarks : Cell[,] = null
 let private overworldMapExtraData = Array2D.init 16 8 (fun _ _ -> Array.zeroCreate (MapSquareChoiceDomainHelper.DARK_X+1))
 // extra data key-value store, used by 
@@ -1037,10 +901,15 @@ let recomputeMapStateSummary() =
                         (owInstance.Raftable(i,j) && not playerComputedStateSummary.HaveRaft) ||
                         (owInstance.Bombable(i,j) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())) ||
                         (owInstance.Burnable(i,j) && playerComputedStateSummary.CandleLevel=0) then
-                        ()
+                        ()  // not routeworthy, as the player can't uncover the spot... except...
+                        if i=15 && j=2 && TrackerModelOptions.Overworld.DrawRoutes.Value && TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value && TrackerModelOptions.Overworld.MirrorOverworld.Value then
+                            owRouteworthySpots.[i,j] <- true  // can screen scroll to coast island; even though is out-of-logic, is good to teach that is possible
                     else
                         owRouteworthySpots.[i,j] <- true
                         owGettableLocations.Add(i,j)
+                | n when n=MapSquareChoiceDomainHelper.DARK_X ->
+                    if getOverworldMapExtraData(i, j, n)=n then
+                        owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
                 | _ -> () // shop or whatnot
                 let cur = overworldMapMarks.[i,j].Current()
                 if MapSquareChoiceDomainHelper.IsItem(cur) then
@@ -1104,6 +973,14 @@ type DungeonBlocker =
             if db.AsHotKeyName()=hkn then
                 r <- db
         r
+    member this.PlayerCouldBeBlockedByThis() =
+        match this.HardCanonical() with
+        | DungeonBlocker.LADDER -> not playerComputedStateSummary.HaveLadder
+        | DungeonBlocker.RECORDER -> not playerComputedStateSummary.HaveRecorder
+        | DungeonBlocker.BOW_AND_ARROW -> not (playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel > 0)
+        | DungeonBlocker.KEY -> not playerComputedStateSummary.HaveAnyKey
+        | DungeonBlocker.COMBAT -> not(playerComputedStateSummary.SwordLevel=3 && playerComputedStateSummary.RingLevel=2)
+        | _ -> true
     member this.AsHotKeyName() =
         match this with
         | DungeonBlocker.COMBAT -> "Blocker_Combat"
@@ -1163,13 +1040,26 @@ type CombatUnblockerDetail =
     | BETTER_SWORD
     | BETTER_ARMOR
     | WAND
+type DungeonBlockerAppliesTo() =
+    static member MAX = 6
+    member val Data = Array.create DungeonBlockerAppliesTo.MAX false // map, compass, tri, box1, box2, box3
 type DungeonBlockersContainer() =
-    static let MAX_BLOCKERS_PER_DUNGEON = 2
-    static let dungeonBlockers = Array2D.create 8 MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+    static let dungeonBlockers = Array2D.create 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON DungeonBlocker.NOTHING  // Note: we don't need to LastComputedTime-invalidate anything when the blocker set changes
+    static let appliesTo = Array2D.init 8 DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON (fun _ _ -> new DungeonBlockerAppliesTo())
+    static let mutable currentlyIgnoringChangesDuringLoad = false
     static let changed = new Event<unit>()
+    static member StartIgnoreChangesDuringLoad() = currentlyIgnoringChangesDuringLoad <- true
+    static member FinishIgnoreChangesDuringLoad() = currentlyIgnoringChangesDuringLoad <- false; changed.Trigger()
     static member AnyBlockerChanged = changed.Publish
     static member GetDungeonBlocker(i,j) = dungeonBlockers.[i,j]
-    static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; changed.Trigger()
+    static member SetDungeonBlocker(i,j,db) = dungeonBlockers.[i,j] <- db; if not currentlyIgnoringChangesDuringLoad then changed.Trigger()
+    // i = dungeon index, j = which blocker instance (0-2), k = which item (m/c/t/1/2/3)
+    static member GetDungeonBlockerAppliesTo(i,j,k) = appliesTo.[i,j].Data.[k]
+    static member SetDungeonBlockerAppliesTo(i,j,k,b) = appliesTo.[i,j].Data.[k] <- b; if not currentlyIgnoringChangesDuringLoad then changed.Trigger()
+    static member AsJsonString(i,j) = 
+        let body = appliesTo.[i,j].Data |> Array.map (fun b -> b.ToString().ToLowerInvariant()) |> Array.fold (fun s x -> s+x+", ") ""
+        sprintf """{ "Kind": "%s", "AppliesTo": [ %s ] }""" (dungeonBlockers.[i,j].AsHotKeyName()) (body.Substring(0, body.Length-2))
+    static member MAX_BLOCKERS_PER_DUNGEON = 3
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1220,7 +1110,7 @@ type HintZone =
         | FOREST -> 'F'
     override this.ToString() =
         match this with
-        | UNKNOWN -> "?????"
+        | UNKNOWN -> "(Unknown)"
         | DEATH_MOUNTAIN -> "Death Mountain"
         | LAKE -> "Lake"
         | LOST_HILLS -> "Lost Hills"
@@ -1268,10 +1158,12 @@ let GetLevelHint, SetLevelHint, LevelHintChanged =
 let mutable NoFeatOfStrengthHintWasGiven = false
 let mutable SailNotHintWasGiven = false
 
+let mutable currentlyIgnoringForceUpdatesDuringALoad = false
 let forceUpdate() = 
-    // UI can force an update for a few bits that we don't model well yet
-    // TODO ideally dont want this, feels like kludge?
-    mapLastChangedTime.SetNow()
+    if not currentlyIgnoringForceUpdatesDuringALoad then
+        // UI can force an update for a few bits that we don't model well yet
+        // TODO ideally dont want this, feels like kludge?
+        mapLastChangedTime.SetNow()
                 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1296,6 +1188,7 @@ type TriforceAndGoSummary() =
     // Note: we're just going to assume the player has a sword (or wand in swordless), let's not go nuts with advanced flags and/or unlikely no-sword-but-all-items situations
     let haveBow = playerComputedStateSummary.HaveBow
     let haveSilvers = playerComputedStateSummary.ArrowLevel=2
+    let silversKnownToBeInLevel9 = GetDungeon(8).Boxes.[0].CellCurrent()=ITEMS.SILVERARROW || GetDungeon(8).Boxes.[1].CellCurrent()=ITEMS.SILVERARROW
     let haveLadder = playerComputedStateSummary.HaveLadder
     let haveRecorder = playerComputedStateSummary.HaveLadder
     let unreachableCount = unreachablePossibleDungeonSpotCount()
@@ -1319,12 +1212,13 @@ type TriforceAndGoSummary() =
             //printfn "score: %d" score
             if score < 0 then 0 else score
         // you might need e.g. power bracelet or raft to find missing dungeon, so never TAG without being able to locate them all  
+        let knowSilvers = haveSilvers || silversKnownToBeInLevel9
         if missingDungeonCount=0 || unreachableCount=0 then 
-            if haveBow && haveSilvers && haveLadder && haveRecorder then
+            if haveBow && knowSilvers && haveLadder && haveRecorder then
                 103
-            elif haveBow && haveSilvers && haveLadder then
+            elif haveBow && knowSilvers && haveLadder then
                 102
-            elif haveBow && haveSilvers then
+            elif haveBow && knowSilvers then
                 101
             else
                 compute()
@@ -1333,6 +1227,7 @@ type TriforceAndGoSummary() =
     member _this.Level = tagLevel  // 103 TAG, 102 probably-TAG, 101 might-be-TAG, 1-100 see features below, 0 not worth reporting
     member _this.HaveBow = haveBow
     member _this.HaveSilvers = haveSilvers
+    member _this.SilversKnownToBeInLevel9 = silversKnownToBeInLevel9
     member _this.HaveLadder = haveLadder
     member _this.HaveRecorder = haveRecorder
     member _this.MissingDungeonCount = missingDungeonCount
@@ -1375,6 +1270,9 @@ let mutable priorBowArrow = false
 let mutable priorRecorder = false
 let mutable priorLadder = false
 let mutable priorAnyKey = false
+// timeline data
+let timelineDataOverworldSpotsRemain = ResizeArray<int*int>()  // (seconds, numSpotsRemain)
+let mutable priorOWSpotsRemain = 0
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
@@ -1392,6 +1290,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             ite.AnnounceConsiderSword3()
     // map
     ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain, mapStateSummary.OwGettableLocations.Count)
+    if mapStateSummary.OwSpotsRemain <> priorOWSpotsRemain then
+        priorOWSpotsRemain <- mapStateSummary.OwSpotsRemain
+        let span = System.DateTime.Now - theStartTime.Time
+        let s = int span.TotalSeconds
+        timelineDataOverworldSpotsRemain.Add(s, priorOWSpotsRemain) 
     for d = 0 to 8 do
         if mapStateSummary.DungeonLocations.[d] <> NOTFOUND then
             let x,y = mapStateSummary.DungeonLocations.[d]
@@ -1486,7 +1389,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
             if combatUnblockerOrigins.Count = 1 && combatUnblockerOrigins.[0] = i then
                 () // do nothing, they're already in the dungeon we'd be reminding them to go to
             else
-                if DungeonBlockersContainer.GetDungeonBlocker(i,0) = DungeonBlocker.COMBAT || DungeonBlockersContainer.GetDungeonBlocker(i,1) = DungeonBlocker.COMBAT then
+                let mutable anyCombatBlocker = false
+                for j = 0 to DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    if DungeonBlockersContainer.GetDungeonBlocker(i,j) = DungeonBlocker.COMBAT then
+                        anyCombatBlocker <- true
+                if anyCombatBlocker then
                     if not(GetDungeon(i).IsComplete) then
                         dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1499,7 +1406,11 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         let dungeonIdxs = ResizeArray()
         for i = 0 to 7 do
             if i <> fromDungeon then
-                if DungeonBlockersContainer.GetDungeonBlocker(i,0).HardCanonical() = db.HardCanonical() || DungeonBlockersContainer.GetDungeonBlocker(i,1).HardCanonical() = db.HardCanonical() then
+                let mutable anyMatchingBlocker = false
+                for j = 0 to DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    if DungeonBlockersContainer.GetDungeonBlocker(i,j).HardCanonical() = db.HardCanonical() then
+                        anyMatchingBlocker <- true
+                if anyMatchingBlocker then
                     if not(GetDungeon(i).IsComplete) then
                         dungeonIdxs.Add(i)
         if dungeonIdxs.Count > 0 then
@@ -1536,7 +1447,111 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.RemindShortly(ITEMS.KEY)
         remindedAnyKey <- true
 
- ///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+
+[<RequireQualifiedAccess>]
+type TimelineItemDescription =   // a way to identify which unique timeline item we are referring to, without any associated 'state' (timestamps, gotten-ness, ...)
+    | ExtrasOrShopping of string * BoolProperty
+    | TakeAnyHeart of int
+    | Triforce of int
+    | ItemBox of string * Box
+    | UserCustom of string * Event<bool>
+    member this.Identifier =
+        match this with
+        | TimelineItemDescription.ExtrasOrShopping(i,_) -> i
+        | TimelineItemDescription.TakeAnyHeart n -> sprintf "TakeAnyHeart%d" (n+1)
+        | TimelineItemDescription.Triforce n -> sprintf "Triforce%d" (n+1)
+        | TimelineItemDescription.ItemBox(i,_) -> i
+        | TimelineItemDescription.UserCustom(s,_) -> s
+type TimelineItemModel(desc: TimelineItemDescription) =
+    // TODO keep history of all changes maybe
+    static let all = new System.Collections.Generic.Dictionary<_,_>()
+    let mutable finishedTotalSeconds = -1
+    let mutable itemPlayerHas = PlayerHas.YES             // for non-item-box things, is always YES.  for item boxes, reflects the state of the box, suggests UI display.
+    static let timelineChanged = new Event<_>()
+    let stamp(b,ph) = 
+        let span = System.DateTime.Now - theStartTime.Time
+        let s = int span.TotalSeconds
+        if b then
+            finishedTotalSeconds <- s
+        else
+            finishedTotalSeconds <- -1
+        itemPlayerHas <- ph
+        timelineChanged.Trigger(int span.TotalMinutes)
+    do
+        // listen for changes
+        match desc with
+        | TimelineItemDescription.ExtrasOrShopping(_,bp) -> bp.Changed.Add(fun _ -> stamp(bp.Value(), PlayerHas.YES))
+        | TimelineItemDescription.TakeAnyHeart(i) -> playerProgressAndTakeAnyHearts.TakeAnyHeartChanged.Add(fun x -> if x=i then stamp(playerProgressAndTakeAnyHearts.GetTakeAnyHeart(i)=1, PlayerHas.YES))
+        | TimelineItemDescription.Triforce(i) -> GetDungeon(i).PlayerHasTriforceChanged.Add(fun _ -> stamp(GetDungeon(i).PlayerHasTriforce(), PlayerHas.YES))
+        | TimelineItemDescription.ItemBox(_,b) -> b.Changed.Add(fun _ -> stamp(b.CellCurrent() <> -1 && b.PlayerHas()<>PlayerHas.NO, b.PlayerHas()))
+        | TimelineItemDescription.UserCustom(_,e) -> e.Publish.Add(fun b -> stamp(b,PlayerHas.YES))
+    static member TriggerTimelineChanged() =  // used when Loading a Save file
+        let span = System.DateTime.Now - theStartTime.Time
+        timelineChanged.Trigger(int span.TotalMinutes)
+    member this.StampTotalSeconds(s,ph) =  // used when Loading a Save file
+        match desc with
+        | TimelineItemDescription.ItemBox(_,_) -> itemPlayerHas <- ph
+        | _ -> ()
+        finishedTotalSeconds <- s
+    member this.Identifier = desc.Identifier
+    member this.FinishedTotalSeconds = finishedTotalSeconds
+    member this.Has = itemPlayerHas
+    static member TimelineChanged = timelineChanged.Publish
+    static member All = all
+    static member MakeAll() =
+        // descriptions
+        let all = ResizeArray()
+        // shopping
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WoodSword", playerProgressAndTakeAnyHearts.PlayerHasWoodSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WoodArrow", playerProgressAndTakeAnyHearts.PlayerHasWoodArrow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BlueCandle", playerProgressAndTakeAnyHearts.PlayerHasBlueCandle))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BlueRing", playerProgressAndTakeAnyHearts.PlayerHasBlueRing))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicalSword", playerProgressAndTakeAnyHearts.PlayerHasMagicalSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("BoomstickBook", playerProgressAndTakeAnyHearts.PlayerHasBoomBook))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Gannon", playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Zelda", playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda))
+        // extras
+        all.Add(TimelineItemDescription.ExtrasOrShopping("WhiteSword", startingItemsAndExtras.PlayerHasWhiteSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("SilverArrow", startingItemsAndExtras.PlayerHasSilverArrow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Bow", startingItemsAndExtras.PlayerHasBow))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Wand", startingItemsAndExtras.PlayerHasWand))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("RedCandle", startingItemsAndExtras.PlayerHasRedCandle))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Boomerang", startingItemsAndExtras.PlayerHasBoomerang))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicBoomerang", startingItemsAndExtras.PlayerHasMagicBoomerang))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("RedRing", startingItemsAndExtras.PlayerHasRedRing))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("PowerBracelet", startingItemsAndExtras.PlayerHasPowerBracelet))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Ladder", startingItemsAndExtras.PlayerHasLadder))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Raft", startingItemsAndExtras.PlayerHasRaft))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Recorder", startingItemsAndExtras.PlayerHasRecorder))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("AnyKey", startingItemsAndExtras.PlayerHasAnyKey))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("Book", startingItemsAndExtras.PlayerHasBook))
+        // take any hearts
+        for i = 0 to 3 do
+            all.Add(TimelineItemDescription.TakeAnyHeart i)
+        // triforce
+        for i = 0 to 7 do
+            all.Add(TimelineItemDescription.Triforce i)
+        // items
+        all.Add(TimelineItemDescription.ItemBox("LadderBox", ladderBox))
+        all.Add(TimelineItemDescription.ItemBox("ArmosBox", armosBox))
+        all.Add(TimelineItemDescription.ItemBox("WhiteSwordBox", sword2Box))
+        if IsHiddenDungeonNumbers() then
+            for i = 0 to 8 do
+                for j = 0 to 2 do
+                    if i<>8 || j<>2 then
+                        all.Add(TimelineItemDescription.ItemBox(sprintf "Level%dBox%d" (i+1) (j+1), GetDungeon(i).Boxes.[j]))
+        else
+            all.Add(TimelineItemDescription.ItemBox("Level1or4Box3", DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4))
+            for i = 0 to 8 do
+                for j = 0 to 2 do
+                    if j=0 || j=1 || i=7 then
+                        all.Add(TimelineItemDescription.ItemBox(sprintf "Level%dBox%d" (i+1) (j+1), GetDungeon(i).Boxes.[j]))
+        // models
+        for tid in all do
+            TimelineItemModel.All.Add(tid.Identifier, new TimelineItemModel(tid))
+        
+///////////////////////////////////////////////////////
 
 let initializeAll(instance:OverworldData.OverworldInstance, kind) =
     if mapSquareChoiceDomain = null then
@@ -1555,5 +1570,6 @@ let initializeAll(instance:OverworldData.OverworldInstance, kind) =
             if owInstance.AlwaysEmpty(i,j) then
                 overworldMapMarks.[i,j].Prev()   // set to 'X'
     recomputeMapStateSummary()
+    TimelineItemModel.MakeAll()
 
         

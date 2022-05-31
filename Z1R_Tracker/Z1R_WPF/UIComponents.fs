@@ -21,6 +21,10 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
     let dungeonTabsOverlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, Opacity=0., IsHitTestVisible=false)
     let DTOCW,DTOCH = 3.*16.*ENLARGE + 4.*BT, 3.*11.*ENLARGE + 4.*BT
     let dungeonTabsOverlayContent = new Canvas(Width=DTOCW, Height=DTOCH)
+    if owMapNum=4 then  // disable magnifier on blank/custom map
+        let onMouseForMagnifier(_,_) = ()
+        onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
+    else
     mirrorOverworldFEs.Add(dungeonTabsOverlayContent)
     let dtocPlusLegend = new StackPanel(Orientation=Orientation.Vertical)
     dtocPlusLegend.Children.Add(dungeonTabsOverlayContent) |> ignore
@@ -44,91 +48,95 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
     let overlayTiles = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
-            for x = 0 to 15 do
-                for y = 0 to 10 do
-                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
-                    for px = 0 to int ENLARGE - 1 do
-                        for py = 0 to int ENLARGE - 1 do
-                            // diagonal rocks
-                            let c = 
-                                // The diagonal rock data is based on the first quest map. A few screens are different in 2nd/mixed quest.
-                                // So we apply a kludge to load the correct diagonal data.
-                                let i,j = 
-                                    if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
-                                        14,5
-                                    elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
-                                        2,4
-                                    elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
-                                        2,4
+            let bmp = 
+                let magnifierFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, sprintf """Magnifier\quest.%d.ow.%2d.%2d.bmp""" owMapNum i j)
+                Graphics.readCacheFileOrCreateBmp(magnifierFilename, fun () ->
+                    let bmp = new System.Drawing.Bitmap(16*int ENLARGE, 11*int ENLARGE)
+                    for x = 0 to 15 do
+                        for y = 0 to 10 do
+                            let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                            for px = 0 to int ENLARGE - 1 do
+                                for py = 0 to int ENLARGE - 1 do
+                                    // diagonal rocks
+                                    let c = 
+                                        // The diagonal rock data is based on the first quest map. A few screens are different in 2nd/mixed quest.
+                                        // So we apply a kludge to load the correct diagonal data.
+                                        let i,j = 
+                                            if owMapNum=1 && i=4 && j=7 then // second quest has a cave like 14,5 here
+                                                14,5
+                                            elif owMapNum=1 && i=11 && j=0 then // second quest has fairy here, borrow 2,4
+                                                2,4
+                                            elif owMapNum<>0 && i=12 && j=3 then // non-first quest has a whistle lake here, borrow 2,4
+                                                2,4
+                                            else
+                                                i,j
+                                        if OverworldData.owNEupperRock.[i,j].[x,y] then
+                                            if px+py > int ENLARGE - 1 then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owSEupperRock.[i,j].[x,y] then
+                                            if px < py then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owNElowerRock.[i,j].[x,y] then
+                                            if px+py < int ENLARGE - 1 then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
+                                            else 
+                                                c
+                                        elif OverworldData.owSElowerRock.[i,j].[x,y] then
+                                            if px > py then 
+                                                owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
+                                            else 
+                                                c
+                                        else 
+                                            c
+                                    // edges of squares
+                                    let c = 
+                                        if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
+                                            System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                                        else
+                                            c
+                                    bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
+                    // make the entrances 'pop'
+                    // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
+                    for x = 1 to 14 do
+                        for y = 1 to 9 do
+                            let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
+                            let border = 
+                                if c.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // black open cave
+                                    let c2 = owMapBMPs.[i,j].GetPixel((x-1)*3, y*3)
+                                    if c2.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // also black to the left, this is vanilla 6 two-wide entrance, only show one
+                                        None
                                     else
-                                        i,j
-                                if OverworldData.owNEupperRock.[i,j].[x,y] then
-                                    if px+py > int ENLARGE - 1 then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owSEupperRock.[i,j].[x,y] then
-                                    if px < py then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y+1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owNElowerRock.[i,j].[x,y] then
-                                    if px+py < int ENLARGE - 1 then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
-                                    else 
-                                        c
-                                elif OverworldData.owSElowerRock.[i,j].[x,y] then
-                                    if px > py then 
-                                        owMapBMPs.[i,j].GetPixel(x*3, (y-1)*3)
-                                    else 
-                                        c
-                                else 
-                                    c
-                            // edges of squares
-                            let c = 
-                                if (px+1) % int ENLARGE = 0 || (py+1) % int ENLARGE = 0 then
-                                    System.Drawing.Color.FromArgb(int c.R / 2, int c.G / 2, int c.B / 2)
+                                        Some(System.Drawing.Color.FromArgb(0xFF,0x00,0xCC,0xCC))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0x00,0xFF,0xFF).ToArgb() then  // cyan bomb spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF,0x00).ToArgb() then  // yellow recorder spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0x00).ToArgb() then  // red burn spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
+                                elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0xFF).ToArgb() then  // magenta pushblock spot
+                                    Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
                                 else
-                                    c
-                            bmp.SetPixel(x*int ENLARGE + px, y*int ENLARGE + py, c)
-            // make the entrances 'pop'
-            // No 'entrance pixels' are on the edge of a tile, and we would be drawing outside bitmap array bounds if they were, so only iterate over interior pixels:
-            for x = 1 to 14 do
-                for y = 1 to 9 do
-                    let c = owMapBMPs.[i,j].GetPixel(x*3, y*3)
-                    let border = 
-                        if c.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // black open cave
-                            let c2 = owMapBMPs.[i,j].GetPixel((x-1)*3, y*3)
-                            if c2.ToArgb() = System.Drawing.Color.Black.ToArgb() then    // also black to the left, this is vanilla 6 two-wide entrance, only show one
-                                None
-                            else
-                                Some(System.Drawing.Color.FromArgb(0xFF,0x00,0xCC,0xCC))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0x00,0xFF,0xFF).ToArgb() then  // cyan bomb spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF,0x00).ToArgb() then  // yellow recorder spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0x00).ToArgb() then  // red burn spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        elif c.ToArgb() = System.Drawing.Color.FromArgb(0xFF,0xFF,0x00,0xFF).ToArgb() then  // magenta pushblock spot
-                            Some(System.Drawing.Color.FromArgb(0xFF,0x00,0x00,0x00))
-                        else
-                            None
-                    match border with
-                    | Some bc -> 
-                        // thin black outline
-                        for px = x*int ENLARGE - POP - 1 to (x+1)*int ENLARGE - 1 + POP + 1 do
-                            for py = y*int ENLARGE - POP - 1 to (y+1)*int ENLARGE - 1 + POP + 1 do
-                                bmp.SetPixel(px, py, System.Drawing.Color.Black)
-                        // border color
-                        for px = x*int ENLARGE - POP to (x+1)*int ENLARGE - 1 + POP do
-                            for py = y*int ENLARGE - POP to (y+1)*int ENLARGE - 1 + POP do
-                                bmp.SetPixel(px, py, bc)
-                        // inner actual pixel
-                        for px = x*int ENLARGE to (x+1)*int ENLARGE - 1 do
-                            for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
-                                bmp.SetPixel(px, py, c)
-                    | None -> ()
+                                    None
+                            match border with
+                            | Some bc -> 
+                                // thin black outline
+                                for px = x*int ENLARGE - POP - 1 to (x+1)*int ENLARGE - 1 + POP + 1 do
+                                    for py = y*int ENLARGE - POP - 1 to (y+1)*int ENLARGE - 1 + POP + 1 do
+                                        bmp.SetPixel(px, py, System.Drawing.Color.Black)
+                                // border color
+                                for px = x*int ENLARGE - POP to (x+1)*int ENLARGE - 1 + POP do
+                                    for py = y*int ENLARGE - POP to (y+1)*int ENLARGE - 1 + POP do
+                                        bmp.SetPixel(px, py, bc)
+                                // inner actual pixel
+                                for px = x*int ENLARGE to (x+1)*int ENLARGE - 1 do
+                                    for py = y*int ENLARGE to (y+1)*int ENLARGE - 1 do
+                                        bmp.SetPixel(px, py, c)
+                            | None -> ()
+                    bmp)
             overlayTiles.[i,j] <- Graphics.BMPtoImage bmp
     let makeArrow(text) = 
         let tb = new TextBox(Text=text, FontSize=20., Foreground=arrowColor, Background=bgColor, IsReadOnly=true, BorderThickness=Thickness(0.))
@@ -162,41 +170,59 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+60., dy-2.)
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_UP),   dx+80., dy-2.)
                     canvasAdd(dungeonTabsOverlayContent, makeArrow(UNICODE_LEFT), dx+3.,  dy+28.)
-        if TrackerModel.Options.Overworld.ShowMagnifier.Value then 
+        if TrackerModelOptions.Overworld.ShowMagnifier.Value then 
             dungeonTabsOverlay.Opacity <- 1.0
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Image, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
+let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
     let appMainCanvas = cm.AppMainCanvas
 
     // map legend
     let legendCanvas = new Canvas()
     canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
+    let dungeonIconCanvas = new Canvas()
+    legendCanvas.Children.Add(dungeonIconCanvas) |> ignore
+    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW*0.6, Height=float(11*3-4), Background=Graphics.almostBlack, ClipToBounds=true)
+    let recorderDestinationButton = new Button(Content=recorderDestinationButtonCanvas)
 
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
-
-    let shrink(bmp) = resizeMapTileImage <| Graphics.BMPtoImage bmp
-    let firstDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[2] else Graphics.theFullTileBmpTable.[0].[0]
-    canvasAdd(legendCanvas, shrink firstDungeonBMP, 0., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
-
-    let firstGreenDungeonBMP = if TrackerModel.IsHiddenDungeonNumbers() then Graphics.theFullTileBmpTable.[0].[3] else Graphics.theFullTileBmpTable.[0].[1]
-    canvasAdd(legendCanvas, shrink firstDungeonBMP, 2.1*OMTW, 0.)
-    drawCompletedDungeonHighlight(legendCanvas,2.1,0,false)
-    canvasAdd(legendCanvas, shrink firstGreenDungeonBMP, 2.5*OMTW, 0.)
-    drawCompletedDungeonHighlight(legendCanvas,2.5,0,false)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
-
-    let recorderDestinationLegendIcon = shrink firstGreenDungeonBMP
-    canvasAdd(legendCanvas, recorderDestinationLegendIcon, 4.8*OMTW, 0.)
+    canvasAdd(legendCanvas, recorderDestinationButton, 4.8*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
 
-    let anyRoadLegendIcon = shrink(Graphics.theFullTileBmpTable.[9].[0])
+    let updateCurrentRecorderDestinationNumeral() =
+        dungeonIconCanvas.Children.Clear()
+        recorderDestinationButtonCanvas.Children.Clear()
+        let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
+        let greenDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[1]
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 2.1*OMTW, 0.)
+        drawCompletedDungeonHighlight(dungeonIconCanvas,2.1,0,false)
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage greenDungeonBMP, 2.5*OMTW, 0.)
+        drawCompletedDungeonHighlight(dungeonIconCanvas,2.5,0,false)
+        let recorderDestinationLegendIcon = Graphics.BMPtoImage greenDungeonBMP
+        canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, -8., -2.)
+    updateCurrentRecorderDestinationNumeral()
+
+    recorderDestinationButtonCanvas.MouseDown.Add(fun ea ->
+        let delta = 
+            if ea.ChangedButton = Input.MouseButton.Left then
+                1
+            elif ea.ChangedButton = Input.MouseButton.Right then
+                -1
+            else 
+                0
+        currentRecorderDestinationIndex <- (currentRecorderDestinationIndex + 8 + delta) % 8
+        updateCurrentRecorderDestinationNumeral()
+        )
+
+    let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
     canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
     canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
@@ -208,8 +234,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Imag
     canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
     canvasAdd(legendCanvas, legendStartIconButton, 9.1*OMTW, 0.)
-    let mutable popupIsActive = false
-    legendStartIconButton.Click.Add(fun _ ->
+    legendStartIconButtonBehavior <- (fun () ->
         if not popupIsActive then
             popupIsActive <- true
             let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16.,
@@ -241,7 +266,8 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, resizeMapTileImage:Image->Imag
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
-    recorderDestinationLegendIcon, anyRoadLegendIcon
+    legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
+    recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral
 
 let MakeItemProgressBar(appMainCanvas, owInstance:OverworldData.OverworldInstance) =
     // item progress
@@ -377,9 +403,22 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 b.Background <- Brushes.Black
             else
                 b.Background <- Views.hintHighlightBrush
-            button.Content <- mkTxt(hintZone.ToString())
+            let tb = 
+                if hintZone = TrackerModel.HintZone.UNKNOWN then
+                    let tb = mkTxt("Select location")
+                    tb.Foreground <- Brushes.Gray
+                    tb
+                else
+                    mkTxt(hintZone.ToString())
+            tb.Background <- Graphics.almostBlack
+            let c = new Canvas(Width=tb.Width, Height=tb.Height)
+            c.Children.Add(tb) |> ignore
+            let chevron = new TextBox(FontSize=16., Foreground=Brushes.Gray, Background=Graphics.almostBlack, IsReadOnly=true, IsHitTestVisible=false, 
+                                        BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text="\U000025BC")
+            canvasAdd(c, chevron, 150., 0.)
+            button.Content <- c
         updateViewFunctions.[thisRow] <- updateView
-        let mutable popupIsActive = false
+        let mutable popupIsActive = false  // second level of popup, need local copy
         let activatePopup(activationDelta) =
             popupIsActive <- true
             let tileX, tileY = (let p = button.TranslatePoint(Point(),cm.AppMainCanvas) in p.X+3., p.Y+3.)
@@ -431,7 +470,6 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
     canvasAdd(cm.AppMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
-    let mutable popupIsActive = false
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -457,7 +495,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                         "Sail across the water...", "Raft required to reach a place"
                         "Play a melody...", "Either an overworld recorder spot, or a\nDigdogger in a dungeon logically blocks..."
                         "Fire the arrow...", "In a dungeon, Gohma logically blocks..."
-                        "Cross the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
+                        "Step over the water...", "Ladder required to obtain... (coast item,\noverworld river, or dungeon moat)"
                         |] do
                         let dp = new DockPanel(LastChildFill=true)
                         let d = makeHintText(desc)
@@ -467,7 +505,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                         DockPanel.SetDock(m, Dock.Right)
                         dp.Children.Add(m) |> ignore
                         otherSP.Children.Add(dp) |> ignore
-                    let otherBottomTB = makeHintText("Here are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
+                    let otherBottomTB = makeHintText("\nHere are the meanings of a couple final hints, which the tracker can help with\nby darkening the overworld spots you can logically ignore\n(click the checkbox to darken corresponding spots on the overworld)")
                     otherBottomTB.BorderThickness <- Thickness(0.,4.,0.,4.)
                     otherSP.Children.Add(otherBottomTB) |> ignore
                     let featsCheckBox  = new CheckBox(Content=makeHintText("No feat of strength... (Power Bracelet / pushing graves not required)"))
@@ -488,7 +526,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
 
 open HotKeys.MyKey
 
-let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>, blockerDungeonSunglasses:FrameworkElement[]) =
+let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
     let appMainCanvas = cm.AppMainCanvas
     // blockers
     let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
@@ -515,17 +553,35 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
                 | _ -> rect.Stroke <- Brushes.LightGray
                 c.Children.Add(rect) |> ignore
-                canvasAdd(c, Graphics.blockerCurrentBMP(n) , 3., 3.)
+                canvasAdd(c, Graphics.blockerCurrentDisplay(n) , 3., 3.)
                 c
             c, redraw
         let c,redraw = make()
         let mutable current = TrackerModel.DungeonBlocker.NOTHING
         redraw(current) |> ignore
+        // hovering a blocker box with a sellable item will highlight the corresponding shops (currently only way to mouse-hover to see key/meat shops)
+        c.MouseEnter.Add(fun _ -> 
+            match current.HardCanonical() with
+            | TrackerModel.DungeonBlocker.BAIT ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
+            | TrackerModel.DungeonBlocker.KEY ->            showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.KEY)
+            | TrackerModel.DungeonBlocker.BOMB ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
+            | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            | _ -> ()
+            )
+        c.MouseLeave.Add(fun _ -> hideLocator())
+        blockerQueries.Add(fun () ->
+            let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
+            match current.HardCanonical() with
+            | TrackerModel.DungeonBlocker.BAIT ->           Some(TrackerModel.MapSquareChoiceDomainHelper.MEAT, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.KEY ->            Some(TrackerModel.MapSquareChoiceDomainHelper.KEY, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.BOMB ->           Some(TrackerModel.MapSquareChoiceDomainHelper.BOMB, (pos.X, pos.Y))
+            | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  Some(TrackerModel.MapSquareChoiceDomainHelper.ARROW, (pos.X, pos.Y))
+            | _ -> None
+            )
         TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
             current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
             redraw(current) |> ignore
             )
-        let mutable popupIsActive = false
         let SetNewValue(db) = TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
         let activate(activationDelta) =
             popupIsActive <- true
@@ -543,16 +599,9 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
             let pos = c.TranslatePoint(Point(), appMainCanvas)
-            let canBeBlocked(db:TrackerModel.DungeonBlocker) =
-                match db.HardCanonical() with
-                | TrackerModel.DungeonBlocker.LADDER -> not TrackerModel.playerComputedStateSummary.HaveLadder
-                | TrackerModel.DungeonBlocker.RECORDER -> not TrackerModel.playerComputedStateSummary.HaveRecorder
-                | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> not (TrackerModel.playerComputedStateSummary.HaveBow && TrackerModel.playerComputedStateSummary.ArrowLevel > 0)
-                | TrackerModel.DungeonBlocker.KEY -> not TrackerModel.playerComputedStateSummary.HaveAnyKey
-                | _ -> true
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
-                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentBMP(db)), canBeBlocked(db), db), 
+                                (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentDisplay(db)), db.PlayerCouldBeBlockedByThis(), db), 
                                 System.Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), -90., 30., popupRedraw,
                                 (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
                 match r with
@@ -560,8 +609,57 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 | None -> () 
                 popupIsActive <- false
                 } |> Async.StartImmediate
+        let doPanel(pos:Point) =
+            let border = new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Background=Brushes.Black, Width=110.)
+            let style = new Style(typeof<TextBox>)
+            style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
+            style.Setters.Add(new Setter(TextBox.FontSizeProperty, 16.))
+            style.Setters.Add(new Setter(TextBox.ForegroundProperty, Brushes.Orange))
+            style.Setters.Add(new Setter(TextBox.BackgroundProperty, Brushes.Black))
+            style.Setters.Add(new Setter(TextBox.IsHitTestVisibleProperty, false))
+            style.Setters.Add(new Setter(TextBox.IsReadOnlyProperty, true))
+            border.Resources.Add(typeof<TextBox>, style)
+            let style = new Style(typeof<CheckBox>)
+            style.Setters.Add(new Setter(CheckBox.HeightProperty, 22.))
+            border.Resources.Add(typeof<CheckBox>, style)
+            let panel = new StackPanel(Orientation=Orientation.Vertical)
+            let hPanel = new System.Windows.Controls.Primitives.UniformGrid(Rows=1, Columns=2)
+            let allButton = Graphics.makeButton("All", Some(16.), Some(Brushes.Orange))
+            let noneButton = Graphics.makeButton("None", Some(16.), Some(Brushes.Orange))
+            hPanel.Children.Add(allButton) |> ignore
+            hPanel.Children.Add(noneButton) |> ignore
+            let decorationCanvas = new Canvas()
+            canvasAdd(decorationCanvas, new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Width=30., Height=30.), 77., -33.)
+            panel.Children.Add(decorationCanvas) |> ignore
+            panel.Children.Add(new TextBox(Text="Applies to...")) |> ignore
+            panel.Children.Add(hPanel) |> ignore
+            let cbs = ResizeArray()
+            for name,i in ["Map",0; "Compass",1; "Triforce",2; "Item Box 1",3; "Item Box 2",4; "Item Box 3",5] do
+                if i < 5 || TrackerModel.GetDungeon(dungeonIndex).Boxes.Length > 2 then 
+                    let cb = new CheckBox(Content=new TextBox(Text=name))
+                    cb.IsChecked <- TrackerModel.DungeonBlockersContainer.GetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i)
+                    cb.Checked.Add(fun _ -> TrackerModel.DungeonBlockersContainer.SetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i, true))
+                    cb.Unchecked.Add(fun _ -> TrackerModel.DungeonBlockersContainer.SetDungeonBlockerAppliesTo(dungeonIndex, blockerIndex, i, false))
+                    panel.Children.Add(cb) |> ignore
+                    cbs.Add(cb)
+            allButton.Click.Add(fun _ -> for cb in cbs do cb.IsChecked <- true)
+            noneButton.Click.Add(fun _ -> for cb in cbs do cb.IsChecked <- false)
+            border.Child <- panel
+            let wh = new System.Threading.ManualResetEvent(false)
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, pos.X-80., pos.Y+30., border)
+            } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
-        c.MouseDown.Add(fun _ -> if not popupIsActive then activate(0))
+        c.MouseDown.Add(fun ea ->
+            if not popupIsActive then
+                if ea.ChangedButton = Input.MouseButton.Middle || 
+                        (ea.ChangedButton = Input.MouseButton.Left && (Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift))) then
+                    // middle-click or shift-left-click activates the checkbox panel
+                    let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
+                    doPanel(pos)
+                else
+                    activate(0)
+            )
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
@@ -576,9 +674,9 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
         c
 
     let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
-    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
-    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(45uy, 45uy, 45uy))
-    blockerGrid.Height <- float(36*3)
+    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 38)
+    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy))
+    blockerGrid.Height <- float(38*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
             if i=0 && j=0 then
@@ -586,27 +684,28 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, levelTabSelected:Event<int>,
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text="BLOCKERS", Width=float blockerColumnWidth, IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
                 d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome reminders will trigger when you get the item that may unblock you."
+                ToolTipService.SetPlacement(d, Primitives.PlacementMode.Top)
                 d.Children.Add(tb) |> ignore
+                d.MouseEnter.Add(fun _ -> blockersHoverEvent.Trigger(true))
+                d.MouseLeave.Add(fun _ -> blockersHoverEvent.Trigger(false))
                 gridAdd(blockerGrid, d, i, j)
             else
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
-                let d = new DockPanel(LastChildFill=false)
-                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then d.Background <- blockerHighlightBrush else d.Background <- Brushes.Black)
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
-                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=sprintf "%c" labelChar, Width=10., IsHitTestVisible=false,
-                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), 
-                                        TextAlignment=TextAlignment.Right, Margin=Thickness(20.,0.,6.,0.))
+                levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then sp.Background <- blockerHighlightBrush else sp.Background <- Brushes.Black)
+                let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=labelChar.ToString(), Width=10., Height=14., IsHitTestVisible=false,
+                                        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.),
+                                        TextAlignment=TextAlignment.Center, Margin=Thickness(2.,0.,0.,0.))
                 sp.Children.Add(tb) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonIndex, 0)) |> ignore
-                sp.Children.Add(makeBlockerBox(dungeonIndex, 1)) |> ignore
-                d.Children.Add(sp) |> ignore
-                gridAdd(blockerGrid, d, i, j)
+                for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                    sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore
+                gridAdd(blockerGrid, sp, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
     canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
     blockerGrid
 
-let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, mirrorOverworldFEs:ResizeArray<FrameworkElement>, oiglOFFSET) =
+let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOverworldFEs:ResizeArray<FrameworkElement>, oiglOFFSET) =
     // zone overlay
     let owMapZoneColorCanvases, owMapZoneBlackCanvases =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
@@ -713,9 +812,9 @@ let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, mirrorOverworldFEs:Re
             zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
-    zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.Checked.Add(fun _ -> ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
-    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then (ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true)))
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     canvasAdd(appMainCanvas, zone_checkbox, oiglOFFSET+200., 52.)
 
@@ -759,14 +858,21 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let whiteSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(whiteSword, "Show location of white sword cave, if known or hinted", 30., 270.)
 
+    let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
+    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 28.,28.; 28.,2.; 2.,2.; 2.,28.; 28.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(shopping, "Show icons you opted to hide", 410., 150.)
+
     let COL = Brushes.CornflowerBlue
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
     let armos = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(armos, "Show locations of any unmarked armos", 120., 240.)
 
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
-    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 98.,28.; 98.,2.; 58.,2.; 58.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-    addLabel(shopping, "Show locations of shops containing each item", 400., 240.)
+    let shopping = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 88.,28.; 88.,-28.; 32.,-28.; 32.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(shopping, "Show locations of shops containing each item (or blocker", 400., 240.)
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 10.,0.; -70.,0.; -70.,36.; 36.,36.; 36.,0.; 10.,0. ] |> Seq.map (fun (x,y) -> Point(210.+dx+x,dy+y))))
+    addLabel(blockers, ")", 757., 240.)
 
     let COL = Brushes.MediumVioletRed
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
@@ -793,9 +899,9 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
 
     let COL = Brushes.MediumVioletRed
     let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 476.,92.; 436.,92.; 436.,130.; 535.,130.; 535.,116.; 550.,116.; 550.,50. ] |> Seq.map Point))
-    addLabel(zonesEtAl, "As described", 600., 150.)
+    addLabel(zonesEtAl, "As described", 630., 150.)
 
-    let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 600.,150. ] |> Seq.map Point))
+    let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 630.,150. ] |> Seq.map Point))
     canvasAdd(c, spotSummary, 0., 0.)
 
     let COL = Brushes.MediumVioletRed
@@ -819,7 +925,7 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     c.Children.Add(desc) |> ignore
     let COL = Brushes.MediumVioletRed
     let dx,dy = LEFT_OFFSET + 4.8*OMTW + 15., THRU_MAIN_MAP_H + 3.
-    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; -8.,2.; -8.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     recorderDest.Points.Add(Point(330.,340.))
     canvasAdd(c, recorderDest, 0., 0.)
     let desc = mkTxt("Show recorder destinations")
@@ -830,6 +936,14 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
     let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(anyRoad, "Show Any Roads", 430., 340.)
+    let COL = Brushes.MediumVioletRed
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; -70.,0.; -70.,36.; 38.,36.; 38.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(blockers, "Highlight potential\ndungeon continuations", 570., 320.)
+    let COL = Brushes.Green
+    let dx,dy = BLOCKERS_AND_NOTES_OFFSET-82., START_DUNGEON_AND_NOTES_AREA_H+2.
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; 0.,20.; 22.,20.; 22.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(blockers, "Highlight\nincomplete\ndungeons", 339., 320.)
 
     for dd in delayedDescriptions do   // ensure these draw atop all the PolyLines
         canvasAdd(dd)

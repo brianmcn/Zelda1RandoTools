@@ -84,13 +84,13 @@ type SpeechRecognitionInstance(kind:TrackerModel.DungeonTrackerInstanceKind) =
                     None
     member _this.AttachSpeechRecognizedToApp(appMainCanvas:Canvas, whenRecognizedFunc) =
         speechRecognizer.SpeechRecognized.Add(fun r ->
-            if TrackerModel.Options.ListenForSpeech.Value then 
-                if not(TrackerModel.Options.RequirePTTForSpeech.Value) ||                                               // if PTT not required, or
+            if TrackerModelOptions.ListenForSpeech.Value then 
+                if not(TrackerModelOptions.RequirePTTForSpeech.Value) ||                                               // if PTT not required, or
                         Gamepad.IsLeftShoulderButtonDown() ||                                                           // if PTT is currently held, or
                         (DateTime.Now - Gamepad.LeftShoulderButtonMostRecentRelease) < TimeSpan.FromSeconds(1.0) then   // if PTT was just recently released
                     //printfn "conf: %3.3f  %s" r.Result.Confidence r.Result.Text                                         // then we want to use speech
                     let threshold =
-                        if TrackerModel.Options.RequirePTTForSpeech.Value then
+                        if TrackerModelOptions.RequirePTTForSpeech.Value then
                             0.90f   // empirical tests suggest this confidence threshold is good enough to avoid false positives with PTT
                         else
                             0.94f   // empirical tests suggest this confidence threshold is good to avoid false positives

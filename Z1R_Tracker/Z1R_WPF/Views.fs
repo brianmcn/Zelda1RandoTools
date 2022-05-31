@@ -72,6 +72,7 @@ let SynthesizeANewLocationKnownEvent(mapChoiceDomainChangePublished:IEvent<_>) =
         )
     resultEvent.Publish
 
+let redrawTriforces = ResizeArray()
 let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt, makeInteractive) =
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
@@ -92,6 +93,24 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
         else
             innerc.Children.Add(Graphics.BMPtoImage(if not(found) then fullUnfoundTriforce_bmp(trackerIndex) else fullFoundTriforce_bmp(trackerIndex))) |> ignore 
         drawTinyIconIfLocationIsOverworldBlock(innerc, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[trackerIndex])
+        if TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON <> 3 then
+            failwith "This UI was designed for 3 blockers per dungeon"
+        if not(dungeon.PlayerHasTriforce()) then // draw specific blockers
+            let i = trackerIndex
+            for j = 0 to 2 do
+                if i<>8 && TrackerModel.DungeonBlockersContainer.GetDungeonBlockerAppliesTo(i,j,2) then
+                    let blocker = TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,j)
+                    let bmp = Graphics.blockerHardCanonicalBMP(blocker)
+                    if bmp <> null then
+                        let img = Graphics.BMPtoImage bmp
+                        img.Width <- 7.
+                        img.Height <- 7.
+                        if not(blocker.PlayerCouldBeBlockedByThis()) then
+                            canvasAdd(innerc, new Canvas(Width=9., Height=9., Background=Brushes.Lime),  float(1+j*10), 7.+16.)
+                            canvasAdd(innerc, new Canvas(Width=7., Height=7., Background=Brushes.Black), float(2+j*10), 8.+16.)
+                        else
+                            canvasAdd(innerc, new Canvas(Width=9., Height=9., Background=Brushes.Black), float(1+j*10), 7.+16.)
+                        canvasAdd(innerc, img, float(2+j*10), 8.+16.)
     redraw()
     // interactions
     if makeInteractive then
@@ -119,8 +138,10 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
         TrackerModel.LevelHintChanged(trackerIndex).Add(fun _ -> redraw())
     else
         for i = 0 to 7 do TrackerModel.LevelHintChanged(i).Add(fun _ -> redraw())   // just redraw on any hints, rather than try to subscribe/unsubscribe based on LabelChar changes
-    // redraw if label changed, as that can (un)link an existing hint
+    // redraw if label changed, as that can (un)link an existing hint; or if blockers changed (may need to rewdraw specific-blocker)
     dungeon.HiddenDungeonColorOrLabelChanged.Add(fun _ -> redraw())
+    TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ -> redraw())
+    redrawTriforces.Add(redraw)
     innerc
 let MakeLevel9View(owInstanceOpt) =
     let level9NumeralCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -141,15 +162,37 @@ let MakeLevel9View(owInstanceOpt) =
     TrackerModel.LevelHintChanged(8).Add(fun _ -> redraw())
     level9NumeralCanvas
 
-
 let redrawBoxes = ResizeArray()
 TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
     TrackerModel.forceUpdate()
     for f in redrawBoxes do
         f()
     )
-let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOver) = 
+TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
+    for f in redrawBoxes do
+        f()
+    )
+let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
+    if box.Stair <> TrackerModel.StairKind.Never then
+        let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
+        match box.Stair with
+        | TrackerModel.StairKind.LikeL2 ->
+            let update() = stairImg.Opacity <- if TrackerModelOptions.IsSecondQuestDungeons.Value && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
+        | TrackerModel.StairKind.LikeL3 ->
+            let update() = stairImg.Opacity <- if not(TrackerModelOptions.IsSecondQuestDungeons.Value) && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
+        | TrackerModel.StairKind.Always ->
+            let update() = stairImg.Opacity <- if TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
+            OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
+            update()
+        | _ -> ()
+        canvasAdd(c, stairImg, 3., 3.)
     let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
     c.Children.Add(rect) |> ignore
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
@@ -159,6 +202,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
         innerc.Children.Clear()
         let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
         if bmp <> null then
+            canvasAdd(innerc, new Canvas(Background=Brushes.Black, Width=21., Height=21.), 3., 3.)  // cover up any stair drawing
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
                 let image = Graphics.BMPtoImage(Graphics.greyscale bmp)  //Graphics.desaturate(bmp,0.99))
                 canvasAdd(innerc, image, 4., 4.)
@@ -179,13 +223,41 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
             else 
                 rect.Stroke <- CustomComboBoxes.skipped
                 CustomComboBoxes.placeSkippedItemXDecoration(innerc)
+        // redraw specific-blockers
+        match box.PlayerHas() with
+        | TrackerModel.PlayerHas.YES -> ()
+        | _ ->
+            let owner = 
+                match box.Owner with
+                | TrackerModel.BoxOwner.Dungeon1or4 -> 
+                    if TrackerModelOptions.IsSecondQuestDungeons.Value then TrackerModel.BoxOwner.DungeonIndexAndNth(3,2) else TrackerModel.BoxOwner.DungeonIndexAndNth(0,2)
+                | _ -> box.Owner
+            match owner with
+            | TrackerModel.BoxOwner.DungeonIndexAndNth(i,n) -> 
+                if TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON <> 3 then
+                    failwith "This UI was designed for 3 blockers per dungeon"
+                for j = 0 to 2 do
+                    if i<>8 && TrackerModel.DungeonBlockersContainer.GetDungeonBlockerAppliesTo(i,j,n+3) then
+                        let blocker = TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,j)
+                        let bmp = Graphics.blockerHardCanonicalBMP(blocker)
+                        if bmp <> null then
+                            let img = Graphics.BMPtoImage bmp
+                            img.Width <- 7.
+                            img.Height <- 7.
+                            if not(blocker.PlayerCouldBeBlockedByThis()) then
+                                canvasAdd(innerc, new Canvas(Width=9., Height=9., Background=Brushes.Lime),  float(1+j*10), 4.+16.)
+                                canvasAdd(innerc, new Canvas(Width=7., Height=7., Background=Brushes.Black), float(2+j*10), 5.+16.)
+                            else
+                                canvasAdd(innerc, new Canvas(Width=9., Height=9., Background=Brushes.Black), float(1+j*10), 4.+16.)
+                            canvasAdd(innerc, img, float(2+j*10), 5.+16.)
+            | _ -> ()
     redraw()
     // interactions
     let mutable popupIsActive = false
     let activateComboBox(activationDelta) =
         popupIsActive <- true
         let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
+        let extraDecorations = match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with | Some f -> f(pos) | None -> seq[]
         async {
             let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
             match r with
@@ -241,20 +313,23 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))
     // hover behavior
-    let hoverCanvas = new Canvas()
-    c.MouseEnter.Add(fun _ ->
-        cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
-        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        let extraDecorations = computeExtraDecorationsWhenPopupActivatedOrMouseOver(pos)
-        hoverCanvas.Children.Clear()
-        for fe, x, y in extraDecorations do
-            canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
-        canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
-        )
-    c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
+    match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
+    | Some f ->
+        let hoverCanvas = new Canvas()
+        c.MouseEnter.Add(fun _ ->
+            cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
+            let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
+            let extraDecorations = f(pos)
+            hoverCanvas.Children.Clear()
+            for fe, x, y in extraDecorations do
+                canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
+            canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
+            )
+        c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
+    | None -> ()
     // redraw on changes
     redrawBoxes.Add(fun() -> redraw())
     box.Changed.Add(fun _ -> redraw())
     c
 let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
-    MakeBoxItemWithExtraDecorations(cm, box, false, fun(_)->[])
+    MakeBoxItemWithExtraDecorations(cm, box, false, None)

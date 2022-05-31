@@ -1,5 +1,7 @@
 ﻿module SaveAndLoad
 
+let AutoSaveFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-zz-autosave.json")
+
 [<AllowNullLiteral>]
 type Overworld() =
     member val Quest = -1 with get,set
@@ -35,6 +37,11 @@ type Items() =
     member val LadderBox : Box = null with get,set
     member val ArmosBox : Box = null with get,set
     member val Dungeons : Dungeon[] = null with get,set
+
+[<AllowNullLiteral>]
+type Blocker() =
+    member val Kind = "" with get,set
+    member val AppliesTo : bool[] = null with get,set  // map, compass, tri, box1, box2, box3
 
 [<AllowNullLiteral>]
 type Hints() =
@@ -139,7 +146,26 @@ type StartingItemsAndExtrasModel() =
 [<AllowNullLiteral>]
 type TimelineDatum() =
     member val Ident = "" with get,set
-    member val Minute = 99999 with get,set
+    member val Seconds = -1 with get,set
+    member val Has = 1 with get,set
+
+[<AllowNullLiteral>]
+type UserCustomCheckbox() =
+    member val Left = 0 with get,set
+    member val Top = 0 with get,set
+    member val Width = 0 with get,set
+    member val Height = 0 with get,set
+    member val DisplayLabel = "" with get,set
+    member val IsChecked = false with get,set
+    member val TimelineIconFilename = "" with get,set       // empty string means not for timeline, else pulls icon from ExtraIcons
+
+[<AllowNullLiteral>]
+type UserCustomChecklist() =
+    member val Name = "" with get,set
+    member val BackgroundImageFilename = "" with get,set    // pulls image from ExtraIcons
+    member val Items : UserCustomCheckbox[] = null with get,set
+
+let mutable theUserCustomChecklist = null : UserCustomChecklist
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -147,7 +173,7 @@ let SaveOverworld(prefix) =
     let lines = ResizeArray()
     lines.Add(sprintf """"Overworld": {""")
     lines.Add(sprintf """    "Quest": %d,""" (TrackerModel.owInstance.Quest.AsInt()))
-    lines.Add(sprintf """    "MirrorOverworld": %b,""" (TrackerModel.Options.Overworld.MirrorOverworld.Value))
+    lines.Add(sprintf """    "MirrorOverworld": %b,""" (TrackerModelOptions.Overworld.MirrorOverworld.Value))
     lines.Add(sprintf """    "StartIconX": %d,""" TrackerModel.startIconX)
     lines.Add(sprintf """    "StartIconY": %d,""" TrackerModel.startIconY)
     lines.Add(sprintf """    "Map": [""")
@@ -156,9 +182,10 @@ let SaveOverworld(prefix) =
         for i = 0 to 15 do
             let cur = TrackerModel.overworldMapMarks.[i,j].Current()
             let k = if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then TrackerModel.MapSquareChoiceDomainHelper.SHOP else cur
-            let ed = if cur = -1 then -1 else TrackerModel.getOverworldMapExtraData(i,j,k)
+            let ed = if cur = -1 then -1 else TrackerModel.getOverworldMapExtraData(i,j,k)   // TODO why -1 case, not exist?
+            let circle = TrackerModel.overworldMapCircles.[i,j]
             let comma = if j=7 && i=15 then "" else ","
-            sb.Append(sprintf "%2d,%2d%s  " cur ed comma) |> ignore
+            sb.Append(sprintf "%2d,%2d,%3d%s  " cur ed circle comma) |> ignore
         lines.Add(sb.ToString())
     lines.Add(sprintf """    ]""")
     lines.Add(sprintf """},""")
@@ -170,7 +197,7 @@ let SaveItems(prefix) =
         lines.Add(sprintf """%s%s"CellCurrent": %d, "PlayerHas": %d""" prefix pre (box.CellCurrent()) (box.PlayerHas().AsInt()))
     lines.Add(sprintf """"Items": {""")
     lines.Add(sprintf """    "HiddenDungeonNumbers": %b,""" (TrackerModel.IsHiddenDungeonNumbers()))
-    lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModel.Options.IsSecondQuestDungeons.Value)
+    lines.Add(sprintf """    "SecondQuestDungeons": %b,""" TrackerModelOptions.IsSecondQuestDungeons.Value)
     lines.Add(sprintf """    "WhiteSwordBox": {""")
     SaveBox("    ", TrackerModel.sword2Box)
     lines.Add(sprintf """    }, "LadderBox": {""")
@@ -234,10 +261,18 @@ let SaveStartingItemsAndExtras(prefix) =
 
 let SaveBlockers(prefix) =
     let lines = ResizeArray()
-    lines.Add(""""Blockers": [""")
+    lines.Add(""""Blockers": [ [""")
     for i = 0 to 7 do
-        lines.Add(sprintf """    [ "%s", "%s" ]%s""" (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,0).AsHotKeyName()) (TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(i,1).AsHotKeyName()) (if i<>7 then "," else ""))
-    lines.Add("""],""")
+        for j = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+            let s = new System.Text.StringBuilder("    ")
+            s.Append(TrackerModel.DungeonBlockersContainer.AsJsonString(i,j)) |> ignore
+            if j < TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 then
+                s.Append(", ") |> ignore
+            lines.Add(s.ToString())
+        if i <> 7 then
+            lines.Add("], [")
+        else
+            lines.Add("] ],")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
 let SaveHints(prefix) =
@@ -253,7 +288,32 @@ let SaveHints(prefix) =
     lines.Add("""},""")
     lines |> Seq.map (fun s -> prefix+s) |> Seq.toArray
 
-let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds, timelineData:ResizeArray<string*int>) =  // can throw
+type SaveType =
+    | ManualSave     // user clicked 'Save'
+    | FinishedSave   // user clicked Zelda and SaveOnCompletion option is on
+    | AutoSave       // each time a minute has passed
+
+let mutable lastKnownSeed, lastKnownFlags = "", ""
+let seedAndFlagsUpdated = new Event<_>()
+let seedAndFlagsRegex = new System.Text.RegularExpressions.Regex("_(\d+)_([a-zA-Z0-9!]+)", System.Text.RegularExpressions.RegexOptions.None)
+let MaybePollSeedAndFlags() =
+    if TrackerModelOptions.SnoopSeedAndFlags.Value then
+        let procs = System.Diagnostics.Process.GetProcesses()
+        for p in procs do
+            if not(System.String.IsNullOrEmpty(p.MainWindowTitle)) then
+                let m = seedAndFlagsRegex.Match(p.MainWindowTitle)
+                if m.Success then
+                    let seed = m.Groups.[1].Value
+                    let flags = m.Groups.[2].Value
+                    if seed.Length > 6 && flags.Length > 6 then   // just a guess-filter
+                        lastKnownSeed <- seed
+                        lastKnownFlags <- flags
+                        seedAndFlagsUpdated.Trigger()
+
+let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], 
+                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, saveType) =  // can throw
+    MaybePollSeedAndFlags()
+    let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
         yield sprintf """{"""
         yield sprintf """    "Version": "%s",""" OverworldData.VersionString
@@ -265,17 +325,51 @@ let SaveAll(notesText:string, dungeonModelsJsonLines:string[], totalSeconds, tim
         yield! SaveBlockers("    ")
         yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
+        yield sprintf """    "CurrentRecorderDestinationIndex": %d,""" currentRecorderDestinationIndex
+        yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)
         yield sprintf """    ],"""
+        if theUserCustomChecklist <> null then
+            yield sprintf """    "UserCustomChecklist": {"""
+            yield sprintf """        "Name": "%s",""" theUserCustomChecklist.Name
+            yield sprintf """        "BackgroundImageFilename": "%s",""" theUserCustomChecklist.BackgroundImageFilename
+            yield sprintf """        "Items": ["""
+            for i=0 to theUserCustomChecklist.Items.Length-1 do
+                yield sprintf """            %s%s""" (System.Text.Json.JsonSerializer.Serialize<UserCustomCheckbox>(theUserCustomChecklist.Items.[i])) 
+                                                        (if i=theUserCustomChecklist.Items.Length-1 then "" else ",")
+            yield sprintf """    ] },"""
+        yield sprintf """    "DrawingLayerIcons": ["""
+        yield! drawingLayerJsonLines
+        yield sprintf """    ],"""
+        yield sprintf """    "AlternativeOverworldMapFilename": %s,""" (System.Text.Json.JsonSerializer.Serialize<string>(alternativeOverworldMapFilename))
+        yield sprintf """    "ShouldInitiallyHideOverworldMap": %s,""" (shouldInitiallyHideOverworldMap.ToString().ToLowerInvariant())
+        if lastKnownSeed <> "" then
+            yield sprintf """    "Seed": "%s",""" lastKnownSeed
+        if lastKnownFlags <> "" then
+            yield sprintf """    "Flags": "%s",""" lastKnownFlags
+        // write the timeline 'pretty' at the bottom of the file, for people who want to easily see/parse splits
+        let flat = [| for x,y in TrackerModel.timelineDataOverworldSpotsRemain do 
+                        yield x
+                        yield y |]
+        yield sprintf """    "OverworldSpotsRemainingOverTime": %s,""" (System.Text.Json.JsonSerializer.Serialize<int[]>(flat))
         yield sprintf """    "Timeline": ["""
-        for i = 0 to timelineData.Count-1 do
-            yield sprintf """        { "Ident": "%s", "Minute": %d }%s""" (fst timelineData.[i]) (snd timelineData.[i]) (if i=timelineData.Count-1 then "" else ",")
+        let tis = [|for KeyValue(_,ti) in TrackerModel.TimelineItemModel.All do yield ti |] |> Array.sortBy (fun ti -> ti.FinishedTotalSeconds)
+        for i=0 to tis.Length-1 do
+            let ti = tis.[i]
+            yield sprintf """        { "Ident": "%-20s, "Seconds": %6d, "Has": %d }%s""" (ti.Identifier+"\"") (ti.FinishedTotalSeconds) (ti.Has.AsInt()) (if i=tis.Length-1 then "" else ",")
         yield sprintf """    ]"""
         yield sprintf """}"""
         |]
-    let filename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+    let filename = 
+        match saveType with
+        | ManualSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-manual-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+        | FinishedSave -> System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "zt-save-completed-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".json")
+        | AutoSave -> AutoSaveFilename
     //let filename = "J:\\-impossiblesdkgfjhsdg;kdahfskjgfdhsgfh;lahjds;ljfdhs;ljfhldashfldashlfadshgflhjdgflajdgfjkl"  // test errors
     System.IO.File.WriteAllLines(filename, lines)
+    match saveType with
+    | AutoSave -> System.IO.File.SetCreationTime(filename, System.DateTime.Now)
+    | _ -> ()
     filename
     

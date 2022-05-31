@@ -18,6 +18,11 @@ type MonsterDetail =
     | BlueBubble  
     | RedBubble   
     | Dodongo     
+    | Patra
+    | BlueWizzrobe
+    | BlueDarknut
+    | Manhandla
+    | Other
     member this.AsHotKeyName() =
         match this with
         | Unmarked    -> "MonsterDetail_Unmarked"
@@ -27,36 +32,44 @@ type MonsterDetail =
         | BlueBubble  -> "MonsterDetail_BlueBubble"
         | RedBubble   -> "MonsterDetail_RedBubble"
         | Dodongo     -> "MonsterDetail_Dodongo"
+        | Patra       -> "MonsterDetail_Patra"
+        | BlueWizzrobe-> "MonsterDetail_BlueWizzrobe"
+        | BlueDarknut -> "MonsterDetail_BlueDarknut"
+        | Manhandla   -> "MonsterDetail_Manhandla"
+        | Other       -> "MonsterDetail_Other"
     member this.IsNotMarked = this = MonsterDetail.Unmarked
-    member this.Bmp(bigIcons) =
+    member this.Bmp() =
         match this with
         | Unmarked    -> null
-        | Gleeok      -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[0]
-        | Bow         -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[1]
-        | Digdogger   -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[2]
-        | BlueBubble  -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[3]
-        | RedBubble   -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[4]
-        | Dodongo     -> (if bigIcons then snd else fst) Graphics.dungeonRoomMonsters.[5]
+        | Gleeok      -> Graphics.gleeok_bmp
+        | Bow         -> Graphics.gohma_bmp
+        | Digdogger   -> Graphics.digdogger_bmp
+        | BlueBubble  -> Graphics.blue_bubble_bmp
+        | RedBubble   -> Graphics.red_bubble_bmp
+        | Dodongo     -> Graphics.dodongo_bmp
+        | Patra       -> Graphics.patra_bmp
+        | BlueWizzrobe-> Graphics.wizzrobe_bmp
+        | BlueDarknut -> Graphics.blue_darknut_bmp
+        | Manhandla   -> Graphics.manhandla_bmp
+        | Other       -> Graphics.other_monster_bmp
     member this.DisplayDescription =
         match this with
         | Unmarked    -> "(None)"
         | Gleeok      -> "Gleeok"
-        | Bow         -> "Gohma (need Bow)"
+        | Bow         -> "Gohma"
         | Digdogger   -> "Digdogger"
         | BlueBubble  -> "Blue Bubble"
         | RedBubble   -> "Red Bubble"
         | Dodongo     -> "Dodongo"
-    member this.LegendIcon() =
-        let tb = mkTxt(this.DisplayDescription)
-        let sp = new StackPanel(Orientation=Orientation.Horizontal)
-        if this.IsNotMarked then
-            sp.Children.Add(new DockPanel(Width=24., Height=24.)) |> ignore
-        else
-            sp.Children.Add(Graphics.BMPtoImage(this.Bmp(true))) |> ignore
-        sp.Children.Add(tb) |> ignore
-        sp
+        | Patra       -> "Patra"
+        | BlueWizzrobe-> "Blue Wizzrobe"
+        | BlueDarknut -> "Blue Darknut"
+        | Manhandla   -> "Manhandla"
+        | Other       -> "Other"
     static member All() = 
-        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
+        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
+           MonsterDetail.Patra; MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Manhandla;
+           MonsterDetail.Other; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
     static member FromHotKeyName(hkn) =
         let mutable r = MonsterDetail.Unmarked
         for x in MonsterDetail.All() do
@@ -87,17 +100,17 @@ type FloorDropDetail =
         | Map          -> "FloorDropDetail_Map"
         | Compass      -> "FloorDropDetail_Compass"
     member this.IsNotMarked = this = FloorDropDetail.Unmarked
-    member this.Bmp(bigIcons) =
+    member this.Bmp() =
         match this with
         | Unmarked     -> null
-        | Triforce     -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[0]
-        | Heart        -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[1]
-        | OtherKeyItem -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[2]
-        | BombPack     -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[3]
-        | Key          -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[4]
-        | FiveRupee    -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[5]
-        | Map          -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[6]
-        | Compass      -> (if bigIcons then snd else fst) Graphics.dungeonRoomFloorDrops.[7]
+        | Triforce     -> Graphics.zi_triforce_bmp
+        | Heart        -> Graphics.zi_heart_bmp
+        | OtherKeyItem -> Graphics.zi_other_item_bmp
+        | BombPack     -> Graphics.zi_alt_bomb_bmp
+        | Key          -> Graphics.zi_key_bmp
+        | FiveRupee    -> Graphics.zi_fiver_bmp
+        | Map          -> Graphics.zi_map_bmp
+        | Compass      -> Graphics.zi_compass_bmp
     member this.DisplayDescription =
         match this with
         | Unmarked     -> "(None)"
@@ -109,15 +122,6 @@ type FloorDropDetail =
         | FiveRupee    -> "Five-Rupee"
         | Map          -> "Map"
         | Compass      -> "Compass"
-    member this.LegendIcon() =
-        let tb = mkTxt(this.DisplayDescription)
-        let sp = new StackPanel(Orientation=Orientation.Horizontal)
-        if this.IsNotMarked then
-            sp.Children.Add(new DockPanel(Width=24., Height=24.)) |> ignore
-        else
-            sp.Children.Add(Graphics.BMPtoImage(this.Bmp(true))) |> ignore
-        sp.Children.Add(tb) |> ignore
-        sp
     static member All() =
         [| FloorDropDetail.Triforce; FloorDropDetail.Heart; FloorDropDetail.OtherKeyItem; FloorDropDetail.BombPack;
             FloorDropDetail.Key; FloorDropDetail.FiveRupee; FloorDropDetail.Map; FloorDropDetail.Compass; FloorDropDetail.Unmarked; |]
@@ -208,6 +212,8 @@ type RoomType =
         | Gannon                  -> "RoomType_Gannon"
         | Zelda                   -> "RoomType_Zelda"
     member this.IsNotMarked = this = RoomType.Unmarked
+    member this.IsOffMap = this = RoomType.OffTheMap
+    member this.IsOldMan = this = RoomType.OldManHint || this = RoomType.BombUpgrade || this = RoomType.HungryGoriyaMeatBlock || this = RoomType.LifeOrMoney
     member this.NextEntranceRoom() = 
         match this with
         | RoomType.StartEnterFromS -> Some(RoomType.StartEnterFromW)
@@ -287,7 +293,9 @@ type RoomType =
         | VChute                  -> Graphics.dungeonRoomBmpPairs.[7]
         | HChute                  -> Graphics.dungeonRoomBmpPairs.[8]
         | Turnstile               -> Graphics.dungeonRoomBmpPairs.[16]
-        | OldManHint              -> Graphics.dungeonRoomBmpPairs.[12]
+        | OldManHint              -> 
+            if TrackerModelOptions.BookForHelpfulHints.Value then Graphics.dungeonRoomBmpPairs.[12]
+            else snd Graphics.dungeonRoomBmpPairs.[12], snd Graphics.dungeonRoomBmpPairs.[12]
         | BombUpgrade             -> Graphics.dungeonRoomBmpPairs.[15]
         | LifeOrMoney             -> Graphics.dungeonRoomBmpPairs.[14]
         | HungryGoriyaMeatBlock   -> Graphics.dungeonRoomBmpPairs.[13]
@@ -358,6 +366,8 @@ let scale(bmp, scale) =
         RenderOptions.SetBitmapScalingMode(icon, BitmapScalingMode.NearestNeighbor)
         icon
 
+let mutable isDoingDragPaintOffTheMap = false
+let veryDarkRed = new SolidColorBrush(Color.FromArgb(255uy, 60uy, 0uy, 0uy))
 type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright) =
     let mutable isCompleted = isCompleted
     let mutable roomType = roomType
@@ -370,45 +380,53 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.IsComplete with get() = isCompleted and set(x) = isCompleted <- x
     member this.RoomType with get() = roomType and set(x) = roomType <- x
     member this.IsEmpty = roomType.IsNotMarked || (roomType = RoomType.OffTheMap)
+    member this.IsGannonOrZelda = (roomType = RoomType.Gannon) || (roomType = RoomType.Zelda)
     member this.MonsterDetail with get() = monsterDetail and set(x) = monsterDetail <- x
     member this.FloorDropDetail with get() = floorDropDetail and set(x) = floorDropDetail <- x
     member this.FloorDropAppearsBright with get() = floorDropShouldAppearBright
     member this.ToggleFloorDropBrightness() = floorDropShouldAppearBright <- not floorDropShouldAppearBright
-    member this.CurrentDisplay(bigIcons) =
-        let K = if bigIcons then 24. else 15.
-        let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
-        match roomType with
-        | RoomType.OffTheMap ->
-            canvasAdd(c, new Canvas(Width=float(21*3), Height=float(17*3), Background=Brushes.Black, Opacity=0.6), -12., -12.)
-        | _ ->
-            let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
-            canvasAdd(c, roomIcon, 0., 0.)
-        match roomType with
-        | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
-        | RoomType.StartEnterFromW -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), -1.*3., 3.*3.)
-        | RoomType.StartEnterFromN -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., -1.*3.)
-        | RoomType.StartEnterFromS -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., 9.*3.)
-        | _ -> ()
-        match monsterDetail with
-        | MonsterDetail.Unmarked -> ()
-        | md ->
-            let monsterIcon = Graphics.BMPtoImage(md.Bmp(bigIcons))
-            canvasAdd(c, monsterIcon, -3., -3.)
-            if isCompleted then
-                let shouldDarken =
-                    match md with
-                    | MonsterDetail.BlueBubble | MonsterDetail.RedBubble -> false
-                    | _ -> true
-                if shouldDarken then
+    member this.CurrentDisplay() : FrameworkElement =
+        // optimize the common case to avoid new-ing up an extra canvas
+        if roomType = RoomType.Unmarked && monsterDetail = MonsterDetail.Unmarked && floorDropDetail = FloorDropDetail.Unmarked then
+            upcast (Graphics.BMPtoImage (roomType.UncompletedBmp()))
+        else
+            let K = 18.
+            let c = new Canvas(Width=13.*3., Height=9.*3.)  // will draw outside canvas
+            match roomType with
+            | RoomType.OffTheMap ->
+                let black = new Canvas(Width=13.*3.+12., Height=9.*3.+12., Background=Brushes.Black, Opacity=0.6)
+                canvasAdd(c, black, -6., -6.)
+                if isDoingDragPaintOffTheMap then
+                    canvasAdd(black, new Shapes.Rectangle(Width=black.Width, Height=black.Height, Stroke=veryDarkRed, StrokeThickness=1.), 0., 0.)
+            | _ ->
+                let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
+                canvasAdd(c, roomIcon, 0., 0.)
+            match roomType with
+            | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
+            | RoomType.StartEnterFromW -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), -1.*3., 3.*3.)
+            | RoomType.StartEnterFromN -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., -1.*3.)
+            | RoomType.StartEnterFromS -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=9., Height=3.), 5.*3., 9.*3.)
+            | _ -> ()
+            match monsterDetail with
+            | MonsterDetail.Unmarked -> ()
+            | md ->
+                let monsterIcon = Graphics.BMPtoImage(md.Bmp())
+                canvasAdd(c, monsterIcon, -5., -3.)
+                if isCompleted then
+                    let shouldDarken =
+                        match md with
+                        | MonsterDetail.BlueBubble | MonsterDetail.RedBubble -> false
+                        | _ -> true
+                    if shouldDarken then
+                        let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
+                        canvasAdd(c, dp, -5., -3.)
+            match floorDropDetail with
+            | FloorDropDetail.Unmarked -> ()
+            | fd ->
+                let floorDropIcon = Graphics.BMPtoImage(fd.Bmp())
+                canvasAdd(c, floorDropIcon, 44.-K, 30.-K)
+                if not floorDropShouldAppearBright then
                     let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                    canvasAdd(c, dp, -3., -3.)
-        match floorDropDetail with
-        | FloorDropDetail.Unmarked -> ()
-        | fd ->
-            let floorDropIcon = Graphics.BMPtoImage(fd.Bmp(bigIcons))
-            canvasAdd(c, floorDropIcon, 42.-K, 30.-K)
-            if not floorDropShouldAppearBright then
-                let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
-                canvasAdd(c, dp, 42.-K, 30.-K)
-        c
+                    canvasAdd(c, dp, 44.-K, 30.-K)
+            upcast c
 

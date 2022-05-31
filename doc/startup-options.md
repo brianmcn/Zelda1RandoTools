@@ -93,6 +93,8 @@ You may need to compensate a small bit if you discover you are in a different qu
  - if you discover you are in (unmixed) first quest, consider clicking the [HSQ button](use.md#hfq-hsq)
  - if you discover you are in (unmixed) second quest, consider clicking the [HFQ button](use.md#hfq-hsq)
 
+Alternatively, if you saved a prior session mid-game, or want to load a prior auto-save, you can choose the 'Start: from a previously saved state' option to load up a 
+prior save.  The Heart Shuffle, Hidden Dungeon Numbers, and Overworld settings will be loaded from the save data, rather than from the startup screen selections.
 
 ## <a id="startup-o"></a> Options
 

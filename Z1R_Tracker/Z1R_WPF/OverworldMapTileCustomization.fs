@@ -14,33 +14,28 @@ let canvasAdd = Graphics.canvasAdd
 
 module OW_ITEM_GRID_LOCATIONS =
     let OFFSET = 280.  // the x coordinate of grid; the y is always 30. (just below the numbered triforces in HDN)
-    // there is a 5x4 grid of icons, each 30x30, here are their 0-based grid coords
+    // there is a 6x4 grid of icons, each 30x30, here are their 0-based grid coords
     let WHITE_SWORD_ICON = 0,0
     let WHITE_SWORD_ITEM_BOX = 1,0
     let MAGS_BOX = 2,0
     let WOOD_SWORD_BOX = 3,0
-    let BOOMSTICK_BOX = 4,0
+    let BOOMSTICK_BOX = 5,0
+    let BOMB_BOX = 5,1
 
     let LADDER_ICON = 0,1
     let LADDER_ITEM_BOX = 1,1
     let BLUE_CANDLE_BOX = 2,1
     let WOOD_ARROW_BOX = 3,1
-    let BLUE_RING_BOX = 4,1
+    let BLUE_RING_BOX = 4,0
 
     let ARMOS_ICON = 0,2
     let ARMOS_ITEM_BOX = 1,2
-    // nothing at 2,2
-    let GANON_BOX = 3,2
-    let ZELDA_BOX = 4,2
+    let GANON_BOX = 2,2
+    let ZELDA_BOX = 3,2
 
     let HEARTS = 0,3  // and 1,2 and 2,3 and 3,3; nothing at 4,3
 
-    let BOMB_RIGHT_OF_BLUE_RING = 40.  // bomb icon is 40 pixels right of blue ring
-
     let Locate(gridX, gridY) = (OFFSET + 30.*float gridX, 30. + 30.*float gridY)
-    let LocateBomb() =
-        let x,y = Locate(BLUE_RING_BOX)
-        x+BOMB_RIGHT_OF_BLUE_RING, y
 
 ///////////////////////////////////////////////
 
@@ -60,13 +55,6 @@ type MapStateProxy(state) =
         else
             Graphics.theInteriorBmpTable.[state].[0]
 
-let resizeMapTileImage(image:Image) =
-    image.Width <- OMTW
-    image.Height <- float(11*3)
-    image.Stretch <- Stretch.Fill
-    image.StretchDirection <- StretchDirection.Both
-    image
-            
 let computeExtraDecorationArrow(topX, topY, pos:Point) =
     // in appMainCanvas coordinates:
     // bottom middle of the box, as an arrow target
@@ -121,12 +109,13 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (
 let sword2LeftSideFullTileBmp =
     let interiorBmp = Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.SWORD2].[0]
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+    let TRANS_BG = Graphics.TRANS_BG
     for px = 0 to 16*3-1 do
         for py = 0 to 11*3-1 do
             if px>=1*3 && px<6*3 && py>=1*3 && py<10*3 then 
                 fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-1*3, py-1*3))
             else
-                fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+                fullTileBmp.SetPixel(px, py, TRANS_BG)
     fullTileBmp
 
 let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
@@ -157,63 +146,92 @@ let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
                             tile.SetPixel(px, py, c)
         tile
 
-let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
+let temporarilyDisplayHiddenOverworldTileMarks = Array2D.create 16 8 false
+let ShouldHide(state,i,j) =
+    let r = 
+        if temporarilyDisplayHiddenOverworldTileMarks.[i,j] || TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() then
+            false
+        else
+            TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(state).Value
+    //printfn "SH(%d)=%A" state r
+    r
+
+let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (shouldAppearLikeDarkX,iconBmp,[decos])
     if ms.State = -1 then
-        null, []
+        false, null, []
     elif ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) <> 0 then
         let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let tile = makeTwoItemShopBmp(item1, item2)
-        tile, []
-    // secrets default to being dark
+        false, tile, []
+    // secrets and potion letter default to being dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET then
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET then
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
-    // door repair & potion letter always dark (but light in the grid selector)
-    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
-        Graphics.theFullTileBmpTable.[ms.State].[1], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
-        Graphics.theFullTileBmpTable.[ms.State].[1], []
+        if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER then
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
+        else
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
+    // door repair always dark (but light in the grid selector)
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE then
+        ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
+    // armos dark if player already got
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.ARMOS then
+        if TrackerModel.armosBox.IsDone() then
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
+        else
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
+    // MMG always bright
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.MONEY_MAKING_GAME then
+        ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[0], []
     // take any and sword1 default to being light (accelerators often darken them)
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY then
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     // hint shop default to being light, user can darken if bought all, or if was white/magic sword hint they already saw
+    // actually, helpful hints are so rarely played, make default dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
-            Graphics.theFullTileBmpTable.[ms.State].[1], []
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
         else
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD2 then
         if not(TrackerModel.sword2Box.IsDone()) then
             let extraDecorationsF(boxPos:Point) =
                 let extraDecorations = computeExtraDecorationArrow(sword2x, sword2y, boxPos)
-                extraDecorations
-            sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, extraDecorationsF), OMTW-30., 1.]
+                seq extraDecorations
+            false, sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
         else
-            Graphics.theFullTileBmpTable.[ms.State].[0], []
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
+    elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD3 then
+        if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+            ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
+        else
+            false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     elif ms.IsDungeon then
         let combine(number:System.Drawing.Bitmap, letter:System.Drawing.Bitmap) =
             let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
+            let TRANS_BG = Graphics.TRANS_BG
             for px = 0 to 16*3-1 do
                 for py = 0 to 11*3-1 do
                     if px>=3*3 && px<8*3 && py>=1*3 && py<10*3 then 
@@ -221,7 +239,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
                     elif px>=7*3 && px<12*3 && py>=1*3 && py<10*3 then // sharing one 'pixel'
                         fullTileBmp.SetPixel(px, py, letter.GetPixel(px-7*3, py-1*3))  
                     else
-                        fullTileBmp.SetPixel(px, py, Graphics.TRANS_BG)
+                        fullTileBmp.SetPixel(px, py, TRANS_BG)
             fullTileBmp
         if TrackerModel.IsHiddenDungeonNumbers() then 
             let isGreen = TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder
@@ -229,23 +247,23 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =
                 if isGreen then
                     let letter = Graphics.theInteriorBmpTable.[ms.State].[3]
                     let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[1]
-                    combine(number,letter), []
+                    false, combine(number,letter), []
                 else
                     let letter = Graphics.theInteriorBmpTable.[ms.State].[2]
                     let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[0]
-                    combine(number,letter), []
+                    false, combine(number,letter), []
             else
                 if isGreen then
-                    Graphics.theFullTileBmpTable.[ms.State].[3], []
+                    false, Graphics.theFullTileBmpTable.[ms.State].[3], []
                 else
-                    Graphics.theFullTileBmpTable.[ms.State].[2], []
+                    false, Graphics.theFullTileBmpTable.[ms.State].[2], []
         else 
             if TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() && TrackerModel.playerComputedStateSummary.HaveRecorder then
-                Graphics.theFullTileBmpTable.[ms.State].[1], []
+                false, Graphics.theFullTileBmpTable.[ms.State].[1], []
             else
-                Graphics.theFullTileBmpTable.[ms.State].[0], []
+                false, Graphics.theFullTileBmpTable.[ms.State].[0], []
     else
-        Graphics.theFullTileBmpTable.[ms.State].[0], []
+        false, Graphics.theFullTileBmpTable.[ms.State].[0], []
 
 let toggleables = [| 
     TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
@@ -254,6 +272,7 @@ let toggleables = [|
     TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
     TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
     TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
+    TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER
     |]
 let ToggleOverworldTileIfItIsToggleable(i, j, state) =
     if toggleables |> Array.contains state then
@@ -274,7 +293,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
         let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let ST = CustomComboBoxes.borderThickness
-        let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
+        let tileImage = Graphics.BMPtoImage(makeTwoItemShopBmp(item1,item2))
         let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
         canvasAdd(tileCanvas, tileImage, 0., 0.)
         let originalState = if item2 = -1 then item1 else item2
@@ -290,15 +309,31 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
             let i = n + TrackerModel.MapSquareChoiceDomainHelper.ARROW
             upcast Graphics.BMPtoImage(MapStateProxy(i).DefaultInteriorBmp()), true, n
             )
+        let edTB1 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., Margin=Thickness(2.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="Choose 2nd shop item", 
+                                    Foreground=Brushes.Orange, Background=Brushes.Black)
+(*
+        let edTB2 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(2.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="(Left clicking tile invokes\nthis 2nd item popup,\nRight clicking tile invokes\nwhole tile popup)", 
+                                    Foreground=Brushes.Orange, Background=Brushes.Black)
+        let edSp = new StackPanel(Orientation=Orientation.Vertical)
+        edSp.Children.Add(edTB1) |> ignore
+        edSp.Children.Add(edTB2) |> ignore
+        let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edSp)
+*)
+        let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edTB1)
+        let extraDecorations = [(upcast edBorder : FrameworkElement), gridxPosition, -33.] //-102.]
         let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
                         gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
                         (fun (currentState) -> 
                             tileCanvas.Children.Clear()
-                            let tileImage = resizeMapTileImage <| Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))
+                            let tileImage = Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                        [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
+                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
         let r =
             match g with
             | Some(currentState) ->
@@ -555,14 +590,13 @@ let MakeMappedHotKeysDisplay() =
         let bucket = ResizeArray()
         for state in states do
             if hkp.StateToKeys(state).Count > 0 then
-                let keys = hkp.StateToKeys(state) |> Seq.fold (fun s c -> s + c.ToString()) ""
+                let keys = hkp.StateToKeys(state) |> Seq.fold (fun s c -> s + HotKeys.PrettyKey(c) + ",") "" |> (fun s -> s.Substring(0, s.Length-1))
                 let icon = mkIcon(state)
                 icon.Width <- float iconW
                 let border = new Border(BorderBrush=Brushes.DimGray, BorderThickness=Thickness(1.), Child=icon)
                 border.Margin <- Thickness(3.)
                 let txt = DungeonRoomState.mkTxt(keys)
                 txt.TextAlignment <- TextAlignment.Left
-                txt.Width <- 20.
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 sp.Children.Add(border) |> ignore
                 sp.Children.Add(txt) |> ignore
@@ -582,7 +616,7 @@ let MakeMappedHotKeysDisplay() =
     let overworldPanel = makePanel([-1..TrackerModel.dummyOverworldTiles.Length-1], HotKeys.OverworldHotKeyProcessor, (fun state ->
         MapStateProxy(state).DefaultInteriorBmp() |> bmpElseSize(15,27)), 15, "OVERWORLD")
     let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 
-        upcast Graphics.blockerCurrentBMP(state)), 24, "BLOCKERS")
+        upcast Graphics.blockerCurrentDisplay(state)), 24, "BLOCKERS")
     let thingies = [| 
         yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of3
         yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of3
@@ -591,14 +625,17 @@ let MakeMappedHotKeysDisplay() =
     let dungeonRoomPanel = makePanel(thingies, HotKeys.DungeonRoomHotKeyProcessor, (fun c ->
         match c with 
         | Choice1Of3 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
-        | Choice2Of3 md -> (let i = md.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
-        | Choice3Of3 fd -> (let i = fd.Bmp(true) |> bmpElseSize(24,24) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
+        | Choice2Of3 md -> (let i = md.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
+        | Choice3Of3 fd -> (let i = fd.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
         ), 39, "DUNGEON")
+    let globalPanel = makePanel(HotKeys.GlobalHotkeyTargets.All, HotKeys.GlobalHotKeyProcessor, (fun state -> state.AsHotKeyDisplay()), 30, "GLOBALS")
     let all = new StackPanel(Orientation=Orientation.Horizontal)
     all.Children.Add(itemPanel) |> ignore
     all.Children.Add(overworldPanel) |> ignore
     all.Children.Add(blockerPanel) |> ignore
     all.Children.Add(dungeonRoomPanel) |> ignore
+    // Note: contextual keys not displayed here, only on their corresponding menus
+    all.Children.Add(globalPanel) |> ignore
     if total = 0 then
         let tb = DungeonRoomState.mkTxt("You have no HotKeys mapped.\nYou can edit HotKeys.txt to add\nsome, to use the next time you\nrestart the app.")
         tb.FontSize <- 16.

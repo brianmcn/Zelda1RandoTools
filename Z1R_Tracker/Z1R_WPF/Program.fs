@@ -59,7 +59,7 @@ type MyWindowBase() as this =
     let VK_F5 = 0x74
     let VK_F10 = 0x79
     let MOD_NONE = 0u
-    let startTime = OverworldItemGridUI.theStartTime
+    let startTime = TrackerModel.theStartTime
     do
         // full window
         let timer = new System.Windows.Threading.DispatcherTimer()
@@ -176,7 +176,6 @@ type MyWindow() as this =
     inherit MyWindowBase()
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     //                             items  ow map  prog  dungeon tabs                                    timeline   
     let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
     let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
@@ -184,20 +183,28 @@ type MyWindow() as this =
     let HEIGHT = HEIGHT_SANS_CHROME + CHROME_HEIGHT
     let WIDTH = WIDTH_SANS_CHROME + CHROME_WIDTH
     let mutable loggedAnyCrash = false
+    let mutable promptedCrashRecovery = false
+    let mutable gotThruStartup = false
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
+    let dateTimeFormat = "yyyy-MM-dd-HH:mm:ss"
     do
         let logCrashInfo(s:string) =
             printfn "%s" s
             try
                 if not loggedAnyCrash then
                     loggedAnyCrash <- true
-                    System.IO.File.AppendAllText(crashLogFilename, sprintf "BEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss")))
+                    System.IO.File.AppendAllText(crashLogFilename, sprintf "\n\nBEGIN CRASH LOG -- %s -- %s\n" OverworldData.ProgramNameString (DateTime.Now.ToString(dateTimeFormat)))
                 System.IO.File.AppendAllText(crashLogFilename, sprintf "%s\n" s)
             with _ -> ()
+        let finishCrashInfoImpl(extra) =
+            let finalText = if gotThruStartup then extra else "(during startup)\n"  // this intentionally interacts with crash recovery dialog
+            System.IO.File.AppendAllText(crashLogFilename, sprintf "END CRASH LOG\n%s\n%s" (DateTime.Now.ToString(dateTimeFormat)) finalText)
+        let finishCrashInfo() = finishCrashInfoImpl("")
         let handle(ex:System.Exception) =
             match ex with
-            | :? TrackerModel.IntentionalApplicationShutdown as ias ->
+            | :? TrackerModelOptions.IntentionalApplicationShutdown as ias ->
                 logCrashInfo <| sprintf "%s" ias.Message
+                finishCrashInfo()
             | :? HotKeys.UserError as hue ->
                 logCrashInfo ""
                 logCrashInfo "Error parsing HotKeys.txt:"
@@ -207,6 +214,7 @@ type MyWindow() as this =
                 logCrashInfo "You should fix this error by editing the text file."
                 logCrashInfo "Or you can delete it, and an empty hotkeys template file will be created in its place."
                 logCrashInfo ""
+                finishCrashInfo()
                 System.Threading.Thread.Sleep(2000)
                 let fileToSelect = HotKeys.HotKeyFilename
                 let args = sprintf "/Select, \"%s\"" fileToSelect
@@ -214,11 +222,13 @@ type MyWindow() as this =
                 System.Diagnostics.Process.Start(psi) |> ignore
             | _ ->
                 logCrashInfo <| sprintf "%s" (ex.ToString())
+                finishCrashInfo()
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
             let ex = e.Exception
             logCrashInfo <| sprintf "An unhandled exception from UI thread:"
             handle(ex)
             e.Handled <- true
+            finishCrashInfo()
             Application.Current.Shutdown()
             )
         System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
@@ -226,17 +236,18 @@ type MyWindow() as this =
             | :? System.Exception as ex ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread:"
                 handle(ex)
+                finishCrashInfo()
             | _ ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
+                finishCrashInfo()
             )
 
-        HotKeys.InitializeWindow(this)
         HotKeys.PopulateHotKeyTables()
         let mutable settingsWereSuccessfullyRead = false
-        TrackerModel.Options.readSettings()
+        TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
-        WPFUI.voice.Volume <- TrackerModel.Options.Volume
-        
+        WPFUI.voice.Volume <- TrackerModelOptions.Volume
+
         do
             let shellLink = 
                 let ty = System.Type.GetTypeFromCLSID (System.Guid "00021401-0000-0000-C000-000000000046")
@@ -251,31 +262,34 @@ type MyWindow() as this =
             ipf.Save(System.IO.Path.Combine(cwd, "ZTracker.lnk"), false)
 
         Graphics.theWindow <- this
-        WPFUI.timeTextBox <- hmsTimeTextBox
         // full window
         this.Title <- "Z-Tracker for Zelda 1 Randomizer"
-        this.ResizeMode <- ResizeMode.NoResize
+        this.ResizeMode <- ResizeMode.CanMinimize
         this.SizeToContent <- SizeToContent.Manual
         this.WindowStartupLocation <- WindowStartupLocation.Manual
         let APP_WIDTH, APP_HEIGHT = 
-            if TrackerModel.Options.SmallerAppWindow.Value then 
-                round(WIDTH_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*TrackerModel.Options.SmallerAppWindowScaleFactor + CHROME_HEIGHT)
+            if TrackerModelOptions.SmallerAppWindow.Value then 
+                round(WIDTH_SANS_CHROME*TrackerModelOptions.SmallerAppWindowScaleFactor + CHROME_WIDTH), round(HEIGHT_SANS_CHROME*TrackerModelOptions.SmallerAppWindowScaleFactor + CHROME_HEIGHT)
             else 
                 WIDTH, HEIGHT
         //printfn "%f, %f" APP_WIDTH APP_HEIGHT
-        let leftTop = TrackerModel.Options.MainWindowLT
+        let leftTop = TrackerModelOptions.MainWindowLT
         let matches = System.Text.RegularExpressions.Regex.Match(leftTop, """^(-?\d+),(-?\d+)$""")
         if matches.Success then
             this.Left <- float matches.Groups.[1].Value
             this.Top <- float matches.Groups.[2].Value
         this.LocationChanged.Add(fun _ ->
-            TrackerModel.Options.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
-            TrackerModel.Options.writeSettings()
+            if this.Left < -30000.0 || this.Top < -30000.0 then
+                ()  // when you Minimize the window, -32000,-32000 are reported. Don't save that, as it's hard to recover window later
+            else
+                TrackerModelOptions.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+                TrackerModelOptions.writeSettings()
             )
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
         this.Loaded.Add(fun _ -> this.Focus() |> ignore)
+        this.Background <- Brushes.Black  // on a device with say 125% pixels and UseLayoutRounding=true, there's a white line at the bottom/right edge where RootCanvas doesn't cover app 
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
             let APP_CONTENT_HEIGHT = HEIGHT_SANS_CHROME
@@ -290,10 +304,21 @@ type MyWindow() as this =
             Graphics.canvasAdd(rootCanvas, appMainCanvas, 0., 0.)
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
-        if TrackerModel.Options.SmallerAppWindow.Value then 
-            let trans = new ScaleTransform(TrackerModel.Options.SmallerAppWindowScaleFactor, TrackerModel.Options.SmallerAppWindowScaleFactor)
+        let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
+        this.Content <- wholeCanvas
+        let drawingCanvasHolder = new Canvas()  // gets the app RenderTransform (can't RenderTransform the drawingCanvas itself without screwing up Broadcast Window)
+        let drawingCanvas = new Canvas(IsHitTestVisible=false)
+        drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
+        if TrackerModelOptions.SmallerAppWindow.Value then 
+            let trans = new ScaleTransform(TrackerModelOptions.SmallerAppWindowScaleFactor, TrackerModelOptions.SmallerAppWindowScaleFactor)
             cm.RootCanvas.RenderTransform <- trans
-        this.Content <- cm.RootCanvas
+            hmsTimerCanvas.RenderTransform <- trans
+            drawingCanvasHolder.RenderTransform <- trans
+        wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
+        wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
+        wholeCanvas.Children.Add(drawingCanvasHolder) |> ignore
+        cm.AfterCreatePopupCanvas.Add(fun _ -> drawingCanvas.Opacity <- 0.)
+        cm.BeforeDismissPopupCanvas.Add(fun _ -> if cm.PopupCanvasStack.Count=0 then drawingCanvas.Opacity <- 1.)
         let mainDock = new DockPanel(Width=appMainCanvas.Width, Height=appMainCanvas.Height)
         ApplyKonamiCodeEasterEgg(cm, mainDock)
         appMainCanvas.Children.Add(mainDock) |> ignore
@@ -316,6 +341,7 @@ type MyWindow() as this =
 
         let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 8., 0., 0.)
+        let smallSpacing = Thickness(0., 3., 0., 0.)
 
         do        
             let menu(wh:Threading.ManualResetEvent) = 
@@ -329,13 +355,13 @@ type MyWindow() as this =
                 sp.Children.Add(mkTxt("Changes to this setting will only take effect the next time you start the application.")) |> ignore
                 let MODE6,MODE5,MODE4 = "Default", "5/6 size", "2/3 size"
                 let curMode = 
-                    if TrackerModel.Options.SmallerAppWindow.Value then 
-                        if TrackerModel.Options.SmallerAppWindowScaleFactor = 2.0/3.0 then 
+                    if TrackerModelOptions.SmallerAppWindow.Value then 
+                        if TrackerModelOptions.SmallerAppWindowScaleFactor = 2.0/3.0 then 
                             MODE4
-                        elif TrackerModel.Options.SmallerAppWindowScaleFactor = 5.0/6.0 then 
+                        elif TrackerModelOptions.SmallerAppWindowScaleFactor = 5.0/6.0 then 
                             MODE5
                         else
-                            sprintf "scale factor: %f" TrackerModel.Options.SmallerAppWindowScaleFactor
+                            sprintf "scale factor: %f" TrackerModelOptions.SmallerAppWindowScaleFactor
                     else 
                         MODE6
                 sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window is '%s'.  You can change the setting here:" curMode)) |> ignore
@@ -343,14 +369,14 @@ type MyWindow() as this =
                 let rb6 = new RadioButton(Content=new TextBox(Text=MODE6, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 let rb5 = new RadioButton(Content=new TextBox(Text=MODE5, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 let rb4 = new RadioButton(Content=new TextBox(Text=MODE4, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
-                if TrackerModel.Options.SmallerAppWindow.Value then
+                if TrackerModelOptions.SmallerAppWindow.Value then
                     if curMode=MODE5 then
                         rb5.IsChecked <- System.Nullable.op_Implicit true
                     else
                         rb4.IsChecked <- System.Nullable.op_Implicit true
                 else
                     rb6.IsChecked <- System.Nullable.op_Implicit true
-                let mutable desireSmaller = TrackerModel.Options.SmallerAppWindow.Value
+                let mutable desireSmaller = TrackerModelOptions.SmallerAppWindow.Value
                 let mutable desireScale = 2.0/3.0
                 rb6.Checked.Add(fun _ -> desireSmaller <- false)
                 rb5.Checked.Add(fun _ -> desireSmaller <- true; desireScale <- 5.0/6.0)
@@ -365,9 +391,9 @@ type MyWindow() as this =
                 let cb = Graphics.makeButton("Don't make any changes\n(exit this popup menu)", Some(16.), None)
                 cb.Click.Add(fun _ -> wh.Set() |> ignore)
                 sb.Click.Add(fun _ ->
-                    TrackerModel.Options.SmallerAppWindow.Value <- desireSmaller
-                    TrackerModel.Options.SmallerAppWindowScaleFactor <- desireScale
-                    TrackerModel.Options.writeSettings()
+                    TrackerModelOptions.SmallerAppWindow.Value <- desireSmaller
+                    TrackerModelOptions.SmallerAppWindowScaleFactor <- desireScale
+                    TrackerModelOptions.writeSettings()
                     this.Close()
                     )
                 buttons.Children.Add(sb) |> ignore
@@ -377,9 +403,9 @@ type MyWindow() as this =
                 addDarkTheme(sp.Resources)
                 new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp)
 
-            let fs = if TrackerModel.Options.SmallerAppWindow.Value then 16. else 12.
+            let fs = if TrackerModelOptions.SmallerAppWindow.Value then 16. else 12.
             let topBar = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
-            let tb = new TextBox(Text=sprintf "Z-Tracker window too %s? " (if TrackerModel.Options.SmallerAppWindow.Value then "small" else "large"), 
+            let tb = new TextBox(Text=sprintf "Z-Tracker window too %s? " (if TrackerModelOptions.SmallerAppWindow.Value then "small" else "large"), 
                                     IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=fs, VerticalAlignment=VerticalAlignment.Center)
             topBar.Children.Add(tb) |> ignore
             let b = Graphics.makeButton("Click here for options", Some(fs), None)
@@ -393,13 +419,13 @@ type MyWindow() as this =
                 )
             topBar.Children.Add(b) |> ignore
             let workingAreaTooSmallForDefaultHeight = SystemParameters.WorkArea.Height < 1000.0
-            let likelyDoesntFit = workingAreaTooSmallForDefaultHeight && not(TrackerModel.Options.SmallerAppWindow.Value)
+            let likelyDoesntFit = workingAreaTooSmallForDefaultHeight && not(TrackerModelOptions.SmallerAppWindow.Value)
             let barColor = 
                 if likelyDoesntFit then 
                     new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy))   // reddish
                 else 
                     new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy))    // grayish
-            let dp = new DockPanel(Height=(if TrackerModel.Options.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
+            let dp = new DockPanel(Height=(if TrackerModelOptions.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
             dp.Children.Add(topBar) |> ignore
             stackPanel.Children.Add(dp) |> ignore
             let spacer = new DockPanel(Height=30., LastChildFill=false)
@@ -434,10 +460,10 @@ type MyWindow() as this =
             for b in triforcesLettered do
                 b.Opacity <- 0.
         turnHideDungeonNumbersOff()
-        let row1boxes = Array.init 3 (fun _ -> new TrackerModel.Box())
+        let row1boxes = Array.init 3 (fun _ -> new TrackerModel.Box(TrackerModel.StairKind.Never, TrackerModel.BoxOwner.None))
         for i = 0 to 2 do
             Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, row1boxes.[i]), i, 1)
-            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, new TrackerModel.Box()), i, 2)
+            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, new TrackerModel.Box(TrackerModel.StairKind.Never, TrackerModel.BoxOwner.None)), i, 2)
         let turnHeartShuffleOn() = for b in row1boxes do b.Set(-1, TrackerModel.PlayerHas.NO)
         let turnHeartShuffleOff() = for b in row1boxes do b.Set(14, TrackerModel.PlayerHas.NO)
         turnHeartShuffleOn()
@@ -464,13 +490,122 @@ type MyWindow() as this =
         hsPanel.Children.Add(border) |> ignore
         stackPanel.Children.Add(hsPanel) |> ignore
 
-        stackPanel.Children.Add(new DockPanel(Height=20.)) |> ignore
+        stackPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
+
+        let ctxt = System.Threading.SynchronizationContext.Current
+        let doStartup(n, loadData : DungeonSaveAndLoad.AllData option) = async {
+            // loadData takes precedence over user selections
+            let heartShuffle = loadData.IsSome || (hscb.IsChecked.HasValue && hscb.IsChecked.Value)
+            let kind = 
+                if loadData.IsSome then
+                    if loadData.Value.Items.HiddenDungeonNumbers then 
+                        TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS 
+                    else 
+                        TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+                else
+                    if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
+                        TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+                    else
+                        TrackerModel.DungeonTrackerInstanceKind.DEFAULT
+            if loadData.IsSome then
+                TrackerModelOptions.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+
+            let mutable speechRecognitionInstance = null
+            if TrackerModelOptions.ListenForSpeech.Value then
+                printfn "Initializing microphone for speech recognition..."
+                try
+                    speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
+                    SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
+                    SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
+                with ex ->
+                    printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
+                    printfn "%s" (ex.ToString())
+                    printfn ""
+                    OptionsMenu.microphoneFailedToInitialize <- true
+            else
+                printfn "Speech recognition will be disabled"
+                OptionsMenu.microphoneFailedToInitialize <- true
+
+            let loadingText = new System.Text.StringBuilder("Loading UI...")
+            let tb = new TextBox(Text=loadingText.ToString(), IsReadOnly=true, Margin=spacing, Padding=Thickness(5.), MaxWidth=WIDTH/2.)
+            stackPanel.Children.Add(tb) |> ignore
+            let totalsw = System.Diagnostics.Stopwatch.StartNew()
+            let sw = System.Diagnostics.Stopwatch.StartNew()
+            let displayStartupTimeDiagnostics(s) = if false then printfn "%s" s  // for debugging startup perf
+            let showProgress(label) = 
+                async {
+                    loadingText.Append('.') |> ignore
+                    tb.Text <- loadingText.ToString()
+                    do! Async.Sleep(1) // pump to make 'Loading UI' text update
+                    do! Async.SwitchToContext ctxt
+                    displayStartupTimeDiagnostics(sprintf "prev took %dms" sw.ElapsedMilliseconds)
+                    displayStartupTimeDiagnostics(label)
+                    sw.Restart()
+                }
+            // move mainDock to topmost while app is built behind it
+            Canvas.SetZIndex(mainDock, 9999)
+            do! showProgress("start")
+            match loadData with
+            | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
+            | _ -> ()
+            let! u = WPFUI.makeAll(this, cm, drawingCanvas, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
+            updateTimeline <- u
+            displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
+            appMainCanvas.Children.Remove(mainDock)  // remove for good
+            HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
+            WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
+            if loadData.IsNone then
+                WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
+            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+            gotThruStartup <- true
+            if promptedCrashRecovery then
+                finishCrashInfoImpl("prompted for crash recovery, user chose not to, successfully started")
+            }
 
         let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
-                TrackerModel.Options.writeSettings()  // save any settings changes they made before closing the startup window
+                TrackerModelOptions.writeSettings()  // save any settings changes they made before closing the startup window
             )
+        let startButtonBehavior(n) = 
+            if startButtonHasBeenClicked then () else
+            startButtonHasBeenClicked <- true
+            turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
+            async {
+                TrackerModelOptions.writeSettings()
+
+                if false then   // this feature is currently unused
+                    Gamepad.ControllerFailureEvent.Publish.Add(handle)
+                    OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+
+                let mutable loadData = None
+                if n = 999 then
+                    let ofd = new Microsoft.Win32.OpenFileDialog()
+                    ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                    ofd.Filter <- "ZTracker saves|zt-save-*.json"
+                    let r = ofd.ShowDialog(this)
+                    if r.HasValue && r.Value then
+                        try
+                            let json = System.IO.File.ReadAllText(ofd.FileName)
+                            let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
+                            if ver.Version <> OverworldData.VersionString then
+                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                                    OverworldData.VersionString ver.Version
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                ignore r
+                                loadData <- None
+                            else
+                                loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
+                        with e ->
+                            let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
+                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                            ignore r
+                    else
+                        let msg = sprintf "Failed to load a save file."
+                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                        ignore r
+                do! doStartup(n,loadData)
+            } |> Async.StartImmediate
         let quests = [|
             0, "First Quest Overworld"
             1, "Second Quest Overworld"
@@ -480,119 +615,115 @@ type MyWindow() as this =
             |]
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
-            startButton.Margin <- spacing
-            startButton.Width <- WIDTH/2.
             if n=999 then
-                let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=spacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
+                let tb = new TextBox(Text="- OR -",IsReadOnly=true, Margin=smallSpacing, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
                 stackPanel.Children.Add(tb) |> ignore
-            stackPanel.Children.Add(startButton) |> ignore
-            startButton.Click.Add(fun _ -> 
-                if startButtonHasBeenClicked then () else
-                startButtonHasBeenClicked <- true
-                turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
-                let ctxt = System.Threading.SynchronizationContext.Current
-                async {
-                    TrackerModel.Options.writeSettings()
+            if n=0 then
+                startButton.Margin <-Thickness(0.)
+            elif n=999 then
+                startButton.Margin <- smallSpacing
+            else
+                startButton.Margin <- spacing
+            if n=0 then
+                let dp = new DockPanel(LastChildFill=true, Width=WIDTH/2.)
+                let otherButton = Graphics.makeButton(". . .", None, None)
+                let tb = new TextBox(Text="See more\noptions",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(2.), Opacity=0.)
+                appMainCanvas.Children.Add(tb) |> ignore
+                otherButton.MouseEnter.Add(fun _ ->
+                    let pos = otherButton.TransformToAncestor(appMainCanvas).Transform(Point(otherButton.ActualWidth+3., 0.))
+                    Canvas.SetLeft(tb, pos.X)
+                    Canvas.SetTop(tb, pos.Y)
+                    tb.Opacity <- 1.0
+                    )
+                otherButton.MouseLeave.Add(fun _ -> tb.Opacity <- 0.0)
+                otherButton.Margin <-Thickness(6.,0.,0.,0.)
+                dp.Children.Add(otherButton) |> ignore
+                otherButton.Click.Add(fun _ -> 
+                    let dialog1 = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
+                    addDarkTheme(dialog1.Resources)
+                    let tb1 = new TextBox(IsReadOnly=true, BorderThickness=Thickness(0.), Foreground=Brushes.Orange)
+                    tb1.Text <- "Z-Tracker was designed for use with fcoughlin's Zelda 1 Randomizer.\n\n" +
+                                
+                                "There are other randomizers/ROM-Hacks for Zelda 1 which use other\n" + 
+                                "(sometimes randomized) overworld maps.  Z-Tracker may not work with\n" +
+                                "these perfectly, but the options here are designed to allow you to use\n" +
+                                "Z-Tracker with non-standard overworld maps, for a slightly degraded, but\n" +
+                                "workable tracking experience.\n\n" + 
 
-                    if false then   // this feature is currently unused
-                        Gamepad.ControllerFailureEvent.Publish.Add(handle)
-                        OptionsMenu.gamepadFailedToInitialize <- not(Gamepad.Initialize())
+                                "There are two main options:\n" +
+                                " - use a 'blank' 16x8 grid for overworld map tracking\n" +
+                                " - use a custom .png map file, supplied by your other randomizer/ROM-Hack\n\n" +
 
-                    let mutable loadData = None
-                    if n = 999 then
-                        let ofd = new Microsoft.Win32.OpenFileDialog()
-                        ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                        ofd.Filter <- "ZTracker saves|zt-save-*.json"
-                        let r = ofd.ShowDialog(this)
-                        if r.HasValue && r.Value then
-                            try
-                                loadData <- Some(DungeonSaveAndLoad.LoadAll(ofd.FileName))
-                                if loadData.Value.Version <> OverworldData.VersionString then
-                                    let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
-                                                        OverworldData.VersionString loadData.Value.Version
-                                    let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                                    ignore r
-                                    loadData <- None
-                            with e ->
-                                let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
-                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                                ignore r
-                        else
-                            let msg = sprintf "Failed to load a save file."
-                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
-                            ignore r
+                                "If you do supply a custom map file, you can also choose whether you want the map\n" +
+                                "to be fully revealed/visible at the outset, or whether each of the 16x8 tiles\n" +
+                                "should be individually hidden, until you click each tile to reveal it.\n\n" +
 
-                    // loadData takes precedence over user selections
-                    let heartShuffle = loadData.IsSome || (hscb.IsChecked.HasValue && hscb.IsChecked.Value)
-                    let kind = 
-                        if loadData.IsSome then
-                            if loadData.Value.Items.HiddenDungeonNumbers then 
-                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS 
-                            else 
-                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                        else
-                            if hdcb.IsChecked.HasValue && hdcb.IsChecked.Value then
-                                TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
-                            else
-                                TrackerModel.DungeonTrackerInstanceKind.DEFAULT
-                    if loadData.IsSome then
-                        TrackerModel.Options.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+                                "Choose an option below:"
+                    dialog1.Children.Add(tb1) |> ignore
+                    let wh = new System.Threading.ManualResetEvent(false)
+                    let mutable choice = None
+                    for txt,n in [
+                                    "I just want a blank 16x8 grid", 0
+                                    "I want to select a map file on disk, and have it fully revealed at the start", 1
+                                    "I want to select a map file on disk, but have each tile hidden at the start", 2
+                                 ] do
+                        let button = Graphics.makeButton(txt, None, None)
+                        button.Margin <- Thickness(0., 10., 0., 0.)
+                        dialog1.Children.Add(button) |> ignore
+                        button.Click.Add(fun _ -> if choice.IsNone then choice <- Some(n); wh.Set() |> ignore)
+                    async {
+                        do! CustomComboBoxes.DoModal(cm, wh, 30., 30., new Border(Child=dialog1, BorderThickness=Thickness(3.), BorderBrush=Brushes.Orange, Background=Brushes.Black, Padding=Thickness(5.)))
+                        Graphics.alternativeOverworldMapFilename <- ""
+                        let choice = choice.Value
+                        if choice<>0 then
+                            let ofd = new Microsoft.Win32.OpenFileDialog()
+                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                            ofd.Filter <- "Overworld map images|*.png"
+                            let r = ofd.ShowDialog(this)
+                            if r.HasValue && r.Value then
+                                Graphics.alternativeOverworldMapFilename <- ofd.FileName
+                        Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
+                        let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
 
-                    let mutable speechRecognitionInstance = null
-                    if TrackerModel.Options.ListenForSpeech.Value then
-                        printfn "Initializing microphone for speech recognition..."
-                        try
-                            speechRecognitionInstance <- new SpeechRecognition.SpeechRecognitionInstance(kind)
-                            SpeechRecognition.speechRecognizer.SetInputToDefaultAudioDevice()
-                            SpeechRecognition.speechRecognizer.RecognizeAsync(System.Speech.Recognition.RecognizeMode.Multiple)
-                        with ex ->
-                            printfn "An exception setting up speech, speech recognition will be non-functional, but rest of app will work. Exception:"
-                            printfn "%s" (ex.ToString())
-                            printfn ""
-                            OptionsMenu.microphoneFailedToInitialize <- true
-                    else
-                        printfn "Speech recognition will be disabled"
-                        OptionsMenu.microphoneFailedToInitialize <- true
+                                    "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
+                                    "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
+                                    "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
+                                    "abitrary markup to the app in a few ways:\n" +
+                                    " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
+                                    "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
+                                    " - shift-left-click an overworld tile, to circle and label it\n" +
+                                    "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
+                                    " - type text into the 'Notes' text box\n"+
+                                    "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
 
-                    let tb = new TextBox(Text="\nLoading UI...\n", IsReadOnly=true, Margin=spacing, MaxWidth=WIDTH/2.)
-                    stackPanel.Children.Add(tb) |> ignore
-                    let showProgress() = 
-                        async {
-                            tb.Text <- tb.Text.Replace(".\n", "..\n")
-                            // move mainDock to topmost layer again
-                            appMainCanvas.Children.Remove(mainDock)
-                            appMainCanvas.Children.Add(mainDock) |> ignore
-                            do! Async.Sleep(1) // pump to make 'Loading UI' text update
-                            do! Async.SwitchToContext ctxt
-                        }
-                    do! showProgress()
-                    match loadData with
-                    | Some data -> lastUpdateMinute <- (data.TimeInSeconds / 60)
-                    | _ -> ()
-                    let! u = WPFUI.makeAll(this, cm, n, heartShuffle, kind, loadData, showProgress, speechRecognitionInstance)
-                    updateTimeline <- u
-                    appMainCanvas.Children.Remove(mainDock)  // remove for good
-                    WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
-                    if loadData.IsNone then
-                        WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-                    Graphics.canvasAdd(cm.AppMainCanvas, hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
-                } |> Async.StartImmediate
-            )
+                                    "Do whatever works for you.  Good luck!"
+                        let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
+                        startButtonBehavior(4)
+                    } |> Async.StartImmediate
+                    )
+                DockPanel.SetDock(otherButton, Dock.Right)
+                dp.Children.Add(startButton) |> ignore
+                stackPanel.Children.Add(dp) |> ignore
+            else
+                startButton.Width <- WIDTH/2.
+                stackPanel.Children.Add(startButton) |> ignore
+            startButton.Click.Add(fun _ -> startButtonBehavior(n))
 
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
         let tb = MakeTipTextBox("Random tip:")
         tipsp.Children.Add(tb) |> ignore
-        let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])
+        let tb = MakeTipTextBox(DungeonData.Factoids.allTips.[ System.Random().Next(DungeonData.Factoids.allTips.Length) ])   // correct app behavior
+        //let tb = MakeTipTextBox(DungeonData.Factoids.allTips |> Array.sortBy (fun s -> s.Length) |> Seq.last)   // show the longest tip (to test screen layout)
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
-        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 30., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 20., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
         let tb = new TextBox(Text="Settings (most can be changed later, using 'Options...' button above timeline):", HorizontalAlignment=HorizontalAlignment.Center, 
-                                Margin=Thickness(0.,0.,0.,10.), BorderThickness=Thickness(0.))
+                                Margin=Thickness(0.,0.,0.,5.), BorderThickness=Thickness(0.))
         bottomSP.Children.Add(tb) |> ignore
-        let options = OptionsMenu.makeOptionsCanvas(float(16*16*3), false)
+        let options = OptionsMenu.makeOptionsCanvas(cm, false, true)
         bottomSP.Children.Add(options) |> ignore
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)
@@ -602,13 +733,43 @@ type MyWindow() as this =
         // "dark theme"
         mainDock.Background <- Brushes.Black
         addDarkTheme(mainDock.Resources)
+
+        if System.IO.File.Exists(crashLogFilename) then
+            let lines = System.IO.File.ReadAllLines(crashLogFilename)
+            if lines.Length > 1 then
+                match DateTime.TryParseExact(lines.[lines.Length-1], dateTimeFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None) with
+                | false, _ -> ()
+                | true, crashTime ->
+                    if DateTime.Now - crashTime < TimeSpan.FromMinutes(10.) then
+                        // it crashed in the past 10 minutes
+                        if System.IO.File.Exists(SaveAndLoad.AutoSaveFilename) then
+                            let autoSaveTime = System.IO.File.GetLastWriteTime(SaveAndLoad.AutoSaveFilename)
+                            if autoSaveTime > (crashTime - TimeSpan.FromMinutes(2.)) then
+                                async {
+                                // there was an autosave just before the crash
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, 
+                                                                            "It appears that Z-Tracker recently crashed.\n\n"+
+                                                                                "There is a recent auto-save from a\n"+
+                                                                                "minute or so before the crash.\n\n"+
+                                                                                "Would you like to try loading the auto-save?", ["Yes, load auto-save"; "No"])
+                                if r <> "No" then
+                                    let json = System.IO.File.ReadAllText(SaveAndLoad.AutoSaveFilename)
+                                    let loadData = Some(DungeonSaveAndLoad.LoadAll(json))
+                                    do! doStartup(999, loadData)
+                                    // successful reload of autosave, call this so next startup won't also trigger recovery dialog
+                                    finishCrashInfoImpl("successful reload of autosave")
+                                else
+                                    promptedCrashRecovery <- true
+                                } |> Async.StartImmediate
         
     override this.Update(f10Press) =
         base.Update(f10Press)
         // update time
         let ts = DateTime.Now - this.StartTime.Time
         let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%2d:%02d:%02d" h m s
+        let time = sprintf "%2d:%02d:%02d" h m s
+        OverworldItemGridUI.hmsTimeTextBox.Text <- time
+        OverworldItemGridUI.broadcastTimeTextBox.Text <- time
         // update timeline
         //if f10Press || (ts.TotalSeconds |> round |> int)%1 = 0 then
         //    updateTimeline((ts.TotalSeconds |> round |> int)/1)

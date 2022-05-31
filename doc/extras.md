@@ -1,4 +1,4 @@
-# HotKeys and extra windows
+# HotKeys, save state, and extra windows
 
 Contents of this document:
 
@@ -10,22 +10,30 @@ Contents of this document:
 
 ## <a id="hotkeys"></a> HotKeys
 
-You can bind hotkeys (keyboard keys 0-9 or a-z) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
+You can bind hotkeys (any keyboard keys) by editing the HotKeys.txt file in the Z-Tracker folder.  The text file format is self-describing.
 
-There are four mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers), and [dungeon rooms](use.md#main-dr).  
-So for example 'b' could be set up to mean 'bow' when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 
-'bow & arrow' when the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.
+There are seven mouse-hover 'contexts' for hotkeys: [item boxes](use.md#item-boxes), [overworld tiles](use.md#main-owm), [blockers](use.md#main-blockers),
+[dungeon rooms](use.md#main-dr), ['Take Any' and 'Take This'](use.md#take-any-accelerator) menus, and finally a 'global' context, used both for toggling
+the boxes in the [other item area](use.md#main-oia) and for switching dungeon tabs via a hotkey.  The non-global contexts can each map the same keys, so 
+for example 'b' could be set up to mean 'bow' when the mouse is over an item box, 'bomb shop' when the mouse is over an overworld tile, 'bow & arrow' when 
+the mouse is over blockers, and 'bomb upgrade room' when the mouse is over a dungeon room.  Any hotkeys in the global context must be unique (not bound 
+in any other context, with the exception that TakeAny and TakeThis can override globals when those menus are on-screen).
 
-While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide a way to display your current hotkey
-information.  Left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
+While there is no support for editing or reloading hotkey information inside the application, Z-Tracker does provide ways to display your current hotkey
+information.  First, each popup menu will display any hotkeys that have been bound, alongside the description in the mouseover popup:
+
+![screenshot](screenshots/hotkey-in-popup-example.png)
+
+Second, you can left click the button 'Show HotKeys' to the right of the overworld map legend, and it will create a new, resizable, window displaying your hotkey
 mappings.  You can choose to leave that window wherever you like on your desktop as a 'cheat sheet' when trying to learn your hotkeys; close the hotkey
 display window at any time when you are done with it.  The window size and location will persist across sessions.  If the window ever becomes inaccessible 
 off-screen, you can right-click the 'Show HotKeys' button to re-position and re-size the window to a default location on-screen.
 
 ![screenshot](screenshots/hotkey-cheat-sheet-example.png)
 
-Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window to ensure that window 
-has focus, and then try again to mouse hover an empty item/overworld/blocker/dungeon box and press a keyboard hotkey.
+Hotkeys only work when the Z-Tracker window has focus.  If your hotkeys don't appear to be working, click somewhere in the app window (other than inside
+the [Notes text box](use.md#main-notes)) to ensure that window has focus, and then try again to mouse hover an empty item/overworld/blocker/dungeon box and press
+a keyboard hotkey.
 
 Hotkeys have some 'smarts' in addition to just 'setting the state you pressed':
 
@@ -50,7 +58,15 @@ These ad-hoc behaviors are designed either to make common cases fast and easy, o
 
 ## <a id="save-state"></a> Save State
 
-There is no support for saving in-progress game data; the tool is currently designed only for playing a single continuous session.
+You can save the current state of the tracker to a file, and load it again (say, tomorrow) to pick up a seed where you left off.
+
+Click the 'Save' button in the running tracker to save all of the current tracker state; it will automatically be saved to a file with the current date and time in the filename.
+
+![Save button](screenshots/save-button.png)
+
+On the startup screen, choose the 'Start: from a previously saved state' option to load up a prior save.
+
+![Load button](screenshots/load-button.png)
 
 
 ## <a id="broadcast-window"></a> Broadcast Window
@@ -79,7 +95,7 @@ If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Trac
 
 ## <a id="window-size"></a> Window Size
 
-The Z-Tracker application is somewhat large (the window content is 768x963), designed to make all of the important information available to the player on-screen 
+The Z-Tracker application is somewhat large (the window content is 768x967), designed to make all of the important information available to the player on-screen 
 at once.  However some users may need or desire a smaller application window.  You can make the application window 2/3 size by clicking the button in the banner strip at the 
 very top of the startup screen, which allows you to select either the Default or 2/3 size options.
 
