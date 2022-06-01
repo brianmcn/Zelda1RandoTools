@@ -47,6 +47,10 @@ also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
+
+Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option?
+
+
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
