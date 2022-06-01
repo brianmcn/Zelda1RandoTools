@@ -2,7 +2,7 @@
 
 A summary of the features/fixes in the various releases of Z-Tracker
 
- - [Version 1.2](#v1.2) (under development)
+ - [Version 1.2](#v1.2) (released 2022-05-31)
  - [Version 1.1](#v1.1) (released 2022-02-06)
  - [Version 1.0](#v1.0) (released 2021-12-11)
 
