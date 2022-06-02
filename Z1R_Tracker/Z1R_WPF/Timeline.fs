@@ -81,14 +81,17 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             // populate data to graph
             let sorted = TrackerModel.timelineDataOverworldSpotsRemain.ToArray() |> Array.sortBy fst
             let remainPerTick = Array.create (numTicks+1) -1
+            let maxRemain = sorted |> Array.maxBy snd |> snd
+            remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
             let mutable highestTickPopulated = -1
             for s,r in sorted do
                 let tickBucket = 1 + (s/60)/minutesPerTick
                 if tickBucket >= 0 && tickBucket <= numTicks then
                     if tickBucket > highestTickPopulated then
-                        for i = highestTickPopulated+1 to tickBucket do
-                            remainPerTick.[i] <- r
-                            highestTickPopulated <- tickBucket
+                        for i = highestTickPopulated+1 to tickBucket-1 do
+                            remainPerTick.[i] <- if i=0 then maxRemain else remainPerTick.[i-1]
+                        remainPerTick.[tickBucket] <- r
+                        highestTickPopulated <- tickBucket
                     else
                         assert(tickBucket = highestTickPopulated)
                         remainPerTick.[tickBucket] <- r
@@ -100,8 +103,6 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             // draw it
             graphCanvas.Children.Clear()
             graphCanvas.Children.Add(owAxisLabel) |> ignore
-            let maxRemain = sorted |> Array.maxBy snd |> snd
-            remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
             let y(r) = (iconAreaHeight / float maxRemain) * float r
             for i = 1 to curTick do
                 if remainPerTick.[i-1] <> -1 && remainPerTick.[i] <> -1 then
