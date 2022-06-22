@@ -43,6 +43,7 @@ since 1.2.1r...
 since 1.2.2...
  - fix timeline OW graph draw bug
  - fix a couple crash bugs
+ - while painting map, popup the blue-bars-hover-thingy
 
 
 also, doc all OptionsMenu
@@ -53,7 +54,7 @@ probably more description/screenshot of options menu, say initial defaults tailo
 Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)
 
 
-while painting map, should maybe popup the blue-bars-hover-thingy
+
 
 
 consider changing S/B to tiny shieldicon/bookicon

@@ -447,6 +447,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomRedrawFuncs = ResizeArray(64)
         let redrawAllRooms() = if not skipRedrawInsideCurrentImport then for f in roomRedrawFuncs do f()
         let roomCanvas = new Canvas()
+        let mutable showMinimaps = fun () -> ()
         let roomDragDrop = new Graphics.DragDropSurface<_>(dungeonBodyCanvas, (fun (ea,initiatorFunc) ->
             let mutable whichButtonStr = ""
             if not popupIsActive then
@@ -470,11 +471,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     // make OffTheMap rooms show a 'grid' to make it easier to draw in empty space
                     DungeonRoomState.isDoingDragPaintOffTheMap <- true
                     redrawAllRooms()
+                showMinimaps()
                 DragDrop.DoDragDrop(roomCanvas, whichButtonStr, DragDropEffects.Link) |> ignore
                 // DoDragDrop is blocking, so we can do post-drop effects here
                 DungeonRoomState.isDoingDragPaintOffTheMap <- false
                 redrawAllRooms()
                 redrawAllDoors()
+                rightwardCanvas.Children.Clear() // remove the shown minimaps
             ))
         let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas) =
             roomDragDrop.RegisterClickable(doorCanvas, (fun ea -> 
@@ -619,7 +622,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let miniBorder = new Border(Child=minimini, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
         canvasAdd(hoverCanvas, miniBorder, 0., 0.)
         canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.)
-        hoverCanvas.MouseEnter.Add(fun _ ->
+        showMinimaps <- (fun () ->
             let make(markedRooms) = 
                 let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
                 let i = Graphics.BMPtoImage bmp
@@ -640,6 +643,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             Canvas.SetLeft(b, 0.)
             rightwardCanvas.Children.Clear()
             rightwardCanvas.Children.Add(b) |> ignore
+            )
+        hoverCanvas.MouseEnter.Add(fun _ -> 
+            showMinimaps()
             let vb = new VisualBrush(dungeonCanvas)
             trackerDungeonMoused.Trigger(vb)
             )
@@ -1001,6 +1007,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                         elif whichButtonStr = "R" && roomStates.[i,j].RoomType = DungeonRoomState.RoomType.Unmarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
@@ -1008,6 +1015,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                         elif whichButtonStr = "M" && roomStates.[i,j].RoomType.IsNotMarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
@@ -1015,6 +1023,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             roomStates.[i,j].IsComplete <- true
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                 roomDragDrop.RegisterClickable(c, (fun ea ->
                     if not popupIsActive then
                         async {
