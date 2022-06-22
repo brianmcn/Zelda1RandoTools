@@ -221,8 +221,20 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
 
     // shield versus book icon (for boomstick flags/seeds)
-    let toggleBookShieldCheckBox  = new CheckBox(Content=new TextBox(Text="S/B",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
-    toggleBookShieldCheckBox.ToolTip <- "Shield item icon instead of book item icon"
+    let toggleBookShieldCheckBox = 
+        let sp = new StackPanel(Orientation=Orientation.Horizontal)
+        let shieldIcon = Graphics.BMPtoImage Graphics.magic_shield_bmp
+        shieldIcon.Width <- 14.
+        shieldIcon.Height <- 14.
+        sp.Children.Add(shieldIcon) |> ignore
+        let slash = new TextBox(Text="/",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+        sp.Children.Add(slash) |> ignore
+        let boomBookIcon = Graphics.BMPtoImage Graphics.boom_book_bmp
+        boomBookIcon.Width <- 14.
+        boomBookIcon.Height <- 14.
+        sp.Children.Add(boomBookIcon) |> ignore
+        new CheckBox(Content=sp)
+    toggleBookShieldCheckBox.ToolTip <- "Shield instead of book (in item pool, for boomstick seeds)"
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
