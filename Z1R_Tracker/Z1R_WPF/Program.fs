@@ -674,31 +674,33 @@ type MyWindow() as this =
                     async {
                         do! CustomComboBoxes.DoModal(cm, wh, 30., 30., new Border(Child=dialog1, BorderThickness=Thickness(3.), BorderBrush=Brushes.Orange, Background=Brushes.Black, Padding=Thickness(5.)))
                         Graphics.alternativeOverworldMapFilename <- ""
-                        let choice = choice.Value
-                        if choice<>0 then
-                            let ofd = new Microsoft.Win32.OpenFileDialog()
-                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                            ofd.Filter <- "Overworld map images|*.png"
-                            let r = ofd.ShowDialog(this)
-                            if r.HasValue && r.Value then
-                                Graphics.alternativeOverworldMapFilename <- ofd.FileName
-                        Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
-                        let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
+                        match choice with
+                        | None -> ()  // just exit the modal and go back to startup screen if they click outside
+                        | Some choice ->
+                            if choice<>0 then
+                                let ofd = new Microsoft.Win32.OpenFileDialog()
+                                ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                                ofd.Filter <- "Overworld map images|*.png"
+                                let r = ofd.ShowDialog(this)
+                                if r.HasValue && r.Value then
+                                    Graphics.alternativeOverworldMapFilename <- ofd.FileName
+                            Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
+                            let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
 
-                                    "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
-                                    "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
-                                    "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
-                                    "abitrary markup to the app in a few ways:\n" +
-                                    " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
-                                    "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
-                                    " - shift-left-click an overworld tile, to circle and label it\n" +
-                                    "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
-                                    " - type text into the 'Notes' text box\n"+
-                                    "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
+                                        "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
+                                        "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
+                                        "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
+                                        "abitrary markup to the app in a few ways:\n" +
+                                        " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
+                                        "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
+                                        " - shift-left-click an overworld tile, to circle and label it\n" +
+                                        "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
+                                        " - type text into the 'Notes' text box\n"+
+                                        "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
 
-                                    "Do whatever works for you.  Good luck!"
-                        let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
-                        startButtonBehavior(4)
+                                        "Do whatever works for you.  Good luck!"
+                            let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
+                            startButtonBehavior(4)
                     } |> Async.StartImmediate
                     )
                 DockPanel.SetDock(otherButton, Dock.Right)

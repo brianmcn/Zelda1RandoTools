@@ -42,7 +42,7 @@ since 1.2.1r...
  - scroll OW circle color
 since 1.2.2...
  - fix timeline OW graph draw bug
-
+ - fix a couple crash bugs
 
 
 also, doc all OptionsMenu
@@ -50,7 +50,33 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 
-Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option?
+Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)
+
+
+while painting map, should maybe popup the blue-bars-hover-thingy
+
+
+consider changing S/B to tiny shieldicon/bookicon
+
+
+Archie asks how to hidden-dungeon-numbers, ensure start-screen has a screenshot in docs
+
+
+2Q dungeons options, change old man count? https://discord.com/channels/368763663986982912/951909873770168380/984264630102802452
+
+
+'more options' to hide irrelevant shops, e.g. key after any key, ring after blue/red ring, etc
+ - issues are how to display on-hover item, on-hover zelda, on re-click the shop interface, etc...
+
+
+when hover one transport, highlight its mate?
+
+
+
+
+ within-dungeon pirouette: 
+ Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
+[11:04 AM] fcoughlin: So a key door, bomb wall, or open shutter in the room you’re in will carry over to the start room of the dungeon
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
@@ -409,6 +435,12 @@ Keyboard focus and control
 
 
 ESOTERIC
+
+
+always a candle shop blocked by at most bombs
+always an arrow shop blocked by at most candle
+
+
 
 The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
 0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X

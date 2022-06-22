@@ -784,6 +784,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let mutable popupIsActive = false
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
+                                popupIsActive <- true
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), cm.AppMainCanvas)
                                 async {
                                     do! Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1)
@@ -968,6 +969,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             workingCopy.MonsterDetail <- md
                             SetNewValue(workingCopy)
                         | None -> ()
+                        popupIsActive <- false
                     } |> Async.StartImmediate
                 let doFloorDropDetailPopup() = 
                     async {
@@ -979,10 +981,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             workingCopy.FloorDropDetail <- fd
                             SetNewValue(workingCopy)
                         | None -> ()
+                        popupIsActive <- false
                     } |> Async.StartImmediate
                 c.MouseWheel.Add(fun x -> 
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
+                            popupIsActive <- true
                             if x.Delta>0 then
                                 doMonsterDetailPopup()
                             else
@@ -1042,6 +1046,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                                 else
                                     if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        popupIsActive <- true
                                         doMonsterDetailPopup()
                                     else
                                         // plain left click
@@ -1072,6 +1077,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
                                     if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        popupIsActive <- true
                                         doFloorDropDetailPopup()
                                     else
                                         // plain right click
