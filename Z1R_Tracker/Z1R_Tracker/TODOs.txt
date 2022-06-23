@@ -45,6 +45,7 @@ since 1.2.2...
  - fix a couple crash bugs
  - while painting map, popup the blue-bars-hover-thingy
  - S/B is now shield/book icons
+ - option to hide no-longer-relevant shop items
 
 
 also, doc all OptionsMenu
@@ -59,10 +60,6 @@ Archie asks how to hidden-dungeon-numbers, ensure start-screen has a screenshot 
 
 
 2Q dungeons options, change old man count? https://discord.com/channels/368763663986982912/951909873770168380/984264630102802452
-
-
-'more options' to hide irrelevant shops, e.g. key after any key, ring after blue/red ring, etc
- - issues are how to display on-hover item, on-hover zelda, on re-click the shop interface, etc...
 
 
 when hover one transport, highlight its mate?

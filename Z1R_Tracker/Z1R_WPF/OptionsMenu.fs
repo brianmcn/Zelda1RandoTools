@@ -138,12 +138,21 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
                         "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
                         "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
-                        "a bright icon in that case.\n\n" + 
-                        "You can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
+                        "a bright icon in that case.\n\n" +
+                        "You can also hide no-longer-relevant shop items (for example, key shop after you get the Any Key, ring shop after you obtain either blue or red ring, etc.) " +
+                        "by checking the box below."
+            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))
+            sp.Children.Add(tb) |> ignore
+            let cb = new CheckBox(Content=new TextBox(Text="Hide no-longer-relevant shop items",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+            let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
+            link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+            sp.Children.Add(cb) |> ignore
+            let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
             AddStyle(sp)
-            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), Width=650.)
+            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
+                                Width=720., HorizontalAlignment=HorizontalAlignment.Right)
             async {
                 do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
                 popupIsActive <- false

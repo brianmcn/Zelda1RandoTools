@@ -1112,6 +1112,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // update specific-blockers that may have been (un)blocked
         for f in Views.redrawBoxes do f()
         for f in Views.redrawTriforces do f()
+        // update overworld marks (may be hiding useless shops, and they just got an item rendering a shop useless (e.g. any key and key shops))
+        OptionsMenu.requestRedrawOverworldEvent.Trigger()
 
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm

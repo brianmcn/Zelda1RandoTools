@@ -332,6 +332,8 @@ type MapSquareChoiceDomainHelper =
             TrackerModelOptions.OverworldTilesToHide.HintShop
         elif n = MapSquareChoiceDomainHelper.TAKE_ANY then
             TrackerModelOptions.OverworldTilesToHide.TakeAny
+        elif n = MapSquareChoiceDomainHelper.SHOP then
+            TrackerModelOptions.OverworldTilesToHide.Shop
         else 
             failwith "bad AsTrackerModelOptionsOverworldTilesToHide"
 
