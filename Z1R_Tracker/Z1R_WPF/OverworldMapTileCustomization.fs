@@ -355,6 +355,17 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
 
 let DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState) =
     // rather than have many idempotent keys, turn some of them into useful actions
+
+    // black magic for "take any road"
+    let hotKeyedState =
+        match hotKeyedState with
+        | TrackerModel.OverworldAnyRoadNext ->
+            if   TrackerModel.mapSquareChoiceDomain.CanAddUse( 9) then 9
+            elif TrackerModel.mapSquareChoiceDomain.CanAddUse(10) then 10
+            elif TrackerModel.mapSquareChoiceDomain.CanAddUse(11) then 11
+            else 12
+        | _ -> hotKeyedState
+
     let orig = MapStateProxy(originalState)
     if orig.IsThreeItemShop then
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based

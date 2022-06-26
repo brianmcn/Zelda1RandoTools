@@ -197,6 +197,9 @@ let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+[<Literal>]
+let OverworldAnyRoadNext = 36
+
 let overworldTiles(isFirstQuestOverworld) = [|
     // hotkey name       maxuses                                              popup display text
     "Level1"           , 1                                                  , "Dungeon"
@@ -239,6 +242,7 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "TakeAny"          , 4                                                  , "Take Any One\nYou Want"
     "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop\n(20-60, 48-88 rupees)"
     "DarkX"            , 999                                                , "Don't Care"
+    "AnyRoadNext"      , 0                                                  , "Pseudo-tile for hotkeys"
     |]   // 1Q has 73 total spots, 2Q has 80
 let dummyOverworldTiles = overworldTiles(true)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
 
