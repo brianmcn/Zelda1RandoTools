@@ -239,7 +239,12 @@ let overworldTiles(isFirstQuestOverworld) = [|
     "TakeAny"          , 4                                                  , "Take Any One\nYou Want"
     "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop\n(20-60, 48-88 rupees)"
     "DarkX"            , 999                                                , "Don't Care"
-    |]   // 1Q has 73 total spots, 2Q has 80
+    |]
+// 1Q has 73 total spots, 2Q has 80, Mixed has 93
+let MaxRemain1Q = 73
+let MaxRemain2Q = 80
+let MaxRemainMQ = 93
+let MaxRemainUQ = 128
 let dummyOverworldTiles = overworldTiles(true)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
 
 let mutable mapSquareChoiceDomain = null : ChoiceDomain
@@ -1491,6 +1496,7 @@ type TimelineItemModel(desc: TimelineItemDescription) =
     static member TriggerTimelineChanged() =  // used when Loading a Save file
         let span = System.DateTime.Now - theStartTime.Time
         timelineChanged.Trigger(int span.TotalMinutes)
+    member this.ResetTotalSeconds() = if finishedTotalSeconds <> -1 then finishedTotalSeconds <- 0    // used when user presses Reset Timer
     member this.StampTotalSeconds(s,ph) =  // used when Loading a Save file
         match desc with
         | TimelineItemDescription.ItemBox(_,_) -> itemPlayerHas <- ph

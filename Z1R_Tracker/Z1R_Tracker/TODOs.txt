@@ -48,14 +48,12 @@ since 1.2.2...
  - option to hide no-longer-relevant shop items
  - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
  - fix bug: 2nd quest map has yellow dot on A9 rather than A7
+ - fix bug: when mark up map/items, then reset timer, OW graph/timeline gets screwy
 
 
 
 also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
-
-bug: when mark up map, then reset timer, OW graph gets screwy (e.g. sotw 3.4)
 
 
 Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)

@@ -398,6 +398,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             secondButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
                 userPressedReset <- true
+                // In addition to just resetting the timer, the user clicking 'Reset' should zero out OverworldSpotsRemainingOverTime and Timeline data, for e.g. scenario
+                // where you repeatedly play flags where you start with map knowledge and/or items, so that the graph and timeline display all this at time 0.
+                // Note: the resetTimerEvent is only about the 0:00:00 timer, for example, after loading data off disk, it fires that event, since loading takes several seconds,
+                // so only this user-activated section of code (and not the event) should reset OverworldSpotsRemainingOverTime/Timeline data.
+                TrackerModel.timelineDataOverworldSpotsRemain.Clear()
+                TrackerModel.timelineDataOverworldSpotsRemain.Add(0, TrackerModel.mapStateSummary.OwSpotsRemain)
+                for (KeyValue(_,v)) in TrackerModel.TimelineItemModel.All do
+                    v.ResetTotalSeconds()
+                TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw
                 wh.Set() |> ignore
                 )
             async {

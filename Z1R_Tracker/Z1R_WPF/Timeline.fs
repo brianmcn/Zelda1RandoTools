@@ -66,17 +66,17 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
     member this.Canvas = timelineCanvas
-    member this.Update(minute, timelineItems:seq<TimelineItem>) =
+    member this.Update(minute, timelineItems:seq<TimelineItem>, maxOverworldRemain) =
         if not isCurrentlyLoadingASave then
             let tick = minute / minutesPerTick
             if tick < 0 || tick > numTicks then
                 ()
             else
-                this.DrawGraph(tick)
+                this.DrawGraph(tick, maxOverworldRemain)
                 this.DrawItemsAndGuidelines(timelineItems)
                 curTime.X1 <- xf(float (minute / minutesPerTick))
                 curTime.X2 <- xf(float (minute / minutesPerTick))
-    member private this.DrawGraph(curTick) =
+    member private this.DrawGraph(curTick, maxOverworldRemain) =
         if TrackerModel.timelineDataOverworldSpotsRemain.Count > 0 then
             // populate data to graph
             let sorted = TrackerModel.timelineDataOverworldSpotsRemain.ToArray() |> Array.sortBy fst
@@ -103,7 +103,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             // draw it
             graphCanvas.Children.Clear()
             graphCanvas.Children.Add(owAxisLabel) |> ignore
-            let y(r) = (iconAreaHeight / float maxRemain) * float r
+            let y(r) = (iconAreaHeight / float maxOverworldRemain) * float r
             for i = 1 to curTick do
                 if remainPerTick.[i-1] <> -1 && remainPerTick.[i] <> -1 then
                     let x1,x2 = xf(float(i-1)), xf(float(i))

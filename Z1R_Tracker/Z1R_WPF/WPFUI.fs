@@ -138,20 +138,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // rest of data is loaded at end, but these are needed at start
     | _ -> ()
     // initialize based on startup parameters
-    let owMapBMPs, isMixed, owInstance, owMapNum =
+    let owMapBMPs, isMixed, owInstance, owMapNum, maxOverworldRemain =
         match owMapNum, loadData with
-        | 0, _ -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0
-        | 1, _ -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1
-        | 2, _ -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2
-        | 3, _ -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3
-        | 4, _ -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4
+        | 0, _ -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0, TrackerModel.MaxRemain1Q
+        | 1, _ -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1, TrackerModel.MaxRemain2Q
+        | 2, _ -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2, TrackerModel.MaxRemainMQ
+        | 3, _ -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3, TrackerModel.MaxRemainMQ
+        | 4, _ -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4, TrackerModel.MaxRemainUQ
         | 999, Some(data) -> 
             match data.Overworld.Quest with
-            | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0
-            | 1 -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1
-            | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2 
-            | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3
-            | 4 -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4
+            | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0, TrackerModel.MaxRemain1Q
+            | 1 -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1, TrackerModel.MaxRemain2Q
+            | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2, TrackerModel.MaxRemainMQ
+            | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3, TrackerModel.MaxRemainMQ
+            | 4 -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4, TrackerModel.MaxRemainUQ
             | _ -> failwith "bad load data at root.Overworld.Quest"
         | _ -> failwith "bad/unsupported (owMapNum,loadData)"
     do! showProgress("after ow map load")
@@ -1770,17 +1770,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             theTimeline1.Canvas.Opacity <- 1.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline1.Update(minute, timelineItems)
+            theTimeline1.Update(minute, timelineItems, maxOverworldRemain)
         elif minute <= 120 then
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 1.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline2.Update(minute, timelineItems)
+            theTimeline2.Update(minute, timelineItems, maxOverworldRemain)
         else
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 1.
-            theTimeline3.Update(minute, timelineItems)
+            theTimeline3.Update(minute, timelineItems, maxOverworldRemain)
     TrackerModel.TimelineItemModel.TimelineChanged.Add(drawTimeline)
     canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
