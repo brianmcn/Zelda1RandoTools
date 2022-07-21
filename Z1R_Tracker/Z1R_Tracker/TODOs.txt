@@ -46,11 +46,16 @@ since 1.2.2...
  - while painting map, popup the blue-bars-hover-thingy
  - S/B is now shield/book icons
  - option to hide no-longer-relevant shop items
+ - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
+ - fix bug: 2nd quest map has yellow dot on A9 rather than A7
+
 
 
 also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
+
+bug: when mark up map, then reset timer, OW graph gets screwy (e.g. sotw 3.4)
 
 
 Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)
@@ -63,6 +68,21 @@ Archie asks how to hidden-dungeon-numbers, ensure start-screen has a screenshot 
 
 
 when hover one transport, highlight its mate?
+
+
+homer: When you assign a blocker to tri, item box, etc. You stay in the sub menu until you click out and I feel like everything else you have us do, once we click a 
+thing we're back to the normal screen and we have to go back in to change modify add. I get the thought that you might have something that blocks tri and item 2 and 
+so it's way less clicking to just stay there, but I feel like it's far more likely to only click one box then multiples. Maybe just me. 
+
+
+maybe label hearts on timeline with origin (e.g. '3' from dungeon 3, or 'L' from ladder spot, ...)
+
+
+possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
+ - Stevie-O hacked this with a new overworldTiles() state NextAnyRoad or whatever
+ - there's AnyRoad and HDN dungeon, where a single hotkey for 'next' is nice
+ - and then there's related idea of single hotkey to cycle thru many choices, e.g. C for chute (|| -> = -> none -> ||), 
+       secrets (medium -> large -> small -> none -> medium, or whatever), etc, and user-configability
 
 
 
@@ -281,9 +301,6 @@ clyceer: wants to drag in grab mode, rather than click-click
 
 
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
-
-
-possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
 
 
 consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
