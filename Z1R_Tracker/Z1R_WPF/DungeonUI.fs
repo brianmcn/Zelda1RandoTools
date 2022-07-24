@@ -287,7 +287,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 else
                     for d = 0 to 8 do turnOffQuestMap(d)
             else
-                pressQuestButton(SI, true)
+                pressQuestButton(SI, false)
             )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 

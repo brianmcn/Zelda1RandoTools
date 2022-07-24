@@ -49,6 +49,14 @@ since 1.2.2...
  - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
  - fix bug: 2nd quest map has yellow dot on A9 rather than A7
  - fix bug: when mark up map/items, then reset timer, OW graph/timeline gets screwy
+ - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
+
+
+(separate)
+consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
+extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
+
+
 
 
 
