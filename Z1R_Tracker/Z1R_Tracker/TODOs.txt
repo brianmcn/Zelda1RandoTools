@@ -41,17 +41,16 @@ since 1.2.1q...
 since 1.2.1r...
  - scroll OW circle color
 since 1.2.2...
- - fix timeline OW graph draw bug
+ - option to hide no-longer-relevant shop items on overworld map
+ - label timeline hearts with their origin (e.g. '3' from dungeon 3, 'sword icon' from white sword cave...)
+ - while painting dungeon map, popup the blue-bars-hover-thingy
+ - "S/B" is now shield/book icons instead
+ - fix a couple timeline OW graph draw bugs
  - fix a couple crash bugs
- - while painting map, popup the blue-bars-hover-thingy
- - S/B is now shield/book icons
- - option to hide no-longer-relevant shop items
  - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
  - fix bug: 2nd quest map has yellow dot on A9 rather than A7
- - fix bug: when mark up map/items, then reset timer, OW graph/timeline gets screwy
  - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
  - fix bug: toggling "Second quest dungeons" does not update old man counts
- - label timeline hearts with their origin (e.g. '3' from dungeon 3, 'sword icon' from white sword cave...)
 
 
 (separate)
@@ -67,9 +66,6 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)
-
-
-HDN - labeling number doesnt immediately update timeline
 
 
 Archie asks how to hidden-dungeon-numbers, ensure start-screen has a screenshot in docs
