@@ -289,6 +289,10 @@ let paintAlphanumerics3x5(ch, color, bmp:System.Drawing.Bitmap, x, y) =  // x an
         | 'F' -> 15
         | 'G' -> 16
         | 'H' -> 17
+        | 'S' -> 18 // sword
+        | 'L' -> 19 // ladder
+        | 'R' -> 20 // robot armos
+        | 'T' -> 21 // T for take any
         | _ -> failwith "bad alphanumeric character to paint"
     for i = 0 to 2 do
         for j = 0 to 4 do
@@ -373,7 +377,7 @@ let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_ma
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10])
 
-let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp, iconDisk_bmp = 
+let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp, iconDisk_bmp, owHeartTallFull_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let all = [|
@@ -389,9 +393,22 @@ let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTr
     transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then System.Drawing.Color.LightGray else c)), 
         all.[1],
         transformColor(all.[1], (fun c -> if c.ToArgb() <> System.Drawing.Color.Transparent.ToArgb() then desaturateColor(c, 0.25) else c)), 
-        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6], all.[7], all.[8]
+        all.[0], all.[2], all.[3], all.[4], all.[5], all.[6], all.[7], all.[8], all.[9]
 let UNFOUND_NUMERAL_COLOR = System.Drawing.Color.FromArgb(0x77,0x77,0x99)
 let FOUND_NUMERAL_COLOR = System.Drawing.Color.White
+let heartFromTakeAny_bmp, heartFromWhiteSwordCave_bmp, heartFromCoast_bmp, heartFromArmos_bmp, heartFromNumberedDungeon_bmps, heartFromLetteredDungeon_bmps =
+    let LABEL = System.Drawing.Color.FromArgb(0xFF,0xFF,0xFF)
+    let paint(ch) = 
+        let bmp = owHeartTallFull_bmp.Clone() :?> System.Drawing.Bitmap
+        paintAlphanumerics3x5(ch, LABEL, bmp, 4, 2)
+        bmp
+    let a = [|
+        for ch in ["123456789"; "ABCDEFGH9"] do
+            yield [|
+            for i = 0 to 8 do
+                yield paint(ch.Chars(i))
+            |] |]
+    paint('T'), paint('S'), paint('L'), paint('R'), a.[0], a.[1]
 let emptyUnfoundNumberedTriforce_bmps, emptyUnfoundLetteredTriforce_bmps = 
     let a = [|
         for ch in ['1'; 'A'] do
@@ -825,6 +842,12 @@ let blockerCurrentDisplay(current) =
         image.IsHitTestVisible <- false
         canvasAdd(innerc, image, 1., 1.)
     innerc
+
+let skipped = Brushes.MediumPurple
+let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size)) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
+let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)

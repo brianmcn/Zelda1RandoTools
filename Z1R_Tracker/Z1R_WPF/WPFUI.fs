@@ -206,20 +206,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
-        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)))
+        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), Some(tid))))
         c
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
         else        
-            boxItemImpl("Level1or4Box3", TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+            boxItemImpl(Timeline.TimelineID.Level1or4Box3, TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 8 do
             for j = 0 to 2 do
                 let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
                 if j=2 && i<> 8 then
                     canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
@@ -229,7 +229,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j=0 || j=1 || i=7 then
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
     let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
     extrasImage.ToolTip <- "Starting items and extra drops"
@@ -317,7 +317,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->
+        timelineItems.Add(new Timeline.TimelineItem(Timeline.TimelineID.Triforce(i+1), fun()->
             match kind with
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> 
@@ -1136,7 +1136,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 else
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp()); 
-                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
+                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), None))])
             member _this.AnnounceConsiderSword3() = 
                 SendReminderImpl(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)],
                                     Some(AsyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.Sword3Location)))
@@ -1327,7 +1327,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 ()   // silly to ask to grab white sword if already have mags (though note this reminder could be useful in swordless when both are bomb upgrades)
                             else
                                 SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
-                                                [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
+                                                [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), None))])
                         ladderTime.SetNow()
             // remind whistle spots
             if (DateTime.Now - recorderTime.Time).Minutes > 2 then  // every 3 mins

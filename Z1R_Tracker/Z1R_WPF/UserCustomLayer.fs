@@ -130,8 +130,8 @@ let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:Resize
             // timeline
             let ev = 
                 if ti <> "" then
-                    let ident = "UserCustom_" + ti
-                    if not(TrackerModel.TimelineItemModel.All.ContainsKey(ident)) then
+                    let tid = Timeline.TimelineID.UserCustom(ti)
+                    if not(TrackerModel.TimelineItemModel.All.ContainsKey(tid.Identifier)) then
                         let bmpFile = System.IO.Path.Combine(extraIconsDirectory, ti)
                         let orig = System.Drawing.Bitmap.FromFile(bmpFile) :?> System.Drawing.Bitmap
                         let bmp = 
@@ -150,9 +150,9 @@ let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:Resize
                             else
                                 orig
                         let ev = new Event<bool>()
-                        let tim = new TrackerModel.TimelineItemModel(TrackerModel.TimelineItemDescription.UserCustom(ident, ev))
-                        TrackerModel.TimelineItemModel.All.Add(ident, tim)
-                        let ti = new Timeline.TimelineItem(ident, fun() -> bmp)
+                        let tim = new TrackerModel.TimelineItemModel(TrackerModel.TimelineItemDescription.UserCustom(tid.Identifier, ev))
+                        TrackerModel.TimelineItemModel.All.Add(tid.Identifier, tim)
+                        let ti = new Timeline.TimelineItem(tid, fun() -> bmp)
                         timelineItems.Add(ti)
                         Some(ev)
                     else

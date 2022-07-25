@@ -379,6 +379,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             else
                 oldManCountTB.Text <- sprintf "%d/%d" oldManCount (TrackerModel.GetOldManCount(level-1))
         updateOldManCountText()
+        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> updateOldManCountText())
         if TrackerModel.IsHiddenDungeonNumbers() then
             TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateOldManCountText())
         canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.)
