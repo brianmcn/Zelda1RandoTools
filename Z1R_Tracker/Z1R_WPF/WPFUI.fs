@@ -1782,6 +1782,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             theTimeline3.Canvas.Opacity <- 1.
             theTimeline3.Update(minute, timelineItems, maxOverworldRemain)
     TrackerModel.TimelineItemModel.TimelineChanged.Add(drawTimeline)
+    for j = 0 to 7 do
+        TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged()) // e.g. to change heart label from E -> 3
+    OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged())  // e.g. to change heart label from 1 -> 4
     canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
