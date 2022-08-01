@@ -589,13 +589,11 @@ type MyWindow() as this =
                             let json = System.IO.File.ReadAllText(ofd.FileName)
                             let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
                             if ver.Version <> OverworldData.VersionString then
-                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file might not work, but Z-Tracker will attempt to load it anyway." 
                                                     OverworldData.VersionString ver.Version
-                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Attempt Load"])
                                 ignore r
-                                loadData <- None
-                            else
-                                loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
+                            loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
                         with e ->
                             let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
                             let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
