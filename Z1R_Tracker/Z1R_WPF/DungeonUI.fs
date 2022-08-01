@@ -90,6 +90,14 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
 let makeOutlineShapesImpl(quest:string[]) =
     let outlines = ResizeArray<FrameworkElement>()
     let color = Brushes.MediumPurple
+    let hatchBrush = 
+        let myGeometryGroup = new GeometryGroup()
+        myGeometryGroup.Children.Add(new LineGeometry(new Point(0., 0.), new Point(9., 0.)))
+        myGeometryGroup.Children.Add(new LineGeometry(new Point(0., 9.), new Point(0., 0.)))
+        let p = new Windows.Media.Pen(Brush=color, Thickness=3., StartLineCap=PenLineCap.Square, EndLineCap=PenLineCap.Square)
+        let myDrawing = new GeometryDrawing(null, p, myGeometryGroup)
+        new DrawingBrush(Drawing=myDrawing, Viewbox=Rect(0., 0., 9., 9.), ViewboxUnits=BrushMappingMode.Absolute, Viewport=Rect(0., 0., 9., 9.), ViewportUnits=BrushMappingMode.Absolute, 
+                          TileMode=TileMode.Tile, Stretch=Stretch.UniformToFill, Transform = new RotateTransform(45.))
     // fixed dungeon drawing outlines - vertical segments
     for i = 0 to 6 do
         for j = 0 to 7 do
@@ -108,7 +116,7 @@ let makeOutlineShapesImpl(quest:string[]) =
     for i = 0 to 7 do
         for j = 0 to 7 do
             if quest.[j].Chars(i) <> 'X' then
-                let s = new Shapes.Rectangle(Width=float(39+12), Height=float(27+12), Fill=color, IsHitTestVisible=false, Opacity=0.15)
+                let s = new Shapes.Rectangle(Width=float(39+12), Height=float(27+12), Fill=hatchBrush, IsHitTestVisible=false, Opacity=0.45)
                 Canvas.SetLeft(s, float(i*(39+12)-12/2))
                 Canvas.SetTop(s, float(TH + j*(27+12)-12/2))
                 outlines.Add(s)

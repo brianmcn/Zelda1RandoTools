@@ -46,6 +46,7 @@ since 1.2.2...
  - while painting dungeon map, popup the blue-bars-hover-thingy
  - "S/B" is now shield/book icons instead
  - can attempt to load saves from older versions (1.2.3 can load 1.2.2 saves)
+ - FQ/SQ vanilla dungeon shapes now have a 'hatch' pattern off-the-map (to make 2Q7 and 2Q8 more visually distinct)
  - fix a couple timeline OW graph draw bugs
  - fix a couple crash bugs
  - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
@@ -64,10 +65,6 @@ extract all those regions, average them all to cleanly get the crisp contour, an
 
 also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
-
-shade outside of shapes more (e.g. less likely confuse 2Q 7 and 8)
-
 
 
 Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option? (possibly option for completedness too? middle click drag?)
