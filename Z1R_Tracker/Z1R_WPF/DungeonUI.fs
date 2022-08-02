@@ -126,6 +126,8 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
+let defaultRoom() = if TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock.Value then DungeonRoomState.RoomType.NonDescript else DungeonRoomState.RoomType.MaybePushBlock
+
 type TrackerLocation =
     | OVERWORLD
     | DUNGEON
@@ -1028,7 +1030,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         elif whichButtonStr = "M" && roomStates.[i,j].RoomType.IsNotMarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
-                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                            roomStates.[i,j].RoomType <- defaultRoom()
                             roomStates.[i,j].IsComplete <- true
                             redraw()
                             redrawAllDoors()
@@ -1071,7 +1073,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                         let workingCopy = roomStates.[i,j].Clone()
                                         if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
                                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
-                                            workingCopy.RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                            workingCopy.RoomType <- defaultRoom()
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
                                         else
