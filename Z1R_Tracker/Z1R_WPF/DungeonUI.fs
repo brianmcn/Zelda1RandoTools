@@ -459,6 +459,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let redrawAllRooms() = if not skipRedrawInsideCurrentImport then for f in roomRedrawFuncs do f()
         let roomCanvas = new Canvas()
         let mutable showMinimaps = fun () -> ()
+        let mutable invertOffTheMapWithUnmarked = fun () -> ()
+        let mutable hasEverInvertedOrDragged = false
         let roomDragDrop = new Graphics.DragDropSurface<_>(dungeonBodyCanvas, (fun (ea,initiatorFunc) ->
             let mutable whichButtonStr = ""
             if not popupIsActive then
@@ -477,6 +479,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
                         whichButtonStr <- "M"
             if whichButtonStr <> "" then
+                if whichButtonStr="L" && not(hasEverInvertedOrDragged) && TrackerModelOptions.LeftClickDragAutoInverts.Value then
+                    invertOffTheMapWithUnmarked()  // left-drag will auto-invert, to start painting on-map locations to an off-the-map background
+                hasEverInvertedOrDragged <- true // you might right drag to unpaint, and unpaint too much, and then left drag to paint back in, don't want to invert then
                 initiatorFunc(whichButtonStr)
                 if whichButtonStr="R" || whichButtonStr="L" then
                     // make OffTheMap rooms show a 'grid' to make it easier to draw in empty space
@@ -684,16 +689,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             let b = new Border(Child=dp, BorderThickness=Thickness(1.0), BorderBrush=Brushes.DarkGray, Width=40., Height=16.)
             b.MouseEnter.Add(fun _ -> b.BorderBrush <- Brushes.DarkCyan)
             b.MouseLeave.Add(fun _ -> b.BorderBrush <- Brushes.DarkGray)
+            invertOffTheMapWithUnmarked <- fun () ->
+                hasEverInvertedOrDragged <- true
+                for x=0 to 7 do
+                    for y=0 to 7 do
+                        if roomStates.[x,y].RoomType.IsNotMarked then
+                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                        elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
             b.MouseDown.Add(fun _ -> 
                 if grabHelper.IsGrabMode then
                     ()
                 else
-                    for x=0 to 7 do
-                        for y=0 to 7 do
-                            if roomStates.[x,y].RoomType.IsNotMarked then
-                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
-                            elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
-                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
+                    invertOffTheMapWithUnmarked()
                     redrawAllRooms()
                     redrawAllDoors()
                 )

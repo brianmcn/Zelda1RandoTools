@@ -42,6 +42,8 @@ let data1d = [|
     "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModelOptions.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
     "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModelOptions.DoDoorInference, false, fun()->()
     "Book for Helpful Hints", "Check this if both 'Book To Understand Old Men' flag is on, and\n'Helpful' hints are available. The tracker will let you left-click\nOld Man Hint rooms to toggle whether you have read them yet.", TrackerModelOptions.BookForHelpfulHints, false, bookForHelpfulHintsOptionChanged.Trigger
+    "Left-drag auto-inverts", "Painting maps: When checked, If your first drag is with left-click,\nand you've not yet inverted OffTheMap with Unmarked, then\nauto-invert when left-click-dragging, to immediately start painting a map.", TrackerModelOptions.LeftClickDragAutoInverts, false, (fun()->())
+    "Default to NonDescript", "Room default: When checked, clicking an Unmarked room will mark it as\nNonDescript (empty box) rather than MaybePushBlock (box with two dots)", TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock, false, (fun()->())
     |]
 
 let data2 = [|

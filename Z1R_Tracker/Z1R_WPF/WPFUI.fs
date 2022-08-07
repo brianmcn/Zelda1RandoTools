@@ -1330,7 +1330,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                                 [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), None))])
                         ladderTime.SetNow()
             // remind whistle spots
-            if (DateTime.Now - recorderTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - recorderTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HaveRecorder then
                     let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
                     if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
@@ -1342,7 +1342,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     recorderTime.SetNow()
                     owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
             // remind power bracelet spots
-            if (DateTime.Now - powerBraceletTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - powerBraceletTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
                     if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
                         let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
@@ -1353,7 +1353,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     powerBraceletTime.SetNow()
                     owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
             // remind boomstick book
-            if (DateTime.Now - boomstickTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - boomstickTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HaveWand && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()) then
                     if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
                         SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])

@@ -367,7 +367,7 @@ let scale(bmp, scale) =
         icon
 
 let mutable isDoingDragPaintOffTheMap = false
-let veryDarkRed = new SolidColorBrush(Color.FromArgb(255uy, 60uy, 0uy, 0uy))
+let veryDark = new SolidColorBrush(Color.FromArgb(255uy, 60uy, 10uy, 20uy))
 type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright) =
     let mutable isCompleted = isCompleted
     let mutable roomType = roomType
@@ -397,7 +397,8 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
                 let black = new Canvas(Width=13.*3.+12., Height=9.*3.+12., Background=Brushes.Black, Opacity=0.6)
                 canvasAdd(c, black, -6., -6.)
                 if isDoingDragPaintOffTheMap then
-                    canvasAdd(black, new Shapes.Rectangle(Width=black.Width, Height=black.Height, Stroke=veryDarkRed, StrokeThickness=1.), 0., 0.)
+                    //canvasAdd(black, new Shapes.Rectangle(Width=black.Width, Height=black.Height, Stroke=veryDark, StrokeThickness=1.), 0., 0.)
+                    canvasAdd(black, new Shapes.Rectangle(Width=13.*3., Height=9.*3., Stroke=veryDark, StrokeThickness=2.), 6., 6.)
             | _ ->
                 let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
                 canvasAdd(c, roomIcon, 0., 0.)
