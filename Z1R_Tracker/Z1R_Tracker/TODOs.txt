@@ -63,22 +63,14 @@ extract all those regions, average them all to cleanly get the crisp contour, an
 
 
 
-separate boomstick reminder
-
-
 also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
 
-Archie asks how to hidden-dungeon-numbers, ensure start-screen has a screenshot in docs
 
-
-when hover one transport, highlight its mate?
-
-
- within-dungeon pirouette: 
- Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
+within-dungeon pirouette: 
+Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
 [11:04 AM] fcoughlin: So a key door, bomb wall, or open shutter in the room you’re in will carry over to the start room of the dungeon
 
 
@@ -86,9 +78,6 @@ put some kind of screenshot on the TOC page, so it can be a first landing page l
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
 
-
-
-consider puzzle-piece-ing maps
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
@@ -227,9 +216,6 @@ SMALL
 optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
 
 
-would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
-
-
 Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
  - would probably need adjustable minutes settings on Options menu
  - no sensible defaults for noobs, so perhaps not on by default
@@ -253,10 +239,6 @@ voice feedback saying what mark, so less need to watch what you clicked?
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
  - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
  - another possible extra-floating-window ui maybe
-
-
-in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
- - ghostbusters help now
 
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
