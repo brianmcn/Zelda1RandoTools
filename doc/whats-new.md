@@ -2,13 +2,33 @@
 
 A summary of the features/fixes in the various releases of Z-Tracker
 
- - [Version 1.2](#v1.2) (released 2022-05-31)
+ - [Version 1.2.3](#v1.2.3) (released 2022-08-15)
+ - [Version 1.2.2](#v1.2.2) (released 2022-05-31)
  - [Version 1.1](#v1.1) (released 2022-02-06)
  - [Version 1.0](#v1.0) (released 2021-12-11)
 
 ---
 
-## <a id="v1.2"></a>Version 1.2
+## <a id="v1.2.3"></a>Version 1.2.3
+
+This is a minor update with some small features and bug fixes:
+
+ - label timeline hearts with their origin (e.g. '3' from dungeon 3, 'sword icon' from white sword cave...)
+ - "S/B" is now shield/book icons instead
+ - can attempt to load saves from older versions (1.2.3 can load 1.2.2 saves)
+ - FQ/SQ vanilla dungeon shapes now have a 'hatch' pattern off-the-map (to make 2Q7 and 2Q8 more visually distinct)
+ - while painting dungeon map, popup the blue-bars-hover-thingy
+ - Options Menu ability to hide no-longer-relevant shop items on overworld map (under "More settings...", final checkbox)
+ - Options Menu new dungeon option "Left-drag auto-inverts" causes first left-click-drag to auto-click OffTheMap/Unmarked button in bottom right, for immediately painting rooms back onto the map
+ - Options Menu new dungeon option "Default to NonDescript" if you want left clicking a room to be NonDescript rather than MaybePushBlock
+ - fix a couple timeline OW graph draw bugs
+ - fix a couple crash bugs
+ - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
+ - fix bug: 2nd quest map has yellow dot on A9 rather than A7
+ - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
+ - fix bug: toggling "Second quest dungeons" does not update old man counts
+
+## <a id="v1.2.2"></a>Version 1.2.2
 
 ### Save and load
 
