@@ -7,13 +7,114 @@ open System.Windows
 let mutable isCurrentlyLoadingASave = false
 
 let canvasAdd = Graphics.canvasAdd
-type TimelineItem(ident : string, f) =
-    let model = TrackerModel.TimelineItemModel.All.[ident]
+
+type TimelineID =
+    // "items"
+    | WoodSword
+    | WhiteSword
+    | MagicalSword
+    | Boomerang
+    | MagicBoomerang
+    | WoodArrow
+    | SilverArrow
+    | BlueCandle
+    | BlueRing
+    | RedCandle
+    | RedRing
+    | BoomstickBook
+    | Book
+    | Gannon
+    | Zelda
+    | Bow
+    | Wand
+    | PowerBracelet
+    | Raft
+    | Recorder
+    | AnyKey
+    | Ladder
+    // box locations
+    | LadderBox
+    | ArmosBox
+    | WhiteSwordBox
+    | Level1or4Box3
+    | LevelBox of int * int
+    // triforces
+    | Triforce1
+    | Triforce2
+    | Triforce3
+    | Triforce4
+    | Triforce5
+    | Triforce6
+    | Triforce7
+    | Triforce8
+    // take any
+    | TakeAnyHeart1
+    | TakeAnyHeart2
+    | TakeAnyHeart3
+    | TakeAnyHeart4
+    // custom
+    | UserCustom of string
+    static member Triforce(n) =
+        match n with
+        | 1 -> Triforce1
+        | 2 -> Triforce2
+        | 3 -> Triforce3
+        | 4 -> Triforce4
+        | 5 -> Triforce5
+        | 6 -> Triforce6
+        | 7 -> Triforce7
+        | 8 -> Triforce8
+        | _ -> failwith "bad Triforce(n)"
+    member this.Identifier =
+        match this with
+        | WoodSword -> "WoodSword"
+        | WhiteSword -> "WhiteSword"
+        | MagicalSword -> "MagicalSword"
+        | Boomerang -> "Boomerang"
+        | MagicBoomerang -> "MagicBoomerang"
+        | WoodArrow -> "WoodArrow"
+        | SilverArrow -> "SilverArrow"
+        | BlueCandle -> "BlueCandle"
+        | BlueRing -> "BlueRing"
+        | RedCandle -> "RedCandle"
+        | RedRing -> "RedRing"
+        | BoomstickBook -> "BoomstickBook"
+        | Book -> "Book"
+        | Gannon -> "Gannon"
+        | Zelda -> "Zelda"
+        | Bow -> "Bow"
+        | Wand -> "Wand"
+        | PowerBracelet -> "PowerBracelet"
+        | Raft -> "Raft"
+        | Recorder -> "Recorder"
+        | AnyKey -> "AnyKey"
+        | Ladder -> "Ladder"
+        | LadderBox -> "LadderBox"
+        | ArmosBox -> "ArmosBox"
+        | WhiteSwordBox -> "WhiteSwordBox"
+        | Level1or4Box3 -> "Level1or4Box3"
+        | LevelBox(i,j) -> sprintf "Level%dBox%d" i j
+        | Triforce1 -> "Triforce1"
+        | Triforce2 -> "Triforce2"
+        | Triforce3 -> "Triforce3"
+        | Triforce4 -> "Triforce4"
+        | Triforce5 -> "Triforce5"
+        | Triforce6 -> "Triforce6"
+        | Triforce7 -> "Triforce7"
+        | Triforce8 -> "Triforce8"
+        | TakeAnyHeart1 -> "TakeAnyHeart1"
+        | TakeAnyHeart2 -> "TakeAnyHeart2"
+        | TakeAnyHeart3 -> "TakeAnyHeart3"
+        | TakeAnyHeart4 -> "TakeAnyHeart4"
+        | UserCustom s -> "UserCustom_" + s
+
+type TimelineItem(tid : TimelineID, f) =
+    let model = TrackerModel.TimelineItemModel.All.[tid.Identifier]
     member this.IsDone = model.FinishedTotalSeconds <> -1
     member this.FinishedTotalSeconds = model.FinishedTotalSeconds
     member this.Bmp = f()
     member this.Has = model.Has
-    member this.Identifier = ident
+    member this.TID = tid
 
 let TLC = Brushes.SandyBrown   // timeline color
 let ICON_SPACING = 6.
@@ -66,29 +167,32 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
     member this.Canvas = timelineCanvas
-    member this.Update(minute, timelineItems:seq<TimelineItem>) =
+    member this.Update(minute, timelineItems:seq<TimelineItem>, maxOverworldRemain) =
         if not isCurrentlyLoadingASave then
             let tick = minute / minutesPerTick
             if tick < 0 || tick > numTicks then
                 ()
             else
-                this.DrawGraph(tick)
+                this.DrawGraph(tick, maxOverworldRemain)
                 this.DrawItemsAndGuidelines(timelineItems)
                 curTime.X1 <- xf(float (minute / minutesPerTick))
                 curTime.X2 <- xf(float (minute / minutesPerTick))
-    member private this.DrawGraph(curTick) =
+    member private this.DrawGraph(curTick, maxOverworldRemain) =
         if TrackerModel.timelineDataOverworldSpotsRemain.Count > 0 then
             // populate data to graph
             let sorted = TrackerModel.timelineDataOverworldSpotsRemain.ToArray() |> Array.sortBy fst
             let remainPerTick = Array.create (numTicks+1) -1
+            let maxRemain = sorted |> Array.maxBy snd |> snd
+            remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
             let mutable highestTickPopulated = -1
             for s,r in sorted do
                 let tickBucket = 1 + (s/60)/minutesPerTick
                 if tickBucket >= 0 && tickBucket <= numTicks then
                     if tickBucket > highestTickPopulated then
-                        for i = highestTickPopulated+1 to tickBucket do
-                            remainPerTick.[i] <- r
-                            highestTickPopulated <- tickBucket
+                        for i = highestTickPopulated+1 to tickBucket-1 do
+                            remainPerTick.[i] <- if i=0 then maxRemain else remainPerTick.[i-1]
+                        remainPerTick.[tickBucket] <- r
+                        highestTickPopulated <- tickBucket
                     else
                         assert(tickBucket = highestTickPopulated)
                         remainPerTick.[tickBucket] <- r
@@ -100,9 +204,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             // draw it
             graphCanvas.Children.Clear()
             graphCanvas.Children.Add(owAxisLabel) |> ignore
-            let maxRemain = sorted |> Array.maxBy snd |> snd
-            remainPerTick.[0] <- maxRemain   // other buckets are populated with most-recent-value-achieved-in-prior-minute, but for 0th minute, we want max value
-            let y(r) = (iconAreaHeight / float maxRemain) * float r
+            let y(r) = (iconAreaHeight / float maxOverworldRemain) * float r
             for i = 1 to curTick do
                 if remainPerTick.[i-1] <> -1 && remainPerTick.[i] <> -1 then
                     let x1,x2 = xf(float(i-1)), xf(float(i))
@@ -119,7 +221,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                 let tick = float ti.FinishedTotalSeconds/(60.*float minutesPerTick) |> int
                 if not(buckets.ContainsKey(tick)) then
                     buckets.Add(tick, ResizeArray())
-                buckets.[tick].Add(ti.Bmp, ti.FinishedTotalSeconds, ti.Has, ti.Identifier)
+                buckets.[tick].Add(ti.Bmp, ti.FinishedTotalSeconds, ti.Has, ti.TID)
         for tick = 0 to numTicks do
             if buckets.ContainsKey(tick) then
                 let rowBmps = ResizeArray()
@@ -143,16 +245,21 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                     let line = new Shapes.Line(X1=x(tick), Y1=float(bottomRow+1)*(iconSize+ICON_SPACING)-ICON_SPACING, X2=x(tick), Y2=iconAreaHeight+BIG_HASH/2., Stroke=Brushes.Gray, StrokeThickness=LINE_THICKNESS)
                     canvasAdd(itemCanvas, line, 0., 0.)
                     // items
-                    for row,(bmp,totalSeconds,has,ident) in rowBmps do
+                    for row,(bmp,totalSeconds,has,tid) in rowBmps do
                         let c = new Canvas(Width=iconSize, Height=iconSize)
                         let img = Graphics.BMPtoImage ((if has = TrackerModel.PlayerHas.NO then Graphics.greyscale else id) bmp)
-                        img.Width <- iconSize
-                        img.Height <- iconSize
+                        if img.Width = 30. && iconSize = 21. then
+                            // a kludge to not make overworld hearts look so awful when scaled
+                            img.Width <- 20.
+                            img.Height <- 20.
+                        else
+                            img.Width <- iconSize
+                            img.Height <- iconSize
                         c.Children.Add(img) |> ignore
-                        if has = TrackerModel.PlayerHas.SKIPPED then CustomComboBoxes.placeSkippedItemXDecorationImpl(c, iconSize)
+                        if has = TrackerModel.PlayerHas.SKIPPED then Graphics.placeSkippedItemXDecorationImpl(c, iconSize)
                         c.MouseEnter.Add(fun _ ->
                             itemCanvas.Children.Remove(timeToolTip)
-                            timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""") + "\n" + ident
+                            timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""") + "\n" + tid.Identifier
                             let x = xminOrig
                             let x = min x (float(16*16*3 - 100))  // don't go off right screen edge
                             canvasAdd(itemCanvas, timeToolTip, x, float row*(iconSize+ICON_SPACING)-35.)

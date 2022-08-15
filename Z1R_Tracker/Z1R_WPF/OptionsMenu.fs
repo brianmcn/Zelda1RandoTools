@@ -42,6 +42,8 @@ let data1d = [|
     "Show basement info", "Check this if empty dungeon item boxes should suggest whether they are found as\nbasement items rather than floor drops (no effect when Hidden Dungeon Numbers)", TrackerModelOptions.ShowBasementInfo, false, showBasementInfoOptionChanged.Trigger
     "Do door inference", "Check this to mark a green door when you mark a new room, if the point of entry can be inferred", TrackerModelOptions.DoDoorInference, false, fun()->()
     "Book for Helpful Hints", "Check this if both 'Book To Understand Old Men' flag is on, and\n'Helpful' hints are available. The tracker will let you left-click\nOld Man Hint rooms to toggle whether you have read them yet.", TrackerModelOptions.BookForHelpfulHints, false, bookForHelpfulHintsOptionChanged.Trigger
+    "Left-drag auto-inverts", "Painting maps: When checked, If your first drag is with left-click,\nand you've not yet inverted OffTheMap with Unmarked, then\nauto-invert when left-click-dragging, to immediately start painting a map.", TrackerModelOptions.LeftClickDragAutoInverts, false, (fun()->())
+    "Default to NonDescript", "Room default: When checked, clicking an Unmarked room will mark it as\nNonDescript (empty box) rather than MaybePushBlock (box with two dots)", TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock, false, (fun()->())
     |]
 
 let data2 = [|
@@ -138,12 +140,21 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
                         "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
                         "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
-                        "a bright icon in that case.\n\n" + 
-                        "You can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
+                        "a bright icon in that case.\n\n" +
+                        "You can also hide no-longer-relevant shop items (for example, key shop after you get the Any Key, ring shop after you obtain either blue or red ring, etc.) " +
+                        "by checking the box below."
+            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))
+            sp.Children.Add(tb) |> ignore
+            let cb = new CheckBox(Content=new TextBox(Text="Hide no-longer-relevant shop items",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+            let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
+            link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+            sp.Children.Add(cb) |> ignore
+            let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
             AddStyle(sp)
-            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), Width=650.)
+            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
+                                Width=720., HorizontalAlignment=HorizontalAlignment.Right)
             async {
                 do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
                 popupIsActive <- false

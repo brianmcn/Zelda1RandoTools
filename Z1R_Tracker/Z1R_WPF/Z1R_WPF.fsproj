@@ -103,8 +103,8 @@
     <Compile Include="OverworldRouteDrawing.fs" />
     <Compile Include="DungeonRoomState.fs" />
     <Compile Include="HotKeys.fs" />
-    <Compile Include="CustomComboBoxes.fs" />
     <Compile Include="Timeline.fs" />
+    <Compile Include="CustomComboBoxes.fs" />
     <Compile Include="PieMenus.fs" />
     <Compile Include="ShowRunCustom.fs" />
     <Compile Include="Dungeon.fs" />

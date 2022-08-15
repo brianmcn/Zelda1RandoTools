@@ -18,9 +18,9 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.MouseButtonEventArgs) =
 let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy))
 let noAndNotEmpty = Brushes.Red
 let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy))
-let skipped = Brushes.MediumPurple
+let skipped = Graphics.skipped
 let skippedAndEmpty = Brushes.White
-let boxCurrentBMP(boxCellCurrent, isForTimeline) =
+let boxCurrentBMP(boxCellCurrent, timelineOrigin) =
     match boxCellCurrent with
     | -1 -> null
     |  0 -> (if TrackerModel.IsCurrentlyBook() then Graphics.book_bmp else Graphics.magic_shield_bmp)
@@ -37,7 +37,32 @@ let boxCurrentBMP(boxCellCurrent, isForTimeline) =
     | 11 -> Graphics.silver_arrow_bmp
     | 12 -> Graphics.wand_bmp
     | 13 -> Graphics.white_sword_bmp
-    |  _ -> if isForTimeline then Graphics.owHeartFull_bmp else Graphics.heart_container_bmp
+    |  _ -> 
+        match timelineOrigin with 
+        | Some(tid) -> 
+            let level = 
+                match tid with
+                | Timeline.TimelineID.LevelBox(i,_) -> Some(i)
+                | Timeline.TimelineID.Level1or4Box3 -> if TrackerModelOptions.IsSecondQuestDungeons.Value then Some(4) else Some(1)
+                | _ -> None
+            match level with
+            | Some(i) ->
+                if TrackerModel.IsHiddenDungeonNumbers() then
+                    if i=9 then
+                        Graphics.heartFromNumberedDungeon_bmps.[i-1]
+                    elif TrackerModel.GetDungeon(i-1).LabelChar <> '?' then
+                        Graphics.heartFromNumberedDungeon_bmps.[int(TrackerModel.GetDungeon(i-1).LabelChar) - int('1')]
+                    else
+                        Graphics.heartFromLetteredDungeon_bmps.[i-1]
+                else
+                    Graphics.heartFromNumberedDungeon_bmps.[i-1]
+            | None -> 
+                match tid with
+                | Timeline.TimelineID.LadderBox -> Graphics.heartFromCoast_bmp
+                | Timeline.TimelineID.WhiteSwordBox -> Graphics.heartFromWhiteSwordCave_bmp
+                | Timeline.TimelineID.ArmosBox -> Graphics.heartFromArmos_bmp
+                | _ -> Graphics.owHeartTallFull_bmp 
+        | None -> Graphics.heart_container_bmp
 
 ///////////////////////////////////////////////////////////////////
 
@@ -371,10 +396,6 @@ let DoModalGridSelect<'State,'Result>
 
 ////////////////////////////////
 
-let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size)) |> ignore
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
-let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 let itemBoxMouseButtonExplainerDecoration =
     let d = new DockPanel(Height=90., LastChildFill=true, Background=Brushes.Black)
     let mouseBMP = Graphics.mouseIconButtonColorsBMP
@@ -392,7 +413,7 @@ let itemBoxMouseButtonExplainerDecoration =
         let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=color, StrokeThickness=3.0, IsHitTestVisible=false)
         c.Children.Add(rect) |> ignore
         if obj.Equals(color, skipped) then
-            placeSkippedItemXDecoration(c)
+            Graphics.placeSkippedItemXDecoration(c)
         p.Children.Add(c) |> ignore
         let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                 Text=text, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
@@ -408,7 +429,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     let innerc = new Canvas(Width=24., Height=24., Background=Brushes.Black)  // just has item drawn on it, not the box
     let redraw(n) =
         innerc.Children.Clear()
-        let bmp = boxCurrentBMP(n, false)
+        let bmp = boxCurrentBMP(n, None)
         if bmp <> null then
             let image = Graphics.BMPtoImage(bmp)
             canvasAdd(innerc, image, 1., 1.)
@@ -416,7 +437,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
     redraw(boxCellCurrent) |> ignore
     let gridElementsSelectablesAndIDs = [|
         for n = 0 to 15 do
-            let fe:FrameworkElement = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, false) |> Graphics.BMPtoImage)
+            let fe:FrameworkElement = if n=15 then upcast new Canvas() else upcast (boxCurrentBMP(n, None) |> Graphics.BMPtoImage)
             let isSelectable = n = 15 || n=boxCellCurrent || TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(n)
             let ident = if n=15 then -1 else n
             yield fe, isSelectable, ident

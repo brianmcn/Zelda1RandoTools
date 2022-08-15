@@ -171,7 +171,7 @@ let resizeImage(screenshotBMP) =
 let makeSkippedHeart() =
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.)
-    CustomComboBoxes.placeSkippedItemXDecoration(c)
+    Graphics.placeSkippedItemXDecoration(c)
     c
 let makeItemBox(itemBMP, yesno) =
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)

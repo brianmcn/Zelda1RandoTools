@@ -200,7 +200,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     let redraw() =
         // redraw inner canvas
         innerc.Children.Clear()
-        let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), false)
+        let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), None)
         if bmp <> null then
             canvasAdd(innerc, new Canvas(Background=Brushes.Black, Width=21., Height=21.), 3., 3.)  // cover up any stair drawing
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
@@ -222,7 +222,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
                 rect.Stroke <- CustomComboBoxes.skippedAndEmpty 
             else 
                 rect.Stroke <- CustomComboBoxes.skipped
-                CustomComboBoxes.placeSkippedItemXDecoration(innerc)
+                Graphics.placeSkippedItemXDecoration(innerc)
         // redraw specific-blockers
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> ()

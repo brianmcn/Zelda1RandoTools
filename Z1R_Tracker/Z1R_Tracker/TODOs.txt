@@ -40,6 +40,26 @@ since 1.2.1q...
  - new dungeon map paint-drag stuff
 since 1.2.1r...
  - scroll OW circle color
+since 1.2.2...
+ - label timeline hearts with their origin (e.g. '3' from dungeon 3, 'sword icon' from white sword cave...)
+ - "S/B" is now shield/book icons instead
+ - can attempt to load saves from older versions (1.2.3 can load 1.2.2 saves)
+ - FQ/SQ vanilla dungeon shapes now have a 'hatch' pattern off-the-map (to make 2Q7 and 2Q8 more visually distinct)
+ - while painting dungeon map, popup the blue-bars-hover-thingy
+ - Options Menu ability to hide no-longer-relevant shop items on overworld map (under "More settings...", final checkbox)
+ - Options Menu new dungeon option "Left-drag auto-inverts" causes first left-click-drag to auto-click OffTheMap/Unmarked button in bottom right, for immediately painting rooms back onto the map
+ - Options Menu new dungeon option "Default to NonDescript" if you want left clicking a room to be NonDescript rather than MaybePushBlock
+ - fix a couple timeline OW graph draw bugs
+ - fix a couple crash bugs
+ - fix bug: in 2Q, voice says 10/10 door repair, but visual reminder says 10/9
+ - fix bug: 2nd quest map has yellow dot on A9 rather than A7
+ - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
+ - fix bug: toggling "Second quest dungeons" does not update old man counts
+
+
+(separate)
+consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
+extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
 
 
 
@@ -48,16 +68,16 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 
-Some folks would prefer left-click-dungeon-room default to 'empty' room rather than my better default - option?
+
+within-dungeon pirouette: 
+Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
+[11:04 AM] fcoughlin: So a key door, bomb wall, or open shutter in the room you’re in will carry over to the start room of the dungeon
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
 maybe slightly more in quickstart guide? or somewhere a pic of overworld popup?
 
 
-
-
-consider puzzle-piece-ing maps
 
 
 z1m1: fact that 'triforce' can be some other item is hard to track (I was drawing icons over tris in top-tracker)
@@ -196,9 +216,6 @@ SMALL
 optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
 
 
-would be nice if 'have i found mags cave yet' displayed without needing to hover (maybe same for boom book shop)
-
-
 Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
  - would probably need adjustable minutes settings on Options menu
  - no sensible defaults for noobs, so perhaps not on by default
@@ -222,10 +239,6 @@ voice feedback saying what mark, so less need to watch what you clicked?
 Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
  - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
  - another possible extra-floating-window ui maybe
-
-
-in HDN, i always forget 8 (or 1) has 3 items, some kind of 'dungeon is not yet complete' voice reminder? ("recall that dungeon N has a third item")
- - ghostbusters help now
 
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
@@ -260,9 +273,6 @@ clyceer: wants to drag in grab mode, rather than click-click
 
 
 cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
-
-
-possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
 
 
 consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
@@ -351,6 +361,14 @@ Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, 
 
 
 
+possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
+ - Stevie-O hacked this with a new overworldTiles() state NextAnyRoad or whatever
+ - there's AnyRoad and HDN dungeon, where a single hotkey for 'next' is nice
+ - and then there's related idea of single hotkey to cycle thru many choices, e.g. C for chute (|| -> = -> none -> ||), 
+       secrets (medium -> large -> small -> none -> medium, or whatever), etc, and user-configability
+       but the issue is already existing mechanics there (e.g. 'S', 'S' toggles secret brightness, so conflict with cycling secret size)
+
+
 many folks request voice choices, see if easy to do via SpeechSynthesizer.GetInstalledVoices
 
 
@@ -407,6 +425,12 @@ Keyboard focus and control
 
 
 ESOTERIC
+
+
+always a candle shop blocked by at most bombs
+always an arrow shop blocked by at most candle
+
+
 
 The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
 0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X

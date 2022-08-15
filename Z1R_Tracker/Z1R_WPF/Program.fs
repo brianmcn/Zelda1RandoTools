@@ -339,10 +339,11 @@ type MyWindow() as this =
             style.Setters.Add(new Setter(ToolTip.BorderBrushProperty, Brushes.DarkGray))
             rd.Add(typeof<ToolTip>, style)
 
-        let stackPanel = new StackPanel(Orientation=Orientation.Vertical)
+        let mainStackPanel = new StackPanel(Orientation=Orientation.Vertical)
         let spacing = Thickness(0., 8., 0., 0.)
         let smallSpacing = Thickness(0., 3., 0., 0.)
 
+        let mutable startButtonHasBeenClicked = false
         do        
             let menu(wh:Threading.ManualResetEvent) = 
                 let mkTxt(txt) = new TextBox(Text=txt,IsReadOnly=true, Margin=spacing, //TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
@@ -411,6 +412,7 @@ type MyWindow() as this =
             let b = Graphics.makeButton("Click here for options", Some(fs), None)
             let mutable popupIsActive = false
             b.Click.Add(fun _ -> 
+                if startButtonHasBeenClicked then () else
                 if not popupIsActive then
                     popupIsActive <- true
                     let wh = new Threading.ManualResetEvent(false)
@@ -427,12 +429,18 @@ type MyWindow() as this =
                     new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy))    // grayish
             let dp = new DockPanel(Height=(if TrackerModelOptions.SmallerAppWindow.Value then 40. else 30.), LastChildFill=true, Background=barColor)
             dp.Children.Add(topBar) |> ignore
-            stackPanel.Children.Add(dp) |> ignore
-            let spacer = new DockPanel(Height=30., LastChildFill=false)
+            mainStackPanel.Children.Add(dp) |> ignore
+
+        let stackPanel = new StackPanel(Orientation=Orientation.Vertical, Width=WIDTH_SANS_CHROME)
+        let startupOptionsCanvas = new Canvas()
+        startupOptionsCanvas.Children.Add(stackPanel) |> ignore
+        mainStackPanel.Children.Add(startupOptionsCanvas) |> ignore
+        do  // version button, drawn atop without affecting layout
+            let dp = new DockPanel(Width=WIDTH_SANS_CHROME, Height=30., LastChildFill=false)
             let vb = Graphics.dock(CustomComboBoxes.makeVersionButtonWithBehavior(cm), Dock.Top)
             DockPanel.SetDock(vb, Dock.Right)
-            spacer.Children.Add(vb) |> ignore
-            stackPanel.Children.Add(spacer) |> ignore
+            dp.Children.Add(vb) |> ignore
+            startupOptionsCanvas.Children.Add(dp) |> ignore
 
         let tb = new TextBox(Text="Startup Options:",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.))
         stackPanel.Children.Add(tb) |> ignore
@@ -562,7 +570,6 @@ type MyWindow() as this =
                 finishCrashInfoImpl("prompted for crash recovery, user chose not to, successfully started")
             }
 
-        let mutable startButtonHasBeenClicked = false
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
                 TrackerModelOptions.writeSettings()  // save any settings changes they made before closing the startup window
@@ -589,13 +596,11 @@ type MyWindow() as this =
                             let json = System.IO.File.ReadAllText(ofd.FileName)
                             let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
                             if ver.Version <> OverworldData.VersionString then
-                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file is not supported." 
+                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file might not work, but Z-Tracker will attempt to load it anyway." 
                                                     OverworldData.VersionString ver.Version
-                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                                let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Attempt Load"])
                                 ignore r
-                                loadData <- None
-                            else
-                                loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
+                            loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
                         with e ->
                             let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
                             let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
@@ -674,31 +679,33 @@ type MyWindow() as this =
                     async {
                         do! CustomComboBoxes.DoModal(cm, wh, 30., 30., new Border(Child=dialog1, BorderThickness=Thickness(3.), BorderBrush=Brushes.Orange, Background=Brushes.Black, Padding=Thickness(5.)))
                         Graphics.alternativeOverworldMapFilename <- ""
-                        let choice = choice.Value
-                        if choice<>0 then
-                            let ofd = new Microsoft.Win32.OpenFileDialog()
-                            ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                            ofd.Filter <- "Overworld map images|*.png"
-                            let r = ofd.ShowDialog(this)
-                            if r.HasValue && r.Value then
-                                Graphics.alternativeOverworldMapFilename <- ofd.FileName
-                        Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
-                        let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
+                        match choice with
+                        | None -> ()  // just exit the modal and go back to startup screen if they click outside
+                        | Some choice ->
+                            if choice<>0 then
+                                let ofd = new Microsoft.Win32.OpenFileDialog()
+                                ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
+                                ofd.Filter <- "Overworld map images|*.png"
+                                let r = ofd.ShowDialog(this)
+                                if r.HasValue && r.Value then
+                                    Graphics.alternativeOverworldMapFilename <- ofd.FileName
+                            Graphics.shouldInitiallyHideOverworldMap <- (choice=0 || choice=2)
+                            let text = (if choice=0 then "You have chosen a blank map grid.\n\n" else "You have chosen to load a map file.\n\n") +
 
-                                    "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
-                                    "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
-                                    "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
-                                    "abitrary markup to the app in a few ways:\n" +
-                                    " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
-                                    "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
-                                    " - shift-left-click an overworld tile, to circle and label it\n" +
-                                    "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
-                                    " - type text into the 'Notes' text box\n"+
-                                    "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
+                                        "Some randomizers have behavior that Z-Tracker does not natively support.  For example, " +
+                                        "in z1m1 you might be able to purchase a Ladder in an overworld shop.  There is no native " +
+                                        "Z-Tracker support for marking an overworld tile as a Ladder shop.  But you can add some " +
+                                        "abitrary markup to the app in a few ways:\n" +
+                                        " - click the 'Draw' button in the bottom left, to place arbitrary icons\n" +
+                                        "      (e.g. you might put '$' and Ladder icons on an overworld tile)\n" +
+                                        " - shift-left-click an overworld tile, to circle and label it\n" +
+                                        "      (e.g. you might mark a tile with a cyan circle and an 'L')\n" +
+                                        " - type text into the 'Notes' text box\n"+
+                                        "      (e.g. you might type 'Ladder for sale at tile B-4')\n\n" +
 
-                                    "Do whatever works for you.  Good luck!"
-                        let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
-                        startButtonBehavior(4)
+                                        "Do whatever works for you.  Good luck!"
+                            let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
+                            startButtonBehavior(4)
                     } |> Async.StartImmediate
                     )
                 DockPanel.SetDock(otherButton, Dock.Right)
@@ -728,7 +735,7 @@ type MyWindow() as this =
         mainDock.Children.Add(bottomSP) |> ignore
         DockPanel.SetDock(bottomSP, Dock.Bottom)
 
-        mainDock.Children.Add(stackPanel) |> ignore
+        mainDock.Children.Add(mainStackPanel) |> ignore
 
         // "dark theme"
         mainDock.Background <- Brushes.Black

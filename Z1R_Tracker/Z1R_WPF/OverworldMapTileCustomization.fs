@@ -156,14 +156,38 @@ let ShouldHide(state,i,j) =
     //printfn "SH(%d)=%A" state r
     r
 
+let IsHideableShopItem(i) = // 0-based
+    (i=0 && TrackerModel.playerComputedStateSummary.ArrowLevel>0)
+    || (i=2 && TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value())
+    || (i=3 && TrackerModel.playerComputedStateSummary.CandleLevel>0)
+    || (i=4 && TrackerModel.playerComputedStateSummary.RingLevel>0)
+    || (i=6 && TrackerModel.playerComputedStateSummary.HaveAnyKey)
+        
 let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (shouldAppearLikeDarkX,iconBmp,[decos])
     if ms.State = -1 then
         false, null, []
-    elif ms.IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) <> 0 then
-        let item1 = ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
-        let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
-        let tile = makeTwoItemShopBmp(item1, item2)
-        false, tile, []
+    elif ms.IsThreeItemShop then
+        let items = ResizeArray()
+        items.Add(ms.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW)  // 0-based
+        if TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) <> 0 then
+            items.Add(TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1)   // 0-based
+        let itemsToShow = 
+            if ShouldHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP, i, j) then
+                // filter out hideables
+                let itemsToShow = ResizeArray()
+                for x in items do
+                    if not(IsHideableShopItem(x)) then
+                        itemsToShow.Add(x)
+                itemsToShow
+            else
+                items
+        if itemsToShow.Count = 2 then
+            let tile = makeTwoItemShopBmp(itemsToShow.[0], itemsToShow.[1])
+            false, tile, []
+        elif itemsToShow.Count = 1 then
+            false, Graphics.theFullTileBmpTable.[itemsToShow.[0] + TrackerModel.MapSquareChoiceDomainHelper.ARROW].[0], []
+        else
+            true, Graphics.theFullTileBmpTable.[ms.State].[0], []
     // secrets and potion letter default to being dark
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
         if TrackerModel.getOverworldMapExtraData(i,j,ms.State)=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET then
@@ -612,7 +636,7 @@ let MakeMappedHotKeysDisplay() =
     let bmpElseSize (w, h) bmp =
         let icon : FrameworkElement = if bmp = null then upcast new DockPanel(Width=float w, Height=float h) else upcast Graphics.BMPtoImage bmp
         icon
-    let itemPanel = makePanel([-1..14], HotKeys.ItemHotKeyProcessor, (fun item -> CustomComboBoxes.boxCurrentBMP(item, false) |> bmpElseSize(21,21)), 21, "ITEMS")
+    let itemPanel = makePanel([-1..14], HotKeys.ItemHotKeyProcessor, (fun item -> CustomComboBoxes.boxCurrentBMP(item, None) |> bmpElseSize(21,21)), 21, "ITEMS")
     let overworldPanel = makePanel([-1..TrackerModel.dummyOverworldTiles.Length-1], HotKeys.OverworldHotKeyProcessor, (fun state ->
         MapStateProxy(state).DefaultInteriorBmp() |> bmpElseSize(15,27)), 15, "OVERWORLD")
     let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 

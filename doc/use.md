@@ -249,6 +249,9 @@ Right click a shop to change the first item (whole tile popup).
 Left-clicking toggles the <a id="ow-map-tile-brightness">brightness</a> of some icons; "bright" means somewhere you might return to later; "dark" means you are done with the location:
  - take-any-one-you-want, wood-sword-cave, hint shops, and large/medium/small secrets are all examples of these, where you might walk away and return later
 
+(There are options in the Options Menu ("More settings...") to make certain overworld tiles that you have already marked appear as "Don't Care" spots, so that your map is not as 
+cluttered with icons for e.g. rupee-secrets you have already taken, candle shops when you already have the candle, etc.)
+
 Some map tiles have accelerators.  For example, <a id="take-any-accelerator">when selecting the 'take any heart' map tile</a>, the take-any
 accelerator will pop up, with 4 choices (take potion, take candle, take heart, take nothing).  Your selection may have multiple effects, for 
 example, choosing the candle will 
@@ -478,9 +481,12 @@ in-game mini-map as a double-check.
 
 ![DungeonRoom.OffTheMap sample screenshot](screenshots/dt-drag-1-map-step4.png)
 
+(If you often paint maps, you may wish to turn on the Options Menu option "Left-drag auto-inverts", which saves you from having to click the button to swap OffTheMap and Unmarked;
+an initial left-click-drag will toggle the button automatically when the option is on.)
+
 Thus right-click-drag, left-click-drag, and the OffTheMap/Unmarked toggle button can be used to quickly paint dungeon maps, both large and small.
 
-Finally, middle-click-drag (or shift-left-click-drag) paints completed (default MaybePushBlock) rooms atop Unmarked rooms.
+Finally, middle-click-drag (or shift-left-click-drag) paints completed default rooms atop Unmarked rooms.
 
 ### "GRAB" to shift a portion of a map over a column/row
 

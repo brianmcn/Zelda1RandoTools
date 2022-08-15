@@ -90,6 +90,14 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
 let makeOutlineShapesImpl(quest:string[]) =
     let outlines = ResizeArray<FrameworkElement>()
     let color = Brushes.MediumPurple
+    let hatchBrush = 
+        let myGeometryGroup = new GeometryGroup()
+        myGeometryGroup.Children.Add(new LineGeometry(new Point(0., 0.), new Point(9., 0.)))
+        myGeometryGroup.Children.Add(new LineGeometry(new Point(0., 9.), new Point(0., 0.)))
+        let p = new Windows.Media.Pen(Brush=color, Thickness=3., StartLineCap=PenLineCap.Square, EndLineCap=PenLineCap.Square)
+        let myDrawing = new GeometryDrawing(null, p, myGeometryGroup)
+        new DrawingBrush(Drawing=myDrawing, Viewbox=Rect(0., 0., 9., 9.), ViewboxUnits=BrushMappingMode.Absolute, Viewport=Rect(0., 0., 9., 9.), ViewportUnits=BrushMappingMode.Absolute, 
+                          TileMode=TileMode.Tile, Stretch=Stretch.UniformToFill, Transform = new RotateTransform(45.))
     // fixed dungeon drawing outlines - vertical segments
     for i = 0 to 6 do
         for j = 0 to 7 do
@@ -108,7 +116,7 @@ let makeOutlineShapesImpl(quest:string[]) =
     for i = 0 to 7 do
         for j = 0 to 7 do
             if quest.[j].Chars(i) <> 'X' then
-                let s = new Shapes.Rectangle(Width=float(39+12), Height=float(27+12), Fill=color, IsHitTestVisible=false, Opacity=0.15)
+                let s = new Shapes.Rectangle(Width=float(39+12), Height=float(27+12), Fill=hatchBrush, IsHitTestVisible=false, Opacity=0.45)
                 Canvas.SetLeft(s, float(i*(39+12)-12/2))
                 Canvas.SetTop(s, float(TH + j*(27+12)-12/2))
                 outlines.Add(s)
@@ -117,6 +125,8 @@ let makeFirstQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonDa
 let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonData.secondQuest.[dungeonNumber])
 
 ////////////////////////
+
+let defaultRoom() = if TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock.Value then DungeonRoomState.RoomType.NonDescript else DungeonRoomState.RoomType.MaybePushBlock
 
 type TrackerLocation =
     | OVERWORLD
@@ -287,7 +297,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                 else
                     for d = 0 to 8 do turnOffQuestMap(d)
             else
-                pressQuestButton(SI, true)
+                pressQuestButton(SI, false)
             )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 
@@ -379,6 +389,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             else
                 oldManCountTB.Text <- sprintf "%d/%d" oldManCount (TrackerModel.GetOldManCount(level-1))
         updateOldManCountText()
+        OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> updateOldManCountText())
         if TrackerModel.IsHiddenDungeonNumbers() then
             TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateOldManCountText())
         canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.)
@@ -447,6 +458,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let roomRedrawFuncs = ResizeArray(64)
         let redrawAllRooms() = if not skipRedrawInsideCurrentImport then for f in roomRedrawFuncs do f()
         let roomCanvas = new Canvas()
+        let mutable showMinimaps = fun () -> ()
+        let mutable invertOffTheMapWithUnmarked = fun () -> ()
+        let mutable hasEverInvertedOrDragged = false
         let roomDragDrop = new Graphics.DragDropSurface<_>(dungeonBodyCanvas, (fun (ea,initiatorFunc) ->
             let mutable whichButtonStr = ""
             if not popupIsActive then
@@ -465,16 +479,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                     elif ea.MiddleButton = System.Windows.Input.MouseButtonState.Pressed then
                         whichButtonStr <- "M"
             if whichButtonStr <> "" then
+                if whichButtonStr="L" && not(hasEverInvertedOrDragged) && TrackerModelOptions.LeftClickDragAutoInverts.Value then
+                    invertOffTheMapWithUnmarked()  // left-drag will auto-invert, to start painting on-map locations to an off-the-map background
+                hasEverInvertedOrDragged <- true // you might right drag to unpaint, and unpaint too much, and then left drag to paint back in, don't want to invert then
                 initiatorFunc(whichButtonStr)
                 if whichButtonStr="R" || whichButtonStr="L" then
                     // make OffTheMap rooms show a 'grid' to make it easier to draw in empty space
                     DungeonRoomState.isDoingDragPaintOffTheMap <- true
                     redrawAllRooms()
+                showMinimaps()
                 DragDrop.DoDragDrop(roomCanvas, whichButtonStr, DragDropEffects.Link) |> ignore
                 // DoDragDrop is blocking, so we can do post-drop effects here
                 DungeonRoomState.isDoingDragPaintOffTheMap <- false
                 redrawAllRooms()
                 redrawAllDoors()
+                rightwardCanvas.Children.Clear() // remove the shown minimaps
             ))
         let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas) =
             roomDragDrop.RegisterClickable(doorCanvas, (fun ea -> 
@@ -619,7 +638,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         let miniBorder = new Border(Child=minimini, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
         canvasAdd(hoverCanvas, miniBorder, 0., 0.)
         canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.)
-        hoverCanvas.MouseEnter.Add(fun _ ->
+        showMinimaps <- (fun () ->
             let make(markedRooms) = 
                 let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
                 let i = Graphics.BMPtoImage bmp
@@ -640,6 +659,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             Canvas.SetLeft(b, 0.)
             rightwardCanvas.Children.Clear()
             rightwardCanvas.Children.Add(b) |> ignore
+            )
+        hoverCanvas.MouseEnter.Add(fun _ -> 
+            showMinimaps()
             let vb = new VisualBrush(dungeonCanvas)
             trackerDungeonMoused.Trigger(vb)
             )
@@ -667,16 +689,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
             let b = new Border(Child=dp, BorderThickness=Thickness(1.0), BorderBrush=Brushes.DarkGray, Width=40., Height=16.)
             b.MouseEnter.Add(fun _ -> b.BorderBrush <- Brushes.DarkCyan)
             b.MouseLeave.Add(fun _ -> b.BorderBrush <- Brushes.DarkGray)
+            invertOffTheMapWithUnmarked <- fun () ->
+                hasEverInvertedOrDragged <- true
+                for x=0 to 7 do
+                    for y=0 to 7 do
+                        if roomStates.[x,y].RoomType.IsNotMarked then
+                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                        elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
             b.MouseDown.Add(fun _ -> 
                 if grabHelper.IsGrabMode then
                     ()
                 else
-                    for x=0 to 7 do
-                        for y=0 to 7 do
-                            if roomStates.[x,y].RoomType.IsNotMarked then
-                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
-                            elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
-                                roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
+                    invertOffTheMapWithUnmarked()
                     redrawAllRooms()
                     redrawAllDoors()
                 )
@@ -784,6 +809,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                         let mutable popupIsActive = false
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
+                                popupIsActive <- true
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), cm.AppMainCanvas)
                                 async {
                                     do! Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1)
@@ -968,6 +994,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             workingCopy.MonsterDetail <- md
                             SetNewValue(workingCopy)
                         | None -> ()
+                        popupIsActive <- false
                     } |> Async.StartImmediate
                 let doFloorDropDetailPopup() = 
                     async {
@@ -979,10 +1006,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             workingCopy.FloorDropDetail <- fd
                             SetNewValue(workingCopy)
                         | None -> ()
+                        popupIsActive <- false
                     } |> Async.StartImmediate
                 c.MouseWheel.Add(fun x -> 
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then  // cannot scroll rooms in grab mode
+                            popupIsActive <- true
                             if x.Delta>0 then
                                 doMonsterDetailPopup()
                             else
@@ -997,6 +1026,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                         elif whichButtonStr = "R" && roomStates.[i,j].RoomType = DungeonRoomState.RoomType.Unmarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
@@ -1004,13 +1034,15 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                         elif whichButtonStr = "M" && roomStates.[i,j].RoomType.IsNotMarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
-                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                            roomStates.[i,j].RoomType <- defaultRoom()
                             roomStates.[i,j].IsComplete <- true
                             redraw()
                             redrawAllDoors()
+                            showMinimaps()
                 roomDragDrop.RegisterClickable(c, (fun ea ->
                     if not popupIsActive then
                         async {
@@ -1042,13 +1074,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                                             verticalDoors |> Array2D.iteri (fun x y c -> c.State <- backupVerticalDoors.[x,y])
                                 else
                                     if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        popupIsActive <- true
                                         doMonsterDetailPopup()
                                     else
                                         // plain left click
                                         let workingCopy = roomStates.[i,j].Clone()
                                         if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
                                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
-                                            workingCopy.RoomType <- DungeonRoomState.RoomType.MaybePushBlock
+                                            workingCopy.RoomType <- defaultRoom()
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
                                         else
@@ -1072,6 +1105,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
                             elif ea.ChangedButton = Input.MouseButton.Right then
                                 if not grabHelper.IsGrabMode then  // cannot right click rooms in grab mode
                                     if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
+                                        popupIsActive <- true
                                         doFloorDropDetailPopup()
                                     else
                                         // plain right click

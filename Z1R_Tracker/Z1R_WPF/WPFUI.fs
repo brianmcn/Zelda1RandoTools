@@ -138,20 +138,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // rest of data is loaded at end, but these are needed at start
     | _ -> ()
     // initialize based on startup parameters
-    let owMapBMPs, isMixed, owInstance, owMapNum =
+    let owMapBMPs, isMixed, owInstance, owMapNum, maxOverworldRemain =
         match owMapNum, loadData with
-        | 0, _ -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0
-        | 1, _ -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1
-        | 2, _ -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2
-        | 3, _ -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3
-        | 4, _ -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4
+        | 0, _ -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0, TrackerModel.MaxRemain1Q
+        | 1, _ -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1, TrackerModel.MaxRemain2Q
+        | 2, _ -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2, TrackerModel.MaxRemainMQ
+        | 3, _ -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3, TrackerModel.MaxRemainMQ
+        | 4, _ -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4, TrackerModel.MaxRemainUQ
         | 999, Some(data) -> 
             match data.Overworld.Quest with
-            | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0
-            | 1 -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1
-            | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2 
-            | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3
-            | 4 -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4
+            | 0 -> Graphics.overworldMapBMPs(0), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.FIRST), 0, TrackerModel.MaxRemain1Q
+            | 1 -> Graphics.overworldMapBMPs(1), false, new OverworldData.OverworldInstance(OverworldData.OWQuest.SECOND), 1, TrackerModel.MaxRemain2Q
+            | 2 -> Graphics.overworldMapBMPs(2), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_FIRST), 2, TrackerModel.MaxRemainMQ
+            | 3 -> Graphics.overworldMapBMPs(3), true,  new OverworldData.OverworldInstance(OverworldData.OWQuest.MIXED_SECOND), 3, TrackerModel.MaxRemainMQ
+            | 4 -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4, TrackerModel.MaxRemainUQ
             | _ -> failwith "bad load data at root.Overworld.Quest"
         | _ -> failwith "bad/unsupported (owMapNum,loadData)"
     do! showProgress("after ow map load")
@@ -206,20 +206,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
-        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), true)))
+        timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), Some(tid))))
         c
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
         else        
-            boxItemImpl("Level1or4Box3", TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+            boxItemImpl(Timeline.TimelineID.Level1or4Box3, TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 8 do
             for j = 0 to 2 do
                 let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
                 if j=2 && i<> 8 then
                     canvasAdd(c, mainTrackerGhostbusters.[i], 0., 0.)
@@ -229,7 +229,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
                 gridAdd(mainTracker, c, i, j+2)
                 if j=0 || j=1 || i=7 then
-                    canvasAdd(c, boxItemImpl(sprintf "Level%dBox%d" (i+1) (j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
+                    canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
     let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
     extrasImage.ToolTip <- "Starting items and extra drops"
@@ -317,7 +317,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
         gridAdd(mainTracker, c, i, 1)
-        timelineItems.Add(new Timeline.TimelineItem(sprintf "Triforce%d" (i+1), fun()->
+        timelineItems.Add(new Timeline.TimelineItem(Timeline.TimelineID.Triforce(i+1), fun()->
             match kind with
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
             | TrackerModel.DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> 
@@ -1112,6 +1112,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // update specific-blockers that may have been (un)blocked
         for f in Views.redrawBoxes do f()
         for f in Views.redrawTriforces do f()
+        // update overworld marks (may be hiding useless shops, and they just got an item rendering a shop useless (e.g. any key and key shops))
+        OptionsMenu.requestRedrawOverworldEvent.Trigger()
 
         recorderingCanvas.Children.Clear()
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
@@ -1134,7 +1136,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 else
                     SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
                                     [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp()); 
-                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), false))])
+                                        upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), None))])
             member _this.AnnounceConsiderSword3() = 
                 SendReminderImpl(TrackerModel.ReminderCategory.SwordHearts, "Consider the magical sword", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)],
                                     Some(AsyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.Sword3Location)))
@@ -1325,10 +1327,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 ()   // silly to ask to grab white sword if already have mags (though note this reminder could be useful in swordless when both are bomb upgrades)
                             else
                                 SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
-                                                [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), false))])
+                                                [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), None))])
                         ladderTime.SetNow()
             // remind whistle spots
-            if (DateTime.Now - recorderTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - recorderTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HaveRecorder then
                     let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
                     if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
@@ -1340,7 +1342,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     recorderTime.SetNow()
                     owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
             // remind power bracelet spots
-            if (DateTime.Now - powerBraceletTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - powerBraceletTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
                     if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
                         let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
@@ -1351,7 +1353,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     powerBraceletTime.SetNow()
                     owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
             // remind boomstick book
-            if (DateTime.Now - boomstickTime.Time).Minutes > 2 then  // every 3 mins
+            if (DateTime.Now - boomstickTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HaveWand && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()) then
                     if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
                         SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
@@ -1360,7 +1362,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE) > owPreviouslyAnnounceDoorRepairCount then
                 let n = TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
                 let max = TrackerModel.mapSquareChoiceDomain.MaxUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
-                let icons = [upcb(Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE].[0]); ReminderTextBox(sprintf"%d/9"n)]
+                let icons = [upcb(Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE].[0]); ReminderTextBox(sprintf "%d/%d" n max)]
                 SendReminder(TrackerModel.ReminderCategory.DoorRepair, sprintf "You found %s%d of %d door repairs" (if n=max then "all " else "") n max, icons)
                 owPreviouslyAnnounceDoorRepairCount <- n
             // one-time reminders
@@ -1768,18 +1770,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             theTimeline1.Canvas.Opacity <- 1.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline1.Update(minute, timelineItems)
+            theTimeline1.Update(minute, timelineItems, maxOverworldRemain)
         elif minute <= 120 then
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 1.
             theTimeline3.Canvas.Opacity <- 0.
-            theTimeline2.Update(minute, timelineItems)
+            theTimeline2.Update(minute, timelineItems, maxOverworldRemain)
         else
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 1.
-            theTimeline3.Update(minute, timelineItems)
+            theTimeline3.Update(minute, timelineItems, maxOverworldRemain)
     TrackerModel.TimelineItemModel.TimelineChanged.Add(drawTimeline)
+    for j = 0 to 7 do
+        TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged()) // e.g. to change heart label from E -> 3
+    OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged())  // e.g. to change heart label from 1 -> 4
     canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
     canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
