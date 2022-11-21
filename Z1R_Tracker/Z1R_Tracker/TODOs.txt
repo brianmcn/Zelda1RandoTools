@@ -67,6 +67,23 @@ also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
+homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
+steve-o bug: shield/boomstick checkbox not preserve in save/reload
+steve-o bug: can't change overworld circle color via scrollwheel on a tile with no cave/interaction
+vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
+
+
+double-click as a different action to make more pure-mouse-stuff?
+
+
+
+swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
+
+
+
+
+
+
 
 
 within-dungeon pirouette: 
