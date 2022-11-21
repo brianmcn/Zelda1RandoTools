@@ -8,7 +8,8 @@ The app is released as a .zip file folder of the executable and all its helper f
  - run Z1R_WPF.exe to start the program (if it is missing, see [Windows Defender](#defender) section below)
  - running it will also create a ZTracker.lnk shortcut in the folder, which you can optionally copy wherever you like (e.g. place the shortcut on your Desktop, for easy double-click startup in the future)
 
-The current release for Windows is version 1.2.3, and currently can be downloaded only from the z1r discord server, in the 'Randomizer Tracker' section, as a recent message on the '#z-tracker' subchannel.  
+The current release for Windows is version 1.2.3, and currently can be downloaded here: https://github.com/brianmcn/Zelda1RandoTools/raw/v1.2/UserCustomAssets/ZTracker_v1.2.3.zip
+or from the z1r discord server, in the 'Randomizer Tracker' section, as a recent message on the '#z-tracker' subchannel.  
 Here's an invite link to the z1r discord: https://www.discord.me/z1randomizer
 and here is a direct link to the message in the z1r discord with the Z-Tracker download: https://discord.com/channels/368763663986982912/920498784142774332/1008833547131420782
 
