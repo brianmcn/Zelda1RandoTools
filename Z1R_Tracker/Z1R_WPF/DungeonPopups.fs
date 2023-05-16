@@ -11,6 +11,8 @@ let canvasAdd = Graphics.canvasAdd
 
 let sunglassesOpacity = 0.85
 
+let mutable THE_DIFF = 0.   // a kludge, until/unless I come up with a better way to thread the layout thru global popup logic
+
 let dungeonRoomExplainer, setOpacity =
     let mkTxt(txt) = new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                     BorderThickness=Thickness(0.), FontSize=16., VerticalAlignment=VerticalAlignment.Center)
@@ -167,7 +169,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
         let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
         [
             textBorder :> FrameworkElement, -4., -30.
-            dungeonRoomExplainer, -3.-boxX, 342.-boxY
+            dungeonRoomExplainer, -3.-boxX, 342.-boxY-THE_DIFF
         ]
     setOpacity(0.8)
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (4, 3, 18, 18), gridX, gridY, 
@@ -219,7 +221,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
         let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
         [
             textBorder :> FrameworkElement, -4., -30.
-            dungeonRoomExplainer, -3.-boxX, 342.-boxY
+            dungeonRoomExplainer, -3.-boxX, 342.-boxY-THE_DIFF
         ]
     setOpacity(0.8)
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), gridX, gridY, 
@@ -310,8 +312,8 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         // position mouse on existing RoomType
         let x = originalStateIndex % gnc
         let y = originalStateIndex / gnc
-        Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)))
-    let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
+        Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)-THE_DIFF))
+    let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY-THE_DIFF, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                                                 gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
     workingCopy.IsComplete <- true
     match r with

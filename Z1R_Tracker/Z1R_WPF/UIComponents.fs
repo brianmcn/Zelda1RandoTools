@@ -176,18 +176,14 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
 let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
-    let appMainCanvas = cm.AppMainCanvas
-
     // map legend
     let legendCanvas = new Canvas()
-    canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
     let dungeonIconCanvas = new Canvas()
     legendCanvas.Children.Add(dungeonIconCanvas) |> ignore
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW*0.6, Height=float(11*3-4), Background=Graphics.almostBlack, ClipToBounds=true)
     let recorderDestinationButton = new Button(Content=recorderDestinationButtonCanvas)
 
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
-    canvasAdd(appMainCanvas, tb, 0., THRU_MAIN_MAP_H)
+    let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
@@ -267,7 +263,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                 } |> Async.StartImmediate
         )
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
-    recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral
+    recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB
 
 let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress
@@ -467,7 +463,6 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     hintSP.Children.Add(otherChoices) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
-    canvasAdd(cm.AppMainCanvas, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -521,11 +516,11 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    tb
 
 open HotKeys.MyKey
 
 let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
-    let appMainCanvas = cm.AppMainCanvas
     // blockers
     let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
                                                   new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.4)
@@ -596,7 +591,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 Canvas.SetTop(dp, 30.)
                 Canvas.SetRight(dp, 120.)
                 innerc.Children.Add(dp) |> ignore
-            let pos = c.TranslatePoint(Point(), appMainCanvas)
+            let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                                 (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentDisplay(db)), db.PlayerCouldBeBlockedByThis(), db), 
@@ -671,7 +666,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             )
         c
 
-    let blockerColumnWidth = int((appMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
+    let blockerColumnWidth = int((cm.AppMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 38)
     let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy))
     blockerGrid.Height <- float(38*3)
@@ -700,7 +695,6 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                     sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore
                 gridAdd(blockerGrid, sp, i, j)
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
-    canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
     blockerGrid
 
 let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOverworldFEs:ResizeArray<FrameworkElement>) =

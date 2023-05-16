@@ -99,10 +99,12 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     let afterCreatePopupCanvas = new Event<_>()
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
-    let height = rootCanvas.Height
-    let sunglasses = new Canvas(Width=width, Height=height+BROADCAST_KLUDGE, Background=Brushes.Black, IsHitTestVisible=false)
+    let sunglasses = new Canvas(Width=width, Height=rootCanvas.Height+BROADCAST_KLUDGE, Background=Brushes.Black, IsHitTestVisible=false)
     member _this.Width = width
-    member _this.Height = height
+    member _this.Height = rootCanvas.Height
+    member _this.SetHeight(h) = 
+        rootCanvas.Height <- h
+        appMainCanvas.Height <- h
     member _this.RootCanvas = rootCanvas           // basically, no one should touch this, except to set mainWindow.Content <- cm.RootCanvas
     member _this.AppMainCanvas = appMainCanvas     // this is where the app should be putting all its content
     // and down here is where/how the popups should be putting their content

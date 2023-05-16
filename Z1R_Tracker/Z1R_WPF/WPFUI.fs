@@ -187,7 +187,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let doUIUpdateEvent = new Event<unit>()
 
     let appMainCanvas = cm.AppMainCanvas
-    let layout = new Layout.ApplicationLayout(appMainCanvas)
+    //let layout = new Layout.ApplicationLayout(cm) :> Layout.IApplicationLayoutBase
+    let layout = new Layout.ShorterApplicationLayout(cm) :> Layout.IApplicationLayoutBase
     let mainTracker = makeGrid(9, 5, H, H)
     layout.AddMainTracker(mainTracker)
 
@@ -406,8 +407,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     if isMixed then
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
-    let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras = 
-        MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
+    let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
+        owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB = 
+            MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
+    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB)
 
     do! showProgress("link")
 
@@ -422,9 +425,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let blockerQueries = ResizeArray()
     let stepAnimateLink = 
         if isStandardHyrule then   // Routing only works on standard map
-            LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
-                                           (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
-        else fun () -> ()
+            let stepAnimateLink, linkIcon, currentTargetIcon = 
+                LinkRouting.SetupLinkRouting(cm, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries, updateNumberedTriforceDisplayImpl,
+                                               (fun() -> displayIsCurrentlyMirrored), MapStateProxy(14).DefaultInteriorBmp(), owInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas)
+            layout.AddLinkRouting(linkIcon, currentTargetIcon)
+            stepAnimateLink
+        else 
+            fun () -> ()
 
     do! showProgress("overworld start start 1")
 
@@ -965,7 +972,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
-    let recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral = UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
+    let recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB = 
+            UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
+    layout.AddLegend(legendCanvas, legendTB)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
     layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
 
@@ -977,7 +986,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     // hint decoder
     if isStandardHyrule then   // Hints only apply to z1r and standard map zones
-        UIComponents.MakeHintDecoderUI(cm)
+        layout.AddHintDecoderButton(UIComponents.MakeHintDecoderUI(cm))
 
     // WANT!
     let kitty = new Image()
@@ -1392,7 +1401,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let blockersHoverEvent = new Event<bool>()
     let! dungeonTabs,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
-        DungeonUI.makeDungeonTabs(cm, START_DUNGEON_AND_NOTES_AREA_H, selectDungeonTabEvent, trackerLocationMoused, trackerDungeonMoused, TH, rightwardCanvas, 
+        DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, trackerLocationMoused, 
+                                    trackerDungeonMoused, TH, rightwardCanvas, 
                                     levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, (fun level ->
             if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
                 routeDrawingCanvas.Children.Clear()
@@ -1426,6 +1436,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     
     // blockers
     let blockerGrid = UIComponents.MakeBlockers(cm, blockerQueries, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
+    layout.AddBlockers(blockerGrid)
 
     do! showProgress("notes, gettables")
     // notes    

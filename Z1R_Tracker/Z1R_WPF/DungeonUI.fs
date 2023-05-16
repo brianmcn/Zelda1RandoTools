@@ -144,12 +144,12 @@ let rainbowBrush =
     gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
     new LinearGradientBrush(gsc, 90.)
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, TH, rightwardCanvas:Canvas, 
-                    levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, 
+                    TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
     do! showProgress(sprintf "begin makeDungeonTabs")
     let dungeonTabsWholeCanvas = new Canvas(Height=float(2*TH + 3 + 27*8 + 12*7 + 3 + 6))  // need to set height, as caller uses it
-    canvasAdd(cm.AppMainCanvas, dungeonTabsWholeCanvas, 0., posY)
+    layoutF(dungeonTabsWholeCanvas)
 
     rightwardCanvas.Height <- dungeonTabsWholeCanvas.Height
     let outlineDrawingCanvases = Array.init 9 (fun _ -> new Canvas()) // where we draw non-shapes-dungeons overlays
@@ -395,7 +395,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, posY, selectDungeonTabEve
         canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.)
         // local dungeon tracker
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, 90.
-        let pos = Point(0. + LD_X, posY + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
+        let pos = Point(0. + LD_X, posYF() + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
         let mutable localDungeonTrackerPanel = null
         do
             let PopulateLocalDungeonTrackerPanel() =

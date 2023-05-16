@@ -18,7 +18,6 @@ type RouteDestination =
 
 let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries,
                         updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp, owInstance:OverworldData.OverworldInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas) =
-    let appMainCanvas = cm.AppMainCanvas
     // help the player route to locations
     let linkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let mutable linkIconN = 0
@@ -38,10 +37,8 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
         canvasAdd(linkIcon, linkImage, 0., 0.)
     let setLinkIcon(n) = setLinkIconImpl(n,linkIcon)
     setLinkIcon(0)
-    canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 120.)
     linkIcon.ToolTip <- "Click me and I'll help route you to a destination!"
     let currentTargetIcon = new Canvas(Width=30., Height=30.)
-    canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 120.)
     let stepAnimateLink() =
         // link animation
         if not(isSpecificRouteTargetActive()) then
@@ -229,4 +226,4 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             if not popupIsActive then
                 activatePopup() |> Async.StartImmediate
             )
-    stepAnimateLink
+    stepAnimateLink, linkIcon, currentTargetIcon

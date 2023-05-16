@@ -66,9 +66,7 @@ let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
                     extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule) =
-    let appMainCanvas = cm.AppMainCanvas
     let owItemGrid = makeGrid(6, 4, 30, 30)
-    canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
     // ow 'take any' hearts
     for i = 0 to 3 do
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -244,15 +242,17 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
-    canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
-
-    if isStandardHyrule then
-        let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
-        highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
-        ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
-        highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
-        highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
-        canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+    
+    let highlightOpenCaves = 
+        if isStandardHyrule then
+            let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
+            highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
+            ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
+            highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
+            highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
+            highlightOpenCaves
+        else
+            null
 
     // these panels need to be created once, at startup time, as they have side effects that populate the timelineItems set
     let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
@@ -385,7 +385,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
 
     // timer reset
     let timerResetButton = Graphics.makeButton("Pause/Reset timer", Some(16.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
     timerResetButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
@@ -434,6 +433,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
             )   
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
-        canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
-
-    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras
+        
+    white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
+        owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB

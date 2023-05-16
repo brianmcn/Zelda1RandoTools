@@ -31,6 +31,15 @@ let allWithinOneScreen(w:Window) =
             ()
     ok
 
+let makeViewRectImpl(upperLeft:Point, lowerRight:Point, c) =
+    let vb = new VisualBrush(c)
+    vb.ViewboxUnits <- BrushMappingMode.Absolute
+    vb.Viewbox <- Rect(upperLeft, lowerRight)
+    vb.Stretch <- Stretch.None
+    let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
+    bwRect.Fill <- vb
+    bwRect
+
 let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, blockerGrid:Grid, dungeonTabsOverlayContent:Canvas, refocusMainWindow) =
     let appMainCanvas = cm.AppMainCanvas
     let makeBroadcastWindow(size, showOverworldMagnifier) =
@@ -72,14 +81,6 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         broadcastWindow.Owner <- Application.Current.MainWindow
         broadcastWindow.Background <- Brushes.Black
 
-        let makeViewRectImpl(upperLeft:Point, lowerRight:Point, c) =
-            let vb = new VisualBrush(c)
-            vb.ViewboxUnits <- BrushMappingMode.Absolute
-            vb.Viewbox <- Rect(upperLeft, lowerRight)
-            vb.Stretch <- Stretch.None
-            let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
-            bwRect.Fill <- vb
-            bwRect
         let makeViewRect(upperLeft:Point, lowerRight:Point) = makeViewRectImpl(upperLeft, lowerRight, appMainCanvas)
         let dealWithPopups(topViewboxRelativeToApp, topViewboxRelativeToThisBroadcast, c) =
             let popups = new System.Collections.Generic.Stack<_>()
