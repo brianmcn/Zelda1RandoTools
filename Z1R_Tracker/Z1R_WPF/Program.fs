@@ -56,9 +56,12 @@ module Winterop =
 type MyWindowBase() as this = 
     inherit Window()
     let mutable source = null
-    let VK_F5 = 0x74
     let VK_F10 = 0x79
+#if DEBUG
+#else
+    let VK_F5 = 0x74
     let MOD_NONE = 0u
+#endif
     let startTime = TrackerModel.theStartTime
     do
         // full window
@@ -564,7 +567,7 @@ type MyWindow() as this =
             WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
             if loadData.IsNone then
                 WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, WPFUI.RIGHT_COL+160., 0.)
+            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, Layout.RIGHT_COL+160., 0.)
             gotThruStartup <- true
             if promptedCrashRecovery then
                 finishCrashInfoImpl("prompted for crash recovery, user chose not to, successfully started")

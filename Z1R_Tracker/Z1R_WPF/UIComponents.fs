@@ -269,12 +269,10 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
     recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral
 
-let MakeItemProgressBar(appMainCanvas, owInstance:OverworldData.OverworldInstance) =
+let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
-    canvasAdd(appMainCanvas, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress", IsHitTestVisible=false)
-    canvasAdd(appMainCanvas, tb, 50., THRU_MAP_AND_LEGEND_H + 4.)
     itemProgressCanvas.MouseMove.Add(fun ea ->
         let pos = ea.GetPosition(itemProgressCanvas)
         let x = pos.X - ITEM_PROGRESS_FIRST_ITEM
@@ -363,7 +361,7 @@ let MakeItemProgressBar(appMainCanvas, owInstance:OverworldData.OverworldInstanc
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.key_bmp, x, y)
         else
             canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp), x, y)
-    redrawItemProgressBar
+    redrawItemProgressBar, itemProgressCanvas, tb
 
 let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let HINTGRID_W, HINTGRID_H = 180., 36.
@@ -705,7 +703,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
     canvasAdd(appMainCanvas, blockerGrid, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
     blockerGrid
 
-let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOverworldFEs:ResizeArray<FrameworkElement>, oiglOFFSET) =
+let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOverworldFEs:ResizeArray<FrameworkElement>) =
     // zone overlay
     let owMapZoneColorCanvases, owMapZoneBlackCanvases =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
@@ -816,7 +814,6 @@ let MakeZoneOverlay(appMainCanvas, overworldCanvas:Canvas, ensurePlaceholderFini
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
     zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then (ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true)))
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
-    canvasAdd(appMainCanvas, zone_checkbox, oiglOFFSET+200., 52.)
 
     zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases
 
@@ -824,9 +821,7 @@ open OverworldMapTileCustomization
 
 let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let mouseHoverExplainerIcon = new Button(Content=(Graphics.greyscale(Graphics.question_marks_bmp) |> Graphics.BMPtoImage))
-    canvasAdd(appMainCanvas, mouseHoverExplainerIcon, 540., 0.)
     let c = new Canvas(Width=appMainCanvas.Width, Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, Opacity=0., IsHitTestVisible=false)
-    canvasAdd(appMainCanvas, c, 0., 0.)
     let darkenTop = new Canvas(Width=OMTW*16., Height=150., Background=Brushes.Black, Opacity=0.40)
     canvasAdd(c, darkenTop, 0., 0.)
     let darkenOW = new Canvas(Width=OMTW*16., Height=11.*3.*8., Background=Brushes.Black, Opacity=0.85)
@@ -954,3 +949,5 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     mouseHoverExplainerIcon.MouseLeave.Add(fun _ -> 
         c.Opacity <- 0.0
         )
+
+    mouseHoverExplainerIcon, c

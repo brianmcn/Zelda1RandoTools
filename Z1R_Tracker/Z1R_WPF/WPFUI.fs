@@ -119,8 +119,6 @@ let drawRoutesToImpl(routeDestinationOption, routeDrawingCanvas, point, i, j, dr
 let resetTimerEvent = new Event<unit>()
 let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let H = 30
-let RIGHT_COL = 440.
-let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 
 let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
@@ -189,8 +187,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let doUIUpdateEvent = new Event<unit>()
 
     let appMainCanvas = cm.AppMainCanvas
+    let layout = new Layout.ApplicationLayout(appMainCanvas)
     let mainTracker = makeGrid(9, 5, H, H)
-    canvasAdd(appMainCanvas, mainTracker, 0., 0.)
+    layout.AddMainTracker(mainTracker)
 
     // items (we draw these before drawing triforces, as triforce display can draw slightly atop the item boxes, when there's a triforce-specific-blocker drawn)
     let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
@@ -267,7 +266,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let numberedTriforceCanvases = Array.init 8 (fun _ -> new Canvas(Width=30., Height=30.))
             for i = 0 to 7 do
                 let c = numberedTriforceCanvases.[i]
-                canvasAdd(appMainCanvas, c, OW_ITEM_GRID_LOCATIONS.OFFSET+30.*float i, 0.)
+                layout.AddNumberedTriforceCanvas(c, i)
                 c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonNumber i))
                 c.MouseLeave.Add(fun _ -> hideLocator())
             let update() =
@@ -405,8 +404,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
     if isMixed then
-        canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
-        canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
+        layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras = 
         MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
@@ -418,7 +416,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let animateOverworldTileIfOptionIsChecked(i,j) = animateOverworldTile(i,j)  // the option is checked in the body - all OW tile changes should call this
     let mirrorOverworldFEs = ResizeArray<FrameworkElement>()   // overworldCanvas (on which all map is drawn) is here, as well as individual tiny textual/icon elements that need to be re-flipped
     let overworldCanvas = new Canvas(Width=OMTW*16., Height=11.*3.*8.)
-    canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
+    layout.AddOverworldCanvas(overworldCanvas)
     mirrorOverworldFEs.Add(overworldCanvas)
 
     let blockerQueries = ResizeArray()
@@ -430,9 +428,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     do! showProgress("overworld start start 1")
 
-    let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
-    canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
-
+    layout.AddWebcamLine()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // ow map opaque fixed bottom layer
@@ -970,12 +966,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c
     let startIcon = makeStartIcon()
     let recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral = UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
-    let redrawItemProgressBar = UIComponents.MakeItemProgressBar(appMainCanvas, owInstance)
+    let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
+    layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
+
     
     // Version
     let vb = CustomComboBoxes.makeVersionButtonWithBehavior(cm)
     // vb.Click.Add(fun _ -> failwith "crash")                     // Uncomment this for crash testing
-    canvasAdd(appMainCanvas, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
+    layout.AddVersionButton(vb)
 
     // hint decoder
     if isStandardHyrule then   // Hints only apply to z1r and standard map zones
@@ -987,19 +985,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
     kitty.Width <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
     kitty.Height <- THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
-    canvasAdd(appMainCanvas, kitty, 16.*OMTW - kitty.Width - 12., THRU_MAIN_MAP_H)
     let ztlogo = new Image()
     let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
     ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
     ztlogo.Width <- 40.
     ztlogo.Height <- 40.
     let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
-    canvasAdd(appMainCanvas, logoBorder, 16.*OMTW - ztlogo.Width - 2., THRU_MAIN_MAP_H + kitty.Height - ztlogo.Height - 6.)
+    layout.AddKittyAndLogo(kitty, logoBorder, ztlogo)
+    
 
     // show hotkeys button
     let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show HotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
-    canvasAdd(appMainCanvas, showHotKeysButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H)
+    layout.AddShowHotKeysButton(showHotKeysButton)
     let showHotKeys(isRightClick) =
         let none,p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
         let w = new Window()
@@ -1030,14 +1028,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let showRunCustomTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Show/Run\nCustom", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
     let showRunCustomButton = new Button(Content=showRunCustomTB)
-    canvasAdd(appMainCanvas, showRunCustomButton, 16.*OMTW - kitty.Width - 115., THRU_MAIN_MAP_H + 22.)
+    layout.AddShowRunCustomButton(showRunCustomButton)
     showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
     //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
 
     let saveTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Save", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
     let saveButton = new Button(Content=saveTB)
-    canvasAdd(appMainCanvas, saveButton, 16.*OMTW - kitty.Width - 50., THRU_MAIN_MAP_H + 22.)
+    layout.AddSaveButton(saveButton)
     saveButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -1062,7 +1060,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         Text="UCC", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
     let uccButton = new Button(Content=uccTB)
     if System.IO.File.Exists(UserCustomLayer.checklistFilename) then
-        canvasAdd(appMainCanvas, uccButton, 16.*OMTW - kitty.Width - 50., THRU_MAIN_MAP_H + 42.)
+        layout.AddUserCustomContentButton(uccButton)
         uccButton.Click.Add(fun _ -> 
             if not popupIsActive then
                 popupIsActive <- true
@@ -1422,7 +1420,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
             ), (fun _level -> hideLocator()))
     exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
-    canvasAdd(appMainCanvas, dungeonTabsOverlay, 0., START_DUNGEON_AND_NOTES_AREA_H+float(TH))
+    layout.AddDungeonTabsOverlay(dungeonTabsOverlay)
 
     do! showProgress("blockers")
     
@@ -1438,10 +1436,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         notesTextBox.Text <- "Notes\n"
     else
         notesTextBox.Text <- System.IO.File.ReadAllText(notesFilename)
-    canvasAdd(appMainCanvas, notesTextBox, BLOCKERS_AND_NOTES_OFFSET, THRU_BLOCKERS_H) 
-
     let seedAndFlagsDisplayCanvas = new Canvas(Width=notesTextBox.Width, Height=notesTextBox.Height)
-    canvasAdd(appMainCanvas, seedAndFlagsDisplayCanvas, BLOCKERS_AND_NOTES_OFFSET, THRU_BLOCKERS_H) 
+    layout.AddNotesSeedsFlags(notesTextBox, seedAndFlagsDisplayCanvas)
     let seedAndFlagsTB = new TextBox(FontSize=16., Background=Brushes.Transparent, Foreground=Brushes.Orange, 
                                         IsHitTestVisible=false, IsReadOnly=true, Focusable=false, Text="\n", BorderThickness=Thickness(0.))
     Canvas.SetRight(seedAndFlagsTB, 0.)
@@ -1456,12 +1452,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     grabModeTextBlock.Opacity <- 0.
     grabModeTextBlock.Width <- notesTextBox.Width
-    canvasAdd(appMainCanvas, grabModeTextBlock, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H) 
-
-    canvasAdd(appMainCanvas, rightwardCanvas, BLOCKERS_AND_NOTES_OFFSET, START_DUNGEON_AND_NOTES_AREA_H)  // extra place for dungeonTabs to draw atop blockers/notes
+    layout.AddExtraDungeonRightwardStuff(grabModeTextBlock, rightwardCanvas)
 
     // remaining OW spots
-    canvasAdd(appMainCanvas, owRemainingScreensTextBox, RIGHT_COL, 90.)
+    layout.AddOWRemainingScreens(owRemainingScreensTextBox)
     owRemainingScreensTextBox.MouseEnter.Add(fun _ ->
         let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, unmarked, 
@@ -1480,7 +1474,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         ensureRespectingOwGettableScreensCheckBox()
         )
     if isStandardHyrule then   // Gettables only makes sense in standard map
-        canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
+        layout.AddOWGettableScreens(owGettableScreensCheckBox)
     else
         owGettableScreensCheckBox.IsChecked <- false
     owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
@@ -1497,7 +1491,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do! showProgress("coords/zone overlays")
 
     // current max hearts
-    canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
+    layout.AddCurrentMaxHearts(currentMaxHeartsTextBox)
     // coordinate grid
     let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
     let zoneCanvas = new Canvas()
@@ -1533,17 +1527,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     cb.Unchecked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
     showCoords.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85)))
     showCoords.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
-    canvasAdd(appMainCanvas, cb, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
+    layout.AddShowCoords(cb)
 
     // zone overlay
     let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = 
         if isStandardHyrule then   // Zones only makes sense in standard map
-            UIComponents.MakeZoneOverlay(appMainCanvas, zoneCanvas, ensurePlaceholderFinished, mirrorOverworldFEs, OW_ITEM_GRID_LOCATIONS.OFFSET)
+            UIComponents.MakeZoneOverlay(zoneCanvas, ensurePlaceholderFinished, mirrorOverworldFEs)
         else
             new CheckBox(IsChecked=false), (fun _ -> ()), (fun _ -> ()), Array2D.init 16 8 (fun _ _ -> new Canvas())
+    if isStandardHyrule then
+        layout.AddOWZoneOverlay(zone_checkbox)
 
     // mouse hover explainer
-    UIComponents.MakeMouseHoverExplainer(appMainCanvas)
+    layout.AddMouseHoverExplainer(UIComponents.MakeMouseHoverExplainer(appMainCanvas))
 
     do! showProgress("locators/timeline/reminders")
 
@@ -1720,7 +1716,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     let currentTargetGhostBuster = makeGhostBusterImpl(Brushes.Red)
     currentTargetGhostBuster.Opacity <- 0.
-    canvasAdd(appMainCanvas, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
+    layout.AddLinkTarget(currentTargetGhostBuster)
     showLocatorNoneFound <- (fun () ->
         currentTargetGhostBuster.Opacity <- 1.
         ensureRespectingOwGettableScreensCheckBox()
@@ -1785,11 +1781,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     for j = 0 to 7 do
         TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged()) // e.g. to change heart label from E -> 3
     OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged())  // e.g. to change heart label from 1 -> 4
-    canvasAdd(appMainCanvas, theTimeline1.Canvas, 24., START_TIMELINE_H)
-    canvasAdd(appMainCanvas, theTimeline2.Canvas, 24., START_TIMELINE_H)
-    canvasAdd(appMainCanvas, theTimeline3.Canvas, 24., START_TIMELINE_H)
 
-    canvasAdd(appMainCanvas, moreOptionsButton, 0., START_TIMELINE_H)
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -1801,7 +1793,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 } |> Async.StartImmediate
         )
     let drawButton = Graphics.makeButton("D\nr\na\nw", Some(12.), Some(Brushes.Orange))
-    canvasAdd(appMainCanvas, drawButton, 0., START_TIMELINE_H+25.)
+    layout.AddTimelineAndButtons(theTimeline1.Canvas, theTimeline2.Canvas, theTimeline3.Canvas, moreOptionsButton, drawButton)
     drawButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -1817,7 +1809,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let reminderDisplayInnerBorder = new Border(Child=reminderDisplayInnerDockPanel, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, HorizontalAlignment=HorizontalAlignment.Right)
     DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Top)
     reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
-    canvasAdd(appMainCanvas, reminderDisplayOuterDockPanel, 0., START_TIMELINE_H)
+    layout.AddReminderDisplayOverlay(reminderDisplayOuterDockPanel)
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
             let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
@@ -1860,7 +1852,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     // postgameDecorationCanvas atop timeline & reminders
     do
         let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0.)
-        canvasAdd(appMainCanvas, postgameDecorationCanvas, 0., START_TIMELINE_H)
+        layout.AddPostGameDecorationCanvas(postgameDecorationCanvas)
         let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Red)
         Canvas.SetRight(sp, 0.)
         Canvas.SetTop(sp, 0.)
@@ -1882,7 +1874,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             // screenshot timeline region
                             let vb = new VisualBrush(appMainCanvas)
                             vb.ViewboxUnits <- BrushMappingMode.Absolute
-                            vb.Viewbox <- Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
+                            vb.Viewbox <- layout.GetTimelineBounds()
                             vb.Stretch <- Stretch.None
                             let visual = new DrawingVisual()
                             do 
@@ -1920,7 +1912,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     HUDs.MakeHUDs(cm, trackerDungeonMoused, trackerLocationMoused)
 #endif
 
-    canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
+    layout.AddSpotSummary(spotSummaryCanvas)
 
     // poke loaded data values
     match loadData with
@@ -2062,7 +2054,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
     do  // auto-save every 1 min
         let diskIcon = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Gray, Child=Graphics.BMPtoImage(Graphics.iconDisk_bmp), Opacity=0.0)
-        canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
+        layout.AddDiskIcon(diskIcon)
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(60.0)
         timer.Tick.Add(fun _ -> 

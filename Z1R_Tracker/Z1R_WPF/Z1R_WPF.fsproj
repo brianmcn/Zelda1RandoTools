@@ -124,6 +124,7 @@
     <Compile Include="UIHelpers.fs" />
     <Compile Include="UserCustomLayer.fs" />
     <Compile Include="DrawingLayer.fs" />
+    <Compile Include="Layout.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\README.txt">
