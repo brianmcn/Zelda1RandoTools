@@ -57,6 +57,27 @@ since 1.2.2...
  - fix bug: toggling "Second quest dungeons" does not update old man counts
 
 
+
+discussion of smaller app or different layout
+ - how 'run' the mouse if like streamer projection mode?
+ - what breaks if use different projection for different aspect ratio (like mcmonkey mockup) but keep mouseover same?
+
+possibility of hotkeys do everything (discord thread)
+ - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
+
+
+can scroll to forest fairy from desert
+doc stremlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
+change 1-6/7-9 for selecting vanilla maps (screenshots of vanilla tri/heart/item rooms? hover somewhere to show them?)
+boomstick can be in multiple shops, highlight
+me: Yeah I suppose most 'options' are player choices, whereas 'mirror overworld' and 'second quest dungeons' are the only seed/flags choices in those menus, hmm... 
+  Those two are also (from my experience watching races) rarely used in practice, which is one reason those checkboxes are 'buried' in the options menu, but it's 
+  worthy of consideration to be able to move them... and I suppose 2QD also could maybe be somehow linked to choosing a 2Q map outline of 1-6 or something, hmmm...
+
+possibly consider broadcast-for-speedgaming if can link two of them
+
+
+
 (separate)
 consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
 extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
@@ -67,10 +88,20 @@ also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
+
+triforce-reference-diagram could also have vanilla 1Q/2Q drop table to know e.g. 2Q3 drops bluemarang or whatever
+
+a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
+
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
 steve-o bug: shield/boomstick checkbox not preserve in save/reload
 steve-o bug: can't change overworld circle color via scrollwheel on a tile with no cave/interaction
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
+
+
+PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
+Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are you really sure' interaction somehow to do it; just don't want anyone to accidentally 
+click and then oops, just marked up 20 spots.  (keep current behavior too)
 
 
 double-click as a different action to make more pure-mouse-stuff?
