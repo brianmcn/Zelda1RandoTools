@@ -187,26 +187,30 @@ type ShorterApplicationLayout(cm) =
     do
         canvasAdd(appMainCanvas, theCanvas, 0., 0.)  
         canvasAdd(theCanvas, upper, 0., 0.)  
-        let upperThreshold = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
-        let lowerThreshold = H - TIMELINE_H - DUNGEON_H
+        canvasAdd(theCanvas, black, 0., 0.)  
+        canvasAdd(theCanvas, lower, 0., 0.)  
+        Canvas.SetZIndex(upper, 2)
+        Canvas.SetZIndex(black, 1)
+        Canvas.SetZIndex(lower, 0)
+        let upperThreshold = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + RED_LINE
+        let lowerThreshold = H - TIMELINE_H - DUNGEON_H - RED_LINE
         let diff = upperThreshold - lowerThreshold
         DungeonPopups.THE_DIFF <- diff
         appMainCanvas.MouseMove.Add(fun e ->
             if cm.PopupCanvasStack.Count = 0 then
                 let pos = e.GetPosition(appMainCanvas)
+                //printfn "got mouse move Y = %d" (int pos.Y)
                 if currentlyUpper && pos.Y > upperThreshold then
                     currentlyUpper <- false
-                    theCanvas.Children.Clear()
-                    canvasAdd(theCanvas, upper, 0., 0.)  
-                    canvasAdd(theCanvas, black, 0., 0.)  
-                    canvasAdd(theCanvas, lower, 0., 0.)  
+                    //printfn "swap to bottom"
+                    Canvas.SetZIndex(upper, 0)
+                    Canvas.SetZIndex(lower, 2)
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y-diff))
                 if not(currentlyUpper) && pos.Y < lowerThreshold then
                     currentlyUpper <- true
-                    theCanvas.Children.Clear()
-                    canvasAdd(theCanvas, lower, 0., 0.)  
-                    canvasAdd(theCanvas, black, 0., 0.)  
-                    canvasAdd(theCanvas, upper, 0., 0.)  
+                    //printfn "swap to top"
+                    Canvas.SetZIndex(upper, 2)
+                    Canvas.SetZIndex(lower, 0)
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y+diff))
         )
     interface IApplicationLayoutBase with
@@ -348,6 +352,11 @@ type ShorterApplicationLayout(cm) =
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(lower, diskIcon, OMTW*16.-40., timelineStart+60.)
             // change the main app window height
+            let H = 
+                if TrackerModelOptions.SmallerAppWindow.Value then 
+                    H*TrackerModelOptions.SmallerAppWindowScaleFactor
+                else
+                    H
             cm.SetHeight(H)
             let CHROME_HEIGHT = 39.  // Windows app border
             ((cm.RootCanvas.Parent :?> Canvas).Parent :?> Window).Height <- H + CHROME_HEIGHT // this is fragile, but don't know a better way right now

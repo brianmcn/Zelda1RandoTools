@@ -97,7 +97,12 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                     else
                         0
     let isThereANonZeldaRoom(x,y) = if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.Zelda then 0 else isThereARoom(x,y)
+    let mutable isCurrentlyHighlighting = false
     let highlight() =
+        if isCurrentlyHighlighting then
+            ()
+        else
+        isCurrentlyHighlighting <- true
         // TODO maybe the bomb walls should be the separate thingy?
         
         // possible bomb walls
@@ -160,6 +165,10 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
         for f in startAnimationFuncs do
             f()
     let unhighlight() =
+        if not(isCurrentlyHighlighting) then
+            ()
+        else
+        isCurrentlyHighlighting <- false
         for i = 0 to 6 do
             for j = 0 to 7 do
                 horizontalDoorHighlights.[i,j].Opacity <- 0.0

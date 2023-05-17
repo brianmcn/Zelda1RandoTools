@@ -679,8 +679,18 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 d.ToolTip <- "The icons you set in this area can remind you of what blocked you in a dungeon.\nFor example, a ladder represents being ladder blocked, or a sword means you need better weapons.\nSome reminders will trigger when you get the item that may unblock you."
                 ToolTipService.SetPlacement(d, Primitives.PlacementMode.Top)
                 d.Children.Add(tb) |> ignore
-                d.MouseEnter.Add(fun _ -> blockersHoverEvent.Trigger(true))
-                d.MouseLeave.Add(fun _ -> blockersHoverEvent.Trigger(false))
+                let mutable cooldownTimer = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Normal)
+                cooldownTimer.Interval <- System.TimeSpan.FromMilliseconds(1000.)
+                cooldownTimer.Tick.Add(fun _ ->
+                    blockersHoverEvent.Trigger(true)
+                    )
+                d.MouseEnter.Add(fun _ -> 
+                    cooldownTimer.Start()
+                    )
+                d.MouseLeave.Add(fun _ -> 
+                    cooldownTimer.Stop()
+                    blockersHoverEvent.Trigger(false)
+                    )
                 gridAdd(blockerGrid, d, i, j)
             else
                 let dungeonIndex = (3*j+i)-1
