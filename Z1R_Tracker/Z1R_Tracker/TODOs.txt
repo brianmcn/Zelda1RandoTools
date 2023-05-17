@@ -57,6 +57,8 @@ since 1.2.2...
  - fix bug: toggling "Second quest dungeons" does not update old man counts
 since 1.2.3...
  - shorter app window (TODO add to docs, top-bar option like 2/3 size)
+ - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
+ - (fix) can highlight multiple boomstick book ships on hover
 
 
 
@@ -64,10 +66,8 @@ possibility of hotkeys do everything (discord thread)
  - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
 
 
-can scroll to forest fairy from desert
+can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
 doc stremlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-change 1-6/7-9 for selecting vanilla maps (screenshots of vanilla tri/heart/item rooms? hover somewhere to show them?)
-boomstick can be in multiple shops, highlight
 me: Yeah I suppose most 'options' are player choices, whereas 'mirror overworld' and 'second quest dungeons' are the only seed/flags choices in those menus, hmm... 
   Those two are also (from my experience watching races) rarely used in practice, which is one reason those checkboxes are 'buried' in the options menu, but it's 
   worthy of consideration to be able to move them... and I suppose 2QD also could maybe be somehow linked to choosing a 2Q map outline of 1-6 or something, hmmm...

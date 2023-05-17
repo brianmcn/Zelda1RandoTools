@@ -1365,7 +1365,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             // remind boomstick book
             if (DateTime.Now - boomstickTime.Time).Minutes > 4 then  // every 5 mins
                 if TrackerModel.playerComputedStateSummary.HaveWand && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()) then
-                    if TrackerModel.mapStateSummary.BoomBookShopLocation<>TrackerModel.NOTFOUND then
+                    let mutable boomShopFound = false
+                    for i = 0 to 15 do
+                        for j = 0 to 7 do
+                            if not(owInstance.AlwaysEmpty(i,j)) then
+                                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                                if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then
+                                    if cur = TrackerModel.MapSquareChoiceDomainHelper.BOOK || 
+                                            (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(TrackerModel.MapSquareChoiceDomainHelper.BOOK)) then
+                                        boomShopFound <- true
+                    if boomShopFound then
                         SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
                         boomstickTime.SetNow()
             // remind door repair spots

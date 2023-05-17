@@ -832,7 +832,7 @@ let setOverworldMapExtraData(i,j,k,v) =
     overworldMapExtraData.[i,j].[k] <- v
     mapLastChangedTime.SetNow()
 let NOTFOUND = (-1,-1)
-type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
+type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
     member _this.DungeonLocations = dungeonLocations
     member _this.AnyRoadLocations = anyRoadLocations
@@ -840,7 +840,6 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Locat
     member _this.Sword3Location = sword3Location
     member _this.Sword2Location = sword2Location
     member _this.Sword1Location = sword1Location
-    member _this.BoomBookShopLocation = boomBookShopLocation
     member _this.OwSpotsRemain = owSpotsRemain
     member _this.OwGettableLocations = owGettableLocations
     member _this.OwWhistleSpotsRemain = owWhistleSpotsRemain
@@ -848,7 +847,7 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Locat
     member _this.OwRouteworthySpots = owRouteworthySpots
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
-let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
+let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
 let mapStateSummaryComputedEvent = new Event<_>()
 let mapStateSummaryLastComputedTime = new LastChangedTime()
 let recomputeMapStateSummary() =
@@ -858,7 +857,6 @@ let recomputeMapStateSummary() =
     let mutable sword3Location = NOTFOUND
     let mutable sword2Location = NOTFOUND
     let mutable sword1Location = NOTFOUND
-    let mutable boomBookShopLocation = NOTFOUND  // i think there can be at most one?
     let mutable owSpotsRemain = 0
     let owGettableLocations = ResizeArray()
     let owWhistleSpotsRemain = ResizeArray()
@@ -919,17 +917,13 @@ let recomputeMapStateSummary() =
                         owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
                 | _ -> () // shop or whatnot
                 let cur = overworldMapMarks.[i,j].Current()
-                if MapSquareChoiceDomainHelper.IsItem(cur) then
-                    if cur = MapSquareChoiceDomainHelper.BOOK || 
-                            (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(MapSquareChoiceDomainHelper.BOOK)) then
-                        boomBookShopLocation <- i,j
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 
                     secondQuestOnlyInterestingMarks.[i,j] <- isInteresting 
                 if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then 
                     firstQuestOnlyInterestingMarks.[i,j] <- isInteresting 
     owRouteworthySpots.[15,5] <- playerComputedStateSummary.HaveLadder && not playerComputedStateSummary.HaveCoastItem // gettable coast item is routeworthy
-    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,boomBookShopLocation,owSpotsRemain,owGettableLocations,
+    mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime.SetNow()
     mapStateSummaryComputedEvent.Trigger()

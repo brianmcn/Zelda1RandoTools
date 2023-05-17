@@ -286,7 +286,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 else
                     for d = 0 to 8 do turnOffQuestMap(d)
             else
-                pressQuestButton(SI, true)
+                if SI<6 then    // update front half
+                    for i=0 to 5 do
+                        pressQuestButton(i, true)
+                else            // update back half
+                    for i=6 to 8 do
+                        pressQuestButton(i, true)
             )
         canvasAdd(dungeonTabsWholeCanvas, fqcb, 402., 0.) 
         sqcb.Click.Add(fun _ -> 
@@ -297,7 +302,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 else
                     for d = 0 to 8 do turnOffQuestMap(d)
             else
-                pressQuestButton(SI, false)
+                if SI<6 then    // update front half
+                    for i=0 to 5 do
+                        pressQuestButton(i, false)
+                else            // update back half
+                    for i=6 to 8 do
+                        pressQuestButton(i, false)
             )
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 

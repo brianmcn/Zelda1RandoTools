@@ -190,7 +190,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
     let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Timeline.TimelineID.BoomstickBook, Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook)
-    boom_book_box.MouseEnter.Add(fun _ -> showLocatorExactLocation(TrackerModel.mapStateSummary.BoomBookShopLocation))
+    boom_book_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOOK))
     boom_book_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
