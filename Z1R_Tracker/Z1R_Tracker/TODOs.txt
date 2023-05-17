@@ -58,6 +58,7 @@ since 1.2.2...
 since 1.2.3...
  - shorter app window (TODO add to docs, top-bar option like 2/3 size)
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
+ - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - (fix) can highlight multiple boomstick book ships on hover
 
 
@@ -86,8 +87,6 @@ also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
 
 
-
-triforce-reference-diagram could also have vanilla 1Q/2Q drop table to know e.g. 2Q3 drops bluemarang or whatever
 
 a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
 

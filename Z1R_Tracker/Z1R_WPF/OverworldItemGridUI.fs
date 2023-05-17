@@ -347,6 +347,23 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         b.MouseDown.Add(fun ea -> ea.Handled <- true)
         let bp = new StackPanel(Orientation=Orientation.Vertical)
         bp.Children.Add(b) |> ignore
+        
+        let refText = mkTxt(12., "Vanilla dungeon item reference\nDon't click here")
+        let bottomPanel = new StackPanel(Orientation=Orientation.Vertical)
+        bottomPanel.Children.Add(refText) |> ignore
+        let q1 = new StackPanel(Orientation=Orientation.Horizontal)
+        q1.Children.Add(mkTxt(20., "1Q")) |> ignore
+        q1.Children.Add(Graphics.BMPtoImage Graphics.firstQuestItemReferenceBMP) |> ignore
+        bottomPanel.Children.Add(q1) |> ignore
+        let q2 = new StackPanel(Orientation=Orientation.Horizontal)
+        q2.Children.Add(mkTxt(20., "2Q")) |> ignore
+        q2.Children.Add(Graphics.BMPtoImage Graphics.secondQuestItemReferenceBMP) |> ignore
+        bottomPanel.Children.Add(q2) |> ignore
+        bp.Children.Add(new DockPanel(Height=12.)) |> ignore
+        let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Background=Brushes.Black, Child=bottomPanel)
+        b.MouseDown.Add(fun ea -> ea.Handled <- true)
+        bp.Children.Add(b) |> ignore
+        
         let spacer = new DockPanel(Width=30.)
         let panel = new StackPanel(Orientation=Orientation.Horizontal)
         refreshTDD <- fun () ->

@@ -732,6 +732,9 @@ let takeThisWoodSwordBMP = loadBMP("take-this-wood-sword.png")
 let takeThisCandleBMP = loadBMP("take-this-candle.png")
 let takeThisLeaveBMP = loadBMP("take-this-leave.png")
 
+let firstQuestItemReferenceBMP = loadBMP("first-quest-item-reference.png")
+let secondQuestItemReferenceBMP = loadBMP("second-quest-item-reference.png")
+
 (*
 code for clipping screenshots to same size
 

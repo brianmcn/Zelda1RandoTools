@@ -916,7 +916,6 @@ let recomputeMapStateSummary() =
                     if getOverworldMapExtraData(i, j, n)=n then
                         owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
                 | _ -> () // shop or whatnot
-                let cur = overworldMapMarks.[i,j].Current()
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 
                     secondQuestOnlyInterestingMarks.[i,j] <- isInteresting 

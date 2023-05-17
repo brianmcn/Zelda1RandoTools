@@ -93,7 +93,9 @@
     <EmbeddedResource Include="icons\take-this-wood-sword.png" />
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
-    <EmbeddedResource Include="icons\open_cave20x20.png" />
+    <EmbeddedResource Include="icons\first-quest-item-reference.png" />
+    <EmbeddedResource Include="icons\second-quest-item-reference.png" />
+	<EmbeddedResource Include="icons\open_cave20x20.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />
     <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
     <EmbeddedResource Include="icons\zelda_items16x16.png" />
