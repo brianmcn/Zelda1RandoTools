@@ -192,8 +192,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             new Layout.ShorterApplicationLayout(cm) :> Layout.IApplicationLayoutBase
         else
             new Layout.ApplicationLayout(cm) :> Layout.IApplicationLayoutBase
-    let mainTracker = makeGrid(9, 5, H, H)
-    layout.AddMainTracker(mainTracker)
+    let mainTrackerGrid = makeGrid(9, 5, H, H)
+    let mainTrackerCanvas = new Canvas()
+    mainTrackerCanvas.Children.Add(mainTrackerGrid) |> ignore
+    layout.AddMainTracker(mainTrackerCanvas)
 
     // items (we draw these before drawing triforces, as triforce display can draw slightly atop the item boxes, when there's a triforce-specific-blocker drawn)
     let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
@@ -211,16 +213,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.MouseLeave.Add(fun _ -> hideLocator())
         timelineItems.Add(new Timeline.TimelineItem(tid, fun()->CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), Some(tid))))
         c
-    let finalCanvasOf1Or4 = 
-        if TrackerModel.IsHiddenDungeonNumbers() then
-            null
-        else        
-            boxItemImpl(Timeline.TimelineID.Level1or4Box3, TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 8 do
             for j = 0 to 2 do
                 let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
-                gridAdd(mainTracker, c, i, j+2)
+                gridAdd(mainTrackerGrid, c, i, j+2)
                 if j<>2 || i <> 8 then   // dungeon 9 does not have 3 items
                     canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
@@ -230,14 +227,59 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         for i = 0 to 8 do
             for j = 0 to 2 do
                 let c = new Canvas(Width=30., Height=30., Background=System.Windows.Media.Brushes.Black)
-                gridAdd(mainTracker, c, i, j+2)
+                gridAdd(mainTrackerGrid, c, i, j+2)
                 if j=0 || j=1 || i=7 then
                     canvasAdd(c, boxItemImpl(Timeline.TimelineID.LevelBox(i+1, j+1), TrackerModel.GetDungeon(i).Boxes.[j], false), 0., 0.)
                 mainTrackerCanvases.[i,j+2] <- c
     let extrasImage = Graphics.BMPtoImage Graphics.iconExtras_bmp
     extrasImage.ToolTip <- "Starting items and extra drops"
     ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
-    gridAdd(mainTracker, extrasImage, 8, 4)
+    gridAdd(mainTrackerGrid, extrasImage, 8, 4)
+    let finalCanvasOf1Or4 = 
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            null
+        else        
+            boxItemImpl(Timeline.TimelineID.Level1or4Box3, TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4, false)
+    let toggleSecondQuestDungeonCanvas =
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            null
+        else        
+            let c = new Canvas(Width=30., Height=30., Background=new SolidColorBrush(Color.FromRgb(55uy,55uy,85uy)))
+            let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=3.0, Opacity=0.0)
+            c.Children.Add(rect) |> ignore
+            let pf = new PathFigure(Point(0.,20.), [new BezierSegment(Point(0.,10.), Point(60.,10.), Point(60.,20.), true)], false)
+            let curve = new Shapes.Path(Stroke=Brushes.White, StrokeThickness=3., IsHitTestVisible=false, Data=new PathGeometry([pf]), Opacity=0.0)
+            let tb1 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=9., Margin=Thickness(0.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="click to toggle", Foreground=Brushes.White, Background=Brushes.Black, Opacity=0.0)
+            let tb2 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=9., Margin=Thickness(0.),
+                                    VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                    Text="dungeon quest", Foreground=Brushes.White, Background=Brushes.Black, Opacity=0.0)
+            canvasAdd(mainTrackerCanvas, curve, 30., 118.)
+            canvasAdd(mainTrackerCanvas, tb1, 30., 115.)
+            canvasAdd(mainTrackerCanvas, tb2, 28., 137.)
+            c.MouseEnter.Add(fun _ ->
+                rect.Opacity <- 1.0
+                curve.Opacity <- 1.0
+                tb1.Opacity <- 1.0
+                tb2.Opacity <- 1.0
+                )
+            c.MouseLeave.Add(fun _ ->
+                rect.Opacity <- 0.0
+                curve.Opacity <- 0.0
+                tb1.Opacity <- 0.0
+                tb2.Opacity <- 0.0
+                )
+            c.MouseDown.Add(fun _ ->
+                TrackerModelOptions.IsSecondQuestDungeons.Value <- not TrackerModelOptions.IsSecondQuestDungeons.Value
+                TrackerModelOptions.writeSettings()
+                rect.Opacity <- 0.0
+                curve.Opacity <- 0.0
+                tb1.Opacity <- 0.0
+                tb2.Opacity <- 0.0
+                OptionsMenu.secondQuestDungeonsOptionChanged.Trigger()
+                )
+            c
     // numbered triforce display - the extra row of triforce in IsHiddenDungeonNumbers
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
         let level = i+1
@@ -296,7 +338,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         popupIsActive <- false
                         } |> Async.StartImmediate
                 )
-            gridAdd(mainTracker, colorButton, i, 0)
+            gridAdd(mainTrackerGrid, colorButton, i, 0)
             let dungeon = TrackerModel.GetDungeon(i)
             Dungeon.HotKeyAHiddenDungeonLabel(colorCanvas, dungeon, None)
             dungeon.HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
@@ -310,7 +352,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             colorButton.MouseLeave.Add(fun _ -> hideLocator())
         else
             let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
-            gridAdd(mainTracker, colorCanvas, i, 0)
+            gridAdd(mainTrackerGrid, colorCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
@@ -319,7 +361,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(innerc) |> ignore
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
         c.MouseLeave.Add(fun _ -> hideLocator())
-        gridAdd(mainTracker, c, i, 1)
+        gridAdd(mainTrackerGrid, c, i, 1)
         timelineItems.Add(new Timeline.TimelineItem(Timeline.TimelineID.Triforce(i+1), fun()->
             match kind with
             | TrackerModel.DungeonTrackerInstanceKind.DEFAULT -> Graphics.fullNumberedFoundTriforce_bmps.[i]
@@ -331,13 +373,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     Graphics.fullLetteredFoundTriforce_bmps.[i]
             ))
     let level9NumeralCanvas = Views.MakeLevel9View(Some(owInstance))
-    gridAdd(mainTracker, level9NumeralCanvas, 8, 1) 
+    gridAdd(mainTrackerGrid, level9NumeralCanvas, 8, 1) 
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
-    gridAdd(mainTracker, level9ColorCanvas, 8, 0) 
+    gridAdd(mainTrackerGrid, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
     let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
@@ -358,10 +400,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
                 mainTrackerCanvases.[0,4].Children.Remove(finalCanvasOf1Or4) |> ignore
                 mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
+                mainTrackerCanvases.[0,4].Children.Remove(toggleSecondQuestDungeonCanvas) |> ignore
+                mainTrackerCanvases.[3,4].Children.Remove(toggleSecondQuestDungeonCanvas) |> ignore
                 if TrackerModelOptions.IsSecondQuestDungeons.Value then
                     canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
+                    canvasAdd(mainTrackerCanvases.[0,4], toggleSecondQuestDungeonCanvas, 0., 0.)
                 else
                     canvasAdd(mainTrackerCanvases.[0,4], finalCanvasOf1Or4, 0., 0.)
+                    canvasAdd(mainTrackerCanvases.[3,4], toggleSecondQuestDungeonCanvas, 0., 0.)
         RedrawForSecondQuestDungeonToggle()
         OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> 
             RedrawForSecondQuestDungeonToggle()
@@ -410,10 +456,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     if isMixed then
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
+    let mirrorOW = new Border(Child=Graphics.BMPtoImage Graphics.mirrorOverworldBMP, BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.))
+    mirrorOW.MouseEnter.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.DarkGray)
+    mirrorOW.MouseLeave.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.Gray)
+    mirrorOW.MouseDown.Add(fun _ ->
+        TrackerModelOptions.Overworld.MirrorOverworld.Value <- not TrackerModelOptions.Overworld.MirrorOverworld.Value 
+        TrackerModelOptions.writeSettings()
+        doUIUpdateEvent.Trigger()
+        )
+    mirrorOW.ToolTip <- "Toggle mirrored overworld"
+    ToolTipService.SetPlacement(mirrorOW, System.Windows.Controls.Primitives.PlacementMode.Top)
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
         owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB = 
             MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
-    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB)
+    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW)
 
     do! showProgress("link")
 

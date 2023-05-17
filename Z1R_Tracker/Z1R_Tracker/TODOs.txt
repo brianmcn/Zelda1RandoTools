@@ -59,6 +59,8 @@ since 1.2.3...
  - shorter app window (TODO add to docs, top-bar option like 2/3 size)
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
+ - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click)
+ - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker
  - (fix) can highlight multiple boomstick book ships on hover
 
 
@@ -66,27 +68,9 @@ since 1.2.3...
 possibility of hotkeys do everything (discord thread)
  - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
 
-
 can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
-doc stremlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-me: Yeah I suppose most 'options' are player choices, whereas 'mirror overworld' and 'second quest dungeons' are the only seed/flags choices in those menus, hmm... 
-  Those two are also (from my experience watching races) rarely used in practice, which is one reason those checkboxes are 'buried' in the options menu, but it's 
-  worthy of consideration to be able to move them... and I suppose 2QD also could maybe be somehow linked to choosing a 2Q map outline of 1-6 or something, hmmm...
 
-possibly consider broadcast-for-speedgaming if can link two of them
-
-
-
-(separate)
-consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
-extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
-
-
-
-also, doc all OptionsMenu
-probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
-
+doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
 
 a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
 
@@ -106,6 +90,22 @@ double-click as a different action to make more pure-mouse-stuff?
 
 
 swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
+
+
+
+
+
+(separate)
+consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
+    extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
+possibly consider broadcast-for-speedgaming if can link two of them
+
+
+
+also, doc all OptionsMenu
+probably more description/screenshot of options menu, say initial defaults tailored to new folks
+
+
 
 
 
