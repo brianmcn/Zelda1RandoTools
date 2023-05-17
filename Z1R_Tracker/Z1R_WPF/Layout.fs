@@ -64,7 +64,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
             canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 115.)
+            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 95.)
         member this.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox) = 
             canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
             canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
@@ -211,7 +211,7 @@ type ShorterApplicationLayout(cm) =
             canvasAdd(upper, highlightOpenCaves, 540., 120.)
             canvasAdd(upper, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(upper, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 115.)
+            canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 95.)
             // just capture a swath of stuff
             let swathView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,30.), Point(WEBCAM_LINE, float(30*5)), upper)
             canvasAdd(lower, swathView, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)

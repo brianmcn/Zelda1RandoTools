@@ -1110,7 +1110,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             async {
                 try
                     let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
-                                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.ManualSave)
+                                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
+                                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.ManualSave)
                     let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r
@@ -2055,6 +2056,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         notesTextBox.Text <- data.Notes
         // CRDI
         currentRecorderDestinationIndex <- data.CurrentRecorderDestinationIndex
+        if data.IsBoomstickSeed then
+            toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit true
         updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
@@ -2139,7 +2142,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         timer.Tick.Add(fun _ -> 
             try
                 SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
-                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.AutoSave) |> ignore
+                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
+                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.AutoSave) |> ignore
                 async {
                     diskIcon.Opacity <- 0.7
                     do! Async.Sleep(300)

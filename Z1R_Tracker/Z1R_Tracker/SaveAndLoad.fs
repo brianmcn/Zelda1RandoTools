@@ -311,7 +311,7 @@ let MaybePollSeedAndFlags() =
                         seedAndFlagsUpdated.Trigger()
 
 let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], 
-                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, saveType) =  // can throw
+                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, isBoomstickSeed, saveType) =  // can throw
     MaybePollSeedAndFlags()
     let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
@@ -326,6 +326,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
         yield sprintf """    "CurrentRecorderDestinationIndex": %d,""" currentRecorderDestinationIndex
+        yield sprintf """    "IsBoomstickSeed": %b,""" isBoomstickSeed
         yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)

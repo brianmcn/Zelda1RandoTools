@@ -204,26 +204,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     zelda_box.MouseLeave.Add(fun _ -> 
         for i=0 to 15 do for j=0 to 7 do OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
         OptionsMenu.requestRedrawOverworldEvent.Trigger())
-    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
-        if b then 
-            notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
-            TrackerModel.LastChangedTime.PauseAll()
-            if TrackerModelOptions.SaveOnCompletion.Value && not(Timeline.isCurrentlyLoadingASave) then
-                try
-                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
-                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, SaveAndLoad.FinishedSave) |> ignore
-                with _e ->
-                    ()
-        else
-            TrackerModel.LastChangedTime.ResumeAll()
-        )
-    // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, None, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
-    bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
-    bombIcon.MouseLeave.Add(fun _ -> hideLocator())
-    bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
-    gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
-
     // shield versus book icon (for boomstick flags/seeds)
     let toggleBookShieldCheckBox = 
         let sp = new StackPanel(Orientation=Orientation.Horizontal)
@@ -242,7 +222,27 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
-    
+    TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
+        if b then 
+            notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
+            TrackerModel.LastChangedTime.PauseAll()
+            if TrackerModelOptions.SaveOnCompletion.Value && not(Timeline.isCurrentlyLoadingASave) then
+                try
+                    SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
+                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.FinishedSave) |> ignore
+                with _e ->
+                    ()
+        else
+            TrackerModel.LastChangedTime.ResumeAll()
+        )
+    // mark whether player currently has bombs, for overworld routing
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, None, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs)
+    bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
+    bombIcon.MouseLeave.Add(fun _ -> hideLocator())
+    bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
+    gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
+
     let highlightOpenCaves = 
         if isStandardHyrule then
             let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
