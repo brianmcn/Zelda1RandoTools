@@ -422,10 +422,10 @@ let MakeRemainderSummaryDisplay() =
                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
         sp.Children.Add(text) |> ignore
     let horizontalRule() =
-        sp.Children.Add(new Canvas(Height=5., Background=Brushes.Gray, Margin=Thickness(3.))) |> ignore
+        sp.Children.Add(new Canvas(Height=3., Background=Brushes.Gray, Margin=Thickness(3.))) |> ignore
 
-    header("Remaining Locations Summary")
-    horizontalRule()
+    // header("Remaining Locations Summary")
+    // horizontalRule()
 
     // uniques
     header("Unique Locations")
@@ -603,7 +603,7 @@ let MakeRemainderSummaryDisplay() =
     sp.Children.Add(row) |> ignore
 
     sp.Margin <- Thickness(3.)
-    new Border(Child=sp, BorderThickness=Thickness(5.), BorderBrush=Brushes.Gray, Background=Brushes.Black)
+    new Border(Child=sp, BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black)
 
 //////////////////////////////////////////////////
 

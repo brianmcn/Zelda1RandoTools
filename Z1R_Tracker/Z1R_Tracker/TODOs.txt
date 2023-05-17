@@ -55,12 +55,10 @@ since 1.2.2...
  - fix bug: 2nd quest map has yellow dot on A9 rather than A7
  - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
  - fix bug: toggling "Second quest dungeons" does not update old man counts
+since 1.2.3...
+ - shorter app window (TODO add to docs, top-bar option like 2/3 size)
 
 
-
-discussion of smaller app or different layout
- - how 'run' the mouse if like streamer projection mode?
- - what breaks if use different projection for different aspect ratio (like mcmonkey mockup) but keep mouseover same?
 
 possibility of hotkeys do everything (discord thread)
  - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'

@@ -187,8 +187,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let doUIUpdateEvent = new Event<unit>()
 
     let appMainCanvas = cm.AppMainCanvas
-    //let layout = new Layout.ApplicationLayout(cm) :> Layout.IApplicationLayoutBase
-    let layout = new Layout.ShorterApplicationLayout(cm) :> Layout.IApplicationLayoutBase
+    let layout = 
+        if TrackerModelOptions.ShorterAppWindow.Value then
+            new Layout.ShorterApplicationLayout(cm) :> Layout.IApplicationLayoutBase
+        else
+            new Layout.ApplicationLayout(cm) :> Layout.IApplicationLayoutBase
     let mainTracker = makeGrid(9, 5, H, H)
     layout.AddMainTracker(mainTracker)
 

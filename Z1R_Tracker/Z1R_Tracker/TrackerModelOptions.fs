@@ -66,6 +66,7 @@ let mutable BroadcastWindowSize = 3
 let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
 let mutable SmallerAppWindow = Bool(false)
 let mutable SmallerAppWindowScaleFactor = 2.0/3.0
+let mutable ShorterAppWindow = Bool(false)
 let mutable IsMuted = false
 let mutable Volume = 30
 let mutable MainWindowLT = ""
@@ -131,6 +132,7 @@ type ReadWrite() =
     member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
     member val SmallerAppWindow = false with get,set
     member val SmallerAppWindowScaleFactor = 2.0/3.0 with get,set
+    member val ShorterAppWindow = false with get,set
 
     member val IsMuted = false with get, set
     member val Volume = 30 with get, set
@@ -200,6 +202,7 @@ let private writeImpl(filename) =
     data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
     data.SmallerAppWindow <- SmallerAppWindow.Value
     data.SmallerAppWindowScaleFactor <- SmallerAppWindowScaleFactor
+    data.ShorterAppWindow <- ShorterAppWindow.Value
     data.IsMuted <- IsMuted
     data.Volume <- Volume
     data.MainWindowLT <- MainWindowLT
@@ -281,6 +284,7 @@ let private read(filename) =
         BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
         SmallerAppWindow.Value <- data.SmallerAppWindow
         SmallerAppWindowScaleFactor <- data.SmallerAppWindowScaleFactor
+        ShorterAppWindow.Value <- data.ShorterAppWindow
         IsMuted <- data.IsMuted
         Volume <- max 0 (min 100 data.Volume)
         MainWindowLT <- data.MainWindowLT

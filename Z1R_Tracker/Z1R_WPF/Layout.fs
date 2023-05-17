@@ -138,28 +138,12 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddPostGameDecorationCanvas(postgameDecorationCanvas) =
             canvasAdd(appMainCanvas, postgameDecorationCanvas, 0., START_TIMELINE_H)
         member this.AddSpotSummary(spotSummaryCanvas) =
-// TODO - not good layout overall, cut off in broadcast, and in new ideas
-            canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
+            canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 3.)
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
-
-
-(*
-TODOs
-
-magnifier is a mess - disable it?
-draw menu is not useful, probably disable it.  probably UCC too.
-
-make dynamically swappable, options menu thingy
-
-check various dungeon hovers
-lots of other testing
-spot summary needs general rework regardless
-
-*)
 
 type ShorterApplicationLayout(cm) =
     inherit ApplicationLayout(cm) 
@@ -199,16 +183,13 @@ type ShorterApplicationLayout(cm) =
         appMainCanvas.MouseMove.Add(fun e ->
             if cm.PopupCanvasStack.Count = 0 then
                 let pos = e.GetPosition(appMainCanvas)
-                //printfn "got mouse move Y = %d" (int pos.Y)
                 if currentlyUpper && pos.Y > upperThreshold then
                     currentlyUpper <- false
-                    //printfn "swap to bottom"
                     Canvas.SetZIndex(upper, 0)
                     Canvas.SetZIndex(lower, 2)
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y-diff))
                 if not(currentlyUpper) && pos.Y < lowerThreshold then
                     currentlyUpper <- true
-                    //printfn "swap to top"
                     Canvas.SetZIndex(upper, 2)
                     Canvas.SetZIndex(lower, 0)
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y+diff))
@@ -291,9 +272,11 @@ type ShorterApplicationLayout(cm) =
         member this.AddSaveButton(saveButton) = 
             canvasAdd(upper, saveButton, 16.*OMTW - kittyWidth - 50., THRU_MAIN_MAP_H + 22.)
         member this.AddUserCustomContentButton(uccButton) = 
-            canvasAdd(upper, uccButton, 16.*OMTW - kittyWidth - 50., THRU_MAIN_MAP_H + 42.)
+            // canvasAdd(upper, uccButton, 16.*OMTW - kittyWidth - 50., THRU_MAIN_MAP_H + 42.)
+            ignore uccButton // UCC is disabled in ShorterApplicationLayout
         member this.AddDungeonTabsOverlay(dungeonTabsOverlay) =  // for magnifier
-            canvasAdd(upper, dungeonTabsOverlay, 0., THRU_MAP_AND_LEGEND_H)
+            // canvasAdd(upper, dungeonTabsOverlay, 0., THRU_MAP_AND_LEGEND_H)
+            ignore dungeonTabsOverlay // magnifier is disabled in ShorterApplicationLayout
         member this.AddDungeonTabs(dungeonTabsWholeCanvas) =
             canvasAdd(lower, dungeonTabsWholeCanvas, 0., dungeonStart)
         member this.GetDungeonY() =
@@ -337,7 +320,8 @@ type ShorterApplicationLayout(cm) =
             canvasAdd(lower, t2c, 24., timelineStart)
             canvasAdd(lower, t3c, 24., timelineStart)
             canvasAdd(lower, moreOptionsButton, 0., timelineStart)
-            canvasAdd(lower, drawButton, 0., timelineStart+25.)
+            //canvasAdd(lower, drawButton, 0., timelineStart+25.)
+            ignore drawButton  // draw does not work in ShorterApplicationLayout
             let timelineView = Broadcast.makeViewRectImpl(Point(0.,timelineStart), Point(W,timelineStart + TIMELINE_H), lower)
             canvasAdd(upper, timelineView, 0., upperTimelineStart)
         member this.GetTimelineBounds() =
@@ -347,8 +331,7 @@ type ShorterApplicationLayout(cm) =
         member this.AddPostGameDecorationCanvas(postgameDecorationCanvas) =
             canvasAdd(lower, postgameDecorationCanvas, 0., timelineStart)
         member this.AddSpotSummary(spotSummaryCanvas) =
-// TODO - not good layout overall, cut off in broadcast, and in new ideas
-            canvasAdd(upper, spotSummaryCanvas, 50., 30.)  // height chosen to make broadcast-window-cutoff be reasonable
+            canvasAdd(upper, spotSummaryCanvas, 50., 3.)
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(lower, diskIcon, OMTW*16.-40., timelineStart+60.)
             // change the main app window height

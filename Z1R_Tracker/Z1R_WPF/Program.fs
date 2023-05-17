@@ -351,7 +351,7 @@ type MyWindow() as this =
             let menu(wh:Threading.ManualResetEvent) = 
                 let mkTxt(txt) = new TextBox(Text=txt,IsReadOnly=true, Margin=spacing, //TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
                                                 BorderThickness=Thickness(0.), FontSize=16.)
-                let sp = new StackPanel(Orientation=Orientation.Vertical, Width=appMainCanvas.Width-100., Margin=Thickness(20.))
+                let sp = new StackPanel(Orientation=Orientation.Vertical, Width=appMainCanvas.Width-60., Margin=Thickness(10.))
                 let title = new TextBox(Text="Window Size",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
                                             BorderThickness=Thickness(0.,0.,0.,3.), FontSize=20.)
                 sp.Children.Add(title) |> ignore
@@ -368,7 +368,7 @@ type MyWindow() as this =
                             sprintf "scale factor: %f" TrackerModelOptions.SmallerAppWindowScaleFactor
                     else 
                         MODE6
-                sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window is '%s'.  You can change the setting here:" curMode)) |> ignore
+                sp.Children.Add(mkTxt(sprintf "The current Z-Tracker window size is '%s'.  You can change the setting here:" curMode)) |> ignore
                 sp.Children.Add(new DockPanel(Height=20.)) |> ignore
                 let rb6 = new RadioButton(Content=new TextBox(Text=MODE6, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
                 let rb5 = new RadioButton(Content=new TextBox(Text=MODE5, IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=16.), Margin=Thickness(20.,0.,0.,0.))
@@ -390,6 +390,34 @@ type MyWindow() as this =
                 inner.Children.Add(rb5) |> ignore
                 inner.Children.Add(rb4) |> ignore
                 sp.Children.Add(inner) |> ignore
+                
+                let title = new TextBox(Text="Window Shape",IsReadOnly=true, TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, 
+                                            BorderThickness=Thickness(0.,0.,0.,3.), FontSize=20., Margin=spacing)
+                sp.Children.Add(title) |> ignore
+                sp.Children.Add(mkTxt("Z-Tracker can run in two window shapes: 'Tall' (default) and 'Square' (smaller/shorter).")) |> ignore
+                sp.Children.Add(mkTxt("The 'Square' option auto-swaps between Overworld and Dungeon focus, based on your mouse.")) |> ignore
+                sp.Children.Add(mkTxt("Note: This option only affects the main application; the startup options screen is always 'Tall'.")) |> ignore
+                sp.Children.Add(mkTxt("Note: 'Square' disables some features: overworld magnifier, broadcast window, Draw&UCC buttons.")) |> ignore
+                let mutable desireShort = TrackerModelOptions.ShorterAppWindow.Value
+                let tallC = new Canvas(Width=77., Height=99., Background=Brushes.Red)
+                let squareC = new Canvas(Width=77., Height=77., Background=Brushes.Red)
+                let tx(s) = new TextBox(Text=s,IsReadOnly=true,FontSize=16.,BorderThickness=Thickness(0.),Foreground=Brushes.Black,Background=Brushes.Transparent,FontWeight=FontWeights.Bold,
+                                        Width=77., TextAlignment=TextAlignment.Center, IsHitTestVisible=false)
+                Graphics.canvasAdd(tallC, tx("Tall"), 0., 30.)
+                Graphics.canvasAdd(squareC, tx("Square"), 0., 30.)
+                let rbTall   = new RadioButton(Content=tallC,   VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit (not desireShort))
+                let rbSquare = new RadioButton(Content=squareC, VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit desireShort)
+                let inner = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center, Margin=spacing)
+                rbTall.Checked.Add(fun _ -> desireShort <- false)
+                rbSquare.Checked.Add(fun _ -> desireShort <- true)
+                inner.Children.Add(rbTall) |> ignore
+                inner.Children.Add(new DockPanel(Width=30.)) |> ignore  // spacer
+                inner.Children.Add(rbSquare) |> ignore
+                sp.Children.Add(inner) |> ignore
+                
+                let warn = mkTxt("Changes to these settings will only take effect the next time you start the application.")
+                warn.FontWeight <- FontWeights.Bold
+                sp.Children.Add(warn) |> ignore
                 let buttons = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=spacing)
                 let sb = Graphics.makeButton("Save changes and close Z-Tracker\n(changes take effect next time)", Some(16.), None)
                 let cb = Graphics.makeButton("Don't make any changes\n(exit this popup menu)", Some(16.), None)
@@ -397,6 +425,7 @@ type MyWindow() as this =
                 sb.Click.Add(fun _ ->
                     TrackerModelOptions.SmallerAppWindow.Value <- desireSmaller
                     TrackerModelOptions.SmallerAppWindowScaleFactor <- desireScale
+                    TrackerModelOptions.ShorterAppWindow.Value <- desireShort
                     TrackerModelOptions.writeSettings()
                     this.Close()
                     )
@@ -419,7 +448,7 @@ type MyWindow() as this =
                 if not popupIsActive then
                     popupIsActive <- true
                     let wh = new Threading.ManualResetEvent(false)
-                    CustomComboBoxes.DoModal(cm, wh, 50., 100., menu(wh)) |> Async.StartImmediate
+                    CustomComboBoxes.DoModal(cm, wh, 20., 70., menu(wh)) |> Async.StartImmediate
                     popupIsActive <- false
                 )
             topBar.Children.Add(b) |> ignore
