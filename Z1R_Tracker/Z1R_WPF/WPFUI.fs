@@ -385,6 +385,29 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
     canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -6.)
     canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 16.)
+    for i = 0 to mainTrackerCanvases.GetLength(0)-1 do
+        for j = 0 to mainTrackerCanvases.GetLength(1)-1 do
+            if mainTrackerCanvases.[i,j] <> null then
+                mainTrackerCanvases.[i,j].MyKeyAdd(fun ea ->
+                    match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                        ea.Handled <- true
+                        if i<mainTrackerCanvases.GetLength(0)-1 then
+                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                        ea.Handled <- true
+                        if i>0 then
+                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                        ea.Handled <- true
+                        if j>1 then
+                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                        ea.Handled <- true
+                        if j<4 then
+                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    | _ -> ()
+                )
     let updateFoundDungeonsCount() =
         let mutable r = 0
         for trackerIndex = 0 to 8 do    
@@ -659,6 +682,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let ntf = UIHelpers.NotTooFrequently(System.TimeSpan.FromSeconds(0.25))
     routeDrawingCanvas.MouseLeave.Add(fun _ -> routeDrawingCanvas.Children.Clear())
     do! showProgress("overworld before 16x8 loop")
+    let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
     for i = 0 to 15 do
         for j = 0 to 7 do
             let activateCircleLabelPopup() =
@@ -722,6 +746,27 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                       dungeonTabsOverlayContent.Children.Clear()
                                       dungeonTabsOverlay.Opacity <- 0.
                                       )
+            c.MyKeyAdd(fun ea ->
+                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                    ea.Handled <- true
+                    if i<15 then
+                        Graphics.WarpMouseCursorTo(centerOf(i+1,j))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                    ea.Handled <- true
+                    if i>0 then
+                        let n = i-1   // without this I seem to encounter a compiler bug?!?
+                        Graphics.WarpMouseCursorTo(centerOf(n,j))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                    ea.Handled <- true
+                    if j<7 then
+                        Graphics.WarpMouseCursorTo(centerOf(i,j+1))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                    ea.Handled <- true
+                    if j>0 then
+                        Graphics.WarpMouseCursorTo(centerOf(i,j-1))
+                | _ -> ()
+            )
             // icon
             if owInstance.AlwaysEmpty(i,j) then
                 // already set up as permanent opaque layer, in code above, so nothing else to do
@@ -2185,6 +2230,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.DungeonTab8        -> selectDungeonTabEvent.Trigger(7)
             | HotKeys.GlobalHotkeyTargets.DungeonTab9        -> selectDungeonTabEvent.Trigger(8)
             | HotKeys.GlobalHotkeyTargets.DungeonTabS        -> selectDungeonTabEvent.Trigger(9)
+            | _ -> () // MoveCursor not handled at this level
+// TODO should it be like, up=tracker, left=overworld, right=blockers, down=dungeon?
         | None -> ()
     )
 

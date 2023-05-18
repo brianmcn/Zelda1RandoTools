@@ -88,6 +88,10 @@ type GlobalHotkeyTargets =
     | DungeonTab8
     | DungeonTab9
     | DungeonTabS
+    | MoveCursorRight
+    | MoveCursorLeft
+    | MoveCursorUp
+    | MoveCursorDown
     member this.AsHotKeyName() =
         match this with
         | GlobalHotkeyTargets.ToggleMagicalSword -> "ToggleMagicalSword"
@@ -109,12 +113,18 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.DungeonTab8        -> "DungeonTab8"
         | GlobalHotkeyTargets.DungeonTab9        -> "DungeonTab9"
         | GlobalHotkeyTargets.DungeonTabS        -> "DungeonTabS"
+        | GlobalHotkeyTargets.MoveCursorLeft     -> "MoveCursorLeft"
+        | GlobalHotkeyTargets.MoveCursorRight    -> "MoveCursorRight"
+        | GlobalHotkeyTargets.MoveCursorUp       -> "MoveCursorUp"
+        | GlobalHotkeyTargets.MoveCursorDown     -> "MoveCursorDown"
     member this.AsHotKeyDisplay() : System.Windows.FrameworkElement =
+        let mkTxt(s) : System.Windows.FrameworkElement = 
+            upcast new System.Windows.Controls.TextBox(Background=System.Windows.Media.Brushes.Black, Foreground=System.Windows.Media.Brushes.White, 
+                                                    Text=s, IsReadOnly=true, IsHitTestVisible=false, HorizontalContentAlignment=HorizontalAlignment.Center, 
+                                                    HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         let tab(level) : System.Windows.FrameworkElement =
             let labelChar = if level=9 then '9' elif level=10 then 'S' elif TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
-            upcast new System.Windows.Controls.TextBox(Background=System.Windows.Media.Brushes.Black, Foreground=System.Windows.Media.Brushes.White, 
-                                                        Text=sprintf "Tab%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, HorizontalContentAlignment=HorizontalAlignment.Center, 
-                                                        HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+            mkTxt(sprintf "Tab%c" labelChar)
         match this with
         | GlobalHotkeyTargets.ToggleMagicalSword -> upcast (Graphics.magical_sword_bmp |> Graphics.BMPtoImage)
         | GlobalHotkeyTargets.ToggleWoodSword    -> upcast (Graphics.brown_sword_bmp |> Graphics.BMPtoImage)
@@ -135,6 +145,10 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.DungeonTab8        -> tab(8)
         | GlobalHotkeyTargets.DungeonTab9        -> tab(9)
         | GlobalHotkeyTargets.DungeonTabS        -> tab(10)
+        | GlobalHotkeyTargets.MoveCursorLeft     -> mkTxt("\u2190")
+        | GlobalHotkeyTargets.MoveCursorRight    -> mkTxt("\u2192")
+        | GlobalHotkeyTargets.MoveCursorUp       -> mkTxt("\u2191")
+        | GlobalHotkeyTargets.MoveCursorDown     -> mkTxt("\u2193")
     static member All = [|
         GlobalHotkeyTargets.ToggleMagicalSword
         GlobalHotkeyTargets.ToggleWoodSword   
@@ -155,6 +169,10 @@ type GlobalHotkeyTargets =
         GlobalHotkeyTargets.DungeonTab8       
         GlobalHotkeyTargets.DungeonTab9       
         GlobalHotkeyTargets.DungeonTabS       
+        GlobalHotkeyTargets.MoveCursorLeft
+        GlobalHotkeyTargets.MoveCursorRight
+        GlobalHotkeyTargets.MoveCursorUp
+        GlobalHotkeyTargets.MoveCursorDown
         |]
 
 

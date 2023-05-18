@@ -777,6 +777,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let roomCirclesCanvas = new Canvas()
         dungeonBodyCanvas.Children.Add(roomCanvas) |> ignore
         dungeonBodyCanvas.Children.Add(roomCirclesCanvas) |> ignore
+        let centerOf(x,y) = roomCanvas.TranslatePoint(Point(float(x*51+13*3/2),float(y*39+9*3/2)), cm.AppMainCanvas)
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
@@ -934,6 +935,26 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 c.MyKeyAdd(fun ea ->
                     if not popupIsActive then
                         if not grabHelper.IsGrabMode then
+                            match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                                ea.Handled <- true
+                                if i<7 then
+                                    Graphics.WarpMouseCursorTo(centerOf(i+1,j))
+                            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                                ea.Handled <- true
+                                if i>0 then
+                                    Graphics.WarpMouseCursorTo(centerOf(i-1,j))
+                            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                                ea.Handled <- true
+                                if j>0 then
+                                    Graphics.WarpMouseCursorTo(centerOf(i,j-1))
+                            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                                ea.Handled <- true
+                                if j<7 then
+                                    Graphics.WarpMouseCursorTo(centerOf(i,j+1))
+                            | _ -> ()
+                            if ea.Handled then ()
+                            else
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
                             numeral.Opacity <- 0.0
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness

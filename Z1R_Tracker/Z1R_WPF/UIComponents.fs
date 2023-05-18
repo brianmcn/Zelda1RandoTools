@@ -528,6 +528,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                                                   new GradientStop(Color.FromArgb(255uy, 180uy, 60uy, 60uy), 1.0)
                                                  ])
     let blocker_brush = new LinearGradientBrush(blocker_gsc, Point(0.,0.), Point(1.,1.))
+    let blockerBoxes : Canvas[,] = Array2D.zeroCreate 8 TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON
     let makeBlockerBox(dungeonIndex, blockerIndex) =
         let make() =
             let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
@@ -655,6 +656,28 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             )
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
+                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                    ea.Handled <- true
+                    if blockerIndex<TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    elif dungeonIndex<>1 && dungeonIndex<>4 && dungeonIndex<>7 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex+1,0].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                    ea.Handled <- true
+                    if blockerIndex>0 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    elif dungeonIndex<>0 && dungeonIndex<>2 && dungeonIndex<>5 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex-1,TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                    ea.Handled <- true
+                    if dungeonIndex<4 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex+3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                    ea.Handled <- true
+                    if dungeonIndex>2 then
+                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex-3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                | _ -> ()
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
                 | Some(db) -> 
                     ea.Handled <- true
@@ -664,6 +687,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                         SetNewValue(db)
                 | None -> ()
             )
+        blockerBoxes.[dungeonIndex, blockerIndex] <- c
         c
 
     let blockerColumnWidth = int((cm.AppMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)

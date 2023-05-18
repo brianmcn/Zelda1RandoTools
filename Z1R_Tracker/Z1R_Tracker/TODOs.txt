@@ -65,12 +65,9 @@ since 1.2.3...
  - (fix) shield/boomstick checkbox now preserved in save/reload
 
 
-possibility of hotkeys do everything (discord thread)
- - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
-
-can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
-
-doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
+Thilo: Request to not ask for start location placement on reset if start location has already been placed prior to reset.  If we have a pre-known starting location, and we setup 
+the tracker before the race starts, it would be nice to not have to place it again (very minor annoyance, but still)
+ - me: also good for e.g. 4+4/groundhog
 
 a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
  - first makes a hard save
@@ -81,8 +78,13 @@ a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds
  - i think not clear blockers (maybe 4+4 and were keyblocked still)
  - no change dungeon maps
 
-homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
-vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
+possibility of hotkeys do everything (discord thread)
+ - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
+
+can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
+
+doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
+
 
 
 PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
@@ -90,6 +92,10 @@ Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are
 click and then oops, just marked up 20 spots.  (keep current behavior too)
  - currently beeps if you marked a spot and try to gray it; probably also want to RED it with temp highlights
  - what mouse interaction can mean "actually mark them all off" to pop-up an "are-you-sure dialog" or whatever? hmmm... could replace both boxes with a new button that pops up extended dialog
+
+
+homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
+vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
 
 
 double-click as a different action to make more pure-mouse-stuff?
