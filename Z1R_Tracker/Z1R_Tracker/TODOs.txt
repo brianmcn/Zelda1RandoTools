@@ -65,6 +65,16 @@ since 1.2.3...
  - (fix) shield/boomstick checkbox now preserved in save/reload
 
 
+
+possibility of hotkeys do everything (discord thread)
+DONE: 'arrows' work for overworld, dungeon rooms, blockers, tri&items
+DONE: hotkeys that simulate left/middle/right click at current mouse position
+TODO: 'arrows' navigate grid popups
+TODO: some way to do dungeon doors
+TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
+TODO: a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
+
+
 Thilo: Request to not ask for start location placement on reset if start location has already been placed prior to reset.  If we have a pre-known starting location, and we setup 
 the tracker before the race starts, it would be nice to not have to place it again (very minor annoyance, but still)
  - me: also good for e.g. 4+4/groundhog
@@ -78,8 +88,8 @@ a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds
  - i think not clear blockers (maybe 4+4 and were keyblocked still)
  - no change dungeon maps
 
-possibility of hotkeys do everything (discord thread)
- - for implementation, consider lightweight start, e.g. if mouse in overworld, 'left' hotkey says 'tp the mouse to center of box left of me'
+a lot of text on the surface of the main app is clickable (e.g. double click word LEGEND, can right click copy text), ought not be
+similarly many buttons are Focusable, which can alter how hotkeys get routed
 
 can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
 

@@ -6,9 +6,50 @@ open System.Windows.Controls
 open System.Windows.Media
 
 let mutable theWindow : System.Windows.Window = null
+
+type POINT = struct
+    val x:int
+    val y:int
+    new(_x, _y) = {x=_x; y=_y}
+end
+
 type Win32() =
     [<System.Runtime.InteropServices.DllImport("User32.dll")>]
     static extern bool SetCursorPos(int X, int Y)
+
+    //[<System.Runtime.InteropServices.DllImport("User32.dll")>]
+    //static extern bool GetCursorPos(POINT *p)
+
+    [<System.Runtime.InteropServices.DllImport("User32.dll")>]
+    static extern void mouse_event(uint32 dwFlags, int dx, int dy, uint32 cButtons, int dwExtraInfo)
+    
+    static let MOUSEEVENTF_LEFTDOWN     = 0x02u
+    static let MOUSEEVENTF_LEFTUP       = 0x04u
+    static let MOUSEEVENTF_RIGHTDOWN    = 0x08u
+    static let MOUSEEVENTF_RIGHTUP      = 0x10u
+    static let MOUSEEVENTF_MIDDLEDOWN   = 0x20u
+    static let MOUSEEVENTF_MIDDLEUP     = 0x40u
+    // ||| these in if want absolute coords to send event, otherwise is relative
+    //static let MOUSEEVENTF_ABSOLUTE     = 0x8000
+    //static let MOUSEEVENTF_MOVE         = 0x0001
+    
+    //This simulates a left mouse click
+    static member LeftMouseClick() =
+        //let mutable p = POINT(0,0)
+        //GetCursorPos(&&p) |> ignore
+        //System.Threading.ThreadPool.QueueUserWorkItem(System.Threading.WaitCallback(fun _ -> 
+            //mouse_event(MOUSEEVENTF_LEFTDOWN, p.x, p.y, 0, 0)
+            //mouse_event(MOUSEEVENTF_LEFTUP, p.x, p.y, 0, 0)
+            //mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0u, 0)
+            //System.Threading.Thread.Sleep(50)
+            //mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0u, 0)
+            //)) |> ignore
+        // this seems to work fine, above code would perhaps be more real-ish timing-based
+        mouse_event(MOUSEEVENTF_LEFTDOWN ||| MOUSEEVENTF_LEFTUP, 0, 0, 0u, 0)
+    static member RightMouseClick() =
+        mouse_event(MOUSEEVENTF_RIGHTDOWN ||| MOUSEEVENTF_RIGHTUP, 0, 0, 0u, 0)
+    static member MiddleMouseClick() =
+        mouse_event(MOUSEEVENTF_MIDDLEDOWN ||| MOUSEEVENTF_MIDDLEUP, 0, 0, 0u, 0)
     
     static member SetCursor(x,y) = 
         let transformedPoint = 

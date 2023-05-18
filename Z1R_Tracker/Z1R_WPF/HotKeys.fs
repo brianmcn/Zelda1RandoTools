@@ -92,6 +92,9 @@ type GlobalHotkeyTargets =
     | MoveCursorLeft
     | MoveCursorUp
     | MoveCursorDown
+    | LeftClick
+    | MiddleClick
+    | RightClick
     member this.AsHotKeyName() =
         match this with
         | GlobalHotkeyTargets.ToggleMagicalSword -> "ToggleMagicalSword"
@@ -117,6 +120,9 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.MoveCursorRight    -> "MoveCursorRight"
         | GlobalHotkeyTargets.MoveCursorUp       -> "MoveCursorUp"
         | GlobalHotkeyTargets.MoveCursorDown     -> "MoveCursorDown"
+        | GlobalHotkeyTargets.LeftClick          -> "LeftClick"
+        | GlobalHotkeyTargets.MiddleClick        -> "MiddleClick"
+        | GlobalHotkeyTargets.RightClick         -> "RightClick"
     member this.AsHotKeyDisplay() : System.Windows.FrameworkElement =
         let mkTxt(s) : System.Windows.FrameworkElement = 
             upcast new System.Windows.Controls.TextBox(Background=System.Windows.Media.Brushes.Black, Foreground=System.Windows.Media.Brushes.White, 
@@ -149,6 +155,9 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.MoveCursorRight    -> mkTxt("\u2192")
         | GlobalHotkeyTargets.MoveCursorUp       -> mkTxt("\u2191")
         | GlobalHotkeyTargets.MoveCursorDown     -> mkTxt("\u2193")
+        | GlobalHotkeyTargets.LeftClick          -> mkTxt("LMB")
+        | GlobalHotkeyTargets.MiddleClick        -> mkTxt("MMB")
+        | GlobalHotkeyTargets.RightClick         -> mkTxt("RMB")
     static member All = [|
         GlobalHotkeyTargets.ToggleMagicalSword
         GlobalHotkeyTargets.ToggleWoodSword   
@@ -173,6 +182,9 @@ type GlobalHotkeyTargets =
         GlobalHotkeyTargets.MoveCursorRight
         GlobalHotkeyTargets.MoveCursorUp
         GlobalHotkeyTargets.MoveCursorDown
+        GlobalHotkeyTargets.LeftClick
+        GlobalHotkeyTargets.MiddleClick
+        GlobalHotkeyTargets.RightClick
         |]
 
 

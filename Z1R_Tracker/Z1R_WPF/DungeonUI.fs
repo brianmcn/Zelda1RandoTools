@@ -955,8 +955,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             | _ -> ()
                             if ea.Handled then ()
                             else
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
-                            numeral.Opacity <- 0.0
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness
                             match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
                             | Some(Choice1Of3(roomType)) -> 
@@ -984,6 +982,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                     workingCopy.FloorDropDetail <- floorDropDetail
                                 SetNewValue(workingCopy)
                             | None -> ()
+                            if ea.Handled then  // if they pressed an actual hotkey
+                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
+                                numeral.Opacity <- 0.0
                     )
                 c.MouseEnter.Add(fun _ ->
                     if not popupIsActive then

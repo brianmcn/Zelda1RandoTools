@@ -2021,12 +2021,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 postgameDecorationCanvas.Opacity <- 0.
             )
 
-    appMainCanvas.MouseDown.Add(fun _ -> 
+    let refocusKeyboard() = 
         let w = Window.GetWindow(appMainCanvas)
         Input.Keyboard.ClearFocus()                // ensure that clicks outside the Notes area de-focus it, by clearing keyboard focus...
         Input.FocusManager.SetFocusedElement(w, null)  // ... and by removing its logical mouse focus
         Input.Keyboard.Focus(w) |> ignore  // refocus keyboard to main window so MyKey still works
-        )  
+    appMainCanvas.MouseDown.Add(fun _ -> refocusKeyboard())
 
     do! showProgress("broadcast/load/animation")
 
@@ -2230,8 +2230,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.DungeonTab8        -> selectDungeonTabEvent.Trigger(7)
             | HotKeys.GlobalHotkeyTargets.DungeonTab9        -> selectDungeonTabEvent.Trigger(8)
             | HotKeys.GlobalHotkeyTargets.DungeonTabS        -> selectDungeonTabEvent.Trigger(9)
+            // some buttons (e.g. Recorder Destination counter) are Focusable, and clicking them captures future keyboard input
+            | HotKeys.GlobalHotkeyTargets.LeftClick          -> Graphics.Win32.LeftMouseClick(); refocusKeyboard()       
+            | HotKeys.GlobalHotkeyTargets.MiddleClick        -> Graphics.Win32.MiddleMouseClick(); refocusKeyboard()       
+            | HotKeys.GlobalHotkeyTargets.RightClick         -> Graphics.Win32.RightMouseClick(); refocusKeyboard()       
             | _ -> () // MoveCursor not handled at this level
-// TODO should it be like, up=tracker, left=overworld, right=blockers, down=dungeon?
+// TODO should it be like, up=tracker, left=overworld, right=blockers, down=dungeon?  maybe esc moves to recorder dest, and then can click counter, or arrow elsewhere?
         | None -> ()
     )
 
