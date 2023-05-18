@@ -57,12 +57,14 @@ since 1.2.2...
  - fix bug: toggling "Second quest dungeons" does not update old man counts
 since 1.2.3...
  - shorter app window (TODO add to docs, top-bar option like 2/3 size)
+ - keyboard nav and simulated mouse clicks (TODO docs)
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - (fix) can highlight multiple boomstick book ships on hover
  - (fix) shield/boomstick checkbox now preserved in save/reload
+ - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
 
 
 
@@ -74,29 +76,42 @@ TODO: some way to do dungeon doors
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
 
+homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
+ - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-Thilo: Request to not ask for start location placement on reset if start location has already been placed prior to reset.  If we have a pre-known starting location, and we setup 
-the tracker before the race starts, it would be nice to not have to place it again (very minor annoyance, but still)
- - me: also good for e.g. 4+4/groundhog
+Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on 
+dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  
+Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
+basically, what if a door-modal popup, where arrow keys are 'cycle the (NSWE) door' rather than 'move'
+
+Here's one: from a room, arrow moves you into room+door focus; LMB/MMB/RMB will green/yellow/red that door (TODO key for purple, or keys for all), but, for example
+if you left arrowed into the west door (from an east room, then)
+ - left arrow moves focus to the next room, but
+ - up/right/down arrows keep old room in focus alongside the N/E/S door
+Put another way: two consecutive arrows switch rooms, whereas a single arrow just moves to adjacent door to mark it, but keeps you in the 
+    same room (but how do I communicate this state visually)
+Also, given that all arrows just warp mouse, this implies mouse is on door, so question is how to show what the 4 arrows would do.  maybe an overlay that
+    shows the (up to) 4 possible arrow destinations?  Or that just communicates the room, e.g. imagine if the room/door highlights are both bright cyan 
+    rather than current white, and arrowing into a door highlights both the door and the prior room
 
 a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
  - first makes a hard save
  - tris removed
  - armos/WS/coast/dung items right clicked red
  - mags, shop items removed
- - secrets reset to bright green, take-anys to bright red heart, letter bright
+ - secrets reset to bright green, take-anys to bright red heart, letter bright, wood sword bright
  - i think not clear blockers (maybe 4+4 and were keyblocked still)
  - no change dungeon maps
 
 a lot of text on the surface of the main app is clickable (e.g. double click word LEGEND, can right click copy text), ought not be
 similarly many buttons are Focusable, which can alter how hotkeys get routed
 
-can scroll to forest fairy from desert; from SW coast raft to armos; from WDM to WDM push block - add these?
-
 doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
 
+possibly options for recorder to unbeaten, recorder to vanilla FQ/SQ (highlights/routing)
 
-
+possibly some button to mark 1Q/2Q vanilla map locations with labeled circles
+ - could be nested in a rework of HFQ/HSQ popup, below
 PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
 Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are you really sure' interaction somehow to do it; just don't want anyone to accidentally 
 click and then oops, just marked up 20 spots.  (keep current behavior too)
@@ -104,24 +119,19 @@ click and then oops, just marked up 20 spots.  (keep current behavior too)
  - what mouse interaction can mean "actually mark them all off" to pop-up an "are-you-sure dialog" or whatever? hmmm... could replace both boxes with a new button that pops up extended dialog
 
 
-homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
-
-
-double-click as a different action to make more pure-mouse-stuff?
-
 
 
 swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
+homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
+blockers is not ideal highlight target, and is large
+ - at least give it a thin border around its textbox and offer some local feedback when its hovered
+maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
+also provide a popup explanation/legend of what it is (and figure out what it is)
+ - maybe it is two things: rooms i marked to come back to, and rooms yet to be found
 
 
-
-
-(separate)
-consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
-    extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
-possibly consider broadcast-for-speedgaming if can link two of them
 
 
 
@@ -132,6 +142,13 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 
+
+
+
+(separate)
+consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
+    extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
+possibly consider broadcast-for-speedgaming if can link two of them
 
 
 
@@ -173,14 +190,8 @@ in the upper right corner of the app.
 ***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
 that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
+ - or vanilla drop rooms if you have 1Q/2Q maps selected
 
-
-homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
-blockers is not ideal highlight target, and is large
- - at least give it a thin border around its textbox and offer some local feedback when its hovered
-maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
-also provide a popup explanation/legend of what it is (and figure out what it is)
- - maybe it is two things: rooms i marked to come back to, and rooms yet to be found
 
 
 
@@ -382,16 +393,6 @@ hotkeys
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
 
-mouse thumb button for rare thing, like mark all dungeon room doors as open or blocked? thumb button must be live-without-able
-[11:38 AM] potato_pony: ahhh, i don't hvae a middle click 
-[11:38 AM] Lorgon111: oof, this is something i never even considered
-[11:39 AM] Lorgon111: so i should probably have a hotkey that means middle click for folks on touchpads or something
-[11:39 AM] potato_pony: in fairness, i think i could but on the thinkpad i use the middle button is used for scrolling
-[11:40 AM] Lorgon111: i just added more middle-click functionality yesterday too 
-[11:41 AM] potato_pony: , . / as keyboard alternatives to left/middle/right click?
-[11:41 AM] Lorgon111: I mean, it's probably like ten hours of recoding everything, so I will probably never do it, but stuff like that would be the right thing.
-[11:42 AM] potato_pony: lol i hear ya
-
 
 my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
  - mouse into dungeon 3 map, L3 is showLocator highlighted on overworld
@@ -422,10 +423,6 @@ MEDIUM
 puzzle-piecing maps 1-6,7-9?
 
 
-TheDoctorBlue wants to operate entire tracker with numpad, consider?
- - imagine hotkeys that map to 'move mouse ULDR', and then also... what?
-bogie: could add like hotkey mappings for rooms that affect adjacent doors, so hovering a room could have hotkeys for the room, (and drops, and bosses), and also adjacent doors
-Keyboard focus idea – arrow hotkeys grant KF and warp mouse on OW or dungons, PrviewMouse (move/down) cancels KF. Some hotkey behves as leftclick.  When on dung room, arrow goes to that door. When on that door from room, repeat arrow moves KF to next room, othr 3 arrows move to other doors from prior room.  Then ‘it just works’? possibly ‘prev’ and ‘next’ keys?  See DoctorBlue convo, not yet fully baked (arrowing within popup is a kind of ‘modality’)
 
 
 

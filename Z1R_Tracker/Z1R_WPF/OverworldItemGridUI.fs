@@ -437,7 +437,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 TrackerModel.LastChangedTime.ResumeAll()
                 popupIsActive <- false
                 if userPressedReset then
-                    legendStartIconButtonBehavior()  // jump into the 'place the start spot' popup
+                    if (TrackerModel.startIconX,TrackerModel.startIconY) = TrackerModel.NOTFOUND then  // don't re-ask if already placed, e.g. known start, 4+4, groundhog, etc
+                        legendStartIconButtonBehavior()  // jump into the 'place the start spot' popup
                 } |> Async.StartImmediate
         )
     // spot summary
