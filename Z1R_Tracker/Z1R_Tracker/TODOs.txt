@@ -69,7 +69,7 @@ since 1.2.3...
 possibility of hotkeys do everything (discord thread)
 DONE: 'arrows' work for overworld, dungeon rooms, blockers, tri&items
 DONE: hotkeys that simulate left/middle/right click at current mouse position
-TODO: 'arrows' navigate grid popups
+DONE: 'arrows' navigate grid popups
 TODO: some way to do dungeon doors
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 TODO: a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot

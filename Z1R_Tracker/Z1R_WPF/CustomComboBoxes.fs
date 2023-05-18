@@ -8,6 +8,8 @@ let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
 let makeGrid = Graphics.makeGrid
 
+open HotKeys.MyKey
+
 ////////////////////////////////////////////////////////////
 // ItemComboBox
 
@@ -308,7 +310,8 @@ let DoModalGridSelect<'State,'Result>
     MakePrettyDashes(popupCanvas, brushes.OriginalTileHighlightBrush, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
     if gridElementsSelectablesAndIDs.Length > gnr*gnc then
         failwith "the grid is not big enough to accomodate all the choices"
-    let grid = makeGrid(gnc, gnr, gcw+2*int ST, grh+2*int ST)
+    let COLW, ROWH = gcw+2*int ST, grh+2*int ST
+    let grid = makeGrid(gnc, gnr, COLW, ROWH)
     grid.Background <- Brushes.Black
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
     let selfCleanup() =
@@ -345,6 +348,60 @@ let DoModalGridSelect<'State,'Result>
         | StayPoppedUp -> ()
         )
     tileCanvas.MouseLeave.Add(fun _ -> snapBack())
+    let centerOf(x,y) = grid.TranslatePoint(Point(float(x*COLW)+float COLW/2., float(y*ROWH)+float ROWH/2.), cm.AppMainCanvas)
+    tileCanvas.MyKeyAdd(fun ea ->
+        let x,y = originalStateIndex % gnc, originalStateIndex / gnc
+        match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+        // 'arrows' warp mouse to current entry, then apply arrow to nav thru grid
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+            ea.Handled <- true
+            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            if x<gnc-1 then
+                Graphics.WarpMouseCursorTo(centerOf(x+1,y))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+            ea.Handled <- true
+            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            if x>0 then
+                Graphics.WarpMouseCursorTo(centerOf(x-1,y))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+            ea.Handled <- true
+            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            if y>0 then
+                Graphics.WarpMouseCursorTo(centerOf(x,y-1))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+            ea.Handled <- true
+            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            if y<gnr-1 then
+                Graphics.WarpMouseCursorTo(centerOf(x,y+1))
+        // behave like a click on the original tile, e.g. to right click dismiss an accidentally activated overworld tile popup
+        | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
+        | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
+        | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()
+        | _ -> ()
+        )
+    let handleCursorHotKey(x,y) =
+        fun (ea:MyKeyRoutedEventArgs) ->
+        match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+            ea.Handled <- true
+            if x<gnc-1 then
+                Graphics.WarpMouseCursorTo(centerOf(x+1,y))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+            ea.Handled <- true
+            if x>0 then
+                Graphics.WarpMouseCursorTo(centerOf(x-1,y))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+            ea.Handled <- true
+            if y>0 then
+                Graphics.WarpMouseCursorTo(centerOf(x,y-1))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+            ea.Handled <- true
+            if y<gnr-1 then
+                Graphics.WarpMouseCursorTo(centerOf(x,y+1))
+        | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
+        | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
+        | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()
+        | _ -> ()                    
     // grid of choices
     for x = 0 to gnc-1 do
         for y = 0 to gnr-1 do
@@ -373,11 +430,13 @@ let DoModalGridSelect<'State,'Result>
                         | DismissPopupWithNoResult -> dismisser()
                         | StayPoppedUp -> ()
                     )
+                b.MyKeyAdd(handleCursorHotKey(x,y))
                 gridAdd(grid, b, x, y)
             else
                 let dp = new DockPanel(Background=Brushes.Black)
                 dp.MouseEnter.Add(fun _ -> snapBack())
                 dp.MouseDown.Add(fun ea -> ea.Handled <- true)  // empty grid elements swallow clicks because we don't want to commit or dismiss
+                dp.MyKeyAdd(handleCursorHotKey(x,y))
                 gridAdd(grid, dp, x, y)
     grid.MouseLeave.Add(fun _ -> snapBack())
     let b = new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid)

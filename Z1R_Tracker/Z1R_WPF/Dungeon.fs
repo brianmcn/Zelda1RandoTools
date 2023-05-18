@@ -398,6 +398,7 @@ let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, ti
     let wh = new System.Threading.ManualResetEvent(false)
     let dungeon = TrackerModel.GetDungeon(dungeonIndex)
     HDNCP <- Some(dungeon, wh)
+    Graphics.WarpMouseCursorTo(Point(tileX+gx+float gcw/2.+18., tileY+gy+float grh/2.+15.))   // the +(18,15) makes mouse still inside the box but not overlapping the '?', easier to see
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                     gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, Some(wh))
     HDNCP <- None
@@ -421,6 +422,7 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
     mainDock.Children.Add(tb) |> ignore
     DockPanel.SetDock(tb, Dock.Top)
 
+// TODO ideally button1 and button2 would respond to simulated mouse clicks and arrow keys    
     let innerDock = new DockPanel(LastChildFill=false)
     let button1Content = new Canvas(Width=60., Height=60., Background=new SolidColorBrush(makeColor(curColor)))
     let button1 = new Button(Content=button1Content, Margin=Thickness(20.,0.,20.,0.), BorderThickness=Thickness(5.))
@@ -492,6 +494,8 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
 
     if accelerateIntoNumberChooser then
         button2.Loaded.Add(fun _ -> button2Body())
+    else
+        button1.Loaded.Add(fun _ -> Graphics.WarpMouseCursorTo(button1.TranslatePoint(Point(button1Content.Width/2., button1Content.Height/2.),cm.AppMainCanvas)))
     do! CustomComboBoxes.DoModal(cm, wh, mainX, mainY, popupCanvas)
     Graphics.WarpMouseCursorTo(warpReturn)
     }
