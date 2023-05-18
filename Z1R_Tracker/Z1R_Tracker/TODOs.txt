@@ -72,7 +72,7 @@ DONE: hotkeys that simulate left/middle/right click at current mouse position
 DONE: 'arrows' navigate grid popups
 TODO: some way to do dungeon doors
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
-TODO: a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
+TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
 
 
 Thilo: Request to not ask for start location placement on reset if start location has already been placed prior to reset.  If we have a pre-known starting location, and we setup 
