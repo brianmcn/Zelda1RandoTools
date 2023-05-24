@@ -5,6 +5,7 @@ open System.Windows.Media
 open System.Windows
 
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
+let defaultVoice = try voice.Voice.Name with _ -> ""
 let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
@@ -232,6 +233,41 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
         row <- row + 1
 
     options2sp.Children.Add(options2Grid) |> ignore
+    if voice.GetInstalledVoices() |> Seq.filter (fun v -> v.Enabled) |> Seq.length > 1 then
+        let changeVoiceButton = Graphics.makeButton("Change voice",None,None)
+        changeVoiceButton.HorizontalAlignment <- HorizontalAlignment.Left
+        changeVoiceButton.Click.Add(fun _ ->
+            if not popupIsActive then
+                popupIsActive <- true
+                let wh = new System.Threading.ManualResetEvent(false)
+                let sp = new StackPanel(Orientation=Orientation.Vertical)
+                AddStyle(sp)
+                sp.Children.Add(new TextBox(Text="Select preferred voice",IsReadOnly=true)) |> ignore
+                for v in voice.GetInstalledVoices() do
+                    if v.Enabled then
+                        let name = v.VoiceInfo.Name
+                        let r = new StackPanel(Orientation=Orientation.Horizontal)
+                        r.Children.Add(new TextBox(Text=name,IsReadOnly=true,Width=250.)) |> ignore
+                        let sb = Graphics.makeButton("Test it",None,None)
+                        sb.Click.Add(fun _ -> voice.SelectVoice(name); voice.Speak("Hello"))
+                        r.Children.Add(sb) |> ignore
+                        let sb = Graphics.makeButton("Choose this",None,None)
+                        sb.Click.Add(fun _ -> voice.SelectVoice(name); voice.Speak("Voice chosen"); TrackerModelOptions.PreferredVoice <- name; wh.Set() |> ignore)
+                        r.Children.Add(sb) |> ignore
+                        sp.Children.Add(r) |> ignore
+                async {
+                    do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), HorizontalAlignment=HorizontalAlignment.Center))
+                    try
+                        voice.SelectVoice(TrackerModelOptions.PreferredVoice)
+                    with _ -> 
+                        try
+                            voice.SelectVoice(defaultVoice)
+                        with _ -> ()
+                    popupIsActive <- false
+                } |> Async.StartImmediate
+            )
+        options2sp.Children.Add(changeVoiceButton) |> ignore
+
     optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Gray)) |> ignore
     optionsAllsp.Children.Add(options2sp) |> ignore
     optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Gray)) |> ignore

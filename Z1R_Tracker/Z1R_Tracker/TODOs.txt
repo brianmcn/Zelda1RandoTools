@@ -63,6 +63,7 @@ since 1.2.3...
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
+ - can choose a different voice for reminders, if installed (US windows usually has 2)
  - (fix) can highlight multiple boomstick book ships on hover
  - (fix) shield/boomstick checkbox now preserved in save/reload
  - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
@@ -82,6 +83,14 @@ TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. rec
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
+
+might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
+
+context-sensitive second window popout ideas
+ - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
+
+Way to export&import labeled circled on overworld, for e.g. 1Q/2Q dungeons, shops, 100-secrets, etc... like save&load, but just a subset - generalize? (vanilla drops e.g. banana in 1)
+ - would these overwrite user data? or live in a different layer? i'm thinking overwrite-if-no-data-there
 
 a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
  - first makes a hard save
@@ -360,13 +369,6 @@ clicking the kitty should meow or purr or something
 
 
 
-Bogie's "brackets" setup - shop kinds 1-4 (as any roads) and L? on the shuffled dungeon locations...
-https://discord.com/channels/674255646518149130/710648312214061098/937820067557699606
-Some kind of map presets could be good, and 4 types of shops as well, in terms of 'other free marks' people might want to add, hmm.
- - can I imagine a separate marking layer for 'user specified'?  (Bogie had 'custom reminders' on certain spots, effectively) well now middle-click circle OW spot could kinda do that
- - rather than full save/load, what if way to load preset overworld map only?
-
-
 consider hover-feedback-of-all-clickables (e.g. triforce could slightly-darken-color-on-hover)
 
 
@@ -423,10 +425,6 @@ possibly an 'any road' single hotkey that works like voice, and auto-selects nex
  - and then there's related idea of single hotkey to cycle thru many choices, e.g. C for chute (|| -> = -> none -> ||), 
        secrets (medium -> large -> small -> none -> medium, or whatever), etc, and user-configability
        but the issue is already existing mechanics there (e.g. 'S', 'S' toggles secret brightness, so conflict with cycling secret size)
-
-
-many folks request voice choices, see if easy to do via SpeechSynthesizer.GetInstalledVoices
-
 
 
 

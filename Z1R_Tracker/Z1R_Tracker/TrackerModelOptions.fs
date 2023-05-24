@@ -70,6 +70,7 @@ let mutable SmallerAppWindowScaleFactor = 2.0/3.0
 let mutable ShorterAppWindow = Bool(false)
 let mutable IsMuted = false
 let mutable Volume = 30
+let mutable PreferredVoice = ""
 let mutable MainWindowLT = ""
 let mutable BroadcastWindowLT = ""
 let mutable HotKeyWindowLTWH = ""
@@ -138,6 +139,7 @@ type ReadWrite() =
 
     member val IsMuted = false with get, set
     member val Volume = 30 with get, set
+    member val PreferredVoice = "" with get,set
     member val MainWindowLT = "" with get,set
     member val BroadcastWindowLT = "" with get,set
     member val HotKeyWindowLTWH = "" with get, set
@@ -208,6 +210,7 @@ let private writeImpl(filename) =
     data.ShorterAppWindow <- ShorterAppWindow.Value
     data.IsMuted <- IsMuted
     data.Volume <- Volume
+    data.PreferredVoice <- PreferredVoice
     data.MainWindowLT <- MainWindowLT
     data.BroadcastWindowLT <- BroadcastWindowLT
     data.HotKeyWindowLTWH <- HotKeyWindowLTWH
@@ -291,6 +294,7 @@ let private read(filename) =
         ShorterAppWindow.Value <- data.ShorterAppWindow
         IsMuted <- data.IsMuted
         Volume <- max 0 (min 100 data.Volume)
+        PreferredVoice <- data.PreferredVoice
         MainWindowLT <- data.MainWindowLT
         BroadcastWindowLT <- data.BroadcastWindowLT
         HotKeyWindowLTWH <- data.HotKeyWindowLTWH
