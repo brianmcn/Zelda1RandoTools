@@ -2239,6 +2239,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         | None -> ()
     )
 
+    Layout.setupMouseMagnifier(cm, refocusMainWindow)
+
     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
     do! showProgress("all done")
     return drawTimeline

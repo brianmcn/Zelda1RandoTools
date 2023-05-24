@@ -9,6 +9,7 @@ let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
 let broadcastWindowOptionChanged = new Event<unit>()
+let mouseMagnifierWindowOptionChanged = new Event<unit>()
 let BOARDInsteadOfLEVELOptionChanged = new Event<unit>()
 let secondQuestDungeonsOptionChanged = new Event<unit>()
 let showBasementInfoOptionChanged = new Event<unit>()
@@ -353,6 +354,14 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
     cb.Checked.Add(fun _ -> TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value <- true; broadcastWindowOptionChanged.Trigger())
     cb.Unchecked.Add(fun _ -> TrackerModelOptions.BroadcastWindowIncludesOverworldMagnifier.Value <- false; broadcastWindowOptionChanged.Trigger())
     cb.ToolTip <- "Whether to include the overworld magnifier when it is on-screen, which will obscure some other elements"
+    ToolTipService.SetShowDuration(cb, 10000)
+    options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Mouse magnifier window",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.ShowMouseMagnifierWindow.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.ShowMouseMagnifierWindow.Value <- true; mouseMagnifierWindowOptionChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.ShowMouseMagnifierWindow.Value <- false; mouseMagnifierWindowOptionChanged.Trigger())
+    cb.ToolTip <- "Open a separate, resizable window that shows a\nzoomed-in area around the mouse.\nCan be useful when using the app on a small screen\nwhere precise mouse targetting is hard to see."
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 

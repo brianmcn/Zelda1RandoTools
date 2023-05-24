@@ -146,7 +146,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-type ShorterApplicationLayout(cm) =
+type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     inherit ApplicationLayout(cm) 
     let appMainCanvas = cm.AppMainCanvas
     let blockerGridHeight = float(38*3) // from blocker code
@@ -336,15 +336,88 @@ type ShorterApplicationLayout(cm) =
             canvasAdd(upper, spotSummaryCanvas, 50., 3.)
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(lower, diskIcon, OMTW*16.-40., timelineStart+60.)
+            cm.SetHeight(H)  // canvas manager always knows the world as though SmallerAppWindowScaleFactor = 1.0
             // change the main app window height
             let H = 
                 if TrackerModelOptions.SmallerAppWindow.Value then 
                     H*TrackerModelOptions.SmallerAppWindowScaleFactor
                 else
                     H
-            cm.SetHeight(H)
             let CHROME_HEIGHT = 39.  // Windows app border
             ((cm.RootCanvas.Parent :?> Canvas).Parent :?> Window).Height <- H + CHROME_HEIGHT // this is fragile, but don't know a better way right now
+
+////////////////////////////////////////////////////////////////////////
+
+let makeMouseMagnifierWindow(cm:CustomComboBoxes.CanvasManager) =
+    let mmWindow = new Window()
+    mmWindow.Title <- "Z-Tracker mouse magnifier"
+    mmWindow.ResizeMode <- ResizeMode.CanResizeWithGrip
+    mmWindow.SizeToContent <- SizeToContent.Manual
+    mmWindow.WindowStartupLocation <- WindowStartupLocation.Manual
+    mmWindow.Owner <- Application.Current.MainWindow
+
+    let MSF = // main scale factor
+        if TrackerModelOptions.SmallerAppWindow.Value then
+            TrackerModelOptions.SmallerAppWindowScaleFactor
+        else
+            1.0
+    mmWindow.Width <- cm.AppMainCanvas.Width * MSF
+    mmWindow.Height <- cm.AppMainCanvas.Width * MSF  // square start
+
+    let c = new Canvas(Background=Brushes.DarkSlateBlue)
+    c.UseLayoutRounding <- true
+    mmWindow.Content <- c
+    // use BitmapCacheBrush rather than VisualBrush because we want to NearestNeightbor all the pixels
+    let wholeView = new Shapes.Rectangle(Width=cm.RootCanvas.Width, Height=cm.RootCanvas.Height, Fill=new BitmapCacheBrush(cm.RootCanvas))
+    RenderOptions.SetBitmapScalingMode(wholeView, BitmapScalingMode.NearestNeighbor)
+
+    let SCALE = 3.0 * MSF
+    let st = new ScaleTransform(SCALE, SCALE)
+    wholeView.RenderTransform <- st
+    canvasAdd(c, wholeView, 0., 0.)
+
+    let addFakeMouse(c:Canvas) =
+        let fakeMouse = new Shapes.Polygon(Fill=Brushes.White)
+        fakeMouse.Points <- new PointCollection([Point(0.,0.); Point(12.,6.); Point(6.,12.)])
+        c.Children.Add(fakeMouse) |> ignore
+        fakeMouse
+    let fakeMouse = addFakeMouse(c)
+    let round(x:float) = System.Math.Round(x)
+    let update() =        
+        Canvas.SetLeft(fakeMouse, round(mmWindow.Width / 2.))
+        Canvas.SetTop(fakeMouse, round(mmWindow.Height / 2.))
+        st.CenterX <- round(mmWindow.Width / 2.)
+        st.CenterY <- round(mmWindow.Height / 2.)
+    mmWindow.SizeChanged.Add(fun _ ->
+        update()
+        )
+    mmWindow.Loaded.Add(fun _ -> 
+        update()
+        )
+    cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
+        let mousePos = ea.GetPosition(cm.AppMainCanvas)
+        Canvas.SetLeft(wholeView, round(SCALE * ((mmWindow.Width / 2.)  - mousePos.X)))
+        Canvas.SetTop( wholeView, round(SCALE * ((mmWindow.Height / 2.) - mousePos.Y)))
+        )
+    mmWindow
+
+let setupMouseMagnifier(cm, refocusMainWindow) =
+    let mutable mouseMagnifierWindow = null
+    if TrackerModelOptions.ShowMouseMagnifierWindow.Value then
+        mouseMagnifierWindow <- makeMouseMagnifierWindow(cm)
+        mouseMagnifierWindow.Show()
+        refocusMainWindow()
+    OptionsMenu.mouseMagnifierWindowOptionChanged.Publish.Add(fun () ->
+        // close existing
+        if mouseMagnifierWindow<>null then
+            mouseMagnifierWindow.Close()
+            mouseMagnifierWindow <- null
+        // maybe restart
+        if TrackerModelOptions.ShowMouseMagnifierWindow.Value then
+            mouseMagnifierWindow <- makeMouseMagnifierWindow(cm)
+            mouseMagnifierWindow.Show()
+            refocusMainWindow()
+        )
 
 
 
