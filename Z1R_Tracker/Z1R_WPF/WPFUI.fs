@@ -705,11 +705,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             wh.Set() |> ignore
                         )
                     element.MyKeyAdd(fun ea ->
-                        if ea.Key >= Input.Key.D0 && ea.Key <= Input.Key.D9 then
-                            TrackerModel.overworldMapCircles.[i,j] <- baseColor + int ea.Key - int Input.Key.D0 + int '0'
+                        let key = snd ea.Key
+                        if key >= Input.Key.D0 && key <= Input.Key.D9 then
+                            TrackerModel.overworldMapCircles.[i,j] <- baseColor + int key - int Input.Key.D0 + int '0'
                             wh.Set() |> ignore
-                        elif ea.Key >= Input.Key.A && ea.Key <= Input.Key.Z then
-                            TrackerModel.overworldMapCircles.[i,j] <- baseColor + int ea.Key - int Input.Key.A + int 'A'
+                        elif key >= Input.Key.A && key <= Input.Key.Z then
+                            TrackerModel.overworldMapCircles.[i,j] <- baseColor + int key - int Input.Key.A + int 'A'
                             wh.Set() |> ignore
                         )
                     async {
@@ -2238,7 +2239,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.ScrollDown         -> Graphics.Win32.ScrollWheelRotateDown(); refocusKeyboard()       
             | _ -> () // MoveCursor not handled at this level
 // TODO should it be like, up=tracker, left=overworld, right=blockers, down=dungeon?  maybe esc moves to recorder dest, and then can click counter, or arrow elsewhere?
-        | None -> ()
+        | None -> 
+            ()
     )
 
     Layout.setupMouseMagnifier(cm, refocusMainWindow)

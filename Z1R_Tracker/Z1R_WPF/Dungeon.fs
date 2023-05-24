@@ -349,13 +349,14 @@ let MakeTriforceDecoderDiagram() =
 let HotKeyAHiddenDungeonLabel(fe:FrameworkElement, dungeon:TrackerModel.Dungeon, who:System.Threading.ManualResetEvent option) =
     if TrackerModel.IsHiddenDungeonNumbers() then
         fe.MyKeyAdd(fun ea ->
-            for ch in ['1'..'8'] do
-                let key = HotKeys.convertAlpha_NumToKey(ch)
-                if ea.Key = key then
-                    dungeon.LabelChar <- ch
-                    match who with
-                    | Some wh -> wh.Set() |> ignore
-                    | _ -> ()
+            match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with   // overworld key for e.g. dungeon 4 is key used to hotkey 4
+            | Some(dungIdx) when dungIdx >=0 && dungIdx <=7 -> 
+                let ch = char(int '1' + dungIdx)
+                dungeon.LabelChar <- ch
+                match who with
+                | Some wh -> wh.Set() |> ignore
+                | _ -> ()
+            | _ -> ()
             )
 
 let mutable HDNCP = None

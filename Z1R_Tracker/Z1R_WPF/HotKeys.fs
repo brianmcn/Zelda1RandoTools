@@ -6,16 +6,55 @@ open System.Windows
 // Main Window listens for KeyDown, then sends RoutedEvent to element under the mouse
 
 module MyKey =
+    type SingleKeyboardModifier =  // represents the 0 or 1 modifier keys currently help (or 'Unsupported' if 2 or more held at once)
+        | NoModifier
+        | Shift
+        | Ctrl
+        // | Windows     // key not supported unless someone asks for it
+        | Alt
+        | Unsupported
+        static member GetCurrent() =
+            if Input.Keyboard.Modifiers = Input.ModifierKeys.Shift then
+                SingleKeyboardModifier.Shift
+            elif Input.Keyboard.Modifiers = Input.ModifierKeys.Control then
+                SingleKeyboardModifier.Ctrl
+            elif Input.Keyboard.Modifiers = Input.ModifierKeys.Alt then
+                SingleKeyboardModifier.Alt
+            elif Input.Keyboard.Modifiers = Input.ModifierKeys.None then
+                SingleKeyboardModifier.NoModifier
+            else
+                SingleKeyboardModifier.Unsupported
+        static member FromHotKeyTxt(s) =
+            if s = "" then
+                SingleKeyboardModifier.NoModifier
+            elif s = "SHIFT" then
+                SingleKeyboardModifier.Shift
+            elif s = "CTRL" then
+                SingleKeyboardModifier.Ctrl
+            elif s = "ALT" then
+                SingleKeyboardModifier.Alt
+            else failwith "impossible SingleKeyboardModifier.FromHotKeyTxt"
+        member this.PrettyString() =
+            match this with
+            | SingleKeyboardModifier.NoModifier -> ""
+            | SingleKeyboardModifier.Shift -> "Shift "
+            | SingleKeyboardModifier.Ctrl -> "Ctrl "
+            | SingleKeyboardModifier.Alt -> "Alt "
+            | SingleKeyboardModifier.Unsupported -> failwith "impossible SingleKeyboardModifier.Pretty"
+    
     type MyKeyRoutedEventHandler = delegate of obj * MyKeyRoutedEventArgs -> unit
-    and  MyKeyRoutedEventArgs(key) =
+    and  MyKeyRoutedEventArgs(skm,k) =
         inherit RoutedEventArgs(MyKey.MyKeyEvent)
-        member _this.Key : Input.Key = key
+        member _this.Key : SingleKeyboardModifier*Input.Key = skm,k
     and  MyKey() =
         static let myKeyEvent = EventManager.RegisterRoutedEvent("ZTrackerMyKey", RoutingStrategy.Bubble, typeof<MyKeyRoutedEventHandler>, typeof<MyKey>)
         static member MyKeyEvent = myKeyEvent
 
     type UIElement with
         member this.MyKeyAdd(f) = this.AddHandler(MyKey.MyKeyEvent, new MyKeyRoutedEventHandler(fun o ea -> f(ea)))
+
+
+let boundHotKeyUniverse = new System.Collections.Generic.Dictionary<_,_>()
 
 open MyKey
 
@@ -24,8 +63,19 @@ let InitializeWindow(w:Window, notesTextBox:System.Windows.Controls.TextBox) =
     w.PreviewKeyDown.Add(fun ea ->
         let x = Input.Mouse.DirectlyOver
         if x <> null && not(notesTextBox.IsKeyboardFocused) then
-            let ea = new MyKeyRoutedEventArgs(ea.Key)
-            x.RaiseEvent(ea)
+            match SingleKeyboardModifier.GetCurrent() with
+            | SingleKeyboardModifier.Unsupported -> ()
+            | SingleKeyboardModifier.Alt ->
+                if boundHotKeyUniverse.ContainsKey(SingleKeyboardModifier.Alt,ea.SystemKey) then
+                    ea.Handled <- true
+                // Alt causes Key to be read from SystemKey
+                let ea = new MyKeyRoutedEventArgs(SingleKeyboardModifier.Alt,ea.SystemKey)
+                x.RaiseEvent(ea)
+            | skm -> 
+                if boundHotKeyUniverse.ContainsKey(skm,ea.Key) then
+                    ea.Handled <- true
+                let ea = new MyKeyRoutedEventArgs(skm,ea.Key)
+                x.RaiseEvent(ea)
         )
 
 let convertAlpha_NumToKey(ch) =
@@ -204,6 +254,8 @@ let MakeDefaultHotKeyFile(filename:string) =
 #  - key can be 0-9 or a-z, or alternately of the form \nnn where nnn is the numeric key code from
 #        https://docs.microsoft.com/en-us/dotnet/api/system.windows.input.key#fields
 #    (so for example \75 should be used as the key name for NumPad1)
+#  - key can optionally be preceded by "SHIFT " or "CTRL " or "ALT "
+#    (so for example "SHIFT 4" means holding shift while pressing the '4' key)
 #  - SelectorName can be any of the list below
 # You can leave the key blank to not bind a hotkey to that selector
 
@@ -248,8 +300,8 @@ let ParseHotKeyDataFile(filename:string) =
     let lines = System.IO.File.ReadAllLines(filename)
     let commentRegex = new System.Text.RegularExpressions.Regex("^#.*$", System.Text.RegularExpressions.RegexOptions.None)
     let emptyLineRegex = new System.Text.RegularExpressions.Regex("^\s*$", System.Text.RegularExpressions.RegexOptions.None)
-    let dataRegex = new System.Text.RegularExpressions.Regex("^\s*(\w+)\s*=\s*(\w)?\s*$", System.Text.RegularExpressions.RegexOptions.None)
-    let data2Regex = new System.Text.RegularExpressions.Regex("""^\s*(\w+)\s*=\s*\\(\d+)\s*$""", System.Text.RegularExpressions.RegexOptions.None)
+    let dataRegex = new System.Text.RegularExpressions.Regex("^\s*(\w+)\s*=\s*(SHIFT|CTRL|ALT|)\s*(\w)?\s*$", System.Text.RegularExpressions.RegexOptions.None)
+    let data2Regex = new System.Text.RegularExpressions.Regex("""^\s*(\w+)\s*=\s*(SHIFT|CTRL|ALT|)\s*\\(\d+)\s*$""", System.Text.RegularExpressions.RegexOptions.None)
     let data = ResizeArray()
     let mutable lineNumber = 1
     for line in lines do
@@ -263,41 +315,46 @@ let ParseHotKeyDataFile(filename:string) =
                     raise <| new UserError(sprintf "Error parsing '%s', line %d" filename lineNumber)
                 else
                     let name = m.Groups.[1].Value
-                    let value = if m.Groups.Count > 2 then Some(enum<Input.Key>(int m.Groups.[2].Value)) else None
+                    let value = if m.Groups.Count > 2 then Some(SingleKeyboardModifier.FromHotKeyTxt(m.Groups.[2].Value), enum<Input.Key>(int m.Groups.[3].Value)) else None
                     data.Add(name, value, (lineNumber, filename))
 
             else
                 // Groups.[0] is the whole match
                 let name = m.Groups.[1].Value
-                let value = if m.Groups.Count > 2 && m.Groups.[2].Value.Length > 0 then Some(convertAlpha_NumToKey(m.Groups.[2].Value.[0])) else None
+                let value = if m.Groups.Count > 2 && m.Groups.[3].Value.Length > 0 then Some(SingleKeyboardModifier.FromHotKeyTxt(m.Groups.[2].Value), convertAlpha_NumToKey(m.Groups.[3].Value.[0])) else None
                 data.Add(name, value, (lineNumber, filename))
         lineNumber <- lineNumber + 1
     data
 
 ////////////////////////////////////////////////////////////
 
-let keyUniverse = [| for i = 1 to 172 do yield enum<Input.Key>(i) |]   // it appears Input.Key does not range outside 1 to 172
-let PrettyKey(key:Input.Key) =
+let keyUniverse = 
+    [| 
+        for i = 1 to 172 do // it appears Input.Key does not range outside 1 to 172
+            for j in [| SingleKeyboardModifier.NoModifier; SingleKeyboardModifier.Shift; SingleKeyboardModifier.Ctrl; SingleKeyboardModifier.Alt |] do
+                yield j,enum<Input.Key>(i) 
+    |]   
+let PrettyKey(skm:SingleKeyboardModifier,key:Input.Key) =
     let s = key.ToString()
     if System.Text.RegularExpressions.Regex.IsMatch(s, "D\d") then  // the 'name' of 0-9 across top keyboard is D0-D9
-        sprintf "%c" s.[1]
+        sprintf "%s%c" (skm.PrettyString()) s.[1]
     else
-        s
+        skm.PrettyString()+s
 type HotKeyProcessor<'v when 'v : equality>(contextName) =
-    let table = new System.Collections.Generic.Dictionary<Input.Key,'v>()
+    let table = new System.Collections.Generic.Dictionary<SingleKeyboardModifier*Input.Key,'v>()
     let stateToKeys = new System.Collections.Generic.Dictionary<_,_>()  // caching
     member this.ContextName = contextName
-    member this.TryGetValue(k) = 
-        match table.TryGetValue(k) with
+    member this.TryGetValue(skm,k) = 
+        match table.TryGetValue((skm,k)) with
         | true, v -> Some(v)
         | _ -> None
-    member this.ContainsKey(k) = table.ContainsKey(k)
+    member this.ContainsKey(skm,k) = table.ContainsKey(skm,k)
     member this.Keys() = table.Keys |> Seq.toArray
-    member this.TryAdd(k,v) =
-        if table.ContainsKey(k) then
+    member this.TryAdd((skm,k),v) =
+        if table.ContainsKey(skm,k) then
             false
         else
-            table.Add(k,v)
+            table.Add((skm,k),v)
             true
     member this.StateToKeys(state) =
         if not(stateToKeys.ContainsKey(state)) then
@@ -323,12 +380,15 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
         else
             desc
 
+// area specific
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
 let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail> >("DungeonRoom")
+// contextual
 let TakeAnyHotKeyProcessor = new HotKeyProcessor<int>("TakeAny")
 let TakeThisHotKeyProcessor = new HotKeyProcessor<int>("TakeThis")
+// global
 let GlobalHotKeyProcessor = new HotKeyProcessor<GlobalHotkeyTargets>("Global")
 
 let HotKeyFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
@@ -345,6 +405,9 @@ let PopulateHotKeyTables() =
             | Some key ->
                 if not(hkp.TryAdd(key,x)) then
                     raise <| new UserError(sprintf "Keyboard key '%s' given multiple meanings for '%s' context; second occurrence at line %d of '%s'" (PrettyKey key) hkp.ContextName lineNumber filename)
+                else
+                    if not(boundHotKeyUniverse.ContainsKey(key)) then
+                        boundHotKeyUniverse.Add(key,0) 
         match name with
         | "Item_Nothing"          -> Add(ItemHotKeyProcessor, chOpt, -1)
         | "Overworld_Nothing"     -> Add(OverworldHotKeyProcessor, chOpt, -1)
