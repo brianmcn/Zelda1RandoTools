@@ -350,7 +350,7 @@ let DoModalGridSelect<'State,'Result>
     tileCanvas.MouseLeave.Add(fun _ -> snapBack())
     let centerOf(x,y) = grid.TranslatePoint(Point(float(x*COLW)+float COLW/2., float(y*ROWH)+float ROWH/2.), cm.AppMainCanvas)
     tileCanvas.MyKeyAdd(fun ea ->
-        let x,y = originalStateIndex % gnc, originalStateIndex / gnc
+        let x,y = currentState % gnc, currentState / gnc
         match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
         // 'arrows' warp mouse to current entry, then apply arrow to nav thru grid
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
@@ -377,6 +377,8 @@ let DoModalGridSelect<'State,'Result>
         | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
         | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
         | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()
+        | Some(HotKeys.GlobalHotkeyTargets.ScrollUp) -> Graphics.Win32.ScrollWheelRotateUp()
+        | Some(HotKeys.GlobalHotkeyTargets.ScrollDown) -> Graphics.Win32.ScrollWheelRotateDown()
         | _ -> ()
         )
     let handleCursorHotKey(x,y) =

@@ -95,6 +95,8 @@ type GlobalHotkeyTargets =
     | LeftClick
     | MiddleClick
     | RightClick
+    | ScrollUp
+    | ScrollDown
     member this.AsHotKeyName() =
         match this with
         | GlobalHotkeyTargets.ToggleMagicalSword -> "ToggleMagicalSword"
@@ -123,6 +125,8 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.LeftClick          -> "LeftClick"
         | GlobalHotkeyTargets.MiddleClick        -> "MiddleClick"
         | GlobalHotkeyTargets.RightClick         -> "RightClick"
+        | GlobalHotkeyTargets.ScrollUp           -> "ScrollUp"
+        | GlobalHotkeyTargets.ScrollDown         -> "ScrollDown"
     member this.AsHotKeyDisplay() : System.Windows.FrameworkElement =
         let mkTxt(s) : System.Windows.FrameworkElement = 
             upcast new System.Windows.Controls.TextBox(Background=System.Windows.Media.Brushes.Black, Foreground=System.Windows.Media.Brushes.White, 
@@ -158,6 +162,8 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.LeftClick          -> mkTxt("LMB")
         | GlobalHotkeyTargets.MiddleClick        -> mkTxt("MMB")
         | GlobalHotkeyTargets.RightClick         -> mkTxt("RMB")
+        | GlobalHotkeyTargets.ScrollUp           -> mkTxt("SWU")
+        | GlobalHotkeyTargets.ScrollDown         -> mkTxt("SWD")
     static member All = [|
         GlobalHotkeyTargets.ToggleMagicalSword
         GlobalHotkeyTargets.ToggleWoodSword   
@@ -185,8 +191,9 @@ type GlobalHotkeyTargets =
         GlobalHotkeyTargets.LeftClick
         GlobalHotkeyTargets.MiddleClick
         GlobalHotkeyTargets.RightClick
+        GlobalHotkeyTargets.ScrollUp
+        GlobalHotkeyTargets.ScrollDown
         |]
-
 
 // Note to self; NumPad . and + are called Decimal and Add, not OemPeriod or OemPlus.  NumPad 'enter' is not supported, sadly.
 let MakeDefaultHotKeyFile(filename:string) =

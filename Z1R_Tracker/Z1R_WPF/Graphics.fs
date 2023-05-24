@@ -29,6 +29,8 @@ type Win32() =
     static let MOUSEEVENTF_RIGHTUP      = 0x10u
     static let MOUSEEVENTF_MIDDLEDOWN   = 0x20u
     static let MOUSEEVENTF_MIDDLEUP     = 0x40u
+    static let MOUSEEVENTF_WHEEL        = 0x800u
+    static let WHEEL_DELTA = 120
     // ||| these in if want absolute coords to send event, otherwise is relative
     //static let MOUSEEVENTF_ABSOLUTE     = 0x8000
     //static let MOUSEEVENTF_MOVE         = 0x0001
@@ -50,6 +52,10 @@ type Win32() =
         mouse_event(MOUSEEVENTF_RIGHTDOWN ||| MOUSEEVENTF_RIGHTUP, 0, 0, 0u, 0)
     static member MiddleMouseClick() =
         mouse_event(MOUSEEVENTF_MIDDLEDOWN ||| MOUSEEVENTF_MIDDLEUP, 0, 0, 0u, 0)
+    static member ScrollWheelRotateUp() =
+        mouse_event(MOUSEEVENTF_WHEEL, 0, 0, uint32 WHEEL_DELTA, 0)
+    static member ScrollWheelRotateDown() =
+        mouse_event(MOUSEEVENTF_WHEEL, 0, 0, uint32 (-WHEEL_DELTA), 0)
     
     static member SetCursor(x,y) = 
         let transformedPoint = 
