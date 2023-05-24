@@ -53,30 +53,7 @@ module MyKey =
     type UIElement with
         member this.MyKeyAdd(f) = this.AddHandler(MyKey.MyKeyEvent, new MyKeyRoutedEventHandler(fun o ea -> f(ea)))
 
-
-let boundHotKeyUniverse = new System.Collections.Generic.Dictionary<_,_>()
-
 open MyKey
-
-let InitializeWindow(w:Window, notesTextBox:System.Windows.Controls.TextBox) =
-    w.Focusable <- true
-    w.PreviewKeyDown.Add(fun ea ->
-        let x = Input.Mouse.DirectlyOver
-        if x <> null && not(notesTextBox.IsKeyboardFocused) then
-            match SingleKeyboardModifier.GetCurrent() with
-            | SingleKeyboardModifier.Unsupported -> ()
-            | SingleKeyboardModifier.Alt ->
-                if boundHotKeyUniverse.ContainsKey(SingleKeyboardModifier.Alt,ea.SystemKey) then
-                    ea.Handled <- true
-                // Alt causes Key to be read from SystemKey
-                let ea = new MyKeyRoutedEventArgs(SingleKeyboardModifier.Alt,ea.SystemKey)
-                x.RaiseEvent(ea)
-            | skm -> 
-                if boundHotKeyUniverse.ContainsKey(skm,ea.Key) then
-                    ea.Handled <- true
-                let ea = new MyKeyRoutedEventArgs(skm,ea.Key)
-                x.RaiseEvent(ea)
-        )
 
 let convertAlpha_NumToKey(ch) =
     if ch >= 'a' && ch <= 'z' then
@@ -90,6 +67,37 @@ let convertAlpha_NumToKey(ch) =
     else
         failwithf "bad input to convertAlpha_NumToKey '%c'" ch
 
+let boundHotKeyUniverse = new System.Collections.Generic.Dictionary<_,_>()
+do
+    // the overworld circles label ui uses 0-9 and a-z keys, only part of ui not rebindable by hotkeys, so ensure it exists so those keys get processed
+    for c in ['0'..'9'] do
+        boundHotKeyUniverse.Add((SingleKeyboardModifier.NoModifier, convertAlpha_NumToKey(c)),0)
+    for c in ['a'..'z'] do
+        boundHotKeyUniverse.Add((SingleKeyboardModifier.NoModifier, convertAlpha_NumToKey(c)),0)
+    
+
+let InitializeWindow(w:Window, notesTextBox:System.Windows.Controls.TextBox) =
+    w.Focusable <- true
+    w.PreviewKeyDown.Add(fun ea ->
+        let x = Input.Mouse.DirectlyOver
+        if x <> null && not(notesTextBox.IsKeyboardFocused) then
+            match SingleKeyboardModifier.GetCurrent() with
+            | SingleKeyboardModifier.Unsupported -> ()
+            | SingleKeyboardModifier.Alt ->
+                // only if the user might want the app to process this key...
+                if boundHotKeyUniverse.ContainsKey(SingleKeyboardModifier.Alt,ea.SystemKey) then
+                    // ...handle events so they don't bubble out of the app (otherwise e.g. Alt-mostanything will result in system beep)
+                    ea.Handled <- true
+                    // Alt causes Key to be read from SystemKey
+                    let ea = new MyKeyRoutedEventArgs(SingleKeyboardModifier.Alt,ea.SystemKey)
+                    x.RaiseEvent(ea)
+                // ... but do let un-bound keys exit the app, so if the user has a global windows hotkey alt-x or something, the app won't steal it if it's not in HotKeys.txt
+            | skm -> 
+                if boundHotKeyUniverse.ContainsKey(skm,ea.Key) then
+                    ea.Handled <- true
+                    let ea = new MyKeyRoutedEventArgs(skm,ea.Key)
+                    x.RaiseEvent(ea)
+        )
 
 ////////////////////////////////////////////////////////////
 
