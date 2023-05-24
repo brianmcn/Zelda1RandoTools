@@ -104,6 +104,13 @@ let InitializeWindow(w:Window, notesTextBox:System.Windows.Controls.TextBox) =
 type UserError(msg) =
     inherit System.Exception(msg)
 
+let AllDoors = 
+    [|
+        for dd,s in [DungeonRoomState.DoorDirection.West,"West"; DungeonRoomState.DoorDirection.East,"East"; 
+                        DungeonRoomState.DoorDirection.North,"North"; DungeonRoomState.DoorDirection.South,"South"] do
+            yield sprintf "%sDoorIncrement" s, DungeonRoomState.DoorHotKeyResponse(dd,DungeonRoomState.DoorAction.Increment)
+            yield sprintf "%sDoorDecrement" s, DungeonRoomState.DoorHotKeyResponse(dd,DungeonRoomState.DoorAction.Decrement)
+    |]
 let AllDungeonRoomNames = [|
     for x in DungeonRoomState.RoomType.All() do
         yield "DungeonRoom_" + x.AsHotKeyName()
@@ -111,6 +118,8 @@ let AllDungeonRoomNames = [|
         yield "DungeonRoom_" + x.AsHotKeyName()
     for x in DungeonRoomState.FloorDropDetail.All() do
         yield "DungeonRoom_" + x.AsHotKeyName()
+    for x,_ in AllDoors do
+        yield "DungeonRoom_" + x
     |]
 // always Bottom/Left/Top/Right order, how PieMenus code works
 let TakeAnyNames = [|
@@ -392,7 +401,7 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
-let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail> >("DungeonRoom")
+let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail,DungeonRoomState.DoorHotKeyResponse> >("DungeonRoom")
 // contextual
 let TakeAnyHotKeyProcessor = new HotKeyProcessor<int>("TakeAny")
 let TakeThisHotKeyProcessor = new HotKeyProcessor<int>("TakeThis")
@@ -438,15 +447,19 @@ let PopulateHotKeyTables() =
             if not found then
                 for x in DungeonRoomState.RoomType.All() do
                     if name = "DungeonRoom_" + x.AsHotKeyName() then
-                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice1Of3 x)
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice1Of4 x)
                         found <- true
                 for x in DungeonRoomState.MonsterDetail.All() do
                     if name = "DungeonRoom_" + x.AsHotKeyName() then
-                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice2Of3 x)
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice2Of4 x)
                         found <- true
                 for x in DungeonRoomState.FloorDropDetail.All() do
                     if name = "DungeonRoom_" + x.AsHotKeyName() then
-                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice3Of3 x)
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice3Of4 x)
+                        found <- true
+                for x,dhkr in AllDoors do
+                    if name = "DungeonRoom_" + x then
+                        Add(DungeonRoomHotKeyProcessor, chOpt, Choice4Of4 dhkr)
                         found <- true
             if not found then
                 for i = 0 to 3 do do

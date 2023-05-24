@@ -1034,29 +1034,33 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                                 ea.Handled <- true
                                 if i<7 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i+0.5, float j))
-                                    roomWeJustCursorNavigatedFrom <- Some(i,j)
+                                    Graphics.WarpMouseCursorTo(centerOf(float i+1.0, float j))
+                                    //Graphics.WarpMouseCursorTo(centerOf(float i+0.5, float j))
+                                    //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                                 ea.Handled <- true
                                 if i>0 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i-0.5, float j))
-                                    roomWeJustCursorNavigatedFrom <- Some(i,j)
+                                    Graphics.WarpMouseCursorTo(centerOf(float i-1.0, float j))
+                                    //Graphics.WarpMouseCursorTo(centerOf(float i-0.5, float j))
+                                    //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                                 ea.Handled <- true
                                 if j>0 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j-0.5))
-                                    roomWeJustCursorNavigatedFrom <- Some(i,j)
+                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j-1.0))
+                                    //Graphics.WarpMouseCursorTo(centerOf(float i,float j-0.5))
+                                    //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                                 ea.Handled <- true
                                 if j<7 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j+0.5))
-                                    roomWeJustCursorNavigatedFrom <- Some(i,j)
+                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j+1.0))
+                                    //Graphics.WarpMouseCursorTo(centerOf(float i,float j+0.5))
+                                    //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | _ -> ()
                             if ea.Handled then ()
                             else
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness
                             match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
-                            | Some(Choice1Of3(roomType)) -> 
+                            | Some(Choice1Of4(roomType)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.RoomType = roomType then
@@ -1064,7 +1068,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 else
                                     workingCopy.RoomType <- roomType
                                 SetNewValue(workingCopy)
-                            | Some(Choice2Of3(monsterDetail)) -> 
+                            | Some(Choice2Of4(monsterDetail)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.MonsterDetail = monsterDetail then
@@ -1072,7 +1076,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 else
                                     workingCopy.MonsterDetail <- monsterDetail
                                 SetNewValue(workingCopy)
-                            | Some(Choice3Of3(floorDropDetail)) -> 
+                            | Some(Choice3Of4(floorDropDetail)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.FloorDropDetail = floorDropDetail then
@@ -1080,6 +1084,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 else
                                     workingCopy.FloorDropDetail <- floorDropDetail
                                 SetNewValue(workingCopy)
+                            | Some(Choice4Of4(doorHotKeyResponse)) -> 
+                                match doorHotKeyResponse.Direction, doorHotKeyResponse.Action with
+                                | DungeonRoomState.DoorDirection.West, DungeonRoomState.DoorAction.Increment -> if i>0 then horizontalDoors.[i-1,j].Next()
+                                | DungeonRoomState.DoorDirection.West, DungeonRoomState.DoorAction.Decrement -> if i>0 then horizontalDoors.[i-1,j].Prev()
+                                | DungeonRoomState.DoorDirection.East, DungeonRoomState.DoorAction.Increment -> if i<7 then horizontalDoors.[i,j].Next()
+                                | DungeonRoomState.DoorDirection.East, DungeonRoomState.DoorAction.Decrement -> if i<7 then horizontalDoors.[i,j].Prev()
+                                | DungeonRoomState.DoorDirection.North, DungeonRoomState.DoorAction.Increment -> if j>0 then verticalDoors.[i,j-1].Next()
+                                | DungeonRoomState.DoorDirection.North, DungeonRoomState.DoorAction.Decrement -> if j>0 then verticalDoors.[i,j-1].Prev()
+                                | DungeonRoomState.DoorDirection.South, DungeonRoomState.DoorAction.Increment -> if j<7 then verticalDoors.[i,j].Next()
+                                | DungeonRoomState.DoorDirection.South, DungeonRoomState.DoorAction.Decrement -> if j<7 then verticalDoors.[i,j].Prev()
                             | None -> ()
                             if ea.Handled then  // if they pressed an actual hotkey
                                 isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks

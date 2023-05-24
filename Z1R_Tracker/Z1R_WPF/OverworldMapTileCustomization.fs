@@ -642,15 +642,24 @@ let MakeMappedHotKeysDisplay() =
     let blockerPanel = makePanel(TrackerModel.DungeonBlocker.All, HotKeys.BlockerHotKeyProcessor, (fun state -> 
         upcast Graphics.blockerCurrentDisplay(state)), 24, "BLOCKERS")
     let thingies = [| 
-        yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of3
-        yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of3
-        yield! DungeonRoomState.FloorDropDetail.All() |> Seq.map Choice3Of3
+        yield! DungeonRoomState.RoomType.All() |> Seq.map Choice1Of4
+        yield! DungeonRoomState.MonsterDetail.All() |> Seq.map Choice2Of4
+        yield! DungeonRoomState.FloorDropDetail.All() |> Seq.map Choice3Of4
+        yield! HotKeys.AllDoors |> Seq.map snd |> Seq.map Choice4Of4
         |]
     let dungeonRoomPanel = makePanel(thingies, HotKeys.DungeonRoomHotKeyProcessor, (fun c ->
         match c with 
-        | Choice1Of3 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
-        | Choice2Of3 md -> (let i = md.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
-        | Choice3Of3 fd -> (let i = fd.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
+        | Choice1Of4 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
+        | Choice2Of4 md -> (let i = md.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
+        | Choice3Of4 fd -> (let i = fd.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
+        | Choice4Of4 dr -> 
+            let c = match dr.Action with DungeonRoomState.DoorAction.Increment -> Brushes.Green | _ -> Brushes.Purple
+            match dr.Direction with
+            | DungeonRoomState.DoorDirection.East -> new DockPanel(Background=c,Width=9.,Height=9.,HorizontalAlignment=HorizontalAlignment.Right,VerticalAlignment=VerticalAlignment.Center)
+            | DungeonRoomState.DoorDirection.West -> new DockPanel(Background=c,Width=9.,Height=9.,HorizontalAlignment=HorizontalAlignment.Left,VerticalAlignment=VerticalAlignment.Center)
+            | DungeonRoomState.DoorDirection.North -> new DockPanel(Background=c,Width=14.,Height=9.,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Top)
+            | DungeonRoomState.DoorDirection.South -> new DockPanel(Background=c,Width=14.,Height=9.,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Bottom)
+            |> (fun x -> let r = new DockPanel(Width=39., Height=27.) in r.Children.Add(x) |> ignore; upcast r)
         ), 39, "DUNGEON")
     let globalPanel = makePanel(HotKeys.GlobalHotkeyTargets.All, HotKeys.GlobalHotKeyProcessor, (fun state -> state.AsHotKeyDisplay()), 30, "GLOBALS")
     let all = new StackPanel(Orientation=Orientation.Horizontal)

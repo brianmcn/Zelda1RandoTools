@@ -77,7 +77,7 @@ DONE: hotkeys that simulate left/middle/right click and scroll down/up at curren
 DONE: 'arrows' navigate grid popups
 DONE: some way to do dungeon doors
 DONE: consider when moved on door without prior room, can arrow 2 dirs to get to a room
-TODO: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
+DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
 

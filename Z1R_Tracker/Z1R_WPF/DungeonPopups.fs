@@ -153,7 +153,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         let innerc = redraw(ident)
         let s = ident.DisplayDescription
-        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(s, Choice2Of3 ident)
+        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(s, Choice2Of4 ident)
         let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
         let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
@@ -205,7 +205,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
         // the user has changed the current selection via mousing or scrolling, redraw the preview tile appropriately to display ident
         let innerc = redraw(ident)
         let s = ident.DisplayDescription
-        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(s, Choice3Of3 ident)
+        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(s, Choice3Of4 ident)
         let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
         let textBorder = new Border(BorderThickness=Thickness(3.), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
@@ -284,7 +284,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         canvasAdd(tileCanvas, fullRoomDisplay, 0., 0.)
         let textWidth = 328.
         let topText = Graphics.center(makeCaption("Select a room type", true), int textWidth, 24)
-        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(curState.DisplayDescription, Choice1Of3 curState)
+        let s = HotKeys.DungeonRoomHotKeyProcessor.AppendHotKeyToDescription(curState.DisplayDescription, Choice1Of4 curState)
         let bottomText = Graphics.center(makeCaption(s, true), int textWidth, 49)
         let dp = new DockPanel(Width=textWidth, Height=totalGridHeight+75., LastChildFill=false)
         DockPanel.SetDock(topText, Dock.Top)

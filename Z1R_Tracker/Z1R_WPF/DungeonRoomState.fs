@@ -10,6 +10,20 @@ let mkTxt(txt) = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background
                               Text=txt, VerticalAlignment=VerticalAlignment.Center, BorderThickness=Thickness(0.))
 
 [<RequireQualifiedAccess>]
+type DoorDirection =
+    | East
+    | West
+    | North
+    | South
+[<RequireQualifiedAccess>]
+type DoorAction =
+    | Increment
+    | Decrement
+type DoorHotKeyResponse(dd:DoorDirection,da:DoorAction) =
+    member _this.Direction = dd
+    member _this.Action = da
+
+[<RequireQualifiedAccess>]
 type MonsterDetail =
     | Unmarked
     | Gleeok      
