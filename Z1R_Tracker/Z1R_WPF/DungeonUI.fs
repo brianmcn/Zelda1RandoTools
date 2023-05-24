@@ -541,6 +541,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let LL, RR, UU, DD = HotKeys.GlobalHotkeyTargets.MoveCursorLeft, HotKeys.GlobalHotkeyTargets.MoveCursorRight, 
                                 HotKeys.GlobalHotkeyTargets.MoveCursorUp, HotKeys.GlobalHotkeyTargets.MoveCursorDown
         let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas, (ai,aj,adir), (bi,bj,bdir)) =
+            if adir <> RR && adir <> DD then
+                failwith "must be called with RR,LL or DD,UU in that order"
             roomDragDrop.RegisterClickable(doorCanvas, (fun ea -> 
                 if not grabHelper.IsGrabMode then  // cannot interact with doors in grab mode
                     if ea.ChangedButton = Input.MouseButton.Left then
@@ -614,7 +616,22 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 Graphics.WarpMouseCursorTo(centerOf(float rx, float ry+0.5))
                         | _ -> ()
                     | _ -> ()
-                | _ -> ()
+                | None ->
+                    // we're not in a room+door context, but two of the arrow keys should still work
+                    match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                        if adir = RR then
+                            Graphics.WarpMouseCursorTo(centerOf(float bi, float bj))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                        if adir = RR then
+                            Graphics.WarpMouseCursorTo(centerOf(float ai, float aj))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                        if adir = DD then
+                            Graphics.WarpMouseCursorTo(centerOf(float bi, float bj))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                        if adir = DD then
+                            Graphics.WarpMouseCursorTo(centerOf(float ai, float aj))
+                    | _ -> ()
                 )
         roomDragDrop.RegisterClickable(dungeonBodyCanvas, (fun _ -> ()), (fun _ -> ()))  // you can start a drag from the empty space between doors/rooms on the canvas
         // horizontal doors
