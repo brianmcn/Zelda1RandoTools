@@ -56,7 +56,7 @@ since 1.2.2...
  - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
  - fix bug: toggling "Second quest dungeons" does not update old man counts
 since 1.2.3...
- - shorter app window (TODO add to docs, top-bar option like 2/3 size)
+ - shorter app window option, also 4/3 size option (TODO add to docs, top-bar option like 2/3 size)
  - mouse magnifier window (TODO get feedback, it kinda sucks)
  - hotkeys can have shift/alt/ctrl modifiers (TODO doc)
  - keyboard nav and simulated mouse clicks&scrolls (TODO docs)
