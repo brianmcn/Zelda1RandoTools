@@ -590,30 +590,30 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             ea.Handled <- true
                             if dir=RR then
                                 roomWeJustCursorNavigatedFrom <- None
-                                Graphics.WarpMouseCursorTo(centerOf(float rx+1.0, float ry))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx+1.0, float ry))
                             else
-                                Graphics.WarpMouseCursorTo(centerOf(float rx+0.5, float ry))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx+0.5, float ry))
                         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                             ea.Handled <- true
                             if dir=LL then
                                 roomWeJustCursorNavigatedFrom <- None
-                                Graphics.WarpMouseCursorTo(centerOf(float rx-1.0, float ry))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx-1.0, float ry))
                             else
-                                Graphics.WarpMouseCursorTo(centerOf(float rx-0.5, float ry))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx-0.5, float ry))
                         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                             ea.Handled <- true
                             if dir=UU then
                                 roomWeJustCursorNavigatedFrom <- None
-                                Graphics.WarpMouseCursorTo(centerOf(float rx, float ry-1.0))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry-1.0))
                             else
-                                Graphics.WarpMouseCursorTo(centerOf(float rx, float ry-0.5))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry-0.5))
                         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                             ea.Handled <- true
                             if dir=DD then
                                 roomWeJustCursorNavigatedFrom <- None
-                                Graphics.WarpMouseCursorTo(centerOf(float rx, float ry+1.0))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry+1.0))
                             else
-                                Graphics.WarpMouseCursorTo(centerOf(float rx, float ry+0.5))
+                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry+0.5))
                         | _ -> ()
                     | _ -> ()
                 | None ->
@@ -621,16 +621,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                         if adir = RR then
-                            Graphics.WarpMouseCursorTo(centerOf(float bi, float bj))
+                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                         if adir = RR then
-                            Graphics.WarpMouseCursorTo(centerOf(float ai, float aj))
+                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                         if adir = DD then
-                            Graphics.WarpMouseCursorTo(centerOf(float bi, float bj))
+                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                         if adir = DD then
-                            Graphics.WarpMouseCursorTo(centerOf(float ai, float aj))
+                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
                     | _ -> ()
                 )
         roomDragDrop.RegisterClickable(dungeonBodyCanvas, (fun _ -> ()), (fun _ -> ()))  // you can start a drag from the empty space between doors/rooms on the canvas
@@ -1034,25 +1034,25 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                                 ea.Handled <- true
                                 if i<7 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i+1.0, float j))
+                                    Graphics.NavigationallyWarpMouseCursorTo(centerOf(float i+1.0, float j))
                                     //Graphics.WarpMouseCursorTo(centerOf(float i+0.5, float j))
                                     //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                                 ea.Handled <- true
                                 if i>0 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i-1.0, float j))
+                                    Graphics.NavigationallyWarpMouseCursorTo(centerOf(float i-1.0, float j))
                                     //Graphics.WarpMouseCursorTo(centerOf(float i-0.5, float j))
                                     //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                                 ea.Handled <- true
                                 if j>0 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j-1.0))
+                                    Graphics.NavigationallyWarpMouseCursorTo(centerOf(float i,float j-1.0))
                                     //Graphics.WarpMouseCursorTo(centerOf(float i,float j-0.5))
                                     //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                                 ea.Handled <- true
                                 if j<7 then
-                                    Graphics.WarpMouseCursorTo(centerOf(float i,float j+1.0))
+                                    Graphics.NavigationallyWarpMouseCursorTo(centerOf(float i,float j+1.0))
                                     //Graphics.WarpMouseCursorTo(centerOf(float i,float j+0.5))
                                     //roomWeJustCursorNavigatedFrom <- Some(i,j)
                             | _ -> ()

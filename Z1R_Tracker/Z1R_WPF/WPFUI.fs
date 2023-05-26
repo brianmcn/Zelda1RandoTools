@@ -393,19 +393,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                         ea.Handled <- true
                         if i<mainTrackerCanvases.GetLength(0)-1 then
-                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                         ea.Handled <- true
                         if i>0 then
-                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                         ea.Handled <- true
                         if j>1 then
-                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                         ea.Handled <- true
                         if j<4 then
-                            Graphics.WarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     | _ -> ()
                 )
     let updateFoundDungeonsCount() =
@@ -759,20 +759,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                     ea.Handled <- true
                     if i<15 then
-                        Graphics.WarpMouseCursorTo(centerOf(i+1,j))
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(i+1,j))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                     ea.Handled <- true
                     if i>0 then
                         let n = i-1   // without this I seem to encounter a compiler bug?!?
-                        Graphics.WarpMouseCursorTo(centerOf(n,j))
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(n,j))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                     ea.Handled <- true
                     if j<7 then
-                        Graphics.WarpMouseCursorTo(centerOf(i,j+1))
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(i,j+1))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                     ea.Handled <- true
                     if j>0 then
-                        Graphics.WarpMouseCursorTo(centerOf(i,j-1))
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(i,j-1))
                 | _ -> ()
             )
             // icon

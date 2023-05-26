@@ -355,24 +355,24 @@ let DoModalGridSelect<'State,'Result>
         // 'arrows' warp mouse to current entry, then apply arrow to nav thru grid
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
             ea.Handled <- true
-            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y))
             if x<gnc-1 then
-                Graphics.WarpMouseCursorTo(centerOf(x+1,y))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x+1,y))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
             ea.Handled <- true
-            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y))
             if x>0 then
-                Graphics.WarpMouseCursorTo(centerOf(x-1,y))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x-1,y))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
             ea.Handled <- true
-            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y))
             if y>0 then
-                Graphics.WarpMouseCursorTo(centerOf(x,y-1))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y-1))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
             ea.Handled <- true
-            Graphics.WarpMouseCursorTo(centerOf(x,y))
+            Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y))
             if y<gnr-1 then
-                Graphics.WarpMouseCursorTo(centerOf(x,y+1))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y+1))
         // behave like a click on the original tile, e.g. to right click dismiss an accidentally activated overworld tile popup
         | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
         | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
@@ -387,19 +387,19 @@ let DoModalGridSelect<'State,'Result>
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
             ea.Handled <- true
             if x<gnc-1 then
-                Graphics.WarpMouseCursorTo(centerOf(x+1,y))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x+1,y))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
             ea.Handled <- true
             if x>0 then
-                Graphics.WarpMouseCursorTo(centerOf(x-1,y))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x-1,y))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
             ea.Handled <- true
             if y>0 then
-                Graphics.WarpMouseCursorTo(centerOf(x,y-1))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y-1))
         | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
             ea.Handled <- true
             if y<gnr-1 then
-                Graphics.WarpMouseCursorTo(centerOf(x,y+1))
+                Graphics.NavigationallyWarpMouseCursorTo(centerOf(x,y+1))
         | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
         | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
         | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()

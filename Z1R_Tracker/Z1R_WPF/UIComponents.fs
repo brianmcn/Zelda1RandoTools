@@ -266,16 +266,16 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                     match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                         ea.Handled <- true
-                        if i<15 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i+1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
+                        if i<15 then Graphics.NavigationallyWarpMouseCursorTo(element.TranslatePoint(Point(float(i+1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                         ea.Handled <- true
-                        if i>0 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i-1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
+                        if i>0 then Graphics.NavigationallyWarpMouseCursorTo(element.TranslatePoint(Point(float(i-1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                         ea.Handled <- true
-                        if j>0 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j-1)*11*3+11*3/2)), cm.AppMainCanvas))
+                        if j>0 then Graphics.NavigationallyWarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j-1)*11*3+11*3/2)), cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                         ea.Handled <- true
-                        if j<7 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j+1)*11*3+11*3/2)), cm.AppMainCanvas))
+                        if j<7 then Graphics.NavigationallyWarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j+1)*11*3+11*3/2)), cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
                     | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
                     | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()
@@ -685,23 +685,23 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                     ea.Handled <- true
                     if blockerIndex<TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     elif dungeonIndex<>1 && dungeonIndex<>4 && dungeonIndex<>7 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex+1,0].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex+1,0].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                     ea.Handled <- true
                     if blockerIndex>0 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     elif dungeonIndex<>0 && dungeonIndex<>2 && dungeonIndex<>5 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex-1,TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex-1,TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                     ea.Handled <- true
                     if dungeonIndex<4 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex+3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex+3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                     ea.Handled <- true
                     if dungeonIndex>2 then
-                        Graphics.WarpMouseCursorTo(blockerBoxes.[dungeonIndex-3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                        Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex-3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | _ -> ()
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
                 | Some(db) -> 

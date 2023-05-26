@@ -13,6 +13,52 @@ type POINT = struct
     new(_x, _y) = {x=_x; y=_y}
 end
 
+// send input stuff
+[<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>]
+type MOUSEINPUT = struct
+    val dx: int32
+    val dy:int32
+    val mouseData:uint32
+    val dwFlags: uint32
+    val time: uint32
+    val dwExtraInfo: UIntPtr
+    new(_dx, _dy, _mouseData, _dwFlags, _time, _dwExtraInfo) = {dx=_dx; dy=_dy; mouseData=_mouseData; dwFlags=_dwFlags; time=_time; dwExtraInfo=_dwExtraInfo}
+end
+
+[<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>]
+type KEYBDINPUT = struct
+    val wVk: uint16
+    val wScan: uint16
+    val dwFlags: uint32
+    val time: uint32
+    val dwExtraInfo: UIntPtr
+    new(_wVk, _wScan, _dwFlags, _time, _dwExtraInfo) = {wVk =_wVk; wScan = _wScan; dwFlags = _dwFlags; time = _time; dwExtraInfo = _dwExtraInfo}
+end
+
+[<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>]
+type HARDWAREINPUT = struct
+    val uMsg: uint32
+    val wParamL: uint16
+    val wParamH: uint16
+    new(_uMsg, _wParamL, _wParamH) = {uMsg = _uMsg; wParamL = _wParamL; wParamH = _wParamH}
+end
+
+[<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)>]
+type InputUnion = struct
+    [<System.Runtime.InteropServices.FieldOffset(0)>]
+    val mutable mi : MOUSEINPUT
+    [<System.Runtime.InteropServices.FieldOffset(0)>]
+    val mutable ki : KEYBDINPUT
+    [<System.Runtime.InteropServices.FieldOffset(0)>]
+    val mutable hi : HARDWAREINPUT 
+end
+
+[<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>]
+type LPINPUT  = struct
+    val mutable ``type``: int // 1 is keyboard
+    val mutable u: InputUnion
+end
+
 type Win32() =
     [<System.Runtime.InteropServices.DllImport("User32.dll")>]
     static extern bool SetCursorPos(int X, int Y)
@@ -34,7 +80,19 @@ type Win32() =
     // ||| these in if want absolute coords to send event, otherwise is relative
     //static let MOUSEEVENTF_ABSOLUTE     = 0x8000
     //static let MOUSEEVENTF_MOVE         = 0x0001
+
+    // mouse sonar
+    static let SPI_SETMOUSESONAR = 0x101Du
+    static let SPIF_UPDATEINIFILE = 0x01u
+    static let SPIF_SENDCHANGE = 0x02u
+    [<System.Runtime.InteropServices.DllImport("user32.dll")>]
+    static extern int SystemParametersInfo(uint32 uAction, uint32 uParam, bool lpvParam, uint32 fuWinIni)
     
+    [<System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)>]
+    static extern uint32 SendInput(int numberOfInputs, LPINPUT[] inputs, int sizeOfInputStructure)
+
+    /////////////////////////////////////////////////////////////////////////////
+
     //This simulates a left mouse click
     static member LeftMouseClick() =
         //let mutable p = POINT(0,0)
@@ -64,6 +122,12 @@ type Win32() =
             else Point(x,y)
         let pos = theWindow.PointToScreen(transformedPoint)
         SetCursorPos(int pos.X, int pos.Y) |> ignore
+
+    static member SetSonar(enable) =
+        SystemParametersInfo(SPI_SETMOUSESONAR, 0u, enable, SPIF_UPDATEINIFILE ||| SPIF_SENDCHANGE)
+
+    static member DoSendInput(numberOfInputs, inputs, sizeOfInputStructure) =
+        SendInput(numberOfInputs, inputs, sizeOfInputStructure)
 
 let volumeChanged = new Event<int>()
 let soundPlayer = new MediaPlayer()
@@ -905,3 +969,20 @@ let WarpMouseCursorTo(pos:Point) =
     PlaySoundForSpeechRecognizedAndUsedToMark()
 let SilentlyWarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)
+let NavigationallyWarpMouseCursorTo(pos:Point) =   // can abstract over whether keyboard 'arrow' keys play the sound or not
+    SilentlyWarpMouseCursorTo(pos)
+    (*
+    Win32.SetSonar(true) |> ignore
+    do
+        // Press and release Ctrl
+        let VK_CONTROL = 0x11us
+        let KEYEVENTF_KEYDOWN = 0x0u
+        let KEYEVENTF_KEYUP = 0x2u
+        let ipa = Array.create 1 (LPINPUT())
+        ipa.[0].``type`` <- 1 // INPUT_KEYBOARD
+        ipa.[0].u.ki <- KEYBDINPUT(VK_CONTROL, 0us, KEYEVENTF_KEYDOWN, 0u, UIntPtr(0u))
+        Win32.DoSendInput(1, ipa, sizeof<LPINPUT>) |> ignore
+        ipa.[0].u.ki <- KEYBDINPUT(VK_CONTROL, 0us, KEYEVENTF_KEYUP, 0u, UIntPtr(0u))
+        Win32.DoSendInput(1, ipa, sizeof<LPINPUT>) |> ignore
+    Win32.SetSonar(false) |> ignore
+    *)
