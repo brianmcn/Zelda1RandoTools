@@ -62,6 +62,7 @@ since 1.2.3...
  - keyboard nav and simulated mouse clicks&scrolls (TODO docs)
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
+ - reset tracker button for routers/groundhog/4+4 (TODO document it)
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - can choose a different voice for reminders, if installed (US windows usually has 2)
@@ -80,6 +81,21 @@ DONE: consider when moved on door without prior room, can arrow 2 dirs to get to
 DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
+          see conversations on discord
+
+
+
+
+more hotkeys: reset timer?  only if can place start spot with arrows, else need hand on mouse already anyway
+    other hotkeys to add?
+    way to 'mark first free blocker box with 'X'? also can mark ladder block with hotkey if have ladder, but cannot mouse it, hm
+macros? e.g. one hotkey means press these keys in sequence (could be zelda room to mark 3 no-doors, or tri room to mark room and tri drop)
+ - note that zelda-room would 'play' 3-no-doors keys, if you already marked one side as a red wall, then it would cycle that door down 2 more to purple, hm.
+        a consequence of door marks being non-idempotent. another reason 'cycle' keys can be problematic. if there was a 'mark left door unmarked' key, could work around it
+ - stevie-o also made a thingy so you can have a hotkey mean one of each part of room/monsters/drop and one hotkey can mark all 3, similar idea
+ - stevie-o also did a thing where 1 hotkey can cycle thru like N selections in various contexts (which I didn't like because e.g. secrets toggle bright)
+ - conditional hotkeys? your 'Z' room hotkey in dungeons could behave differently in 1-8 versus 9 I guess that's kinda of what contexts are already, 
+        it's like sub-context for dungeons.  but more conditional logic context (if current value is this then...) makes it possible to author 'cycle' logic
 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
@@ -92,16 +108,6 @@ context-sensitive second window popout ideas
 
 Way to export&import labeled circled on overworld, for e.g. 1Q/2Q dungeons, shops, 100-secrets, etc... like save&load, but just a subset - generalize? (vanilla drops e.g. banana in 1)
  - would these overwrite user data? or live in a different layer? i'm thinking overwrite-if-no-data-there
-
-a 'reset to un-picked-up button' could be useful, for groundhog and/or 4+4 seeds where you run the same seed multiple times (maybe from the ... starting items menu?)
- - first makes a hard save
- - tris removed
- - armos/WS/coast/dung items right clicked red
- - mags, shop items removed
- - secrets reset to bright green, take-anys to bright red heart, letter bright, wood sword bright
- - i think not clear blockers (maybe 4+4 and were keyblocked still)
- - no change dungeon maps
-(Possibly watch Kingdahl/Dunlo sample videos of how to route a seed, for ideas)
 
 steve-o, should scrolling a circle on a non-markable overworld square cycle color (like shift-right-click does?)
 

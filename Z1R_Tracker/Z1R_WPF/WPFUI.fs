@@ -479,6 +479,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     if isMixed then
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
+
+    let mutable toggleBookShieldCheckBox : CheckBox = null
+    let MakeManualSave() = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
+                                    Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
+                                    toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.ManualSave)
+
     let mirrorOW = new Border(Child=Graphics.BMPtoImage Graphics.mirrorOverworldBMP, BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.))
     mirrorOW.MouseEnter.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.DarkGray)
     mirrorOW.MouseLeave.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.Gray)
@@ -490,8 +496,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     mirrorOW.ToolTip <- "Toggle mirrored overworld"
     ToolTipService.SetPlacement(mirrorOW, System.Windows.Controls.Primitives.PlacementMode.Top)
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB = 
-            MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule)
+        owItemGrid, toggleBookShieldCB, highlightOpenCaves, timerResetButton, spotSummaryTB = 
+            MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule, doUIUpdateEvent, MakeManualSave)
+    toggleBookShieldCheckBox <- toggleBookShieldCB
     layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW)
 
     do! showProgress("link")
@@ -1155,9 +1162,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             popupIsActive <- true
             async {
                 try
-                    let filename = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
-                                                        Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
-                                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.ManualSave)
+                    let filename = MakeManualSave()
                     let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s" filename, ["Ok"])
                     ignore r

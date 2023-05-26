@@ -65,7 +65,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
-                    extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule) =
+                    extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule, doUIUpdateEvent:Event<unit>, makeManualSave) =
     let owItemGrid = makeGrid(6, 4, 30, 30)
     // ow 'take any' hearts
     for i = 0 to 3 do
@@ -407,12 +407,20 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             popupIsActive <- true
             SaveAndLoad.MaybePollSeedAndFlags()
             let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
-            let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the timer,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
+            let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the TIMER,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
+            let thirdButton = Graphics.makeButton("Timer has been Paused.\nClick here to Reset the TRACKER,\nfor groundhog/routers/4+4 purposes.", Some(16.), Some(Brushes.Orange))
             let mutable userPressedReset = false
             let sp = new StackPanel(Orientation=Orientation.Vertical)
             sp.Children.Add(firstButton) |> ignore
             sp.Children.Add(new DockPanel(Height=300.)) |> ignore
-            sp.Children.Add(secondButton) |> ignore
+            let sp2 = new StackPanel(Orientation=Orientation.Horizontal)
+            sp2.Children.Add(secondButton) |> ignore
+            firstButton.HorizontalAlignment <- HorizontalAlignment.Left
+            firstButton.Width <- 370.
+            secondButton.Width <- 370.
+            sp2.Children.Add(new DockPanel(Width=50.)) |> ignore
+            sp2.Children.Add(thirdButton) |> ignore
+            sp.Children.Add(sp2) |> ignore
             let wh = new System.Threading.ManualResetEvent(false)
             firstButton.Click.Add(fun _ ->
                 wh.Set() |> ignore
@@ -431,6 +439,52 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw
                 wh.Set() |> ignore
                 )
+            thirdButton.Click.Add(fun _ ->
+                async {
+                    try
+                        // make hard save
+                        let filename = makeManualSave()
+                        let filename = System.IO.Path.GetFileName(filename)  // remove directory info (could have username in path, don't display PII on-screen)
+                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, sprintf "Z-Tracker data saved to file\n%s\nThe tracker will now be reset." filename, ["Ok"])
+                        ignore r
+                        // remove triforces
+                        for i = 0 to 7 do
+                            let dung = TrackerModel.GetDungeon(i)
+                            if dung.PlayerHasTriforce() then
+                                dung.ToggleTriforce()
+                        // remove (red-ify) all items (keep skipped as marked)
+                        for b in TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() do
+                            if b.PlayerHas() <> TrackerModel.PlayerHas.SKIPPED then
+                                b.SetPlayerHas(TrackerModel.PlayerHas.NO)
+                        // clear mags/shop items and the take-any heart boxes
+                        TrackerModel.playerProgressAndTakeAnyHearts.ResetAll()
+                        // secrets reset to bright green, take-anys to bright red heart, letter bright, wood sword bright
+                        let toBrighten = [| 
+                            TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
+                            TrackerModel.MapSquareChoiceDomainHelper.SWORD1
+                            TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET
+                            TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET
+                            TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET
+                            TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER
+                            |]
+                        for i = 0 to 15 do
+                            for j = 0 to 7 do
+                                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                                if toBrighten |> Array.exists (fun x -> x = cur) then
+                                    let bright = if cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY || cur = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then 0 else cur
+                                    TrackerModel.setOverworldMapExtraData(i,j,cur,bright)
+                        // not clear blockers (maybe 4+4 and were keyblocked still)
+                        // not change dungeon maps
+                        // make reminders play again
+                        TrackerModel.ResetForGroundhogOrRoutersOrFourPlusFourEtc()
+                        // redraw UI
+                        TrackerModel.forceUpdate()
+                        doUIUpdateEvent.Trigger()
+                        wh.Set() |> ignore
+                    with e ->
+                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, sprintf "Z-Tracker was unable to save the\ntracker state to a file\nError:\n%s" e.Message, ["Ok"])
+                        ignore r
+                } |> Async.StartImmediate)
             async {
                 TrackerModel.LastChangedTime.PauseAll()
                 do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)

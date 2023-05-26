@@ -459,6 +459,18 @@ type PlayerProgressAndTakeAnyHearts() =
     member _this.PlayerHasDefeatedGanon = playerHasDefeatedGanon 
     member _this.PlayerHasRescuedZelda  = playerHasRescuedZelda  
     member _this.PlayerHasBombs         = playerHasBombs
+    member this.ResetAll() =
+        for i = 0 to 3 do
+            this.SetTakeAnyHeart(i,0)
+        this.PlayerHasBoomBook.Set(false)
+        this.PlayerHasWoodSword.Set(false)
+        this.PlayerHasWoodArrow.Set(false)
+        this.PlayerHasBlueRing.Set(false)
+        this.PlayerHasBlueCandle.Set(false)
+        this.PlayerHasMagicalSword.Set(false)
+        this.PlayerHasDefeatedGanon.Set(false)
+        this.PlayerHasRescuedZelda.Set(false)
+        this.PlayerHasBombs.Set(false)
 let playerProgressAndTakeAnyHearts = PlayerProgressAndTakeAnyHearts()
 
 let extrasLastChangedTime = new LastChangedTime()
@@ -1276,6 +1288,27 @@ let mutable priorOWSpotsRemain = 0
 // triforce-and-go levels
 let mutable previouslyAnnouncedTriforceAndGo = 0  // 0 = no, 1 = might be, 2 = probably, 3 = certainly triforce-and-go
 let mutable previousCompletedDungeonCount = 0
+let ResetForGroundhogOrRoutersOrFourPlusFourEtc() =
+    for i = 0 to haveAnnouncedHearts.Length-1 do
+        haveAnnouncedHearts.[i] <- false
+    for i = 0 to haveAnnouncedCompletedDungeons.Length-1 do
+        haveAnnouncedCompletedDungeons.[i] <- false
+    // previouslyAnnouncedFoundDungeonCount // still found
+    previouslyAnnouncedTriforceCount <- 0
+    // previouslyLocatedDungeonCount // still found
+    remindedLadder <- false
+    remindedAnyKey <- false
+    priorSwordWandLevel <- 0
+    priorRingLevel <- 0
+    // priorBombs // meh
+    priorBowArrow <- false
+    priorRecorder <- false
+    priorLadder <- false
+    priorAnyKey <- false
+    // priorOWSpotsRemain // still have
+    previouslyAnnouncedTriforceAndGo <- 0
+    previousCompletedDungeonCount <- 0
+    recomputePlayerStateSummary()
 let allUIEventingLogic(ite : ITrackerEvents) =
     // hearts
     let playerHearts = playerComputedStateSummary.PlayerHearts
