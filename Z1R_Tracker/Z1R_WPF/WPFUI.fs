@@ -2237,7 +2237,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.DungeonTab9        -> selectDungeonTabEvent.Trigger(8)
             | HotKeys.GlobalHotkeyTargets.DungeonTabS        -> selectDungeonTabEvent.Trigger(9)
             // some buttons (e.g. Recorder Destination counter) are Focusable, and clicking them captures future keyboard input
-            | HotKeys.GlobalHotkeyTargets.LeftClick          -> Graphics.Win32.LeftMouseClick(); refocusKeyboard()       
+            | HotKeys.GlobalHotkeyTargets.LeftClick          -> Graphics.Win32.LeftMouseClick(); refocusKeyboard()
             | HotKeys.GlobalHotkeyTargets.MiddleClick        -> Graphics.Win32.MiddleMouseClick(); refocusKeyboard()       
             | HotKeys.GlobalHotkeyTargets.RightClick         -> Graphics.Win32.RightMouseClick(); refocusKeyboard()       
             | HotKeys.GlobalHotkeyTargets.ScrollUp           -> Graphics.Win32.ScrollWheelRotateUp(); refocusKeyboard()       

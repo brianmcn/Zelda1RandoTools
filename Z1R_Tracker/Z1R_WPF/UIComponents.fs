@@ -1,6 +1,7 @@
 ﻿module UIComponents
 
 open OverworldItemGridUI
+open HotKeys.MyKey
 
 open System.Windows
 open System.Windows.Controls 
@@ -257,7 +258,31 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                     doUIUpdateEvent.Trigger()
                     wh.Set() |> ignore
                 )
+            element.MyKeyAdd(fun ea ->
+                let mousePos = Input.Mouse.GetPosition(element)
+                let i = int(mousePos.X / OMTW)
+                let j = int(mousePos.Y / (11.*3.))
+                if i>=0 && i<=15 && j>=0 && j<=7 then
+                    match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                        ea.Handled <- true
+                        if i<15 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i+1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                        ea.Handled <- true
+                        if i>0 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i-1)*OMTW+OMTW/2., float(j*11*3+11*3/2)), cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                        ea.Handled <- true
+                        if j>0 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j-1)*11*3+11*3/2)), cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                        ea.Handled <- true
+                        if j<7 then Graphics.WarpMouseCursorTo(element.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float((j+1)*11*3+11*3/2)), cm.AppMainCanvas))
+                    | Some(HotKeys.GlobalHotkeyTargets.LeftClick) -> Graphics.Win32.LeftMouseClick()
+                    | Some(HotKeys.GlobalHotkeyTargets.MiddleClick) -> Graphics.Win32.MiddleMouseClick()
+                    | Some(HotKeys.GlobalHotkeyTargets.RightClick) -> Graphics.Win32.RightMouseClick()
+                    | _ -> ()
+                )
             async {
+                Graphics.WarpMouseCursorTo(Point(OMTW*8.5, 150. + float(11*3*4+11*3/2)))  // warp mouse to center of map
                 do! CustomComboBoxes.DoModal(cm, wh, 0., 150., element)
                 popupIsActive <- false
                 } |> Async.StartImmediate
