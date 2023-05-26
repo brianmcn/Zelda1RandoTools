@@ -100,6 +100,7 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
+change default showruncustom url to wiki something
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
 
