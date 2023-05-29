@@ -218,6 +218,17 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
         currentRecorderDestinationIndex <- (currentRecorderDestinationIndex + 8 + delta) % 8
         updateCurrentRecorderDestinationNumeral()
         )
+    recorderDestinationButtonCanvas.MyKeyAdd(fun ea ->
+        let _skm,k = ea.Key
+        if k >= Input.Key.D1 && k <= Input.Key.D8 then
+            currentRecorderDestinationIndex <- (int k) - (int Input.Key.D1)
+            updateCurrentRecorderDestinationNumeral()
+            ea.Handled <- true
+        if k >= Input.Key.NumPad1 && k <= Input.Key.NumPad8 then
+            currentRecorderDestinationIndex <- (int k) - (int Input.Key.NumPad1)
+            updateCurrentRecorderDestinationNumeral()
+            ea.Handled <- true
+        )
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
     canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)

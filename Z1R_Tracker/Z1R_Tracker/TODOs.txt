@@ -60,6 +60,7 @@ since 1.2.3...
  - mouse magnifier window (TODO get feedback, it kinda sucks)
  - hotkeys can have shift/alt/ctrl modifiers (TODO doc)
  - keyboard nav (arrow most grids) and simulated mouse clicks&scrolls (TODO docs)
+ - keyboard 1-8 (or numpad 1-8) when hovering 'recorder destination' now change to that number (not rebindable) (TODO document)
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - reset tracker button for routers/groundhog/4+4 (TODO document it)
@@ -84,8 +85,6 @@ TODO: consider short animation at mouse warp destination, like a big circle arou
 TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. recorder destination button, and then 4 arrows move to 4 main zones, or whatnot
           see conversations on discord
 
-
-you should be able to press 1-8 when hovering the recorder destination box and have it change to that number... and maybe a similar one for some other arbitrary 'count'
 
 mouse thumb button mapping? (again, macros)
 
