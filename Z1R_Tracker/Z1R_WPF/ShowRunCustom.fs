@@ -21,7 +21,7 @@ let MakeDefaultShowRunCustomFile(filename:string) =
 
 # All of the SHOW and RUN lines will be activated when you click the 'Show/Run Custom' button in the app.
 
-# RUN "https://www.orderoftheate.com/zelda-1-randomizer/general-tips/drop-table"
+# RUN "https://z1r.fandom.com/wiki/Maps"
         """ OverworldData.ProgramNameString)
 
 [<RequireQualifiedAccess>]

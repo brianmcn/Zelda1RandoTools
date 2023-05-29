@@ -1741,9 +1741,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
                     if owInstance.SometimesEmpty(i,j) then
-                        owLocatorTilesZone.[i,j].MakeYellow()
+                        owLocatorTilesZone.[i,j].MakeYellowWithBriefAnimation()
                     else
-                        owLocatorTilesZone.[i,j].MakeGreen()
+                        owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     showShopLocatorInstanceFunc <- (fun item ->
         routeDrawingCanvas.Children.Clear()

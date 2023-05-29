@@ -104,14 +104,10 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-change default showruncustom url to wiki something
-
-hovering armos uses non-bright hover-highlight, compare to hovering hearts to show potion shops; prefer bright
-
 hint decoder buttons are grey text and dont look clickable, maybe say 'click here to select'? something else to make button afforance visible?
  - the actual button at bottom slightly blue-ifies background on hover... could imagine making e.g. main tracker boxes do that maybe to hmm
 
-i wanted a hover target to find hint shops
+i wanted a hover target to find hint shops (hover book in item progress bar?)
 
 
 on the startup screen resizing options, the save-changes-takes-effect-next-time is a prime opportunity ideally to 'restart', if i ever figure out a restart
