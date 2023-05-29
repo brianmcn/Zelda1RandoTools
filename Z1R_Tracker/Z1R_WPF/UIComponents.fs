@@ -499,6 +499,8 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     hintSP.Children.Add(otherChoices) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
+    tb.MouseEnter.Add(fun _ -> showHintShopLocator())
+    tb.MouseLeave.Add(fun _ -> hideLocator())
     tb.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -894,8 +896,7 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let darkenBottom = new Canvas(Width=OMTW*16., Height=THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H, Background=Brushes.Black, Opacity=0.40)
     canvasAdd(c, darkenBottom, 0., 150.+11.*3.*8.)
 
-    let desc = new TextBox(Text="Mouse Hover Explainer",FontSize=30.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    canvasAdd(c, desc, 450., 370.)
+    let descMHE = new TextBox(Text="Mouse Hover Explainer",FontSize=30.0,Background=Brushes.Transparent,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
 
     let delayedDescriptions = ResizeArray()
     let mkTxt(text) = new TextBox(Text=text,FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(1.0),IsReadOnly=true)
@@ -994,8 +995,12 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     c.Children.Add(desc) |> ignore
     let COL = Brushes.Green
     let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
-    let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; 2.,2.; 2.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-    addLabel(anyRoad, "Show Any Roads", 430., 340.)
+    let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,25.; 13.,25.; 13.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(anyRoad, "Show Any Roads", 430., 320.)
+    let COL = Brushes.CornflowerBlue
+    let dx,dy = LEFT_OFFSET + 7.8*OMTW + 56., THRU_MAIN_MAP_H + 36.
+    let hintDecoderButton = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,22.; 79.,22.; 79.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(hintDecoderButton, "Show hint shops", 442., 348.)
     let COL = Brushes.MediumVioletRed
     let dx,dy = BLOCKERS_AND_NOTES_OFFSET+70., START_DUNGEON_AND_NOTES_AREA_H
     let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; -70.,0.; -70.,36.; 38.,36.; 38.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
@@ -1007,6 +1012,8 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
 
     for dd in delayedDescriptions do   // ensure these draw atop all the PolyLines
         canvasAdd(dd)
+    // put MHE text atop all
+    canvasAdd(c, descMHE, 450., 370.)
 
     mouseHoverExplainerIcon.MouseEnter.Add(fun _ -> 
         c.Opacity <- 1.0

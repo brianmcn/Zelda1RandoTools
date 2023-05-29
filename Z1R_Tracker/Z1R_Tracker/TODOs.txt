@@ -68,6 +68,7 @@ since 1.2.3...
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - can choose a different voice for reminders, if installed (US windows usually has 2)
+ - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
  - (fix) can highlight multiple boomstick book ships on hover
  - (fix) shield/boomstick checkbox now preserved in save/reload
  - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
@@ -104,10 +105,8 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-hint decoder buttons are grey text and dont look clickable, maybe say 'click here to select'? something else to make button afforance visible?
- - the actual button at bottom slightly blue-ifies background on hover... could imagine making e.g. main tracker boxes do that maybe to hmm
-
-i wanted a hover target to find hint shops (hover book in item progress bar?)
+hint decoder buttons are grey text and dont look clickable, maybe say 'click here to select'? something else to make button affordance visible?
+ - the actual button at bottom slightly blue-ifies background on hover... could imagine making e.g. main tracker boxes do that maybe too, hmm
 
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)

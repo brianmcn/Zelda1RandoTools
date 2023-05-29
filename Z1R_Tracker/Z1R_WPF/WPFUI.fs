@@ -1745,6 +1745,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     else
                         owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
+    showHintShopLocator <- (fun () ->
+        routeDrawingCanvas.Children.Clear()
+        let mutable anyFound = false
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    anyFound <- true
+        if not(anyFound) then
+            showLocatorNoneFound()
+        )
     showShopLocatorInstanceFunc <- (fun item ->
         routeDrawingCanvas.Children.Clear()
         let mutable anyFound = false
