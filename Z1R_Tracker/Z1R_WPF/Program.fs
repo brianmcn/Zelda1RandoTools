@@ -52,6 +52,7 @@ module Winterop =
         abstract member Resolve : hwnd:IntPtr * fFlags:int -> unit
         abstract member SetPath : [<MarshalAs(UnmanagedType.LPWStr)>] pszFile:string -> unit
 
+let ExeName = "Z1R_WPF.exe"
     
 type MyWindowBase() as this = 
     inherit Window()
@@ -258,7 +259,7 @@ type MyWindow() as this =
             let isl = shellLink :?> Winterop.IShellLink
             let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
             isl.SetDescription("Launch Z-Tracker")
-            isl.SetPath(System.IO.Path.Combine(cwd, "Z1R_WPF.exe"))
+            isl.SetPath(System.IO.Path.Combine(cwd, ExeName))
             isl.SetWorkingDirectory(cwd)
             isl.SetIconLocation(System.IO.Path.Combine(cwd, "icons/ztlogo64x64.ico"), 0)
             let ipf = isl :?> System.Runtime.InteropServices.ComTypes.IPersistFile
@@ -940,27 +941,45 @@ type DummyWindow() as this =
 [<EntryPoint>]
 let main argv = 
     printfn "Starting Z-Tracker..."
-
-    let app = new Application()
+    let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
+    let thisExe = System.IO.Path.Combine(cwd, ExeName)
+    let thisExeName = thisExe.Replace('\\', '_')   // backslash is not allowed character in mutex name
+    use mutex = new System.Threading.Mutex(false, thisExeName)
+    let runTheApp() =
+        let app = new Application()
 #if DEBUG
-    do
+        do
 #else
+        try
+#endif
+            if argv.Length > 0 && argv.[0] = "timeronly" then
+                app.Run(TimerOnlyWindow()) |> ignore
+            elif argv.Length > 0 && argv.[0] = "terraria" then
+                app.Run(TerrariaTimerOnlyWindow()) |> ignore
+            else
+                app.Run(DummyWindow()) |> ignore
+#if DEBUG
+#else
+        with e ->
+            printfn "crashed with exception"
+            printfn "%s" (e.ToString())
+#endif
+   
     try
-#endif
-        if argv.Length > 0 && argv.[0] = "timeronly" then
-            app.Run(TimerOnlyWindow()) |> ignore
-        elif argv.Length > 0 && argv.[0] = "terraria" then
-            app.Run(TerrariaTimerOnlyWindow()) |> ignore
+        if mutex.WaitOne(5000, false) then   // single instance, to prevent competing write of auto-save or options in this directory
+            runTheApp()
         else
-            app.Run(DummyWindow()) |> ignore
-#if DEBUG
-#else
-    with e ->
-        printfn "crashed with exception"
-        printfn "%s" (e.ToString())
-#endif
-    
-    
-//    printfn "press Enter to end"
-//    System.Console.ReadLine() |> ignore
+            printfn "Another instance of Z-Tracker is already running in this directory."
+            printfn "Close it before running this."
+            printfn "(Press a key to dismiss this console window)"
+            System.Threading.Thread.Sleep(1000)
+            System.Console.ReadKey() |> ignore
+    with 
+    | :? System.Threading.AbandonedMutexException ->  // this happens if e.g. someone shuts down the other instance by clicking 'X' on its window corner while we are waiting
+        runTheApp()  // fine to start us now
+    | e ->
+        printfn "ERROR: %s" (e.ToString())
+        printfn "(Press a key to dismiss this console window)"
+        System.Console.ReadKey() |> ignore
+
     0
