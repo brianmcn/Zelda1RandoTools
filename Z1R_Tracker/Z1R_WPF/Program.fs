@@ -423,7 +423,7 @@ type MyWindow() as this =
                 sp.Children.Add(inner) |> ignore
                 
                 sp.Children.Add(new DockPanel(Background=Brushes.Gray, Margin=Thickness(20., 8., 20., 0.), Height=4.)) |> ignore
-                let warn = mkTxt("Changes to these settings will only take effect next time:")
+                let warn = mkTxt("Changes to these settings will only take effect after restarting the application:")
                 warn.FontSize <- 20.
                 warn.FontWeight <- FontWeights.Bold
                 sp.Children.Add(warn) |> ignore
@@ -438,7 +438,7 @@ type MyWindow() as this =
                     sp.Children.Add(tb2) |> ignore
                     let button = new Button(Content=sp, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch,BorderThickness=Thickness(3.,3.,3.,3.))
                     button
-                let sb = makeButton("Save changes","Save changes and close Z-Tracker\n(changes take effect next time)")
+                let sb = makeButton("Save changes","Save changes and restart Z-Tracker")
                 let cb = makeButton("Discard changes","Don't make any changes\n(exit this popup menu)")
                 cb.Click.Add(fun _ -> wh.Set() |> ignore)
                 sb.Click.Add(fun _ ->
@@ -446,6 +446,9 @@ type MyWindow() as this =
                     TrackerModelOptions.SmallerAppWindowScaleFactor <- desireScale
                     TrackerModelOptions.ShorterAppWindow.Value <- desireShort
                     TrackerModelOptions.writeSettings()
+                    let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
+                    let thisExe = System.IO.Path.Combine(cwd, ExeName)
+                    System.Diagnostics.Process.Start(thisExe) |> ignore
                     this.Close()
                     )
                 buttons.Children.Add(sb) |> ignore
