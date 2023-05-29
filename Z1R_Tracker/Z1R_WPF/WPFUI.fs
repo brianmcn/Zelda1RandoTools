@@ -282,17 +282,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             c
     // numbered triforce display - the extra row of triforce in IsHiddenDungeonNumbers
     let updateNumberedTriforceDisplayImpl(c:Canvas,i) =
-        let level = i+1
-        let levelLabel = char(int '0' + level)
-        let mutable index = -1
-        for j = 0 to 7 do
-            if TrackerModel.GetDungeon(j).LabelChar = levelLabel then
-                index <- j
-        let mutable found,hasTriforce = false,false
-        if index <> -1 then
-            found <- TrackerModel.GetDungeon(index).HasBeenLocated()
-            hasTriforce <- TrackerModel.GetDungeon(index).PlayerHasTriforce() 
-        hasTriforce <- hasTriforce || TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value()
+        let hasTriforce, index = TrackerModel.doesPlayerHaveTriforceAndWhichDungeonIndexIsIt(i)
+        let found = if index = -1 then false else TrackerModel.GetDungeon(index).HasBeenLocated()
         let hasHint = not(found) && TrackerModel.GetLevelHint(i)<>TrackerModel.HintZone.UNKNOWN
         c.Children.Clear()
         if hasHint then
@@ -1787,8 +1778,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         routeDrawingCanvas.Children.Clear()
         for i = 0 to 15 do
             for j = 0 to 7 do
-                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                if TrackerModel.playerComputedStateSummary.HaveRecorder && MapStateProxy(cur).IsDungeon && TrackerModel.GetDungeon(cur).PlayerHasTriforce() then
+                // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
+                if TrackerModel.playerComputedStateSummary.HaveRecorder && OverworldRouting.recorderDests |> Seq.contains (i,j) then
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     recorderDestinationButton.MouseLeave.Add(fun _ -> hideLocator())
@@ -2119,6 +2110,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         notesTextBox.Text <- data.Notes
         // CRDI
         currentRecorderDestinationIndex <- data.CurrentRecorderDestinationIndex
+        TrackerModel.recorderToNewDungeons <- data.RecorderToNewDungeons
+        TrackerModel.recorderToUnbeatenDungeons <- data.RecorderToUnbeatenDungeons
         if data.IsBoomstickSeed then
             toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit true
         updateCurrentRecorderDestinationNumeral()

@@ -184,14 +184,44 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW*0.6, Height=float(11*3-4), Background=Graphics.almostBlack, ClipToBounds=true)
     let recorderDestinationButton = new Button(Content=recorderDestinationButtonCanvas)
 
-    let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Active\nDungeon")
+    let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
     canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
     canvasAdd(legendCanvas, recorderDestinationButton, 4.8*OMTW, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="...")
+    let recorderDestinationSettingsButton = new Button(Content=tb)
+    canvasAdd(legendCanvas, recorderDestinationSettingsButton, 6.7*OMTW, 0.)
+    recorderDestinationSettingsButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            async {
+                let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(3.))
+                let tb = new TextBox(Text="Recorder settings",IsReadOnly=true,IsHitTestVisible=false,FontSize=16.,BorderThickness=Thickness(0.),Foreground=Brushes.Orange,Background=Brushes.Black)
+                sp.Children.Add(tb) |> ignore
+                sp.Children.Add(new DockPanel(Background=Brushes.Orange, Margin=Thickness(0.,5.,0.,5.), Height=3.)) |> ignore
+                let cb = new CheckBox(Content=new TextBox(Text="Recorder to new dungeons",IsReadOnly=true,IsHitTestVisible=false,FontSize=16.,BorderThickness=Thickness(0.),
+                                                            Foreground=Brushes.Orange,Background=Brushes.Black), Height=22.)
+                ToolTipService.SetToolTip(cb, "If unchecked, the recorder goes to vanilla first quest dungeon locations")
+                cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.recorderToNewDungeons
+                cb.Checked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- true; doUIUpdateEvent.Trigger())
+                cb.Unchecked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- false; doUIUpdateEvent.Trigger())
+                sp.Children.Add(cb) |> ignore
+                let cb = new CheckBox(Content=new TextBox(Text="Recorder to unbeaten dungeons",IsReadOnly=true,IsHitTestVisible=false,FontSize=16.,BorderThickness=Thickness(0.),
+                                                            Foreground=Brushes.Orange,Background=Brushes.Black), Height=22.)
+                ToolTipService.SetToolTip(cb, "If checked, the recorder goes to dungeons where you do NOT yet have the triforce")
+                cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.recorderToUnbeatenDungeons
+                cb.Checked.Add(fun _ -> TrackerModel.recorderToUnbeatenDungeons <- true; doUIUpdateEvent.Trigger())
+                cb.Unchecked.Add(fun _ -> TrackerModel.recorderToUnbeatenDungeons <- false; doUIUpdateEvent.Trigger())
+                sp.Children.Add(cb) |> ignore
+                let wh = new System.Threading.ManualResetEvent(false)
+                do! CustomComboBoxes.DoModal(cm, wh, 200., 200., new Border(Child=sp, Background=Brushes.Black, BorderThickness=Thickness(6.), BorderBrush=Brushes.Gray))
+                popupIsActive <- false
+            } |> Async.StartImmediate
+        )
 
     let updateCurrentRecorderDestinationNumeral() =
         dungeonIconCanvas.Children.Clear()

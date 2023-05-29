@@ -65,6 +65,7 @@ since 1.2.3...
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - reset tracker button for routers/groundhog/4+4 (TODO document it)
  - restart the application button (TODO document it)
+ - recorder to unbeaten/new options (TODO document it)
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - can choose a different voice for reminders, if installed (US windows usually has 2)
@@ -124,8 +125,6 @@ a lot of text on the surface of the main app is clickable (e.g. double click wor
 similarly many buttons are Focusable, which can alter how hotkeys get routed
 
 doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-
-possibly options for recorder to unbeaten, recorder to vanilla FQ/SQ (highlights/routing)
 
 possibly some button to mark 1Q/2Q vanilla map locations with labeled circles
  - could be nested in a rework of HFQ/HSQ popup, below

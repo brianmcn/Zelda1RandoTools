@@ -326,6 +326,8 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield! SaveHints("    ")
         yield sprintf """    "Notes": %s,""" (System.Text.Json.JsonSerializer.Serialize notesText)
         yield sprintf """    "CurrentRecorderDestinationIndex": %d,""" currentRecorderDestinationIndex
+        yield sprintf """    "RecorderToNewDungeons": %b,""" TrackerModel.recorderToNewDungeons
+        yield sprintf """    "RecorderToUnbeatenDungeons": %b,""" TrackerModel.recorderToUnbeatenDungeons
         yield sprintf """    "IsBoomstickSeed": %b,""" isBoomstickSeed
         yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""

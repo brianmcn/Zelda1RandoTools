@@ -1092,6 +1092,8 @@ let recomputeWhatIsNeeded() =
 // Other minor bits
     
 let mutable shieldBook = false // if true, boomstick seed - no eventing here, UI should synchronously swap shield/book icons
+let mutable recorderToNewDungeons = true
+let mutable recorderToUnbeatenDungeons = false
 let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these
 
 [<RequireQualifiedAccess>]
@@ -1309,6 +1311,21 @@ let ResetForGroundhogOrRoutersOrFourPlusFourEtc() =
     previouslyAnnouncedTriforceAndGo <- 0
     previousCompletedDungeonCount <- 0
     recomputePlayerStateSummary()
+let doesPlayerHaveTriforceAndWhichDungeonIndexIsIt(i) =  // i=0-7, refers to triforce piece 1-8
+    if IsHiddenDungeonNumbers() then
+        let level = i+1
+        let levelLabel = char(int '0' + level)
+        let mutable index = -1
+        for j = 0 to 7 do
+            if GetDungeon(j).LabelChar = levelLabel then
+                index <- j
+        let mutable hasTriforce = false
+        if index <> -1 then
+            hasTriforce <- GetDungeon(index).PlayerHasTriforce() 
+        hasTriforce <- hasTriforce || startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value()
+        hasTriforce, index  // index can be -1 if have tri (e.g. start item) but not located/labeled dungeon
+    else
+        GetDungeon(i).PlayerHasTriforce(), i
 let allUIEventingLogic(ite : ITrackerEvents) =
     // hearts
     let playerHearts = playerComputedStateSummary.PlayerHearts
@@ -1344,11 +1361,19 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.Sword3(mapStateSummary.Sword3Location)
     if mapStateSummary.Sword2Location <> NOTFOUND then
         ite.Sword2(mapStateSummary.Sword2Location)
+    let vanillaRecorderLocations = [| 7,3; 12,3; 4,7; 5,4; 11,0; 2,2; 2,4; 13,6 |]
     let recorderDests = [|
         if playerComputedStateSummary.HaveRecorder then
-            for d = 0 to 7 do
-                if mapStateSummary.DungeonLocations.[d] <> NOTFOUND && GetDungeon(d).PlayerHasTriforce() then
-                    yield mapStateSummary.DungeonLocations.[d]
+            for tri = 0 to 7 do
+                let hasTri,idx = doesPlayerHaveTriforceAndWhichDungeonIndexIsIt(tri)
+                if hasTri <> recorderToUnbeatenDungeons then
+                    if recorderToNewDungeons then
+                        if idx <> -1 then
+                            let pos = mapStateSummary.DungeonLocations.[idx]
+                            if pos <> NOTFOUND then
+                                yield pos           // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
+                    else
+                        yield vanillaRecorderLocations.[tri]
         |]
     let anyRoadDests = [|
         for d in mapStateSummary.AnyRoadLocations do
