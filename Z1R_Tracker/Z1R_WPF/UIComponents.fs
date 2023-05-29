@@ -402,7 +402,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let updateViewFunctions = Array.create 11 (fun _ -> ())
     let mkTxt(text) = 
         new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
-                    Width=HINTGRID_W-6., Height=HINTGRID_H-6., BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text=text)
+                    Width=HINTGRID_W-6.-4., Height=HINTGRID_H-6.-4., BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text=text)
     for a,b in OverworldData.hintMeanings do
         let thisRow = row
         gridAdd(hintGrid, new TextBox(FontSize=16., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(1.), Text=a), 0, row)
@@ -426,7 +426,8 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
         dp.Children.Add(tb) |> ignore
         gridAdd(hintGrid, dp, 1, row)
         let button = new Button()
-        gridAdd(hintGrid, button, 2, row)
+        let border = new Border(Child=button,Padding=Thickness(3.),BorderBrush=Brushes.LightGray,BorderThickness=Thickness(1.))
+        gridAdd(hintGrid, border, 2, row)
         let updateView() =
             let hintZone = TrackerModel.GetLevelHint(thisRow)
             if hintZone.ToIndex() = 0 then
@@ -435,23 +436,26 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 b.Background <- Views.hintHighlightBrush
             let tb = 
                 if hintZone = TrackerModel.HintZone.UNKNOWN then
-                    let tb = mkTxt("Select location")
-                    tb.Foreground <- Brushes.Gray
+                    let tb = mkTxt("Click to select")
+                    tb.Foreground <- Brushes.DeepSkyBlue
                     tb
                 else
                     mkTxt(hintZone.ToString())
-            tb.Background <- Graphics.almostBlack
-            let c = new Canvas(Width=tb.Width, Height=tb.Height)
-            c.Children.Add(tb) |> ignore
-            let chevron = new TextBox(FontSize=16., Foreground=Brushes.Gray, Background=Graphics.almostBlack, IsReadOnly=true, IsHitTestVisible=false, 
+            tb.Background <- Brushes.Transparent
+            let dp = new DockPanel(LastChildFill=true, Background=Graphics.almostBlack)
+            dp.MouseEnter.Add(fun _ -> dp.Background <- Graphics.almostBlackHoverFeedback)
+            dp.MouseLeave.Add(fun _ -> dp.Background <- Graphics.almostBlack)
+            let chevron = new TextBox(FontSize=16., Foreground=Brushes.Gray, Background=Brushes.Transparent, IsReadOnly=true, IsHitTestVisible=false, 
                                         BorderThickness=Thickness(0.), VerticalAlignment=VerticalAlignment.Center, Text="\U000025BC")
-            canvasAdd(c, chevron, 150., 0.)
-            button.Content <- c
+            dp.Children.Add(chevron) |> ignore
+            DockPanel.SetDock(chevron, Dock.Right)
+            dp.Children.Add(tb) |> ignore
+            button.Content <- dp
         updateViewFunctions.[thisRow] <- updateView
         let mutable popupIsActive = false  // second level of popup, need local copy
         let activatePopup(activationDelta) =
             popupIsActive <- true
-            let tileX, tileY = (let p = button.TranslatePoint(Point(),cm.AppMainCanvas) in p.X+3., p.Y+3.)
+            let tileX, tileY = (let p = border.TranslatePoint(Point(),cm.AppMainCanvas) in p.X+3., p.Y+3.)
             let tileCanvas = new Canvas(Width=HINTGRID_W-6., Height=HINTGRID_H-6., Background=Brushes.Black)
             let redrawTile(i) =
                 tileCanvas.Children.Clear()

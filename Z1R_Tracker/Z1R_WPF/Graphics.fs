@@ -206,6 +206,7 @@ let scaleUpCheckBoxBox(cb:CheckBox, scale) =
     (cb.Content :?> FrameworkElement).LayoutTransform <- new ScaleTransform(1.0/scale, 1.0/scale)
 
 let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
+let almostBlackHoverFeedback = new SolidColorBrush(Color.FromRgb(30uy, 50uy, 50uy))
 let makeButton(text, fontSizeOpt, fgOpt) =
     let tb = new TextBox(Text=text, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=almostBlack)
     match fontSizeOpt with | None -> () | Some x -> tb.FontSize <- x

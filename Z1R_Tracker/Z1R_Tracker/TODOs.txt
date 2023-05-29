@@ -105,8 +105,8 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-hint decoder buttons are grey text and dont look clickable, maybe say 'click here to select'? something else to make button affordance visible?
- - the actual button at bottom slightly blue-ifies background on hover... could imagine making e.g. main tracker boxes do that maybe too, hmm
+
+consider making e.g. main tracker boxes have hover feedback (almostBlack for black things, almostBlackHoverFeedback for actual almostBlack buttons)
 
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
