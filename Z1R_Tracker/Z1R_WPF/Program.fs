@@ -52,8 +52,6 @@ module Winterop =
         abstract member Resolve : hwnd:IntPtr * fFlags:int -> unit
         abstract member SetPath : [<MarshalAs(UnmanagedType.LPWStr)>] pszFile:string -> unit
 
-let ExeName = "Z1R_WPF.exe"
-    
 type MyWindowBase() as this = 
     inherit Window()
     let mutable source = null
@@ -259,7 +257,7 @@ type MyWindow() as this =
             let isl = shellLink :?> Winterop.IShellLink
             let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
             isl.SetDescription("Launch Z-Tracker")
-            isl.SetPath(System.IO.Path.Combine(cwd, ExeName))
+            isl.SetPath(System.IO.Path.Combine(cwd, Graphics.ExeName))
             isl.SetWorkingDirectory(cwd)
             isl.SetIconLocation(System.IO.Path.Combine(cwd, "icons/ztlogo64x64.ico"), 0)
             let ipf = isl :?> System.Runtime.InteropServices.ComTypes.IPersistFile
@@ -446,10 +444,7 @@ type MyWindow() as this =
                     TrackerModelOptions.SmallerAppWindowScaleFactor <- desireScale
                     TrackerModelOptions.ShorterAppWindow.Value <- desireShort
                     TrackerModelOptions.writeSettings()
-                    let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
-                    let thisExe = System.IO.Path.Combine(cwd, ExeName)
-                    System.Diagnostics.Process.Start(thisExe) |> ignore
-                    this.Close()
+                    Graphics.RestartTheApplication()
                     )
                 buttons.Children.Add(sb) |> ignore
                 buttons.Children.Add(new DockPanel(Width=30.)) |> ignore  // spacing
@@ -945,7 +940,7 @@ type DummyWindow() as this =
 let main argv = 
     printfn "Starting Z-Tracker..."
     let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
-    let thisExe = System.IO.Path.Combine(cwd, ExeName)
+    let thisExe = System.IO.Path.Combine(cwd, Graphics.ExeName)
     let thisExeName = thisExe.Replace('\\', '_')   // backslash is not allowed character in mutex name
     use mutex = new System.Threading.Mutex(false, thisExeName)
     let runTheApp() =

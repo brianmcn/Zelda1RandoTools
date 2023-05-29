@@ -64,6 +64,7 @@ since 1.2.3...
  - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
  - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
  - reset tracker button for routers/groundhog/4+4 (TODO document it)
+ - restart the application button (TODO document it)
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - can choose a different voice for reminders, if installed (US windows usually has 2)
@@ -107,10 +108,6 @@ hint decoder buttons are grey text and dont look clickable, maybe say 'click her
  - the actual button at bottom slightly blue-ifies background on hover... could imagine making e.g. main tracker boxes do that maybe to hmm
 
 i wanted a hover target to find hint shops (hover book in item progress bar?)
-
-
-on the startup screen resizing options, the save-changes-takes-effect-next-time is a prime opportunity ideally to 'restart', if i ever figure out a restart
-
 
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)

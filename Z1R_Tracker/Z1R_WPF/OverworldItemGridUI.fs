@@ -406,26 +406,31 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         if not popupIsActive then
             popupIsActive <- true
             SaveAndLoad.MaybePollSeedAndFlags()
-            let firstButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
-            let secondButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to Reset the TIMER,\nor click anywhere else to Resume.", Some(16.), Some(Brushes.Orange))
-            let thirdButton = Graphics.makeButton("Timer has been Paused.\nClick here to Reset the TRACKER,\nfor groundhog/routers/4+4 purposes.", Some(16.), Some(Brushes.Orange))
+            let resumeButton = Graphics.makeButton("Timer has been Paused.\nClick here to Resume.\n(Look below for Reset info.)", Some(16.), Some(Brushes.Orange))
+            let restartTimerButton = Graphics.makeButton("Timer has been Paused.\nClick here to confirm you want to\nReset the TIMER to 0:00:00.", Some(16.), Some(Brushes.Orange))
+            let resetTrackerButton = Graphics.makeButton("Click here to Reset the TRACKER,\n(remove inventory but preserve maps)\nfor groundhog/routers/4+4 purposes.", Some(16.), Some(Brushes.Orange))
+            let shutdownAndRestartButton = Graphics.makeButton("Click here to close Z-Tracker,\nand restart the app. All your\ncurrent work will be discarded!", Some(16.), Some(Brushes.Orange))
             let mutable userPressedReset = false
             let sp = new StackPanel(Orientation=Orientation.Vertical)
-            sp.Children.Add(firstButton) |> ignore
+            let hsp1 = new StackPanel(Orientation=Orientation.Horizontal)
+            hsp1.Children.Add(resumeButton) |> ignore
+            hsp1.Children.Add(new DockPanel(Width=50.)) |> ignore
+            hsp1.Children.Add(shutdownAndRestartButton) |> ignore
+            sp.Children.Add(hsp1) |> ignore
             sp.Children.Add(new DockPanel(Height=300.)) |> ignore
-            let sp2 = new StackPanel(Orientation=Orientation.Horizontal)
-            sp2.Children.Add(secondButton) |> ignore
-            firstButton.HorizontalAlignment <- HorizontalAlignment.Left
-            firstButton.Width <- 370.
-            secondButton.Width <- 370.
-            sp2.Children.Add(new DockPanel(Width=50.)) |> ignore
-            sp2.Children.Add(thirdButton) |> ignore
-            sp.Children.Add(sp2) |> ignore
+            let hsp2 = new StackPanel(Orientation=Orientation.Horizontal)
+            hsp2.Children.Add(restartTimerButton) |> ignore
+            resumeButton.HorizontalAlignment <- HorizontalAlignment.Left
+            resumeButton.Width <- 370.
+            restartTimerButton.Width <- 370.
+            hsp2.Children.Add(new DockPanel(Width=50.)) |> ignore
+            hsp2.Children.Add(resetTrackerButton) |> ignore
+            sp.Children.Add(hsp2) |> ignore
             let wh = new System.Threading.ManualResetEvent(false)
-            firstButton.Click.Add(fun _ ->
+            resumeButton.Click.Add(fun _ ->
                 wh.Set() |> ignore
                 )
-            secondButton.Click.Add(fun _ ->
+            restartTimerButton.Click.Add(fun _ ->
                 resetTimerEvent.Trigger()
                 userPressedReset <- true
                 // In addition to just resetting the timer, the user clicking 'Reset' should zero out OverworldSpotsRemainingOverTime and Timeline data, for e.g. scenario
@@ -439,7 +444,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw
                 wh.Set() |> ignore
                 )
-            thirdButton.Click.Add(fun _ ->
+            resetTrackerButton.Click.Add(fun _ ->
                 async {
                     try
                         // make hard save
@@ -485,6 +490,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                         let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, sprintf "Z-Tracker was unable to save the\ntracker state to a file\nError:\n%s" e.Message, ["Ok"])
                         ignore r
                 } |> Async.StartImmediate)
+            shutdownAndRestartButton.Click.Add(fun _ ->
+                async {
+                    let restartText = "Discard all my work"
+                    let! r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Warning, "You are about to shutdown and restart the application.", 
+                                                                        [restartText; "Wait! Take me back!"], 100., 300.)
+                    if r = restartText then
+                        Graphics.RestartTheApplication()
+                    } |> Async.StartImmediate
+                )
             async {
                 TrackerModel.LastChangedTime.PauseAll()
                 do! CustomComboBoxes.DoModal(cm, wh, 50., 200., sp)

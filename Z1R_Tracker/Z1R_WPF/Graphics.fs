@@ -975,6 +975,14 @@ let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
     innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
 let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 
+
+let ExeName = "Z1R_WPF.exe"
+let RestartTheApplication() = 
+    let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
+    let thisExe = System.IO.Path.Combine(cwd, ExeName)
+    System.Diagnostics.Process.Start(thisExe) |> ignore
+    System.Windows.Application.Current.MainWindow.Close()
+
 let WarpMouseCursorTo(pos:Point) =
     Win32.SetCursor(pos.X, pos.Y)
     PlaySoundForSpeechRecognizedAndUsedToMark()
