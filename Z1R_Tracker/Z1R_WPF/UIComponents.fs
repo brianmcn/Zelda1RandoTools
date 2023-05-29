@@ -851,6 +851,7 @@ let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOve
         zoneNames.Add(hz,tb)
 
     let changeZoneOpacity(hintZone,show) =
+        ensurePlaceholderFinished()
         let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
         if show then
             if noZone then 
@@ -863,9 +864,9 @@ let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOve
             zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
-    zone_checkbox.Checked.Add(fun _ -> ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
+    zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.Unchecked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
-    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then (ensurePlaceholderFinished(); changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true)))
+    zone_checkbox.MouseEnter.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
     zone_checkbox.MouseLeave.Add(fun _ -> if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false))
 
     zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases
