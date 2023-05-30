@@ -235,6 +235,16 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     extrasImage.ToolTip <- "Starting items and extra drops"
     ToolTipService.SetPlacement(extrasImage, System.Windows.Controls.Primitives.PlacementMode.Top)
     gridAdd(mainTrackerGrid, extrasImage, 8, 4)
+    let IDEAL = Point(Views.IDEAL_BOX_MOUSE_X, Views.IDEAL_BOX_MOUSE_Y)
+    extrasImage.MyKeyAdd(fun ea ->
+        match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+            ea.Handled <- true
+            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[7,4].TranslatePoint(IDEAL,cm.AppMainCanvas))
+        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+            ea.Handled <- true
+            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[8,3].TranslatePoint(IDEAL,cm.AppMainCanvas))
+        | _ -> ())
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
@@ -384,19 +394,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
                         ea.Handled <- true
                         if i<mainTrackerCanvases.GetLength(0)-1 then
-                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                         ea.Handled <- true
                         if i>0 then
-                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                         ea.Handled <- true
                         if j>1 then
-                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                         ea.Handled <- true
                         if j<4 then
-                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                            Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | _ -> ()
                 )
     let updateFoundDungeonsCount() =
@@ -934,7 +944,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         failwith "bad ow grid tile layout"
                     async {
                         let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
-                                    gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (GCOL, GROW, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                                    gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (GCOL, GROW, 5*3, 9*3), float(5*3)/2., float(9*3)/2., gridxPosition, 11.*3.+ST,
                                     (fun (currentState) -> 
                                         tileCanvas.Children.Clear()
                                         canvasAdd(tileCanvas, tileImage, 0., 0.)

@@ -172,7 +172,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
             dungeonRoomExplainer, -3.-boxX, 342.-boxY-THE_DIFF
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (4, 3, 18, 18), gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (4, 3, 18, 18), 9., 9., gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
@@ -224,7 +224,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
             dungeonRoomExplainer, -3.-boxX, 342.-boxY-THE_DIFF
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (3, 3, 18, 18), 9., 9., gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
@@ -314,7 +314,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         let y = originalStateIndex / gnc
         Graphics.WarpMouseCursorTo(Point(tileX+gx+(float x+0.5)*(float gcw + ST*2.), tileY+gy+(float y+0.5)*(float grh + ST*2.)-THE_DIFF))
     let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY-THE_DIFF, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
+                                                float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
     workingCopy.IsComplete <- true
     match r with
     | None -> ()

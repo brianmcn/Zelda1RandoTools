@@ -18,7 +18,8 @@ module FloatHelper =
             this >= x && this <= y
 open FloatHelper
 
-let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster) =
+// the triforce and item inset
+let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster, posDestinationWhenMoveCursorLeftF) =
     let dungeonIndex = level-1
     let linkCanvas = new Canvas(Width=30., Height=30.)
     let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
@@ -33,8 +34,46 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     linkCanvas.Children.Add(link1) |> ignore
     linkCanvas.Children.Add(link2) |> ignore
     let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
-    // draw triforce (or label if 9) and N boxes, populated as now
     let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
+    // highlight consistent with dungeon rooms, to help aid keyboard navigation
+    let BT = 3.
+    let SPM = 3.
+    let border = new Border(Child=sp, BorderThickness=Thickness(BT), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
+    let interiorHighlightCanvas = new Canvas()
+    interiorHighlightCanvas.Children.Add(border) |> ignore
+    let highlight = Dungeon.highlight
+    let boxHighlightOutline = new Shapes.Rectangle(Width=30.+4., Height=30.+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
+    interiorHighlightCanvas.Children.Add(boxHighlightOutline) |> ignore
+    Canvas.SetLeft(boxHighlightOutline, -2. + BT + SPM)
+    let mutable y = 0.
+    let AddBoxHighlightAndCursorBehaviorTo(e:UIElement, canDown, canUp) =
+        let yOffset = y
+        y <- y + 30.
+        e.MouseEnter.Add(fun _ ->
+            Canvas.SetTop(boxHighlightOutline, -2. + BT + SPM + (if TrackerModel.IsHiddenDungeonNumbers() then 30. else 0.) + yOffset)
+            boxHighlightOutline.Opacity <- 1.0
+            )
+        e.MouseLeave.Add(fun _ -> boxHighlightOutline.Opacity <- 0.0)
+        e.MyKeyAdd(fun ea ->
+            match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                if canDown then
+                    ea.Handled <- true
+                    let pos = e.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y+30.), cm.AppMainCanvas)
+                    Graphics.NavigationallyWarpMouseCursorTo(pos)
+            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                if canUp then
+                    ea.Handled <- true
+                    let pos = e.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y-30.), cm.AppMainCanvas)
+                    Graphics.NavigationallyWarpMouseCursorTo(pos)
+            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                ea.Handled <- true
+                Graphics.NavigationallyWarpMouseCursorTo(posDestinationWhenMoveCursorLeftF())
+            | _ -> ()
+            )
+
+    // draw triforce (or label if 9) and N boxes, populated as now
+    // color/number canvas
     if TrackerModel.IsHiddenDungeonNumbers() then
         let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
         let d = TrackerModel.GetDungeon(dungeonIndex)
@@ -47,20 +86,23 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         redraw(d.Color, d.LabelChar)
         d.HiddenDungeonColorOrLabelChanged.Add(redraw)
         sp.Children.Add(colorCanvas) |> ignore
+    // triforce
     let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex, None, true) else Views.MakeLevel9View(None)
+    AddBoxHighlightAndCursorBehaviorTo(dungeonView, true, false)
     sp.Children.Add(dungeonView) |> ignore
+    // item boxes
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
         let c = new Canvas(Width=30., Height=30.)
         let view = Views.MakeBoxItem(cm, box)
+        AddBoxHighlightAndCursorBehaviorTo(view, not(obj.ReferenceEquals(box, d.Boxes.[d.Boxes.Length-1])), true)
         canvasAdd(c, view, 0., 0.)
         sp.Children.Add(c) |> ignore
         if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
             let r = new Shapes.Rectangle(Width=30., Height=30., Fill=new VisualBrush(ghostBuster), IsHitTestVisible=false)
             canvasAdd(c, r, 0., 0.)
     sp.Children.Add(linkCanvas) |> ignore
-    sp.Margin <- Thickness(3.)
-    let border = new Border(Child=sp, BorderThickness=Thickness(3.), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
+    sp.Margin <- Thickness(SPM)
     // dynamic highlight
     let line,triangle = Graphics.makeArrow(30.*float dungeonIndex+15., 36.+float(d.Boxes.Length+1)*30., pos.X+21., pos.Y-3., yellow)
     let rect = new Shapes.Rectangle(Width=36., Height=6.+float(d.Boxes.Length+1+if TrackerModel.IsHiddenDungeonNumbers()then 1 else 0)*30., Stroke=yellow, StrokeThickness=3.)
@@ -90,7 +132,7 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         border.BorderBrush <- Brushes.DimGray
     sp.MouseEnter.Add(fun _ -> highlight())
     sp.MouseLeave.Add(fun _ -> unhighlight())
-    border, unhighlight
+    interiorHighlightCanvas, unhighlight, (fun () -> dungeonView.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y), cm.AppMainCanvas))
 
 let makeOutlineShapesImpl(quest:string[]) =
     let outlines = ResizeArray<FrameworkElement>()
@@ -259,7 +301,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored later
                 async {
                     let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
+                                    float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
                     match r with
                     | Some(state) -> currentOutlineDisplayState.[SI] <- state
                     | None -> ()
@@ -412,9 +454,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, 90.
         let pos = Point(0. + LD_X, posYF() + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
         let mutable localDungeonTrackerPanel = null
+        let mutable localDungeonTrackerPanelPosToCursorRightToF = fun() -> Point()
         do
             let PopulateLocalDungeonTrackerPanel() =
-                let ldtp,unhighlight = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level, if level=9 then null else mainTrackerGhostbusters.[level-1])
+                let posDestinationWhenMoveCursorLeft() = contentCanvas.TranslatePoint(Point(3. + 39.*7.5 + 12.*7.,float(TH)+ 3. + 27.*4.5 + 12.*4.), cm.AppMainCanvas)
+                let ldtp,unhighlight,posIn = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level, (if level=9 then null else mainTrackerGhostbusters.[level-1]), posDestinationWhenMoveCursorLeft)
+                localDungeonTrackerPanelPosToCursorRightToF <- posIn
                 if localDungeonTrackerPanel<> null then
                     contentCanvas.Children.Remove(localDungeonTrackerPanel)  // remove old one
                 localDungeonTrackerPanel <- ldtp
@@ -1037,6 +1082,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                     Graphics.NavigationallyWarpMouseCursorTo(centerOf(float i+1.0, float j))
                                     //Graphics.WarpMouseCursorTo(centerOf(float i+0.5, float j))
                                     //roomWeJustCursorNavigatedFrom <- Some(i,j)
+                                else
+                                    Graphics.NavigationallyWarpMouseCursorTo(localDungeonTrackerPanelPosToCursorRightToF())
                             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                                 ea.Handled <- true
                                 if i>0 then

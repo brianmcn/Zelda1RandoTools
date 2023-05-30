@@ -294,6 +294,7 @@ let DoModalGridSelect<'State,'Result>
                 originalStateIndex:int, // originalStateIndex is array index into the array
                 activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
                 (gnc, gnr, gcw, grh),   // grid: numCols, numRows, colWidth, rowHeight (heights of elements; this control will add border highlight)
+                idealX, idealY,         // in a tile that is gcw by gch size, when the mouse cursor is being warped to its 'center', where should that be? good default: (gcw/2,grh/2)
                 gx, gy,   // where to place grid (x,y) relative to (0,0) being the (unbordered) corner of your TileCanvas
                 redrawTile,  // we pass you currentStateID
                 onClick,  // called on tile click or selectable grid click, you choose what to do:   (mousebuttonEA, currentStateID) -> PopupClickBehavior<'Result>
@@ -348,7 +349,7 @@ let DoModalGridSelect<'State,'Result>
         | StayPoppedUp -> ()
         )
     tileCanvas.MouseLeave.Add(fun _ -> snapBack())
-    let centerOf(x,y) = grid.TranslatePoint(Point(float(x*COLW)+float COLW/2., float(y*ROWH)+float ROWH/2.), cm.AppMainCanvas)
+    let centerOf(x,y) = grid.TranslatePoint(Point(ST+float(x*COLW)+idealX, ST+float(y*ROWH)+idealY), cm.AppMainCanvas)
     tileCanvas.MyKeyAdd(fun ea ->
         let x,y = currentState % gnc, currentState / gnc
         match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
@@ -540,8 +541,8 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetTop(dp, -3.)
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), gridX, gridY, 
-                                redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), 
+                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
 let makeVersionButtonWithBehavior(cm:CanvasManager) =

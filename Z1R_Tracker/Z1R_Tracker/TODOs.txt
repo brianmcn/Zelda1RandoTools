@@ -89,6 +89,11 @@ TODO: possibly a way to 'tab' to new area, or possibly a key to move to e.g. rec
           see conversations on discord
 
 
+DONE: hm, what if right arrow from the right column of the dungeon moves you into the inset, to mark tris/items, and then left arrow takes you back into the dungeon
+TODO: I feel like that, plus something simple like 'tab toggles to center OW or center dungeon' is maybe the minimal 'enough' to feel not-incomplete.
+
+
+
 mouse thumb button mapping? (again, macros)
 
 
@@ -109,6 +114,9 @@ homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or c
 
 consider making e.g. main tracker boxes have hover feedback (almostBlack for black things, almostBlackHoverFeedback for actual almostBlack buttons)
 
+thilo wants to mark bait shops as irreevelant, maybe sep options for ones it cant reason
+
+after get zelda, summary tab should also display 9, for a screenshot
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
 

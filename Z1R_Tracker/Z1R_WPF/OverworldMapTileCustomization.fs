@@ -357,7 +357,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
         let edBorder = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Black, Child=edTB1)
         let extraDecorations = [(upcast edBorder : FrameworkElement), gridxPosition, -33.] //-102.]
         let! g = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas,
-                        gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), gridxPosition, 11.*3.+ST,
+                        gridElementsSelectablesAndIDs, originalStateIndex, 0, (8, 1, 5*3, 9*3), float(5*3)/2., float(9*3)/2., gridxPosition, 11.*3.+ST,
                         (fun (currentState) -> 
                             tileCanvas.Children.Clear()
                             let tileImage = Graphics.BMPtoImage(makeTwoItemShopBmp(item1,currentState))

@@ -72,6 +72,11 @@ let SynthesizeANewLocationKnownEvent(mapChoiceDomainChangePublished:IEvent<_>) =
         )
     resultEvent.Publish
 
+// putting the mouse in the very center of triforce/item boxes (30x30) kind of obscures the numeral or pixel art
+// if we are warping the cursor to one of these, ideally put it here in the box, to look nice
+let IDEAL_BOX_MOUSE_X = 22.
+let IDEAL_BOX_MOUSE_Y = 17.
+
 let redrawTriforces = ResizeArray()
 let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt, makeInteractive) =
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
