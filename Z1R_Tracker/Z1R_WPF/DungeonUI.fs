@@ -1465,6 +1465,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         Graphics.gridAdd(g, make(5), 0, 2)
         Graphics.gridAdd(g, make(6), 1, 2)
         Graphics.gridAdd(g, make(7), 2, 2)
+        let mutable nine = null
+        TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
+            // put dungeon 9 over the intro text at the end of the seed, so you can have a screenshot of everything at once
+            if b then
+                if nine=null then
+                    nine <- make(8)
+                g.Children.Remove(tb)
+                Graphics.gridAdd(g, nine, 0, 0)
+            else
+                if nine<>null then
+                    g.Children.Remove(nine)
+                Graphics.gridAdd(g, tb, 0, 0)
+            )
     dungeonTabs.SelectedIndex <- 9
     selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
 
