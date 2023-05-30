@@ -47,9 +47,8 @@ type IApplicationLayoutBase =
     abstract member AddPostGameDecorationCanvas : postgameDecorationCanvas:UIElement -> unit
     abstract member AddSpotSummary : spotSummaryCanvas:UIElement -> unit
     abstract member AddDiskIcon : diskIcon:UIElement -> unit
-
-
-
+    abstract member FocusOverworld : unit -> unit
+    abstract member FocusDungeon : unit -> unit
 
 type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     let appMainCanvas = cm.AppMainCanvas
@@ -142,7 +141,8 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 3.)
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
-
+        member this.FocusOverworld() = ()
+        member this.FocusDungeon() = ()
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -169,6 +169,14 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     let dungeonStart = H - TIMELINE_H - DUNGEON_H
     let notesStart = H - TIMELINE_H - DUNGEON_H + blockerGridHeight
     let timelineStart = H - TIMELINE_H
+    let switchToDungeon() =
+        currentlyUpper <- false
+        Canvas.SetZIndex(upper, 0)
+        Canvas.SetZIndex(lower, 2)
+    let switchToOverworld() =
+        currentlyUpper <- true
+        Canvas.SetZIndex(upper, 2)
+        Canvas.SetZIndex(lower, 0)
     do
         canvasAdd(appMainCanvas, theCanvas, 0., 0.)  
         canvasAdd(theCanvas, upper, 0., 0.)  
@@ -185,14 +193,10 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             if cm.PopupCanvasStack.Count = 0 then
                 let pos = e.GetPosition(appMainCanvas)
                 if currentlyUpper && pos.Y > upperThreshold then
-                    currentlyUpper <- false
-                    Canvas.SetZIndex(upper, 0)
-                    Canvas.SetZIndex(lower, 2)
+                    switchToDungeon()
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y-diff))
                 if not(currentlyUpper) && pos.Y < lowerThreshold then
-                    currentlyUpper <- true
-                    Canvas.SetZIndex(upper, 2)
-                    Canvas.SetZIndex(lower, 0)
+                    switchToOverworld()
                     Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y+diff))
         )
     interface IApplicationLayoutBase with
@@ -345,6 +349,20 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
                     H
             let CHROME_HEIGHT = 39.  // Windows app border
             ((cm.RootCanvas.Parent :?> Canvas).Parent :?> Window).Height <- H + CHROME_HEIGHT // this is fragile, but don't know a better way right now
+        member this.FocusOverworld() = 
+            let ctxt = System.Threading.SynchronizationContext.Current
+            async {
+                do! Async.Sleep(10)   // the mouse was just warped before this call, pump events to process the MouseMove
+                do! Async.SwitchToContext(ctxt)
+                switchToOverworld()
+            } |> Async.StartImmediate
+        member this.FocusDungeon() = 
+            let ctxt = System.Threading.SynchronizationContext.Current
+            async {
+                do! Async.Sleep(10)   // the mouse was just warped before this call, pump events to process the MouseMove
+                do! Async.SwitchToContext(ctxt)
+                switchToDungeon()
+            } |> Async.StartImmediate
 
 ////////////////////////////////////////////////////////////////////////
 

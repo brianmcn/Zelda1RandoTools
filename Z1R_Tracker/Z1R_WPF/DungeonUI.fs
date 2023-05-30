@@ -1476,5 +1476,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             do! showProgress(sprintf "finished dungeon %d of 9" (i+1))
         }
     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate BOARD v LEVEL text for all tabs the first time
-    return dungeonTabsWholeCanvas, grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
+    return dungeonTabsWholeCanvas, Point(3.+3.5*39.+3.*12.,float(2*TH)+3.+27.*4.5+12.*4.), // point within dungeonTabsWholeCanvas that is destination of 'tab from overworld' cursor warp
+                grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
     }

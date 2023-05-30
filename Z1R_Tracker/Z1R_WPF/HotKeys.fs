@@ -159,6 +159,7 @@ type GlobalHotkeyTargets =
     | MoveCursorLeft
     | MoveCursorUp
     | MoveCursorDown
+    | ToggleCursorOverworldOrDungeon
     | LeftClick
     | MiddleClick
     | RightClick
@@ -189,6 +190,7 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.MoveCursorRight    -> "MoveCursorRight"
         | GlobalHotkeyTargets.MoveCursorUp       -> "MoveCursorUp"
         | GlobalHotkeyTargets.MoveCursorDown     -> "MoveCursorDown"
+        | GlobalHotkeyTargets.ToggleCursorOverworldOrDungeon -> "ToggleCursorOverworldOrDungeon"
         | GlobalHotkeyTargets.LeftClick          -> "LeftClick"
         | GlobalHotkeyTargets.MiddleClick        -> "MiddleClick"
         | GlobalHotkeyTargets.RightClick         -> "RightClick"
@@ -226,6 +228,7 @@ type GlobalHotkeyTargets =
         | GlobalHotkeyTargets.MoveCursorRight    -> mkTxt("\u2192")
         | GlobalHotkeyTargets.MoveCursorUp       -> mkTxt("\u2191")
         | GlobalHotkeyTargets.MoveCursorDown     -> mkTxt("\u2193")
+        | GlobalHotkeyTargets.ToggleCursorOverworldOrDungeon -> mkTxt("O/D")
         | GlobalHotkeyTargets.LeftClick          -> mkTxt("LMB")
         | GlobalHotkeyTargets.MiddleClick        -> mkTxt("MMB")
         | GlobalHotkeyTargets.RightClick         -> mkTxt("RMB")
@@ -255,6 +258,7 @@ type GlobalHotkeyTargets =
         GlobalHotkeyTargets.MoveCursorRight
         GlobalHotkeyTargets.MoveCursorUp
         GlobalHotkeyTargets.MoveCursorDown
+        GlobalHotkeyTargets.ToggleCursorOverworldOrDungeon
         GlobalHotkeyTargets.LeftClick
         GlobalHotkeyTargets.MiddleClick
         GlobalHotkeyTargets.RightClick

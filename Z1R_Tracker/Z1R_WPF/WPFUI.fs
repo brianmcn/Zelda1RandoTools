@@ -1521,7 +1521,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let blockersHoverEvent = new Event<bool>()
-    let! dungeonTabs,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
+    let! dungeonTabs,posToWarpToWhenTabbingFromOverworld,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
         DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, trackerLocationMoused, 
                                     trackerDungeonMoused, TH, rightwardCanvas, 
                                     levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, (fun level ->
@@ -2257,8 +2257,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.RightClick         -> Graphics.Win32.RightMouseClick(); refocusKeyboard()       
             | HotKeys.GlobalHotkeyTargets.ScrollUp           -> Graphics.Win32.ScrollWheelRotateUp(); refocusKeyboard()       
             | HotKeys.GlobalHotkeyTargets.ScrollDown         -> Graphics.Win32.ScrollWheelRotateDown(); refocusKeyboard()       
+            | HotKeys.GlobalHotkeyTargets.ToggleCursorOverworldOrDungeon ->
+                if overworldCanvas.IsMouseOver then
+                    Graphics.NavigationallyWarpMouseCursorTo(dungeonTabs.TranslatePoint(posToWarpToWhenTabbingFromOverworld, appMainCanvas))
+                    layout.FocusDungeon()
+                else
+                    Graphics.NavigationallyWarpMouseCursorTo(overworldCanvas.TranslatePoint(Point(OMTW*8.5,11.*3.*4.5), appMainCanvas))
+                    layout.FocusOverworld()
             | _ -> () // MoveCursor not handled at this level
-// TODO should it be like, up=tracker, left=overworld, right=blockers, down=dungeon?  maybe esc moves to recorder dest, and then can click counter, or arrow elsewhere?
         | None -> 
             ()
     )
