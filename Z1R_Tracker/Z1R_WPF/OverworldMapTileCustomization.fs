@@ -162,6 +162,7 @@ let IsHideableShopItem(i) = // 0-based
     || (i=3 && TrackerModel.playerComputedStateSummary.CandleLevel>0)
     || (i=4 && TrackerModel.playerComputedStateSummary.RingLevel>0)
     || (i=6 && TrackerModel.playerComputedStateSummary.HaveAnyKey)
+    || (i=5 && TrackerModelOptions.OverworldTilesToHide.AlwaysHideMeatShops.Value)
         
 let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (shouldAppearLikeDarkX,iconBmp,[decos])
     if ms.State = -1 then

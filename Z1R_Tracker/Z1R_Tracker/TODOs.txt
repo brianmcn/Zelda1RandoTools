@@ -72,6 +72,7 @@ since 1.2.3...
  - can choose a different voice for reminders, if installed (US windows usually has 2)
  - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
  - added OptionsMenu thingy to hide the timer
+ - added an option to hide meat shops, deep in the overworld OptionsMenu
  - (fix) can highlight multiple boomstick book ships on hover
  - (fix) shield/boomstick checkbox now preserved in save/reload
  - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
@@ -108,8 +109,6 @@ homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or c
 
 
 consider making e.g. main tracker boxes have hover feedback (almostBlack for black things, almostBlackHoverFeedback for actual almostBlack buttons)
-
-thilo wants to mark bait shops as irreevelant, maybe sep options for ones it cant reason
 
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
 

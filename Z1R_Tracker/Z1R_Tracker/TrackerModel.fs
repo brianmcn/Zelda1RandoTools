@@ -297,7 +297,7 @@ type MapSquareChoiceDomainHelper =
             let r,_,_ = dummyOverworldTiles.[n] in r
         else
             failwith "bad overworld tile id"
-    static member TilesThatSupportHidingOverworldMarks = // 12 in a particular order to facilitate More Settings... layout
+    static member TilesThatSupportHidingOverworldMarks = // 12 in a particular order to facilitate "More Settings..." layout
         [| 
             MapSquareChoiceDomainHelper.SWORD3
             MapSquareChoiceDomainHelper.SWORD2

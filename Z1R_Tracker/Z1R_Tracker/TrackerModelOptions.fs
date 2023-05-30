@@ -46,6 +46,7 @@ module OverworldTilesToHide =
     let mutable HintShop = Bool(false)
     let mutable TakeAny = Bool(false)
     let mutable Shop = Bool(false)
+    let mutable AlwaysHideMeatShops = Bool(false)
 let mutable AnimateTileChanges = Bool(true)
 let mutable AnimateShopHighlights = Bool(true)
 let mutable SaveOnCompletion = Bool(false)
@@ -114,6 +115,7 @@ type ReadWrite() =
     member val HideOverworldTile_HintShop = false with get,set
     member val HideOverworldTile_TakeAny = false with get,set
     member val HideOverworldTile_Shop = false with get,set
+    member val HideOverworldTile_AlwaysHideMeatShops = false with get,set
 
     member val AnimateTileChanges = true with get,set
     member val AnimateShopHighlights = true with get,set
@@ -187,6 +189,7 @@ let private writeImpl(filename) =
     data.HideOverworldTile_HintShop <- OverworldTilesToHide.HintShop.Value
     data.HideOverworldTile_TakeAny <- OverworldTilesToHide.TakeAny.Value
     data.HideOverworldTile_Shop <- OverworldTilesToHide.Shop.Value
+    data.HideOverworldTile_AlwaysHideMeatShops <- OverworldTilesToHide.AlwaysHideMeatShops.Value
 
     data.AnimateTileChanges <- AnimateTileChanges.Value
     data.AnimateShopHighlights <- AnimateShopHighlights.Value
@@ -272,6 +275,7 @@ let private read(filename) =
         OverworldTilesToHide.HintShop.Value <- data.HideOverworldTile_HintShop
         OverworldTilesToHide.TakeAny.Value <- data.HideOverworldTile_TakeAny
         OverworldTilesToHide.Shop.Value <- data.HideOverworldTile_Shop
+        OverworldTilesToHide.AlwaysHideMeatShops.Value <- data.HideOverworldTile_AlwaysHideMeatShops
 
         AnimateTileChanges.Value <- data.AnimateTileChanges
         AnimateShopHighlights.Value <- data.AnimateShopHighlights

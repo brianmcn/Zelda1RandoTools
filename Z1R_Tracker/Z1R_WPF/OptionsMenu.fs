@@ -149,7 +149,8 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
                         "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
                         "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
                         "a bright icon in that case.\n\n" +
-                        "You can also hide no-longer-relevant shop items (for example, key shop after you get the Any Key, ring shop after you obtain either blue or red ring, etc.) " +
+                        "You can also hide no-longer-relevant shop items (key shop after you get the Any Key, ring shop after you obtain either blue or red ring, " +
+                        "candle shop after you obtain blue or red candle, arrow shop after you buy it or obtain silvers, boomstick book after you buy it) " +
                         "by checking the box below."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))
             sp.Children.Add(tb) |> ignore
@@ -157,12 +158,25 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
             link(cb, b, false, requestRedrawOverworldEvent.Trigger)
             sp.Children.Add(cb) |> ignore
+            let desc = "Note that bomb shops and shield shops always stay visible.\n\nMeat shops also are always visible, unless you also click the box below, to make " +
+                        "them always be invisible.  If you check this box, then to see the meat shops, you must either (1) uncheck this box, (2) mouse hover Zelda (see below), or " +
+                        "(3) mark a meat Blocker and then mouse-hover the Blocker (option (3) is best).\nThis option is for folks who like to mark meat shops but also know that " +
+                        "in 99% of seed, they'll be unnecessary and just clutter the map.  In the 1% of seeds that have a meat block, mark the Blocker and then mouse hover it to find the shop."
+            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+            sp.Children.Add(tb) |> ignore
+            let cb = new CheckBox(Content=new TextBox(Text="When hiding no-longer-relevant shop items, always hide meat shops",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+            let b = TrackerModelOptions.OverworldTilesToHide.AlwaysHideMeatShops
+            link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+            sp.Children.Add(cb) |> ignore
+            let tb = new TextBox(Text="", IsReadOnly=true, TextWrapping=TextWrapping.Wrap) |> header
+            sp.Children.Add(tb) |> ignore
             let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired. And when you finish the seed and click Zelda, all icons reappear."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
             AddStyle(sp)
-            let b = new Border(Child=sp, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
-                                Width=720., HorizontalAlignment=HorizontalAlignment.Right)
+            let sv = new ScrollViewer(Content=sp, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled)
+            let b = new Border(Child=sv, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
+                                Width=720., MaxHeight=cm.Height-90., HorizontalAlignment=HorizontalAlignment.Right)
             async {
                 do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
                 popupIsActive <- false
