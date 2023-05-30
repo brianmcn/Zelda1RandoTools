@@ -68,7 +68,7 @@ since 1.2.3...
  - recorder to unbeaten/new options (TODO document it)
  - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
- - after finishing and clicking zelda, dungeon 9 appears on the summary tab, so you can screenshot with summary and see everything you marked all at once
+ - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
  - can choose a different voice for reminders, if installed (US windows usually has 2)
  - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
  - added OptionsMenu thingy to hide the timer

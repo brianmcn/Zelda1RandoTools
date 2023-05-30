@@ -316,9 +316,7 @@ type MyWindow() as this =
         drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
         if TrackerModelOptions.SmallerAppWindow.Value then 
             let trans = new ScaleTransform(TrackerModelOptions.SmallerAppWindowScaleFactor, TrackerModelOptions.SmallerAppWindowScaleFactor)
-            cm.RootCanvas.RenderTransform <- trans
-            hmsTimerCanvas.RenderTransform <- trans
-            drawingCanvasHolder.RenderTransform <- trans
+            wholeCanvas.RenderTransform <- trans
         wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
         wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
         wholeCanvas.Children.Add(drawingCanvasHolder) |> ignore
@@ -935,7 +933,7 @@ type DummyWindow() as this =
             mainW.Show()
             let handle = Winterop.GetConsoleWindow()
             Winterop.ShowWindow(handle, Winterop.SW_MINIMIZE) |> ignore
-            mainW.Closed.Add(fun _ -> this.Close())
+            mainW.Closed.Add(fun _ -> try this.Close() with e -> ())  // ignore exceptions on close; restart button tends to crash here
             )
 
 [<STAThread>]

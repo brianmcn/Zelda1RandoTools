@@ -1997,7 +1997,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do
         let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0.)
         layout.AddPostGameDecorationCanvas(postgameDecorationCanvas)
-        let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Red)
+        let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
         Canvas.SetRight(sp, 0.)
         Canvas.SetTop(sp, 0.)
         postgameDecorationCanvas.Children.Add(sp) |> ignore
@@ -2006,33 +2006,52 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         timerClone.LayoutTransform <- new ScaleTransform(20./timerClone.Height, 20./timerClone.Height)
         sp.Children.Add(timerClone) |> ignore
         sp.Children.Add(makeViewRectImpl(owRemainingScreensTextBox)) |> ignore
-        let screenshotFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "most-recent-completion-timeline.png")
+        let screenshotTimelineFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "most-recent-completion-timeline.png")
+        let screenshotFullFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "most-recent-completion-full-screenshot.png")
         TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
             if b then
                 postgameDecorationCanvas.Opacity <- 1.
                 if not(Timeline.isCurrentlyLoadingASave) then
                     async {
-                        do! Async.Sleep(10)  // wait for finish drawing (e.g. zelda is not yet drawn on the timeline)
+                        // select the dungeon summary tab, so everything on-screen at once
+                        selectDungeonTabEvent.Trigger(9)  
+                        if TrackerModelOptions.ShorterAppWindow.Value then
+                            Graphics.NavigationallyWarpMouseCursorTo(dungeonTabs.TranslatePoint(posToWarpToWhenTabbingFromOverworld, appMainCanvas))
+                            layout.FocusDungeon()
+                        // wait for finish drawing (e.g. zelda is not yet drawn on the timeline)
+                        do! Async.Sleep(10)  
                         do! Async.SwitchToContext(ctxt)
                         try
-                            // screenshot timeline region
-                            let vb = new VisualBrush(appMainCanvas)
-                            vb.ViewboxUnits <- BrushMappingMode.Absolute
-                            vb.Viewbox <- layout.GetTimelineBounds()
-                            vb.Stretch <- Stretch.None
-                            let visual = new DrawingVisual()
-                            do 
-                                use dc = visual.RenderOpen()
-                                dc.DrawRectangle(vb, null, Rect(Size(vb.Viewbox.Width, vb.Viewbox.Height)))
-                            let bitmap = new Imaging.RenderTargetBitmap(int vb.Viewbox.Width, int vb.Viewbox.Height, 96., 96., PixelFormats.Default)
-                            bitmap.Render(visual)
-                            let encoder = new Imaging.PngBitmapEncoder()
-                            encoder.Frames.Add(Imaging.BitmapFrame.Create(bitmap))
-                            do
-                                use stream = System.IO.File.Create(screenshotFilename)
-                                encoder.Save(stream)
-                            System.IO.File.SetCreationTime(screenshotFilename, System.DateTime.Now)
-                            System.IO.File.SetLastWriteTime(screenshotFilename, System.DateTime.Now)
+                            for filename, viewboxF in [screenshotFullFilename, (fun () -> layout.GetFullAppBounds())
+                                                       screenshotTimelineFilename, (fun () -> layout.GetTimelineBounds())
+                                                       ] do
+                                // screenshot timeline region
+                                let vb = new VisualBrush(cm.RootCanvas.Parent :?> Canvas)    // whole canvas (parent of root), so that we can capture the timer display in the full screenshot
+                                vb.ViewboxUnits <- BrushMappingMode.Absolute
+                                let orig = viewboxF()
+                                let mutable rect = viewboxF()
+                                vb.Stretch <- Stretch.Uniform
+                                let factor = 
+                                    if TrackerModelOptions.SmallerAppWindow.Value then 
+                                        let r = TrackerModelOptions.SmallerAppWindowScaleFactor 
+                                        rect.Location <- Point(rect.Left * r, rect.Top * r)
+                                        rect.Size <- Size(rect.Width * r, rect.Height * r)
+                                        r
+                                    else 1.0
+                                vb.Viewbox <- rect
+                                let visual = new DrawingVisual(Transform=new ScaleTransform(1. / factor, 1. / factor))
+                                do 
+                                    use dc = visual.RenderOpen()
+                                    dc.DrawRectangle(vb, null, Rect(Size(vb.Viewbox.Width, vb.Viewbox.Height)))
+                                let bitmap = new Imaging.RenderTargetBitmap(int(orig.Width), int(orig.Height), 96., 96., PixelFormats.Default)
+                                bitmap.Render(visual)
+                                let encoder = new Imaging.PngBitmapEncoder()
+                                encoder.Frames.Add(Imaging.BitmapFrame.Create(bitmap))
+                                do
+                                    use stream = System.IO.File.Create(filename)
+                                    encoder.Save(stream)
+                                System.IO.File.SetCreationTime(filename, System.DateTime.Now)
+                                System.IO.File.SetLastWriteTime(filename, System.DateTime.Now)
                         with e ->
                             printfn "%s" (e.ToString())
                     } |> Async.StartImmediate

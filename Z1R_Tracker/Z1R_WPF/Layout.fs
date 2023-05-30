@@ -43,6 +43,7 @@ type IApplicationLayoutBase =
     abstract member AddLinkTarget : currentTargetGhostBuster:UIElement -> unit
     abstract member AddTimelineAndButtons : t1c:UIElement * t2c:UIElement * t3c:UIElement * moreOptionsButton:UIElement * drawButton:UIElement -> unit
     abstract member GetTimelineBounds : unit -> Rect
+    abstract member GetFullAppBounds : unit -> Rect
     abstract member AddReminderDisplayOverlay : reminderDisplayOuterDockPanel:UIElement -> unit
     abstract member AddPostGameDecorationCanvas : postgameDecorationCanvas:UIElement -> unit
     abstract member AddSpotSummary : spotSummaryCanvas:UIElement -> unit
@@ -133,6 +134,8 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, drawButton, 0., START_TIMELINE_H+25.)
         member this.GetTimelineBounds() =
             Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
+        member this.GetFullAppBounds() =
+            Rect(Point(0.,0.), Point(appMainCanvas.Width,THRU_TIMELINE_H))
         member this.AddReminderDisplayOverlay(reminderDisplayOuterDockPanel) =
             canvasAdd(appMainCanvas, reminderDisplayOuterDockPanel, 0., START_TIMELINE_H)
         member this.AddPostGameDecorationCanvas(postgameDecorationCanvas) =
@@ -332,6 +335,8 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, timelineView, 0., upperTimelineStart)
         member this.GetTimelineBounds() =
             Rect(Point(0.,timelineStart), Point(W,H))
+        member this.GetFullAppBounds() =
+            Rect(Point(0.,0.), Point(W,H))
         member this.AddReminderDisplayOverlay(reminderDisplayOuterDockPanel) =
             canvasAdd(lower, reminderDisplayOuterDockPanel, 0., timelineStart)
         member this.AddPostGameDecorationCanvas(postgameDecorationCanvas) =

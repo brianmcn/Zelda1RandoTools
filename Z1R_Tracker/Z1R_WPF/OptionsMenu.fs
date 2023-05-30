@@ -118,14 +118,16 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
                         "Check each tile that you would prefer to hide after you mark it."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
-            let len = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.Length
-            let firstHalf = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[0..(len/2-1)]
-            let secondHalf = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[(len/2)..]
+            let firstThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[0..3]
+            let secondThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[4..7]
+            let finalThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[8..11]
             let boxes = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(20.,5.,0.,5.))
             let first = new StackPanel(Orientation=Orientation.Vertical)
             let second = new StackPanel(Orientation=Orientation.Vertical)
+            let third = new StackPanel(Orientation=Orientation.Vertical)
             boxes.Children.Add(first) |> ignore
             boxes.Children.Add(second) |> ignore
+            boxes.Children.Add(third) |> ignore
             sp.Children.Add(boxes) |> ignore
             let addTo(sp:StackPanel, a) = 
                 for tile in a do
@@ -140,8 +142,9 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
                     let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(tile)
                     link(cb, b, false, requestRedrawOverworldEvent.Trigger)
                     sp.Children.Add(cb) |> ignore
-            addTo(first, firstHalf)
-            addTo(second, secondHalf)
+            addTo(first, firstThird)
+            addTo(second, secondThird)
+            addTo(third, finalThird)
             let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
                         "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
                         "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
@@ -154,7 +157,7 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
             link(cb, b, false, requestRedrawOverworldEvent.Trigger)
             sp.Children.Add(cb) |> ignore
-            let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired."
+            let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired. And when you finish the seed and click Zelda, all icons reappear."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
             AddStyle(sp)
