@@ -16,6 +16,7 @@ let secondQuestDungeonsOptionChanged = new Event<unit>()
 let showBasementInfoOptionChanged = new Event<unit>()
 let bookForHelpfulHintsOptionChanged = new Event<unit>()
 let requestRedrawOverworldEvent = new Event<unit>()
+let hideTimerChanged = new Event<unit>()
 
 let link(cb:CheckBox, b:TrackerModelOptions.Bool, needFU, otherEffect) =
     let effect() = 
@@ -398,6 +399,14 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
     cb.Checked.Add(fun _ -> TrackerModelOptions.ShowMouseMagnifierWindow.Value <- true; mouseMagnifierWindowOptionChanged.Trigger())
     cb.Unchecked.Add(fun _ -> TrackerModelOptions.ShowMouseMagnifierWindow.Value <- false; mouseMagnifierWindowOptionChanged.Trigger())
     cb.ToolTip <- "Open a separate, resizable window that shows a\nzoomed-in area around the mouse.\nCan be useful when using the app on a small screen\nwhere precise mouse targetting is hard to see."
+    ToolTipService.SetShowDuration(cb, 10000)
+    options3sp.Children.Add(cb) |> ignore
+
+    let cb = new CheckBox(Content=new TextBox(Text="Hide timer",IsReadOnly=true))
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.HideTimer.Value
+    cb.Checked.Add(fun _ -> TrackerModelOptions.HideTimer.Value <- true; hideTimerChanged.Trigger())
+    cb.Unchecked.Add(fun _ -> TrackerModelOptions.HideTimer.Value <- false; hideTimerChanged.Trigger())
+    cb.ToolTip <- "Don't display the bright green timer in the upper right corner."
     ToolTipService.SetShowDuration(cb, 10000)
     options3sp.Children.Add(cb) |> ignore
 

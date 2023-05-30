@@ -70,6 +70,7 @@ since 1.2.3...
  - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
  - can choose a different voice for reminders, if installed (US windows usually has 2)
  - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
+ - added OptionsMenu thingy to hide the timer
  - (fix) can highlight multiple boomstick book ships on hover
  - (fix) shield/boomstick checkbox now preserved in save/reload
  - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
@@ -85,7 +86,6 @@ DONE: some way to do dungeon doors
 DONE: consider when moved on door without prior room, can arrow 2 dirs to get to a room
 DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
-
 
 
 mouse thumb button mapping? (again, macros)

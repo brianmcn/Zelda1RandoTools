@@ -307,6 +307,9 @@ type MyWindow() as this =
             let cm = new CustomComboBoxes.CanvasManager(rootCanvas, appMainCanvas)
             appMainCanvas, cm
         let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
+        let timerOpacity() = hmsTimerCanvas.Opacity <- if TrackerModelOptions.HideTimer.Value then 0.0 else 1.0
+        timerOpacity()
+        OptionsMenu.hideTimerChanged.Publish.Add(timerOpacity)
         this.Content <- wholeCanvas
         let drawingCanvasHolder = new Canvas()  // gets the app RenderTransform (can't RenderTransform the drawingCanvas itself without screwing up Broadcast Window)
         let drawingCanvas = new Canvas(IsHitTestVisible=false)

@@ -62,6 +62,7 @@ let mutable DefaultRoomPreferNonDescriptToMaybePushBlock = Bool(false)
 let mutable LeftClickDragAutoInverts = Bool(false)
 let mutable BookForHelpfulHints = Bool(false)
 let mutable ShowMouseMagnifierWindow = Bool(false)
+let mutable HideTimer = Bool(false)
 let mutable ShowBroadcastWindow = Bool(false)
 let mutable BroadcastWindowSize = 3
 let mutable BroadcastWindowIncludesOverworldMagnifier = Bool(false)
@@ -130,6 +131,7 @@ type ReadWrite() =
     member val LeftClickDragAutoInverts = false with get,set
     member val BookForHelpfulHints = false with get,set
     member val ShowMouseMagnifierWindow = false with get,set
+    member val HideTimer = false with get,set
     member val ShowBroadcastWindow = false with get,set
     member val BroadcastWindowSize = 3 with get,set
     member val BroadcastWindowIncludesOverworldMagnifier = false with get,set
@@ -202,6 +204,7 @@ let private writeImpl(filename) =
     data.LeftClickDragAutoInverts <- LeftClickDragAutoInverts.Value
     data.BookForHelpfulHints <- BookForHelpfulHints.Value
     data.ShowMouseMagnifierWindow <- ShowMouseMagnifierWindow.Value
+    data.HideTimer <- HideTimer.Value
     data.ShowBroadcastWindow <- ShowBroadcastWindow.Value
     data.BroadcastWindowSize <- BroadcastWindowSize
     data.BroadcastWindowIncludesOverworldMagnifier <- BroadcastWindowIncludesOverworldMagnifier.Value
@@ -286,6 +289,7 @@ let private read(filename) =
         LeftClickDragAutoInverts.Value <- data.LeftClickDragAutoInverts
         BookForHelpfulHints.Value <- data.BookForHelpfulHints
         ShowMouseMagnifierWindow.Value <- data.ShowMouseMagnifierWindow
+        HideTimer.Value <- data.HideTimer
         ShowBroadcastWindow.Value <- data.ShowBroadcastWindow
         BroadcastWindowSize <- max 1 (min 3 data.BroadcastWindowSize)
         BroadcastWindowIncludesOverworldMagnifier.Value <- data.BroadcastWindowIncludesOverworldMagnifier
