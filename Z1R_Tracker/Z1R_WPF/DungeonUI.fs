@@ -1472,10 +1472,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 if nine=null then
                     nine <- make(8)
                 g.Children.Remove(tb)
+                g.Children.Remove(nine)
                 Graphics.gridAdd(g, nine, 0, 0)
             else
                 if nine<>null then
                     g.Children.Remove(nine)
+                g.Children.Remove(tb)
                 Graphics.gridAdd(g, tb, 0, 0)
             )
     dungeonTabs.SelectedIndex <- 9
