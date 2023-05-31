@@ -84,7 +84,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
         c.MouseEnter.Add(fun _ -> showLocatorPotionAndTakeAny())
         c.MouseLeave.Add(fun _ -> hideLocator())
-        Views.ApplyGlobalBoxHighlightBehavior(c)
+        Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(match i+1 with
@@ -130,6 +130,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     white_sword_canvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword2))
     white_sword_canvas.MouseLeave.Add(fun _ -> hideLocator())
 
+    let extrasCanvasGlobalBoxMouseOverHighlight = new Views.GlobalBoxMouseOverHighlight()
     // brown sword, blue candle, blue ring, magical sword
     let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, timelineID, prop:TrackerModel.BoolProperty) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
@@ -147,7 +148,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         redraw()
         prop.Changed.Add(fun _ -> redraw())
         c.MouseDown.Add(fun _ -> prop.Toggle())
-        Views.ApplyGlobalBoxHighlightBehavior(c)
+        Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
+        extrasCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         match timelineID with
         | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
@@ -318,6 +320,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 redraw()
                 refreshTDD()
                 )
+            extrasCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(innerc)
             triforcePanel.Children.Add(innerc) |> ignore
         leftPanel.Children.Add(triforcePanel) |> ignore
         leftPanel.Children.Add(new DockPanel(Height=10.)) |> ignore
@@ -379,6 +382,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let refresh() =
             maxHeartsText.Text <- sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts
         panel, refresh
+    let watchForPopups = ref false
+    cm.AfterCreatePopupCanvas.Add(fun pc -> if !watchForPopups then extrasCanvasGlobalBoxMouseOverHighlight.AttachToGlobalCanvas(pc))
+    cm.BeforeDismissPopupCanvas.Add(fun pc -> if !watchForPopups then extrasCanvasGlobalBoxMouseOverHighlight.DetachFromGlobalCanvas(pc))
     let invokeExtras = async {
         let wh = new System.Threading.ManualResetEvent(false)
         let whole = new Canvas(Width=cm.Width, Height=cm.Height)
@@ -390,7 +396,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         epRefresh()
         whole.Children.Add(extrasPanel) |> ignore
         mouseClickInterceptor.MouseDown.Add(fun _ -> wh.Set() |> ignore)  // if they click outside the two interior panels that swallow clicks, dismiss it
+        watchForPopups := true
         do! CustomComboBoxes.DoModal(cm, wh, 20., 155., whole)
+        watchForPopups := false
         whole.Children.Clear() // to reparent extrasPanel again next popup
         } 
     extrasImage.MouseDown.Add(fun _ -> 

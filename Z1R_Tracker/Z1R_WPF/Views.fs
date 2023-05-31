@@ -15,12 +15,27 @@ This module is for reusable display elements with the following properties:
  - they might optionally also have interactive/update abilities to change the model (which will, of course, be reflected back in their display view)
 *)
 
-let globalBoxMouseOverHighlight = new System.Windows.Shapes.Rectangle(Width=34., Height=34., Stroke=Brushes.DarkTurquoise, StrokeThickness=2.0, Opacity=0.0)
-let mutable setGlobalBoxMouseOverHighlight = fun(_b,_e:UIElement) -> ()
-let ApplyGlobalBoxHighlightBehavior(e:UIElement) =
-    e.MouseEnter.Add(fun _ -> setGlobalBoxMouseOverHighlight(true,e))
-    e.MouseLeave.Add(fun _ -> setGlobalBoxMouseOverHighlight(false,e))
-
+type GlobalBoxMouseOverHighlight() =
+    let globalBoxMouseOverHighlight = new System.Windows.Shapes.Rectangle(Width=34., Height=34., Stroke=Brushes.DarkTurquoise, StrokeThickness=2.0, Opacity=0.0)
+    let mutable setGlobalBoxMouseOverHighlight = fun(_b,_e:UIElement) -> ()
+    member this.DetachFromGlobalCanvas(c:Canvas) =
+        c.Children.Remove(globalBoxMouseOverHighlight)
+    member this.AttachToGlobalCanvas(c) =
+        canvasAdd(c, globalBoxMouseOverHighlight, 0., 0.)
+        Canvas.SetZIndex(globalBoxMouseOverHighlight, 99999)
+        setGlobalBoxMouseOverHighlight <- (fun(b,e) ->
+            if b then
+                let pos = e.TranslatePoint(Point(-2.,-2.), c)
+                Canvas.SetLeft(globalBoxMouseOverHighlight, pos.X)
+                Canvas.SetTop(globalBoxMouseOverHighlight, pos.Y)
+                globalBoxMouseOverHighlight.Opacity <- 1.0
+            else
+                globalBoxMouseOverHighlight.Opacity <- 0.0
+            )
+    member this.ApplyBehavior(e:UIElement) =
+        e.MouseEnter.Add(fun _ -> setGlobalBoxMouseOverHighlight(true,e))
+        e.MouseLeave.Add(fun _ -> setGlobalBoxMouseOverHighlight(false,e))
+let appMainCanvasGlobalBoxMouseOverHighlight = new GlobalBoxMouseOverHighlight()
 
 let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
 let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
@@ -140,7 +155,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
                         } |> Async.StartImmediate
             )
         Dungeon.HotKeyAHiddenDungeonLabel(innerc, dungeon, None)
-        ApplyGlobalBoxHighlightBehavior(innerc)
+        appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(innerc)
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw after we can look up its new location coordinates
@@ -327,7 +342,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))
     // hover behavior
-    ApplyGlobalBoxHighlightBehavior(c)
+    appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
     match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
     | Some f ->
         let hoverCanvas = new Canvas()
