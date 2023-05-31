@@ -56,28 +56,30 @@ since 1.2.2...
  - fix bug: The "SQ" button to pre-highlight the dungeons with vanilla 1Q/2Q shapes only works correctly if "S" is selected; if any dungeon 1-9 is being displayed, "SQ" acts exactly like "FQ"
  - fix bug: toggling "Second quest dungeons" does not update old man counts
 since 1.2.3...
- - shorter app window option, also 4/3 size option (TODO add to docs, top-bar option like 2/3 size)
- - mouse magnifier window (TODO get feedback, it kinda sucks)
- - hotkeys can have shift/alt/ctrl modifiers (TODO doc)
- - keyboard nav (arrow most grids, 'tab' OW/Dung) and simulated mouse clicks&scrolls (TODO docs)
- - keyboard 1-8 (or numpad 1-8) when hovering 'recorder destination' now change to that number (not rebindable) (TODO document)
- - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
- - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
- - reset tracker button for routers/groundhog/4+4 (TODO document it)
- - restart the application button (TODO document it)
- - recorder to unbeaten/new options (TODO document it)
- - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
- - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
- - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
- - can choose a different voice for reminders, if installed (US windows usually has 2)
- - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
- - added OptionsMenu thingy to hide the timer
- - added an option to hide meat shops, deep in the overworld OptionsMenu
- - the clickable stuff now gives hover feedback to make it clearer it's clickable
- - (fix) can highlight multiple boomstick book ships on hover
- - (fix) shield/boomstick checkbox now preserved in save/reload
- - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
- - (document that can bind more than on hotkey to an action, e.g. Foo=x, Foo=y; only first shows up in tooltips)
+- shorter app window option, also 4/3 size option (TODO add to docs, top-bar option like 2/3 size)
+- mouse magnifier window (TODO get feedback, it kinda sucks)
+- hotkeys can have shift/alt/ctrl modifiers (TODO doc)
+- keyboard nav (arrow most grids, 'tab' OW/Dung) and simulated mouse clicks&scrolls (TODO docs)
+- keyboard 1-8 (or numpad 1-8) when hovering 'recorder destination' now change to that number (not rebindable) (TODO document)
+- FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
+- add vanilla dungeon items reference diagram to the '...' starting/extra items popup
+- reset tracker button for routers/groundhog/4+4 (TODO document it)
+- restart the application button (TODO document it)
+- recorder to unbeaten/new options (TODO document it)
+- remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
+- remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
+- after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
+- can choose a different voice for reminders, if installed (US windows usually has 2)
+- hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
+- added OptionsMenu thingy to hide the timer
+- added an option to hide meat shops, deep in the overworld OptionsMenu
+- the clickable stuff now gives hover feedback to make it clearer it's clickable
+- hovering 4/9 found shows locations of all dungeons, like hovering 'S' summary tab
+- (fix) can highlight multiple boomstick book ships on hover
+- (fix) shield/boomstick checkbox now preserved in save/reload
+- (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
+- (fix) can scrollwheel to change circle color of overworld middle-click circles, even on unmarkable never-has-a-location tiles
+- (document that can bind more than on hotkey to an action, e.g. Foo=x, Foo=y; only first shows up in tooltips)
 
 
 
@@ -89,6 +91,21 @@ DONE: some way to do dungeon doors
 DONE: consider when moved on door without prior room, can arrow 2 dirs to get to a room
 DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
+
+
+
+possibly some button to mark 1Q/2Q vanilla map locations with labeled circles
+ - could be nested in a rework of HFQ/HSQ popup, below
+PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
+Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are you really sure' interaction somehow to do it; just don't want anyone to accidentally 
+click and then oops, just marked up 20 spots.  (keep current behavior too)
+ - currently beeps if you marked a spot and try to gray it; probably also want to RED it with temp highlights
+ - what mouse interaction can mean "actually mark them all off" to pop-up an "are-you-sure dialog" or whatever? hmmm... could replace both boxes with a new button that pops up extended dialog
+
+
+Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
+
+
 
 
 mouse thumb button mapping? (again, macros)
@@ -109,8 +126,7 @@ homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or c
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
 
-
-might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
+(some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 
 context-sensitive second window popout ideas
  - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
@@ -119,26 +135,13 @@ context-sensitive second window popout ideas
 Way to export&import labeled circled on overworld, for e.g. 1Q/2Q dungeons, shops, 100-secrets, etc... like save&load, but just a subset - generalize? (vanilla drops e.g. banana in 1)
  - would these overwrite user data? or live in a different layer? i'm thinking overwrite-if-no-data-there
 
-steve-o, should scrolling a circle on a non-markable overworld square cycle color (like shift-right-click does?)
-
-a lot of text on the surface of the main app is clickable (e.g. double click word LEGEND, can right click copy text), ought not be
-similarly many buttons are Focusable, which can alter how hotkeys get routed
+many buttons are Focusable, which can alter how hotkeys get routed
 
 doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-
-possibly some button to mark 1Q/2Q vanilla map locations with labeled circles
- - could be nested in a rework of HFQ/HSQ popup, below
-PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
-Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are you really sure' interaction somehow to do it; just don't want anyone to accidentally 
-click and then oops, just marked up 20 spots.  (keep current behavior too)
- - currently beeps if you marked a spot and try to gray it; probably also want to RED it with temp highlights
- - what mouse interaction can mean "actually mark them all off" to pop-up an "are-you-sure dialog" or whatever? hmmm... could replace both boxes with a new button that pops up extended dialog
-
 
 puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
 
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
-
 
 swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
@@ -213,7 +216,6 @@ that publishes 'extra info you want' with a bunch of options to e.g. always show
 
 
 
-Broadcast option: always focus overworld ? bighead scenario
 Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
 
 
@@ -271,7 +273,6 @@ in quick-start, maybe prioritize what people should track, so noobs can bite off
  - dungeon rooms: default maybe-pushblock room complete/uncomplete (maybe ? and X mapping from zhelper) is most common, after that transports, only occasionally other marks
  - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
 
-(some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
 
 
 
@@ -387,9 +388,6 @@ clicking the kitty should meow or purr or something
 
 
 
-consider hover-feedback-of-all-clickables (e.g. triforce could slightly-darken-color-on-hover)
-
-
 hotkeys
  - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
 
@@ -486,7 +484,6 @@ the potion shop, which since I deselect everything but x makes it an X. Shoot. W
 like, not even just coding, but from a design perspective, someone scrolls down 3 slots on B4 and then realizes they meant to change B5, what should 'undo' do? undo one 
 scroll? undo all recent (how recent?) changes to tile?  what will the user expect? etc etc etc it's a very difficult design space
 
-Keyboard focus and control
 
 
 
@@ -592,4 +589,4 @@ Rooms that can have push blocks open shutters:
 2Q has: Maze, Spike Trap, Grid, Three Rows, Five Pair, Gohma, Zigzag (Turnstile aka 4-way-block obviously pushes, too, but no stair)
 
 Thus, if 'Add 2Q rooms' is checked then almost every room with a 'block' in the middle row is a room that could have a push-block that opens 
-a shutter (only exceptions: Triforce and Vertical Chute, Vertical Rows). 
+a shutter (only exceptions: Triforce, Vertical Chute, Vertical Rows, Single 6, Double 6, rooms with a gleeok boss). 

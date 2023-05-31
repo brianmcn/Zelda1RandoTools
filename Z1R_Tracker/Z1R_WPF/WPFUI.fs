@@ -59,9 +59,12 @@ let updateGhostBusters() =
 let triforceInnerCanvases = Array.zeroCreate 8
 let mainTrackerCanvases : Canvas[,] = Array2D.zeroCreate 9 5
 let mainTrackerCanvasShaders : Canvas[,] = Array2D.init 8 5 (fun _i j -> new Canvas(Width=30., Height=30., Background=Brushes.Black, Opacity=(if j=1 then 0.4 else 0.3), IsHitTestVisible=false))
-let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
-let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
-let owGettableScreensTextBox = new TextBox(Width=80., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
+let owGettableScreensTextBox = new TextBox(Width=80., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox, IsChecked=true)
 let ensureRespectingOwGettableScreensCheckBox() =
     if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then
@@ -384,8 +387,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
     gridAdd(mainTrackerGrid, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
-    let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
-    let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
+    let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -6.)
     canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 16.)
     for i = 0 to mainTrackerCanvases.GetLength(0)-1 do
@@ -455,10 +458,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let mutable hideFirstQuestFromMixed = fun _b -> ()
     let mutable hideSecondQuestFromMixed = fun _b -> ()
 
-    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
     hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
     ToolTipService.SetShowDuration(hideFirstQuestCheckBox, 12000)
-    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true))
+    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
     hideSecondQuestCheckBox.ToolTip <- "Hide Second Quest\nIn a mixed quest overworld tracker, shade out the second-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or first quest.\nCan't be used if you've marked a second-quest-only spot as having something."
     ToolTipService.SetShowDuration(hideSecondQuestCheckBox, 12000)
 
@@ -814,6 +817,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             if TrackerModel.overworldMapCircles.[i,j] >= 300 then
                                 TrackerModel.overworldMapCircles.[i,j] <- TrackerModel.overworldMapCircles.[i,j] - 300
                             owCircleRedraws.[i,j]()
+                    )
+                c.MouseWheel.Add(fun x -> 
+                    if TrackerModel.overworldMapCircles.[i,j] <> 0 then
+                        if x.Delta<0 then
+                            TrackerModel.nextOverworldMapCircleColor(i,j)
+                        else
+                            TrackerModel.prevOverworldMapCircleColor(i,j)
+                        owCircleRedraws.[i,j]()
                     )
             else
                 let redrawGridSpot() =
@@ -1519,34 +1530,36 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let blockersHoverEvent = new Event<bool>()
+    let contentCanvasMouseEnterFunc(level) =
+        if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
+            routeDrawingCanvas.Children.Clear()
+            for i = 0 to 15 do
+                for j = 0 to 7 do
+                    let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                    if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
+                        let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
+                        if (curLevel = level-11) || (level=10) then  // if hovering this particular dungeon within summary tab, or if hovering 'S' header
+                            owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                        elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
+                            owLocatorTilesZone.[i,j].MakeGreen()
+                        else
+                            () // do nothing - don't highlight completed dungeons
+            drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 
+                if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0)
+        else
+            let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
+            if (i,j) <> TrackerModel.NOTFOUND then
+                // when mouse in a dungeon map, show its location...
+                showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
+                // ...and behave like we are moused there
+                drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
+                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
+    level9ColorCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
+    level9ColorCanvas.MouseLeave.Add(fun _ -> hideLocator())
     let! dungeonTabs,posToWarpToWhenTabbingFromOverworld,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
         DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, TH, rightwardCanvas,
-                                    levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, (fun level ->
-            if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
-                routeDrawingCanvas.Children.Clear()
-                for i = 0 to 15 do
-                    for j = 0 to 7 do
-                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                        if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
-                            let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
-                            if curLevel = level-11 then
-                                owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
-                            elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
-                                owLocatorTilesZone.[i,j].MakeGreen()
-                            else
-                                () // do nothing - don't highlight completed dungeons
-                drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 
-                    if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0)
-            else
-                let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
-                if (i,j) <> TrackerModel.NOTFOUND then
-                    // when mouse in a dungeon map, show its location...
-                    showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
-                    // ...and behave like we are moused there
-                    drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
-                                        (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                        (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
-            ), (fun _level -> hideLocator()))
+                                    levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, contentCanvasMouseEnterFunc, (fun _level -> hideLocator()))
     exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
     layout.AddDungeonTabsOverlay(dungeonTabsOverlay)
 
@@ -1649,7 +1662,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             gridAdd(owCoordsGrid, c, i, j) 
     mirrorOverworldFEs.Add(owCoordsGrid)
     canvasAdd(overworldCanvas, placeholderCanvas, 0., 0.)
-    let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
+    let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     let cb = new CheckBox(Content=showCoords)
     cb.IsChecked <- System.Nullable.op_Implicit false
     cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
