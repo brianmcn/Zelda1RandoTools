@@ -179,7 +179,7 @@ let rainbowBrush =
     gsc.Add(new GradientStop(Colors.MediumPurple, 1.))
     new LinearGradientBrush(gsc, 90.)
 
-let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDungeonTabEvent:Event<int>, trackerLocationMoused:Event<_>, trackerDungeonMoused:Event<_>, 
+let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDungeonTabEvent:Event<int>,
                     TH, rightwardCanvas:Canvas, levelTabSelected:Event<_>, blockersHoverEvent:Event<_>,
                     mainTrackerGhostbusters:Canvas[], showProgress, contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) = async {
     do! showProgress(sprintf "begin makeDungeonTabs")
@@ -546,34 +546,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 rightwardCanvas.Children.Clear() // remove the shown minimaps
             ))
         // some room stuff that doors need to know about
-        let mutable roomWeJustCursorNavigatedFrom = None  // when populated, we're in a room-doorway state where both a room and a door are highlighted, as a keyboard-nav feature
         let highlight = Dungeon.highlight
         let roomHighlightOutline = new Shapes.Rectangle(Width=float(13*3)+4., Height=float(9*3)+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
-        let leaveRoomDoorway() = 
-            roomWeJustCursorNavigatedFrom <- None
-            roomHighlightOutline.Opacity <- 0.0
-        let maybeLeaveRoomDoorway() =
-            // we just got a MouseLeave on a door.  perhaps the user pushed the mouse away, in which case we do want to leave this state.
-            // but maybe we just arrow-warped the mouse to a different door and want to preserve the state.
-            // to decide, check mouse position, and see if in a door adjacent to the room.
-            match roomWeJustCursorNavigatedFrom with
-            | Some(rx,ry) ->
-                let mpos = Input.Mouse.GetPosition(dungeonBodyCanvas)
-                // (we ignore the fact that we might be checking for non-existent-door positions at the edge)
-                let rightX,rightY = float(rx*(39+12)+39), float(ry*(27+12)+6)
-                let leftX,leftY = float((rx-1)*(39+12)+39), float(ry*(27+12)+6)
-                let botX,botY = float(rx*(39+12)+8), float(ry*(27+12)+27)  
-                let topX,topY = float(rx*(39+12)+8), float((ry-1)*(27+12)+27) 
-                if mpos.X.IsBetween(rightX, rightX+12.) && mpos.Y.IsBetween(rightY, rightY+16.) then ()
-                elif mpos.X.IsBetween(leftX, leftX+12.) && mpos.Y.IsBetween(leftY, leftY+16.) then ()
-                elif mpos.X.IsBetween(botX, botX+24.) && mpos.Y.IsBetween(botY, botY+12.) then ()
-                elif mpos.X.IsBetween(topX, topX+24.) && mpos.Y.IsBetween(topY, topY+12.) then ()
-                else leaveRoomDoorway()  // we're not moused over adjacent door, so leave
-            | _ -> leaveRoomDoorway()
         // doors
         let LL, RR, UU, DD = HotKeys.GlobalHotkeyTargets.MoveCursorLeft, HotKeys.GlobalHotkeyTargets.MoveCursorRight, 
                                 HotKeys.GlobalHotkeyTargets.MoveCursorUp, HotKeys.GlobalHotkeyTargets.MoveCursorDown
-        let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas, (ai,aj,adir), (bi,bj,bdir)) =
+        let installDoorBehavior(door:Dungeon.Door, doorCanvas:Canvas, (ai,aj,adir), (bi,bj,_bdir)) =
             if adir <> RR && adir <> DD then
                 failwith "must be called with RR,LL or DD,UU in that order"
             roomDragDrop.RegisterClickable(doorCanvas, (fun ea -> 
@@ -606,65 +584,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     if ea.Delta<0 then door.Next() else door.Prev()
                 )
             doorCanvas.MyKeyAdd(fun ea ->
-                match roomWeJustCursorNavigatedFrom with
-                | Some(rx,ry) ->
-                    let dirOpt =
-                        if rx=ai && ry=aj then
-                            Some adir
-                        elif rx=bi && ry=bj then
-                            Some bdir
-                        else 
-                            leaveRoomDoorway()   // we should never get here, but if we do, clear out the roomDoorway state
-                            None
-                    match dirOpt with
-                    | Some(dir) -> 
-                        match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
-                        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
-                            ea.Handled <- true
-                            if dir=RR then
-                                roomWeJustCursorNavigatedFrom <- None
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx+1.0, float ry))
-                            else
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx+0.5, float ry))
-                        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
-                            ea.Handled <- true
-                            if dir=LL then
-                                roomWeJustCursorNavigatedFrom <- None
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx-1.0, float ry))
-                            else
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx-0.5, float ry))
-                        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
-                            ea.Handled <- true
-                            if dir=UU then
-                                roomWeJustCursorNavigatedFrom <- None
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry-1.0))
-                            else
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry-0.5))
-                        | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
-                            ea.Handled <- true
-                            if dir=DD then
-                                roomWeJustCursorNavigatedFrom <- None
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry+1.0))
-                            else
-                                Graphics.NavigationallyWarpMouseCursorTo(centerOf(float rx, float ry+0.5))
-                        | _ -> ()
-                    | _ -> ()
-                | None ->
-                    // we're not in a room+door context, but two of the arrow keys should still work
-                    match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
-                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
-                        if adir = RR then
-                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
-                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
-                        if adir = RR then
-                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
-                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
-                        if adir = DD then
-                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
-                    | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
-                        if adir = DD then
-                            Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
-                    | _ -> ()
+                // two of the arrow keys should still work
+                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                    if adir = RR then
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                    if adir = RR then
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                    if adir = DD then
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                    if adir = DD then
+                        Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
+                | _ -> ()
                 )
         roomDragDrop.RegisterClickable(dungeonBodyCanvas, (fun _ -> ()), (fun _ -> ()))  // you can start a drag from the empty space between doors/rooms on the canvas
         // horizontal doors
@@ -701,7 +635,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                                 Canvas.SetLeft(hDoorHighlightOutline, float(i*(39+12)+39))
                                                 Canvas.SetTop(hDoorHighlightOutline, float(j*(27+12)+6))
                                                 hDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
-                d.MouseLeave.Add(fun _ -> hDoorHighlightOutline.Opacity <- 0.0; maybeLeaveRoomDoorway())
+                d.MouseLeave.Add(fun _ -> hDoorHighlightOutline.Opacity <- 0.0)
                 redrawAllDoorFuncs.Add(fun () -> door.Redraw())
         canvasAdd(dungeonBodyCanvas, hDoorHighlightOutline, 0., 0.)
         // vertical doors
@@ -733,7 +667,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                                 Canvas.SetLeft(vDoorHighlightOutline, float(i*(39+12)+8))
                                                 Canvas.SetTop(vDoorHighlightOutline, float(j*(27+12)+27))
                                                 vDoorHighlightOutline.Opacity <- Dungeon.highlightOpacity)
-                d.MouseLeave.Add(fun _ -> vDoorHighlightOutline.Opacity <- 0.0; maybeLeaveRoomDoorway())
+                d.MouseLeave.Add(fun _ -> vDoorHighlightOutline.Opacity <- 0.0)
                 redrawAllDoorFuncs.Add(fun () -> door.Redraw())
         canvasAdd(dungeonBodyCanvas, vDoorHighlightOutline, 0., 0.)
         // for room animation, later
@@ -802,12 +736,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             )
         hoverCanvas.MouseEnter.Add(fun _ -> 
             showMinimaps()
-            let vb = new VisualBrush(dungeonCanvas)
-            trackerDungeonMoused.Trigger(vb)
             )
         hoverCanvas.MouseLeave.Add(fun _ -> 
             rightwardCanvas.Children.Clear()
-            trackerDungeonMoused.Trigger(null)
             )
         // toggler to invert Unmarked versus OffTheMap rooms
         do
@@ -1148,13 +1079,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 highlight(ok, Brushes.Lime)
                                 highlight(warn, Brushes.Yellow)
                         else
-                            roomWeJustCursorNavigatedFrom <- None
                             highlightRow(Some j)
                             highlightColumn(Some i)
                             roomHighlightOutline.Opacity <- Dungeon.highlightOpacity
                             Canvas.SetLeft(roomHighlightOutline, float(i*51)-2.)
                             Canvas.SetTop(roomHighlightOutline, float(j*39)-2.)
-                            trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,i,j)
                     )
                 c.MouseLeave.Add(fun _ ->
                     if not popupIsActive then
@@ -1162,10 +1091,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             dungeonHighlightCanvas.Children.Clear() // clear old preview
                     highlightRow(None)
                     highlightColumn(None)
-                    match roomWeJustCursorNavigatedFrom with
-                    | Some(x,y) when x=i && y=j -> ()
-                    | _ -> roomHighlightOutline.Opacity <- 0.0
-                    trackerLocationMoused.Trigger(TrackerLocation.DUNGEON,-1,-1)
+                    roomHighlightOutline.Opacity <- 0.0
                     )
                 let doMonsterDetailPopup() = 
                     async {
