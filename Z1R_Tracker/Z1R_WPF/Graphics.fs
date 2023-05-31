@@ -335,7 +335,18 @@ type TileHighlightRectangle() as this =
             s.Stroke <- brush
             brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
         else
-            this.MakeGreen()
+            this.MakeYellow()
+    member _this.MakeRedWithBriefAnimation() = 
+        if TrackerModelOptions.AnimateShopHighlights.Value then
+            Draw(false)
+            let da = new System.Windows.Media.Animation.DoubleAnimation(12.0, 4.0, new Duration(System.TimeSpan.FromSeconds(0.5)))
+            s.BeginAnimation(Shapes.Rectangle.StrokeThicknessProperty, da)
+            let ca = new System.Windows.Media.Animation.ColorAnimation(From=Colors.Cyan, To=Colors.Red, Duration=new Duration(System.TimeSpan.FromSeconds(0.5)))
+            let brush = new SolidColorBrush()
+            s.Stroke <- brush
+            brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
+        else
+            this.MakeRed()
     member _this.Shape = s
 
 

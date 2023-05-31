@@ -1361,7 +1361,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         ite.Sword3(mapStateSummary.Sword3Location)
     if mapStateSummary.Sword2Location <> NOTFOUND then
         ite.Sword2(mapStateSummary.Sword2Location)
-    let vanillaRecorderLocations = [| 7,3; 12,3; 4,7; 5,4; 11,0; 2,2; 2,4; 13,6 |]
+    let vanillaRecorderLocations = OverworldData.vanilla1QDungeonLocations.[0..7]
     let recorderDests = [|
         if playerComputedStateSummary.HaveRecorder then
             for tri = 0 to 7 do

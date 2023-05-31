@@ -66,6 +66,7 @@ since 1.2.3...
 - reset tracker button for routers/groundhog/4+4 (TODO document it)
 - restart the application button (TODO document it)
 - recorder to unbeaten/new options (TODO document it)
+- FQ/SQ... button to permanently mark off HFQ/HSQ stuff, or to mark vanilla FQ/SQ dungeon locations (TODO update docs)
 - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
 - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
@@ -92,15 +93,6 @@ DONE: consider when moved on door without prior room, can arrow 2 dirs to get to
 DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 
-
-
-possibly some button to mark 1Q/2Q vanilla map locations with labeled circles
- - could be nested in a rework of HFQ/HSQ popup, below
-PedanticPotato: My bug fix request would be to make the ignore 1q / ignore 2q buttons take full effect and not just grey out the spots (leaving the colored borders)
-Lorgon111: If I had 'undo' I would do it.  Maybe I can just make a separate 'are you really sure' interaction somehow to do it; just don't want anyone to accidentally 
-click and then oops, just marked up 20 spots.  (keep current behavior too)
- - currently beeps if you marked a spot and try to gray it; probably also want to RED it with temp highlights
- - what mouse interaction can mean "actually mark them all off" to pop-up an "are-you-sure dialog" or whatever? hmmm... could replace both boxes with a new button that pops up extended dialog
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window

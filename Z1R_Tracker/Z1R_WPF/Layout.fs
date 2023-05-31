@@ -14,7 +14,8 @@ let kittyWidth = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
 type IApplicationLayoutBase =
     abstract member AddMainTracker : mainTracker:UIElement -> unit
     abstract member AddNumberedTriforceCanvas : triforceCanvas:Canvas * i:int -> unit 
-    abstract member AddItemGridStuff : owItemGrid:UIElement * toggleBookShieldCheckBox:UIElement * highlightOpenCaves:UIElement * timerResetButton:UIElement * spotSummaryTB:UIElement * mirrorOW:UIElement -> unit
+    abstract member AddItemGridStuff : owItemGrid:UIElement * toggleBookShieldCheckBox:UIElement * highlightOpenCaves:UIElement * timerResetButton:UIElement * 
+                                            spotSummaryTB:UIElement * mirrorOW:UIElement * moreFQSQoptionsButton:Button -> unit
     abstract member AddHideQuestCheckboxes : hideFirstQuestCheckBox:UIElement * hideSecondQuestCheckBox:UIElement -> unit
     abstract member AddLinkRouting : linkIcon:UIElement * currentTargetIcon:UIElement -> unit
     abstract member AddWebcamLine : unit -> unit
@@ -58,16 +59,17 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, mainTracker, 0., 0.)
         member this.AddNumberedTriforceCanvas(triforceCanvas, i) =
             canvasAdd(appMainCanvas, triforceCanvas, OW_ITEM_GRID_LOCATIONS.OFFSET+30.*float i, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
             canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
             canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
             canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
             canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
-            canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 95.)
+            canvasAdd(appMainCanvas, spotSummaryTB, 13.*OMTW, 90.)
+            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 70.)
+            canvasAdd(appMainCanvas, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
         member this.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox) = 
-            canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
-            canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
+            canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 5., 110.) 
+            canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 5., 130.)
         member this.AddLinkRouting(linkIcon, currentTargetIcon) =
             canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 120.)
             canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 120.)
@@ -212,19 +214,20 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             if i=1 then // only once
                 let ntView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,0.), Point(OW_ITEM_GRID_LOCATIONS.OFFSET+float(30*8), float(30)), upper)
                 canvasAdd(lower, ntView, OW_ITEM_GRID_LOCATIONS.OFFSET, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
             canvasAdd(upper, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
             canvasAdd(upper, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 30.)
             canvasAdd(upper, highlightOpenCaves, 540., 120.)
             canvasAdd(upper, timerResetButton, 12.8*OMTW, 60.)
-            canvasAdd(upper, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 95.)
+            canvasAdd(upper, spotSummaryTB, 13.*OMTW, 90.)
+            canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 70.)
+            canvasAdd(upper, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
             // just capture a swath of stuff
             let swathView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,30.), Point(WEBCAM_LINE, float(30*5)), upper)
             canvasAdd(lower, swathView, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
         member this.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox) = 
-            canvasAdd(upper, hideFirstQuestCheckBox,  WEBCAM_LINE + 10., 130.) 
-            canvasAdd(upper, hideSecondQuestCheckBox, WEBCAM_LINE + 60., 130.)
+            canvasAdd(upper, hideFirstQuestCheckBox,  WEBCAM_LINE + 5., 110.) 
+            canvasAdd(upper, hideSecondQuestCheckBox, WEBCAM_LINE + 5., 130.)
         member this.AddLinkRouting(linkIcon, currentTargetIcon) =
             canvasAdd(upper, linkIcon, 16.*OMTW-60., 120.)
             canvasAdd(upper, currentTargetIcon, 16.*OMTW-30., 120.)

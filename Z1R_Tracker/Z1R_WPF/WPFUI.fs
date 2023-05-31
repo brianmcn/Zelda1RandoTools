@@ -37,6 +37,7 @@ let ReminderTextBox(txt) : FrameworkElement =
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
 
 let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
+clearRouteDrawingCanvas <- fun () -> routeDrawingCanvas.Children.Clear()
 
 let makeGhostBusterImpl(color) =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
     let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)
@@ -447,44 +448,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for i = 0 to 7 do
                 TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateGhostBusters())
 
-    // in mixed quest, buttons to hide first/second quest
-    let thereAreMarks(questOnly:string[]) =
-        let mutable r = false
-        for x = 0 to 15 do 
-            for y = 0 to 7 do
-                if questOnly.[y].Chars(x) = 'X' && MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current()).IsInteresting then
-                    r <- true
-        r
-    let mutable hideFirstQuestFromMixed = fun _b -> ()
-    let mutable hideSecondQuestFromMixed = fun _b -> ()
-
-    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
-    hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
-    ToolTipService.SetShowDuration(hideFirstQuestCheckBox, 12000)
-    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
-    hideSecondQuestCheckBox.ToolTip <- "Hide Second Quest\nIn a mixed quest overworld tracker, shade out the second-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or first quest.\nCan't be used if you've marked a second-quest-only spot as having something."
-    ToolTipService.SetShowDuration(hideSecondQuestCheckBox, 12000)
-
-    hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-    hideFirstQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly) then
-            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
-        hideFirstQuestFromMixed false
-        hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        )
-    hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
-
-    hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-    hideSecondQuestCheckBox.Checked.Add(fun _ -> 
-        if thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly) then
-            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
-        hideSecondQuestFromMixed false
-        hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
-        )
-    hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
+    let owLocatorTilesZone = Array2D.zeroCreate 16 8
+    let redrawOWCircle = ref(fun (_x,_y) -> ())
+    let hideFirstQuestCheckBox, hideSecondQuestCheckBox, moreFQSQoptionsButton = MakeFQSQStuff(cm, isMixed, owLocatorTilesZone, redrawOWCircle)
     if isMixed then
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
-
 
     let mutable toggleBookShieldCheckBox : CheckBox = null
     let MakeManualSave() = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
@@ -505,7 +473,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         owItemGrid, toggleBookShieldCB, highlightOpenCaves, timerResetButton, spotSummaryTB = 
             MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule, doUIUpdateEvent, MakeManualSave)
     toggleBookShieldCheckBox <- toggleBookShieldCB
-    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW)
+    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
 
     do! showProgress("link")
 
@@ -667,6 +635,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 Canvas.SetLeft(tb, 0.)
                 Canvas.SetBottom(tb, 0.)
         redraw)
+    redrawOWCircle := fun (x,y) -> owCircleRedraws.[x,y]()
 
     do! showProgress("overworld magnifier")
     let onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent = UIComponents.MakeMagnifier(mirrorOverworldFEs, owMapNum, owMapBMPs)
@@ -691,7 +660,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let ntf = UIHelpers.NotTooFrequently(System.TimeSpan.FromSeconds(0.25))
-    routeDrawingCanvas.MouseLeave.Add(fun _ -> routeDrawingCanvas.Children.Clear())
+    routeDrawingCanvas.MouseLeave.Add(fun _ -> clearRouteDrawingCanvas())
     do! showProgress("overworld before 16x8 loop")
     let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
     for i = 0 to 15 do
@@ -742,7 +711,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         let mousePos = ea.GetPosition(c)
                                         let mousePos = if displayIsCurrentlyMirrored then Point(OMTW - mousePos.X, mousePos.Y) else mousePos
                                         ntf.SendThunk(fun () -> 
-                                            routeDrawingCanvas.Children.Clear()
+                                            clearRouteDrawingCanvas()
                                             drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0))
@@ -1282,7 +1251,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             member _this.Sword2(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
                 // clear and redraw routing
-                routeDrawingCanvas.Children.Clear()
+                clearRouteDrawingCanvas()
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
@@ -1517,7 +1486,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     // create overworld locator stuff (added to correct layer of visual tree later in the code)
     let owLocatorGrid = makeGrid(16, 8, int OMTW, 11*3)
-    let owLocatorTilesZone = Array2D.zeroCreate 16 8
     let owLocatorCanvas = new Canvas()
     for i = 0 to 15 do
         for j = 0 to 7 do
@@ -1532,7 +1500,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let blockersHoverEvent = new Event<bool>()
     let contentCanvasMouseEnterFunc(level) =
         if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
-            routeDrawingCanvas.Children.Clear()
+            clearRouteDrawingCanvas()
             for i = 0 to 15 do
                 for j = 0 to 7 do
                     let cur = TrackerModel.overworldMapMarks.[i,j].Current()
@@ -1612,7 +1580,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
         )
     owRemainingScreensTextBox.MouseLeave.Add(fun _ ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         ensureRespectingOwGettableScreensCheckBox()
         )
     if isStandardHyrule then   // Gettables only makes sense in standard map
@@ -1627,7 +1595,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     owGettableScreensTextBox.MouseLeave.Add(fun _ -> 
         if not(owGettableScreensCheckBox.IsChecked.HasValue) || not(owGettableScreensCheckBox.IsChecked.Value) then 
-            routeDrawingCanvas.Children.Clear()
+            clearRouteDrawingCanvas()
         )
 
     do! showProgress("coords/zone overlays")
@@ -1700,7 +1668,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
             // have hint, so draw that zone...
             let inZone = Array2D.init 16 8 (fun x y -> OverworldData.owMapZone.[y].[x] = hinted_zone.AsDataChar())
@@ -1747,7 +1715,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                     owLocatorTilesZone.[i,j].MakeRed()
         )
     showLocatorInstanceFunc <- (fun f ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
@@ -1757,7 +1725,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     showHintShopLocator <- (fun () ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         let mutable anyFound = false
         for i = 0 to 15 do
             for j = 0 to 7 do
@@ -1769,7 +1737,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             showLocatorNoneFound()
         )
     showShopLocatorInstanceFunc <- (fun item ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         let mutable anyFound = false
         for i = 0 to 15 do
             for j = 0 to 7 do
@@ -1782,7 +1750,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             showLocatorNoneFound()
         )
     showLocatorPotionAndTakeAny <- (fun () ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         let mutable anyFound = false
         for i = 0 to 15 do
             for j = 0 to 7 do
@@ -1795,7 +1763,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             showLocatorNoneFound()
         )
     recorderDestinationButton.MouseEnter.Add(fun _ ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         for i = 0 to 15 do
             for j = 0 to 7 do
                 // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
@@ -1804,7 +1772,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     recorderDestinationButton.MouseLeave.Add(fun _ -> hideLocator())
     anyRoadLegendIcon.MouseEnter.Add(fun _ ->
-        routeDrawingCanvas.Children.Clear()
+        clearRouteDrawingCanvas()
         for i = 0 to 15 do
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()

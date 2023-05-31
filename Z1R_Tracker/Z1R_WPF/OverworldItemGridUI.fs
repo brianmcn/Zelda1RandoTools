@@ -532,3 +532,136 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         
     white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
         owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB
+
+let mutable hideFirstQuestFromMixed = fun _b -> ()
+let mutable hideSecondQuestFromMixed = fun _b -> ()
+
+let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangle[,], redrawOWCircle) =
+    let thereAreMarks(questOnly:string[]) =
+        let mutable r = false
+        for x = 0 to 15 do 
+            for y = 0 to 7 do
+                if questOnly.[y].Chars(x) = 'X' && MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current()).IsInteresting then
+                    r <- true
+        r
+    let highlight(questOnly:string[], warn) =
+        for x = 0 to 15 do 
+            for y = 0 to 7 do
+                if questOnly.[y].Chars(x) = 'X' then
+                    if warn && MapStateProxy(TrackerModel.overworldMapMarks.[x,y].Current()).IsInteresting then
+                        owLocatorTilesZone.[x,y].MakeRedWithBriefAnimation()
+                    else
+                        owLocatorTilesZone.[x,y].MakeYellowWithBriefAnimation()
+    let showVanilla(first) =
+        for x = 0 to 15 do 
+            for y = 0 to 7 do
+                let locs = if first then OverworldData.vanilla1QDungeonLocations else OverworldData.vanilla2QDungeonLocations
+                if locs |> Seq.contains(x,y) then
+                    owLocatorTilesZone.[x,y].MakeGreenWithBriefAnimation()
+    let clearOW() = DungeonUI.AhhGlobalVariables.hideLocator(); DungeonUI.AhhGlobalVariables.clearRouteDrawingCanvas()
+
+    // in mixed quest, buttons to hide first/second quest
+    let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
+    hideFirstQuestCheckBox.ToolTip <- "Hide First Quest\nIn a mixed quest overworld tracker, shade out the first-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or second quest.\nCan't be used if you've marked a first-quest-only spot as having something."
+    ToolTipService.SetShowDuration(hideFirstQuestCheckBox, 12000)
+    let hideSecondQuestCheckBox = new CheckBox(Content=new TextBox(Text="HSQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
+    hideSecondQuestCheckBox.ToolTip <- "Hide Second Quest\nIn a mixed quest overworld tracker, shade out the second-quest-only spots.\nUseful if you're unsure if randomizer flags are mixed quest or first quest.\nCan't be used if you've marked a second-quest-only spot as having something."
+    ToolTipService.SetShowDuration(hideSecondQuestCheckBox, 12000)
+
+    hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    hideFirstQuestCheckBox.Checked.Add(fun _ -> 
+        if thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideFirstQuestFromMixed false
+        hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        )
+    hideFirstQuestCheckBox.Unchecked.Add(fun _ -> hideFirstQuestFromMixed true)
+
+    hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    hideSecondQuestCheckBox.Checked.Add(fun _ -> 
+        if thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly) then
+            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+        hideSecondQuestFromMixed false
+        hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
+        )
+    hideSecondQuestCheckBox.Unchecked.Add(fun _ -> hideSecondQuestFromMixed true)
+    
+    let M = Thickness(2.)
+    let moreFQSQoptionsButton = Graphics.makeButton("FQ/SQ...", Some(12.), Some(Brushes.Orange))
+    let mkTxt(text) = new TextBox(Text=text, FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black)
+    moreFQSQoptionsButton.Click.Add(fun _ ->
+        if not popupIsActive then
+            popupIsActive <- true
+            async {
+                let wh = new System.Threading.ManualResetEvent(false)
+                let sp = new StackPanel(Orientation=Orientation.Vertical)
+                sp.Children.Add(mkTxt("Warning! These actions cannot be undone! Don't click unless you are sure!")) |> ignore
+                let hsp = new StackPanel(Orientation=Orientation.Horizontal)
+                sp.Children.Add(hsp) |> ignore
+                let left = new StackPanel(Orientation=Orientation.Vertical)
+                let right = new StackPanel(Orientation=Orientation.Vertical)
+                hsp.Children.Add(left) |> ignore
+                hsp.Children.Add(right) |> ignore
+                if isMixed then
+                    let erase1ok = not(thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly))
+                    let erase2ok = not(thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly))
+                    let color1 = if not(erase1ok) then Brushes.Red else Brushes.Yellow
+                    let clearFQbutton = Graphics.makeButton("Mark all First Quest Only locations as Don't Care.\nI am certain this is Second Quest.", Some(16.), Some(color1))
+                    clearFQbutton.Margin <- M
+                    clearFQbutton.MouseEnter.Add(fun _ -> highlight(OverworldData.owMapSquaresFirstQuestOnly, true))
+                    clearFQbutton.MouseLeave.Add(fun _ -> clearOW())
+                    clearFQbutton.Click.Add(fun _ ->
+                        for x = 0 to 15 do 
+                            for y = 0 to 7 do
+                                if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
+                                    let cell = TrackerModel.overworldMapMarks.[x,y]
+                                    cell.AttemptToSet(TrackerModel.MapSquareChoiceDomainHelper.DARK_X) |> ignore
+                        wh.Set() |> ignore
+                        )
+                    right.Children.Add(clearFQbutton) |> ignore
+                    let color2 = if not(erase2ok) then Brushes.Red else Brushes.Yellow
+                    let clearSQbutton = Graphics.makeButton("Mark all Second Quest Only locations as Don't Care.\nI am certain this is First Quest.", Some(16.), Some(color2))
+                    clearSQbutton.Margin <- M
+                    clearSQbutton.MouseEnter.Add(fun _ -> highlight(OverworldData.owMapSquaresSecondQuestOnly, true))
+                    clearSQbutton.MouseLeave.Add(fun _ -> clearOW())
+                    clearSQbutton.Click.Add(fun _ ->
+                        for x = 0 to 15 do 
+                            for y = 0 to 7 do
+                                if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
+                                    let cell = TrackerModel.overworldMapMarks.[x,y]
+                                    cell.AttemptToSet(TrackerModel.MapSquareChoiceDomainHelper.DARK_X) |> ignore
+                        wh.Set() |> ignore
+                        )
+                    right.Children.Add(clearSQbutton) |> ignore
+                let mark1QdungeonLocationsButton = Graphics.makeButton("Mark vanilla First Quest\ndungeon locations.", Some(16.), Some(Brushes.Orange))
+                mark1QdungeonLocationsButton.Margin <- M
+                mark1QdungeonLocationsButton.MouseEnter.Add(fun _ -> showVanilla(true))
+                mark1QdungeonLocationsButton.MouseLeave.Add(fun _ -> clearOW())
+                mark1QdungeonLocationsButton.Click.Add(fun _ ->
+                    for i = 0 to 8 do
+                        let x,y = OverworldData.vanilla1QDungeonLocations.[i]
+                        TrackerModel.overworldMapCircles.[x,y] <- 149+i
+                        (!redrawOWCircle)(x,y)
+                    wh.Set() |> ignore
+                    )
+                left.Children.Add(mark1QdungeonLocationsButton) |> ignore
+                let mark2QdungeonLocationsButton = Graphics.makeButton("Mark vanilla Second Quest\ndungeon locations.", Some(16.), Some(Brushes.Orange))
+                mark2QdungeonLocationsButton.Margin <- M
+                mark2QdungeonLocationsButton.MouseEnter.Add(fun _ -> showVanilla(false))
+                mark2QdungeonLocationsButton.MouseLeave.Add(fun _ -> clearOW())
+                mark2QdungeonLocationsButton.Click.Add(fun _ ->
+                    for i = 0 to 8 do
+                        let x,y = OverworldData.vanilla2QDungeonLocations.[i]
+                        TrackerModel.overworldMapCircles.[x,y] <- 249+i
+                        (!redrawOWCircle)(x,y)
+                    wh.Set() |> ignore
+                    )
+                left.Children.Add(mark2QdungeonLocationsButton) |> ignore
+                let b = new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black)
+                clearOW()
+                do! CustomComboBoxes.DoModalCore(cm, wh, (fun (c,e) -> canvasAdd(c, e, 10., 10.)), (fun (c,e) -> c.Children.Remove(e)), b, 0.25)
+                popupIsActive <- false
+            } |> Async.StartImmediate
+        )
+    
+    hideFirstQuestCheckBox, hideSecondQuestCheckBox, moreFQSQoptionsButton

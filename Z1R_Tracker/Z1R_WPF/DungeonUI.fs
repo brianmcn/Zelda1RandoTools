@@ -12,6 +12,7 @@ let canvasAdd = Graphics.canvasAdd
 module AhhGlobalVariables =
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable hideLocator = fun() -> ()
+    let mutable clearRouteDrawingCanvas = fun() -> ()
 
 let TH = 24 // text height
 
