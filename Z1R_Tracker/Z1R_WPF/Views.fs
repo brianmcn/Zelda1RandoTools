@@ -15,6 +15,13 @@ This module is for reusable display elements with the following properties:
  - they might optionally also have interactive/update abilities to change the model (which will, of course, be reflected back in their display view)
 *)
 
+let globalBoxMouseOverHighlight = new System.Windows.Shapes.Rectangle(Width=34., Height=34., Stroke=Brushes.DarkTurquoise, StrokeThickness=2.0, Opacity=0.0)
+let mutable setGlobalBoxMouseOverHighlight = fun(_b,_e:UIElement) -> ()
+let ApplyGlobalBoxHighlightBehavior(e:UIElement) =
+    e.MouseEnter.Add(fun _ -> setGlobalBoxMouseOverHighlight(true,e))
+    e.MouseLeave.Add(fun _ -> setGlobalBoxMouseOverHighlight(false,e))
+
+
 let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
 let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
 
@@ -133,6 +140,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
                         } |> Async.StartImmediate
             )
         Dungeon.HotKeyAHiddenDungeonLabel(innerc, dungeon, None)
+        ApplyGlobalBoxHighlightBehavior(innerc)
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw after we can look up its new location coordinates
@@ -202,12 +210,13 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     c.Children.Add(rect) |> ignore
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
     c.Children.Add(innerc) |> ignore
+    let innerCanvasStairwayHider = new Canvas(Background=Brushes.Black, Width=21., Height=21.)
     let redraw() =
         // redraw inner canvas
         innerc.Children.Clear()
         let bmp = CustomComboBoxes.boxCurrentBMP(box.CellCurrent(), None)
         if bmp <> null then
-            canvasAdd(innerc, new Canvas(Background=Brushes.Black, Width=21., Height=21.), 3., 3.)  // cover up any stair drawing
+            canvasAdd(innerc, innerCanvasStairwayHider, 3., 3.)  // cover up any stair drawing
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
                 let image = Graphics.BMPtoImage(Graphics.greyscale bmp)  //Graphics.desaturate(bmp,0.99))
                 canvasAdd(innerc, image, 4., 4.)
@@ -318,6 +327,7 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
     if accelerateIntoComboBox then
         c.Loaded.Add(fun _ -> activateComboBox(0))
     // hover behavior
+    ApplyGlobalBoxHighlightBehavior(c)
     match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
     | Some f ->
         let hoverCanvas = new Canvas()

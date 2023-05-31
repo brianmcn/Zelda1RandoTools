@@ -330,7 +330,7 @@ let HiddenDungeonColorChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, til
     }
 
 let MakeTriforceDecoderDiagram() =
-    let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(5.))
+    let sp = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(5.), Opacity=0.8)
     let haves = TrackerModel.GetTriforceHaves()
     let makeTB(text) = new TextBox(Width=TRIFORCE_SIZE*3.8, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., 
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 

@@ -245,6 +245,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             ea.Handled <- true
             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[8,3].TranslatePoint(IDEAL,cm.AppMainCanvas))
         | _ -> ())
+    Views.ApplyGlobalBoxHighlightBehavior(extrasImage)
     let finalCanvasOf1Or4 = 
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
@@ -2290,6 +2291,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     Layout.setupMouseMagnifier(cm, refocusMainWindow)
 
+    canvasAdd(appMainCanvas, Views.globalBoxMouseOverHighlight, 0., 0.)
+    Views.setGlobalBoxMouseOverHighlight <- (fun(b,e) ->
+        if b then
+            let pos = e.TranslatePoint(Point(-2.,-2.), appMainCanvas)
+            Canvas.SetLeft(Views.globalBoxMouseOverHighlight, pos.X)
+            Canvas.SetTop(Views.globalBoxMouseOverHighlight, pos.Y)
+            Views.globalBoxMouseOverHighlight.Opacity <- 1.0
+        else
+            Views.globalBoxMouseOverHighlight.Opacity <- 0.0
+        )
+    
     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
     do! showProgress("all done")
     return drawTimeline

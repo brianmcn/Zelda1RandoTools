@@ -35,25 +35,14 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     linkCanvas.Children.Add(link2) |> ignore
     let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
     let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
-    // highlight consistent with dungeon rooms, to help aid keyboard navigation
     let BT = 3.
     let SPM = 3.
     let border = new Border(Child=sp, BorderThickness=Thickness(BT), BorderBrush=Brushes.DimGray, Background=Brushes.Black)
     let interiorHighlightCanvas = new Canvas()
     interiorHighlightCanvas.Children.Add(border) |> ignore
-    let highlight = Dungeon.highlight
-    let boxHighlightOutline = new Shapes.Rectangle(Width=30.+4., Height=30.+4., Stroke=highlight, StrokeThickness=1.5, Fill=Brushes.Transparent, IsHitTestVisible=false, Opacity=0.)
-    interiorHighlightCanvas.Children.Add(boxHighlightOutline) |> ignore
-    Canvas.SetLeft(boxHighlightOutline, -2. + BT + SPM)
     let mutable y = 0.
-    let AddBoxHighlightAndCursorBehaviorTo(e:UIElement, canDown, canUp) =
-        let yOffset = y
+    let AddCursorBehaviorTo(e:UIElement, canDown, canUp) =
         y <- y + 30.
-        e.MouseEnter.Add(fun _ ->
-            Canvas.SetTop(boxHighlightOutline, -2. + BT + SPM + (if TrackerModel.IsHiddenDungeonNumbers() then 30. else 0.) + yOffset)
-            boxHighlightOutline.Opacity <- 1.0
-            )
-        e.MouseLeave.Add(fun _ -> boxHighlightOutline.Opacity <- 0.0)
         e.MyKeyAdd(fun ea ->
             match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
@@ -71,7 +60,6 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
                 Graphics.NavigationallyWarpMouseCursorTo(posDestinationWhenMoveCursorLeftF())
             | _ -> ()
             )
-
     // draw triforce (or label if 9) and N boxes, populated as now
     // color/number canvas
     if TrackerModel.IsHiddenDungeonNumbers() then
@@ -88,14 +76,14 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         sp.Children.Add(colorCanvas) |> ignore
     // triforce
     let dungeonView = if dungeonIndex < 8 then Views.MakeTriforceDisplayView(cm, dungeonIndex, None, true) else Views.MakeLevel9View(None)
-    AddBoxHighlightAndCursorBehaviorTo(dungeonView, true, false)
+    AddCursorBehaviorTo(dungeonView, true, false)
     sp.Children.Add(dungeonView) |> ignore
     // item boxes
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
         let c = new Canvas(Width=30., Height=30.)
         let view = Views.MakeBoxItem(cm, box)
-        AddBoxHighlightAndCursorBehaviorTo(view, not(obj.ReferenceEquals(box, d.Boxes.[d.Boxes.Length-1])), true)
+        AddCursorBehaviorTo(view, not(obj.ReferenceEquals(box, d.Boxes.[d.Boxes.Length-1])), true)
         canvasAdd(c, view, 0., 0.)
         sp.Children.Add(c) |> ignore
         if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then

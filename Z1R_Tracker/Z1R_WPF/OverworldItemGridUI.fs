@@ -85,6 +85,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         c.MouseWheel.Add(fun x -> f (x.Delta<0))
         c.MouseEnter.Add(fun _ -> showLocatorPotionAndTakeAny())
         c.MouseLeave.Add(fun _ -> hideLocator())
+        Views.ApplyGlobalBoxHighlightBehavior(c)
         let HEARTX, HEARTY = OW_ITEM_GRID_LOCATIONS.HEARTS
         gridAdd(owItemGrid, c, HEARTX+i, HEARTY)
         timelineItems.Add(new Timeline.TimelineItem(match i+1 with
@@ -147,6 +148,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         redraw()
         prop.Changed.Add(fun _ -> redraw())
         c.MouseDown.Add(fun _ -> prop.Toggle())
+        Views.ApplyGlobalBoxHighlightBehavior(c)
         canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         match timelineID with
         | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
@@ -350,7 +352,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         bp.Children.Add(b) |> ignore
         
         let refText = mkTxt(12., "Vanilla dungeon item reference\nDon't click here")
-        let bottomPanel = new StackPanel(Orientation=Orientation.Vertical)
+        let bottomPanel = new StackPanel(Orientation=Orientation.Vertical, Opacity=0.6)
         bottomPanel.Children.Add(refText) |> ignore
         let q1 = new StackPanel(Orientation=Orientation.Horizontal)
         q1.Children.Add(mkTxt(20., "1Q")) |> ignore

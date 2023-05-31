@@ -635,6 +635,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
+        Views.ApplyGlobalBoxHighlightBehavior(c)
         blockerQueries.Add(fun () ->
             let pos = c.TranslatePoint(Point(), cm.AppMainCanvas)
             match current.HardCanonical() with
