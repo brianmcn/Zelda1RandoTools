@@ -1,6 +1,7 @@
 ﻿module UIComponents
 
 open OverworldItemGridUI
+open DungeonUI.AhhGlobalVariables
 open HotKeys.MyKey
 
 open System.Windows

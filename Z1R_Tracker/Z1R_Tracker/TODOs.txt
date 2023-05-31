@@ -110,9 +110,6 @@ homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or c
 
 
 
-thilo: The bait isn't showing up when I hover over the goroiya tile
-
-
 might want overworld magnifier as a separate popout window (option could work with square aspect, and optional for tall as well)
 
 context-sensitive second window popout ideas

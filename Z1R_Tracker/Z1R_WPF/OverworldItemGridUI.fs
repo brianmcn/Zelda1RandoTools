@@ -55,15 +55,14 @@ let mutable hideRaftSpots = fun (_b:bool) -> ()
 let mutable exportDungeonModelsJsonLines = fun () -> null
 let mutable legendStartIconButtonBehavior = fun () -> ()
 
+open DungeonUI.AhhGlobalVariables
 let mutable showLocatorExactLocation = fun(_x:int,_y:int) -> ()
 let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) -> ()
 let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
 let mutable showHintShopLocator = fun() -> ()
-let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
 let mutable showLocatorPotionAndTakeAny = fun() -> ()
 let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
-let mutable hideLocator = fun() -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
                     extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule, doUIUpdateEvent:Event<unit>, makeManualSave) =

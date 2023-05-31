@@ -6,6 +6,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 open OverworldMapTileCustomization
+open DungeonUI.AhhGlobalVariables
 open HotKeys.MyKey
 open OverworldItemGridUI
 
@@ -1519,7 +1520,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let blockersHoverEvent = new Event<bool>()
     let! dungeonTabs,posToWarpToWhenTabbingFromOverworld,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
-        DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, TH, rightwardCanvas, 
+        DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, TH, rightwardCanvas,
                                     levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, (fun level ->
             if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
                 routeDrawingCanvas.Children.Clear()

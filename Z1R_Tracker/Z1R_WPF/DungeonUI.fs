@@ -9,6 +9,10 @@ let canvasAdd = Graphics.canvasAdd
 
 ////////////////////////
 
+module AhhGlobalVariables =
+    let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
+    let mutable hideLocator = fun() -> ()
+
 let TH = 24 // text height
 
 open HotKeys.MyKey
@@ -1084,6 +1088,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             roomHighlightOutline.Opacity <- Dungeon.highlightOpacity
                             Canvas.SetLeft(roomHighlightOutline, float(i*51)-2.)
                             Canvas.SetTop(roomHighlightOutline, float(j*39)-2.)
+                            if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock then
+                                AhhGlobalVariables.showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
                     )
                 c.MouseLeave.Add(fun _ ->
                     if not popupIsActive then
@@ -1092,6 +1098,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     highlightRow(None)
                     highlightColumn(None)
                     roomHighlightOutline.Opacity <- 0.0
+                    // turn off showShopLocatorInstanceFunc and go back to the highlight for this level
+                    AhhGlobalVariables.hideLocator()
+                    contentCanvasMouseEnterFunc(level)  
                     )
                 let doMonsterDetailPopup() = 
                     async {

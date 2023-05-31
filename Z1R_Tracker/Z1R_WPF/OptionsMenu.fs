@@ -159,8 +159,9 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             link(cb, b, false, requestRedrawOverworldEvent.Trigger)
             sp.Children.Add(cb) |> ignore
             let desc = "Note that bomb shops and shield shops always stay visible.\n\nMeat shops also are always visible, unless you also click the box below, to make " +
-                        "them always be invisible.  If you check this box, then to see the meat shops, you must either (1) uncheck this box, (2) mouse hover Zelda (see below), or " +
-                        "(3) mark a meat Blocker and then mouse-hover the Blocker (option (3) is best).\nThis option is for folks who like to mark meat shops but also know that " +
+                        "them always be invisible.  If you check this box, then to see the meat shops, you must either (1) uncheck this box, (2) mouse hover Zelda (see below), " +
+                        "(3) mark a meat Blocker and then mouse-hover the Blocker, or (4) place a HungryGoriya room in a dungeon and hover that room " +
+                        "(options (3) or (4) are best).\nThis option is for folks who like to mark meat shops but also know that " +
                         "in 99% of seed, they'll be unnecessary and just clutter the map.  In the 1% of seeds that have a meat block, mark the Blocker and then mouse hover it to find the shop."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
             sp.Children.Add(tb) |> ignore
