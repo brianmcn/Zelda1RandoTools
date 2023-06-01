@@ -100,6 +100,16 @@ TODO: consider short animation at mouse warp destination, like a big circle arou
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
 
 
+TODO seems like with summary, wants to mark pols voice, goriya, and what else best - seems like lynel and moblin
+TODO hasMap design:
+ - DONE: first, upper right Link needs to YouGotTheThing when you mouse-hover him, to show that he's clickable
+ - then next to shield/book have a book=map checkbox for book=atlas (make model similat to shield/book, saved with seed data)
+ - then, cut Link from the dungeon insets
+ - then in that place, put a map icon and a checkbox.  TrackerModel.GetDungeon(i).PlayerHasTheIndividualMapOfThis can be just that bool, and
+       like ...PlayerCanSeeMap() can be a function of the bool || (bookIsAtlas && playerHasBook)
+ - then, on the summary tab, reserve space at bottom of MonsterDetail column for CanSeeMap boolean as like MapIcon versus greyed/ghostbustered icon
+
+
 
 
 mouse thumb button mapping? (again, macros)

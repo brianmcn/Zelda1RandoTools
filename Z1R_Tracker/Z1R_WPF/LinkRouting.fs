@@ -43,7 +43,10 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
         // link animation
         if not(isSpecificRouteTargetActive()) then
             currentTargetIcon.Children.Clear()
-            setLinkIcon(0)
+            if linkIcon.IsMouseOver then
+                setLinkIcon(3)
+            else
+                setLinkIcon(0)
         else
             if linkIconN=1 then
                 setLinkIcon(2)
@@ -226,4 +229,6 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             if not popupIsActive then
                 activatePopup() |> Async.StartImmediate
             )
+        linkIcon.MouseEnter.Add(fun _ -> if not(isSpecificRouteTargetActive()) then setLinkIcon(3))
+        linkIcon.MouseLeave.Add(fun _ -> if not(isSpecificRouteTargetActive()) then setLinkIcon(0))
     stepAnimateLink, linkIcon, currentTargetIcon
