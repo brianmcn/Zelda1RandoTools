@@ -798,6 +798,8 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=labelChar.ToString(), Width=10., Height=14., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.),
                                         TextAlignment=TextAlignment.Center, Margin=Thickness(2.,0.,0.,0.))
+                let updateLabelColor() = tb.Foreground <- if TrackerModel.GetDungeon(dungeonIndex).HasBeenLocated() then Brushes.White else Brushes.Orange
+                TrackerModel.GetDungeon(dungeonIndex).HasBeenLocatedChanged.Add(updateLabelColor)
                 sp.Children.Add(tb) |> ignore
                 for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
                     sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore

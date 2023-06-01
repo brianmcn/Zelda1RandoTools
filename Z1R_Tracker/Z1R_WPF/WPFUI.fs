@@ -1509,7 +1509,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         if (curLevel = level-11) || (level=10) then  // if hovering this particular dungeon within summary tab, or if hovering 'S' header
                             owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
                         elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
-                            owLocatorTilesZone.[i,j].MakeGreen()
+                            owLocatorTilesZone.[i,j].MakeBoldGreen()
                         else
                             () // do nothing - don't highlight completed dungeons
             drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 

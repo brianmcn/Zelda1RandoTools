@@ -22,6 +22,7 @@ module FloatHelper =
         member this.IsBetween(x,y) =
             this >= x && this <= y
 open FloatHelper
+open DungeonRoomState
 
 // the triforce and item inset
 let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster, posDestinationWhenMoveCursorLeftF) =
@@ -166,7 +167,7 @@ let makeSecondQuestOutlineShapes(dungeonNumber) = makeOutlineShapesImpl(DungeonD
 
 ////////////////////////
 
-let defaultRoom() = if TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock.Value then DungeonRoomState.RoomType.NonDescript else DungeonRoomState.RoomType.MaybePushBlock
+let defaultRoom() = if TrackerModelOptions.DefaultRoomPreferNonDescriptToMaybePushBlock.Value then RoomType.NonDescript else RoomType.MaybePushBlock
 
 type TrackerLocation =
     | OVERWORLD
@@ -211,7 +212,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
     let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     theDungeonTabControl <- dungeonTabs
-    let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState.DungeonRoomState()))
+    let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState()))
 
     
     // make the whole canvas
@@ -540,12 +541,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 initiatorFunc(whichButtonStr)
                 if whichButtonStr="R" || whichButtonStr="L" then
                     // make OffTheMap rooms show a 'grid' to make it easier to draw in empty space
-                    DungeonRoomState.isDoingDragPaintOffTheMap <- true
+                    isDoingDragPaintOffTheMap <- true
                     redrawAllRooms()
                 showMinimaps()
                 DragDrop.DoDragDrop(roomCanvas, whichButtonStr, DragDropEffects.Link) |> ignore
                 // DoDragDrop is blocking, so we can do post-drop effects here
-                DungeonRoomState.isDoingDragPaintOffTheMap <- false
+                isDoingDragPaintOffTheMap <- false
                 redrawAllRooms()
                 redrawAllDoors()
                 rightwardCanvas.Children.Clear() // remove the shown minimaps
@@ -692,15 +693,15 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             for i = 0 to 7 do
                 for j = 0 to 7 do
                     let rs = roomStates.[i,j]
-                    if rs.RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock then
+                    if rs.RoomType = RoomType.HungryGoriyaMeatBlock then
                         baitMeatImage.Opacity <- 1.
                         if not(rs.IsComplete) then
                             baitMeatCheckmarkHeaderCanvas.Opacity <- 0.
                         else
                             baitMeatCheckmarkHeaderCanvas.Opacity <- 1.
-                    if rs.RoomType = DungeonRoomState.RoomType.BombUpgrade && not(rs.IsComplete) then
+                    if rs.RoomType = RoomType.BombUpgrade && not(rs.IsComplete) then
                         bombUpgradeMarkHeaderCanvas.Opacity <- 1.
-                    if TrackerModelOptions.BookForHelpfulHints.Value && rs.RoomType = DungeonRoomState.RoomType.OldManHint && not(rs.IsComplete) then
+                    if TrackerModelOptions.BookForHelpfulHints.Value && rs.RoomType = RoomType.OldManHint && not(rs.IsComplete) then
                         oldManUnreadHeaderCanvas.Opacity <- 1.
             levelTab.InvalidateProperty(TabItem.HeaderProperty)
         OptionsMenu.bookForHelpfulHintsOptionChanged.Publish.Add(fun _ -> 
@@ -727,10 +728,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
                 i
             let normal = make(roomStates |> Array2D.map (fun s -> not(s.IsEmpty)))
-            let inverse = make(roomStates |> Array2D.map (fun s -> not(s.RoomType=DungeonRoomState.RoomType.OffTheMap)))
+            let inverse = make(roomStates |> Array2D.map (fun s -> not(s.RoomType=RoomType.OffTheMap)))
             let i = new StackPanel(Orientation=Orientation.Vertical)
             let mutable anyOff = false
-            roomStates |> Array2D.iter (fun s -> if(s.RoomType=DungeonRoomState.RoomType.OffTheMap) then anyOff <- true)
+            roomStates |> Array2D.iter (fun s -> if(s.RoomType=RoomType.OffTheMap) then anyOff <- true)
             if anyOff then i.Children.Add(inverse) |> ignore
             i.Children.Add(normal) |> ignore
             let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
@@ -748,10 +749,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         // toggler to invert Unmarked versus OffTheMap rooms
         do
             let dp = new DockPanel(LastChildFill=true, Background=Brushes.Black)
-            let i1 = DungeonRoomState.RoomType.OffTheMap.CompletedBmp() |> Graphics.BMPtoImage
+            let i1 = RoomType.OffTheMap.CompletedBmp() |> Graphics.BMPtoImage
             i1.Stretch <- Stretch.Uniform; i1.StretchDirection <- StretchDirection.Both; i1.Width <- 13.; i1.Height <- System.Double.NaN
             dp.Children.Add(i1) |> ignore
-            let i2 = DungeonRoomState.RoomType.Unmarked.CompletedBmp() |> Graphics.BMPtoImage
+            let i2 = RoomType.Unmarked.CompletedBmp() |> Graphics.BMPtoImage
             i2.Stretch <- Stretch.Uniform; i2.StretchDirection <- StretchDirection.Both; i2.Width <- 13.; i2.Height <- System.Double.NaN
             dp.Children.Add(i2) |> ignore
             DockPanel.SetDock(i1, Dock.Left)
@@ -770,9 +771,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 for x=0 to 7 do
                     for y=0 to 7 do
                         if roomStates.[x,y].RoomType.IsNotMarked then
-                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.OffTheMap
-                        elif roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
-                            roomStates.[x,y].RoomType <- DungeonRoomState.RoomType.Unmarked
+                            roomStates.[x,y].RoomType <- RoomType.OffTheMap
+                        elif roomStates.[x,y].RoomType = RoomType.OffTheMap then
+                            roomStates.[x,y].RoomType <- RoomType.Unmarked
             b.MouseDown.Add(fun _ -> 
                 if grabHelper.IsGrabMode then
                     ()
@@ -927,17 +928,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             canvasAdd(roomCirclesCanvas, ellipse, ROOM_X-6.-BUFFER, ROOM_Y-6.-BUFFER)
                 redraw()
                 roomRedrawFuncs.Add(fun () -> redraw())
-                let usedTransportsRemoveState(roomState:DungeonRoomState.DungeonRoomState) =
+                let usedTransportsRemoveState(roomState:DungeonRoomState) =
                     // track transport being changed away from
                     match roomState.RoomType.KnownTransportNumber with
                     | None -> ()
                     | Some n -> usedTransports.[n] <- usedTransports.[n] - 1
-                let usedTransportsAddState(roomState:DungeonRoomState.DungeonRoomState) =
+                let usedTransportsAddState(roomState:DungeonRoomState) =
                     // note any new transports
                     match roomState.RoomType.KnownTransportNumber with
                     | None -> ()
                     | Some n -> usedTransports.[n] <- usedTransports.[n] + 1
-                let SetNewValue(newState:DungeonRoomState.DungeonRoomState) =
+                let SetNewValue(newState:DungeonRoomState) =
                     let originalState = roomStates.[i,j]
                     let originallyWasNotMarked = originalState.RoomType.IsNotMarked
                     let isLegal = newState.RoomType = originalState.RoomType || 
@@ -1035,7 +1036,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.RoomType = roomType then
-                                    workingCopy.RoomType <- DungeonRoomState.RoomType.Unmarked
+                                    workingCopy.RoomType <- RoomType.Unmarked
                                 else
                                     workingCopy.RoomType <- roomType
                                 SetNewValue(workingCopy)
@@ -1043,7 +1044,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.MonsterDetail = monsterDetail then
-                                    workingCopy.MonsterDetail <- DungeonRoomState.MonsterDetail.Unmarked
+                                    workingCopy.MonsterDetail <- MonsterDetail.Unmarked
                                 else
                                     workingCopy.MonsterDetail <- monsterDetail
                                 SetNewValue(workingCopy)
@@ -1051,20 +1052,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.FloorDropDetail = floorDropDetail then
-                                    workingCopy.FloorDropDetail <- DungeonRoomState.FloorDropDetail.Unmarked
+                                    workingCopy.FloorDropDetail <- FloorDropDetail.Unmarked
                                 else
                                     workingCopy.FloorDropDetail <- floorDropDetail
                                 SetNewValue(workingCopy)
                             | Some(Choice4Of4(doorHotKeyResponse)) -> 
                                 match doorHotKeyResponse.Direction, doorHotKeyResponse.Action with
-                                | DungeonRoomState.DoorDirection.West, DungeonRoomState.DoorAction.Increment -> if i>0 then horizontalDoors.[i-1,j].Next()
-                                | DungeonRoomState.DoorDirection.West, DungeonRoomState.DoorAction.Decrement -> if i>0 then horizontalDoors.[i-1,j].Prev()
-                                | DungeonRoomState.DoorDirection.East, DungeonRoomState.DoorAction.Increment -> if i<7 then horizontalDoors.[i,j].Next()
-                                | DungeonRoomState.DoorDirection.East, DungeonRoomState.DoorAction.Decrement -> if i<7 then horizontalDoors.[i,j].Prev()
-                                | DungeonRoomState.DoorDirection.North, DungeonRoomState.DoorAction.Increment -> if j>0 then verticalDoors.[i,j-1].Next()
-                                | DungeonRoomState.DoorDirection.North, DungeonRoomState.DoorAction.Decrement -> if j>0 then verticalDoors.[i,j-1].Prev()
-                                | DungeonRoomState.DoorDirection.South, DungeonRoomState.DoorAction.Increment -> if j<7 then verticalDoors.[i,j].Next()
-                                | DungeonRoomState.DoorDirection.South, DungeonRoomState.DoorAction.Decrement -> if j<7 then verticalDoors.[i,j].Prev()
+                                | DoorDirection.West, DoorAction.Increment -> if i>0 then horizontalDoors.[i-1,j].Next()
+                                | DoorDirection.West, DoorAction.Decrement -> if i>0 then horizontalDoors.[i-1,j].Prev()
+                                | DoorDirection.East, DoorAction.Increment -> if i<7 then horizontalDoors.[i,j].Next()
+                                | DoorDirection.East, DoorAction.Decrement -> if i<7 then horizontalDoors.[i,j].Prev()
+                                | DoorDirection.North, DoorAction.Increment -> if j>0 then verticalDoors.[i,j-1].Next()
+                                | DoorDirection.North, DoorAction.Decrement -> if j>0 then verticalDoors.[i,j-1].Prev()
+                                | DoorDirection.South, DoorAction.Increment -> if j<7 then verticalDoors.[i,j].Next()
+                                | DoorDirection.South, DoorAction.Decrement -> if j<7 then verticalDoors.[i,j].Prev()
                             | None -> ()
                             if ea.Handled then  // if they pressed an actual hotkey
                                 isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
@@ -1089,7 +1090,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             roomHighlightOutline.Opacity <- Dungeon.highlightOpacity
                             Canvas.SetLeft(roomHighlightOutline, float(i*51)-2.)
                             Canvas.SetTop(roomHighlightOutline, float(j*39)-2.)
-                            if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock then
+                            if roomStates.[i,j].RoomType = RoomType.HungryGoriyaMeatBlock then
                                 AhhGlobalVariables.showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
                     )
                 c.MouseLeave.Add(fun _ ->
@@ -1138,18 +1139,18 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     )
                 let dragBehavior(whichButtonStr) =
                     if not popupIsActive then
-                        if whichButtonStr = "L" && roomStates.[i,j].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                        if whichButtonStr = "L" && roomStates.[i,j].RoomType = RoomType.OffTheMap then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
-                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.Unmarked
+                            roomStates.[i,j].RoomType <- RoomType.Unmarked
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
                             showMinimaps()
-                        elif whichButtonStr = "R" && roomStates.[i,j].RoomType = DungeonRoomState.RoomType.Unmarked then
+                        elif whichButtonStr = "R" && roomStates.[i,j].RoomType = RoomType.Unmarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
-                            roomStates.[i,j].RoomType <- DungeonRoomState.RoomType.OffTheMap
+                            roomStates.[i,j].RoomType <- RoomType.OffTheMap
                             roomStates.[i,j].IsComplete <- false
                             redraw()
                             redrawAllDoors()
@@ -1205,7 +1206,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                             SetNewValue(workingCopy)
                                         else
                                             if isFirstTimeClickingAnyRoomInThisDungeonTab then
-                                                workingCopy.RoomType <- DungeonRoomState.RoomType.StartEnterFromS
+                                                workingCopy.RoomType <- RoomType.StartEnterFromS
                                                 workingCopy.IsComplete <- true
                                                 SetNewValue(workingCopy)
                                                 isFirstTimeClickingAnyRoomInThisDungeonTab <- false
@@ -1259,7 +1260,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             canvasAdd(dungeonBodyCanvas, frontRoomHighlightTile, 0., 0.)
             let animateRoomTile(x,y) = 
                 if TrackerModelOptions.AnimateTileChanges.Value then
-                    if roomStates.[x,y].RoomType = DungeonRoomState.RoomType.OffTheMap then
+                    if roomStates.[x,y].RoomType = RoomType.OffTheMap then
                         Canvas.SetLeft(frontRoomHighlightTile, float(x*51)-3.)
                         Canvas.SetTop(frontRoomHighlightTile, float(y*39)-3.)
                         frontRoomHighlightTile.Stroke <- scb
@@ -1295,7 +1296,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     let jsonModel = dm.RoomStates.[j].[i]
                     if jsonModel <> null then
                         let rs = jsonModel.AsDungeonRoomState()
-                        if rs.RoomType <> DungeonRoomState.RoomType.Unmarked then
+                        if rs.RoomType <> RoomType.Unmarked then
                             isFirstTimeClickingAnyRoomInThisDungeonTab <- false
                             numeral.Opacity <- 0.0 
                         setNewValueFunctions.[i,j](rs)
@@ -1332,25 +1333,64 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         //contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))  // just the mini's call Enter
         contentCanvas.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
         contentCanvas.Children.Add(dummyCanvas) |> ignore
+        let monsterPriority = // in order of what goes top of the list to surface, down to bottom
+            [| MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Gleeok; MonsterDetail.Patra; 
+               MonsterDetail.Manhandla; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
+               MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.Unmarked |]
+        if monsterPriority.Length <> MonsterDetail.All().Length then
+            failwith "design-time bug, not all monsters prioritized"
+        let findAnyMarkedMonsters(dunIdx) = 
+            let rs = masterRoomStates.[dunIdx]
+            let hasMonster = new System.Collections.Generic.Dictionary<_,_>()
+            monsterPriority |> Seq.iter (fun m -> hasMonster.Add(m, false))
+            for i = 0 to 7 do
+                for j = 0 to 7 do
+                    hasMonster.[ rs.[i,j].MonsterDetail ] <- true
+            [|
+                for m in monsterPriority do
+                    if m <> MonsterDetail.Unmarked && hasMonster.[m] then
+                        yield m.Bmp() |> Graphics.BMPtoImage
+            |]
+        let monsterSPs : StackPanel[] = Array.zeroCreate 9
         dungeonTabs.SelectionChanged.Add(fun ea -> 
             try
                 let x = ea.AddedItems.[0]
                 if obj.ReferenceEquals(x,levelTab) then
                     dummyCanvas.Children.Clear()
-                    for i = 0 to 7 do
+                    for i = 0 to 8 do
                         // deparent content canvases
                         levelTabs.[i].Content <- null
                         // make them visually here (but hidden by the dummy's lack of opacity), so that updates (like BOARD<->LEVEL) get visually drawn to be picked up by VisualBrush
                         dummyCanvas.Children.Add(contentCanvases.[i]) |> ignore
+                        // redraw the monster tables
+                        monsterSPs.[i].Children.Clear()
+                        findAnyMarkedMonsters(i) |> Seq.iter (fun img -> img.HorizontalAlignment<-HorizontalAlignment.Right; monsterSPs.[i].Children.Add(img) |> ignore)
                     levelTabSelected.Trigger(10)
             with _ -> ()
             )
         // grid
         let w, h = int contentCanvas.Width / 3, int contentCanvas.Height / 3
         let g = Graphics.makeGrid(3, 3, w, h)
-        canvasAdd(contentCanvas, g, 0., 0.)
+        do // put gridlines to bound each dungeon
+            let gc = new Canvas(Width=float w, Height=float h)
+            let w,h = contentCanvas.Width, int contentCanvas.Height
+            gc.Children.Add(g) |> ignore
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float w, Y1=float h/3., Y2=float h/3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float w, Y1=float h*2./3., Y2=float h*2./3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=float w/3., X2=float w/3., Y1=0., Y2=float h, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=float w*2./3., X2=float w*2./3., Y1=0., Y2=float h, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(contentCanvas, gc, 0., 0.)
         let make(i) =
-            let mini = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
+            let miniCore = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
+            // at the mini size, the localDungeonTrackerPanel is unreadable and useless, so surface more useful data there instead: monster summary
+            let mini=new Canvas(Width=float w, Height=float h)
+            canvasAdd(mini, miniCore, 0., 0.)
+            let monsterSP = new StackPanel(Orientation=Orientation.Vertical, Width=20., VerticalAlignment=VerticalAlignment.Center, MaxHeight=float h)
+            monsterSPs.[i] <- monsterSP
+            let g = new Grid(Width=20., Height=float h, Background=Brushes.Black)   // grid to center the element
+            g.Children.Add(monsterSP) |> ignore
+            canvasAdd(mini, g, float w - monsterSP.Width, 0.)
+            // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
             let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
             let overlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsHitTestVisible=false, Child=midi)
             Canvas.SetLeft(overlay, 0.)

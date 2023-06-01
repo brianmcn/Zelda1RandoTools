@@ -62,6 +62,7 @@ since 1.2.3...
 - keyboard nav (arrow most grids, 'tab' OW/Dung) and simulated mouse clicks&scrolls (TODO docs)
 - keyboard 1-8 (or numpad 1-8) when hovering 'recorder destination' now change to that number (not rebindable) (TODO document)
 - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
+- dungeon summary tab improvements - shows monsters marked in each dungeon, highlights dungeons on overworld while mouse inside
 - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
 - reset tracker button for routers/groundhog/4+4 (TODO document it)
 - restart the application button (TODO document it)
@@ -76,6 +77,7 @@ since 1.2.3...
 - added an option to hide meat shops, deep in the overworld OptionsMenu
 - the clickable stuff now gives hover feedback to make it clearer it's clickable
 - hovering 4/9 found shows locations of all dungeons, like hovering 'S' summary tab
+- Blockers numerals turn white when the corresponding dungeon is located on the overworld
 - (fix) can highlight multiple boomstick book ships on hover
 - (fix) shield/boomstick checkbox now preserved in save/reload
 - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
