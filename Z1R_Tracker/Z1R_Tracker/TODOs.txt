@@ -99,9 +99,6 @@ DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 
 
-in non-mixed OW, maybe fill the empty space in the FQ/SQ... button popup
-
-
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
 

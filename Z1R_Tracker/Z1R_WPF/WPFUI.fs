@@ -480,7 +480,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     toggleBookShieldCheckBox <- toggleBookShieldCB
     bookIsAtlasCheckBox <- bookIsAtlasCB
     highlightOpenCavesCheckBox <- highlightOpenCavesCB
-    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
+    if isStandardHyrule then
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
+    else
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, null)
 
     do! showProgress("link")
 
@@ -1634,11 +1637,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     for i = 0 to 15 do
         for j = 0 to 7 do
             // https://stackoverflow.com/questions/4114590/how-to-make-wpf-text-on-aero-glass-background-readable
-            let tbb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),  // may change with OMTW and overall layout
+            let tbb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),
                                     Foreground=Brushes.Black, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
             tbb.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-            let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),  // may change with OMTW and overall layout
+            let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
             let c = new Canvas(Width=OMTW, Height=float(11*3), Opacity=0.)
