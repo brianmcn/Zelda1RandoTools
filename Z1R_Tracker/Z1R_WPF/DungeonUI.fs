@@ -1330,7 +1330,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let monsterPriority = // in order of what goes top of the list to surface, down to bottom
             [| MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Gleeok; MonsterDetail.Patra; 
                MonsterDetail.Manhandla; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
-               MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.Unmarked |]
+               MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.OrangeBlue;
+               MonsterDetail.PolsVoice; MonsterDetail.Vire; MonsterDetail.Zol; MonsterDetail.Unmarked |]
         if monsterPriority.Length <> MonsterDetail.All().Length then
             failwith "design-time bug, not all monsters prioritized"
         let findAnyMarkedMonsters(dunIdx) = 

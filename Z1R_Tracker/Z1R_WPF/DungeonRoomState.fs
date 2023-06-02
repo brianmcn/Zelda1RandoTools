@@ -36,6 +36,10 @@ type MonsterDetail =
     | BlueWizzrobe
     | BlueDarknut
     | Manhandla
+    | Vire
+    | Zol
+    | PolsVoice
+    | OrangeBlue
     | Other
     member this.AsHotKeyName() =
         match this with
@@ -50,6 +54,10 @@ type MonsterDetail =
         | BlueWizzrobe-> "MonsterDetail_BlueWizzrobe"
         | BlueDarknut -> "MonsterDetail_BlueDarknut"
         | Manhandla   -> "MonsterDetail_Manhandla"
+        | Vire        -> "MonsterDetail_Vire"
+        | Zol         -> "MonsterDetail_Zol"
+        | PolsVoice   -> "MonsterDetail_PolsVoice"
+        | OrangeBlue  -> "MonsterDetail_OrangeBlue"
         | Other       -> "MonsterDetail_Other"
     member this.IsNotMarked = this = MonsterDetail.Unmarked
     member this.Bmp() =
@@ -65,6 +73,10 @@ type MonsterDetail =
         | BlueWizzrobe-> Graphics.wizzrobe_bmp
         | BlueDarknut -> Graphics.blue_darknut_bmp
         | Manhandla   -> Graphics.manhandla_bmp
+        | Vire        -> Graphics.vire_bmp
+        | Zol         -> Graphics.zol_bmp
+        | PolsVoice   -> Graphics.pols_voice_bmp
+        | OrangeBlue  -> Graphics.orange_blue_bmp
         | Other       -> Graphics.other_monster_bmp
     member this.DisplayDescription =
         match this with
@@ -79,10 +91,15 @@ type MonsterDetail =
         | BlueWizzrobe-> "Blue Wizzrobe"
         | BlueDarknut -> "Blue Darknut"
         | Manhandla   -> "Manhandla"
+        | Vire        -> "Vire"
+        | Zol         -> "Zol"
+        | PolsVoice   -> "Pols Voice"
+        | OrangeBlue  -> "Other"
         | Other       -> "Other"
     static member All() = 
         [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
            MonsterDetail.Patra; MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Manhandla;
+           MonsterDetail.PolsVoice; MonsterDetail.Vire; MonsterDetail.Zol; MonsterDetail.OrangeBlue;
            MonsterDetail.Other; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
     static member FromHotKeyName(hkn) =
         let mutable r = MonsterDetail.Unmarked

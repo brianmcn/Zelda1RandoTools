@@ -64,6 +64,7 @@ since 1.2.3...
 - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
 - dungeon summary tab improvements - each dungeon shows if have map, shows monsters marked in each dungeon, highlights dungeons on overworld while mouse inside (TODO update docs)
 - dungeons have a checkbox to mark you got the map, top right tracker has checkbox for book=atlas (TODO update docs)
+- dungeon room MonsterDetails have 4 new monster icon choices (TODO update docs)
 - add vanilla dungeon items reference diagram to the '...' starting/extra items popup
 - reset tracker button for routers/groundhog/4+4 (TODO document it)
 - restart the application button (TODO document it)
