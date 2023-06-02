@@ -617,7 +617,7 @@ let MakeRemainderSummaryDisplay() =
 
 let MakeMappedHotKeysDisplay() =
     let mutable total = 0
-    let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->FrameworkElement, iconW, header) =
+    let makePanel(states, hkp:HotKeys.HotKeyProcessor<_>, mkIcon:_->FrameworkElement, iconW, header) : Panel =
         let panel = new WrapPanel(MaxHeight=800., Orientation=Orientation.Vertical)
         let bucket = ResizeArray()
         for state in states do
@@ -629,6 +629,7 @@ let MakeMappedHotKeysDisplay() =
                 border.Margin <- Thickness(3.)
                 let txt = DungeonRoomState.mkTxt(keys)
                 txt.TextAlignment <- TextAlignment.Left
+                txt.Margin <- Thickness(0., 0., 9., 0.)  // right margin, so that in two columns, text clearly is attached to the left icon, not the right
                 let sp = new StackPanel(Orientation=Orientation.Horizontal)
                 sp.Children.Add(border) |> ignore
                 sp.Children.Add(txt) |> ignore
@@ -638,9 +639,15 @@ let MakeMappedHotKeysDisplay() =
         for _,sp in bucket do            // "logical" order
             panel.Children.Add(sp) |> ignore
         if panel.Children.Count > 0 then
-            panel.Children.Insert(0, DungeonRoomState.mkTxt(header))
-            panel.Margin <- Thickness(3., 3., 13., 3.)
-        panel
+            let dp = new DockPanel()
+            let h = DungeonRoomState.mkTxt(header)
+            DockPanel.SetDock(h, Dock.Top)
+            dp.Children.Add(h) |> ignore
+            dp.Children.Add(panel) |> ignore
+            dp.Margin <- Thickness(3., 3., 13., 3.)
+            upcast dp
+        else
+            upcast panel
     let bmpElseSize (w, h) bmp =
         let icon : FrameworkElement = if bmp = null then upcast new DockPanel(Width=float w, Height=float h) else upcast Graphics.BMPtoImage bmp
         icon

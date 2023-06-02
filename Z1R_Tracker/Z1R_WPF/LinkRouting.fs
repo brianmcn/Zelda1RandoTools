@@ -138,7 +138,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
                 | None -> ()
             // open caves
             let openCave(c:Canvas) = canvasAdd(c, Graphics.BMPtoImage Graphics.openCaveIconBmp, 0., 0.)
-            makeIconTargetImpl(20., 20., openCave, openCave, (540., 120.), RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))
+            makeIconTargetImpl(20., 20., openCave, openCave, (529., 120.), RouteDestination.UNMARKEDINSTANCEFUNC(owInstance.Nothingable))
             // triforces
             if TrackerModel.IsHiddenDungeonNumbers() then
                 // letters

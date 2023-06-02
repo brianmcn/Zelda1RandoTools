@@ -72,6 +72,7 @@ since 1.2.3...
 - FQ/SQ... button to permanently mark off HFQ/HSQ stuff, or to mark vanilla FQ/SQ dungeon locations (TODO update docs)
 - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
 - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
+- "show open caves" icon now has a checkbox, check it to make unmarked open caves have Cyan GYR highlights
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
 - can choose a different voice for reminders, if installed (US windows usually has 2)
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
@@ -96,6 +97,9 @@ DONE: some way to do dungeon doors
 DONE: consider when moved on door without prior room, can arrow 2 dirs to get to a room
 DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
 TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
+
+
+in non-mixed OW, maybe fill the empty space in the FQ/SQ... button popup
 
 
 
@@ -287,6 +291,7 @@ ABOVE IS DONE
      - creates hotkeys/settings/crash log/ZTracker.lnk
  - delete Magnifier/Overworld/ExtraIcons directory
  - delete ZTracker.lnk (has my machine's paths hardcoded)
+ - delete the .pdb file, it is huge
  - If used program, then maybe also do these:
      - delete LT numbers from settings (my screen window position)
      - delete ShowRunCustom.txt

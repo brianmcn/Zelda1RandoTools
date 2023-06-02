@@ -7,15 +7,15 @@ open System.Windows.Media
 open OverworldItemGridUI            // has canvasAdd, etc
 open OverworldMapTileCustomization  // has a lot of constants
 
-let RIGHT_COL = 440.
+let RIGHT_COL = 410.
 let WEBCAM_LINE = OMTW*16.-200.  // height of upper area is 150, so 200 wide is 4x3 box in upper right; timer and other controls here could be obscured
 let kittyWidth = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H
 
 type IApplicationLayoutBase =
     abstract member AddMainTracker : mainTracker:UIElement -> unit
     abstract member AddNumberedTriforceCanvas : triforceCanvas:Canvas * i:int -> unit 
-    abstract member AddItemGridStuff : owItemGrid:UIElement * toggleBookShieldCheckBox:UIElement * bookIsAtlasCheckBox:UIElement * highlightOpenCaves:UIElement * timerResetButton:UIElement * 
-                                            spotSummaryTB:UIElement * mirrorOW:UIElement * moreFQSQoptionsButton:Button -> unit
+    abstract member AddItemGridStuff : owItemGrid:UIElement * toggleBookShieldCheckBox:UIElement * bookIsAtlasCheckBox:UIElement * highlightOpenCavesCheckBox:UIElement * 
+                                            timerResetButton:UIElement * spotSummaryTB:UIElement * mirrorOW:UIElement * moreFQSQoptionsButton:Button -> unit
     abstract member AddHideQuestCheckboxes : hideFirstQuestCheckBox:UIElement * hideSecondQuestCheckBox:UIElement -> unit
     abstract member AddLinkRouting : linkIcon:UIElement * currentTargetIcon:UIElement -> unit
     abstract member AddWebcamLine : unit -> unit
@@ -59,11 +59,11 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, mainTracker, 0., 0.)
         member this.AddNumberedTriforceCanvas(triforceCanvas, i) =
             canvasAdd(appMainCanvas, triforceCanvas, OW_ITEM_GRID_LOCATIONS.OFFSET+30.*float i, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
             canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
             canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 35.)
             canvasAdd(appMainCanvas, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
-            canvasAdd(appMainCanvas, highlightOpenCaves, 540., 120.)
+            canvasAdd(appMainCanvas, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(appMainCanvas, spotSummaryTB, 13.*OMTW, 90.)
             canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 70.)
@@ -215,11 +215,11 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             if i=1 then // only once
                 let ntView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,0.), Point(OW_ITEM_GRID_LOCATIONS.OFFSET+float(30*8), float(30)), upper)
                 canvasAdd(lower, ntView, OW_ITEM_GRID_LOCATIONS.OFFSET, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton) =
             canvasAdd(upper, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
             canvasAdd(upper, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 35.)
             canvasAdd(upper, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
-            canvasAdd(upper, highlightOpenCaves, 540., 120.)
+            canvasAdd(upper, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(upper, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(upper, spotSummaryTB, 13.*OMTW, 90.)
             canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 70.)

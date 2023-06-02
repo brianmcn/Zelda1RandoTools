@@ -263,14 +263,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
     gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
 
-    let highlightOpenCaves = 
+    let highlightOpenCavesCB = 
         if isStandardHyrule then
             let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
             highlightOpenCaves.ToolTip <- "Highlight unmarked open caves"
             ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
-            highlightOpenCaves.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
-            highlightOpenCaves.MouseLeave.Add(fun _ -> hideLocator())
-            highlightOpenCaves
+            let cb = new CheckBox(Content=highlightOpenCaves)
+            cb.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
+            cb.MouseLeave.Add(fun _ -> hideLocator())
+            cb
         else
             null
 
@@ -547,7 +548,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
         
     white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB
+        owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCB, timerResetButton, spotSummaryTB
 
 let mutable hideFirstQuestFromMixed = fun _b -> ()
 let mutable hideSecondQuestFromMixed = fun _b -> ()

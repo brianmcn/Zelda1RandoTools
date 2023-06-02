@@ -294,6 +294,7 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
 let green = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50)))
+let cyan = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.FromArgb(0xFF, 0, 0xFF, 0xFF), 0.30)))
 let yellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50)))
 let red = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50)))
 let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65)))
@@ -309,6 +310,7 @@ type TileHighlightRectangle() as this =
     member _this.MakeRed() = s.Stroke <- red; Draw(false)
     member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
     member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
+    member _this.MakeCyan() = s.Stroke <- cyan; Draw(false)
     member _this.MakeGreen() = s.Stroke <- green; Draw(false)
     member _this.MakePaleRed() = s.Stroke <- palered; Draw(true)
     member _this.MakePaleYellow() = s.Stroke <- paleyellow; Draw(true)

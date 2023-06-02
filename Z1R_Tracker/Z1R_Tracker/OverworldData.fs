@@ -326,7 +326,9 @@ type OverworldInstance(quest) =
         | OWQuest.MIXED_FIRST ->  (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
         | OWQuest.MIXED_SECOND -> (PrivateInternals.owMapSquaresFirstQuestBombable.[y].Chars(x) = 'X' || PrivateInternals.owMapSquaresSecondQuestBombable.[y].Chars(x) = 'X')
         | OWQuest.BLANK ->        false
-    member this.Nothingable(x,y) = not(this.Bombable(x,y) || this.Burnable(x,y) || this.Ladderable(x,y) || this.PowerBraceletable(x,y) || this.Raftable(x,y) || this.Whistleable(x,y))
+    member this.Nothingable(x,y) = 
+        not(this.AlwaysEmpty(x,y)) &&
+        not(this.Bombable(x,y) || this.Burnable(x,y) || this.Ladderable(x,y) || this.PowerBraceletable(x,y) || this.Raftable(x,y) || this.Whistleable(x,y))
     member this.SometimesEmpty(x,y) =
         match quest with
         | OWQuest.FIRST ->        false

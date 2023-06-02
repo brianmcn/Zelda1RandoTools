@@ -45,7 +45,7 @@ let colorAlt3 = new SolidColorBrush(Color.FromArgb(175uy, 160uy, 220uy, 255uy))
 let colorAlt4 = new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy))
 let colorAlt5 = new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy))
 let colorAlt6 = new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy))
-let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR) = 
+let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR, whatToCyan) = 
     routeDrawingCanvas.Children.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
@@ -200,7 +200,15 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         thr.MakeGreen()
                     else
                         thr.MakePaleGreen()
-                canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
+                // cyan overrides all
+                if not(whatToCyan(i,j)) then
+                    canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                if whatToCyan(i,j) then
+                    let thr = new Graphics.TileHighlightRectangle()
+                    thr.MakeCyan()
+                    canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
         for line in accumulatedLines do
             canvasAdd(routeDrawingCanvas, line, 0., 0.)  // we want the lines drawn atop everything else
 

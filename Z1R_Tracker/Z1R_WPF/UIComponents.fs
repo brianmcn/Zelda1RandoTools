@@ -993,11 +993,11 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     Canvas.SetTop(desc, 170.)
     c.Children.Add(desc) |> ignore
 
-    let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 542.,138.; 558.,138.; 558.,122.; 542.,122.; 542.,138. ] |> Seq.map Point))
+    let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 531.,138.; 547.,138.; 547.,122.; 531.,122.; 531.,138. ] |> Seq.map Point))
     addLabel(openCaves, "Show locations of unmarked open caves", 430., 180.)
 
     let COL = Brushes.MediumVioletRed
-    let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 476.,92.; 436.,92.; 436.,130.; 535.,130.; 535.,116.; 550.,116.; 550.,50. ] |> Seq.map Point))
+    let zonesEtAl = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 550.,50.; 475.,50.; 475.,92.; 406.,92.; 406.,130.; 505.,130.; 505.,110.; 550.,110.; 550.,50. ] |> Seq.map Point))
     addLabel(zonesEtAl, "As described", 630., 150.)
 
     let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 630.,150. ] |> Seq.map Point))
