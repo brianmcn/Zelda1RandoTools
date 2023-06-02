@@ -623,7 +623,7 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                     let erase1ok = not(thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly))
                     let erase2ok = not(thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly))
                     let color1 = if not(erase1ok) then Brushes.Red else Brushes.Yellow
-                    let clearFQbutton = Graphics.makeButton("Mark all First Quest Only locations as Don't Care.\nI am certain this is Second Quest.", Some(16.), Some(color1))
+                    let clearFQbutton = Graphics.makeButton("Mark all First Quest Only spots as Don't Care.\nI am certain this is Second Quest.", Some(16.), Some(color1))
                     clearFQbutton.Margin <- M
                     clearFQbutton.MouseEnter.Add(fun _ -> highlight(OverworldData.owMapSquaresFirstQuestOnly, true))
                     clearFQbutton.MouseLeave.Add(fun _ -> clearOW())
@@ -637,7 +637,7 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                         )
                     right.Children.Add(clearFQbutton) |> ignore
                     let color2 = if not(erase2ok) then Brushes.Red else Brushes.Yellow
-                    let clearSQbutton = Graphics.makeButton("Mark all Second Quest Only locations as Don't Care.\nI am certain this is First Quest.", Some(16.), Some(color2))
+                    let clearSQbutton = Graphics.makeButton("Mark all Second Quest Only spots as Don't Care.\nI am certain this is First Quest.", Some(16.), Some(color2))
                     clearSQbutton.Margin <- M
                     clearSQbutton.MouseEnter.Add(fun _ -> highlight(OverworldData.owMapSquaresSecondQuestOnly, true))
                     clearSQbutton.MouseLeave.Add(fun _ -> clearOW())
@@ -650,6 +650,11 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                         wh.Set() |> ignore
                         )
                     right.Children.Add(clearSQbutton) |> ignore
+                else
+                    let txt = mkTxt("(The buttons that would\notherwise appear in this space\nonly apply to Mixed Quest\noverworlds.)")
+                    txt.Foreground <- Brushes.DarkGray
+                    txt.Margin <- Thickness(50.,10.,0.,0.)
+                    right.Children.Add(txt) |> ignore
                 let mark1QdungeonLocationsButton = Graphics.makeButton("Mark vanilla First Quest\ndungeon locations.", Some(16.), Some(Brushes.Orange))
                 mark1QdungeonLocationsButton.Margin <- M
                 mark1QdungeonLocationsButton.MouseEnter.Add(fun _ -> showVanilla(true))
