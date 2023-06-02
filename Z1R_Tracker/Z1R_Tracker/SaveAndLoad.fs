@@ -21,12 +21,14 @@ type Dungeon() =
     member val Triforce = false with get,set
     member val Color = 0 with get,set
     member val LabelChar = "?" with get,set
+    member val PlayerHasMap = false with get,set
     member val Boxes : Box[] = null with get,set
     member this.TryApply(d : TrackerModel.Dungeon) =
         if this.Triforce <> d.PlayerHasTriforce() then
             d.ToggleTriforce()
         d.Color <- this.Color
         d.LabelChar <- this.LabelChar.[0]
+        d.PlayerHasMapOfThisDungeon <- this.PlayerHasMap
         (this.Boxes, d.Boxes) ||> Array.map2 (fun bs bd -> bs.TryApply(bd)) |> Array.fold (fun a b -> a && b) true
 
 [<AllowNullLiteral>]
@@ -207,7 +209,7 @@ let SaveItems(prefix) =
     lines.Add(sprintf """    }, "Dungeons": [""")
     for i = 0 to 8 do
         let d = TrackerModel.GetDungeon(i)
-        lines.Add(sprintf """            { "Triforce": %b, "Color": %d, "LabelChar": "%s", "Boxes": [ {""" (d.PlayerHasTriforce()) d.Color (d.LabelChar.ToString())) |> ignore
+        lines.Add(sprintf """            { "Triforce": %b, "Color": %d, "LabelChar": "%s", "PlayerHasMap": %b, "Boxes": [ {""" (d.PlayerHasTriforce()) d.Color (d.LabelChar.ToString()) d.PlayerHasMapOfThisDungeon) |> ignore
         for box in d.Boxes do
             SaveBox("            ", box)
             lines.Add("                }, {")
@@ -311,7 +313,7 @@ let MaybePollSeedAndFlags() =
                         seedAndFlagsUpdated.Trigger()
 
 let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:string[], drawingLayerJsonLines:string[], 
-                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, isBoomstickSeed, saveType) =  // can throw
+                alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap:bool, currentRecorderDestinationIndex, isBoomstickSeed, isAtlasSeed, saveType) =  // can throw
     MaybePollSeedAndFlags()
     let totalSeconds = int (System.DateTime.Now - TrackerModel.theStartTime.Time).TotalSeconds
     let lines = [|
@@ -329,6 +331,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    "RecorderToNewDungeons": %b,""" TrackerModel.recorderToNewDungeons
         yield sprintf """    "RecorderToUnbeatenDungeons": %b,""" TrackerModel.recorderToUnbeatenDungeons
         yield sprintf """    "IsBoomstickSeed": %b,""" isBoomstickSeed
+        yield sprintf """    "IsAtlasSeed": %b,""" isAtlasSeed
         yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)

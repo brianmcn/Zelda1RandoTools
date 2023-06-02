@@ -52,7 +52,7 @@ let mutable currentRecorderDestinationIndex = 0
 let mutable hideFeatsOfStrength = fun (_b:bool) -> ()
 let mutable hideRaftSpots = fun (_b:bool) -> ()
 
-let mutable exportDungeonModelsJsonLines = fun () -> null
+let mutable exportDungeonModelsJsonLines = fun () -> (null:string[])
 let mutable legendStartIconButtonBehavior = fun () -> ()
 
 open DungeonUI.AhhGlobalVariables
@@ -215,8 +215,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         shieldIcon.Width <- 14.
         shieldIcon.Height <- 14.
         sp.Children.Add(shieldIcon) |> ignore
-        let slash = new TextBox(Text="/",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true)
-        sp.Children.Add(slash) |> ignore
         let boomBookIcon = Graphics.BMPtoImage Graphics.boom_book_bmp
         boomBookIcon.Width <- 14.
         boomBookIcon.Height <- 14.
@@ -226,6 +224,24 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit false
     toggleBookShieldCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
     toggleBookShieldCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleIsCurrentlyBook())
+    // book is atlas
+    let bookIsAtlasCheckBox = 
+        let sp = new StackPanel(Orientation=Orientation.Horizontal)
+        let bookIcon = Graphics.BMPtoImage Graphics.book_bmp
+        bookIcon.Width <- 14.
+        bookIcon.Height <- 14.
+        sp.Children.Add(bookIcon) |> ignore
+        let mapIcon = Graphics.BMPtoImage Graphics.zi_map_bmp
+        mapIcon.Width <- 18.
+        mapIcon.Height <- 18.
+        let c = new Canvas(Width=16., Height=16., ClipToBounds=true)  // icon has border, canvas will clip it
+        canvasAdd(c, mapIcon, -1., -1.)
+        sp.Children.Add(c) |> ignore
+        new CheckBox(Content=sp)
+    bookIsAtlasCheckBox.ToolTip <- "Book is an Atlas (of all dungeon maps)"
+    bookIsAtlasCheckBox.IsChecked <- System.Nullable.op_Implicit false
+    bookIsAtlasCheckBox.Checked.Add(fun _ -> TrackerModel.ToggleBookIsAtlas())
+    bookIsAtlasCheckBox.Unchecked.Add(fun _ -> TrackerModel.ToggleBookIsAtlas())
     TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun b -> 
         if b then 
             notesTextBox.Text <- notesTextBox.Text + "\n" + hmsTimeTextBox.Text
@@ -234,7 +250,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 try
                     SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
                                         Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
-                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.FinishedSave) |> ignore
+                                        toggleBookShieldCheckBox.IsChecked.Value, bookIsAtlasCheckBox.IsChecked.Value, SaveAndLoad.FinishedSave) |> ignore
                 with _e ->
                     ()
         else
@@ -531,7 +547,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
         
     white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB
+        owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB
 
 let mutable hideFirstQuestFromMixed = fun _b -> ()
 let mutable hideSecondQuestFromMixed = fun _b -> ()

@@ -141,6 +141,7 @@ type AllData() =
     member val RecorderToNewDungeons = true with get,set
     member val RecorderToUnbeatenDungeons = false with get,set
     member val IsBoomstickSeed = false with get,set
+    member val IsAtlasSeed = false with get,set
     member val DungeonTabSelected = 9 with get,set
     member val DungeonMaps : DungeonModel[] = null with get,set
     member val UserCustomChecklist : UserCustomChecklist = null with get,set

@@ -27,18 +27,6 @@ open DungeonRoomState
 // the triforce and item inset
 let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster, posDestinationWhenMoveCursorLeftF) =
     let dungeonIndex = level-1
-    let linkCanvas = new Canvas(Width=30., Height=30.)
-    let link1 = Graphics.BMPtoImage Graphics.linkFaceForward_bmp
-    link1.Width <- 30.
-    link1.Height <- 30.
-    link1.Stretch <- Stretch.UniformToFill
-    let link2 = Graphics.BMPtoImage Graphics.linkGotTheThing_bmp
-    link2.Width <- 30.
-    link2.Height <- 30.
-    link2.Stretch <- Stretch.UniformToFill
-    link2.Opacity <- 0.
-    linkCanvas.Children.Add(link1) |> ignore
-    linkCanvas.Children.Add(link2) |> ignore
     let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
     let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
     let BT = 3.
@@ -95,7 +83,6 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
             let r = new Shapes.Rectangle(Width=30., Height=30., Fill=new VisualBrush(ghostBuster), IsHitTestVisible=false)
             canvasAdd(c, r, 0., 0.)
-    sp.Children.Add(linkCanvas) |> ignore
     sp.Margin <- Thickness(SPM)
     // dynamic highlight
     let line,triangle = Graphics.makeArrow(30.*float dungeonIndex+15., 36.+float(d.Boxes.Length+1)*30., pos.X+21., pos.Y-3., yellow)
@@ -110,16 +97,12 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     let highlight() =
         if c.Parent = null then
             canvasAdd(cm.AppMainCanvas, c, 0., 0.)
-        link1.Opacity <- 0.
-        link2.Opacity <- 1.
         line.Opacity <- 1.
         triangle.Opacity <- 1.
         rect.Opacity <- 1.
         border.BorderBrush <- yellow
     let unhighlight() = 
         cm.AppMainCanvas.Children.Remove(c)
-        link1.Opacity <- 1.
-        link2.Opacity <- 0.
         line.Opacity <- 0.
         triangle.Opacity <- 0.
         rect.Opacity <- 0.
@@ -708,6 +691,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             redrawAllRooms()        // old man rooms might be complete or incomplete, re-color them to show actual backing state
             updateHeaderCanvases()  // and add/remove red dot as appropriate
             )  
+        // have map checkbox
+        do
+            let c = new Canvas(Width=16., Height=16., ClipToBounds=true)
+            canvasAdd(c, Graphics.BMPtoImage Graphics.zi_map_bmp, -1., -1.)
+            let haveMapCB = new CheckBox(Content=c)
+            haveMapCB.ToolTip <- "I have the map (display on summary tab)"
+            haveMapCB.IsChecked <- System.Nullable.op_Implicit false
+            haveMapCB.Checked.Add(fun _ -> TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon <- true)
+            haveMapCB.Unchecked.Add(fun _ -> TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon <- false)
+            canvasAdd(contentCanvas, haveMapCB, LD_X+5., LD_Y+171.)
+            TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeonChanged.Add(fun _ -> haveMapCB.IsChecked <- System.Nullable.op_Implicit (TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon))
         // minimap-draw-er
         let hoverCanvas = new Canvas(Width=26., Height=26., Background=Brushes.Black, IsHitTestVisible=true)
         let minimini = Dungeon.MakeMiniMiniMapBmp() |> Graphics.BMPtoImage
@@ -1364,7 +1358,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         dummyCanvas.Children.Add(contentCanvases.[i]) |> ignore
                         // redraw the monster tables
                         monsterSPs.[i].Children.Clear()
-                        findAnyMarkedMonsters(i) |> Seq.iter (fun img -> img.HorizontalAlignment<-HorizontalAlignment.Right; monsterSPs.[i].Children.Add(img) |> ignore)
+                        findAnyMarkedMonsters(i) |> Seq.iter (fun img -> 
+                            let c = new Canvas(Width=16., Height=16., ClipToBounds=true)
+                            canvasAdd(c, img, -1., -1.)
+                            monsterSPs.[i].Children.Add(c) |> ignore
+                            )
                     levelTabSelected.Trigger(10)
             with _ -> ()
             )
@@ -1382,14 +1380,23 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             canvasAdd(contentCanvas, gc, 0., 0.)
         let make(i) =
             let miniCore = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
-            // at the mini size, the localDungeonTrackerPanel is unreadable and useless, so surface more useful data there instead: monster summary
-            let mini=new Canvas(Width=float w, Height=float h)
+            // at the mini size, the localDungeonTrackerPanel is unreadable and useless, so surface more useful data there instead: canSeeMap and monster summary
+            let mini = new Canvas(Width=float w, Height=float h)
             canvasAdd(mini, miniCore, 0., 0.)
-            let monsterSP = new StackPanel(Orientation=Orientation.Vertical, Width=20., VerticalAlignment=VerticalAlignment.Center, MaxHeight=float h)
+            let usefulPanel = new StackPanel(Orientation=Orientation.Vertical, Width=20., VerticalAlignment=VerticalAlignment.Center, Height=float h, Background=Brushes.Black)
+            let canSeeMapCanvas = new Canvas(Width=16., Height=16., ClipToBounds=true)
+            canvasAdd(canSeeMapCanvas, Graphics.BMPtoImage Graphics.zi_map_bmp, -1., -1.)
+            let T = 2
+            let mapBorder = new Border(Child=canSeeMapCanvas, BorderBrush=Brushes.Gray, BorderThickness=Thickness(float T))
+            usefulPanel.Children.Add(mapBorder) |> ignore
+            canSeeMapCanvas.Opacity <- if TrackerModel.GetDungeon(i).PlayerCanSeeMapOfThisDungeon then 1.0 else 0.0
+            TrackerModel.GetDungeon(i).PlayerCanSeeMapOfThisDungeonChanged.Add(fun _ -> canSeeMapCanvas.Opacity <- if TrackerModel.GetDungeon(i).PlayerCanSeeMapOfThisDungeon then 1.0 else 0.0)
+            let monsterSP = new StackPanel(Orientation=Orientation.Vertical, Width=20., VerticalAlignment=VerticalAlignment.Center, MaxHeight=float(h-16-2*T))
             monsterSPs.[i] <- monsterSP
-            let g = new Grid(Width=20., Height=float h, Background=Brushes.Black)   // grid to center the element
+            let g = new Grid(Width=20., Height=float(h-16-2*T), Background=Brushes.Black)   // grid to center the element
             g.Children.Add(monsterSP) |> ignore
-            canvasAdd(mini, g, float w - monsterSP.Width, 0.)
+            usefulPanel.Children.Add(g) |> ignore
+            canvasAdd(mini, usefulPanel, float w - monsterSP.Width, 0.)
             // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
             let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
             let overlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsHitTestVisible=false, Child=midi)

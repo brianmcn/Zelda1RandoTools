@@ -118,6 +118,14 @@ let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged =
     let ToggleIsCurrentlyBook() = isCurrentlyBook <- not isCurrentlyBook; isCurrentlyBookChangeEvent.Trigger(isCurrentlyBook)
     let IsCurrentlyBookChanged = isCurrentlyBookChangeEvent.Publish
     IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged
+let IsBookAnAtlas, ToggleBookIsAtlas, IsBookAnAtlasChanged = 
+    let mutable isBookAnAtlas = false
+    let isBookAnAtlasChangedEvent = new Event<_>()
+    let IsBookAnAtlas() = isBookAnAtlas
+    let ToggleBookIsAtlas() = isBookAnAtlas <- not isBookAnAtlas; isBookAnAtlasChangedEvent.Trigger(isBookAnAtlas)
+    let IsBookAnAtlasChanged = isBookAnAtlasChangedEvent.Publish
+    IsBookAnAtlas, ToggleBookIsAtlas, IsBookAnAtlasChanged
+let playerComputedStateSummaryForPlayerHasBookChanged = new Event<unit>()
 
 module ITEMS =
     let itemNamesAndCounts = [|
@@ -509,6 +517,7 @@ type StartingItemsAndExtras() =
     member _this.MaxHeartsDifferential with get() = maxHeartsDiff and set(x) = maxHeartsDiff <- x
 let startingItemsAndExtras = StartingItemsAndExtras()
 
+let mutable playerHasAtlas = fun() -> false
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeons and Boxes
@@ -626,6 +635,7 @@ type DungeonTrackerInstance(kind) =
 
 and Dungeon(id,numBoxes) =
     let mutable playerHasTriforce = false                     // just ignore this for dungeon 9 (id=8)
+    let mutable playerHasMap = false                          // map for this dungeon (book atlas does not affect this)
     let boxes = Array.init numBoxes (fun j -> 
         if DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS then
             new Box(StairKind.Never, BoxOwner.DungeonIndexAndNth(id,j))
@@ -644,13 +654,24 @@ and Dungeon(id,numBoxes) =
     let hiddenDungeonColorLabelChangeEvent = new Event<_>()
     let playerHasTriforceChangeEvent = new Event<_>()
     let hasBeenLocatedChangeEvent = new Event<_>()
+    let playerHasMapOfThisDungeonChangeEvent = new Event<_>()
+    let playerCanSeeMapOfThisDungeonChangeEvent = new Event<_>()
     do
         mapSquareChoiceDomain.Changed.Add(fun (_,key) -> if key=id then hasBeenLocatedChangeEvent.Trigger())
+        // atlas watching
+        IsCurrentlyBookChanged.Add(fun _ -> playerCanSeeMapOfThisDungeonChangeEvent.Trigger())
+        IsBookAnAtlasChanged.Add(fun _ -> playerCanSeeMapOfThisDungeonChangeEvent.Trigger())
+        playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Changed.Add(fun _ -> playerCanSeeMapOfThisDungeonChangeEvent.Trigger())
+        playerComputedStateSummaryForPlayerHasBookChanged.Publish.Add(fun _ -> playerCanSeeMapOfThisDungeonChangeEvent.Trigger())
     member _this.HasBeenLocated() = mapSquareChoiceDomain.NumUses(id) = 1   // WARNING: this being true does NOT mean TrackerModel.mapStateSummary.DungeonLocations.[i] has a legal (non-NOTFOUND) value
     member _this.HasBeenLocatedChanged = hasBeenLocatedChangeEvent.Publish
     member _this.PlayerHasTriforce() = playerHasTriforce
     member _this.ToggleTriforce() = playerHasTriforce <- not playerHasTriforce; playerHasTriforceChangeEvent.Trigger(playerHasTriforce); dungeonsAndBoxesLastChangedTime.SetNow()
     member _this.PlayerHasTriforceChanged = playerHasTriforceChangeEvent.Publish
+    member _this.PlayerHasMapOfThisDungeon with get() = playerHasMap and set(x) = playerHasMap <- x; playerHasMapOfThisDungeonChangeEvent.Trigger(); playerCanSeeMapOfThisDungeonChangeEvent.Trigger()
+    member _this.PlayerHasMapOfThisDungeonChanged = playerHasMapOfThisDungeonChangeEvent.Publish
+    member _this.PlayerCanSeeMapOfThisDungeon = playerHasMap || playerHasAtlas()
+    member _this.PlayerCanSeeMapOfThisDungeonChanged = playerCanSeeMapOfThisDungeonChangeEvent.Publish
     member _this.Boxes = 
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes
@@ -801,9 +822,20 @@ let recomputePlayerStateSummary() =
         if playerProgressAndTakeAnyHearts.GetTakeAnyHeart(h) = 1 then
             playerHearts <- playerHearts + 1
     playerHearts <- playerHearts + startingItemsAndExtras.MaxHeartsDifferential
+    let bookChanged = haveBookOrShield <> playerComputedStateSummary.HaveBookOrShield
     playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
                                                                 swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
+    if bookChanged then
+        playerComputedStateSummaryForPlayerHasBookChanged.Trigger()
     playerComputedStateSummaryLastComputedTime.SetNow()
+
+do 
+    playerHasAtlas <- (fun() ->
+        if IsCurrentlyBook() then
+            IsBookAnAtlas() && playerComputedStateSummary.HaveBookOrShield
+        else  // boomstick seed
+            IsBookAnAtlas() && playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()
+        )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Map
@@ -1091,7 +1123,6 @@ let recomputeWhatIsNeeded() =
 //////////////////////////////////////////////////////////////////////////////////////////
 // Other minor bits
     
-let mutable shieldBook = false // if true, boomstick seed - no eventing here, UI should synchronously swap shield/book icons
 let mutable recorderToNewDungeons = true
 let mutable recorderToUnbeatenDungeons = false
 let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these

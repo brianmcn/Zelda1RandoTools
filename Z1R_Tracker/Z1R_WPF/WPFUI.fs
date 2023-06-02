@@ -455,9 +455,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
     let mutable toggleBookShieldCheckBox : CheckBox = null
+    let mutable bookIsAtlasCheckBox : CheckBox = null
     let MakeManualSave() = SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
                                     Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
-                                    toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.ManualSave)
+                                    toggleBookShieldCheckBox.IsChecked.Value, bookIsAtlasCheckBox.IsChecked.Value, SaveAndLoad.ManualSave)
 
     let mirrorOW = new Border(Child=Graphics.BMPtoImage Graphics.mirrorOverworldBMP, BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.))
     mirrorOW.MouseEnter.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.DarkGray)
@@ -470,10 +471,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     mirrorOW.ToolTip <- "Toggle mirrored overworld"
     ToolTipService.SetPlacement(mirrorOW, System.Windows.Controls.Primitives.PlacementMode.Top)
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCB, highlightOpenCaves, timerResetButton, spotSummaryTB = 
+        owItemGrid, toggleBookShieldCB, bookIsAtlasCB, highlightOpenCaves, timerResetButton, spotSummaryTB = 
             MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule, doUIUpdateEvent, MakeManualSave)
     toggleBookShieldCheckBox <- toggleBookShieldCB
-    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
+    bookIsAtlasCheckBox <- bookIsAtlasCB
+    layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCaves, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
 
     do! showProgress("link")
 
@@ -2121,6 +2123,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         TrackerModel.recorderToUnbeatenDungeons <- data.RecorderToUnbeatenDungeons
         if data.IsBoomstickSeed then
             toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit true
+        if data.IsAtlasSeed then
+            bookIsAtlasCheckBox.IsChecked <- System.Nullable.op_Implicit true
         updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
         DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
@@ -2206,7 +2210,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             try
                 SaveAndLoad.SaveAll(notesTextBox.Text, DungeonUI.theDungeonTabControl.SelectedIndex, exportDungeonModelsJsonLines(), DungeonSaveAndLoad.SaveDrawingLayer(), 
                                         Graphics.alternativeOverworldMapFilename, Graphics.shouldInitiallyHideOverworldMap, currentRecorderDestinationIndex, 
-                                        toggleBookShieldCheckBox.IsChecked.Value, SaveAndLoad.AutoSave) |> ignore
+                                        toggleBookShieldCheckBox.IsChecked.Value, bookIsAtlasCheckBox.IsChecked.Value, SaveAndLoad.AutoSave) |> ignore
                 async {
                     diskIcon.Opacity <- 0.7
                     do! Async.Sleep(300)
