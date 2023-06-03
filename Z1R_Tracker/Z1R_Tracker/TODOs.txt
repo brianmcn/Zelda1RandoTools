@@ -102,8 +102,6 @@ TODO: consider short animation at mouse warp destination, like a big circle arou
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
 
-magnifier window should maybe default to square-size height? and check at 4/3 or 2/3 scale
-
 hover rupee blocker to show gambling, un-taken secrets? (also dungeon room mugger hover)
 
 

@@ -389,8 +389,9 @@ let makeMouseMagnifierWindow(cm:CustomComboBoxes.CanvasManager) =
             TrackerModelOptions.SmallerAppWindowScaleFactor
         else
             1.0
-    mmWindow.Width <- cm.AppMainCanvas.Width * MSF
-    mmWindow.Height <- cm.AppMainCanvas.Width * MSF  // square start
+    let defaultStartSizeFactor = 0.66666666666666
+    mmWindow.Width <- cm.AppMainCanvas.Width * MSF * defaultStartSizeFactor
+    mmWindow.Height <- cm.AppMainCanvas.Width * MSF * defaultStartSizeFactor  // square start
 
     let c = new Canvas(Background=Brushes.DarkSlateBlue)
     c.UseLayoutRounding <- true
