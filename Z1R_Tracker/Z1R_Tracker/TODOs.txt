@@ -73,6 +73,7 @@ since 1.2.3...
 - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
 - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
 - "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
+- new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets (TODO docs)
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
 - can choose a different voice for reminders, if installed (US windows usually has 2)
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
@@ -101,8 +102,6 @@ TODO: consider short animation at mouse warp destination, like a big circle arou
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
-
-hover rupee blocker to show gambling, un-taken secrets? (also dungeon room mugger hover)
 
 
 mouse thumb button mapping? (again, macros)

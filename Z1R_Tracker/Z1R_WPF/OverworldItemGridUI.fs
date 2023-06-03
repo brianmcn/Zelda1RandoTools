@@ -61,6 +61,7 @@ let mutable showLocatorHintedZone = fun(_hz:TrackerModel.HintZone,_also:bool) ->
 let mutable showLocatorInstanceFunc = fun(_f:int*int->bool) -> ()
 let mutable showHintShopLocator = fun() -> ()
 let mutable showLocatorPotionAndTakeAny = fun() -> ()
+let mutable showLocatorRupees = fun() -> ()
 let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 
@@ -262,6 +263,13 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
     gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
+
+    // hover target to look for money - highlight gambling money making game casinos, as well as unknown secrets and un-taken secret spots
+    let rupeeIcon = Graphics.BMPtoImage Graphics.rupee_bmp
+    rupeeIcon.MouseEnter.Add(fun _ -> showLocatorRupees())
+    rupeeIcon.MouseLeave.Add(fun _ -> hideLocator())
+    rupeeIcon.ToolTip <- "When hovered, highlights locations of Money Making Game,\nUnknown Secret, and not-yet-taken-Secret overworld spots"
+    gridAddTuple(owItemGrid, rupeeIcon, OW_ITEM_GRID_LOCATIONS.RUPEE_ICON)
 
     let highlightOpenCavesCB = 
         if isStandardHyrule then

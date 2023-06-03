@@ -21,6 +21,7 @@ module OW_ITEM_GRID_LOCATIONS =
     let WOOD_SWORD_BOX = 3,0
     let BOOMSTICK_BOX = 5,0
     let BOMB_BOX = 5,1
+    let RUPEE_ICON = 4,1
 
     let LADDER_ICON = 0,1
     let LADDER_ITEM_BOX = 1,1

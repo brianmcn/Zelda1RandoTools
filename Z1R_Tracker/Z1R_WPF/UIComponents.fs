@@ -633,6 +633,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             | TrackerModel.DungeonBlocker.KEY ->            showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.KEY)
             | TrackerModel.DungeonBlocker.BOMB ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
             | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
+            | TrackerModel.DungeonBlocker.MONEY ->          showLocatorRupees()
             | _ -> ()
             )
         c.MouseLeave.Add(fun _ -> hideLocator())

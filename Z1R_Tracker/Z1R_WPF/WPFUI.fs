@@ -1764,6 +1764,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
+                    owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
         if not(anyFound) then
             showLocatorNoneFound()
@@ -1777,6 +1779,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if MapStateProxy(cur).IsThreeItemShop && 
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
+                    owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
         if not(anyFound) then
             showLocatorNoneFound()
@@ -1790,6 +1794,25 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
                     (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true  // probably unnecessary, as these can't be hidden
+                    owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
+                    anyFound <- true
+        if not(anyFound) then
+            showLocatorNoneFound()
+        )
+    showLocatorRupees <- (fun () ->
+        clearRouteDrawingCanvas()
+        let mutable anyFound = false
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                if cur = TrackerModel.MapSquareChoiceDomainHelper.MONEY_MAKING_GAME || cur = TrackerModel.MapSquareChoiceDomainHelper.UNKNOWN_SECRET ||
+                            (cur = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) ||
+                            (cur = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) ||
+                            (cur = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) then
+                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
+                    owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
         if not(anyFound) then
             showLocatorNoneFound()
@@ -1881,6 +1904,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         for i = 0 to 15 do
             for j = 0 to 7 do
                 owLocatorTilesZone.[i,j].Hide()
+                OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
+                owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon possibly hidden
         owLocatorCanvas.Children.Clear()
         currentTargetGhostBuster.Opacity <- 0.
         ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
