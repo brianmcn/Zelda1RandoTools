@@ -72,7 +72,7 @@ since 1.2.3...
 - FQ/SQ... button to permanently mark off HFQ/HSQ stuff, or to mark vanilla FQ/SQ dungeon locations (TODO update docs)
 - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
 - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
-- "show open caves" icon now has a checkbox, check it to make unmarked open caves have Cyan GYR highlights
+- "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
 - can choose a different voice for reminders, if installed (US windows usually has 2)
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
@@ -102,6 +102,9 @@ TODO: consider short animation at mouse warp destination, like a big circle arou
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
 
+magnifier window should maybe default to square-size height? and check at 4/3 or 2/3 scale
+
+hover rupee blocker to show gambling, un-taken secrets? (also dungeon room mugger hover)
 
 
 mouse thumb button mapping? (again, macros)

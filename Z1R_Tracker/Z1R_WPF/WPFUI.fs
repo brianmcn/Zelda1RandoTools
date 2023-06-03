@@ -171,11 +171,22 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     // make the entire UI
     let timelineItems = ResizeArray()
 
-    let whetherToCyanOpenCaves() = 
+    let whetherToCyanOpenCavesOrArmos() = 
         if highlightOpenCavesCheckBox<>null && highlightOpenCavesCheckBox.IsChecked.HasValue && highlightOpenCavesCheckBox.IsChecked.Value then
-            (fun (x,y) -> owInstance.Nothingable(x,y) && TrackerModel.overworldMapMarks.[x,y].Current() = -1)
+            // There are 2 reasons to highlight some open caves.
+            // First, you might be looking for wood sword cave to obtain free wood sword (or candle)
+            if (TrackerModel.playerComputedStateSummary.SwordLevel > 0 && TrackerModel.playerComputedStateSummary.CandleLevel > 0)
+                        || TrackerModel.mapStateSummary.Sword1Location <> TrackerModel.NOTFOUND then
+                // (highlighting ALL open caves is no longer meaningful, but...)
+                if TrackerModel.armosBox.CellCurrent() = -1 then
+                    // Second, if your armos box is still empty, highlight the armos
+                    (fun (x,y) -> owInstance.HasArmos(x,y) && TrackerModel.overworldMapMarks.[x,y].Current() = -1)
+                else
+                    NoCyan
+            else
+                (fun (x,y) -> owInstance.Nothingable(x,y) && TrackerModel.overworldMapMarks.[x,y].Current() = -1)
         else
-            fun _ -> false
+            NoCyan
     let isSpecificRouteTargetActive,currentRouteTarget,eliminateCurrentRouteTarget,changeCurrentRouteTarget =
         let routeTargetLastClickedTime = new TrackerModel.LastChangedTime(TimeSpan.FromMinutes(10.))
         let mutable routeTarget = None
@@ -725,7 +736,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                             drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, mousePos, i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                                            whetherToCyanOpenCaves())
+                                                            whetherToCyanOpenCavesOrArmos())
                                             )
                                         onMouseForMagnifier(i,j)
                                         // track current location for F5 & speech recognition purposes
@@ -1057,7 +1068,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let showGettables = owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value
         let maxPale = if showGettables then OverworldRouteDrawing.All else 0
         OverworldRouteDrawing.drawPathsImpl(routeDrawingCanvas, TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, maxPale, whetherToCyanOpenCaves())
+                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, maxPale, whetherToCyanOpenCavesOrArmos())
             
     owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
 
@@ -1065,7 +1076,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     canvasAdd(overworldCanvas, overworldCirclesCanvas, 0., 0.)
 
-    let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra map layer' canvas for adding final marks to overworld map
+    let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     
@@ -1277,7 +1288,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     drawRoutesTo(currentRouteTarget(), routeDrawingCanvas, Point(0.,0.), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    whetherToCyanOpenCaves())
+                                    whetherToCyanOpenCavesOrArmos())
                 else
                     ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
             member _this.AnnounceCompletedDungeon(i) = 
@@ -1533,7 +1544,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             () // do nothing - don't highlight completed dungeons
             drawRoutesTo(None, routeDrawingCanvas, Point(), 0, 0, false, 0, 
                 (if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0),
-                whetherToCyanOpenCaves())
+                whetherToCyanOpenCavesOrArmos())
         else
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
@@ -1543,7 +1554,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 drawRoutesTo(None, routeDrawingCanvas, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    whetherToCyanOpenCaves())
+                                    whetherToCyanOpenCavesOrArmos())
     level9ColorCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
     level9ColorCanvas.MouseLeave.Add(fun _ -> hideLocator())
     let! dungeonTabs,posToWarpToWhenTabbingFromOverworld,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
