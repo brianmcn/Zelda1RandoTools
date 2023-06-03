@@ -72,8 +72,6 @@ since 1.2.3...
 - FQ/SQ... button to permanently mark off HFQ/HSQ stuff, or to mark vanilla FQ/SQ dungeon locations (TODO update docs)
 - remove 'Second quest dungeons' from options menu, move it to 3rd item box of dungeon 1 or 4 (hover/click) (TODO update docs)
 - remove 'Mirror overworld' from options menu, move it to a mirror icon button toggle near upper right of tracker (TODO update docs)
-- "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
-- new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets (TODO docs)
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
 - can choose a different voice for reminders, if installed (US windows usually has 2)
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map (TODO update MouseHoverExplainer screenshot in docs)
@@ -87,28 +85,55 @@ since 1.2.3...
 - (fix) resetting timer won't ask to place Start Spot if you have already placed it (e.g. groundhog day, known start location, etc.)
 - (fix) can scrollwheel to change circle color of overworld middle-click circles, even on unmarkable never-has-a-location tiles
 - (document that can bind more than on hotkey to an action, e.g. Foo=x, Foo=y; only first shows up in tooltips)
+since 1.3.0k...
+- "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
+- new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets (TODO docs)
 
-
-
-possibility of hotkeys do everything (discord thread)
-DONE: 'arrows' work for overworld, dungeon rooms, blockers, tri&items
-DONE: hotkeys that simulate left/middle/right click and scroll down/up at current mouse position
-DONE: 'arrows' navigate grid popups
-DONE: some way to do dungeon doors
-DONE: consider when moved on door without prior room, can arrow 2 dirs to get to a room
-DONE: purple doors, maybe hotkeys other than mouse buttons for door colors, hm
-TODO: consider short animation at mouse warp destination, like a big circle around the new mouse? (also for 'square' aspect window)
 
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
 
 
+
+homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
+blockers is not ideal highlight target, and is large
+ - at least give it a thin border around its textbox and offer some local feedback when its hovered
+maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
+also provide a popup explanation/legend of what it is (and figure out what it is)
+ - maybe it is two things: rooms i marked to come back to, and rooms yet to be found
+
+
+link probably doesn't route to rupees, might be easy to add
+
+
+more features 'hidden' behind options, to simplify default UI?
+
+
+
+
+in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
+ - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
+ - dungeon items: tri & items as you get them, to know when dungeon is 'done'
+ - dungeon maps: can do nothing... marking all stairs in 9... could mark blocker room in prior dungeon, and blocker type in blockers... eventually all of 9...
+ - dungeon rooms: default maybe-pushblock room complete/uncomplete (maybe ? and X mapping from zhelper) is most common, after that transports, only occasionally other marks
+ - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
+
+
+puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
+
+
+
+
+
+
+
+
 mouse thumb button mapping? (again, macros)
 
 
 more hotkeys: reset timer?  only if can place start spot with arrows (DONE), else need hand on mouse already anyway
-    other hotkeys to add?
+    other hotkeys to add? has-map toggle for dungeon?
     way to 'mark first free blocker box with 'X'? also can mark ladder block with hotkey if have ladder, but cannot mouse it, hm
 macros? e.g. one hotkey means press these keys in sequence (could be zelda room to mark 3 no-doors, or tri room to mark room and tri drop)
  - note that zelda-room would 'play' 3-no-doors keys, if you already marked one side as a red wall, then it would cycle that door down 2 more to purple, hm.
@@ -121,33 +146,33 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-
-(some way to capture has-map (and maybe surface in tab header?) maybe also interacts? hm... compass? maybe clicks/hotkeys to toggle having them, apart from hotkeys to mark them as room drops?)
-
 context-sensitive second window popout ideas
  - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
  - more something with ShowRunCustom? hotkey ability to launch? brainstorm
+old notes: if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
+related:
+If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
+(was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
+in the upper right corner of the app.  
+***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
+that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
+ - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
+ - or vanilla drop rooms if you have 1Q/2Q maps selected
+
+
+
+
 
 Way to export&import labeled circled on overworld, for e.g. 1Q/2Q dungeons, shops, 100-secrets, etc... like save&load, but just a subset - generalize? (vanilla drops e.g. banana in 1)
  - would these overwrite user data? or live in a different layer? i'm thinking overwrite-if-no-data-there
 
-many buttons are Focusable, which can alter how hotkeys get routed
+beware, many buttons are Focusable, which can alter how hotkeys get routed
 
 doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-
-puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
 
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
 
 swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
-
-homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
-blockers is not ideal highlight target, and is large
- - at least give it a thin border around its textbox and offer some local feedback when its hovered
-maybe move everything in dungeon side-panel down, and put another ? hover-target in upper right of dungeon, make that be it
-also provide a popup explanation/legend of what it is (and figure out what it is)
- - maybe it is two things: rooms i marked to come back to, and rooms yet to be found
-
 
 
 
@@ -159,21 +184,12 @@ probably more description/screenshot of options menu, say initial defaults tailo
 
 
 
-
-
-
 (separate)
 consider 'dungeon time' computer, based on: download VOD, use ffmpeg to grab thumbnail even N seconds, trim to race boundary, have human choose where in image the '8' in LEVEL-8 is, 
     extract all those regions, average them all to cleanly get the crisp contour, and then best-match to 123456789?_, then graph time in dungeons
 possibly consider broadcast-for-speedgaming if can link two of them
 
 
-
-
-
-within-dungeon pirouette: 
-Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
-[11:04 AM] fcoughlin: So a key door, bomb wall, or open shutter in the room you’re in will carry over to the start room of the dungeon
 
 
 put some kind of screenshot on the TOC page, so it can be a first landing page like the master frontpage
@@ -199,30 +215,11 @@ possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just
 TODO documentation of '...' options from startup screen and brief docs about DrawingLayer
 
 
-if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
-related:
-If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
-(was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
-in the upper right corner of the app.  
-***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
-that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
- - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
- - or vanilla drop rooms if you have 1Q/2Q maps selected
-
-
 
 
 Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
 
 
-Mocco71's magnifier shows rectangles rather than unicode arrows on lost hills...
-consider https://stackoverflow.com/questions/30476257/drawing-arrow-with-xaml
-or my arrow code from e.g. coast item
-
-
-
-if mouse hover a shop item, but no shop exists, give feedback - DONE (showLocatorNoneFound)
- - is related to speech, ensure fail-because-not-shop is visually communicated on Link (red ghostbusters?), whereas fail-because-no-interpret-speech has no visual indicator
 
 speech: "tracker where is bomb shop" or "tracker where is level five" ? "link route to XXX" ? (non-marking queries have less reliability issues)
  - make an icon next to MHE which is speech explainer which is basically all the same targets with voice
@@ -255,25 +252,12 @@ The list of choices is
 
 
 
-more features 'hidden' behind options, to simplify default UI?
-
-
 August40th: I've been playing with minor drops shuffled & there's no good way to mark minor items fron Armos, coast, or WS cave. 
  - just doc a strategy (white-click basements at start, Notes dungeons 'all done')
 
 
-in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
- - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
- - dungeon items: tri & items as you get them, to know when dungeon is 'done'
- - dungeon maps: can do nothing... marking all stairs in 9... could mark blocker room in prior dungeon, and blocker type in blockers... eventually all of 9...
- - dungeon rooms: default maybe-pushblock room complete/uncomplete (maybe ? and X mapping from zhelper) is most common, after that transports, only occasionally other marks
- - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
 
-
-
-
-
-
+===========================================================================
 distributing version process
  - for a full release, change the version number in OverworldData.fs (e.g. v1.0.0)
  - edit README.txt to point to upcoming branch URL
@@ -286,7 +270,7 @@ ABOVE IS DONE
      - get rid of hotkeys/settings/crash log
  - run the program once
      - creates hotkeys/settings/crash log/ZTracker.lnk
- - delete Magnifier/Overworld/ExtraIcons directory
+ - delete Magnifier/Overworld/ExtraIcons directory, if started an overworld session
  - delete ZTracker.lnk (has my machine's paths hardcoded)
  - delete the .pdb file, it is huge
  - If used program, then maybe also do these:
@@ -301,6 +285,7 @@ then users can
 
 if flagged as virus, this may help
 https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-security-center
+===========================================================================
 
 
 
@@ -308,32 +293,11 @@ https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-se
 
 SMALL
 
-optional reminder, if clicking rooms in dungeon, and then click overworld, and have not completed dungeon, assume they left and remind to mark blockers? "consider marking blockers"
-
-
-Reminders: If you have not got armos item, or found white sword cave, or witnessed coast item by N minutes, remind (and every M mins thereafter)
- - would probably need adjustable minutes settings on Options menu
- - no sensible defaults for noobs, so perhaps not on by default
- - if do implement adjustable numbers, probably make existing timed reminders also adjustable (coast item re-remind, PB/R/B re-remind, ladder/any-key one-time)
-
-
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
 
 
-ideally need to make second-shop-item left-click discoverable:
- - could have a circle-plus as second item button, to visually indicate clicking (but clutters the map - could be transient?)
- - could have status bar that suggests what left/right/scroll do on the currently hovered element
- - could have first-time-coaching with extra popup when users mark first shop item (and option to turn it off 'dont show this again')
- - could have more visual 'tip' on the startup tips
-
-
 voice feedback saying what mark, so less need to watch what you clicked?
-
-
-Maybe like a subscript on the item-progress bar on e.g. the recorder saying how many more recorder spots there are unmarked? and open-caves icon?
- - should open caves account for 'ow sword block' logic? (armos candle, or ladder -> candle?)
- - another possible extra-floating-window ui maybe
 
 
 ad-hoc counters? e.g. for whatever folks may want to track? hotkey'd?
@@ -367,12 +331,6 @@ homer: wants middle click in cyan and pink varieties, not just yellow, in dungeo
 clyceer: wants to drag in grab mode, rather than click-click
 
 
-cd accidentally marked second shop item, wanted to undo, didnt know how (item2=item1 does it, communicate it or add better ui)
-
-
-consider adding my 'dungeon drops' room table somewhere somehow (would need graphics)
-
-
 Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
  - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
  - Yellow percentage, count DRCs, etc
@@ -383,17 +341,6 @@ possibly a reminder when all dungeons have been found _or_hinted_, so you don't 
 
 clicking the kitty should meow or purr or something
 
-
-
-hotkeys
- - consider if Foo_Nothing=x, and you press 'x' to unmark, if maybe 'x' again will 'restore what was just unmarked', like a single-undo
-
-
-'paint' all the rooms you have 'listened' in 9 for ganon? (assuming been-in = listened, boss screams confound)
- - if people paint out the map, it's useless. could use 'completed' rooms only, but then kinda violates 'no semantics' on dung rooms
-     - but really you'd paint OFF-the-map spots, and then could work
- - related: where can zelda fit (some explicit mark for shutter doors?)
- - gesture could be hover-ganon and hover-zelda, and there is room to bring those icons down into inset, i think
 
 
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
@@ -407,8 +354,6 @@ my modal elements violate MouseEnter/MouseLeave parity, so e.g.,
  - L3 is still showLocator()ed because dungeon map never got a MouseLeave event
 I could not worry about that, or apply some ad-hoc fixes for the common case, but in general it seems non-trivial
 
-
-maybe have an optionsMenu thing for all the showLocator stuff, in case folks find it distracting?
 
 consider controller-button push-to-talk to explicitly activate speech recognition, to compensate for streaming-speech accuracy
  - option to play a sound when voice makes a mark
@@ -424,7 +369,6 @@ broadcast window doesnt capture drag-drop mouse movement
 if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
-
 
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
  - Stevie-O hacked this with a new overworldTiles() state NextAnyRoad or whatever
@@ -559,7 +503,9 @@ T              1                2 3 4 5 6 7 8 9
 (whole table assume 'Remove Most Open Stairs' not in use)
 
 
-
+within-dungeon pirouette: 
+Short answer: depends on the room you up+a in. It will open any door in the start room that has been opened (not open from the start) at the time you up+a
+[11:04 AM] fcoughlin: So a key door, bomb wall, or open shutter in the room you’re in will carry over to the start room of the dungeon
 
 
 Enemy Groups:
