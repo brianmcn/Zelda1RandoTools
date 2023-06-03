@@ -341,11 +341,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
     let localDungeonTrackerPanelWidth = 42.
     let exportFunctions = Array.create 9 (fun () -> new DungeonSaveAndLoad.DungeonModel())
     let importFunctions = Array.create 9 (fun _ -> ())
+    let isFirstTimeClickingAnyRoom = Array.init 9 (fun _ -> new TrackerModel.EventingBool(true))
+    let makeNumeral(labelChar) =
+        new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
+                        Height=float(27*8 + 12*7), Width=float(39*8 + 12*7), VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
+                        HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+    let getLabelChar(level) = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         dungeonTabs.Items.Add(levelTab) |> ignore
         levelTabs.[level-1] <- levelTab
-        let labelChar = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
+        let labelChar = getLabelChar(level)
         let header = new TextBox(Width=13., Background=Brushes.Black, Foreground=Brushes.White, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, 
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         let baitMeatImage = Graphics.bait_bmp |> Graphics.BMPtoImage
@@ -466,17 +472,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let dungeonBodyHighlightCanvas = new Canvas(Height=float(27*8 + 12*7), Width=float(39*8 + 12*7))  // draw e.g. blocker highlights here
         dungeonBodyHighlightCanvas.ClipToBounds <- true
         canvasAdd(dungeonCanvas, dungeonBodyHighlightCanvas, 0., float TH)
-        let mutable isFirstTimeClickingAnyRoomInThisDungeonTab = true
-        let numeral = new TextBox(Foreground=Brushes.Magenta, Background=Brushes.Transparent, Text=sprintf "%c" labelChar, IsReadOnly=true, IsHitTestVisible=false, FontSize=200., Opacity=0.25,
-                            Width=dungeonBodyCanvas.Width, Height=dungeonBodyCanvas.Height, VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
-                            HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
+        let numeral = makeNumeral(labelChar)
         let showNumeral() =
             numeral.Opacity <- 0.7
             let ctxt = Threading.SynchronizationContext.Current
             async { 
                 do! Async.Sleep(1000)
                 do! Async.SwitchToContext(ctxt)
-                numeral.Opacity <- if isFirstTimeClickingAnyRoomInThisDungeonTab then 0.25 else 0.0 
+                numeral.Opacity <- if isFirstTimeClickingAnyRoom.[level-1].Value then 0.25 else 0.0 
             } |> Async.Start
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
@@ -1062,7 +1065,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 | DoorDirection.South, DoorAction.Decrement -> if j<7 then verticalDoors.[i,j].Prev()
                             | None -> ()
                             if ea.Handled then  // if they pressed an actual hotkey
-                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
+                                isFirstTimeClickingAnyRoom.[level-1].Value <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
                                 numeral.Opacity <- 0.0
                     )
                 c.MouseEnter.Add(fun _ ->
@@ -1134,7 +1137,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 let dragBehavior(whichButtonStr) =
                     if not popupIsActive then
                         if whichButtonStr = "L" && roomStates.[i,j].RoomType = RoomType.OffTheMap then
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                            isFirstTimeClickingAnyRoom.[level-1].Value <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
                             roomStates.[i,j].RoomType <- RoomType.Unmarked
                             roomStates.[i,j].IsComplete <- false
@@ -1142,7 +1145,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             redrawAllDoors()
                             showMinimaps()
                         elif whichButtonStr = "R" && roomStates.[i,j].RoomType = RoomType.Unmarked then
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                            isFirstTimeClickingAnyRoom.[level-1].Value <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
                             roomStates.[i,j].RoomType <- RoomType.OffTheMap
                             roomStates.[i,j].IsComplete <- false
@@ -1150,7 +1153,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             redrawAllDoors()
                             showMinimaps()
                         elif whichButtonStr = "M" && roomStates.[i,j].RoomType.IsNotMarked then
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
+                            isFirstTimeClickingAnyRoom.[level-1].Value <- false  // originally painting cancels the first time accelerator (for 'play half dungeon, then start maybe-marking' scenario)
                             numeral.Opacity <- 0.0
                             roomStates.[i,j].RoomType <- defaultRoom()
                             roomStates.[i,j].IsComplete <- true
@@ -1193,17 +1196,17 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                     else
                                         // plain left click
                                         let workingCopy = roomStates.[i,j].Clone()
-                                        if not(isFirstTimeClickingAnyRoomInThisDungeonTab) && roomStates.[i,j].RoomType.IsNotMarked then
+                                        if not(isFirstTimeClickingAnyRoom.[level-1].Value) && roomStates.[i,j].RoomType.IsNotMarked then
                                             // ad hoc useful gesture for clicking unknown room - it moves it to explored & completed state
                                             workingCopy.RoomType <- defaultRoom()
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
                                         else
-                                            if isFirstTimeClickingAnyRoomInThisDungeonTab then
+                                            if isFirstTimeClickingAnyRoom.[level-1].Value then
                                                 workingCopy.RoomType <- RoomType.StartEnterFromS
                                                 workingCopy.IsComplete <- true
                                                 SetNewValue(workingCopy)
-                                                isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                                isFirstTimeClickingAnyRoom.[level-1].Value <- false
                                                 numeral.Opacity <- 0.0
                                             else
                                                 match roomStates.[i,j].RoomType.NextEntranceRoom() with
@@ -1223,8 +1226,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                         doFloorDropDetailPopup()
                                     else
                                         // plain right click
-                                        do! activatePopup(isFirstTimeClickingAnyRoomInThisDungeonTab)
-                                        isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                                        do! activatePopup(isFirstTimeClickingAnyRoom.[level-1].Value)
+                                        isFirstTimeClickingAnyRoom.[level-1].Value <- false
                                         numeral.Opacity <- 0.0
                                         redraw()
                                     ea.Handled <- true
@@ -1291,7 +1294,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     if jsonModel <> null then
                         let rs = jsonModel.AsDungeonRoomState()
                         if rs.RoomType <> RoomType.Unmarked then
-                            isFirstTimeClickingAnyRoomInThisDungeonTab <- false
+                            isFirstTimeClickingAnyRoom.[level-1].Value <- false
                             numeral.Opacity <- 0.0 
                         setNewValueFunctions.[i,j](rs)
             // we set the door after the rooms, because DoDoorInference may have inferred some values during the setNewValueFunctions calls, and want to overwrite
@@ -1380,7 +1383,25 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             canvasAdd(gc, new Shapes.Line(X1=float w*2./3., X2=float w*2./3., Y1=0., Y2=float h, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(contentCanvas, gc, 0., 0.)
         let make(i) =
-            let miniCore = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
+            let miniCore = new Canvas(Width=float w, Height=float h, Background=Brushes.Black)
+            let miniContent = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
+            canvasAdd(miniCore, miniContent, 0., 0.)
+            do  // decide if show blank canvas for undiscovered/unmarked dungeon, or what's in the tab
+                let c = new Canvas(Width=float w, Height=float h, Background=Brushes.Black)
+                let n = makeNumeral(getLabelChar(i+1))
+                n.FontSize <- n.FontSize / 3.
+                n.Width <- n.Width / 3.
+                n.Height <- n.Height / 3.
+                canvasAdd(c, n, 0., float(TH/3))
+                canvasAdd(miniCore, c, 0., 0.)
+                let decide() =
+                    if isFirstTimeClickingAnyRoom.[i].Value && TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then
+                        c.Opacity <- 1.0
+                    else
+                        c.Opacity <- 0.0
+                decide()
+                isFirstTimeClickingAnyRoom.[i].Changed.Add(fun _ -> decide())
+                TrackerModel.mapStateSummaryComputedEvent.Publish.Add(fun _ -> decide())
             // at the mini size, the localDungeonTrackerPanel is unreadable and useless, so surface more useful data there instead: canSeeMap and monster summary
             let mini = new Canvas(Width=float w, Height=float h)
             canvasAdd(mini, miniCore, 0., 0.)

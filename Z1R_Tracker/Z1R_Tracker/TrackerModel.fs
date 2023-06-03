@@ -111,6 +111,12 @@ type Cell(cd:ChoiceDomain) =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+type EventingBool(orig:bool) =
+    let mutable state = orig
+    let e = new Event<bool>()
+    member this.Value with get() = state and set(x) = state <- x; e.Trigger(x)
+    member this.Changed = e.Publish
+
 let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged = 
     let mutable isCurrentlyBook = true   // false if this is a boomstick seed
     let isCurrentlyBookChangeEvent = new Event<_>()
