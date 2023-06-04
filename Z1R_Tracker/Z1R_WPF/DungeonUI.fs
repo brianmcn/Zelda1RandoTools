@@ -1394,14 +1394,37 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 n.Height <- n.Height / 3.
                 canvasAdd(c, n, 0., float(TH/3))
                 canvasAdd(miniCore, c, 0., 0.)
+                let origNumeralColor = n.Foreground
+                let notFoundText = new TextBox(Text="not yet found",Foreground=origNumeralColor,Background=Brushes.Black,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.),FontSize=12.)
+                let completeText = new TextBox(Text="complete",Foreground=Brushes.Lime,Background=Brushes.Black,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.))
+                canvasAdd(c, notFoundText, 30., 85.)
+                canvasAdd(c, completeText, 40., 85.)
                 let decide() =
-                    if isFirstTimeClickingAnyRoom.[i].Value && TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then
+                    if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() then
+                        // just show their marks
+                        c.Opacity <- 0.0
+                    elif isFirstTimeClickingAnyRoom.[i].Value && TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then
+                        // nothing marked, not found, show a blank canvas with the numeral
                         c.Opacity <- 1.0
+                        n.Opacity <- 0.7
+                        n.Foreground <- origNumeralColor
+                        notFoundText.Opacity <- 0.7
+                        completeText.Opacity <- 0.0
+                    elif TrackerModel.GetDungeon(i).IsComplete then
+                        // blot out their marks, green numeral
+                        c.Opacity <- 1.0
+                        n.Opacity <- 0.5
+                        n.Foreground <- Brushes.Lime
+                        notFoundText.Opacity <- 0.0
+                        completeText.Opacity <- 0.5
                     else
+                        // just show their marks
                         c.Opacity <- 0.0
                 decide()
+                TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Changed.Add(fun _ -> decide())
                 isFirstTimeClickingAnyRoom.[i].Changed.Add(fun _ -> decide())
                 TrackerModel.mapStateSummaryComputedEvent.Publish.Add(fun _ -> decide())
+                TrackerModel.GetDungeon(i).IsCompleteWasNoticedChanged.Add(fun _ -> decide())
             // at the mini size, the localDungeonTrackerPanel is unreadable and useless, so surface more useful data there instead: canSeeMap and monster summary
             let mini = new Canvas(Width=float w, Height=float h)
             canvasAdd(mini, miniCore, 0., 0.)

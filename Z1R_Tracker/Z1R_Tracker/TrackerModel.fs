@@ -662,6 +662,9 @@ and Dungeon(id,numBoxes) =
     let hasBeenLocatedChangeEvent = new Event<_>()
     let playerHasMapOfThisDungeonChangeEvent = new Event<_>()
     let playerCanSeeMapOfThisDungeonChangeEvent = new Event<_>()
+    let completedWasNoticedChanged = new Event<_>()
+    let mutable priorComplete = false
+    let mutable currentlyReentrant = false
     do
         mapSquareChoiceDomain.Changed.Add(fun (_,key) -> if key=id then hasBeenLocatedChangeEvent.Trigger())
         // atlas watching
@@ -687,19 +690,31 @@ and Dungeon(id,numBoxes) =
             else
                 boxes
     member this.IsComplete = 
-        match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
-        | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
-            if playerHasTriforce then
-                let mutable numBoxesDone = 0
-                for b in boxes do
-                    if b.IsDone() then
-                        numBoxesDone <- numBoxesDone + 1
-                let twoBoxers = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
-                numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
-            else
-                false
-        | DungeonTrackerInstanceKind.DEFAULT ->
-            playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.IsDone())
+        if currentlyReentrant then
+            priorComplete
+        else
+            currentlyReentrant <- true
+            let r = 
+                match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
+                | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS ->
+                    if playerHasTriforce then
+                        let mutable numBoxesDone = 0
+                        for b in boxes do
+                            if b.IsDone() then
+                                numBoxesDone <- numBoxesDone + 1
+                        let twoBoxers = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
+                        numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
+                    else
+                        false
+                | DungeonTrackerInstanceKind.DEFAULT ->
+                    playerHasTriforce && this.Boxes |> Array.forall (fun b -> b.IsDone())
+            let needToNotify = priorComplete <> r
+            priorComplete <- r
+            if needToNotify then
+                completedWasNoticedChanged.Trigger()   // can cause a recursive call
+            currentlyReentrant <- false
+            r
+    member this.IsCompleteWasNoticedChanged = completedWasNoticedChanged.Publish  // not watching underlying, but main app polls IsCompleted every second, so next poll will notice change and report
     // for Hidden Dungeon Numbers
     member _this.Color with get() = color and set(x) = color <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar)
     member _this.LabelChar with get() = labelChar and set(x) = labelChar <- x; hiddenDungeonColorLabelChangeEvent.Trigger(color,labelChar); dungeonsAndBoxesLastChangedTime.SetNow()

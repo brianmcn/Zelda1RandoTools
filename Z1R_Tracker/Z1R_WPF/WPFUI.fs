@@ -1896,7 +1896,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     layout.AddLinkTarget(currentTargetGhostBuster)
     showLocatorNoneFound <- (fun () ->
         currentTargetGhostBuster.Opacity <- 1.
-        ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
+        // ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()  // do not do this, we want the map to be blank, to make the ghostbuster 'pop' more and the non-found-ness to be more apparent
         )
     hideLocator <- (fun () ->
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
@@ -2182,8 +2182,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             bookIsAtlasCheckBox.IsChecked <- System.Nullable.op_Implicit true
         updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
-        DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         do! importDungeonModels(showProgress, data.DungeonMaps)
+        DungeonUI.theDungeonTabControl.SelectedIndex <- 0   // if they selected the summary tab, it only updates after an actual change, so poke tab 0 first, so the change occurs
+        DungeonUI.theDungeonTabControl.SelectedIndex <- data.DungeonTabSelected
         // UserCustom
         if data.UserCustomChecklist <> null && data.UserCustomChecklist.Items <> null then
             SaveAndLoad.theUserCustomChecklist <- data.UserCustomChecklist

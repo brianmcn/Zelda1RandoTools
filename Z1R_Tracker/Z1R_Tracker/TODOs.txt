@@ -88,9 +88,13 @@ since 1.2.3...
 since 1.3.0k...
 - "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
 - new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets (TODO docs)
-- dungeon summary tab shows blank box for dungeons that are unlocated and unmarked
+- dungeon summary tab blacks out dungeons that are unlocated-and-unmarked, or completed, for 'big picture' (TODO general docs about purpose/value of the tab (decide what next))
 
 
+
+
+maybe auto switch to summary tab when you make overworld marks? bleah, I dont like doing that, but i need to look at it more, hm
+ - just implement this and try it on a couple seeds and see if it's annoying or whatever
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
