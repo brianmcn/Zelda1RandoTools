@@ -523,7 +523,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // ow map opaque fixed bottom layer
-    let X_OPACITY = 0.55
+    let X_OPACITY = Graphics.X_OPACITY
     let owOpaqueMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
@@ -667,15 +667,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    let drawCompletedIconHighlight(c,x,y,isWider) =
-        let w = if isWider then 27.0 else 15.0
-        let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
-        let diff = (if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.) - (if isWider then 6.0 else 0.0)
-        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
-    let drawCompletedDungeonHighlight(c,x,y,isWider) =
-        // darken the number
-        drawCompletedIconHighlight(c,x,y,isWider)
     let drawDarkening(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
@@ -932,7 +923,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         // other row
                         for n = 30 to 34 do
                             yield typicalGESAI(n)
-                        yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush, Opacity=X_OPACITY), true, 35
+                        yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorDarkBrush), true, 35
                         yield upcast new Canvas(Width=5.*3., Height=9.*3., Background=Graphics.overworldCommonestFloorColorBrush), true, -1
                         yield null, false, -999  // null asks selector to 'leave a hole' here
                         |]
@@ -1074,12 +1065,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     do! showProgress("overworld finish, legend")
 
-    canvasAdd(overworldCanvas, overworldCirclesCanvas, 0., 0.)
-
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
     recorderingCanvas.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     canvasAdd(overworldCanvas, recorderingCanvas, 0., 0.)
     
+    canvasAdd(overworldCanvas, overworldCirclesCanvas, 0., 0.)
+
     // legend
     let makeBasicStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
     let makeStartIcon() = 
@@ -1091,8 +1082,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
-    let recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB = 
-            UIComponents.MakeLegend(cm, drawCompletedDungeonHighlight, makeBasicStartIcon, doUIUpdateEvent)
+    let recorderDestinationButtonCanvas, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB = 
+            UIComponents.MakeLegend(cm, makeBasicStartIcon, doUIUpdateEvent)
     layout.AddLegend(legendCanvas, legendTB)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
     layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
@@ -1269,19 +1260,31 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
-            member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
-                if isCompleted then
-                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y,(TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar<>'?'))
-                owUpdateFunctions.[x,y] 0 null  // redraw the tile, e.g. to recolor based on triforce-having
+            member _this.DungeonLocation(i,x,y,hasTri,isCompleted) = ()
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.WhistleableLocation(x,y) = ()
             member _this.Armos(x,y)  = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.Sword3(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.Sword2(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
-            member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,owRouteworthySpots) = 
+            member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,_owRouteworthySpots) = 
                 // clear and redraw routing
                 clearRouteDrawingCanvas()
-                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
+                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations|>Seq.map fst,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
+                // redraw recorder dests
+                for (i,j),idx in currentRecorderWarpDestinations do
+                    let L = 6.0
+                    let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
+                    bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+                    let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
+                    canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L, float(11*3*j)-L/2.+1.)
+                    canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L, float(11*3*j)-L/2.+1.)
+                    if not(TrackerModel.recorderToNewDungeons) then
+                        // label the vanilla spots, so player knows the order
+                        let tb = new TextBox(Text=sprintf "%c" (char idx + char '1'), FontSize=12., FontWeight=FontWeights.Bold, Foreground=Brushes.White, Background=Brushes.Black, 
+                                                IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.))
+                        recorderingCanvas.Children.Add(tb) |> ignore
+                        Canvas.SetLeft(tb, OMTW*float i+2.)
+                        Canvas.SetBottom(tb, float(11*3*(7-j))+2.)
                 let pos = System.Windows.Input.Mouse.GetPosition(routeDrawingCanvas)
                 let i,j = int(Math.Floor(pos.X / OMTW)), int(Math.Floor(pos.Y / (11.*3.)))
                 if i>=0 && i<16 && j>=0 && j<8 then
@@ -1817,7 +1820,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         if not(anyFound) then
             showLocatorNoneFound()
         )
-    recorderDestinationButton.MouseEnter.Add(fun _ ->
+    recorderDestinationButtonCanvas.MouseEnter.Add(fun _ ->
         clearRouteDrawingCanvas()
         for i = 0 to 15 do
             for j = 0 to 7 do
@@ -1825,7 +1828,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && OverworldRouting.recorderDests |> Seq.contains (i,j) then
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
-    recorderDestinationButton.MouseLeave.Add(fun _ -> hideLocator())
+    recorderDestinationButtonCanvas.MouseLeave.Add(fun _ -> hideLocator())
     anyRoadLegendIcon.MouseEnter.Add(fun _ ->
         clearRouteDrawingCanvas()
         for i = 0 to 15 do

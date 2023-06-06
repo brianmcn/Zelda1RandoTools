@@ -177,25 +177,39 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight, makeStartIcon, doUIUpdateEvent:Event<unit>) =
+let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, doUIUpdateEvent:Event<unit>) =
     // map legend
     let legendCanvas = new Canvas()
     let dungeonIconCanvas = new Canvas()
     legendCanvas.Children.Add(dungeonIconCanvas) |> ignore
-    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW*0.6, Height=float(11*3-4), Background=Graphics.almostBlack, ClipToBounds=true)
-    let recorderDestinationButton = new Button(Content=recorderDestinationButtonCanvas)
+    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=Graphics.overworldCommonestFloorColorDarkBrush, ClipToBounds=true)
+    let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
 
     let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker")
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Active\nDungeon")
     canvasAdd(legendCanvas, tb, OMTW*0.8, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Completed\nDungeon")
-    canvasAdd(legendCanvas, tb, 3.3*OMTW, 0.)
-    canvasAdd(legendCanvas, recorderDestinationButton, 4.8*OMTW, 0.)
+    canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 4.6*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="...")
     let recorderDestinationSettingsButton = new Button(Content=tb)
     canvasAdd(legendCanvas, recorderDestinationSettingsButton, 6.7*OMTW, 0.)
+    let updateCurrentRecorderDestinationNumeral() =
+        dungeonIconCanvas.Children.Clear()
+        recorderDestinationButtonCanvas.Children.Clear()
+        canvasAdd(recorderDestinationButtonCanvas, recorderEllipse, 1., -2.)
+        let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
+        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
+        if TrackerModel.recorderToNewDungeons then
+            let recorderDestinationLegendIcon = Graphics.BMPtoImage yellowDungeonBMP
+            canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, 0., 0.)
+        else
+            let tb = new TextBox(Text=sprintf "%c" (char currentRecorderDestinationIndex + char '1'), FontSize=12., FontWeight=FontWeights.Bold, Foreground=Brushes.White, Background=Brushes.Black, 
+                                    IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.))
+            recorderDestinationButtonCanvas.Children.Add(tb) |> ignore
+            Canvas.SetLeft(tb, 0.)
+            Canvas.SetBottom(tb, 0.)
+    updateCurrentRecorderDestinationNumeral()
     recorderDestinationSettingsButton.Click.Add(fun _ ->
         if not popupIsActive then
             popupIsActive <- true
@@ -208,8 +222,8 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                                                             Foreground=Brushes.Orange,Background=Brushes.Black), Height=22.)
                 ToolTipService.SetToolTip(cb, "If unchecked, the recorder goes to vanilla first quest dungeon locations")
                 cb.IsChecked <- System.Nullable.op_Implicit TrackerModel.recorderToNewDungeons
-                cb.Checked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- true; doUIUpdateEvent.Trigger())
-                cb.Unchecked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- false; doUIUpdateEvent.Trigger())
+                cb.Checked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- true; updateCurrentRecorderDestinationNumeral(); doUIUpdateEvent.Trigger())
+                cb.Unchecked.Add(fun _ -> TrackerModel.recorderToNewDungeons <- false; updateCurrentRecorderDestinationNumeral(); doUIUpdateEvent.Trigger())
                 sp.Children.Add(cb) |> ignore
                 let cb = new CheckBox(Content=new TextBox(Text="Recorder to unbeaten dungeons",IsReadOnly=true,IsHitTestVisible=false,FontSize=16.,BorderThickness=Thickness(0.),
                                                             Foreground=Brushes.Orange,Background=Brushes.Black), Height=22.)
@@ -223,21 +237,6 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                 popupIsActive <- false
             } |> Async.StartImmediate
         )
-
-    let updateCurrentRecorderDestinationNumeral() =
-        dungeonIconCanvas.Children.Clear()
-        recorderDestinationButtonCanvas.Children.Clear()
-        let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
-        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
-        let greenDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[1]
-        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 2.1*OMTW, 0.)
-        drawCompletedDungeonHighlight(dungeonIconCanvas,2.1,0,false)
-        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage greenDungeonBMP, 2.5*OMTW, 0.)
-        drawCompletedDungeonHighlight(dungeonIconCanvas,2.5,0,false)
-        let recorderDestinationLegendIcon = Graphics.BMPtoImage greenDungeonBMP
-        canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, -8., -2.)
-    updateCurrentRecorderDestinationNumeral()
-
     recorderDestinationButtonCanvas.MouseDown.Add(fun ea ->
         let delta = 
             if ea.ChangedButton = Input.MouseButton.Left then
@@ -330,7 +329,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, drawCompletedDungeonHighlight,
                 } |> Async.StartImmediate
         )
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
-    recorderDestinationButton, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB
+    recorderDestinationButtonCanvas, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB
 
 let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress

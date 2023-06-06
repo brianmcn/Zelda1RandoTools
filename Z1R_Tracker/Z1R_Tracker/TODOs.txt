@@ -89,12 +89,39 @@ since 1.3.0k...
 - "show open caves" now has checkbox: unmarked open caves have Cyan GYR highlights to locate wood sword cave and armos while relevant (TODO doc it)
 - new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets (TODO docs)
 - dungeon summary tab blacks out dungeons that are unlocated-and-unmarked, or completed, for 'big picture' (TODO general docs about purpose/value of the tab (decide what next))
+- dungeon room MonsterDetails have 16 new monster icon choices relative to 1.2 (TODO update docs)
+- new recorder destination icon (white oval), map legend; no more green dungeons or shaded dungeons
+
+
+
+redo legend/record dest
+adjust legend layout, fix gaping hole
+
+consider getting rid of shaders in top tracker and blockersunglasses
+
+
+dungeon summary still unusable:
+- doesnt show blockers
+- doesnt show missing hinted items or tris
+- pixelated details hard to see
+- numbers unreadable
+I think we need to abstract the grid at the 'mini' size
+- light/dark rooms
+- off-the-map stuff
+- tri/item/heart marks
+- basements, transports
+And then bring the inset back and the blockers over so it's all readable together somehow.
 
 
 
 
 maybe auto switch to summary tab when you make overworld marks? bleah, I dont like doing that, but i need to look at it more, hm
  - just implement this and try it on a couple seeds and see if it's annoying or whatever
+
+
+when hover shop not found, put like text "not found" above the ghostbuster next to link
+(more generally, ensure that infrequent/novel icons/colors have accompanying labels when it makes sense)
+
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
@@ -440,6 +467,20 @@ always a candle shop blocked by at most bombs
 always an arrow shop blocked by at most candle
 
 
+stabbing an NPC in a dungeon increments the consecutive kill counter, but not the global
+
+
+'step over the water'
+It means a path exists where you have to walk across the water, which might mean the dungeon is at one of the river spots by the waterfall (but not in RR flags, since 
+those river spots are 2Q overworld only) or that you you can cross a moat in a dungeon to get to the item.  But there might a different path through the dungeon where 
+you do not need to cross the moat.  
+
+fred: The gist is:  if you walk in with the bare minimum stuff (sword, bombs if I recall), you can't get to the room.  If you walk in with the bare minimum plus ladder, you can get to the room.
+That doesn't guarantee that's the ONLY way to get there.  Sometimes, one path is blocked by ladder, and another blocked by recorder, for instance.  Then you could get 
+both hints, but may find you don't need a ladder to get there.
+
+
+
 
 The game (vanilla Z1) has 8 possible room states that can be set for the rooms (unless at some point I decide to do custom assembly):   KILL->DROP KILL->SHUTTER PUSH->STAIR PUSH->SHUTTER   STAND
 0 - Nothing happens.  Drop stands in the room, doors stay shut on room clear.                                                               .          .             .           .             X
@@ -515,19 +556,58 @@ Short answer: depends on the room you up+a in. It will open any door in the star
 
 Enemy Groups:
 
-I heard someone say that, of (wizzrobe, darknut, lynel, goriya), exactly 2 will be in overworld and exactly 2 in dungeons, is that true?  Any other rules of monster-bucketing I should know?  (What was the thing with dungeons? Are there 3 different sets of dungeons monsters, and each set appears in 2 or 3 or 4 dungeons each, or something?)
-[12:00 AM] AdirondackRick: If I remember correctly, and Fred can correct me if I'm wrong:
+I heard someone say that, of (wizzrobe, darknut, lynel, goriya), exactly 2 will be in overworld and exactly 2 in dungeons, is that true?  Any other rules of monster-bucketing I should know?  
+(What was the thing with dungeons? Are there 3 different sets of dungeons monsters, and each set appears in 2 or 3 or 4 dungeons each, or something?)
 
-There are three different set of dungeon monsters, and they are guaranteed to appear in a minimum of 2 dungeons.   That means one set could realistically appear in a maximum of 5 dungeons, but I don't know the validity of that 5.
-Lorgon111
-I heard someone say that, of (wizzrobe, darknut, lynel, goriya), exactly 2 will be in overworld and exactly 2 in dungeons, is that true?  Any other rules of monster-bucketing I should know?  (What was the thing with dungeons? Are there 3 different sets of dungeons monsters, and each set appears in 2 or 3 or 4 dungeons each, or something?)
-[12:52 AM] jkoper: I would guess the actual group is wizzrobe, darknut, lynel, goriya, and moblin, with two of those being on the overworld and three in dungeons.  The stalfos, gibdos, tektites, and pols voice probably fill the other slots.  I'm definitely doing a little guessing here, but it really depends on the number of sprite slots each enemy needs.
-[8:43 AM] fcoughlin: There are four “groups”: overworld, the group in vanilla 1/2/7, group in vanilla 3/5/8, and group in vanilla 4/6/9.
+jkoper: I would guess the actual group is wizzrobe, darknut, lynel, goriya, and moblin, with two of those being on the overworld and three in dungeons.  
+The stalfos, gibdos, tektites, and pols voice probably fill the other slots.  I'm definitely doing a little guessing here, but it really depends on the number of sprite slots each enemy needs.
 
-When I shuffle groups, there will still be four groups. One is overworld, for the three dungeons, each group will be in at least two dungeons (remaining three dungeons are random, so in theory you could have 5 dungeons in one group). 
+fcoughlin: There are four “groups”: overworld, the group in vanilla 1/2/7, group in vanilla 3/5/8, and group in vanilla 4/6/9.
+
+When I shuffle groups, there will still be four groups. One is overworld, for the three dungeons, each group will be in at least two dungeons (remaining three dungeons are random, 
+so in theory you could have 5 dungeons in one group).    (my math: 5/2/2 has 1/9 chance; 3/3/3 has 2/9 chance; 4/3/2 has 6/9 chance)
 
 What enemies end in which groups comes 100% from sprite limits. There’s a fixed number of bytes per enemy group, and as a result, only some things can work together.
-[8:51 AM] AdirondackRick: Now with all this being said, it’s worth notice there’s one enemy that shares two dungeon groups in each seed. In vanilla, it’s the Zols, but it could be gibdos, pols voices, staffols, ropes — anything that doesn’t have a red/blue pairing.  So it’s realistic for one enemy in particular to be seen in as many as seven of the nine dungeons.
+
+AdirondackRick: Now with all this being said, it’s worth notice there’s one enemy that shares two dungeon groups in each seed. In vanilla, it’s the Zols, but it could be 
+gibdos, pols voices, staffols, ropes — anything that doesn’t have a red/blue pairing.  So it’s realistic for one enemy in particular to be seen in as many as seven of the nine dungeons.
+
+
+Vanilla Enemy Sets:
+GORIYA
+Red and Blue Goriya
+Ropes
+Staffols
+Wallmasters
+Gels (not Zols)
+Keese
+
+DARKNUT
+Red and Blue Darknuts
+Pols Voice
+Gibdos
+Zols
+Gels
+Keese
+
+WIZZROBES
+Red and Blue Wizzrobes
+Like Likes
+Vires
+Zols
+Gels
+Keese
+
+
+
+Lorgon111: Semi-related: are (1Q) bubbles part of the enemy groups?  Are 'spike traps' part of the enemy groups?  Moldorm?  Is lanmola a 'boss'? 
+(I presume beamos are not part of enemy groups, but part of dungeon room geometry.) 
+AdirondackRick: Bubbles and spikes are not a part of an enemy group.  You can find them in any of the three. Moldorm and Lanmola are considered “bosses”, along with that dreaded rupee boss.  
+The one I don’t know about is what causes lanmola to respawn after a couple room passes.
+jkoper: Due to the number of sprites they use, there are only limited permutations for how boss groups can be reconstructed, and it might be kind of nice if Fred (or someone with 
+sufficient knowledge of the code) took a look and laid those out. I feel like moldorm could be in any dungeon since it just uses the fireball sprite. My expectation is that the boss 
+group tied to a dungeon is unrelated to the enemy group for that dungeon, but that might not be the case when they get shuffled I guess. However, we know that if bosses and boss groups 
+aren't shuffled then patras can only be in 9 with Gannon and Zelda, but any monster group could be there.
 
 
 

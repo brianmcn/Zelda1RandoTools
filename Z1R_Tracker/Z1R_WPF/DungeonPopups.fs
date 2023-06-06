@@ -138,7 +138,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
     redraw(currentMonsterDetail) |> ignore
     let all = MonsterDetail.All()
     let gridElementsSelectablesAndIDs = [|
-        for n = 0 to 15 do
+        for n = 0 to 27 do
             let fe:FrameworkElement = if n>=all.Length then null elif all.[n].IsNotMarked then upcast new Canvas() else upcast (all.[n].Bmp() |> Graphics.BMPtoImage)
             let isSelectable = n < all.Length
             let ident = if n>=all.Length then MonsterDetail.Unmarked else all.[n]
@@ -172,7 +172,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
             dungeonRoomExplainer, -3.-boxX, 342.-boxY-THE_DIFF
         ]
     setOpacity(0.8)
-    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (4, 4, 18, 18), 9., 9., gridX, gridY, 
+    return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, 0, (7, 4, 18, 18), 9., 9., gridX, gridY, 
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 

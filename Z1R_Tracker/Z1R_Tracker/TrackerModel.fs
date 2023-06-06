@@ -1310,7 +1310,7 @@ type ITrackerEvents =
     abstract Armos : int*int -> unit // x,y
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
-    abstract RoutingInfo : bool*bool*seq<int*int>*seq<int*int>*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
+    abstract RoutingInfo : bool*bool*seq<(int*int)*int>*seq<int*int>*bool[,] -> unit // haveLadder haveRaft currentRecorderWarpDestinations currentAnyRoadDestinations owRouteworthySpots
     // dungeons
     abstract AnnounceCompletedDungeon : int -> unit
     abstract CompletedDungeons : bool[] -> unit     // for current shading
@@ -1423,9 +1423,9 @@ let allUIEventingLogic(ite : ITrackerEvents) =
                         if idx <> -1 then
                             let pos = mapStateSummary.DungeonLocations.[idx]
                             if pos <> NOTFOUND then
-                                yield pos           // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
+                                yield pos,idx           // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
                     else
-                        yield vanillaRecorderLocations.[tri]
+                        yield vanillaRecorderLocations.[tri], tri
         |]
     let anyRoadDests = [|
         for d in mapStateSummary.AnyRoadLocations do

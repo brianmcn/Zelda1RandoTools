@@ -270,11 +270,14 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
         // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
         // We color green/yellow as we would if no starting/extra tris have been obtained, but hover-highlights over recorder destination button behave differently.
         // Neither is 'correct', as there's incomplete information.
+        (*
         let isGreen = 
             if TrackerModel.recorderToNewDungeons then
                 (TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() <> TrackerModel.recorderToUnbeatenDungeons) && TrackerModel.playerComputedStateSummary.HaveRecorder
             else
                 false
+        *)
+        let isGreen = false     // green confused many users, thought it meant 'done'... we'll now use different iconography for recorder destinations
         if TrackerModel.IsHiddenDungeonNumbers() then 
             if TrackerModel.GetDungeon(ms.State).LabelChar <> '?' then
                 if isGreen then

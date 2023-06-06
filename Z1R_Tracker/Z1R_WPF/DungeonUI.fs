@@ -1331,10 +1331,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         contentCanvas.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
         contentCanvas.Children.Add(dummyCanvas) |> ignore
         let monsterPriority = // in order of what goes top of the list to surface, down to bottom
-            [| MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.Gleeok; MonsterDetail.Patra; 
-               MonsterDetail.Manhandla; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; 
-               MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.OrangeBlue;
-               MonsterDetail.PolsVoice; MonsterDetail.Vire; MonsterDetail.Zol; MonsterDetail.Unmarked |]
+            [| MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.RedLynel; MonsterDetail.RedGoriya; MonsterDetail.BlueMoblin;         // principal mobs
+               MonsterDetail.Patra; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.Gleeok; MonsterDetail.Manhandla;    // blocker bosses
+               MonsterDetail.PolsVoice;                                                                                                                  // not exactly a blocker, but bow helps tons
+               MonsterDetail.Keese; MonsterDetail.Gel; MonsterDetail.Stalfos; MonsterDetail.Zol; MonsterDetail.RedTektite; MonsterDetail.Rope;           // easy notables
+               MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.Aquamentus; MonsterDetail.BlueLanmola;              // other notables, rest of bosses
+               MonsterDetail.Wallmaster; MonsterDetail.Likelike; MonsterDetail.Gibdo; MonsterDetail.Vire; MonsterDetail.Unmarked |]                      // the rest
         if monsterPriority.Length <> MonsterDetail.All().Length then
             failwith "design-time bug, not all monsters prioritized"
         let findAnyMarkedMonsters(dunIdx) = 
