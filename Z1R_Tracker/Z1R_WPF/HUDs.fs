@@ -386,5 +386,7 @@ let MakeHUDs(cm:CustomComboBoxes.CanvasManager, trackerDungeonMoused:Event<_>, t
     minimapOverlay <- fun (isRightClick) -> makeMinimapOverlay(isRightClick)
 #endif    
 
+    ignore makeMinimapOverlay
+    ignore makeOverlayWindow
     ()
 

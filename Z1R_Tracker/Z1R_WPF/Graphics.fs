@@ -43,6 +43,7 @@ type HARDWAREINPUT = struct
     new(_uMsg, _wParamL, _wParamH) = {uMsg = _uMsg; wParamL = _wParamL; wParamH = _wParamH}
 end
 
+#nowarn "9"
 [<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)>]
 type InputUnion = struct
     [<System.Runtime.InteropServices.FieldOffset(0)>]

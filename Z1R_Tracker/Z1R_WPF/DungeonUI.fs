@@ -1376,13 +1376,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let w, h = int contentCanvas.Width / 3, int contentCanvas.Height / 3
         let g = Graphics.makeGrid(3, 3, w, h)
         do // put gridlines to bound each dungeon
-            let gc = new Canvas(Width=float w, Height=float h)
-            let w,h = contentCanvas.Width, int contentCanvas.Height
+            let ccw,cch = contentCanvas.Width, int contentCanvas.Height
+            let gc = new Canvas(Width=float ccw, Height=float cch)
             gc.Children.Add(g) |> ignore
-            canvasAdd(gc, new Shapes.Line(X1=0., X2=float w, Y1=float h/3., Y2=float h/3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=0., X2=float w, Y1=float h*2./3., Y2=float h*2./3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=float w/3., X2=float w/3., Y1=0., Y2=float h, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=float w*2./3., X2=float w*2./3., Y1=0., Y2=float h, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=float cch/3., Y2=float cch/3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=float cch*2./3., Y2=float cch*2./3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=float ccw/3., X2=float ccw/3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=float ccw*2./3., X2=float ccw*2./3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(contentCanvas, gc, 0., 0.)
         let make(i) =
             let miniCore = new Canvas(Width=float w, Height=float h, Background=Brushes.Black)
