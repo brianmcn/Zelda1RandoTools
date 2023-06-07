@@ -246,7 +246,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
             let extraDecorationsF(boxPos:Point) =
                 let extraDecorations = computeExtraDecorationArrow(sword2x, sword2y, boxPos)
                 seq extraDecorations
-            false, sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
+            false, sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
         else
             ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD3 then

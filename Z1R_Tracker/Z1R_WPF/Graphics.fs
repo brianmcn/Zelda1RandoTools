@@ -496,7 +496,7 @@ let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bm
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19], a.[20], 
         a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27])
 
-let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_map_bmp, zi_compass_bmp, zi_other_item_bmp, zi_alt_bomb_bmp, zi_rock, zi_tree) =
+let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_map_bmp, zi_compass_bmp, zi_other_item_bmp, zi_alt_bomb_bmp, zi_rock, zi_tree, zi_atlas) =
     let imageStream = GetResourceStream("zelda_items16x16.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -514,7 +514,7 @@ let (zi_triforce_bmp, zi_heart_bmp, zi_bomb_bmp, zi_key_bmp, zi_fiver_bmp, zi_ma
                     if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then () else r.SetPixel(px+1, py+1, color)
             yield r
     |]
-    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10])
+    (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9], a.[10], a.[11])
 
 let _brightTriforce_bmp, fullOrangeTriforce_bmp, _dullOrangeTriforce_bmp, greyTriforce_bmp, owHeartSkipped_bmp, owHeartEmpty_bmp, owHeartFull_bmp, iconRightArrow_bmp, iconCheckMark_bmp, iconExtras_bmp, iconDisk_bmp, owHeartTallFull_bmp = 
     let imageStream = GetResourceStream("icons10x10.png")
@@ -623,6 +623,21 @@ let dungeonRoomBmpPairs =
             yield (ur,cr)
     |]
     a
+let dungeonRoomTinyBmpPairs =
+    let imageStream = GetResourceStream("new_icons13x9.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|  
+        for i = 0 to bmp.Width/13 - 1 do
+            let ur = new System.Drawing.Bitmap(13,9)
+            let cr = new System.Drawing.Bitmap(13,9)
+            for px = 0 to 13-1 do
+                for py = 0 to 9-1 do
+                    ur.SetPixel(px, py, bmp.GetPixel(px + i*13,   py))
+                    cr.SetPixel(px, py, bmp.GetPixel(px + i*13, 9+py))
+            yield (ur,cr)
+    |]
+    a
+
 (*
 let dungeonRoomFloorDrops, dungeonRoomMonsters =
     let imageStream = GetResourceStream("icons3x3.png")

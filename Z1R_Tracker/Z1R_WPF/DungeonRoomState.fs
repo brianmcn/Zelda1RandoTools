@@ -347,46 +347,48 @@ type RoomType =
         | OffTheMap               -> "(Off the map)"
         | Gannon                  -> "Gannon"
         | Zelda                   -> "Zelda"
-    member private this.BmpPair() =
+    member private this.BmpPair(pairs:_[]) =
         match this with
-        | Unmarked                -> fst Graphics.dungeonRoomBmpPairs.[0], fst Graphics.dungeonRoomBmpPairs.[0]
-        | NonDescript             -> Graphics.dungeonRoomBmpPairs.[1]
-        | MaybePushBlock          -> Graphics.dungeonRoomBmpPairs.[10]
-        | ItemBasement            -> Graphics.dungeonRoomBmpPairs.[11]
-        | StaircaseToUnknown      -> Graphics.dungeonRoomBmpPairs.[25]
-        | Transport1              -> Graphics.dungeonRoomBmpPairs.[17]
-        | Transport2              -> Graphics.dungeonRoomBmpPairs.[18]
-        | Transport3              -> Graphics.dungeonRoomBmpPairs.[19]
-        | Transport4              -> Graphics.dungeonRoomBmpPairs.[20]
-        | Transport5              -> Graphics.dungeonRoomBmpPairs.[21]
-        | Transport6              -> Graphics.dungeonRoomBmpPairs.[22]
-        | Transport7              -> Graphics.dungeonRoomBmpPairs.[23]
-        | Transport8              -> Graphics.dungeonRoomBmpPairs.[24]
-        | Chevy                   -> Graphics.dungeonRoomBmpPairs.[3]
-        | DoubleMoat              -> Graphics.dungeonRoomBmpPairs.[2]
-        | TopMoat                 -> Graphics.dungeonRoomBmpPairs.[5]
-        | RightMoat               -> Graphics.dungeonRoomBmpPairs.[4]
-        | CircleMoat              -> Graphics.dungeonRoomBmpPairs.[6]
-        | Tee                     -> Graphics.dungeonRoomBmpPairs.[9]
-        | LavaMoat                -> Graphics.dungeonRoomBmpPairs.[33]
-        | VChute                  -> Graphics.dungeonRoomBmpPairs.[7]
-        | HChute                  -> Graphics.dungeonRoomBmpPairs.[8]
-        | Turnstile               -> Graphics.dungeonRoomBmpPairs.[16]
+        | Unmarked                -> fst pairs.[0], fst pairs.[0]
+        | NonDescript             -> pairs.[1]
+        | MaybePushBlock          -> pairs.[10]
+        | ItemBasement            -> pairs.[11]
+        | StaircaseToUnknown      -> pairs.[25]
+        | Transport1              -> pairs.[17]
+        | Transport2              -> pairs.[18]
+        | Transport3              -> pairs.[19]
+        | Transport4              -> pairs.[20]
+        | Transport5              -> pairs.[21]
+        | Transport6              -> pairs.[22]
+        | Transport7              -> pairs.[23]
+        | Transport8              -> pairs.[24]
+        | Chevy                   -> pairs.[3]
+        | DoubleMoat              -> pairs.[2]
+        | TopMoat                 -> pairs.[5]
+        | RightMoat               -> pairs.[4]
+        | CircleMoat              -> pairs.[6]
+        | Tee                     -> pairs.[9]
+        | LavaMoat                -> pairs.[33]
+        | VChute                  -> pairs.[7]
+        | HChute                  -> pairs.[8]
+        | Turnstile               -> pairs.[16]
         | OldManHint              -> 
-            if TrackerModelOptions.BookForHelpfulHints.Value then Graphics.dungeonRoomBmpPairs.[12]
-            else snd Graphics.dungeonRoomBmpPairs.[12], snd Graphics.dungeonRoomBmpPairs.[12]
-        | BombUpgrade             -> Graphics.dungeonRoomBmpPairs.[15]
-        | LifeOrMoney             -> Graphics.dungeonRoomBmpPairs.[14]
-        | HungryGoriyaMeatBlock   -> Graphics.dungeonRoomBmpPairs.[13]
-        | StartEnterFromE         -> Graphics.dungeonRoomBmpPairs.[29]
-        | StartEnterFromW         -> Graphics.dungeonRoomBmpPairs.[26]
-        | StartEnterFromN         -> Graphics.dungeonRoomBmpPairs.[27]
-        | StartEnterFromS         -> Graphics.dungeonRoomBmpPairs.[28]
-        | OffTheMap               -> Graphics.dungeonRoomBmpPairs.[30]
-        | Gannon                  -> snd Graphics.dungeonRoomBmpPairs.[31], snd Graphics.dungeonRoomBmpPairs.[31]
-        | Zelda                   -> snd Graphics.dungeonRoomBmpPairs.[32], snd Graphics.dungeonRoomBmpPairs.[32]
-    member this.CompletedBmp()   = this.BmpPair() |> snd
-    member this.UncompletedBmp() = this.BmpPair() |> fst
+            if TrackerModelOptions.BookForHelpfulHints.Value then pairs.[12]
+            else snd pairs.[12], snd pairs.[12]
+        | BombUpgrade             -> pairs.[15]
+        | LifeOrMoney             -> pairs.[14]
+        | HungryGoriyaMeatBlock   -> pairs.[13]
+        | StartEnterFromE         -> pairs.[29]
+        | StartEnterFromW         -> pairs.[26]
+        | StartEnterFromN         -> pairs.[27]
+        | StartEnterFromS         -> pairs.[28]
+        | OffTheMap               -> pairs.[30]
+        | Gannon                  -> snd pairs.[31], snd pairs.[31]
+        | Zelda                   -> snd pairs.[32], snd pairs.[32]
+    member this.CompletedBmp()   = this.BmpPair(Graphics.dungeonRoomBmpPairs) |> snd
+    member this.UncompletedBmp() = this.BmpPair(Graphics.dungeonRoomBmpPairs) |> fst
+    member this.TinyCompletedBmp()   = this.BmpPair(Graphics.dungeonRoomTinyBmpPairs) |> snd
+    member this.TinyUncompletedBmp() = this.BmpPair(Graphics.dungeonRoomTinyBmpPairs) |> fst
     static member All() = [|
         RoomType.NonDescript
         RoomType.MaybePushBlock

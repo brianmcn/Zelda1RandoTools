@@ -850,6 +850,8 @@ let recomputePlayerStateSummary() =
         playerComputedStateSummaryForPlayerHasBookChanged.Trigger()
     playerComputedStateSummaryLastComputedTime.SetNow()
 
+
+let playerHasAtlasChanged = new Event<unit>()
 do 
     playerHasAtlas <- (fun() ->
         if IsCurrentlyBook() then
@@ -857,6 +859,10 @@ do
         else  // boomstick seed
             IsBookAnAtlas() && playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()
         )
+    IsCurrentlyBookChanged.Add(fun _ -> playerHasAtlasChanged.Trigger())
+    IsBookAnAtlasChanged.Add(fun _ -> playerHasAtlasChanged.Trigger())
+    playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Changed.Add(fun _ -> playerHasAtlasChanged.Trigger())
+    playerComputedStateSummaryForPlayerHasBookChanged.Publish.Add(fun _ -> playerHasAtlasChanged.Trigger())
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Map

@@ -594,37 +594,13 @@ open HotKeys.MyKey
 
 let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
     // blockers
-    let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
-                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.4)
-                                                  new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.6)
-                                                  new GradientStop(Color.FromArgb(255uy, 180uy, 60uy, 60uy), 1.0)
-                                                 ])
-    let blocker_brush = new LinearGradientBrush(blocker_gsc, Point(0.,0.), Point(1.,1.))
     let blockerBoxes : Canvas[,] = Array2D.zeroCreate 8 TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON
     let makeBlockerBox(dungeonIndex, blockerIndex) =
-        let make() =
-            let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
-            let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
-            let redraw(n) = 
-                c.Children.Clear()
-                match n with
-                | TrackerModel.DungeonBlocker.MAYBE_LADDER 
-                | TrackerModel.DungeonBlocker.MAYBE_RECORDER
-                | TrackerModel.DungeonBlocker.MAYBE_BAIT
-                | TrackerModel.DungeonBlocker.MAYBE_BOMB
-                | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW
-                | TrackerModel.DungeonBlocker.MAYBE_KEY
-                | TrackerModel.DungeonBlocker.MAYBE_MONEY
-                    -> rect.Stroke <- blocker_brush
-                | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
-                | _ -> rect.Stroke <- Brushes.LightGray
-                c.Children.Add(rect) |> ignore
-                canvasAdd(c, Graphics.blockerCurrentDisplay(n) , 3., 3.)
-                c
-            c, redraw
-        let c,redraw = make()
-        let mutable current = TrackerModel.DungeonBlocker.NOTHING
-        redraw(current) |> ignore
+        let c = Views.MakeBlockerView(dungeonIndex, blockerIndex)
+        let mutable current = TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
+        TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
+            current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
+            )
         // hovering a blocker box with a sellable item will highlight the corresponding shops (currently only way to mouse-hover to see key/meat shops)
         c.MouseEnter.Add(fun _ -> 
             match current.HardCanonical() with
@@ -646,14 +622,10 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  Some(TrackerModel.MapSquareChoiceDomainHelper.ARROW, (pos.X, pos.Y))
             | _ -> None
             )
-        TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
-            current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
-            redraw(current) |> ignore
-            )
         let SetNewValue(db) = TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
         let activate(activationDelta) =
             popupIsActive <- true
-            let pc, predraw = make()
+            let pc, predraw = Views.MakeBlockerCore()
             let popupRedraw(n) =
                 let innerc = predraw(n)
                 let s = HotKeys.BlockerHotKeyProcessor.AppendHotKeyToDescription(n.DisplayDescription(), n)

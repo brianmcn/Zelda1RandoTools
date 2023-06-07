@@ -378,7 +378,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c
-        let innerc = Views.MakeTriforceDisplayView(cm,i,Some(owInstance), true)
+        let innerc = Views.MakeTriforceDisplayView(Some(cm),i,Some(owInstance))
         triforceInnerCanvases.[i] <- innerc
         c.Children.Add(innerc) |> ignore
         c.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
@@ -771,7 +771,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
                         seq(OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos))
-                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(cm, TrackerModel.ladderBox, false, Some extraDecorationsF)
+                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.ladderBox, false, Some extraDecorationsF)
                     mirrorOverworldFEs.Add(coastBoxOnOwGrid)
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
                     //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got

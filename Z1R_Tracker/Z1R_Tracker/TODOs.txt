@@ -115,6 +115,11 @@ And then bring the inset back and the blockers over so it's all readable togethe
 
 
 
+
+if try load file and cancel, app exists, should restart
+
+
+
 maybe auto switch to summary tab when you make overworld marks? bleah, I dont like doing that, but i need to look at it more, hm
  - just implement this and try it on a couple seeds and see if it's annoying or whatever
 

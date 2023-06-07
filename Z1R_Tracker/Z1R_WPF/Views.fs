@@ -100,7 +100,7 @@ let IDEAL_BOX_MOUSE_X = 22.
 let IDEAL_BOX_MOUSE_Y = 17.
 
 let redrawTriforces = ResizeArray()
-let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owInstanceOpt, makeInteractive) =
+let MakeTriforceDisplayView(cmo:CustomComboBoxes.CanvasManager option, trackerIndex, owInstanceOpt) =    // cmo=Some(cm) means "makeInteractive"
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
     let redraw() =
@@ -140,7 +140,8 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
                         canvasAdd(innerc, img, float(2+j*10), 8.+16.)
     redraw()
     // interactions
-    if makeInteractive then
+    match cmo with
+    | Some(cm) ->
         let mutable popupIsActive = false
         innerc.MouseDown.Add(fun _ -> 
             if not popupIsActive then
@@ -156,6 +157,7 @@ let MakeTriforceDisplayView(cm:CustomComboBoxes.CanvasManager, trackerIndex, owI
             )
         Dungeon.HotKeyAHiddenDungeonLabel(innerc, dungeon, None)
         appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(innerc)
+    | _ -> ()
     // redraw if PlayerHas changes
     dungeon.PlayerHasTriforceChanged.Add(fun _ -> redraw())
     // redraw after we can look up its new location coordinates
@@ -189,6 +191,22 @@ let MakeLevel9View(owInstanceOpt) =
     // redraw if hinting changes
     TrackerModel.LevelHintChanged(8).Add(fun _ -> redraw())
     level9NumeralCanvas
+let MakeColorNumberCanvasForHDN(dungeonIndex) =
+    // color/number canvas
+    if TrackerModel.IsHiddenDungeonNumbers() then
+        let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+        let d = TrackerModel.GetDungeon(dungeonIndex)
+        let redraw(color,labelChar) =
+            colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            colorCanvas.Children.Clear()
+            let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
+            if d.LabelChar <> '?' then
+                colorCanvas.Children.Add(Graphics.BMPtoImage(Graphics.alphaNumOnTransparentBmp(labelChar, color, 28, 28, 3, 2))) |> ignore
+        redraw(d.Color, d.LabelChar)
+        d.HiddenDungeonColorOrLabelChanged.Add(redraw)
+        colorCanvas
+    else
+        null
 
 let redrawBoxes = ResizeArray()
 TrackerModel.IsCurrentlyBookChanged.Add(fun _ ->
@@ -200,7 +218,7 @@ TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
     for f in redrawBoxes do
         f()
     )
-let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
+let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     if box.Stair <> TrackerModel.StairKind.Never then
         let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
@@ -282,84 +300,124 @@ let MakeBoxItemWithExtraDecorations(cm:CustomComboBoxes.CanvasManager, box:Track
             | _ -> ()
     redraw()
     // interactions
-    let mutable popupIsActive = false
-    let activateComboBox(activationDelta) =
-        popupIsActive <- true
-        let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-        let extraDecorations = match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with | Some f -> f(pos) | None -> seq[]
-        async {
-            let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
-            match r with
-            | Some(newBoxCellValue, newPlayerHas) -> box.Set(newBoxCellValue, newPlayerHas)
-            | None -> ()
-            popupIsActive <- false
-            } |> Async.StartImmediate
-    c.MouseDown.Add(fun ea ->
-        if not popupIsActive then
-            if ea.ButtonState = Input.MouseButtonState.Pressed &&
-                    (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
-                ea.Handled <- true
-                if box.CellCurrent() = -1 then
-                    activateComboBox(0)
-                else
-                    let desire = CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea
-                    if desire = box.PlayerHas() then
-                        activateComboBox(0) // rather than idempotent gesture doing nothing, a second try (e.g. left click and already-have item) reactivates popup (easier to discover than scroll)
-                    else
-                        box.SetPlayerHas(desire)
-        )
-    c.MouseWheel.Add(fun ea -> 
-        if not popupIsActive then 
-            ea.Handled <- true
-            activateComboBox(if ea.Delta<0 then 1 else -1)
-        )
-    c.MyKeyAdd(fun ea -> 
-        if not popupIsActive then
-            match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
-            | Some(i) ->
-                ea.Handled <- true
-                if i <> -1 && box.CellCurrent() = i then
-                    // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
-                    if box.PlayerHas() = TrackerModel.PlayerHas.NO then
-                        box.Set(i, TrackerModel.PlayerHas.YES)
-                    elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
-                        box.Set(i, TrackerModel.PlayerHas.SKIPPED)
-                    else
-                        box.Set(i, TrackerModel.PlayerHas.NO)
-                elif i = -1 then
-                    if box.CellCurrent() <> -1 then
-                        box.Set(i, TrackerModel.PlayerHas.NO)      // emptying a full box always goes to NO first
-                    elif box.PlayerHas()=TrackerModel.PlayerHas.NO then
-                        box.Set(i, TrackerModel.PlayerHas.SKIPPED) // emptying an empty box toggles the box outline color
-                    else
-                        box.Set(i, TrackerModel.PlayerHas.NO)      // emptying an empty box toggles the box outline color
-                else
-                    // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
-                    if not(box.AttemptToSet(i, TrackerModel.PlayerHas.NO)) then
-                        System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this box to Bow when another box already has 'Bow'
-            | None -> ()
-        )
-    if accelerateIntoComboBox then
-        c.Loaded.Add(fun _ -> activateComboBox(0))
-    // hover behavior
-    appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
-    match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
-    | Some f ->
-        let hoverCanvas = new Canvas()
-        c.MouseEnter.Add(fun _ ->
-            cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
+    match cmo with
+    | Some cm ->
+        let mutable popupIsActive = false
+        let activateComboBox(activationDelta) =
+            popupIsActive <- true
             let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
-            let extraDecorations = f(pos)
-            hoverCanvas.Children.Clear()
-            for fe, x, y in extraDecorations do
-                canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
-            canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
+            let extraDecorations = match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with | Some f -> f(pos) | None -> seq[]
+            async {
+                let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
+                match r with
+                | Some(newBoxCellValue, newPlayerHas) -> box.Set(newBoxCellValue, newPlayerHas)
+                | None -> ()
+                popupIsActive <- false
+                } |> Async.StartImmediate
+        c.MouseDown.Add(fun ea ->
+            if not popupIsActive then
+                if ea.ButtonState = Input.MouseButtonState.Pressed &&
+                        (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
+                    ea.Handled <- true
+                    if box.CellCurrent() = -1 then
+                        activateComboBox(0)
+                    else
+                        let desire = CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea
+                        if desire = box.PlayerHas() then
+                            activateComboBox(0) // rather than idempotent gesture doing nothing, a second try (e.g. left click and already-have item) reactivates popup (easier to discover than scroll)
+                        else
+                            box.SetPlayerHas(desire)
             )
-        c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
-    | None -> ()
+        c.MouseWheel.Add(fun ea -> 
+            if not popupIsActive then 
+                ea.Handled <- true
+                activateComboBox(if ea.Delta<0 then 1 else -1)
+            )
+        c.MyKeyAdd(fun ea -> 
+            if not popupIsActive then
+                match HotKeys.ItemHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(i) ->
+                    ea.Handled <- true
+                    if i <> -1 && box.CellCurrent() = i then
+                        // if this box already contains the hotkey'd item, pressing the hotkey cycles the PlayerHas state NO -> YES -> SKIPPED
+                        if box.PlayerHas() = TrackerModel.PlayerHas.NO then
+                            box.Set(i, TrackerModel.PlayerHas.YES)
+                        elif box.PlayerHas() = TrackerModel.PlayerHas.YES then
+                            box.Set(i, TrackerModel.PlayerHas.SKIPPED)
+                        else
+                            box.Set(i, TrackerModel.PlayerHas.NO)
+                    elif i = -1 then
+                        if box.CellCurrent() <> -1 then
+                            box.Set(i, TrackerModel.PlayerHas.NO)      // emptying a full box always goes to NO first
+                        elif box.PlayerHas()=TrackerModel.PlayerHas.NO then
+                            box.Set(i, TrackerModel.PlayerHas.SKIPPED) // emptying an empty box toggles the box outline color
+                        else
+                            box.Set(i, TrackerModel.PlayerHas.NO)      // emptying an empty box toggles the box outline color
+                    else
+                        // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
+                        if not(box.AttemptToSet(i, TrackerModel.PlayerHas.NO)) then
+                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this box to Bow when another box already has 'Bow'
+                | None -> ()
+            )
+        if accelerateIntoComboBox then
+            c.Loaded.Add(fun _ -> activateComboBox(0))
+        // hover behavior
+        appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
+        match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
+        | Some f ->
+            let hoverCanvas = new Canvas()
+            c.MouseEnter.Add(fun _ ->
+                cm.AppMainCanvas.Children.Remove(hoverCanvas)  // safeguard, in case MouseEnter/MouseLeave parity is broken
+                let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
+                let extraDecorations = f(pos)
+                hoverCanvas.Children.Clear()
+                for fe, x, y in extraDecorations do
+                    canvasAdd(hoverCanvas, fe, x+3., y+3.)   // +3s because decorations are relative to the combobox popup, which is over the interior icon area, excluding the rectangle border
+                canvasAdd(cm.AppMainCanvas, hoverCanvas, pos.X, pos.Y) |> ignore
+                )
+            c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
+        | None -> ()
+    | _ -> ()
     // redraw on changes
     redrawBoxes.Add(fun() -> redraw())
     box.Changed.Add(fun _ -> redraw())
     c
 let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
-    MakeBoxItemWithExtraDecorations(cm, box, false, None)
+    MakeBoxItemWithExtraDecorations(Some(cm), box, false, None)
+
+// blocker view
+let blocker_gsc = new GradientStopCollection([new GradientStop(Color.FromArgb(255uy, 60uy, 180uy, 60uy), 0.)
+                                              new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.4)
+                                              new GradientStop(Color.FromArgb(255uy, 80uy, 80uy, 80uy), 0.6)
+                                              new GradientStop(Color.FromArgb(255uy, 180uy, 60uy, 60uy), 1.0)
+                                             ])
+let blocker_brush = new LinearGradientBrush(blocker_gsc, Point(0.,0.), Point(1.,1.))
+let MakeBlockerCore() =
+    let c = new Canvas(Width=30., Height=30., Background=Brushes.Black, IsHitTestVisible=true)
+    let rect = new Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.Gray, StrokeThickness=3.0, IsHitTestVisible=false)
+    let redraw(n) = 
+        c.Children.Clear()
+        match n with
+        | TrackerModel.DungeonBlocker.MAYBE_LADDER 
+        | TrackerModel.DungeonBlocker.MAYBE_RECORDER
+        | TrackerModel.DungeonBlocker.MAYBE_BAIT
+        | TrackerModel.DungeonBlocker.MAYBE_BOMB
+        | TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW
+        | TrackerModel.DungeonBlocker.MAYBE_KEY
+        | TrackerModel.DungeonBlocker.MAYBE_MONEY
+            -> rect.Stroke <- blocker_brush
+        | TrackerModel.DungeonBlocker.NOTHING -> rect.Stroke <- Brushes.Gray
+        | _ -> rect.Stroke <- Brushes.LightGray
+        c.Children.Add(rect) |> ignore
+        canvasAdd(c, Graphics.blockerCurrentDisplay(n) , 3., 3.)
+        c
+    c, redraw
+let MakeBlockerView(dungeonIndex, blockerIndex) =
+    let c,redraw = MakeBlockerCore()
+    let mutable current = TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
+    redraw(current) |> ignore
+    TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
+        current <- TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, blockerIndex)
+        redraw(current) |> ignore
+        )
+    c
