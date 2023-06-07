@@ -65,7 +65,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
             canvasAdd(appMainCanvas, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
-            canvasAdd(appMainCanvas, spotSummaryTB, 13.*OMTW, 90.)
+            canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
             canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 70.)
             canvasAdd(appMainCanvas, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
         member this.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox) = 
@@ -221,7 +221,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
             canvasAdd(upper, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(upper, timerResetButton, 12.8*OMTW, 60.)
-            canvasAdd(upper, spotSummaryTB, 13.*OMTW, 90.)
+            canvasAdd(upper, spotSummaryTB, 12.8*OMTW, 90.)
             canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 70.)
             canvasAdd(upper, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
             // just capture a swath of stuff

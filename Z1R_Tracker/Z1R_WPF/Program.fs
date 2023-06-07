@@ -654,12 +654,14 @@ type MyWindow() as this =
                             loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
                         with e ->
                             let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
-                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                            let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Restart"])
                             ignore r
+                            Graphics.RestartTheApplication()
                     else
                         let msg = sprintf "Failed to load a save file."
-                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Exit"])
+                        let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Restart"])
                         ignore r
+                        Graphics.RestartTheApplication()
                 do! doStartup(n,loadData)
             } |> Async.StartImmediate
         let quests = [|

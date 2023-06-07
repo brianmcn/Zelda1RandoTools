@@ -45,6 +45,10 @@ let makeGhostBusterImpl(color) =  // for marking off the third box of completed 
     let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=color)
     canvasAdd(c, circle, 0., 0.)
     canvasAdd(c, slash, 0., 0.)
+    let txt = new TextBox(FontSize=10., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="None\nfound")
+    Canvas.SetBottom(txt,30.)
+    Canvas.SetLeft(txt,0.)
+    c.Children.Add(txt) |> ignore
     c
 let makeGhostBuster() = makeGhostBusterImpl(Brushes.Gray)
 let mainTrackerGhostbusters = Array.init 8 (fun _ -> makeGhostBuster())
