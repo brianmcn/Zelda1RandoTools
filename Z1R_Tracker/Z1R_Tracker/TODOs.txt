@@ -100,17 +100,12 @@ adjust legend layout, fix gaping hole
 consider getting rid of shaders in top tracker and blockersunglasses
 
 
-dungeon summary still unusable:
-- doesnt show blockers
-- doesnt show missing hinted items or tris
-- pixelated details hard to see
-- numbers unreadable
-I think we need to abstract the grid at the 'mini' size
-- light/dark rooms
-- off-the-map stuff
-- tri/item/heart marks
-- basements, transports
-And then bring the inset back and the blockers over so it's all readable together somehow.
+
+do a discord survey of options people use
+
+should potion shop icon have red potion (visual contrast)?
+
+
 
 
 

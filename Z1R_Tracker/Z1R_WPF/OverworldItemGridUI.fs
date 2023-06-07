@@ -274,12 +274,12 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let highlightOpenCavesCB = 
         if isStandardHyrule then
             let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
-            highlightOpenCaves.ToolTip <- "Highlight unmarked open caves (when hovered)\n" +
+            let cb = new CheckBox(Content=highlightOpenCaves)
+            cb.ToolTip <- "Highlight unmarked open caves (when hovered)\n" +
                 "When checked, highlights all unmarked open caves until you\neither mark wood sword cave or obtain both a sword and a candle;\n" +
                 "after that, highlights just the armos locations until you mark armos item."
-            ToolTipService.SetPlacement(highlightOpenCaves, System.Windows.Controls.Primitives.PlacementMode.Top)
-            ToolTipService.SetShowDuration(highlightOpenCaves, 15000)
-            let cb = new CheckBox(Content=highlightOpenCaves)
+            ToolTipService.SetPlacement(cb, System.Windows.Controls.Primitives.PlacementMode.Top)
+            ToolTipService.SetShowDuration(cb, 15000)
             cb.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
             cb.MouseLeave.Add(fun _ -> hideLocator())
             cb
