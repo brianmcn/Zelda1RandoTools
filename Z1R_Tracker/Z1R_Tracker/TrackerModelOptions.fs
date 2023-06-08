@@ -24,6 +24,7 @@ module VoiceReminders =
     let mutable HaveKeyLadder = Bool(true)
     let mutable Blockers = Bool(true)
     let mutable DoorRepair = Bool(true)
+    let mutable OverworldOverwrites = Bool(true)
 module VisualReminders =
     let mutable DungeonFeedback = Bool(true)
     let mutable SwordHearts = Bool(true)
@@ -32,6 +33,7 @@ module VisualReminders =
     let mutable HaveKeyLadder = Bool(true)
     let mutable Blockers = Bool(true)
     let mutable DoorRepair = Bool(true)
+    let mutable OverworldOverwrites = Bool(true)
 module OverworldTilesToHide =
     let mutable Sword3 = Bool(false)
     let mutable Sword2 = Bool(false)
@@ -93,6 +95,7 @@ type ReadWrite() =
     member val Voice_HaveKeyLadder = true with get,set
     member val Voice_Blockers = true with get,set
     member val Voice_DoorRepair = true with get,set
+    member val Voice_OverworldOverwrites = true with get,set
 
     member val Visual_DungeonFeedback = true with get,set
     member val Visual_SwordHearts = true with get,set
@@ -101,6 +104,7 @@ type ReadWrite() =
     member val Visual_HaveKeyLadder = true with get,set
     member val Visual_Blockers = true with get,set
     member val Visual_DoorRepair = true with get,set
+    member val Visual_OverworldOverwrites = true with get,set
         
     member val HideOverworldTile_Sword3 = false with get,set
     member val HideOverworldTile_Sword2 = false with get,set
@@ -167,6 +171,7 @@ let private writeImpl(filename) =
     data.Voice_HaveKeyLadder <-   VoiceReminders.HaveKeyLadder.Value
     data.Voice_Blockers <-        VoiceReminders.Blockers.Value
     data.Voice_DoorRepair <-      VoiceReminders.DoorRepair.Value
+    data.Voice_OverworldOverwrites <- VoiceReminders.OverworldOverwrites.Value
 
     data.Visual_DungeonFeedback <- VisualReminders.DungeonFeedback.Value
     data.Visual_SwordHearts <-     VisualReminders.SwordHearts.Value
@@ -175,6 +180,7 @@ let private writeImpl(filename) =
     data.Visual_HaveKeyLadder <-   VisualReminders.HaveKeyLadder.Value
     data.Visual_Blockers <-        VisualReminders.Blockers.Value
     data.Visual_DoorRepair <-      VisualReminders.DoorRepair.Value
+    data.Visual_OverworldOverwrites <- VisualReminders.OverworldOverwrites.Value
 
     data.HideOverworldTile_Sword3 <- OverworldTilesToHide.Sword3.Value
     data.HideOverworldTile_Sword2 <- OverworldTilesToHide.Sword2.Value
@@ -253,6 +259,7 @@ let private read(filename) =
         VoiceReminders.HaveKeyLadder.Value <-   data.Voice_HaveKeyLadder
         VoiceReminders.Blockers.Value <-        data.Voice_Blockers
         VoiceReminders.DoorRepair.Value <-      data.Voice_DoorRepair
+        VoiceReminders.OverworldOverwrites.Value <- data.Voice_OverworldOverwrites
 
         VisualReminders.DungeonFeedback.Value <- data.Visual_DungeonFeedback
         VisualReminders.SwordHearts.Value <-     data.Visual_SwordHearts
@@ -261,6 +268,7 @@ let private read(filename) =
         VisualReminders.HaveKeyLadder.Value <-   data.Visual_HaveKeyLadder
         VisualReminders.Blockers.Value <-        data.Visual_Blockers
         VisualReminders.DoorRepair.Value <-      data.Visual_DoorRepair
+        VisualReminders.OverworldOverwrites.Value <- data.Visual_OverworldOverwrites
 
         OverworldTilesToHide.Sword3.Value <- data.HideOverworldTile_Sword3
         OverworldTilesToHide.Sword2.Value <- data.HideOverworldTile_Sword2

@@ -150,7 +150,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         canvasAdd(timelineCanvas, graphCanvas, 0., 0.)
         owAxisLabel.RenderTransform <- new RotateTransform(-90.)
         Canvas.SetLeft(owAxisLabel, graphCanvas.Width)
-        Canvas.SetBottom(owAxisLabel, -6.)
+        Canvas.SetBottom(owAxisLabel, -8.)
         graphCanvas.Children.Add(owAxisLabel) |> ignore
         canvasAdd(timelineCanvas, itemCanvas, 0., 0.)
         for i = 0 to numTicks do

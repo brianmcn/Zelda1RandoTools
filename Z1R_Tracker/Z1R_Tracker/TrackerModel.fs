@@ -11,6 +11,7 @@ type ReminderCategory =
     | HaveKeyLadder
     | Blockers
     | DoorRepair
+    | OverworldOverwrites
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -211,55 +212,56 @@ let allItemWithHeartShuffleChoiceDomain = ChoiceDomain("allItemsWithHeartShuffle
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-let overworldTiles(isFirstQuestOverworld) = [|
-    // hotkey name       maxuses                                              popup display text
-    "Level1"           , 1                                                  , "Dungeon"
-    "Level2"           , 1                                                  , "Dungeon"
-    "Level3"           , 1                                                  , "Dungeon"
-    "Level4"           , 1                                                  , "Dungeon"
-    "Level5"           , 1                                                  , "Dungeon"
-    "Level6"           , 1                                                  , "Dungeon"
-    "Level7"           , 1                                                  , "Dungeon"
-    "Level8"           , 1                                                  , "Dungeon"
-    "Level9"           , 1                                                  , "Final Dungeon"
-    "AnyRoad1"         , 1                                                  , "Any Road 1/4"
-    "AnyRoad2"         , 1                                                  , "Any Road 2/4"
-    "AnyRoad3"         , 1                                                  , "Any Road 3/4"
-    "AnyRoad4"         , 1                                                  , "Any Road 4/4"
-    "Sword3"           , 1                                                  , "Magical Sword Cave\n(10-14 hearts to lift)"
-    "Sword2"           , 1                                                  , "'White Sword' Cave\n(4-6 hearts to lift)\nNote: might have\nany item, not just\nwhite sword"
-    "Sword1"           , 1                                                  , "Wood Sword Cave\n(can always lift)"
+let spokenDungeon(level, isHDN) = if level<>9 && isHDN then sprintf "Dungeon %c" (char (int 'A' - 1 + level)) else sprintf "Dungeon %d" level
+let overworldTiles(isFirstQuestOverworld, isHDN) = [|
+    // hotkey name       maxuses                                              spoken name,            popup display text
+    "Level1"           , 1                                                  , spokenDungeon(1,isHDN), "Dungeon"
+    "Level2"           , 1                                                  , spokenDungeon(2,isHDN), "Dungeon"
+    "Level3"           , 1                                                  , spokenDungeon(3,isHDN), "Dungeon"
+    "Level4"           , 1                                                  , spokenDungeon(4,isHDN), "Dungeon"
+    "Level5"           , 1                                                  , spokenDungeon(5,isHDN), "Dungeon"
+    "Level6"           , 1                                                  , spokenDungeon(6,isHDN), "Dungeon"
+    "Level7"           , 1                                                  , spokenDungeon(7,isHDN), "Dungeon"
+    "Level8"           , 1                                                  , spokenDungeon(8,isHDN), "Dungeon"
+    "Level9"           , 1                                                  , spokenDungeon(9,isHDN), "Final Dungeon"
+    "AnyRoad1"         , 1                                                  , "Any Road 1",           "Any Road 1/4"
+    "AnyRoad2"         , 1                                                  , "Any Road 2",           "Any Road 2/4"
+    "AnyRoad3"         , 1                                                  , "Any Road 3",           "Any Road 3/4"
+    "AnyRoad4"         , 1                                                  , "Any Road 4",           "Any Road 4/4"
+    "Sword3"           , 1                                                  , "Magical Sword Cave",   "Magical Sword Cave\n(10-14 hearts to lift)"
+    "Sword2"           , 1                                                  , "White Sword Cave",     "'White Sword' Cave\n(4-6 hearts to lift)\nNote: might have\nany item, not just\nwhite sword"
+    "Sword1"           , 1                                                  , "Wood Sword Cave",      "Wood Sword Cave\n(can always lift)"
     // 1Q has 12 shops, distributed 4,4,3,1                                
     // 2Q has 15 shops, distributed 6,4,4,1     (4 kinds of shops)         
-    "ArrowShop"        , 999                                                , "Shop with\nWood Arrows\n(60-100 rupees)"
-    "BombShop"         , 999                                                , "Shop with\n4 Bomb Pack\n(1-40 rupees)"
-    "BookShop"         , 999                                                , "Shop with\n(Boomstick) Book\n(180-220 rupees)"
-    "CandleShop"       , 999                                                , "Shop with\nBlue Candle\n(40-80 rupees)"
-    "BlueRingShop"     , 999                                                , "Shop with\nBlue Ring\n(230-255 rupees)"
-    "MeatShop"         , 999                                                , "Shop with\nMeat\n(40-120 rupees)"
-    "KeyShop"          , 999                                                , "Shop with\nKey\n(60-120 rupees)"
-    "ShieldShop"       , 999                                                , "Shop with\nMagical Shield\n(70-180 rupees)"
-    "UnknownSecret"    , 999                                                , "Unknown Secret"
-    "LargeSecret"      , 999 (*if isFirstQuestOverworld then 3 else 1*)     , "Large Secret\n(50-150 rupees)"
-    "MediumSecret"     , 999 (*if isFirstQuestOverworld then 7 else 7*)     , "Medium Secret\n(25-40 rupees)"
-    "SmallSecret"      , 999 (*if isFirstQuestOverworld then 4 else 6*)     , "Small Secret\n(1-20 rupees)"
-    "DoorRepairCharge" , (if isFirstQuestOverworld then 9 else 10)          , "Door Repair Charge\n(15-25 rupees)"
-    "MoneyMakingGame"  , (if isFirstQuestOverworld then 5 else 6)           , "Money Making Game\n(gambling)"
-    "Letter"           , 1                                                  , "The Letter\n(for buying potions)"
-    "Armos"            , 1                                                  , "Armos Item"
+    "ArrowShop"        , 999                                                , "Wood Arrow shop",      "Shop with\nWood Arrows\n(60-100 rupees)"
+    "BombShop"         , 999                                                , "Bomb shop",            "Shop with\n4 Bomb Pack\n(1-40 rupees)"
+    "BookShop"         , 999                                                , "Book shop",            "Shop with\n(Boomstick) Book\n(180-220 rupees)"
+    "CandleShop"       , 999                                                , "Candle shop",          "Shop with\nBlue Candle\n(40-80 rupees)"
+    "BlueRingShop"     , 999                                                , "Blue ring shop",       "Shop with\nBlue Ring\n(230-255 rupees)"
+    "MeatShop"         , 999                                                , "Meat shop",            "Shop with\nMeat\n(40-120 rupees)"
+    "KeyShop"          , 999                                                , "Key shop",             "Shop with\nKey\n(60-120 rupees)"
+    "ShieldShop"       , 999                                                , "Shield shop",          "Shop with\nMagical Shield\n(70-180 rupees)"
+    "UnknownSecret"    , 999                                                , "Unknown Secret",       "Unknown Secret"
+    "LargeSecret"      , 999 (*if isFirstQuestOverworld then 3 else 1*)     , "Large Secret",         "Large Secret\n(50-150 rupees)"
+    "MediumSecret"     , 999 (*if isFirstQuestOverworld then 7 else 7*)     , "Medium Secret",        "Medium Secret\n(25-40 rupees)"
+    "SmallSecret"      , 999 (*if isFirstQuestOverworld then 4 else 6*)     , "Small Secret",         "Small Secret\n(1-20 rupees)"
+    "DoorRepairCharge" , (if isFirstQuestOverworld then 9 else 10)          , "Door Repair",          "Door Repair Charge\n(15-25 rupees)"
+    "MoneyMakingGame"  , (if isFirstQuestOverworld then 5 else 6)           , "Money Making Game",    "Money Making Game\n(gambling)"
+    "Letter"           , 1                                                  , "The Letter",           "The Letter\n(for buying potions)"
+    "Armos"            , 1                                                  , "Armos",                "Armos Item"
     // white/magical sword cave hint may also be marked as                 
     // a free hint 'shop', so 4 rather than 2                              
-    "HintShop"         , 4                                                  , "Hint Shop\n(10-60 rupees each)\nor free hint for\nwhite/magical\nsword cave"
-    "TakeAny"          , 4                                                  , "Take Any One\nYou Want"
-    "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop\n(20-60, 48-88 rupees)"
-    "DarkX"            , 999                                                , "Don't Care"
+    "HintShop"         , 4                                                  , "Hint Shop",            "Hint Shop\n(10-60 rupees each)\nor free hint for\nwhite/magical\nsword cave"
+    "TakeAny"          , 4                                                  , "Take Any",             "Take Any One\nYou Want"
+    "PotionShop"       , (if isFirstQuestOverworld then 7 else 9)           , "Potion Shop",          "Potion Shop\n(20-60, 48-88 rupees)"
+    "DarkX"            , 999                                                , "Don't Care",           "Don't Care"
     |]
 // 1Q has 73 total spots, 2Q has 80, Mixed has 93
 let MaxRemain1Q = 73
 let MaxRemain2Q = 80
 let MaxRemainMQ = 93
 let MaxRemainUQ = 128
-let dummyOverworldTiles = overworldTiles(true)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
+let dummyOverworldTiles = overworldTiles(true,false)  // some bits need to read the hotkey names or array length, before the 1Q/2Q choice has been made by the user, this gives them that info
 
 let mutable mapSquareChoiceDomain = null : ChoiceDomain
 // Note: if you make changes to above/below, also check: recomputeMapStateSummary(), Graphics.theInteriorBmpTable, SpeechRecognition, OverworldMapTileCustomization, ui's isLegalHere()
@@ -308,7 +310,7 @@ type MapSquareChoiceDomainHelper =
     static member DARK_X = 35
     static member AsHotKeyName(n) =
         if n>=0 && n<dummyOverworldTiles.Length then
-            let r,_,_ = dummyOverworldTiles.[n] in r
+            let r,_,_,_ = dummyOverworldTiles.[n] in r
         else
             failwith "bad overworld tile id"
     static member TilesThatSupportHidingOverworldMarks = // 12 in a particular order to facilitate "More Settings..." layout
@@ -1672,7 +1674,7 @@ type TimelineItemModel(desc: TimelineItemDescription) =
 
 let initializeAll(instance:OverworldData.OverworldInstance, kind) =
     if mapSquareChoiceDomain = null then
-        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(instance.Quest.IsFirstQuestOW) |> Array.map (fun (_,x,_) -> x))
+        mapSquareChoiceDomain <- ChoiceDomain("mapSquare", overworldTiles(instance.Quest.IsFirstQuestOW,false) |> Array.map (fun (_,x,_,_) -> x))
         mapSquareChoiceDomain.Changed.Add(fun _ -> mapLastChangedTime.SetNow())
         overworldMapMarks <- Array2D.init 16 8 (fun _ _ -> new Cell(mapSquareChoiceDomain))  
     else

@@ -16,6 +16,7 @@ let voice = OptionsMenu.voice
 
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
+let reminderLogSP = new StackPanel(Orientation=Orientation.Vertical)
 let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualUpdateToSynchronizeWithReminder) =
     if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value()) then  // if won the game, quit sending reminders
         let shouldRemindVoice, shouldRemindVisual =
@@ -27,7 +28,8 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook -> TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook.Value, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook.Value
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModelOptions.VoiceReminders.SwordHearts.Value,     TrackerModelOptions.VisualReminders.SwordHearts.Value
             | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
-        if not(Timeline.isCurrentlyLoadingASave) && (shouldRemindVoice || shouldRemindVisual) then 
+            | TrackerModel.ReminderCategory.OverworldOverwrites -> TrackerModelOptions.VoiceReminders.OverworldOverwrites.Value, TrackerModelOptions.VisualReminders.OverworldOverwrites.Value
+        if not(Timeline.isCurrentlyLoadingASave) then 
             reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     SendReminderImpl(category, text, icons, None)
@@ -171,6 +173,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     if not heartShuffle then
         for i = 0 to 7 do
             TrackerModel.GetDungeon(i).Boxes.[0].Set(TrackerModel.ITEMS.HEARTCONTAINER, TrackerModel.PlayerHas.NO)
+    let spokenOWTiles = TrackerModel.overworldTiles(owInstance.Quest.IsFirstQuestOW,TrackerModel.IsHiddenDungeonNumbers()) |> Array.map (fun (_,_,s,_) -> s)
 
     // make the entire UI
     let timelineItems = ResizeArray()
@@ -668,6 +671,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     // ow map -> dungeon tabs interaction
     let selectDungeonTabEvent = new Event<_>()
     // ow map
+    let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
+            hideLocator()  // we may be moused in a dungeon right now
+            showLocatorExactLocation loc
+            do! Async.Sleep(3000)
+            do! Async.SwitchToContext ctxt
+            hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon
+        } 
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
@@ -884,6 +894,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let popupIsActiveRef = ref false
                 let SetNewValue(currentState, originalState) = async {
                     if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
+                        if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  // remind destructive changes
+                            let row = (i+1)
+                            let col = (char (int 'A' + j)) 
+                            let changedCoords = sprintf "Changed %c%d:" col row
+                            let desc(state) = if state = -1 then "Unmarked" else spokenOWTiles.[state]
+                            let bmp(state) = 
+                                if state = -1 then Graphics.unmarkedBmp
+                                elif state = TrackerModel.MapSquareChoiceDomainHelper.DARK_X then Graphics.dontCareBmp
+                                else MapStateProxy(state).DefaultInteriorBmp()
+                            if currentState <> originalState then  // don't remind e.g. change from bomb shop to bomb+key shop
+                                SendReminderImpl(TrackerModel.ReminderCategory.OverworldOverwrites, sprintf "You changed %c %d from %s to %s" col row (desc originalState) (desc currentState), 
+                                    [ReminderTextBox(changedCoords); upcb(bmp(originalState)); upcb(Graphics.iconRightArrow_bmp); upcb(bmp(currentState))],
+                                        Some(AsyncBrieflyHighlightAnOverworldLocation(i,j)))
                         if currentState >=0 && currentState <=8 then
                             selectDungeonTabEvent.Trigger(currentState)
                         match overworldAcceleratorTable.TryGetValue(currentState) with
@@ -949,7 +972,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                             if MapStateProxy(currentState).IsX then
                                                 icon.Opacity <- X_OPACITY
                                             canvasAdd(tileCanvas, icon, 0., 0.)
-                                        let s = if currentState = -1 then "Unmarked" else let _,_,s = TrackerModel.dummyOverworldTiles.[currentState] in s
+                                        let s = if currentState = -1 then "Unmarked" else let _,_,_,s = TrackerModel.dummyOverworldTiles.[currentState] in s
                                         let s = HotKeys.OverworldHotKeyProcessor.AppendHotKeyToDescription(s,currentState)
                                         let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
@@ -1216,6 +1239,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
+        let diagSW = System.Diagnostics.Stopwatch.StartNew()
         if displayIsCurrentlyMirrored <> TrackerModelOptions.Overworld.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
@@ -1240,13 +1264,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // TODO event for redraw item progress? does any of this event interface make sense? hmmm
         redrawItemProgressBar()
 
-        let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
-                hideLocator()  // we may be moused in a dungeon right now
-                showLocatorExactLocation loc
-                do! Async.Sleep(3000)
-                do! Async.SwitchToContext ctxt
-                hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon
-            } 
         TrackerModel.allUIEventingLogic( {new TrackerModel.ITrackerEvents with
             member _this.CurrentHearts(h) = currentMaxHeartsTextBox.Text <- sprintf "Max Hearts: %d" h
             member _this.AnnounceConsiderSword2() = 
@@ -1429,6 +1446,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // place start icon in top layer at very top (above e.g. completed dungeon highlight)
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
+        if diagSW.ElapsedMilliseconds > 100L then
+            printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
         )
     let threshold = TimeSpan.FromMilliseconds(500.0)
     let recentlyAgo = TimeSpan.FromMinutes(3.0)
@@ -1990,9 +2009,27 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
 
     // reminder display
-    let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, Opacity=0., LastChildFill=false)
-    let reminderDisplayInnerDockPanel = new DockPanel(LastChildFill=false, Background=Brushes.Black)
-    let reminderDisplayInnerBorder = new Border(Child=reminderDisplayInnerDockPanel, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, HorizontalAlignment=HorizontalAlignment.Right)
+    let reminderDisplayOuterDockPanel = new DockPanel(Width=OMTW*16., Height=THRU_TIMELINE_H-START_TIMELINE_H, LastChildFill=false)
+    let reminderLogTB = new TextBox(Text="log", Foreground=Brushes.Orange, FontSize=10., Background=Brushes.Black, IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(0.,0.,0.,2.))
+    let reminderDisplayInnerBorder = new Border(Child=reminderLogTB, BorderThickness=Thickness(3.), BorderBrush=Brushes.Lime, Background=Brushes.Black, HorizontalAlignment=HorizontalAlignment.Right)
+    DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Right)
+    reminderDisplayInnerBorder.MouseDown.Add(fun _ ->
+        if not popupIsActive then
+            let wh = new System.Threading.ManualResetEvent(false)
+            let sp = new StackPanel(Orientation=Orientation.Vertical)
+            sp.Children.Add(new TextBox(Text="Recent reminders log", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Margin=Thickness(6.,0.,6.,0.), HorizontalAlignment=HorizontalAlignment.Center)) |> ignore
+            sp.Children.Add(new DockPanel(Background=Brushes.Gray, Margin=Thickness(6.,3.,6.,0.), Height=3.)) |> ignore
+            let reminderView = new ScrollViewer(Content=reminderLogSP, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, MaxHeight=360., Margin=Thickness(3.))
+            sp.Children.Add(reminderView) |> ignore
+            let b = new Border(BorderBrush=Brushes.Gray, Background=Brushes.Black, BorderThickness=Thickness(3.), Child=sp)
+            async {
+                do! CustomComboBoxes.DoModal(cm, wh, 10., 10., b)
+                reminderView.Content <- null // deparent log for future reuse
+            } |> Async.StartImmediate
+        )
+    reminderDisplayInnerBorder.MouseEnter.Add(fun _ -> reminderDisplayInnerBorder.BorderBrush <- Brushes.Cyan)
+    reminderDisplayInnerBorder.MouseLeave.Add(fun _ -> reminderDisplayInnerBorder.BorderBrush <- Brushes.Lime)
     DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Top)
     reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
     layout.AddReminderDisplayOverlay(reminderDisplayOuterDockPanel)
@@ -2000,19 +2037,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         let rec messageLoop() = async {
             let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
             do! Async.SwitchToContext(ctxt)
+            let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
+            for i in icons do
+                i.Margin <- Thickness(3.)
+                sp.Children.Add(i) |> ignore
             if not(TrackerModelOptions.IsMuted) then
-                let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
-                for i in icons do
-                    i.Margin <- Thickness(3.)
-                    sp.Children.Add(i) |> ignore
                 let iconCount = sp.Children.Count
                 if shouldRemindVisual then
                     Graphics.PlaySoundForReminder()
-                reminderDisplayInnerDockPanel.Children.Clear()
-                DockPanel.SetDock(sp, Dock.Right)
-                reminderDisplayInnerDockPanel.Children.Add(sp) |> ignore
-                if shouldRemindVisual then
-                    reminderDisplayOuterDockPanel.Opacity <- 1.
+                    reminderDisplayInnerBorder.Child <- sp
                 match visualUpdateToSynchronizeWithReminder with
                 | None -> ()
                 | Some vu -> Async.StartImmediate vu
@@ -2029,7 +2062,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         let ms = (minimumDuration - elapsed).TotalMilliseconds |> int
                         do! Async.Sleep(ms)   // ensure ui displayed a minimum time
                 do! Async.SwitchToContext(ctxt)
-                reminderDisplayOuterDockPanel.Opacity <- 0.
+            // once reminder no longer displayed, log it.
+            let timeString = OverworldItemGridUI.hmsTimeTextBox.Text
+            reminderDisplayInnerBorder.Child <- reminderLogTB   // also deparents sp
+            sp.Margin <- Thickness(0.)
+            sp.Children.Insert(0, new DockPanel(Background=Brushes.Gray, Width=18., Height=3., Margin=Thickness(6.,0.,6.,0.), VerticalAlignment=VerticalAlignment.Center))
+            sp.Children.Insert(0, ReminderTextBox(timeString))
+            sp.ToolTip <- text
+            let hasAny = reminderLogSP.Children.Count > 0
+            reminderLogSP.Children.Insert(0, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(0.,0.,0.,if hasAny then 1. else 0.)))
             return! messageLoop()
             }
         messageLoop()
@@ -2037,7 +2078,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     // postgameDecorationCanvas atop timeline & reminders
     do
-        let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0.)
+        let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0., IsHitTestVisible=false)   // no hit test so it doesn't absorb clicks to reminder log
         layout.AddPostGameDecorationCanvas(postgameDecorationCanvas)
         let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
         Canvas.SetRight(sp, 0.)

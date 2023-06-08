@@ -101,9 +101,15 @@ consider getting rid of shaders in top tracker and blockersunglasses
 
 
 
+get rid of this bit:
+printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
+
+
 do a discord survey of options people use
 
 should potion shop icon have red potion (visual contrast)?
+
+shops should light up when found, so you can look without hovering
 
 
 

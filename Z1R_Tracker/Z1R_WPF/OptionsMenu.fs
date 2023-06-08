@@ -66,6 +66,8 @@ let data2 = [|
         TrackerModelOptions.VoiceReminders.Blockers,        TrackerModelOptions.VisualReminders.Blockers
     "Door Repair Count", "Each time you uncover a door repair charge, remind the count of how many you have found", 
         TrackerModelOptions.VoiceReminders.DoorRepair,        TrackerModelOptions.VisualReminders.DoorRepair
+    "Overworld overwrites", "Each time you make a destructive change to an overworld mark, remind the change, in case it was accidental", 
+        TrackerModelOptions.VoiceReminders.OverworldOverwrites, TrackerModelOptions.VisualReminders.OverworldOverwrites
     |]
 
 let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, isStandardHyrule) = 
@@ -131,7 +133,7 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
             sp.Children.Add(boxes) |> ignore
             let addTo(sp:StackPanel, a) = 
                 for tile in a do
-                    let desc = let _,_,s = TrackerModel.dummyOverworldTiles.[tile] in s
+                    let desc = let _,_,_,s = TrackerModel.dummyOverworldTiles.[tile] in s
                     let desc = 
                         let i = desc.IndexOf('\n')
                         if i <> -1 then

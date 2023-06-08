@@ -752,6 +752,12 @@ let genericDungeonInterior_bmp =
     paintAlphanumerics3x5('?', System.Drawing.Color.Black, bmp, 1, 2)
     bmp
 
+let X_OPACITY = 0.55
+let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
+let overworldCommonestFloorColorDarkBrush = new SolidColorBrush(Color.FromRgb(byte(float 204 * X_OPACITY),byte(float 176 * X_OPACITY),byte(float 136 * X_OPACITY)))
+let unmarkedBmp = new System.Drawing.Bitmap(5*3,9*3)
+let dontCareBmp = new System.Drawing.Bitmap(5*3,9*3)
+
 // each overworld map tile may have multiple icons that can represent it (e.g. dungeon 1 versus dungeon A)
 // we store a table, where the array index is the mapSquareChoiceDomain index of the general entry type, and the value there is a list of all possible icons
 // MapStateProxy will eventually be responsible for 'decoding' the current tracker state into the appropriate icon
@@ -759,6 +765,14 @@ let theInteriorBmpTable = Array.init (TrackerModel.dummyOverworldTiles.Length) (
 do
     let imageStream = GetResourceStream("ow_icons5x9.png")
     let interiorIconStrip = new System.Drawing.Bitmap(imageStream)
+    let ubc = overworldCommonestFloorColorBrush
+    for px = 0 to 5*3-1 do
+        for py = 0 to 9*3-1 do
+            unmarkedBmp.SetPixel(px, py, System.Drawing.Color.FromArgb(int ubc.Color.R, int ubc.Color.G, int ubc.Color.B))
+    let dcbc = overworldCommonestFloorColorDarkBrush
+    for px = 0 to 5*3-1 do
+        for py = 0 to 9*3-1 do
+            dontCareBmp.SetPixel(px, py, System.Drawing.Color.FromArgb(int dcbc.Color.R, int dcbc.Color.G, int dcbc.Color.B))
     let darkxbmp = new System.Drawing.Bitmap(5*3,9*3)
     for px = 0 to 5*3-1 do
         for py = 0 to 9*3-1 do
@@ -917,9 +931,6 @@ do
     takeThisLeaveBMP.Save("takeThisLeaveBMP.png")
 *)
 
-let X_OPACITY = 0.55
-let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
-let overworldCommonestFloorColorDarkBrush = new SolidColorBrush(Color.FromRgb(byte(float 204 * X_OPACITY),byte(float 176 * X_OPACITY),byte(float 136 * X_OPACITY)))
 (*
 do
     let imageStream = GetResourceStream("icons3x7.png")
