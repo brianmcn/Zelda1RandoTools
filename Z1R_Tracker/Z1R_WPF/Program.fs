@@ -248,7 +248,7 @@ type MyWindow() as this =
         let mutable settingsWereSuccessfullyRead = false
         TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
-        WPFUI.voice.Volume <- TrackerModelOptions.Volume
+        OptionsMenu.voice.Volume <- TrackerModelOptions.Volume
 
         do
             let shellLink = 

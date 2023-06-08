@@ -96,7 +96,7 @@
     <EmbeddedResource Include="icons\first-quest-item-reference.png" />
     <EmbeddedResource Include="icons\second-quest-item-reference.png" />
     <EmbeddedResource Include="icons\mirror-overworld.png" />
-	<EmbeddedResource Include="icons\open_cave20x20.png" />
+    <EmbeddedResource Include="icons\open_cave20x20.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />
     <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
     <EmbeddedResource Include="icons\zelda_items16x16.png" />
@@ -128,6 +128,7 @@
     <Compile Include="UserCustomLayer.fs" />
     <Compile Include="DrawingLayer.fs" />
     <Compile Include="Layout.fs" />
+    <Compile Include="Reminders.fs" />
     <Compile Include="WPFUI.fs" />
     <Compile Include="Program.fs" />
     <Content Include="..\Z1R_Tracker\README.txt">
