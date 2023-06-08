@@ -91,7 +91,8 @@ since 1.3.0k...
 - dungeon summary tab blacks out dungeons that are unlocated-and-unmarked, or completed, for 'big picture' (TODO general docs about purpose/value of the tab (decide what next))
 - dungeon room MonsterDetails have 16 new monster icon choices relative to 1.2 (TODO update docs)
 - new recorder destination icon (white oval), map legend; no more green dungeons or shaded dungeons
-
+- new reminder for Overworld Overwrites (if you make a mark, and then change it)
+- reminder log - click log button at upper right of timeline to see past reminders (can mouseover each for description)
 
 
 redo legend/record dest
@@ -108,10 +109,6 @@ printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
 do a discord survey of options people use
 
 should potion shop icon have red potion (visual contrast)?
-
-shops should light up when found, so you can look without hovering
-
-
 
 
 

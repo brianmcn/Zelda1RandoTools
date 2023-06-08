@@ -894,19 +894,25 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let popupIsActiveRef = ref false
                 let SetNewValue(currentState, originalState) = async {
                     if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
-                        if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  // remind destructive changes
-                            let row = (i+1)
-                            let col = (char (int 'A' + j)) 
-                            let changedCoords = sprintf "Changed %c%d:" col row
-                            let desc(state) = if state = -1 then "Unmarked" else spokenOWTiles.[state]
-                            let bmp(state) = 
-                                if state = -1 then Graphics.unmarkedBmp
-                                elif state = TrackerModel.MapSquareChoiceDomainHelper.DARK_X then Graphics.dontCareBmp
-                                else MapStateProxy(state).DefaultInteriorBmp()
-                            if currentState <> originalState then  // don't remind e.g. change from bomb shop to bomb+key shop
-                                SendReminderImpl(TrackerModel.ReminderCategory.OverworldOverwrites, sprintf "You changed %c %d from %s to %s" col row (desc originalState) (desc currentState), 
-                                    [ReminderTextBox(changedCoords); upcb(bmp(originalState)); upcb(Graphics.iconRightArrow_bmp); upcb(bmp(currentState))],
-                                        Some(AsyncBrieflyHighlightAnOverworldLocation(i,j)))
+                        if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  
+                            // remind destructive changes
+                            if originalState=TrackerModel.MapSquareChoiceDomainHelper.UNKNOWN_SECRET && 
+                                (currentState=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET ||
+                                    currentState=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET || currentState=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET) then
+                                () // do nothing, this is a 'destructive' change that is perfectly reasonable and doesn't need a warning reminder
+                            else
+                                let row = (i+1)
+                                let col = (char (int 'A' + j)) 
+                                let changedCoords = sprintf "Changed %c%d:" col row
+                                let desc(state) = if state = -1 then "Unmarked" else spokenOWTiles.[state]
+                                let bmp(state) = 
+                                    if state = -1 then Graphics.unmarkedBmp
+                                    elif state = TrackerModel.MapSquareChoiceDomainHelper.DARK_X then Graphics.dontCareBmp
+                                    else MapStateProxy(state).DefaultInteriorBmp()
+                                if currentState <> originalState then  // don't remind e.g. change from bomb shop to bomb+key shop
+                                    SendReminderImpl(TrackerModel.ReminderCategory.OverworldOverwrites, sprintf "You changed %c %d from %s to %s" col row (desc originalState) (desc currentState), 
+                                        [ReminderTextBox(changedCoords); upcb(bmp(originalState)); upcb(Graphics.iconRightArrow_bmp); upcb(bmp(currentState))],
+                                            Some(AsyncBrieflyHighlightAnOverworldLocation(i,j)))
                         if currentState >=0 && currentState <=8 then
                             selectDungeonTabEvent.Trigger(currentState)
                         match overworldAcceleratorTable.TryGetValue(currentState) with
