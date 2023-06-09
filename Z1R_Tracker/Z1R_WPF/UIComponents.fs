@@ -350,79 +350,159 @@ let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
             showLocatorInstanceFunc(owInstance.Raftable)
         )
     itemProgressCanvas.MouseLeave.Add(fun _ -> hideLocator())
+
+    // make item progress bar images only once, then swap e.g. grey/blue/red candle on redraw; re-creating the images each time is expensive as measure in profiling
+    let mutable x, y = ITEM_PROGRESS_FIRST_ITEM, 3.
+    let DX = 30.
+    let swordsByLevel = Array.init 4 (fun level -> 
+        let sword = Graphics.BMPtoImage(Graphics.swordLevelToBmp(level))
+        sword.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, sword, x, y)
+        sword
+        )
+    x <- x + DX
+    let grey_candle = Graphics.BMPtoImage(Graphics.greyscale Graphics.red_candle_bmp)
+    let blue_candle = Graphics.BMPtoImage Graphics.blue_candle_bmp
+    let red_candle = Graphics.BMPtoImage Graphics.red_candle_bmp
+    for candle in [grey_candle; blue_candle; red_candle] do
+        candle.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, candle, x, y)
+    x <- x + DX
+    let ringsByLevel = Array.init 3 (fun level -> 
+        let ring = Graphics.BMPtoImage(Graphics.ringLevelToBmp(level))
+        ring.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, ring, x, y)
+        ring
+        )
+    x <- x + DX
+    let have_bow = Graphics.BMPtoImage Graphics.bow_bmp
+    let grey_bow = Graphics.BMPtoImage(Graphics.greyscale Graphics.bow_bmp)
+    have_bow.Opacity <- 0.
+    grey_bow.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, have_bow, x, y)
+    canvasAdd(itemProgressCanvas, grey_bow, x, y)
+    x <- x + DX
+    let grey_arrow = Graphics.BMPtoImage(Graphics.greyscale Graphics.silver_arrow_bmp)
+    let wood_arrow = Graphics.BMPtoImage Graphics.wood_arrow_bmp
+    let silver_arrow = Graphics.BMPtoImage Graphics.silver_arrow_bmp
+    for arrow in [grey_arrow; wood_arrow; silver_arrow] do
+        arrow.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, arrow, x, y)
+    x <- x + DX
+    let have_wand = Graphics.BMPtoImage Graphics.wand_bmp
+    let grey_wand = Graphics.BMPtoImage(Graphics.greyscale Graphics.wand_bmp)
+    have_wand.Opacity <- 0.
+    grey_wand.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, have_wand, x, y)
+    canvasAdd(itemProgressCanvas, grey_wand, x, y)
+    x <- x + DX
+    let have_book = Graphics.BMPtoImage Graphics.book_bmp
+    let grey_book = Graphics.BMPtoImage(Graphics.greyscale Graphics.book_bmp)
+    let have_boom_book = Graphics.BMPtoImage Graphics.boom_book_bmp
+    let grey_boom_book = Graphics.BMPtoImage(Graphics.greyscale Graphics.boom_book_bmp)
+    for book in [have_book; grey_book; have_boom_book; grey_boom_book] do
+        book.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, book, x, y)
+    x <- x + DX
+    let grey_boomer = Graphics.BMPtoImage(Graphics.greyscale Graphics.magic_boomerang_bmp)
+    let wood_boomer = Graphics.BMPtoImage Graphics.boomerang_bmp
+    let magi_boomer = Graphics.BMPtoImage Graphics.magic_boomerang_bmp
+    for boo in [grey_boomer; wood_boomer; magi_boomer] do
+        boo.Opacity <- 0.
+        canvasAdd(itemProgressCanvas, boo, x, y)
+    x <- x + DX
+    let grey_ladder = Graphics.BMPtoImage(Graphics.greyscale Graphics.ladder_bmp)
+    let have_ladder = Graphics.BMPtoImage Graphics.ladder_bmp
+    grey_ladder.Opacity <- 0.
+    have_ladder.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, grey_ladder, x, y)
+    canvasAdd(itemProgressCanvas, have_ladder, x, y)
+    x <- x + DX
+    let grey_recorder = Graphics.BMPtoImage(Graphics.greyscale Graphics.recorder_bmp)
+    let have_recorder = Graphics.BMPtoImage Graphics.recorder_bmp
+    grey_recorder.Opacity <- 0.
+    have_recorder.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, grey_recorder, x, y)
+    canvasAdd(itemProgressCanvas, have_recorder, x, y)
+    x <- x + DX
+    let grey_power_bracelet = Graphics.BMPtoImage(Graphics.greyscale Graphics.power_bracelet_bmp)
+    let have_power_bracelet = Graphics.BMPtoImage Graphics.power_bracelet_bmp
+    grey_power_bracelet.Opacity <- 0.
+    have_power_bracelet.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, grey_power_bracelet, x, y)
+    canvasAdd(itemProgressCanvas, have_power_bracelet, x, y)
+    x <- x + DX
+    let grey_raft = Graphics.BMPtoImage(Graphics.greyscale Graphics.raft_bmp)
+    let have_raft = Graphics.BMPtoImage Graphics.raft_bmp
+    grey_raft.Opacity <- 0.
+    have_raft.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, grey_raft, x, y)
+    canvasAdd(itemProgressCanvas, have_raft, x, y)
+    x <- x + DX
+    let grey_key = Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp)
+    let have_key = Graphics.BMPtoImage Graphics.key_bmp
+    grey_key.Opacity <- 0.
+    have_key.Opacity <- 0.
+    canvasAdd(itemProgressCanvas, grey_key, x, y)
+    canvasAdd(itemProgressCanvas, have_key, x, y)
+
     let redrawItemProgressBar() = 
-        itemProgressCanvas.Children.Clear()
-        let mutable x, y = ITEM_PROGRESS_FIRST_ITEM, 3.
-        let DX = 30.
-        canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.swordLevelToBmp(TrackerModel.playerComputedStateSummary.SwordLevel)), x, y)
-        x <- x + DX
+        swordsByLevel |> Array.iteri (fun i sword -> if i = TrackerModel.playerComputedStateSummary.SwordLevel then sword.Opacity <- 1. else sword.Opacity <- 0.)
         match TrackerModel.playerComputedStateSummary.CandleLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.red_candle_bmp), x, y)
-        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.blue_candle_bmp, x, y)
-        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.red_candle_bmp, x, y)
-        | _ -> failwith "bad CandleLevel"
-        x <- x + DX
-        canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.ringLevelToBmp(TrackerModel.playerComputedStateSummary.RingLevel)), x, y)
-        x <- x + DX
+        | 0 -> grey_candle.Opacity <- 1.; blue_candle.Opacity <- 0.; red_candle.Opacity <- 0.
+        | 1 -> grey_candle.Opacity <- 0.; blue_candle.Opacity <- 1.; red_candle.Opacity <- 0.
+        | 2 -> grey_candle.Opacity <- 0.; blue_candle.Opacity <- 0.; red_candle.Opacity <- 1.
+        ringsByLevel |> Array.iteri (fun i ring -> if i = TrackerModel.playerComputedStateSummary.RingLevel then ring.Opacity <- 1. else ring.Opacity <- 0.)
         if TrackerModel.playerComputedStateSummary.HaveBow then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.bow_bmp, x, y)
+            have_bow.Opacity <- 1.; grey_bow.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.bow_bmp), x, y)
-        x <- x + DX
+            have_bow.Opacity <- 0.; grey_bow.Opacity <- 1.
         match TrackerModel.playerComputedStateSummary.ArrowLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.silver_arrow_bmp), x, y)
-        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.wood_arrow_bmp, x, y)
-        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.silver_arrow_bmp, x, y)
+        | 0 -> grey_arrow.Opacity <- 1.; wood_arrow.Opacity <- 0.; silver_arrow.Opacity <- 0.
+        | 1 -> grey_arrow.Opacity <- 0.; wood_arrow.Opacity <- 1.; silver_arrow.Opacity <- 0.
+        | 2 -> grey_arrow.Opacity <- 0.; wood_arrow.Opacity <- 0.; silver_arrow.Opacity <- 1.
         | _ -> failwith "bad ArrowLevel"
-        x <- x + DX
         if TrackerModel.playerComputedStateSummary.HaveWand then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.wand_bmp, x, y)
+            have_wand.Opacity <- 1.; grey_wand.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.wand_bmp), x, y)
-        x <- x + DX
+            have_wand.Opacity <- 0.; grey_wand.Opacity <- 1.
         if TrackerModel.IsCurrentlyBook() then
             // book seed
             if TrackerModel.playerComputedStateSummary.HaveBookOrShield then
-                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.book_bmp, x, y)
+                have_book.Opacity <- 1.; grey_book.Opacity <- 0.; have_boom_book.Opacity <- 0.; grey_boom_book.Opacity <- 0.
             else
-                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.book_bmp), x, y)
+                have_book.Opacity <- 0.; grey_book.Opacity <- 1.; have_boom_book.Opacity <- 0.; grey_boom_book.Opacity <- 0.
         else
             // boomstick seed
             if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value() then
-                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.boom_book_bmp, x, y)
+                have_book.Opacity <- 0.; grey_book.Opacity <- 0.; have_boom_book.Opacity <- 1.; grey_boom_book.Opacity <- 0.
             else
-                canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.boom_book_bmp), x, y)
-        x <- x + DX
+                have_book.Opacity <- 0.; grey_book.Opacity <- 0.; have_boom_book.Opacity <- 0.; grey_boom_book.Opacity <- 1.
         match TrackerModel.playerComputedStateSummary.BoomerangLevel with
-        | 0 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.magic_boomerang_bmp), x, y)
-        | 1 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.boomerang_bmp, x, y)
-        | 2 -> canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.magic_boomerang_bmp, x, y)
+        | 0 -> grey_boomer.Opacity <- 1.; wood_boomer.Opacity <- 0.; magi_boomer.Opacity <- 0.
+        | 1 -> grey_boomer.Opacity <- 0.; wood_boomer.Opacity <- 1.; magi_boomer.Opacity <- 0.
+        | 2 -> grey_boomer.Opacity <- 0.; wood_boomer.Opacity <- 0.; magi_boomer.Opacity <- 1.
         | _ -> failwith "bad BoomerangLevel"
-        x <- x + DX
         if TrackerModel.playerComputedStateSummary.HaveLadder then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.ladder_bmp, x, y)
+            have_ladder.Opacity <- 1.; grey_ladder.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.ladder_bmp), x, y)
-        x <- x + DX
+            have_ladder.Opacity <- 0.; grey_ladder.Opacity <- 1.
         if TrackerModel.playerComputedStateSummary.HaveRecorder then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.recorder_bmp, x, y)
+            have_recorder.Opacity <- 1.; grey_recorder.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.recorder_bmp), x, y)
-        x <- x + DX
+            have_recorder.Opacity <- 0.; grey_recorder.Opacity <- 1.
         if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.power_bracelet_bmp, x, y)
+            have_power_bracelet.Opacity <- 1.; grey_power_bracelet.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.power_bracelet_bmp), x, y)
-        x <- x + DX
+            have_power_bracelet.Opacity <- 0.; grey_power_bracelet.Opacity <- 1.
         if TrackerModel.playerComputedStateSummary.HaveRaft then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.raft_bmp, x, y)
+            have_raft.Opacity <- 1.; grey_raft.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.raft_bmp), x, y)
-        x <- x + DX
+            have_raft.Opacity <- 0.; grey_raft.Opacity <- 1.
         if TrackerModel.playerComputedStateSummary.HaveAnyKey then
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage Graphics.key_bmp, x, y)
+            have_key.Opacity <- 1.; grey_key.Opacity <- 0.
         else
-            canvasAdd(itemProgressCanvas, Graphics.BMPtoImage(Graphics.greyscale Graphics.key_bmp), x, y)
+            have_key.Opacity <- 0.; grey_key.Opacity <- 1.
     redrawItemProgressBar, itemProgressCanvas, tb
 
 let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =

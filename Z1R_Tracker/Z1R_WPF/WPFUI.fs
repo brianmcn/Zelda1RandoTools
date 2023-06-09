@@ -664,6 +664,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     routeDrawingCanvas.MouseLeave.Add(fun _ -> clearRouteDrawingCanvas())
     do! showProgress("overworld before 16x8 loop")
     let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
+    let owMapDummyImages = Array2D.init 16 8 (fun i j -> 
+        let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+        image.Opacity <- 0.001
+        image
+        )
     for i = 0 to 15 do
         for j = 0 to 7 do
             let activateCircleLabelPopup() =
@@ -702,9 +707,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             gridAdd(owMapGrid, c, i, j)
             // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
-            image.Opacity <- 0.001
-            canvasAdd(c, image, 0., 0.)
+            canvasAdd(c, owMapDummyImages.[i,j], 0., 0.)
             // highlight mouse, do mouse-sensitive stuff
             let rect = new System.Windows.Shapes.Rectangle(Width=OMTW-4., Height=float(11*3)-4., Stroke=System.Windows.Media.Brushes.White)
             c.MouseEnter.Add(fun ea ->  canvasAdd(c, rect, 2., 2.)
@@ -801,11 +804,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let redrawGridSpot() =
                     // cant remove-by-identity because of non-uniques; remake whole canvas
                     owDarkeningMapGridCanvases.[i,j].Children.Clear()
-                    c.Children.Clear()
+                    c.Children.Clear()    // deparents owMapDummyImages.[i,j]
                     // we need a dummy image to make the canvas absorb the mouse interactions, so just re-draw the map at almost 0 opacity
-                    let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
-                    image.Opacity <- 0.001
-                    canvasAdd(c, image, 0., 0.)
+                    canvasAdd(c, owMapDummyImages.[i,j], 0., 0.)
                     let ms = MapStateProxy(TrackerModel.overworldMapMarks.[i,j].Current())
                     let shouldAppearLikeDarkX,iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
