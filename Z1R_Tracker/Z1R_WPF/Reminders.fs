@@ -99,3 +99,129 @@ let SetupReminderDisplayAndProcessing(cm) =
         messageLoop()
         )
     reminderDisplayOuterDockPanel
+
+////////////////////////////////////////////////////
+
+open OverworldMapTileCustomization
+
+let RemindOverworldOverwrites(i, j, originalState, currentState, spokenOWTiles:_[], highlightAsyncComp) =
+    // remind destructive changes
+    if originalState=TrackerModel.MapSquareChoiceDomainHelper.UNKNOWN_SECRET && 
+        (currentState=TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET ||
+            currentState=TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET || currentState=TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET) then
+        () // do nothing, this is a 'destructive' change that is perfectly reasonable and doesn't need a warning reminder
+    else
+        let row = (i+1)
+        let col = (char (int 'A' + j)) 
+        let changedCoords = sprintf "Changed %c%d:" col row
+        let desc(state) = if state = -1 then "Unmarked" else spokenOWTiles.[state]
+        let bmp(state) = 
+            if state = -1 then Graphics.unmarkedBmp
+            elif state = TrackerModel.MapSquareChoiceDomainHelper.DARK_X then Graphics.dontCareBmp
+            else MapStateProxy(state).DefaultInteriorBmp()
+        if currentState <> originalState then  // don't remind e.g. change from bomb shop to bomb+key shop
+            SendReminderImpl(TrackerModel.ReminderCategory.OverworldOverwrites, sprintf "You changed %c %d from %s to %s" col row (desc originalState) (desc currentState), 
+                [ReminderTextBox(changedCoords); upcb(bmp(originalState)); upcb(Graphics.iconRightArrow_bmp); upcb(bmp(currentState))], Some(highlightAsyncComp))
+
+let RemindSword2() =
+    let n = TrackerModel.sword2Box.CellCurrent()
+    if n = -1 then
+        SendReminder(TrackerModel.ReminderCategory.SwordHearts, "Consider getting the white sword item", 
+                        [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp())])
+    else
+        SendReminder(TrackerModel.ReminderCategory.SwordHearts, sprintf "Consider getting the %s from the white sword cave" (TrackerModel.ITEMS.AsPronounceString(n)),
+                        [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(14).DefaultInteriorBmp()); 
+                            upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.sword2Box.CellCurrent(), None))])
+
+let RemindFoundDungeonCount(n) =
+    let icons = [upcb(Graphics.genericDungeonInterior_bmp); ReminderTextBox(sprintf"%d/9"n)]
+    if n = 1 then
+        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You have located one dungeon", icons) 
+    elif n = 9 then
+        if TrackerModel.mapStateSummary.Sword2Location = TrackerModel.NOTFOUND   // if sword2 cave not found on overworld map,
+                && TrackerModel.sword2Box.CellCurrent() = -1 then                // and the tracker box is still empty (some people might not mark map, but will mark item)
+            let greyedSword2 = upcb(Graphics.greyscale(Graphics.theInteriorBmpTable.[14].[0]))
+            SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons, but the white sword cave is still missing", 
+                            [yield! icons; yield greyedSword2])
+        else
+            SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "Congratulations, you have located all 9 dungeons", [yield! icons; yield upcb(Graphics.iconCheckMark_bmp)])
+    else
+        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You have located %d dungeons" n, icons) 
+
+let RemindTriforceCount(n, asyncBrieflyHighlightAnOverworldLocation) =
+    let icons = [upcb(Graphics.fullOrangeTriforce_bmp); ReminderTextBox(sprintf"%d/8"n)]
+    if n = 1 then
+        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, "You now have one triforce", icons)
+    else
+        SendReminder(TrackerModel.ReminderCategory.DungeonFeedback, sprintf "You now have %d triforces" n, [yield! icons; if n=8 then yield upcb(Graphics.iconCheckMark_bmp)])
+    if n = 8 && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) then
+        SendReminderImpl(TrackerModel.ReminderCategory.DungeonFeedback, "Consider the magical sword before dungeon nine", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.magical_sword_bmp)],
+                            Some(asyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.Sword3Location)))
+    if n = 8 && (TrackerModel.mapStateSummary.DungeonLocations.[8] <> TrackerModel.NOTFOUND) then
+        SendReminderImpl(TrackerModel.ReminderCategory.DungeonFeedback, "Dungeon nine is open", [upcb(Graphics.iconRightArrow_bmp); upcb(MapStateProxy(8).DefaultInteriorBmp())],
+                            Some(asyncBrieflyHighlightAnOverworldLocation(TrackerModel.mapStateSummary.DungeonLocations.[8])))
+
+type PeriodicReminders() =
+    let recentlyAgo = TimeSpan.FromMinutes(3.0)
+    let ladderTime, recorderTime, powerBraceletTime, boomstickTime = 
+        new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo), new TrackerModel.LastChangedTime(recentlyAgo)
+    let mutable owPreviouslyAnnouncedWhistleSpotsRemain, owPreviouslyAnnouncedPowerBraceletSpotsRemain, owPreviouslyAnnounceDoorRepairCount = 0, 0, 0
+    member this.Check() =
+        // remind ladder
+        if (DateTime.Now - ladderTime.Time).Minutes > 2 then  // every 3 mins
+            if TrackerModel.playerComputedStateSummary.HaveLadder then
+                if not(TrackerModel.playerComputedStateSummary.HaveCoastItem) then
+                    let n = TrackerModel.ladderBox.CellCurrent()
+                    if n = -1 then
+                        SendReminder(TrackerModel.ReminderCategory.CoastItem, "Get the coast item with the ladder", [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp)])
+                    else
+                        if n = TrackerModel.ITEMS.WHITESWORD && TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+                            ()   // silly to ask to grab white sword if already have mags (though note this reminder could be useful in swordless when both are bomb upgrades)
+                        else
+                            SendReminder(TrackerModel.ReminderCategory.CoastItem, sprintf "Get the %s off the coast" (TrackerModel.ITEMS.AsPronounceString(n)),
+                                            [upcb(Graphics.ladder_bmp); upcb(Graphics.iconRightArrow_bmp); upcb(CustomComboBoxes.boxCurrentBMP(TrackerModel.ladderBox.CellCurrent(), None))])
+                    ladderTime.SetNow()
+        // remind whistle spots
+        if (DateTime.Now - recorderTime.Time).Minutes > 4 then  // every 5 mins
+            if TrackerModel.playerComputedStateSummary.HaveRecorder then
+                let owWhistleSpotsRemain = TrackerModel.mapStateSummary.OwWhistleSpotsRemain.Count
+                if owWhistleSpotsRemain >= owPreviouslyAnnouncedWhistleSpotsRemain && owWhistleSpotsRemain > 0 then
+                    let icons = [upcb(Graphics.recorder_bmp); ReminderTextBox(owWhistleSpotsRemain.ToString())]
+                    if owWhistleSpotsRemain = 1 then
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one recorder spot", icons)
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d recorder spots" owWhistleSpotsRemain, icons)
+                recorderTime.SetNow()
+                owPreviouslyAnnouncedWhistleSpotsRemain <- owWhistleSpotsRemain
+        // remind power bracelet spots
+        if (DateTime.Now - powerBraceletTime.Time).Minutes > 4 then  // every 5 mins
+            if TrackerModel.playerComputedStateSummary.HavePowerBracelet then
+                if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain >= owPreviouslyAnnouncedPowerBraceletSpotsRemain && TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain > 0 then
+                    let icons = [upcb(Graphics.power_bracelet_bmp); ReminderTextBox(TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain.ToString())]
+                    if TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain = 1 then
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "There is one power bracelet spot", icons)
+                    else
+                        SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, sprintf "There are %d power bracelet spots" TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain, icons)
+                powerBraceletTime.SetNow()
+                owPreviouslyAnnouncedPowerBraceletSpotsRemain <- TrackerModel.mapStateSummary.OwPowerBraceletSpotsRemain
+        // remind boomstick book
+        if (DateTime.Now - boomstickTime.Time).Minutes > 4 then  // every 5 mins
+            if TrackerModel.playerComputedStateSummary.HaveWand && not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()) then
+                let mutable boomShopFound = false
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if TrackerModel.MapSquareChoiceDomainHelper.IsItem(cur) then
+                            if cur = TrackerModel.MapSquareChoiceDomainHelper.BOOK || 
+                                    (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(TrackerModel.MapSquareChoiceDomainHelper.BOOK)) then
+                                boomShopFound <- true
+                if boomShopFound then
+                    SendReminder(TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook, "Consider buying the boomstick book", [upcb(Graphics.iconRightArrow_bmp); upcb(Graphics.boom_book_bmp)])
+                    boomstickTime.SetNow()
+        // remind door repair spots
+        if TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE) > owPreviouslyAnnounceDoorRepairCount then
+            let n = TrackerModel.mapSquareChoiceDomain.NumUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
+            let max = TrackerModel.mapSquareChoiceDomain.MaxUses(TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE)
+            let icons = [upcb(Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DOOR_REPAIR_CHARGE].[0]); ReminderTextBox(sprintf "%d/%d" n max)]
+            SendReminder(TrackerModel.ReminderCategory.DoorRepair, sprintf "You found %s%d of %d door repairs" (if n=max then "all " else "") n max, icons)
+            owPreviouslyAnnounceDoorRepairCount <- n
