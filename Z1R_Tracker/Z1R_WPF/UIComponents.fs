@@ -452,6 +452,7 @@ let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
         | 0 -> grey_candle.Opacity <- 1.; blue_candle.Opacity <- 0.; red_candle.Opacity <- 0.
         | 1 -> grey_candle.Opacity <- 0.; blue_candle.Opacity <- 1.; red_candle.Opacity <- 0.
         | 2 -> grey_candle.Opacity <- 0.; blue_candle.Opacity <- 0.; red_candle.Opacity <- 1.
+        | _ -> failwith "bad CandleLevel"
         ringsByLevel |> Array.iteri (fun i ring -> if i = TrackerModel.playerComputedStateSummary.RingLevel then ring.Opacity <- 1. else ring.Opacity <- 0.)
         if TrackerModel.playerComputedStateSummary.HaveBow then
             have_bow.Opacity <- 1.; grey_bow.Opacity <- 0.

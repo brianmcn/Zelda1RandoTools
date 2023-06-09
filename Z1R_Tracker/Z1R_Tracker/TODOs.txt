@@ -106,17 +106,11 @@ get rid of this bit:
 printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
 
 
-do a discord survey of options people use
+do a discord survey of options people use (why?)
 
 should potion shop icon have red potion (visual contrast)?
 
 
-
-
-
-
-maybe auto switch to summary tab when you make overworld marks? bleah, I dont like doing that, but i need to look at it more, hm
- - just implement this and try it on a couple seeds and see if it's annoying or whatever
 
 
 
@@ -440,6 +434,7 @@ check for memory leaks
 startup performance
 https://github.com/microsoft/perfview
 -OR- turn off tail calls IN BOTH PROJECTS and use VS profiler
+prior work showed that 'routing' (computing accessible, drawing paths) is a big one; wonder if some kind of cache would be faster, but is a lot of work
 
 
 BIG
