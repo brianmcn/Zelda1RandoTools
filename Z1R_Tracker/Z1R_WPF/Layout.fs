@@ -81,7 +81,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
         member this.AddLegend(legendCanvas, legendTB) = 
             canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
-            canvasAdd(appMainCanvas, legendTB, 0., THRU_MAIN_MAP_H)
+            canvasAdd(appMainCanvas, legendTB, 100., THRU_MAIN_MAP_H)
         member this.AddItemProgress(itemProgressCanvas, itemProgressTB) = 
             canvasAdd(appMainCanvas, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
             canvasAdd(appMainCanvas, itemProgressTB, 50., THRU_MAP_AND_LEGEND_H + 4.)
@@ -245,7 +245,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(lower, owm, afterSoldItemBoxesX, dungeonStart-(180.-45.)-RED_LINE)
         member this.AddLegend(legendCanvas, legendTB) = 
             canvasAdd(upper, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
-            canvasAdd(upper, legendTB, 0., THRU_MAIN_MAP_H)
+            canvasAdd(upper, legendTB, 100., THRU_MAIN_MAP_H)
         member this.AddItemProgress(itemProgressCanvas, itemProgressTB) = 
             canvasAdd(upper, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
             canvasAdd(upper, itemProgressTB, 50., THRU_MAP_AND_LEGEND_H + 4.)

@@ -1205,7 +1205,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let blockerDungeonSunglasses : FrameworkElement[] = Array.zeroCreate 8
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
-        let diagSW = System.Diagnostics.Stopwatch.StartNew()
+//        let diagSW = System.Diagnostics.Stopwatch.StartNew()
         if displayIsCurrentlyMirrored <> TrackerModelOptions.Overworld.MirrorOverworld.Value then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
@@ -1380,8 +1380,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // place start icon in top layer at very top (above e.g. completed dungeon highlight)
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
-        if diagSW.ElapsedMilliseconds > 100L then
-            printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
+//        if diagSW.ElapsedMilliseconds > 100L then
+//            printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
         )
     let threshold = TimeSpan.FromMilliseconds(500.0)
     let periodicReminders = new PeriodicReminders()

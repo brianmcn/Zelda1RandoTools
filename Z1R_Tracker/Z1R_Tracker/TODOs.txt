@@ -95,22 +95,6 @@ since 1.3.0k...
 - reminder log - click log button at upper right of timeline to see past reminders (can mouseover each for description)
 
 
-redo legend/record dest
-adjust legend layout, fix gaping hole
-
-consider getting rid of shaders in top tracker and blockersunglasses
-
-
-
-get rid of this bit:
-printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
-
-
-do a discord survey of options people use (why?)
-
-should potion shop icon have red potion (visual contrast)?
-
-
 
 
 
@@ -142,8 +126,6 @@ in quick-start, maybe prioritize what people should track, so noobs can bite off
  - dungeon rooms: default maybe-pushblock room complete/uncomplete (maybe ? and X mapping from zhelper) is most common, after that transports, only occasionally other marks
  - key hook is "every time you leave something you'll come back to later, leave self some reminder", and leaving an incomplete dungeon is the commonest/most crucial one
 
-
-puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
 
 
 
@@ -393,6 +375,8 @@ if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
 
+puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
+
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
  - Stevie-O hacked this with a new overworldTiles() state NextAnyRoad or whatever
  - there's AnyRoad and HDN dungeon, where a single hotkey for 'next' is nice
@@ -441,13 +425,6 @@ BIG
 
 'undo'
 if i had two auto saves (most recent, slightly older), then 'undo' could effectively be done by quitting and reloading an auto-save, if you oops...
-
-[9:52 AM] homerjsmash: Yeah I like where you're going with all of this. Also this prompted another thought for me, one of my big mistakes I make is I accidentally reclick a tile I 
-have already assigned. Example the potion shop is an open cave which is next to pb spot or something. When I finally get pb I move the mouse to that spot but accidentally fat finger
-the potion shop, which since I deselect everything but x makes it an X. Shoot. What the heck was that cave? There's no undo button or something like that
-[9:55 AM] Lorgon111: yes, undo, i have been vaguely thinking of that (mostly for speech recognition fat-AI-ing what you spoke), its a pain to code, but yes
-like, not even just coding, but from a design perspective, someone scrolls down 3 slots on B4 and then realizes they meant to change B5, what should 'undo' do? undo one 
-scroll? undo all recent (how recent?) changes to tile?  what will the user expect? etc etc etc it's a very difficult design space
 
 
 
