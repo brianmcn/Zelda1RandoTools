@@ -586,7 +586,7 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                 let locs = if first then OverworldData.vanilla1QDungeonLocations else OverworldData.vanilla2QDungeonLocations
                 if locs |> Seq.contains(x,y) then
                     owLocatorTilesZone.[x,y].MakeGreenWithBriefAnimation()
-    let clearOW() = DungeonUI.AhhGlobalVariables.hideLocator(); DungeonUI.AhhGlobalVariables.clearRouteDrawingCanvas()
+    let clearOW() = DungeonUI.AhhGlobalVariables.hideLocator(); OverworldRouteDrawing.routeDrawingLayer.Clear()
 
     // in mixed quest, buttons to hide first/second quest
     let hideFirstQuestCheckBox  = new CheckBox(Content=new TextBox(Text="HFQ",FontSize=12.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))

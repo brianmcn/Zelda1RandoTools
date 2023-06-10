@@ -302,12 +302,10 @@ let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Co
 let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
 let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
 type TileHighlightRectangle() as this =
-    let s = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=1.0,IsHitTestVisible=false)
+    let s = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=0.0,IsHitTestVisible=false)
     let Draw(isPale) =
         s.Opacity <- 1.0
         s.StrokeThickness <- if isPale then 2.0 else 4.0
-    do
-        this.MakeGreen()
     member _this.MakeRed() = s.Stroke <- red; Draw(false)
     member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
     member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
@@ -351,7 +349,6 @@ type TileHighlightRectangle() as this =
         else
             this.MakeRed()
     member _this.Shape = s
-
 
 // see also
 // https://stackoverflow.com/questions/63184765/wpf-left-click-and-drag

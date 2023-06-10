@@ -319,7 +319,7 @@ let ToggleOverworldTileIfItIsToggleable(i, j, state) =
         else
             TrackerModel.setOverworldMapExtraData(i,j,state,state)
 
-let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async { // returns tuple of two booleans (needRedrawGridSpot, needUIUpdate)
+let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
     if msp.State = -1 then
         // left click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 

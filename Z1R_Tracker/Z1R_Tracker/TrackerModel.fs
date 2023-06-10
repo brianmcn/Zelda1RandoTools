@@ -1314,7 +1314,6 @@ type ITrackerEvents =
     abstract OverworldSpotsRemaining : int * int -> unit  // total remaining, currently gettable
     abstract DungeonLocation : int*int*int*bool*bool -> unit   // number 0-7, x, y, hasTri, isCompleted --- to update triforce color (found), completed shading, recorderable/completed map icon
     abstract AnyRoadLocation : int*int*int -> unit // number 0-3, x, y
-    abstract WhistleableLocation : int*int -> unit // x, y
     abstract Armos : int*int -> unit // x,y
     abstract Sword3 : int*int -> unit // x,y
     abstract Sword2 : int*int -> unit // x,y
@@ -1413,8 +1412,6 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         if mapStateSummary.AnyRoadLocations.[a] <> NOTFOUND then
             let x,y = mapStateSummary.AnyRoadLocations.[a]
             ite.AnyRoadLocation(a, x, y)
-    for x,y in mapStateSummary.OwWhistleSpotsRemain do
-        ite.WhistleableLocation(x, y)
     if mapStateSummary.ArmosLocation <> NOTFOUND then
         ite.Armos(mapStateSummary.ArmosLocation)
     if mapStateSummary.Sword3Location <> NOTFOUND then

@@ -9,6 +9,27 @@ open System.Windows
 let OMTW = Graphics.OMTW
 let canvasAdd = Graphics.canvasAdd
 
+type RouteDrawingLayer() =
+    let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3), IsHitTestVisible=false)
+    let highlightTiles = Array2D.init 16 8 (fun _ _ -> new Graphics.TileHighlightRectangle())
+    let routingMarksCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
+    do
+        // these permanently live in the routeDrawingCanvas
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                canvasAdd(routeDrawingCanvas, highlightTiles.[i,j].Shape, OMTW*float(i), float(j*11*3))
+        canvasAdd(routeDrawingCanvas, routingMarksCanvas, 0., 0.)    // we want the lines drawn atop everything else
+    member this.ClearHighlights() =
+        for i = 0 to 15 do
+            for j = 0 to 7 do
+                highlightTiles.[i,j].Hide()
+    member this.ClearRouteMarks() = routingMarksCanvas.Children.Clear()
+    member this.Clear() = this.ClearHighlights(); this.ClearRouteMarks()
+    member this.AddRouteMark(m) = canvasAdd(routingMarksCanvas, m, 0., 0.)
+    member this.GetHighlightTile(i,j) = highlightTiles.[i,j]
+    member this.AddSelfTo(c) = canvasAdd(c, routeDrawingCanvas, 0., 0.)
+let routeDrawingLayer = new RouteDrawingLayer()
+
 let coords(Vertex(x,y,p)) =
     let cx = float(x*int OMTW+8*3)
     let cy = float(y*11*3+5*3)
@@ -45,8 +66,8 @@ let colorAlt3 = new SolidColorBrush(Color.FromArgb(175uy, 160uy, 220uy, 255uy))
 let colorAlt4 = new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy))
 let colorAlt5 = new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy))
 let colorAlt6 = new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy))
-let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR, whatToCyan) = 
-    routeDrawingCanvas.Children.Clear()
+let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR, whatToCyan) = 
+    routeDrawingLayer.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
         failwith "missing st"
@@ -178,7 +199,7 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                 toHighlight.Add(i,j,N>0)
                 iterate(N-1,recentCost)
             for (i,j,bright) in toHighlight do
-                let thr = new Graphics.TileHighlightRectangle()
+                let thr = routeDrawingLayer.GetHighlightTile(i,j)
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur>=0 && cur<=7 then // most callers pass in owUnmarked equal to TrackerModel.overworldMapMarks, but some pass dungeon letters A-H as unmarked too, color them accessible
                     if bright then
@@ -200,17 +221,13 @@ let drawPathsImpl(routeDrawingCanvas:Canvas, owRouteworthySpots:_[,], owUnmarked
                         thr.MakeGreen()
                     else
                         thr.MakePaleGreen()
-                // cyan overrides all
-                if not(whatToCyan(i,j)) then
-                    canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
+        // cyan overrides all
         for i = 0 to 15 do
             for j = 0 to 7 do
                 if whatToCyan(i,j) then
-                    let thr = new Graphics.TileHighlightRectangle()
-                    thr.MakeCyan()
-                    canvasAdd(routeDrawingCanvas, thr.Shape, OMTW*float(i), float(j*11*3))
+                    routeDrawingLayer.GetHighlightTile(i,j).MakeCyan()
         for line in accumulatedLines do
-            canvasAdd(routeDrawingCanvas, line, 0., 0.)  // we want the lines drawn atop everything else
+            routeDrawingLayer.AddRouteMark(line)
 
 
 
