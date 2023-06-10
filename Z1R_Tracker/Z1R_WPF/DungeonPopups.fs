@@ -162,7 +162,7 @@ let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = a
         innerc.Children.Add(dp) |> ignore
         DockPanel.SetDock(textBorder, Dock.Right)
         Canvas.SetTop(dp, -3.)
-        Canvas.SetLeft(dp, 121.)
+        Canvas.SetLeft(dp, 193.)
     let extraDecorations = 
         let text = new TextBox(Text="Select a Monster Detail for this room", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                     BorderThickness=Thickness(0.), FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
