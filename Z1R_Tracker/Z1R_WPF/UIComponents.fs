@@ -958,18 +958,22 @@ let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOve
         tb.IsHitTestVisible <- false
         zoneNames.Add(hz,tb)
 
+    let mutable isCurrentlyShown = false
     let changeZoneOpacity(hintZone,show) =
         ensurePlaceholderFinished()
         let noZone = hintZone=TrackerModel.HintZone.UNKNOWN
         if show then
+            isCurrentlyShown <- true
             if noZone then 
                 allOwMapZoneColorCanvases |> Array2D.iteri (fun _x _y zcc -> zcc.Opacity <- 0.3)
             owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.9)
             zoneNames |> Seq.iter (fun (hz,textbox) -> if noZone || hz=hintZone then textbox.Opacity <- 0.6)
         else
-            allOwMapZoneColorCanvases |> Array2D.iteri (fun _x _y zcc -> zcc.Opacity <- 0.0)
-            owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
-            zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
+            if isCurrentlyShown then   // performance - don't constantly re-do all this idempotent work
+                allOwMapZoneColorCanvases |> Array2D.iteri (fun _x _y zcc -> zcc.Opacity <- 0.0)
+                owMapZoneBoundaries |> Seq.iter (fun x -> x.Opacity <- 0.0)
+                zoneNames |> Seq.iter (fun (_hz,textbox) -> textbox.Opacity <- 0.0)
+                isCurrentlyShown <- false
     let zone_checkbox = new CheckBox(Content=new TextBox(Text="Zones",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false))
     zone_checkbox.IsChecked <- System.Nullable.op_Implicit false
     zone_checkbox.Checked.Add(fun _ -> changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true))
