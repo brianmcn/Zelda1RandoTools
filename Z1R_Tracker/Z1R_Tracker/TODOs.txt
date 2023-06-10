@@ -94,7 +94,7 @@ since 1.3.0k...
 since 1.3.0l...
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
 - reminder log - click log button at upper right of timeline to see past reminders (can mouseover each for description)
-
+- performance improvements
 
 
 

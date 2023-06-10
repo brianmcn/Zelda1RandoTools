@@ -712,7 +712,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                                             whetherToCyanOpenCavesOrArmos())
                                             )
-                                        onMouseForMagnifier(i,j)
+                                        if TrackerModelOptions.Overworld.ShowMagnifier.Value then
+                                            onMouseForMagnifier(i,j)   // somewhat expensive, only call if it's getting shown
                                         // track current location for F5 & speech recognition purposes
                                         currentlyMousedOWX <- i
                                         currentlyMousedOWY <- j
@@ -1782,8 +1783,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         for i = 0 to 15 do
             for j = 0 to 7 do
                 owLocatorTilesZone.[i,j].Hide()
-                OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
-                owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon possibly hidden
+                if OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] then
+                    OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
+                    owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon possibly hidden
         owLocatorCanvas.Children.Clear()
         currentTargetGhostBuster.Opacity <- 0.
         ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
