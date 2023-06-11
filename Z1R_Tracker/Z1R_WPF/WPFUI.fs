@@ -1869,7 +1869,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do
         let postgameDecorationCanvas = new Canvas(Width=appMainCanvas.Width, Opacity=0., IsHitTestVisible=false)   // no hit test so it doesn't absorb clicks to reminder log
         layout.AddPostGameDecorationCanvas(postgameDecorationCanvas)
-        let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
+        let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Height=24.)  // height to cover the "log" button
         Canvas.SetRight(sp, 0.)
         Canvas.SetTop(sp, 0.)
         postgameDecorationCanvas.Children.Add(sp) |> ignore
