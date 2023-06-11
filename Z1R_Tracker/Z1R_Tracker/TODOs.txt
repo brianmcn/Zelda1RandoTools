@@ -98,7 +98,8 @@ since 1.3.0l...
 - performance improvements
 - fixed name display when selecting MonsterDetail
 - upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb (TODO docs)
-
+since 1.3.0m...
+- minor layout fixes
 
 
 

@@ -615,7 +615,7 @@ type MyWindow() as this =
             WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
             if loadData.IsNone then
                 WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
-            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, Layout.RIGHT_COL+160., 0.)
+            Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, Layout.RIGHT_COL+190., 0.)
             gotThruStartup <- true
             if promptedCrashRecovery then
                 finishCrashInfoImpl("prompted for crash recovery, user chose not to, successfully started")

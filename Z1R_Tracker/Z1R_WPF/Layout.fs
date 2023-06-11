@@ -271,14 +271,14 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
             kitty.Width <- 45.
             kitty.Height <- 45.
-            canvasAdd(lower, kitty, afterSoldItemBoxesX+120. + 20., 0.)
+            canvasAdd(lower, kitty, afterSoldItemBoxesX+150. + 5., 45.)
             let ztlogo = new Image()
             let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
             ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
             ztlogo.Width <- 30.
             ztlogo.Height <- 30.
             let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
-            canvasAdd(lower, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 11.)
+            canvasAdd(lower, logoBorder, afterSoldItemBoxesX+150. + 5. + 25., 56.)
         member this.AddShowHotKeysButton(showHotKeysButton) = 
             canvasAdd(upper, showHotKeysButton, 16.*OMTW - kittyWidth - 115., THRU_MAIN_MAP_H)
         member this.AddShowRunCustomButton(showRunCustomButton) = 
