@@ -112,11 +112,29 @@ type Cell(cd:ChoiceDomain) =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-type EventingBool(orig:bool) =
+type IEventingReader<'T when 'T:equality> =
+    abstract Value : 'T with get
+    abstract Changed : IEvent<unit>
+type Eventing<'T when 'T:equality>(orig:'T) =
     let mutable state = orig
-    let e = new Event<bool>()
-    member this.Value with get() = state and set(x) = state <- x; e.Trigger(x)
+    let e = new Event<unit>()
+    member this.Value with get() = state and set(x) = let orig=state in state <- x; if orig<>state then e.Trigger()
     member this.Changed = e.Publish
+    interface IEventingReader<'T> with
+        member this.Value with get() = this.Value
+        member this.Changed = this.Changed
+type EventingBool = Eventing<bool>
+type EventingInt = Eventing<int>
+type SyntheticEventingBool(recompute, changesToWatch:seq<IEvent<unit>>) =
+    let b = new EventingBool(recompute())
+    do
+        for e in changesToWatch do
+            e.Add(fun _ -> b.Value <- recompute())
+    member this.Value = b.Value
+    member this.Changed = b.Changed
+    interface IEventingReader<bool> with
+        member this.Value with get() = this.Value
+        member this.Changed = this.Changed
 
 let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged = 
     let mutable isCurrentlyBook = true   // false if this is a boomstick seed
@@ -764,6 +782,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
 
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
 let playerComputedStateSummaryLastComputedTime = new LastChangedTime()
+let playerSwordLevel, playerCandleLevel, playerRingLevel, playerArrowLevel = new EventingInt(0), new EventingInt(0), new EventingInt(0), new EventingInt(0)
 let recomputePlayerStateSummary() =
     let mutable haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts = false,false,false,false,false,false,false,3
     let mutable swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel = 0,0,0,false,0,false,false,0
@@ -848,6 +867,10 @@ let recomputePlayerStateSummary() =
     let bookChanged = haveBookOrShield <> playerComputedStateSummary.HaveBookOrShield
     playerComputedStateSummary <- PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem,haveWhiteSwordItem,havePowerBracelet,haveRaft,playerHearts,
                                                                 swordLevel,candleLevel,ringLevel,haveBow,arrowLevel,haveWand,haveBookOrShield,boomerangLevel)
+    playerSwordLevel.Value <- swordLevel
+    playerCandleLevel.Value <- candleLevel
+    playerRingLevel.Value <- ringLevel
+    playerArrowLevel.Value <- arrowLevel
     if bookChanged then
         playerComputedStateSummaryForPlayerHasBookChanged.Trigger()
     playerComputedStateSummaryLastComputedTime.SetNow()
@@ -905,6 +928,8 @@ let setOverworldMapExtraData(i,j,k,v) =
     overworldMapExtraData.[i,j].[k] <- v
     mapLastChangedTime.SetNow()
 let NOTFOUND = (-1,-1)
+let magsCaveFound, woodSwordCaveFound, foundBlueRingShop, foundBookShop, foundCandleShop, foundArrowShop, foundBombShop = 
+    new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false)
 type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
     member _this.DungeonLocations = dungeonLocations
@@ -937,6 +962,7 @@ let recomputeMapStateSummary() =
     let mutable owRouteworthySpots = Array2D.create 16 8 false
     let firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
+    let mutable magsCaveFound_, woodSwordCaveFound_, foundBlueRingShop_, foundBookShop_, foundCandleShop_, foundArrowShop_, foundBombShop_ = false, false, false, false, false, false, false
     for i = 0 to 15 do
         for j = 0 to 7 do
             if not(owInstance.AlwaysEmpty(i,j)) then
@@ -954,6 +980,7 @@ let recomputeMapStateSummary() =
                 | x when x>=9 && x<13 -> 
                     anyRoadLocations.[x-9] <- i,j
                 | x when x=MapSquareChoiceDomainHelper.SWORD3 -> 
+                    magsCaveFound_ <- true
                     sword3Location <- i,j
                     if not(playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && playerComputedStateSummary.PlayerHearts >= 10 then
                         owRouteworthySpots.[i,j] <- true
@@ -962,6 +989,7 @@ let recomputeMapStateSummary() =
                     if not playerComputedStateSummary.HaveWhiteSwordItem && playerComputedStateSummary.PlayerHearts >= 4 then
                         owRouteworthySpots.[i,j] <- true
                 | x when x=MapSquareChoiceDomainHelper.SWORD1 -> 
+                    woodSwordCaveFound_ <- true
                     sword1Location <- i,j
                 | n when n=MapSquareChoiceDomainHelper.ARMOS -> 
                     armosLocation <- i,j
@@ -988,13 +1016,38 @@ let recomputeMapStateSummary() =
                 | n when n=MapSquareChoiceDomainHelper.DARK_X ->
                     if getOverworldMapExtraData(i, j, n)=n then
                         owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
-                | _ -> () // shop or whatnot
+                | n -> 
+                    if MapSquareChoiceDomainHelper.IsItem(n) then // shop
+                        let item = MapSquareChoiceDomainHelper.BLUE_RING
+                        if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
+                            foundBlueRingShop_ <- true
+                        let item = MapSquareChoiceDomainHelper.BOOK
+                        if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
+                            foundBookShop_ <- true
+                        let item = MapSquareChoiceDomainHelper.BLUE_CANDLE
+                        if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
+                            foundCandleShop_ <- true
+                        let item = MapSquareChoiceDomainHelper.ARROW
+                        if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
+                            foundArrowShop_ <- true
+                        let item = MapSquareChoiceDomainHelper.BOMB
+                        if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
+                            foundBombShop_ <- true
+                    else
+                        () // other
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 
                     secondQuestOnlyInterestingMarks.[i,j] <- isInteresting 
                 if OverworldData.owMapSquaresFirstQuestOnly.[j].Chars(i) = 'X' then 
                     firstQuestOnlyInterestingMarks.[i,j] <- isInteresting 
     owRouteworthySpots.[15,5] <- playerComputedStateSummary.HaveLadder && not playerComputedStateSummary.HaveCoastItem // gettable coast item is routeworthy
+    magsCaveFound.Value <- magsCaveFound_
+    woodSwordCaveFound.Value <- woodSwordCaveFound_
+    foundBlueRingShop.Value <- foundBlueRingShop_
+    foundBookShop.Value <- foundBookShop_
+    foundCandleShop.Value <- foundCandleShop_
+    foundArrowShop.Value <- foundArrowShop_
+    foundBombShop.Value <- foundBombShop_
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime.SetNow()

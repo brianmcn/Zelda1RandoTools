@@ -96,19 +96,23 @@ since 1.3.0l...
 - reminder log - click log button at upper right of timeline to see past reminders (can mouseover each for description)
 - performance improvements
 - fixed name display when selecting MonsterDetail
+- upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb
 
 
 
-what if, when you find a candle shop etc, its box turns from red to white? same for mags when located? hmmm or yellow?
- - probably needs mapstatesummary and ite.SomeNewEvent() to compute and bubble up to the app
-
-
-mcmonkey: wishes dungeon could start at bottom when entrance not shuffled, so not have to hammer down at start of dung.
+"seed replay", if log overworld marks, could 'replay' a 1 min summary of seed in tracker, might be fun.
+ - or the simple implementation is 1 screenshot every minute, saved to a folder, then stitch together into video
+     - each screeshot is like 150k, so 120 of those (2 hours) is 18M of disk space
 
 
 'complete' not being able to show monster summary on summary tab feels bad if you want to go back to dungeon for some reason
 and hovering FQ/SQ doesn't show monster summary, so hm
  - maybe a place to hover in upper left panel to always see in-progress (and/or always map) as opposed to default 'big picture'?
+ - or clicking upper left tab cycles various views?  and when hovering upper left tab, it could project instructions? 
+        or should hovering project 9, for e.g. open 9 scenarios?  i guess if 9 has 0 marks, could project instructions, else 9
+        actually, there can be a button embedded inside upper left tab "Change display" or whatnot, hovering the button gives 
+        instructions, hovering anywhere else inside the upper left tab projects 9 as expected
+        (ensure hovering FQ/SQ does right thing regardless of which display selected)
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
