@@ -1422,6 +1422,32 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             canvasAdd(gc, new Shapes.Line(X1=float ccw/3., X2=float ccw/3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(gc, new Shapes.Line(X1=float ccw*2./3., X2=float ccw*2./3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(contentCanvas, gc, 0., 0.)
+        let summaryMode = TrackerModel.EventingInt(0)   // 0=default, 1=preview, 2=detail
+        let makeMidiPreviewBehavior(i, fe:FrameworkElement) =
+            // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
+            let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
+            let overlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsHitTestVisible=false, Child=midi)
+            Canvas.SetLeft(overlay, 0.)
+            Canvas.SetBottom(overlay, 0.)
+            fe.MouseEnter.Add(fun _ ->
+                rightwardCanvas.Children.Clear()
+                rightwardCanvas.Children.Add(overlay) |> ignore
+                levelTabSelected.Trigger(i+1)
+                contentCanvasMouseEnterFunc(10+i+1)
+                )
+            fe.MouseLeave.Add(fun _ ->
+                rightwardCanvas.Children.Clear()
+                if dungeonTabs.SelectedIndex=9 then  // we may have clicked on D4, and MouseLeave fires after tab is switched
+                    levelTabSelected.Trigger(10)
+                contentCanvasMouseLeaveFunc(10+i+1)
+                )
+            fe.MouseDown.Add(fun _ ->
+                rightwardCanvas.Children.Clear()
+                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(new System.Action(fun () -> 
+                    dungeonTabs.SelectedIndex <- i
+                    levelTabSelected.Trigger(i+1)
+                    )) |> ignore
+                )
         let make(i) =
             let mini = new Canvas(Width=float w, Height=float h, Background=Brushes.Black)
             let miniOuterDock = new DockPanel(Width=float w, Height=float h)
@@ -1442,13 +1468,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 let miniContent = new Shapes.Rectangle(Width=float w, Height=float h, Fill=new VisualBrush(contentCanvases.[i]))
                 canvasAdd(c, miniContent, 0., 0.)
                 let decide() =
-                    if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() || isHoveringFQSQ.Value then
+                    if TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value() || isHoveringFQSQ.Value || summaryMode.Value=1 then
                         // just show their marks
                         miniContent.Opacity <- 1.0
                         c.Opacity <- 1.0
                         n.Opacity <- 0.0
                         notFoundText.Opacity <- 0.0
                         completeText.Opacity <- 0.0
+                    elif summaryMode.Value=2 then
+                        // show the summary created further below
+                        c.Opacity <- 0.0
                     elif isFirstTimeClickingAnyRoom.[i].Value && TrackerModel.mapStateSummary.DungeonLocations.[i]=TrackerModel.NOTFOUND then
                         // nothing marked, not found, show a blank canvas with the numeral
                         miniContent.Opacity <- 0.0
@@ -1474,6 +1503,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 TrackerModel.mapStateSummaryComputedEvent.Publish.Add(fun _ -> decide())
                 TrackerModel.GetDungeon(i).IsCompleteWasNoticedChanged.Add(fun _ -> decide())
                 isHoveringFQSQ.Changed.Add(fun _ -> decide())
+                summaryMode.Changed.Add(fun _ -> decide())
             let canSeeMapBox =
                 let canSeeMapCanvas = new Canvas(Width=16., Height=16., ClipToBounds=true)
                 let mapImg = Graphics.BMPtoImage Graphics.zi_map_bmp
@@ -1519,36 +1549,33 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
 
             miniMidDock.Children.Add(miniMainDock) |> ignore
 
-            // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
-            let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
-            let overlay = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(5.), Background=Brushes.Black, IsHitTestVisible=false, Child=midi)
-            Canvas.SetLeft(overlay, 0.)
-            Canvas.SetBottom(overlay, 0.)
-            mini.MouseEnter.Add(fun _ ->
-                rightwardCanvas.Children.Clear()
-                rightwardCanvas.Children.Add(overlay) |> ignore
-                levelTabSelected.Trigger(i+1)
-                contentCanvasMouseEnterFunc(10+i+1)
-                )
-            mini.MouseLeave.Add(fun _ ->
-                rightwardCanvas.Children.Clear()
-                if dungeonTabs.SelectedIndex=9 then  // we may have clicked on D4, and MouseLeave fires after tab is switched
-                    levelTabSelected.Trigger(10)
-                contentCanvasMouseLeaveFunc(10+i+1)
-                )
-            mini.MouseDown.Add(fun _ ->
-                rightwardCanvas.Children.Clear()
-                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(new System.Action(fun () -> 
-                    dungeonTabs.SelectedIndex <- i
-                    levelTabSelected.Trigger(i+1)
-                    )) |> ignore
-                )
+            makeMidiPreviewBehavior(i, mini)
             mini
-        let text = new TextBox(Text="\nDungeon Summary\n\nHover to preview\n\nClick to switch tab\n", Margin=Thickness(0.,0.,8.,0.),
+        let summaryModeButton = 
+            let tb = new TextBox(Text="Mode: default", IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=Graphics.almostBlack,
+                                    FontSize=12., Foreground=Brushes.Orange)
+            let button = new Button(Content=tb, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch, Width=100.)
+            button.Click.Add(fun _ ->
+                if summaryMode.Value=0 then
+                    summaryMode.Value <- 1
+                    tb.Text <- "Mode: preview"
+                elif summaryMode.Value=1 then
+                    summaryMode.Value <- 2
+                    tb.Text <- "Mode: detail"
+                else
+                    summaryMode.Value <- 0
+                    tb.Text <- "Mode: default"
+                )
+            button
+        let text = new TextBox(Text="Dungeon Summary\n\nHover to preview tab\n\nClick to switch tab", Margin=Thickness(3.),
                                Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center)
-        let tb = new Border(Width=float w, Height=float h, Background=Brushes.Black, Child=text)
-        tb.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
+        let dp = new DockPanel(Background=Brushes.Black, LastChildFill=true)
+        DockPanel.SetDock(summaryModeButton, Dock.Top)
+        dp.Children.Add(summaryModeButton) |> ignore
+        dp.Children.Add(text) |> ignore
+        let tb = new Border(Width=float w, Height=float h, Background=Brushes.Black, Child=dp)
+        makeMidiPreviewBehavior(8, tb)
         Graphics.gridAdd(g, tb, 0, 0)
         Graphics.gridAdd(g, make(0), 1, 0)
         Graphics.gridAdd(g, make(1), 2, 0)
