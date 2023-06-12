@@ -1067,9 +1067,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
-    let recorderDestinationButtonCanvas, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB = 
-            UIComponents.MakeLegend(cm, makeBasicStartIcon, doUIUpdateEvent)
-    layout.AddLegend(legendCanvas, legendTB)
+    let makeCustomWaypointIcon, theCustomWaypointIcon =
+        let L = 6.0
+        let makeIcon() = 
+            let bg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
+            bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+            let fg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Orange, StrokeThickness=3.0, IsHitTestVisible=false)
+            let c = new Canvas()
+            canvasAdd(c, bg, 1., 0.)
+            canvasAdd(c, fg, 1., 0.)
+            c
+        let theCustomWaypointIcon = makeIcon()
+        makeIcon, theCustomWaypointIcon
+    let recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas = 
+            UIComponents.MakeLegend(cm, makeBasicStartIcon, makeCustomWaypointIcon, doUIUpdateEvent)
+    layout.AddLegend(legendCanvas)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
     layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
 
@@ -1245,8 +1257,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
                     bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
                     let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
-                    canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L, float(11*3*j)-L/2.+1.)
-                    canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L, float(11*3*j)-L/2.+1.)
+                    canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
+                    canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
                     if not(TrackerModel.recorderToNewDungeons) then
                         // label the vanilla spots, so player knows the order
                         let tb = new TextBox(Text=sprintf "%c" (char idx + char '1'), FontSize=12., FontWeight=FontWeights.Bold, Foreground=Brushes.White, Background=Brushes.Black, 
@@ -1371,6 +1383,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // place start icon in top layer at very top (above e.g. completed dungeon highlight)
         if TrackerModel.startIconX <> -1 then
             canvasAdd(recorderingCanvas, startIcon, 11.5*OMTW/48.-3.+OMTW*float(TrackerModel.startIconX), float(TrackerModel.startIconY*11*3))
+        if TrackerModel.customWaypointX <> -1 then
+            canvasAdd(recorderingCanvas, theCustomWaypointIcon, -2.+OMTW*float(TrackerModel.customWaypointX), float(TrackerModel.customWaypointY*11*3)-5.)
 //        if diagSW.ElapsedMilliseconds > 100L then
 //            printfn "doUIUpdate %dms" diagSW.ElapsedMilliseconds
         )
@@ -1714,6 +1728,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
         )
     anyRoadLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
+    dungeonLegendIconArea.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))   // the 'show all dungeons' functionality
+    dungeonLegendIconArea.MouseLeave.Add(fun _ -> hideLocator())
     showLocator <- (fun sld ->
         match sld with
         | ShowLocatorDescriptor.DungeonNumber(n) ->
@@ -1956,6 +1972,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         TrackerModelOptions.Overworld.MirrorOverworld.Value <- data.Overworld.MirrorOverworld
         TrackerModel.startIconX <- data.Overworld.StartIconX
         TrackerModel.startIconY <- data.Overworld.StartIconY
+        TrackerModel.customWaypointX <- data.Overworld.CustomWaypointX
+        TrackerModel.customWaypointY <- data.Overworld.CustomWaypointY
         let a = data.Overworld.Map
         if a.Length <> 16 * 8 * 3 then
             failwith "bad load data at data.Overworld.Map"

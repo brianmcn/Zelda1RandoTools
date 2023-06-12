@@ -1208,6 +1208,7 @@ let recomputeWhatIsNeeded() =
 let mutable recorderToNewDungeons = true
 let mutable recorderToUnbeatenDungeons = false
 let mutable startIconX,startIconY = NOTFOUND  // UI can poke and display these
+let mutable customWaypointX,customWaypointY = NOTFOUND  // UI can poke and display these
 
 [<RequireQualifiedAccess>]
 type HintZone =

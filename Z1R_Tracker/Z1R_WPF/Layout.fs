@@ -20,7 +20,7 @@ type IApplicationLayoutBase =
     abstract member AddLinkRouting : linkIcon:UIElement * currentTargetIcon:UIElement -> unit
     abstract member AddWebcamLine : unit -> unit
     abstract member AddOverworldCanvas : overworldCanvas:UIElement -> unit
-    abstract member AddLegend : legendCanvas:UIElement * legendTB:UIElement -> unit
+    abstract member AddLegend : legendCanvas:UIElement -> unit
     abstract member AddItemProgress : itemProgressCanvas:UIElement * itemProgressTB:UIElement -> unit
     abstract member AddVersionButton : vb:UIElement -> unit
     abstract member AddHintDecoderButton : tb:UIElement -> unit
@@ -79,9 +79,8 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
         member this.AddOverworldCanvas(overworldCanvas) =
             canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
-        member this.AddLegend(legendCanvas, legendTB) = 
-            canvasAdd(appMainCanvas, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
-            canvasAdd(appMainCanvas, legendTB, 100., THRU_MAIN_MAP_H)
+        member this.AddLegend(legendCanvas) = 
+            canvasAdd(appMainCanvas, legendCanvas, 0., THRU_MAIN_MAP_H)
         member this.AddItemProgress(itemProgressCanvas, itemProgressTB) = 
             canvasAdd(appMainCanvas, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
             canvasAdd(appMainCanvas, itemProgressTB, 50., THRU_MAP_AND_LEGEND_H + 4.)
@@ -243,9 +242,8 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             let owm = Broadcast.makeViewRectImpl(Point(0.,150.), Point(W,THRU_MAIN_MAP_H), upper)
             owm.RenderTransform <- new ScaleTransform(scaleW,scaleH)
             canvasAdd(lower, owm, afterSoldItemBoxesX, dungeonStart-(180.-45.)-RED_LINE)
-        member this.AddLegend(legendCanvas, legendTB) = 
-            canvasAdd(upper, legendCanvas, LEFT_OFFSET, THRU_MAIN_MAP_H)
-            canvasAdd(upper, legendTB, 100., THRU_MAIN_MAP_H)
+        member this.AddLegend(legendCanvas) = 
+            canvasAdd(upper, legendCanvas, 0., THRU_MAIN_MAP_H)
         member this.AddItemProgress(itemProgressCanvas, itemProgressTB) = 
             canvasAdd(upper, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
             canvasAdd(upper, itemProgressTB, 50., THRU_MAP_AND_LEGEND_H + 4.)

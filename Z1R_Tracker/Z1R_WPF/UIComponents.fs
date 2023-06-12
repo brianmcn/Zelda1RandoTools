@@ -177,30 +177,33 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, doUIUpdateEvent:Event<unit>) =
+let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypointIcon, doUIUpdateEvent:Event<unit>) =
     // map legend
-    let legendCanvas = new Canvas()
-    let dungeonIconCanvas = new Canvas()
-    canvasAdd(legendCanvas, dungeonIconCanvas, OMTW*2.0, 0.)
+    let BG = new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,90uy))
+    let legendCanvas = new Canvas(Width=586., Height=float(11*3), Background=BG)
+    let dungeonLegendIconCanvas = new Canvas(Width=float(16*3), Height=float(11*3))
+    let dungeonLegendIconArea = new Canvas(Width=15., Height=float(11*3), Background=Brushes.White, Opacity=0.0001)   // to respond to mouse hover
+    canvasAdd(legendCanvas, dungeonLegendIconCanvas, 178., 0.)
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=Graphics.overworldCommonestFloorColorDarkBrush, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
     let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
 
-    let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon")
-    canvasAdd(legendCanvas, tb, OMTW*2.8, 8.)
-    canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 4.4*OMTW, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 5.6*OMTW, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="...")
+    let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
+    canvasAdd(legendCanvas, legendTB, 0., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon")
+    canvasAdd(legendCanvas, tb, 212., 8.)
+    canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 284., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
+    canvasAdd(legendCanvas, tb, 338., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="...")
     let recorderDestinationSettingsButton = new Button(Content=tb)
-    canvasAdd(legendCanvas, recorderDestinationSettingsButton, 6.7*OMTW, 0.)
+    canvasAdd(legendCanvas, recorderDestinationSettingsButton, 392., 0.)
     let updateCurrentRecorderDestinationNumeral() =
-        dungeonIconCanvas.Children.Clear()
+        dungeonLegendIconCanvas.Children.Clear()
         recorderDestinationButtonCanvas.Children.Clear()
         canvasAdd(recorderDestinationButtonCanvas, recorderEllipse, 1., -2.)
         let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
-        canvasAdd(dungeonIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
+        canvasAdd(dungeonLegendIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
         if TrackerModel.recorderToNewDungeons then
             let recorderDestinationLegendIcon = Graphics.BMPtoImage yellowDungeonBMP
             canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, 0., 0.)
@@ -211,6 +214,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, doUIUpdateEvent
             Canvas.SetLeft(tb, 0.)
             Canvas.SetBottom(tb, 0.)
         recorderDestinationButtonCanvas.Children.Add(recorderDestinationMouseHoverHighlight) |> ignore
+        canvasAdd(dungeonLegendIconCanvas, dungeonLegendIconArea, 15., 0.)
     updateCurrentRecorderDestinationNumeral()
     recorderDestinationSettingsButton.Click.Add(fun _ ->
         if not popupIsActive then
@@ -265,43 +269,48 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, doUIUpdateEvent
         )
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
-    canvasAdd(legendCanvas, anyRoadLegendIcon, 7.1*OMTW, 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 7.9*OMTW, 0.)
+    canvasAdd(legendCanvas, anyRoadLegendIcon, 80., 0.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
+    canvasAdd(legendCanvas, tb, 114., 0.)
 
-    let legendStartIconButtonCanvas = new Canvas(Background=Graphics.almostBlack, Width=OMTW*1.45, Height=11.*3.)
+    let legendStartIconButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.45, Height=11.*3.)
     let legendStartIcon = makeStartIcon()
     canvasAdd(legendStartIconButtonCanvas, legendStartIcon, 0.+4.*OMTW/48., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", IsHitTestVisible=false)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Start\nSpot", IsHitTestVisible=false)
     canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
-    canvasAdd(legendCanvas, legendStartIconButton, 9.1*OMTW, 0.)
-    legendStartIconButtonBehavior <- (fun () ->
+    canvasAdd(legendCanvas, legendStartIconButton, 514., 0.)
+    let makeIconButtonBehavior(name, makeIcon, iconOffsetX, iconOffsetY, setIconXY) = (fun () ->
         if not popupIsActive then
             popupIsActive <- true
-            let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16.,
-                                    Text="Click an overworld map tile to move the Start Spot icon there, or click anywhere outside the map to cancel")
+            let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16., Padding=Thickness(3.),
+                                    Text=sprintf "Left-Click an overworld map tile to move the %s icon there, or\nRight-click to remove it from the map, or\nClick anywhere outside the map to cancel and make no changes" name)
             let element = new Canvas(Width=OMTW*16., Height=float(8*11*3), Background=Brushes.Transparent, IsHitTestVisible=true)
-            canvasAdd(element, tb, 0., -30.)
-            let hoverIcon = makeStartIcon()
+            element.Children.Add(tb) |> ignore
+            Canvas.SetBottom(tb, element.Height)
+            let hoverIcon = makeIcon()
             element.MouseLeave.Add(fun _ -> element.Children.Remove(hoverIcon))
             element.MouseMove.Add(fun ea ->
                 let mousePos = ea.GetPosition(element)
                 let i = int(mousePos.X / OMTW)
                 let j = int(mousePos.Y / (11.*3.))
                 element.Children.Remove(hoverIcon)
-                canvasAdd(element, hoverIcon, float i*OMTW + 8.5*OMTW/48., float(j*11*3))
+                canvasAdd(element, hoverIcon, float i*OMTW + iconOffsetX, float(j*11*3) + iconOffsetY)
                 )
             let wh = new System.Threading.ManualResetEvent(false)
             element.MouseDown.Add(fun ea ->
-                let mousePos = ea.GetPosition(element)
-                let i = int(mousePos.X / OMTW)
-                let j = int(mousePos.Y / (11.*3.))
-                if i>=0 && i<=15 && j>=0 && j<=7 then
-                    TrackerModel.startIconX <- if displayIsCurrentlyMirrored then (15-i) else i
-                    TrackerModel.startIconY <- j
+                if ea.ButtonState = Input.MouseButtonState.Pressed && (ea.ChangedButton = Input.MouseButton.Right) then
+                    setIconXY(-1, -1)
                     doUIUpdateEvent.Trigger()
                     wh.Set() |> ignore
+                else
+                    let mousePos = ea.GetPosition(element)
+                    let i = int(mousePos.X / OMTW)
+                    let j = int(mousePos.Y / (11.*3.))
+                    if i>=0 && i<=15 && j>=0 && j<=7 then
+                        setIconXY((if displayIsCurrentlyMirrored then (15-i) else i), j)
+                        doUIUpdateEvent.Trigger()
+                        wh.Set() |> ignore
                 )
             element.MyKeyAdd(fun ea ->
                 let mousePos = Input.Mouse.GetPosition(element)
@@ -332,8 +341,27 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, doUIUpdateEvent
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
+    let setStartIconXY(i,j) =
+        TrackerModel.startIconX <- i
+        TrackerModel.startIconY <- j
+    legendStartIconButtonBehavior <- makeIconButtonBehavior("Start Spot", makeStartIcon, 8.5*OMTW/48., 0., setStartIconXY)
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
-    recorderDestinationButtonCanvas, anyRoadLegendIcon, updateCurrentRecorderDestinationNumeral, legendCanvas, legendTB
+
+    let setCustomWaypointXY(i,j) =
+        TrackerModel.customWaypointX <- i
+        TrackerModel.customWaypointY <- j
+    let customWaypointButtonBehavior = makeIconButtonBehavior("Custom Waypoint", makeCustomWaypointIcon, -2., -5., setCustomWaypointXY)
+    let customWaypointButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.8, Height=11.*3.-4.)
+    let customWaypointIcon = makeCustomWaypointIcon()
+    customWaypointIcon.RenderTransform <- new ScaleTransform(0.6666,0.6666)
+    canvasAdd(customWaypointButtonCanvas, customWaypointIcon, 4., 0.)
+    let tb = new TextBox(FontSize=10., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Custom\nWaypoint", IsHitTestVisible=false)
+    canvasAdd(customWaypointButtonCanvas, tb, 0.8*OMTW, 0.)
+    let customWaypointButton = new Button(Content=customWaypointButtonCanvas)
+    canvasAdd(legendCanvas, customWaypointButton, 416., 0.)
+    customWaypointButton.Click.Add(fun _ -> customWaypointButtonBehavior())
+
+    recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas
 
 let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress
@@ -1064,6 +1092,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     let spotSummary = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 614.,115.; 725.,115.; 725.,90.; 614.,90.; 614.,115.; 630.,150. ] |> Seq.map Point))
     canvasAdd(c, spotSummary, 0., 0.)
 
+    let COL = Brushes.Green
+    let dx,dy = 96., THRU_MAIN_MAP_H + 3.
+    let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ -2.,2.; -2.,25.; 13.,25.; 13.,2.; -2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(anyRoad, "Show Any Roads", 40., 340.)
     let COL = Brushes.MediumVioletRed
     let dx,dy = ITEM_PROGRESS_FIRST_ITEM+25., THRU_MAP_AND_LEGEND_H
     let candle = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,28.; 28.,28.; 28.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
@@ -1085,17 +1117,13 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     c.Children.Add(desc) |> ignore
     let COL = Brushes.MediumVioletRed
     let dx,dy = LEFT_OFFSET + 4.8*OMTW + 15., THRU_MAIN_MAP_H + 3.
-    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; -24.,2.; -24.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    let recorderDest = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 13.,2.; -39.,2.; -39.,25.; 13.,25.; 13.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     recorderDest.Points.Add(Point(330.,340.))
     canvasAdd(c, recorderDest, 0., 0.)
     let desc = mkTxt("Show recorder destinations")
     Canvas.SetRight(desc, c.Width-330.)
     Canvas.SetTop(desc, 340.)
     c.Children.Add(desc) |> ignore
-    let COL = Brushes.Green
-    let dx,dy = LEFT_OFFSET + 7.1*OMTW + 15., THRU_MAIN_MAP_H + 3.
-    let anyRoad = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,25.; 13.,25.; 13.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
-    addLabel(anyRoad, "Show Any Roads", 430., 320.)
     let COL = Brushes.CornflowerBlue
     let dx,dy = LEFT_OFFSET + 7.8*OMTW + 56., THRU_MAIN_MAP_H + 36.
     let hintDecoderButton = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,2.; 2.,22.; 79.,22.; 79.,2.; 2.,2. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
@@ -1106,7 +1134,7 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     addLabel(blockers, "Highlight potential\ndungeon continuations", 570., 320.)
     let COL = Brushes.Green
     let dx,dy = BLOCKERS_AND_NOTES_OFFSET-82., START_DUNGEON_AND_NOTES_AREA_H+2.
-    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 0.,0.; 0.,20.; 22.,20.; 22.,0.; 0.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    let blockers = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ -4.,0.; -4.,20.; 25.,20.; 25.,0.; -4.,0.; -160.,-34.; -175.,-34.; -175.,-64.; -160.,-64.; -160.,-34.; -4.,0. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(blockers, "Show\ndungeon\nlocations", 339., 320.)
 
     for dd in delayedDescriptions do   // ensure these draw atop all the PolyLines
