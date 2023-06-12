@@ -184,7 +184,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
     let dungeonLegendIconCanvas = new Canvas(Width=float(16*3), Height=float(11*3))
     let dungeonLegendIconArea = new Canvas(Width=15., Height=float(11*3), Background=Brushes.White, Opacity=0.0001)   // to respond to mouse hover
     canvasAdd(legendCanvas, dungeonLegendIconCanvas, 178., 0.)
-    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=Graphics.overworldCommonestFloorColorDarkBrush, ClipToBounds=true)
+    let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=BG, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
     let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
 
@@ -192,12 +192,12 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
     canvasAdd(legendCanvas, legendTB, 0., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon")
     canvasAdd(legendCanvas, tb, 212., 8.)
-    canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 284., 0.)
+    canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 282., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
-    canvasAdd(legendCanvas, tb, 338., 0.)
+    canvasAdd(legendCanvas, tb, 330., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="...")
     let recorderDestinationSettingsButton = new Button(Content=tb)
-    canvasAdd(legendCanvas, recorderDestinationSettingsButton, 392., 0.)
+    canvasAdd(legendCanvas, recorderDestinationSettingsButton, 382., 0.)
     let updateCurrentRecorderDestinationNumeral() =
         dungeonLegendIconCanvas.Children.Clear()
         recorderDestinationButtonCanvas.Children.Clear()
