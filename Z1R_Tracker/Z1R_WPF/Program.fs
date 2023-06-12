@@ -411,18 +411,28 @@ type MyWindow() as this =
                                         Width=77., TextAlignment=TextAlignment.Center, IsHitTestVisible=false)
                 Graphics.canvasAdd(tallC, tx("Tall"), 0., 30.)
                 Graphics.canvasAdd(squareC, tx("Square"), 0., 30.)
-                let rbTall   = new RadioButton(Content=tallC,   VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit (not desireShort))
-                let rbSquare = new RadioButton(Content=squareC, VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit desireShort)
+                let tallB = new Border(Child=tallC, BorderThickness=Thickness(3.))
+                let squareB = new Border(Child=squareC, BorderThickness=Thickness(3.))
+                let update() =
+                    if desireShort then
+                        tallB.BorderBrush <- Brushes.Black
+                        squareB.BorderBrush <- Brushes.Pink
+                    else
+                        tallB.BorderBrush <- Brushes.Pink
+                        squareB.BorderBrush <- Brushes.Black
+                update()
+                let rbTall   = new RadioButton(Content=tallB,   VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit (not desireShort))
+                let rbSquare = new RadioButton(Content=squareB, VerticalContentAlignment=VerticalAlignment.Center, IsChecked=System.Nullable.op_Implicit desireShort)
                 let inner = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center, Margin=spacing)
-                rbTall.Checked.Add(fun _ -> desireShort <- false)
-                rbSquare.Checked.Add(fun _ -> desireShort <- true)
+                rbTall.Checked.Add(fun _ -> desireShort <- false; update())
+                rbSquare.Checked.Add(fun _ -> desireShort <- true; update())
                 inner.Children.Add(rbTall) |> ignore
                 inner.Children.Add(new DockPanel(Width=30.)) |> ignore  // spacer
                 inner.Children.Add(rbSquare) |> ignore
                 sp.Children.Add(inner) |> ignore
                 
                 sp.Children.Add(new DockPanel(Background=Brushes.Gray, Margin=Thickness(20., 8., 20., 0.), Height=4.)) |> ignore
-                let warn = mkTxt("Changes to these settings will only take effect after restarting the application:")
+                let warn = mkTxt("Changes to these settings will only take effect after restarting the app:")
                 warn.FontSize <- 20.
                 warn.FontWeight <- FontWeights.Bold
                 sp.Children.Add(warn) |> ignore
@@ -466,7 +476,7 @@ type MyWindow() as this =
                 if not popupIsActive then
                     popupIsActive <- true
                     let wh = new Threading.ManualResetEvent(false)
-                    CustomComboBoxes.DoModal(cm, wh, 20., 70., menu(wh)) |> Async.StartImmediate
+                    CustomComboBoxes.DoModal(cm, wh, 20., 60., menu(wh)) |> Async.StartImmediate
                     popupIsActive <- false
                 )
             topBar.Children.Add(b) |> ignore
