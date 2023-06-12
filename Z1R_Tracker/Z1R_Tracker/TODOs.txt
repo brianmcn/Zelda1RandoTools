@@ -109,10 +109,6 @@ Broadcast option: always focus overworld ? bighead scenario - see what he thinks
 
 
 
-tips: twitter
-
-
-
 homer was surprised by dungeon-continuation-animations popping up and didn't know what caused it
 blockers is not ideal highlight target, and is large
  - at least give it a thin border around its textbox and offer some local feedback when its hovered

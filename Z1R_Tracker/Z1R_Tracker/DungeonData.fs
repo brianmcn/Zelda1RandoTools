@@ -53,9 +53,8 @@ module Factoids =
         "In Z-Tracker, the Timeline at the bottom of the app is automatically tracking 'splits' of when you got each triforce piece (as well as every other key item)."
         "In Z-Tracker, you can edit HotKeys.txt in the application folder to set up various keyboard shortcuts.  You can create a Notes.txt file to pre-populate the Notes text in the app, as well."
         "In Z-Tracker, the overworld map highlights various tiles with a green rectangle if you can uncover a location there, a yellow rectangle if the screen may or may not yield a location and you can uncover it, or a red rectangle if you don't have the item to uncover a location there."
-        "In Z-Tracker, a dungeon lights up green when you can warp to it via the recorder whirlwind. (This assumes the commonly-played z1r flags that allow you to recorder to any dungeon entrance where you already have the triforce.)"
         "In Z-Tracker, you can middle-click an overworld tile to circle it, shift-left-click to label the circle, or shift-right-click/scroll a circle to change its color. Use these optional arbitrary marks in any way you find useful."
-        "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on twitter (@lorgon111)."
+        "Dr. Brian Lorgon111 made Z-Tracker.  Send him some love on twitch (lorgon) or on YouTube (lorgon111)."
         |]
     let allTips = [|
         yield! noviceTips
