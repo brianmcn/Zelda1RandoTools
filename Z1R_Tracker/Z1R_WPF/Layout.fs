@@ -252,14 +252,16 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             let pro = Broadcast.makeViewRectImpl(Point(ITEM_PROGRESS_FIRST_ITEM,THRU_MAP_AND_LEGEND_H), 
                                 Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.-11.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), upper)  // -11. because 'Hint decoder' button infringes into empty space by Any Key 
             canvasAdd(lower, pro, 20., 150.+20.)
-            let tb = new TextBox(Text="Move mouse above red line to switch to overworld view", Foreground=Brushes.Orange, Background=Brushes.Black, 
+            let tb = new TextBox(Text="Move mouse above red line for overworld view", Foreground=Brushes.Orange, Background=Brushes.Black, 
                                             IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., VerticalAlignment=VerticalAlignment.Center)
-            canvasAdd(lower, tb, 0., 180.+20.)
+            canvasAdd(lower, tb, 50., 180.+20.)
             let lineCenter = dungeonStart - RED_LINE/2.
             let line = new Shapes.Line(X1=0., X2=W, Y1=lineCenter, Y2=lineCenter, Stroke=Brushes.Red, StrokeThickness=3.)
             canvasAdd(lower, line, 0., 0.)
         member this.AddVersionButton(vb) = 
             canvasAdd(upper, vb, 0., THRU_MAP_AND_LEGEND_H + 4.)
+            let v = Broadcast.makeViewRectImpl(Point(0.,THRU_MAP_AND_LEGEND_H), Point(50.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), upper)
+            canvasAdd(lower, v, 0., 180.+20.)
         member this.AddHintDecoderButton(tb) =
             canvasAdd(upper, tb, 510., THRU_MAP_AND_LEGEND_H + 6.)
         member this.AddKittyAndLogo(kitty:Image, logoBorder, ztlogo:Image) =

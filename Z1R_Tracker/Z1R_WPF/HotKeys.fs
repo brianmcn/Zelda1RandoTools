@@ -267,8 +267,12 @@ type GlobalHotkeyTargets =
         |]
 
 // Note to self; NumPad . and + are called Decimal and Add, not OemPeriod or OemPlus.  NumPad 'enter' is not supported, sadly.
-let MakeDefaultHotKeyFile(filename:string) =
+let MakeDefaultHotKeyFile(filename:string, isSample) =
     let lines = ResizeArray()
+    if isSample then 
+        lines.Add("# DON'T EDIT THIS FILE.  This is just a blank sample template, to show what HotKeys are available.")
+        lines.Add("# To make changes to your own HotKeys, you should edit HotKeys.txt.")
+        lines.Add("")
     (sprintf """# %s HotKeys
 
 # General form is 'SelectorName = key'
@@ -413,11 +417,15 @@ let TakeThisHotKeyProcessor = new HotKeyProcessor<int>("TakeThis")
 let GlobalHotKeyProcessor = new HotKeyProcessor<GlobalHotkeyTargets>("Global")
 
 let HotKeyFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys.txt")
+let HotKeyBlankSampleFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "HotKeys_BlankSampleTemplate.txt")
 
 let PopulateHotKeyTables() =
+    let filename = HotKeyBlankSampleFilename
+    if not(System.IO.File.Exists(filename)) then
+        MakeDefaultHotKeyFile(filename,true)
     let filename = HotKeyFilename
     if not(System.IO.File.Exists(filename)) then
-        MakeDefaultHotKeyFile(filename)
+        MakeDefaultHotKeyFile(filename,false)
     let data = ParseHotKeyDataFile(filename)
     for name, chOpt, (lineNumber, filename) in data do
         let Add(hkp:HotKeyProcessor<_>, keyOpt, x) =
