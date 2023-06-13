@@ -11,6 +11,7 @@ Here are the main documentation sections for Z-Tracker v1.2.  (To find out the m
 - [Stream-Capturing Z-Tracker with OBS](stream-capture.md)
 - [Using Z-Tracker for other Zelda randomizers/ROMHacks](other.md)
 - Version History
+   - v1.3.1 (released TBD) feature update ([see what's new in 1.3.1](whats-new.md#v1.3.1))
    - v1.2.3 (released 2022-08-15) feature update ([see what's new in 1.2.3](whats-new.md#v1.2.3))
    - v1.2.2 (released 2022-05-31) feature update ([see what's new in 1.2.2](whats-new.md#v1.2.2))
    - v1.1 (released 2022-02-06) feature update ([see what's new in 1.1](whats-new.md#v1.1))

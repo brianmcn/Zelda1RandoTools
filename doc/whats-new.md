@@ -76,11 +76,11 @@ highlights disappear once you obtain a sword.
 
 If you obtain a sword but don't yet have the armos item, the tracker will switch to highlighting only unmarked armos spots cyan.
 
-### <a id="#v13-summary-tab">New Dungeon Summary Tab layouts</a>
+### <a id="v13-summary-tab">New Dungeon Summary Tab layouts</a>
 
 TODO screenshots and explanation
 
-### <a id="#v13-monsters">New Monster choices</a>
+### <a id="v13-monsters">New Monster choices</a>
 
 Many more choices have been added to the MonsterDetail popup (when you scroll-up on a Dungeon Room):
 
@@ -97,10 +97,10 @@ The Second Quest Dungeons toggle has moved out of the Options Menu, and now appe
 ### <a id="v13-other-stuff">A bunch of other stuff</a>
 
 - usability: the clickable stuff now gives mouse-hover feedback to make it clearer it's clickable
-- added Custom Waypoint, basically like a econd Start Spot icon--you only get one, and you can place/move it how you like, click button in legend
+- added Custom Waypoint, basically like a second Start Spot icon--you only get one, and you can place/move it how you like, click the button in LEGEND
 - mouse magnifier window, in Options Menu
 - hide timer option, in Options Menu
-- added an option to hide meat shops, deep in the overworld OptionsMenu
+- added an option to hide meat shops, deep in the overworld Options Menu
 - FQ/SQ buttons in corner of dungeon tracker now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon
 - improved BLOCKERS hover feedback and explanation of 'possible dungeon continuations'
 - book-is-atlas checkbox in upper right of app; checkmarks to note if got map in each dungeon; have-map displayed in new summary tab
