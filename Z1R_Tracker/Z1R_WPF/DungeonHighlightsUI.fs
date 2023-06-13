@@ -6,7 +6,8 @@ open System.Windows.Media
 
 let canvasAdd = Graphics.canvasAdd
 
-let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonRoomState.DungeonRoomState[,], usedTransports:int[], currentOutlineDisplayState:int[],
+let makeHighlights(level, dungeonTabs:TabControl, dungeonBodyHighlightCanvas:Canvas, rightwardCanvas:Canvas, 
+                        roomStates:DungeonRoomState.DungeonRoomState[,], usedTransports:int[], currentOutlineDisplayState:int[],
                         horizontalDoors:Dungeon.Door[,], verticalDoors:Dungeon.Door[,], blockersHoverEvent:Event<_>) =
     let startAnimationFuncs = ResizeArray()
     let endAnimationFuncs = ResizeArray()
@@ -21,7 +22,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
     for i = 0 to 6 do
         for j = 0 to 7 do
             let d = new Canvas(Width=12., Height=16., IsHitTestVisible=false)
-            let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=Brushes.Cyan, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
+            let rect = new Shapes.Rectangle(Width=12., Height=16., Stroke=Brushes.DarkTurquoise, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
             let st = new ScaleTransform(1.0, 1.0, CenterX=d.Width/2., CenterY=d.Height/2.)
             rect.RenderTransform <- st
             startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, anim))
@@ -36,7 +37,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
     for i = 0 to 7 do
         for j = 0 to 6 do
             let d = new Canvas(Width=24., Height=12., IsHitTestVisible=false)
-            let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=Brushes.Cyan, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
+            let rect = new Shapes.Rectangle(Width=24., Height=12., Stroke=Brushes.DarkTurquoise, StrokeThickness=2., Fill=Dungeon.unknown, Opacity=0.)
             let st = new ScaleTransform(1.0, 1.0, CenterX=d.Width/2., CenterY=d.Height/2.)
             rect.RenderTransform <- st
             startAnimationFuncs.Add(fun() -> st.BeginAnimation(ScaleTransform.ScaleXProperty, anim))
@@ -103,8 +104,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
             ()
         else
         isCurrentlyHighlighting <- true
-        // TODO maybe the bomb walls should be the separate thingy?
-        
+        let mutable anyFound = false
         // possible bomb walls
         for i = 0 to 6 do
             for j = 0 to 7 do
@@ -114,6 +114,7 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                             () // do nothing, left/right walls of L9 lobby unbombable
                         else
                             horizontalDoorHighlights.[i,j].Opacity <- 1.0
+                            anyFound <- true
         for i = 0 to 7 do
             for j = 0 to 6 do
                 if verticalDoors.[i,j].State = Dungeon.DoorState.UNKNOWN then
@@ -121,39 +122,25 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                         // npc hints & bomb upgrades never can bomb north
                         if roomStates.[i,j+1].RoomType <> DungeonRoomState.RoomType.OldManHint && roomStates.[i,j+1].RoomType <> DungeonRoomState.RoomType.BombUpgrade then
                             verticalDoorHighlights.[i,j].Opacity <- 1.0
-        // rooms with blockers
+                            anyFound <- true
+        // rooms with possible continuations
         for i = 0 to 7 do
             for j = 0 to 7 do
-                // TODO these will not lead to more rooms, though
-                // TODO why not gleeok, maybe swordless without wand?
-                // blocked by bow/recorder/bomb
-                if (roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Bow ||
-                    roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Dodongo ||
-                    roomStates.[i,j].MonsterDetail = DungeonRoomState.MonsterDetail.Digdogger) && not roomStates.[i,j].IsComplete then  
-                    roomHighlights.[i,j].Opacity <- 1.0
-                
-                
-                // TODO this will not lead to more rooms, though
-                // blocked by meat
-                if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.HungryGoriyaMeatBlock && not(roomStates.[i,j].IsComplete) then
-                    roomHighlights.[i,j].Opacity <- 1.0
-                
-
-                // TODO what is the goal of this feature? above is more "reminding of certain blockers" and below is "finding more rooms you've never been in"
-                
-                
                 // an incomplete room that might have a push-block may yet reveal a transport
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.MaybePushBlock && not(roomStates.[i,j].IsComplete) then
                     roomHighlights.[i,j].Opacity <- 1.0
+                    anyFound <- true
                 // a '?' stair may have been forgotten to traverse
                 if roomStates.[i,j].RoomType = DungeonRoomState.RoomType.StaircaseToUnknown then
                     roomHighlights.[i,j].Opacity <- 1.0
+                    anyFound <- true
                 // only marked one of a transport pair
                 match roomStates.[i,j].RoomType.KnownTransportNumber with
                 | None -> ()
                 | Some n -> 
                     if usedTransports.[n] = 1 then
                         roomHighlights.[i,j].Opacity <- 1.0
+                        anyFound <- true
                 // blocked? un-traversed doorway (could be key, moat, just forgotten, ...)
                 if isThereARoom(i,j)=2 then
                     if i > 0 && horizontalDoors.[i-1,j].IsTraversible ||
@@ -161,32 +148,48 @@ let makeHighlights(level, dungeonBodyHighlightCanvas:Canvas, roomStates:DungeonR
                             j > 0 && verticalDoors.[i,j-1].IsTraversible ||
                             j < 7 && verticalDoors.[i,j].IsTraversible then
                         roomHighlights.[i,j].Opacity <- 1.0
+                        anyFound <- true
         // Note: ladder blocks are kind of implicit, you either mark a door behind a moat, or it would show as a potential bomb wall
-        for f in startAnimationFuncs do
-            f()
+        if anyFound then
+            for f in startAnimationFuncs do
+                f()
+            rightwardCanvas.Children.Clear()
+            let blockersOutline = new Shapes.Rectangle(Width=106., Height=38., Stroke=Brushes.DarkCyan, StrokeThickness=3., IsHitTestVisible=false)
+            rightwardCanvas.Children.Add(blockersOutline) |> ignore
+            let explain = new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=14., Foreground=Brushes.Gray, Background=Brushes.Black, IsHitTestVisible=false, Margin=Thickness(3.),
+                                            Text="""Where else can I go?
+
+Mouse-hovering BLOCKERS for a few seconds displays these "possible continuations" in the dungeon.
+
+Walls you might still need to try bombing are marked Cyan.
+
+Rooms that might contain un-taken transport stairs, or that you have not visited, are circled Magenta.""")
+            let b = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.0), Child=explain, Width=310., Background=Brushes.Black)
+            Canvas.SetBottom(b, 0.)
+            rightwardCanvas.Children.Add(b) |> ignore
     let unhighlight() =
-        if not(isCurrentlyHighlighting) then
-            ()
-        else
-        isCurrentlyHighlighting <- false
-        for i = 0 to 6 do
-            for j = 0 to 7 do
-                horizontalDoorHighlights.[i,j].Opacity <- 0.0
-        for i = 0 to 7 do
-            for j = 0 to 6 do
-                verticalDoorHighlights.[i,j].Opacity <- 0.0
-        for i = 0 to 7 do
-            for j = 0 to 7 do
-                roomHighlights.[i,j].Opacity <- 0.0
-        for f in endAnimationFuncs do
-            f()
+        if isCurrentlyHighlighting then
+            isCurrentlyHighlighting <- false
+            for i = 0 to 6 do
+                for j = 0 to 7 do
+                    horizontalDoorHighlights.[i,j].Opacity <- 0.0
+            for i = 0 to 7 do
+                for j = 0 to 6 do
+                    verticalDoorHighlights.[i,j].Opacity <- 0.0
+            for i = 0 to 7 do
+                for j = 0 to 7 do
+                    roomHighlights.[i,j].Opacity <- 0.0
+            for f in endAnimationFuncs do
+                f()
+            rightwardCanvas.Children.Clear()
     blockersHoverEvent.Publish.Add(fun b ->
-        if b then
-            if not finishedSetup then
-                finishedSetup <- true
-                //printfn "finishing dungeon %d highlight setup" level
-                dungeonBodyHighlightCanvas.Children.Add(setupCanvas) |> ignore   // this is a heavy thing, do it on-demand rather than during 'Loading UI' at start
-            highlight()
-        else
-            unhighlight()
+        if level-1 = dungeonTabs.SelectedIndex then
+            if b then
+                if not finishedSetup then
+                    finishedSetup <- true
+                    //printfn "finishing dungeon %d highlight setup" level
+                    dungeonBodyHighlightCanvas.Children.Add(setupCanvas) |> ignore   // this is a heavy thing, do it on-demand rather than during 'Loading UI' at start
+                highlight()
+            else
+                unhighlight()
         )
