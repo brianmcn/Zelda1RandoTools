@@ -1390,6 +1390,7 @@ let mutable previouslyAnnouncedFoundDungeonCount = 0
 let mutable previouslyAnnouncedTriforceCount = 0
 let mutable previouslyLocatedDungeonCount = 0
 let mutable remindedLadder, remindedAnyKey = false, false
+let mutable priorSwordLevel = 0
 let mutable priorSwordWandLevel = 0
 let mutable priorRingLevel = 0
 let mutable priorBombs = false
@@ -1413,6 +1414,7 @@ let ResetForGroundhogOrRoutersOrFourPlusFourEtc() =
     // previouslyLocatedDungeonCount // still found
     remindedLadder <- false
     remindedAnyKey <- false
+    priorSwordLevel <- 0
     priorSwordWandLevel <- 0
     priorRingLevel <- 0
     // priorBombs // meh
@@ -1541,7 +1543,8 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         fromDungeon
     let combatUnblockers = ResizeArray()
     let combatUnblockerOrigins = ResizeArray()
-    if playerComputedStateSummary.SwordLevel > priorSwordWandLevel then
+    if playerComputedStateSummary.SwordLevel > priorSwordWandLevel || 
+                (playerComputedStateSummary.SwordLevel>=2 && priorSwordLevel<2) then  // even with prior wand, upgrade to white sword is worthy of reminder, thanks to wizzrobes
         combatUnblockers.Add(CombatUnblockerDetail.BETTER_SWORD)
         if playerComputedStateSummary.SwordLevel = 2 then
             combatUnblockerOrigins.Add(calcFromDungeon(ITEMS.WHITESWORD))
@@ -1568,6 +1571,7 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         if dungeonIdxs.Count > 0 then
             if tagSummary.Level < 103 then // no need for blocker-reminder if fully-go-time
                 ite.RemindUnblock(DungeonBlocker.COMBAT, dungeonIdxs, combatUnblockers)
+    priorSwordLevel <- playerComputedStateSummary.SwordLevel
     priorSwordWandLevel <- max playerComputedStateSummary.SwordLevel (if playerComputedStateSummary.HaveWand then 2 else 0)
     priorRingLevel <- playerComputedStateSummary.RingLevel
     // blockers - generic
