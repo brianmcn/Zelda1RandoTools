@@ -2,10 +2,121 @@
 
 A summary of the features/fixes in the various releases of Z-Tracker
 
+ - [Version 1.3.1](#v1.3.1) (released TBD)
  - [Version 1.2.3](#v1.2.3) (released 2022-08-15)
  - [Version 1.2.2](#v1.2.2) (released 2022-05-31)
  - [Version 1.1](#v1.1) (released 2022-02-06)
  - [Version 1.0](#v1.0) (released 2021-12-11)
+
+---
+
+## <a id="v1.3.1"></a>Version 1.3.1
+
+This is a major update with a number of usability improvements and new features.
+
+ - [Alternate app size](#v13-alt-size)
+ - [Navigation hotkeys](#v13-hotkeys)
+ - [Reset buttons](#v13-reset)
+ - [Recorder Destination options](#v13-recorder)
+ - [Highlight open caves checkbox](#v13-open-caves)
+ - [New Dungeon Summary Tab layouts](#v13-summary-tab)
+ - [New Monster choices](#v13-monsters)
+ - [Mirror-overworld and 2nd-quest-dungeons toggles](#v13-mirror)
+ - [A bunch of other stuff](#v13-other-stuff)
+
+### <a id="v13-alt-size">Alternate app size</a>
+
+You can now choose either "Tall" (default) or "Square" application size, via "Click here for options" bar at the very top of the startup screen.
+
+These screenshots show the default tall app, the square app when the mouse is in the overworld, and the square app when then mouse is in the dungeon.
+
+![app sizes](screenshots/app-sizes.png)
+
+### <a id="v13-hotkeys">Navigation hotkeys</a>
+
+You can now navigate a great deal of the app without touching the mouse, if desired:
+
+- You can now map 4 "arrow" hotkeys, which can be used to navigate most grids (overworld, dungeon rooms, ...) as an alternative to moving the mouse
+- You can now map keyboard keys to mean 'left click, middle click, right click, scroll up, or scroll down'.
+- You can now map hotkeys with 1 optional modifier (SHIFT/ALT/CTRL)
+
+Users of prior versions of Z-Tracker can simply copy over their existing "HotKeys.txt" file into the new install folder.  Then inspect the file
+"HotKeys_BlankSampleTemplate.txt" to learn about new hotkey options (at the bottoms of the Global_ and DungeonRoom_ sections), and then edit your
+HotKeys.txt to add your own.
+
+### <a id="v13-reset">Reset buttons</a>
+
+There are now four options on the pause menu:
+
+![reset buttons](screenshots/reset-buttons.png)
+
+Use the bottom left button as you press Start on your controller to start a race.
+
+You might use the upper right button when you have completed one seed and immediately want to run a new one back-to-back.
+
+You can use the bottom right button when you are re-running a seed; it will preserve your map/tracking but reset your inventory in the
+top of the tracker so that no items have yet been obtained.
+
+### <a id="v13-recorder">Recorder Destination options</a>
+
+Click the "..." button near "Recorder Destination" in the LEGEND to bring up these options:
+
+![recorder destination options](screenshots/recorder-destination-options.png)
+
+These correspond to the equivalent flags in the randomizer.
+
+### <a id="v13-open-caves">Highlight open caves checkbox</a>
+
+Click the checkbox next to the open caves icon in the top of the tracker (circled below) to distinguish open caves with a cyan highlight:
+
+![highlight open caves checkbox](screenshots/highlight-open-caves-checkbox.png)
+
+This can be useful when you are still looking for the wood sword but also burning bushes and bombing walls along the way.  These cyan 
+highlights disappear once you obtain a sword.
+
+If you obtain a sword but don't yet have the armos item, the tracker will switch to highlighting only unmarked armos spots cyan.
+
+### <a id="#v13-summary-tab">New Dungeon Summary Tab layouts</a>
+
+TODO screenshots and explanation
+
+### <a id="#v13-monsters">New Monster choices</a>
+
+Many more choices have been added to the MonsterDetail popup (when you scroll-up on a Dungeon Room):
+
+![new monsters](screenshots/new-monsters.png)
+
+### <a id="v13-mirror">Mirror-overworld and 2nd-quest-dungeons toggles</a>
+
+The Mirror Overworld option has moved out of the Options Menu, and now appears as a mirror icon at the top of the app (circled in red, below).
+
+The Second Quest Dungeons toggle has moved out of the Options Menu, and now appears when hovering and then clicking the blank spot under dungeon 4 or 1 (pointed at by blue arrow, below).
+
+![new buttons](screenshots/new-buttons.png)
+
+### <a id="v13-other-stuff">A bunch of other stuff</a>
+
+- usability: the clickable stuff now gives mouse-hover feedback to make it clearer it's clickable
+- added Custom Waypoint, basically like a econd Start Spot icon--you only get one, and you can place/move it how you like, click button in legend
+- mouse magnifier window, in Options Menu
+- hide timer option, in Options Menu
+- added an option to hide meat shops, deep in the overworld OptionsMenu
+- FQ/SQ buttons in corner of dungeon tracker now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon
+- improved BLOCKERS hover feedback and explanation of 'possible dungeon continuations'
+- book-is-atlas checkbox in upper right of app; checkmarks to note if got map in each dungeon; have-map displayed in new summary tab
+- added vanilla dungeon items reference diagram to the '...' starting/extra items popup
+- FQ/SQ... button to permanently mark off HFQ/HSQ stuff, or to mark vanilla FQ/SQ dungeon locations
+- after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
+- can choose a different voice for spoken reminders, if installed
+- hovering Hint Decoder button shows locations of hint shops marked on overworld map
+- hovering "4/9 found" or dungeon icon in LEGEND shows locations of all dungeons, just like hovering 'S' summary tab header does
+- Blockers numerals turn white when the corresponding dungeon is located on the overworld
+- new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets
+- upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb
+- new reminder for Overworld Overwrites (if you make a mark, and then change it)
+- new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
+- performance improvements
+- a lot of small fixes
 
 ---
 

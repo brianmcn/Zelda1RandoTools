@@ -110,10 +110,6 @@ Broadcast option: always focus overworld ? bighead scenario - see what he thinks
 
 
 
-link probably doesn't route to rupees, might be easy to add
-
-
-
 
 in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
  - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
@@ -297,6 +293,7 @@ SMALL
 change each 'asterisk' beep warning into a more detailed message about what is wrong?
  - text on timeline reminder area?
 
+link probably doesn't route to rupees, might be easy to add
 
 voice feedback saying what mark, so less need to watch what you clicked?
 
@@ -332,18 +329,12 @@ homer: wants middle click in cyan and pink varieties, not just yellow, in dungeo
 clyceer: wants to drag in grab mode, rather than click-click
 
 
-Tracker could be smart about https://discord.com/channels/368763663986982912/586261700064575488/882743164216152084
- - only works if tracking everything and not nothing/dnc-ing other spots, or if only consider 'other' marks as 'true', can floor/ceiling possible %
- - Yellow percentage, count DRCs, etc
- - could at least infer e.g. that yellow turns red when num greens remain = num remaining spots 
-
-
-possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
 
 clicking the kitty should meow or purr or something
 
 
 
+possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
 possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
 possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
 
@@ -371,8 +362,6 @@ if HUDs were legal, visual-reminder-HUD would be nice
 
 MEDIUM
 
-puzzle-piecing maps 1-6,7-9? if they only move left-right, not up-down, this might be brute force solvable
-
 possibly an 'any road' single hotkey that works like voice, and auto-selects next road? same for HDN for 'next dungeon'
  - Stevie-O hacked this with a new overworldTiles() state NextAnyRoad or whatever
  - there's AnyRoad and HDN dungeon, where a single hotkey for 'next' is nice
@@ -388,19 +377,6 @@ https://stackoverflow.com/questions/9733288/how-to-programmatically-calculate-th
 https://gamedev.stackexchange.com/questions/38536/given-a-rgb-color-x-how-to-find-the-most-contrasting-color-y
 for text contrast info
 also https://lospec.com/palette-list/nintendo-entertainment-system
-
-
-[11:39 AM] Lorgon111: I am already starting to imagine a first-time-experience UI, along the lines of
-ZTracker did not find a settings file on disk, perhaps this is your first time using this tool?
- - Yes, I am relatively new to Z1R and ZTracker, start me with basic default settings
- - Yes, I am a seasoned Z1R runner who has experience with other trackers, turn off the tutorial/helper options and quickly walk me through icons/customization/hotkeys
- - I know ZTracker, first time on this machine, give me some defaults and I can customize it myself
- - No, what, I just used this yesterday, help me troubleshoot why my settings did not get saved
-[11:45 AM] marcmagus:
- - I know ZTracker, first time on this machine, give me some defaults and I can customize it myself
-Multiple presets here? Something like 'new', 'speed-hotkey', 'helper-voice'?
-[11:46 AM] marcmagus: (If config-editing is a thing, can also be done by shipping a few 'example' configs)
-[11:46 AM] Lorgon111: yeah shipped samples is what I vaguely imagine
 
 
 
