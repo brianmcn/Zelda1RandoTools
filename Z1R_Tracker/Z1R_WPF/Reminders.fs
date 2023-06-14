@@ -11,6 +11,7 @@ let voice = OptionsMenu.voice
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
 let mutable reminderAgent = MailboxProcessor.Start(fun _ -> async{return ()})
 let reminderLogSP = new StackPanel(Orientation=Orientation.Vertical)
+let mutable anyReminderGrayedOut = false
 let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualUpdateToSynchronizeWithReminder) =
     if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda.Value()) then  // if won the game, quit sending reminders
         let shouldRemindVoice, shouldRemindVisual =
@@ -24,7 +25,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
             | TrackerModel.ReminderCategory.OverworldOverwrites -> TrackerModelOptions.VoiceReminders.OverworldOverwrites.Value, TrackerModelOptions.VisualReminders.OverworldOverwrites.Value
         if not(Timeline.isCurrentlyLoadingASave) then 
-            reminderAgent.Post(text, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
+            reminderAgent.Post(text, TrackerModelOptions.IsMuted, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     SendReminderImpl(category, text, icons, None)
 let ReminderTextBox(txt) : FrameworkElement = 
@@ -43,8 +44,11 @@ let SetupReminderDisplayAndProcessing(cm) =
             let sp = new StackPanel(Orientation=Orientation.Vertical)
             sp.Children.Add(new TextBox(Text="Recent reminders log", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., IsHitTestVisible=false, 
                                             BorderThickness=Thickness(0.), Margin=Thickness(6.,0.,6.,0.), HorizontalAlignment=HorizontalAlignment.Center)) |> ignore
+            if anyReminderGrayedOut then
+                sp.Children.Add(new TextBox(Text="(Grayed-out reminders are those you disabled in the Options Menu)", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., 
+                                                IsHitTestVisible=false, BorderThickness=Thickness(0.), Margin=Thickness(6.,0.,6.,0.), HorizontalAlignment=HorizontalAlignment.Center)) |> ignore
             sp.Children.Add(new DockPanel(Background=Brushes.Gray, Margin=Thickness(6.,3.,6.,0.), Height=3.)) |> ignore
-            let reminderView = new ScrollViewer(Content=reminderLogSP, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, MaxHeight=360., Margin=Thickness(3.))
+            let reminderView = new ScrollViewer(Content=reminderLogSP, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, MaxHeight=340., Margin=Thickness(3.))
             sp.Children.Add(reminderView) |> ignore
             let b = new Border(BorderBrush=Brushes.Gray, Background=Brushes.Black, BorderThickness=Thickness(3.), Child=sp)
             async {
@@ -58,13 +62,15 @@ let SetupReminderDisplayAndProcessing(cm) =
     reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
-            let! (text,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
+            let! (text,wasMuted,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
             do! Async.SwitchToContext(ctxt)
             let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
             for i in icons do
                 i.Margin <- Thickness(3.)
                 sp.Children.Add(i) |> ignore
-            if not(TrackerModelOptions.IsMuted) then
+            // since a lot of reminders can queue up, ensure muting applies to both Post time and Play time, as it's frustrating to hit 'Disable all' and still hear more play
+            let muted = (wasMuted || TrackerModelOptions.IsMuted)   
+            if not(muted) then
                 let iconCount = sp.Children.Count
                 if shouldRemindVisual then
                     Graphics.PlaySoundForReminder()
@@ -93,7 +99,10 @@ let SetupReminderDisplayAndProcessing(cm) =
             sp.Children.Insert(0, ReminderTextBox(timeString))
             sp.ToolTip <- text
             let hasAny = reminderLogSP.Children.Count > 0
-            reminderLogSP.Children.Insert(0, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(0.,0.,0.,if hasAny then 1. else 0.)))
+            let grayOut = muted || (not shouldRemindVisual && not shouldRemindVoice)
+            if grayOut then
+                anyReminderGrayedOut <- true
+            reminderLogSP.Children.Insert(0, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(0.,0.,0.,if hasAny then 1. else 0.), Opacity=if grayOut then 0.5 else 1.0))
             return! messageLoop()
             }
         messageLoop()

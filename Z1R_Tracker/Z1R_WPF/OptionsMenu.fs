@@ -216,8 +216,8 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
     options2Topsp.Children.Add(dp) |> ignore
     options2sp.Children.Add(options2Topsp) |> ignore
     // stop
-    let muteCB = new CheckBox(Content=new TextBox(Text="Stop all",IsReadOnly=true))
-    muteCB.ToolTip <- "Turn off all reminders"
+    let muteCB = new CheckBox(Content=new TextBox(Text="Disable all",IsReadOnly=true))
+    muteCB.ToolTip <- "Turn off all reminders (but you can still view them by\nclicking the reminder log in the upper-right of the timeline)"
     muteCB.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.IsMuted
     muteCB.Checked.Add(fun _ -> TrackerModelOptions.IsMuted <- true; voice.Volume <- 0)
     muteCB.Unchecked.Add(fun _ -> TrackerModelOptions.IsMuted <- false; voice.Volume <- TrackerModelOptions.Volume)

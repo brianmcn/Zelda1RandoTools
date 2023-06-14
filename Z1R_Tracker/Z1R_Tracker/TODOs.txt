@@ -103,7 +103,10 @@ since 1.3.0m...
 - added HotKeys_BlankSampleTemplate.txt; you can copy over HotKeys.txt from your prior install, but still have this reference to see if/what new HotKeys exist
 - added Custom Waypoint, basically like a second start spot icon, you only get one, and you can place/move it how you like, click button in legend (TODO docs)
 - improved BLOCKERS hover feedback and explanation of 'possible dungeon continuations' (TODO docs)
+- improve reminders & reminder log (better respect for 'disable all' Options Menu button, and graying out disabled reminders in the log)
 - fix: tweaked combat reminder, even with prior wand, upgrading to white sword makes combat-blocked dungeons worthy of reminding
+
+
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window
