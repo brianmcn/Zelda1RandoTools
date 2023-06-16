@@ -1063,7 +1063,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         back.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
         let front = makeBasicStartIcon()
         let c = new Canvas(Width=front.Width, Height=front.Height)
-        c.Children.Add(back) |> ignore
+        if Graphics.canUseEffectsWithoutDestroyingPerformance then
+            c.Children.Add(back) |> ignore
         c.Children.Add(front) |> ignore
         c
     let startIcon = makeStartIcon()
@@ -1074,7 +1075,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
             let fg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Orange, StrokeThickness=3.0, IsHitTestVisible=false)
             let c = new Canvas()
-            canvasAdd(c, bg, 1., 0.)
+            if Graphics.canUseEffectsWithoutDestroyingPerformance then
+                canvasAdd(c, bg, 1., 0.)
             canvasAdd(c, fg, 1., 0.)
             c
         let theCustomWaypointIcon = makeIcon()
@@ -1257,7 +1259,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
                     bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
                     let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
-                    canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
+                    if Graphics.canUseEffectsWithoutDestroyingPerformance then
+                        canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
                     canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
                     if not(TrackerModel.recorderToNewDungeons) then
                         // label the vanilla spots, so player knows the order
@@ -1549,7 +1552,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
             let c = new Canvas(Width=OMTW, Height=float(11*3), Opacity=0.)
-            canvasAdd(c, tbb, 2., 6.)
+            if Graphics.canUseEffectsWithoutDestroyingPerformance then
+                canvasAdd(c, tbb, 2., 6.)
             canvasAdd(c, tb, 2., 6.)
             owCoordsTBs.[i,j] <- c
             gridAdd(owCoordsGrid, c, i, j) 
