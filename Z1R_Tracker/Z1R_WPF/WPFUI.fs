@@ -1534,13 +1534,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
     let zoneCanvas = new Canvas()
     let owCoordsGrid = makeGrid(16, 8, int OMTW, 11*3)
+    owCoordsGrid.Opacity <- 0.
     let mutable placeholderFinished = false
     let ensurePlaceholderFinished() =
         if not placeholderFinished then
             placeholderFinished <- true
             canvasAdd(placeholderCanvas, owCoordsGrid, 0., 0.)
             canvasAdd(placeholderCanvas, zoneCanvas, 0., 0.)
-    let owCoordsTBs = Array2D.zeroCreate 16 8
     for i = 0 to 15 do
         for j = 0 to 7 do
             // https://stackoverflow.com/questions/4114590/how-to-make-wpf-text-on-aero-glass-background-readable
@@ -1551,21 +1551,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
-            let c = new Canvas(Width=OMTW, Height=float(11*3), Opacity=0.)
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
             if Graphics.canUseEffectsWithoutDestroyingPerformance then
                 canvasAdd(c, tbb, 2., 6.)
             canvasAdd(c, tb, 2., 6.)
-            owCoordsTBs.[i,j] <- c
             gridAdd(owCoordsGrid, c, i, j) 
     mirrorOverworldFEs.Add(owCoordsGrid)
     canvasAdd(overworldCanvas, placeholderCanvas, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     let cb = new CheckBox(Content=showCoords)
     cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85))
-    cb.Unchecked.Add(fun _ -> owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
-    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.85)))
-    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsTBs |> Array2D.iter (fun i -> i.Opacity <- 0.0))
+    cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85)
+    cb.Unchecked.Add(fun _ -> owCoordsGrid.Opacity <- 0.0)
+    cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85))
+    cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsGrid.Opacity <- 0.0)
     layout.AddShowCoords(cb)
 
     // zone overlay
