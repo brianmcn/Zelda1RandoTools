@@ -1049,6 +1049,9 @@ let NavigationallyWarpMouseCursorTo(pos:Point) =   // can abstract over whether 
     *)
 
 // https://learn.microsoft.com/en-us/archive/blogs/greg_schechter/more-details-on-how-effects-work
-let canUseEffectsWithoutDestroyingPerformance = (System.Windows.Media.RenderCapability.Tier >>> 16) >= 2 // System.Windows.Media.RenderCapability.IsPixelShaderVersionSupported(2s,0s)
-do
-    printfn "can use effects: %b" canUseEffectsWithoutDestroyingPerformance
+// https://learn.microsoft.com/en-us/archive/blogs/jgoldb/software-rendering-usage-in-wpf
+let canUseEffectsWithoutDestroyingPerformance = 
+    // (System.Windows.Media.RenderCapability.Tier >>> 16) >= 2 
+    // System.Windows.Media.RenderCapability.IsPixelShaderVersionSupported(2s,0s)
+    // none of the above worked in practice, so there is a flag in the settings file instead
+    TrackerModelOptions.UseBlurEffects.Value
