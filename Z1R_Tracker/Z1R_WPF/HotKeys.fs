@@ -307,6 +307,8 @@ let MakeDefaultHotKeyFile(filename:string, isSample) =
     lines.Add("")
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
     for x in AllDungeonRoomNames do
+        if x.Contains("MonsterDetail_Bow") then
+            lines.Add("# Note that MonsterDetail_Bow actually means MonsterDetail_Gohma, but the old Bow name is still used instead, for HotKeys.txt backward compatibility")
         lines.Add(x + " = ")
     lines.Add("")
     lines.Add("# CONTEXTUAL CHOICES - these hotkey bindings only take effect when the corresponding menus are on-screen")

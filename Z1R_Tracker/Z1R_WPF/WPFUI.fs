@@ -13,18 +13,19 @@ open Reminders
 
 module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
 
-let makeGhostBusterImpl(color) =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
+let makeGhostBusterImpl(color,isForLinkRouting) =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
     let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)
     let circle = new Shapes.Ellipse(Width=30., Height=30., StrokeThickness=3., Stroke=color)
     let slash = new Shapes.Line(X1=30.*(1.-0.707), X2=30.*0.707, Y1=30.*0.707, Y2=30.*(1.-0.707), StrokeThickness=3., Stroke=color)
     canvasAdd(c, circle, 0., 0.)
     canvasAdd(c, slash, 0., 0.)
-    let txt = new TextBox(FontSize=10., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="None\nfound")
-    Canvas.SetBottom(txt,30.)
-    Canvas.SetLeft(txt,0.)
-    c.Children.Add(txt) |> ignore
+    if isForLinkRouting then
+        let txt = new TextBox(FontSize=10., Foreground=color, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="None\nfound")
+        Canvas.SetBottom(txt,30.)
+        Canvas.SetLeft(txt,0.)
+        c.Children.Add(txt) |> ignore
     c
-let makeGhostBuster() = makeGhostBusterImpl(Brushes.Gray)
+let makeGhostBuster() = makeGhostBusterImpl(Brushes.Gray, false)
 let mainTrackerGhostbusters = Array.init 8 (fun _ -> makeGhostBuster())
 let updateGhostBusters() =
     if TrackerModel.IsHiddenDungeonNumbers() then
@@ -648,6 +649,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
+    let drawCompletedDungeonHighlight(c,x,y,isWider) =
+        // darken the number
+        let w = if isWider then 27.0 else 15.0
+        let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
+                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
+        let diff = (if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.) - (if isWider then 6.0 else 0.0)
+        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
     let drawDarkening(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
@@ -1245,7 +1253,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             member _this.OverworldSpotsRemaining(remain,gettable) = 
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
-            member _this.DungeonLocation(i,x,y,hasTri,isCompleted) = ()
+            member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
+                if isCompleted then
+                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y,(TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar<>'?'))
+                owUpdateFunctions.[x,y] 0 null
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.Armos(x,y)  = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.Sword3(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
@@ -1789,7 +1800,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if hinted_zone <> TrackerModel.HintZone.UNKNOWN then
                     showLocatorHintedZone(hinted_zone,false)
         )
-    let currentTargetGhostBuster = makeGhostBusterImpl(Brushes.Red)
+    let currentTargetGhostBuster = makeGhostBusterImpl(Brushes.Red, true)
     currentTargetGhostBuster.Opacity <- 0.
     layout.AddLinkTarget(currentTargetGhostBuster)
     showLocatorNoneFound <- (fun () ->

@@ -190,8 +190,8 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
 
     let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
     canvasAdd(legendCanvas, legendTB, 0., 0.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon")
-    canvasAdd(legendCanvas, tb, 212., 8.)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon\n(Completed)")
+    canvasAdd(legendCanvas, tb, 212., 0.)
     canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 282., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 330., 0.)
@@ -214,6 +214,8 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
             Canvas.SetLeft(tb, 0.)
             Canvas.SetBottom(tb, 0.)
         recorderDestinationButtonCanvas.Children.Add(recorderDestinationMouseHoverHighlight) |> ignore
+        let halfShade = new System.Windows.Shapes.Rectangle(Width=15., Height=14.0, StrokeThickness=0., Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
+        canvasAdd(dungeonLegendIconCanvas, halfShade, 15., 16.)
         canvasAdd(dungeonLegendIconCanvas, dungeonLegendIconArea, 15., 0.)
     updateCurrentRecorderDestinationNumeral()
     recorderDestinationSettingsButton.Click.Add(fun _ ->
@@ -280,11 +282,11 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
     canvasAdd(legendStartIconButtonCanvas, tb, 0.8*OMTW, 0.)
     let legendStartIconButton = new Button(Content=legendStartIconButtonCanvas)
     canvasAdd(legendCanvas, legendStartIconButton, 514., 0.)
-    let makeIconButtonBehavior(name, makeIcon, iconOffsetX, iconOffsetY, setIconXY) = (fun () ->
+    let makeIconButtonBehavior(prefix, name, makeIcon, iconOffsetX, iconOffsetY, setIconXY) = (fun () ->
         if not popupIsActive then
             popupIsActive <- true
             let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, FontSize=16., Padding=Thickness(3.),
-                                    Text=sprintf "Left-Click an overworld map tile to move the %s icon there, or\nRight-click to remove it from the map, or\nClick anywhere outside the map to cancel and make no changes" name)
+                                    Text=sprintf "%sLeft-Click an overworld map tile to move the %s icon there, or\nRight-click to remove it from the map, or\nClick anywhere outside the map to cancel and make no changes" prefix name)
             let element = new Canvas(Width=OMTW*16., Height=float(8*11*3), Background=Brushes.Transparent, IsHitTestVisible=true)
             element.Children.Add(tb) |> ignore
             Canvas.SetBottom(tb, element.Height)
@@ -344,13 +346,14 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
     let setStartIconXY(i,j) =
         TrackerModel.startIconX <- i
         TrackerModel.startIconY <- j
-    legendStartIconButtonBehavior <- makeIconButtonBehavior("Start Spot", makeStartIcon, 8.5*OMTW/48., 0., setStartIconXY)
+    legendStartIconButtonBehavior <- makeIconButtonBehavior("Mark where you first spawned at the start of the game\n", "Start Spot", makeStartIcon, 8.5*OMTW/48., 0., setStartIconXY)
     legendStartIconButton.Click.Add(fun _ -> legendStartIconButtonBehavior())
 
     let setCustomWaypointXY(i,j) =
         TrackerModel.customWaypointX <- i
         TrackerModel.customWaypointY <- j
-    let customWaypointButtonBehavior = makeIconButtonBehavior("Custom Waypoint", makeCustomWaypointIcon, -2., -5., setCustomWaypointXY)
+    let customWaypointButtonBehavior = makeIconButtonBehavior("(You can use the Custom Waypoint marker for whatever reason you like, to mark a single overworld tile)\n",
+                                                                "Custom Waypoint", makeCustomWaypointIcon, -2., -5., setCustomWaypointXY)
     let customWaypointButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.8, Height=11.*3.-4.)
     let customWaypointIcon = makeCustomWaypointIcon()
     customWaypointIcon.RenderTransform <- new ScaleTransform(0.6666,0.6666)
