@@ -1049,6 +1049,6 @@ let NavigationallyWarpMouseCursorTo(pos:Point) =   // can abstract over whether 
     *)
 
 // https://learn.microsoft.com/en-us/archive/blogs/greg_schechter/more-details-on-how-effects-work
-let canUseEffectsWithoutDestroyingPerformance = System.Windows.Media.RenderCapability.IsPixelShaderVersionSupported(2s,0s)
+let canUseEffectsWithoutDestroyingPerformance = System.Windows.Media.RenderCapability.Tier >= 1 // System.Windows.Media.RenderCapability.IsPixelShaderVersionSupported(2s,0s)
 do
     printfn "can use effects: %b" canUseEffectsWithoutDestroyingPerformance
