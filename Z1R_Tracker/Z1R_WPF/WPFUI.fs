@@ -942,7 +942,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         let s = HotKeys.OverworldHotKeyProcessor.AppendHotKeyToDescription(s,currentState)
                                         let text = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                                                     FontSize=16., HorizontalContentAlignment=HorizontalAlignment.Center)
-                                        let textBorder = new Border(BorderThickness=Thickness(ST), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
+                                        let textBorder = 
+                                            if currentState >= TrackerModel.MapSquareChoiceDomainHelper.SHOP && currentState < TrackerModel.MapSquareChoiceDomainHelper.SHOP + TrackerModel.MapSquareChoiceDomainHelper.NUM_ITEMS then
+                                                let extra = new TextBox(Text="After marking a shop, left-click\nit again to mark a second item", 
+                                                                            Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                                                                            FontSize=10., HorizontalContentAlignment=HorizontalAlignment.Center)
+                                                let sp = new StackPanel(Orientation=Orientation.Vertical)
+                                                sp.Children.Add(text) |> ignore
+                                                sp.Children.Add(new DockPanel(Background=Brushes.Gray, Height=1., Margin=Thickness(12.,0.,12.,0.))) |> ignore
+                                                sp.Children.Add(extra) |> ignore
+                                                new Border(BorderThickness=Thickness(ST), Child=sp, Background=Brushes.Black, BorderBrush=Brushes.Gray)
+                                            else
+                                                new Border(BorderThickness=Thickness(ST), Child=text, Background=Brushes.Black, BorderBrush=Brushes.Gray)
                                         let dp = new DockPanel(LastChildFill=false, Width=gridWidth)
                                         DockPanel.SetDock(textBorder, Dock.Bottom)
                                         dp.Children.Add(textBorder) |> ignore

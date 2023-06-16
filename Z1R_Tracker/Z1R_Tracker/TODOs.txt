@@ -109,6 +109,7 @@ since 1.3.0p...
 - fix an egregious bug with Hidden Dungeon Numbers
 - hidden setting UseBlurEffect, set it to false if e.g. using the coords checkbox causes the whole app to get super laggy (due to BlurEffect rendering in software rather than hardware)
 - darken completed dungeons on the map again
+- second shop item discoverable via description in popup
 
 
 
