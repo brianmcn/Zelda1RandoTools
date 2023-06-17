@@ -848,69 +848,6 @@ type MyWindow() as this =
             lastUpdateMinute <- curMinute
             updateTimeline(curMinute)
 
-type TimerOnlyWindow() as this = 
-    inherit MyWindowBase()
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let canvas = new Canvas(Width=180., Height=50., Background=System.Windows.Media.Brushes.Black)
-    do
-        // full window
-        this.Title <- "Timer"
-        this.Content <- canvas
-        Graphics.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
-        this.Top <- 0.0
-    override this.Update(f10Press) =
-        base.Update(f10Press)
-        // update time
-        let ts = DateTime.Now - this.StartTime.Time
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-
-type TerrariaTimerOnlyWindow() as this = 
-    inherit MyWindowBase()
-    let FONT = 24.
-    let hmsTimeTextBox = new TextBox(Text="timer",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let dayTextBox = new TextBox(Text="day",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let timeTextBox = new TextBox(Text="time",FontSize=FONT,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0))
-    let canvas = new Canvas(Width=170.*FONT/35., Height=FONT*16./4., Background=System.Windows.Media.Brushes.Black)
-    do
-        // full window
-        this.Title <- "Timer"
-        this.Content <- canvas
-        Graphics.canvasAdd(canvas, hmsTimeTextBox, 0., 0.)
-        Graphics.canvasAdd(canvas, dayTextBox, 0., FONT*5./4.)
-        Graphics.canvasAdd(canvas, timeTextBox, 0., FONT*10./4.)
-        this.SizeToContent <- SizeToContent.WidthAndHeight 
-        this.WindowStartupLocation <- WindowStartupLocation.Manual
-        this.Left <- 0.0
-        this.Top <- 0.0
-        this.BorderBrush <- Brushes.LightGreen
-        this.BorderThickness <- Thickness(2.)
-    override this.Update(f10Press) =
-        base.Update(f10Press)
-        // update hms time
-        let mutable ts = DateTime.Now - this.StartTime.Time
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        hmsTimeTextBox.Text <- sprintf "%02d:%02d:%02d" h m s
-        // update terraria time
-        let mutable day = 1
-        while ts >= TimeSpan.FromMinutes(20.25) do
-            ts <- ts - TimeSpan.FromMinutes(24.)
-            day <- day + 1
-        let mutable ttime = ts + TimeSpan.FromMinutes(8.25)
-        if ttime >= TimeSpan.FromMinutes(24.) then
-            ttime <- ttime - TimeSpan.FromMinutes(24.)
-        let m,s = ttime.Minutes, ttime.Seconds
-        let m,am = if m < 12 then m,"am" else m-12,"pm"
-        let m = if m=0 then 12 else m
-        timeTextBox.Text <- sprintf "%02d:%02d%s" m s am
-        if ts < TimeSpan.FromMinutes(11.25) then   // 11.25 is 7:30pm, 20.25 is 4:30am
-            dayTextBox.Text <- sprintf "Day %d" day
-        else
-            dayTextBox.Text <- sprintf "Night %d" day
-
 // in order for multiple app windows to not have a forced Z-Order from Owner-Child relationship, need a hidden dummy window to own all the visible windows
 type DummyWindow() as this =
     inherit Window()
@@ -950,7 +887,7 @@ type DummyWindow() as this =
 
 [<STAThread>]
 [<EntryPoint>]
-let main argv = 
+let main _argv = 
     printfn "Starting Z-Tracker..."
     let cwd = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName)
     let thisExe = System.IO.Path.Combine(cwd, Graphics.ExeName)
@@ -963,12 +900,7 @@ let main argv =
 #else
         try
 #endif
-            if argv.Length > 0 && argv.[0] = "timeronly" then
-                app.Run(TimerOnlyWindow()) |> ignore
-            elif argv.Length > 0 && argv.[0] = "terraria" then
-                app.Run(TerrariaTimerOnlyWindow()) |> ignore
-            else
-                app.Run(DummyWindow()) |> ignore
+            app.Run(DummyWindow()) |> ignore
 #if DEBUG
 #else
         with e ->

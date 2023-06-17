@@ -39,7 +39,7 @@ let THRU_TIMELINE_H = START_TIMELINE_H + float TCH
 let LEFT_OFFSET = 78.0
 let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
 let ITEM_PROGRESS_FIRST_ITEM = 130.
-let hmsTimeTextBox = new TextBox(Width=148., Height=56., Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
+let hmsTimeTextBox = new TextBox(Width=148.,Height=56.,Text="timer",FontSize=42.0,Background=Brushes.Transparent,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 let broadcastTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 
 // some global mutable variables needed across various UI components

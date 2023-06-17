@@ -900,6 +900,7 @@ let takeThisLeaveBMP = loadBMP("take-this-leave.png")
 let firstQuestItemReferenceBMP = loadBMP("first-quest-item-reference.png")
 let secondQuestItemReferenceBMP = loadBMP("second-quest-item-reference.png")
 let mirrorOverworldBMP = loadBMP("mirror-overworld.png")
+let eyeballBMP = loadBMP("eyeball.png")
 
 (*
 code for clipping screenshots to same size

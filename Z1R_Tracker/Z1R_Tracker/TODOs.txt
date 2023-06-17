@@ -107,19 +107,15 @@ since 1.3.0m...
 - fix: tweaked combat reminder, even with prior wand, upgrading to white sword makes combat-blocked dungeons worthy of reminding
 since 1.3.0p...
 - fix an egregious bug with Hidden Dungeon Numbers
+- fix gettable computation when loading a save
 - hidden setting UseBlurEffect, set it to false if e.g. using the coords checkbox causes the whole app to get super laggy (due to BlurEffect rendering in software rather than hardware)
 - darken completed dungeons on the map again
 - second shop item discoverable via description in popup
+- add hover eyeball icon to hide overworld map icons
 
 
 
 thilo thinks recorder dest is intrusive/bright
-
-
-shops - could i put an extra decoration on first-item shop popup text to say e.g. 'after making first shop item, you can left-click to add a second item' or something?
-
-
-Alex tried to hide all icons to see the map, could be an interesting peek...
 
 
 Broadcast option: always focus overworld ? bighead scenario - see what he thinks of 'square' window

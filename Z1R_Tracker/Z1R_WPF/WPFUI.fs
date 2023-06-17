@@ -461,6 +461,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     mirrorOW.ToolTip <- "Toggle mirrored overworld"
     ToolTipService.SetPlacement(mirrorOW, System.Windows.Controls.Primitives.PlacementMode.Top)
+    let mutable temporarilyHideAllIconsWhileHoveringEyeball = false
+    let hideIconsEyeball = new Border(Child=Graphics.BMPtoImage Graphics.eyeballBMP, BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.))
+    hideIconsEyeball.MouseEnter.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.DarkGray; temporarilyHideAllIconsWhileHoveringEyeball <- true; OptionsMenu.requestRedrawOverworldEvent.Trigger())
+    hideIconsEyeball.MouseLeave.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.Gray; temporarilyHideAllIconsWhileHoveringEyeball <- false; OptionsMenu.requestRedrawOverworldEvent.Trigger())
+    hideIconsEyeball.ToolTip <- "Hover to hide icons\n(peek at unobscured overworld map)"
+    ToolTipService.SetPlacement(hideIconsEyeball, System.Windows.Controls.Primitives.PlacementMode.Bottom)
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
         owItemGrid, toggleBookShieldCB, bookIsAtlasCB, highlightOpenCavesCB, timerResetButton, spotSummaryTB = 
             MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule, doUIUpdateEvent, MakeManualSave)
@@ -468,9 +474,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     bookIsAtlasCheckBox <- bookIsAtlasCB
     highlightOpenCavesCheckBox <- highlightOpenCavesCB
     if isStandardHyrule then
-        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, moreFQSQoptionsButton)
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, moreFQSQoptionsButton)
     else
-        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, null)
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, null)
 
     do! showProgress("link")
 
@@ -811,7 +817,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let shouldAppearLikeDarkX,iconBMP,extraDecorations = GetIconBMPAndExtraDecorations(cm,ms,i,j)
                     // be sure to draw in appropriate layer
                     if iconBMP <> null then 
-                        if ms.IsX || shouldAppearLikeDarkX then
+                        if temporarilyHideAllIconsWhileHoveringEyeball then
+                            let icon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0])
+                            icon.Opacity <- X_OPACITY
+                            canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
+                        elif ms.IsX || shouldAppearLikeDarkX then
                             if ms.IsX && TrackerModel.getOverworldMapExtraData(i,j,ms.State)=ms.State then
                                 // used when Graphics.CanHideAndReveal()
                                 let blankTile = Graphics.BMPtoImage Graphics.blankTileBmp
@@ -2094,8 +2104,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // Timer
         TrackerModel.theStartTime.SetAgo(TimeSpan.FromSeconds(float data.TimeInSeconds))
         // recompute everything, update UI
-        TrackerModel.recomputeMapStateSummary()
         TrackerModel.recomputePlayerStateSummary()
+        TrackerModel.recomputeMapStateSummary()
         TrackerModel.recomputeWhatIsNeeded() |> ignore
         // done
         TrackerModel.currentlyIgnoringForceUpdatesDuringALoad <- false

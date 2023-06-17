@@ -1045,6 +1045,10 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     addLabel(triforces, "Show location of dungeon, if known or hinted", 10., 300.)
 
     let COL = Brushes.MediumVioletRed
+    let dx,dy = 573.,0.
+    let eyeball = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    addLabel(eyeball, "Hide all overworld icons", 300., 4.)
+
     let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
     let whiteSword = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 2.,28.; 28.,28.; 28.,2.; 2.,2.; 2.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
     addLabel(whiteSword, "Show location of white sword cave, if known or hinted", 30., 270.)
