@@ -6,6 +6,10 @@ open System.Windows
 
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let defaultVoice = try voice.Voice.Name with _ -> ""
+do
+    try voice.SelectVoice(TrackerModelOptions.PreferredVoice)
+    with _ -> ()
+
 let mutable microphoneFailedToInitialize = false
 let mutable gamepadFailedToInitialize = false
 
