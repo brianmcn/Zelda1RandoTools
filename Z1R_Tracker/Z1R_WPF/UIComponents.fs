@@ -177,7 +177,31 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypointIcon, doUIUpdateEvent:Event<unit>) =
+let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
+    let makeStartIcon() = 
+        let back = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false)
+        back.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+        let front = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+        let c = new Canvas(Width=front.Width, Height=front.Height)
+        if Graphics.canUseEffectsWithoutDestroyingPerformance then
+            c.Children.Add(back) |> ignore
+        c.Children.Add(front) |> ignore
+        c
+    let startIcon = makeStartIcon()
+    let makeCustomWaypointIcon, theCustomWaypointIcon =
+        let L = 6.0
+        let makeIcon() = 
+            let bg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
+            bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+            let fg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Orange, StrokeThickness=3.0, IsHitTestVisible=false)
+            let c = new Canvas()
+            if Graphics.canUseEffectsWithoutDestroyingPerformance then
+                canvasAdd(c, bg, 1., 0.)
+            canvasAdd(c, fg, 1., 0.)
+            c
+        let theCustomWaypointIcon = makeIcon()
+        makeIcon, theCustomWaypointIcon
+
     // map legend
     let BG = new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,90uy))
     let legendCanvas = new Canvas(Width=586., Height=float(11*3), Background=BG)
@@ -364,7 +388,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, makeStartIcon, makeCustomWaypo
     canvasAdd(legendCanvas, customWaypointButton, 416., 0.)
     customWaypointButton.Click.Add(fun _ -> customWaypointButtonBehavior())
 
-    recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas
+    recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas, startIcon, theCustomWaypointIcon
 
 let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress

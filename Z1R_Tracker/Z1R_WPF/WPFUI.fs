@@ -808,32 +808,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     canvasAdd(overworldCanvas, overworldCirclesCanvas, 0., 0.)
 
     // legend
-    let makeBasicStartIcon() = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
-    let makeStartIcon() = 
-        let back = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false)
-        back.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-        let front = makeBasicStartIcon()
-        let c = new Canvas(Width=front.Width, Height=front.Height)
-        if Graphics.canUseEffectsWithoutDestroyingPerformance then
-            c.Children.Add(back) |> ignore
-        c.Children.Add(front) |> ignore
-        c
-    let startIcon = makeStartIcon()
-    let makeCustomWaypointIcon, theCustomWaypointIcon =
-        let L = 6.0
-        let makeIcon() = 
-            let bg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
-            bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-            let fg = new Shapes.Ellipse(Width=float(11*3)-2.+3.0*L, Height=float(11*3)-2.+2.*L, Stroke=Brushes.Orange, StrokeThickness=3.0, IsHitTestVisible=false)
-            let c = new Canvas()
-            if Graphics.canUseEffectsWithoutDestroyingPerformance then
-                canvasAdd(c, bg, 1., 0.)
-            canvasAdd(c, fg, 1., 0.)
-            c
-        let theCustomWaypointIcon = makeIcon()
-        makeIcon, theCustomWaypointIcon
-    let recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas = 
-            UIComponents.MakeLegend(cm, makeBasicStartIcon, makeCustomWaypointIcon, doUIUpdateEvent)
+    let recorderDestinationButtonCanvas, anyRoadLegendIcon, dungeonLegendIconArea, updateCurrentRecorderDestinationNumeral, legendCanvas, startIcon, theCustomWaypointIcon = 
+            UIComponents.MakeLegend(cm, doUIUpdateEvent)
     layout.AddLegend(legendCanvas)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
     layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
@@ -869,11 +845,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     layout.AddShowHotKeysButton(showHotKeysButton)
     let showHotKeys(isRightClick) =
         let none,p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
-        let w = new Window()
-        w.Title <- "Z-Tracker HotKeys"
-        w.Owner <- Application.Current.MainWindow
-        w.Content <- p
-        w.ResizeMode <- ResizeMode.CanResizeWithGrip
+        let w = new Window(Title="Z-Tracker HotKeys", Owner=Application.Current.MainWindow, Content=p, ResizeMode=ResizeMode.CanResizeWithGrip)
         let save() = 
             TrackerModelOptions.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
             TrackerModelOptions.writeSettings()
@@ -900,7 +872,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let showRunCustomButton = new Button(Content=showRunCustomTB)
     layout.AddShowRunCustomButton(showRunCustomButton)
     showRunCustomButton.Click.Add(fun _ -> ShowRunCustom.DoShowRunCustom(refocusMainWindow))
-    //showRunCustomButton.MouseRightButtonDown.Add(fun _ -> )
 
     let saveTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
                                         Text="Save", IsHitTestVisible=false, TextAlignment=TextAlignment.Center)
@@ -918,10 +889,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     popupIsActive <- false
                 with e ->
                     let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, sprintf "Z-Tracker was unable to save the\ntracker state to a file\nError:\n%s" e.Message, ["Ok"])
-                    //let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, sprintf "Z-Tracker was unable to save file\nError:\n%s" (e.ToString()), ["Ok"])
                     ignore r
                     popupIsActive <- false
-                    //System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e).Throw()
             } |> Async.StartImmediate
         )
 
