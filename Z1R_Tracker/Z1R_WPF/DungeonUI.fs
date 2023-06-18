@@ -1423,7 +1423,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             canvasAdd(gc, new Shapes.Line(X1=float ccw/3., X2=float ccw/3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(gc, new Shapes.Line(X1=float ccw*2./3., X2=float ccw*2./3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
             canvasAdd(contentCanvas, gc, 0., 0.)
-        let summaryMode = TrackerModel.EventingInt(0)   // 0=default, 1=preview, 2=detail
+        let summaryMode = TrackerModel.EventingInt(TrackerModelOptions.DungeonSummaryTabMode)   // 0=default, 1=preview, 2=detail
         let makeMidiPreviewBehavior(i, fe:FrameworkElement) =
             // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
             let midi = new Shapes.Rectangle(Width=2.* float w, Height=2.* float h, Fill=new VisualBrush(contentCanvases.[i]))
@@ -1504,7 +1504,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 TrackerModel.mapStateSummaryComputedEvent.Publish.Add(fun _ -> decide())
                 TrackerModel.GetDungeon(i).IsCompleteWasNoticedChanged.Add(fun _ -> decide())
                 isHoveringFQSQ.Changed.Add(fun _ -> decide())
-                summaryMode.Changed.Add(fun _ -> decide())
+                summaryMode.Changed.Add(fun _ -> TrackerModelOptions.DungeonSummaryTabMode <- summaryMode.Value; TrackerModelOptions.writeSettings(); decide())
             let canSeeMapBox =
                 let canSeeMapCanvas = new Canvas(Width=16., Height=16., ClipToBounds=true)
                 let mapImg = Graphics.BMPtoImage Graphics.zi_map_bmp
@@ -1553,19 +1553,25 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             makeMidiPreviewBehavior(i, mini)
             mini
         let summaryModeButton = 
-            let tb = new TextBox(Text="Mode: default", IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=Graphics.almostBlack,
+            let tb = new TextBox(Text="", IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=Graphics.almostBlack,
                                     FontSize=12., Foreground=Brushes.Orange)
             let button = new Button(Content=tb, HorizontalContentAlignment=HorizontalAlignment.Stretch, VerticalContentAlignment=VerticalAlignment.Stretch, Width=100.)
+            let updateModeText() =
+                if summaryMode.Value=1 then
+                    tb.Text <- "Mode: preview"
+                elif summaryMode.Value=2 then
+                    tb.Text <- "Mode: detail"
+                else
+                    tb.Text <- "Mode: default"
+            updateModeText()
             button.Click.Add(fun _ ->
                 if summaryMode.Value=0 then
                     summaryMode.Value <- 1
-                    tb.Text <- "Mode: preview"
                 elif summaryMode.Value=1 then
                     summaryMode.Value <- 2
-                    tb.Text <- "Mode: detail"
                 else
                     summaryMode.Value <- 0
-                    tb.Text <- "Mode: default"
+                updateModeText()                    
                 )
             button
         let text = new TextBox(Text="Dungeon Summary\n\nHover to preview tab\n\nClick to switch tab", Margin=Thickness(3.),
