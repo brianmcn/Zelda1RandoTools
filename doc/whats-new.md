@@ -115,7 +115,9 @@ The Second Quest Dungeons toggle has moved out of the Options Menu, and now appe
 - upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
 - new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
+- new eyeball icon in upper right, hover to hide overworld map icons (to see unobscured map)
 - performance improvements
+- hidden setting UseBlurEffect, set it to false if using the "Coords" checkbox causes the whole app to get super laggy (due to BlurEffect rendering in software rather than hardware)
 - a lot of small fixes
 
 ---
