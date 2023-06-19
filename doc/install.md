@@ -26,6 +26,6 @@ Note: If Chrome prevents you from downloading the zip file, you can disable secu
 - Note what security protection level you are using.
 - Select "No protection".
 - Confirm the following pop-up with "Turn off".
-- Download the file in question.
-- Repeat steps 1.- 4. to return to the security settings.
-- Change back to your original security protection level to re-enable safe browsing.
+- Download the ZTracker zip file.
+- Repeat the first 4 steps to return to the security settings.
+- Change back to your original security protection level you noted, to re-enable safe browsing.
