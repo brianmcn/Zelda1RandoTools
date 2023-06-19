@@ -17,3 +17,15 @@ and here is a direct link to the message in the z1r discord with the Z-Tracker d
 
 Windows Defender is pretty aggressive about unknown .exe files, and sometimes flags Z1R_WPF.exe as a virus and quarantines the file (this can change from week to week).  
 You might need to select 'Run Anyway' from a warning screen, or go into Window Defender's virus & threat protection history to 'Restore' the Z1R_WPF.exe if it gets quarantined.
+
+Note: If Chrome prevents you from downloading the zip file, you can disable security temporarily:
+- In the top-right corner of the browser window, click the three dots icon.
+- Select "Settings" from the menu.
+- Select "Privacy and security" on the left side of the page.
+- In the section "Privacy and security", click "Security".
+- Note what security protection level you are using.
+- Select "No protection".
+- Confirm the following pop-up with "Turn off".
+- Download the file in question.
+- Repeat steps 1.- 4. to return to the security settings.
+- Change back to your original security protection level to re-enable safe browsing.

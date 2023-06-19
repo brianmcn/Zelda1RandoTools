@@ -113,6 +113,7 @@ since 1.3.0p...
 - darken completed dungeons on the map again
 - second shop item discoverable via description in popup
 - add hover eyeball icon to hide overworld map icons
+since 1.3.0q...
 
 
 
