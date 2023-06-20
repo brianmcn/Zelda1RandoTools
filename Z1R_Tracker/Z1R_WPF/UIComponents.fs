@@ -177,6 +177,13 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
+let recorderEllipseNewDungeonsColor = new SolidColorBrush(Color.FromRgb(220uy,220uy,220uy))
+let recorderEllipseVanillaColor = Brushes.White
+let RecorderEllipseColor() = 
+    if TrackerModel.recorderToNewDungeons then
+        recorderEllipseNewDungeonsColor
+    else
+        recorderEllipseVanillaColor
 let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let makeStartIcon() = 
         let back = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false)
@@ -210,7 +217,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     canvasAdd(legendCanvas, dungeonLegendIconCanvas, 178., 0.)
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=BG, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
-    let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
+    let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
 
     let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
     canvasAdd(legendCanvas, legendTB, 0., 0.)
@@ -228,6 +235,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
         canvasAdd(recorderDestinationButtonCanvas, recorderEllipse, 1., -2.)
         let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
         canvasAdd(dungeonLegendIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
+        recorderEllipse.Stroke <- RecorderEllipseColor()
         if TrackerModel.recorderToNewDungeons then
             let recorderDestinationLegendIcon = Graphics.BMPtoImage yellowDungeonBMP
             canvasAdd(recorderDestinationButtonCanvas, recorderDestinationLegendIcon, 0., 0.)

@@ -127,7 +127,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     newLocation.Add(fun _ -> redrawWhiteSwordCanvas())
     *)
     gridAddTuple(owItemGrid, rerouteClick(white_sword_canvas, sword2BoxImpl), OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
-    white_sword_canvas.ToolTip <- "The item box to the right is for the item found in the White Sword Cave, which will be found somewhere on the overworld."
+    white_sword_canvas.ToolTip <- "The item box to the right is for the item found in the White Sword Cave,\nwhich will be found somewhere on the overworld.\n(4-6 hearts to lift)"
     white_sword_canvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword2))
     white_sword_canvas.MouseLeave.Add(fun _ -> hideLocator())
 
@@ -188,7 +188,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     blue_ring_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, blue_ring_box, OW_ITEM_GRID_LOCATIONS.BLUE_RING_BOX)
-    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)", Timeline.TimelineID.MagicalSword, Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, TrackerModel.magsCaveFound)
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)\n(10-14 hearts to lift)", Timeline.TimelineID.MagicalSword, Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, TrackerModel.magsCaveFound)
     let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
     let redrawMagicalSwordCanvas(c:Canvas) =
         c.Children.Clear()

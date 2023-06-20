@@ -161,9 +161,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let boxItemImpl, extrasImage, updateNumberedTriforceDisplayImpl, updateNumberedTriforceDisplayIfItExists, level9ColorCanvas = 
         MainTrackerTriforcesAndItems.setup(cm, owInstance, layout, kind)
 
-    let owLocatorTilesZone = Array2D.zeroCreate 16 8
+    let owLocatorTileRectangles = Array2D.zeroCreate 16 8
     let redrawOWCircle = ref(fun (_x,_y) -> ())
-    let hideFirstQuestCheckBox, hideSecondQuestCheckBox, moreFQSQoptionsButton = MakeFQSQStuff(cm, isMixed, owLocatorTilesZone, redrawOWCircle)
+    let hideFirstQuestCheckBox, hideSecondQuestCheckBox, moreFQSQoptionsButton = MakeFQSQStuff(cm, isMixed, owLocatorTileRectangles, redrawOWCircle)
     if isMixed then
         layout.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox)
 
@@ -981,7 +981,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let L = 6.0
                     let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
                     bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-                    let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.White, StrokeThickness=3.0, IsHitTestVisible=false)
+                    let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
                     if Graphics.canUseEffectsWithoutDestroyingPerformance then
                         canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
                     canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
@@ -1150,7 +1150,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         for j = 0 to 7 do
             let z = new Graphics.TileHighlightRectangle()
             z.Hide()
-            owLocatorTilesZone.[i,j] <- z
+            owLocatorTileRectangles.[i,j] <- z
             gridAdd(owLocatorGrid, z.Shape, i, j)
 
     // Dungeon level trackers
@@ -1165,9 +1165,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
                         let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
                         if (curLevel = level-11) || (level=10) then  // if hovering this particular dungeon within summary tab, or if hovering 'S' header
-                            owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                            owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
                         elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
-                            owLocatorTilesZone.[i,j].MakeBoldGreen()
+                            owLocatorTileRectangles.[i,j].MakeBoldGreen()
                         else
                             () // do nothing - don't highlight completed dungeons
             drawRoutesTo(None, Point(), 0, 0, false, 0, 
@@ -1309,13 +1309,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     showLocatorExactLocation <- (fun (x,y) ->
         if (x,y) <> TrackerModel.NOTFOUND then
-            let leftLine = new Shapes.Line(X1=OMTW*float x, Y1=0., X2=OMTW*float x, Y2=float(8*11*3), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            let OPA = 0.85
+            let COL = Brushes.Cyan
+            let leftLine = new Shapes.Line(X1=OMTW*float x, Y1=0., X2=OMTW*float x, Y2=float(8*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, leftLine, 0., 0.)
-            let rightLine = new Shapes.Line(X1=OMTW*float (x+1)-1., Y1=0., X2=OMTW*float (x+1)-1., Y2=float(8*11*3), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            let rightLine = new Shapes.Line(X1=OMTW*float (x+1)-1., Y1=0., X2=OMTW*float (x+1)-1., Y2=float(8*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, rightLine, 0., 0.)
-            let topLine = new Shapes.Line(X1=0., Y1=float(y*11*3), X2=OMTW*float(16*3), Y2=float(y*11*3), Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            let topLine = new Shapes.Line(X1=0., Y1=float(y*11*3), X2=OMTW*float(16*3), Y2=float(y*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, topLine, 0., 0.)
-            let bottomLine = new Shapes.Line(X1=0., Y1=float((y+1)*11*3)-1., X2=OMTW*float(16*3), Y2=float((y+1)*11*3)-1., Stroke=Brushes.White, StrokeThickness=2., IsHitTestVisible=false)
+            let bottomLine = new Shapes.Line(X1=0., Y1=float((y+1)*11*3)-1., X2=OMTW*float(16*3), Y2=float((y+1)*11*3)-1., Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
@@ -1356,14 +1358,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         if cur = -1 || isLetteredNumberlessDungeon then
                             if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
                                 if owInstance.SometimesEmpty(i,j) then
-                                    owLocatorTilesZone.[i,j].MakeYellow()
+                                    owLocatorTileRectangles.[i,j].MakeYellow()
                                 else
-                                    owLocatorTilesZone.[i,j].MakeGreen()
+                                    owLocatorTileRectangles.[i,j].MakeGreen()
                             else
                                 if isLetteredNumberlessDungeon then  // OwGettableLocations does not contain already-marked spots
-                                    owLocatorTilesZone.[i,j].MakeGreen()
+                                    owLocatorTileRectangles.[i,j].MakeGreen()
                                 else
-                                    owLocatorTilesZone.[i,j].MakeRed()
+                                    owLocatorTileRectangles.[i,j].MakeRed()
         )
     showLocatorInstanceFunc <- (fun f ->
         OverworldRouteDrawing.routeDrawingLayer.Clear()
@@ -1371,9 +1373,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 if f(i,j) && TrackerModel.overworldMapMarks.[i,j].Current() = -1 then
                     if owInstance.SometimesEmpty(i,j) then
-                        owLocatorTilesZone.[i,j].MakeYellowWithBriefAnimation()
+                        owLocatorTileRectangles.[i,j].MakeYellowWithBriefAnimation()
                     else
-                        owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                        owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
         )
     showHintShopLocator <- (fun () ->
         OverworldRouteDrawing.routeDrawingLayer.Clear()
@@ -1382,7 +1384,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.HINT_SHOP then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
                     OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
                     owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
@@ -1397,7 +1399,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if MapStateProxy(cur).IsThreeItemShop && 
                         (cur = item || (TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) = TrackerModel.MapSquareChoiceDomainHelper.ToItem(item))) then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
                     OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
                     owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
@@ -1412,7 +1414,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur = TrackerModel.MapSquareChoiceDomainHelper.POTION_SHOP || 
                     (cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY && TrackerModel.getOverworldMapExtraData(i,j,cur)<>cur) then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
                     OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true  // probably unnecessary, as these can't be hidden
                     owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
@@ -1429,7 +1431,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             (cur = TrackerModel.MapSquareChoiceDomainHelper.LARGE_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) ||
                             (cur = TrackerModel.MapSquareChoiceDomainHelper.MEDIUM_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) ||
                             (cur = TrackerModel.MapSquareChoiceDomainHelper.SMALL_SECRET && TrackerModel.getOverworldMapExtraData(i,j,cur)<>0) then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
                     OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- true
                     owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon shown
                     anyFound <- true
@@ -1442,7 +1444,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
                 if TrackerModel.playerComputedStateSummary.HaveRecorder && OverworldRouting.recorderDests |> Seq.contains (i,j) then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
         )
     recorderDestinationButtonCanvas.MouseLeave.Add(fun _ -> hideLocator())
     anyRoadLegendIcon.MouseEnter.Add(fun _ ->
@@ -1451,7 +1453,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             for j = 0 to 7 do
                 let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                 if cur >= TrackerModel.MapSquareChoiceDomainHelper.WARP_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.WARP_4 then
-                    owLocatorTilesZone.[i,j].MakeGreenWithBriefAnimation()
+                    owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
         )
     anyRoadLegendIcon.MouseLeave.Add(fun _ -> hideLocator())
     dungeonLegendIconArea.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))   // the 'show all dungeons' functionality
@@ -1524,7 +1526,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         allOwMapZoneBlackCanvases |> Array2D.iteri (fun _x _y zbc -> zbc.Opacity <- 0.0)
         for i = 0 to 15 do
             for j = 0 to 7 do
-                owLocatorTilesZone.[i,j].Hide()
+                owLocatorTileRectangles.[i,j].Hide()
                 if OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] then
                     OverworldMapTileCustomization.temporarilyDisplayHiddenOverworldTileMarks.[i,j] <- false
                     owUpdateFunctions.[i,j] 0 null  // redraw tile, with icon possibly hidden
