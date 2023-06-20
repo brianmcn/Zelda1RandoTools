@@ -7,6 +7,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 open OverworldMapTileCustomization
+open HotKeys.MyKey
 
 let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
@@ -491,6 +492,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 TrackerModel.TimelineItemModel.TriggerTimelineChanged()  // redraw
                 wh.Set() |> ignore
                 )
+            restartTimerButton.MyKeyAdd(fun ea ->
+                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(hotKeyedState) -> 
+                    ea.Handled <- true
+                    match hotKeyedState with
+                    | HotKeys.GlobalHotkeyTargets.LeftClick          -> Graphics.Win32.LeftMouseClick();
+                    | _ -> ()
+                | _ -> ()
+            )
             resetTrackerButton.Click.Add(fun _ ->
                 async {
                     try
