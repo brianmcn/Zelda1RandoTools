@@ -115,6 +115,9 @@ since 1.3.0p...
 - add hover eyeball icon to hide overworld map icons
 since 1.3.0q...
 - make recorder destination circles a little less bright; make exact locator "crosshairs" cyan
+- hovering blockers behaves like hovering the corresponding dungeon tab
+
+
 
 
 

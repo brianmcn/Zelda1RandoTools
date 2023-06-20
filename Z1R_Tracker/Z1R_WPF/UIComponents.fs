@@ -740,7 +740,8 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
 
 open HotKeys.MyKey
 
-let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[]) =
+let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_>, levelTabSelected:Event<int>, blockersHoverEvent:Event<bool>, blockerDungeonSunglasses:FrameworkElement[],
+                        contentCanvasMouseEnterFunc, contentCanvasMouseLeaveFunc) =
     // blockers
     let blockerBoxes : Canvas[,] = Array2D.zeroCreate 8 TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON
     let makeBlockerBox(dungeonIndex, blockerIndex) =
@@ -924,6 +925,8 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 for i = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
                     sp.Children.Add(makeBlockerBox(dungeonIndex, i)) |> ignore
                 gridAdd(blockerGrid, sp, i, j)
+                sp.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(dungeonIndex+1))
+                sp.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(dungeonIndex+1))
                 blockerDungeonSunglasses.[dungeonIndex] <- upcast sp // just reduce its opacity
     blockerGrid
 

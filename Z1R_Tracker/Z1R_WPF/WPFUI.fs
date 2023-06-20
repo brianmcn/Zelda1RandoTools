@@ -1194,7 +1194,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do! showProgress("blockers")
     
     // blockers
-    let blockerGrid = UIComponents.MakeBlockers(cm, blockerQueries, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses)
+    let blockerGrid = UIComponents.MakeBlockers(cm, blockerQueries, levelTabSelected, blockersHoverEvent, blockerDungeonSunglasses, contentCanvasMouseEnterFunc, (fun _level -> hideLocator()))
     layout.AddBlockers(blockerGrid)
 
     do! showProgress("notes, gettables")
