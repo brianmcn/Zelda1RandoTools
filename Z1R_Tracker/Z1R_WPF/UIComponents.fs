@@ -214,15 +214,16 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let legendCanvas = new Canvas(Width=586., Height=float(11*3), Background=BG)
     let dungeonLegendIconCanvas = new Canvas(Width=float(16*3), Height=float(11*3))
     let dungeonLegendIconArea = new Canvas(Width=15., Height=float(11*3), Background=Brushes.White, Opacity=0.0001)   // to respond to mouse hover
-    canvasAdd(legendCanvas, dungeonLegendIconCanvas, 178., 0.)
+    canvasAdd(legendCanvas, dungeonLegendIconCanvas, 163., 0.)
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=BG, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
-    let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
+    //let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
+    let recorderEllipse = new Shapes.Rectangle(Width=35., Height=35., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
 
     let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
     canvasAdd(legendCanvas, legendTB, 0., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Dungeon\n(Completed)")
-    canvasAdd(legendCanvas, tb, 212., 0.)
+    canvasAdd(legendCanvas, tb, 197., 0.)
     canvasAdd(legendCanvas, recorderDestinationButtonCanvas, 282., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="Recorder\nDestination")
     canvasAdd(legendCanvas, tb, 330., 0.)
@@ -232,7 +233,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let updateCurrentRecorderDestinationNumeral() =
         dungeonLegendIconCanvas.Children.Clear()
         recorderDestinationButtonCanvas.Children.Clear()
-        canvasAdd(recorderDestinationButtonCanvas, recorderEllipse, 1., -2.)
+        canvasAdd(recorderDestinationButtonCanvas, recorderEllipse, 23., -8.)
         let yellowDungeonBMP = Graphics.theFullTileBmpTable.[currentRecorderDestinationIndex].[0]
         canvasAdd(dungeonLegendIconCanvas, Graphics.BMPtoImage yellowDungeonBMP, 0., 0.)
         recorderEllipse.Stroke <- RecorderEllipseColor()
@@ -303,9 +304,9 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
         )
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
-    canvasAdd(legendCanvas, anyRoadLegendIcon, 80., 0.)
+    canvasAdd(legendCanvas, anyRoadLegendIcon, 70., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 114., 0.)
+    canvasAdd(legendCanvas, tb, 104., 0.)
 
     let legendStartIconButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.45, Height=11.*3.)
     let legendStartIcon = makeStartIcon()

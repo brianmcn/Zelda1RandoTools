@@ -250,7 +250,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, itemProgressCanvas, 0., THRU_MAP_AND_LEGEND_H)
             canvasAdd(upper, itemProgressTB, 50., THRU_MAP_AND_LEGEND_H + 4.)
             let pro = Broadcast.makeViewRectImpl(Point(ITEM_PROGRESS_FIRST_ITEM,THRU_MAP_AND_LEGEND_H), 
-                                Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.-11.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), upper)  // -11. because 'Hint decoder' button infringes into empty space by Any Key 
+                                Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.-11.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), upper)  // -11. because 'Hint decoder' button infringes into empty space by Magic Key 
             canvasAdd(lower, pro, 20., 150.+20.)
             let tb = new TextBox(Text="Move mouse above red line for overworld view", Foreground=Brushes.Orange, Background=Brushes.Black, 
                                             IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=16., VerticalAlignment=VerticalAlignment.Center)

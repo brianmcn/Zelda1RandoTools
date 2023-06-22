@@ -316,7 +316,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     utilityRowPanel.Children.Add(basicBoxImpl("Ladder", Timeline.TimelineID.Ladder, Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder, dummy)) |> ignore
     utilityRowPanel.Children.Add(basicBoxImpl("Raft", Timeline.TimelineID.Raft, Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft, dummy)) |> ignore
     utilityRowPanel.Children.Add(basicBoxImpl("Recorder", Timeline.TimelineID.Recorder, Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Any key", Timeline.TimelineID.AnyKey, Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey, dummy)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Magic key", Timeline.TimelineID.AnyKey, Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey, dummy)) |> ignore
     utilityRowPanel.Children.Add(basicBoxImpl("Book", Timeline.TimelineID.Book, Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook, dummy)) |> ignore
     let mutable extrasPanelAndepRefresh = None
     let makeExtrasPanelAndepRefresh() =

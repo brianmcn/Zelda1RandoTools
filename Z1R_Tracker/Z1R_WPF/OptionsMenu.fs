@@ -64,7 +64,7 @@ let data2 = [|
         TrackerModelOptions.VoiceReminders.CoastItem,       TrackerModelOptions.VisualReminders.CoastItem
     "Recorder/PB/Boomstick", "Periodic reminders of how many recorder/power-bracelet spots remain, or that the boomstick is available", 
         TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook
-    "Have any key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", 
+    "Have magic key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", 
         TrackerModelOptions.VoiceReminders.HaveKeyLadder,   TrackerModelOptions.VisualReminders.HaveKeyLadder
     "Blockers", "Reminder when you may have become unblocked on a previously-aborted dungeon", 
         TrackerModelOptions.VoiceReminders.Blockers,        TrackerModelOptions.VisualReminders.Blockers
@@ -155,7 +155,7 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
                         "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
                         "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
                         "a bright icon in that case.\n\n" +
-                        "You can also hide no-longer-relevant shop items (key shop after you get the Any Key, ring shop after you obtain either blue or red ring, " +
+                        "You can also hide no-longer-relevant shop items (key shop after you get the Magic Key, ring shop after you obtain either blue or red ring, " +
                         "candle shop after you obtain blue or red candle, arrow shop after you buy it or obtain silvers, boomstick book after you buy it) " +
                         "by checking the box below."
             let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))

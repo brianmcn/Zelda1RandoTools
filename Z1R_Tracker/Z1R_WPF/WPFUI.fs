@@ -949,7 +949,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // update specific-blockers that may have been (un)blocked
         for f in Views.redrawBoxes do f()
         for f in Views.redrawTriforces do f()
-        // update overworld marks (may be hiding useless shops, and they just got an item rendering a shop useless (e.g. any key and key shops))
+        // update overworld marks (may be hiding useless shops, and they just got an item rendering a shop useless (e.g. magic key and key shops))
         OptionsMenu.requestRedrawOverworldEvent.Trigger()
 
         recorderingCanvas.Children.Clear()
@@ -978,13 +978,17 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations|>Seq.map fst,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
                 // redraw recorder dests
                 for (i,j),idx in currentRecorderWarpDestinations do
-                    let L = 6.0
-                    let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
+                    //let L = 6.0
+                    //let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
+                    let bg = new Shapes.Rectangle(Width=35., Height=35., Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
                     bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-                    let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
+                    //let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
+                    let fg = new Shapes.Rectangle(Width=35., Height=35., Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
                     if Graphics.canUseEffectsWithoutDestroyingPerformance then
-                        canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
-                    canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
+                        //canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
+                        canvasAdd(recorderingCanvas, bg, OMTW*float i+23., float(11*3*j)-9.)
+                    //canvasAdd(recorderingCanvas, fg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
+                    canvasAdd(recorderingCanvas, fg, OMTW*float i+23., float(11*3*j)-9.)
                     if not(TrackerModel.recorderToNewDungeons) then
                         // label the vanilla spots, so player knows the order
                         let tb = new TextBox(Text=sprintf "%c" (char idx + char '1'), FontSize=12., FontWeight=FontWeights.Bold, Foreground=Brushes.White, Background=Brushes.Black, 
@@ -1076,7 +1080,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 | TrackerModel.DungeonBlocker.BOW_AND_ARROW -> sentence <- sentence + " a beau and arrow,"; icons.Add(upcb(Graphics.bow_and_arrow_bmp))
                 | TrackerModel.DungeonBlocker.RECORDER -> sentence <- sentence + " the recorder,"; icons.Add(upcb(Graphics.recorder_bmp))
                 | TrackerModel.DungeonBlocker.LADDER -> sentence <- sentence + " the ladder,"; icons.Add(upcb(Graphics.ladder_bmp))
-                | TrackerModel.DungeonBlocker.KEY -> sentence <- sentence + " the any key,"; icons.Add(upcb(Graphics.key_bmp))
+                | TrackerModel.DungeonBlocker.KEY -> sentence <- sentence + " the magic key,"; icons.Add(upcb(Graphics.key_bmp))
                 | TrackerModel.DungeonBlocker.BOMB -> sentence <- sentence + " bombs,"; icons.Add(upcb(Graphics.bomb_bmp))
                 | _ -> ()
                 sentence <- sentence + " consider dungeon" + (if Seq.length dungeons > 1 then "s " else " ")
@@ -1093,7 +1097,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     oneTimeRemindAnyKey <- Some(new TrackerModel.LastChangedTime(), (fun() ->
                         oneTimeRemindAnyKey <- None
                         if TrackerModel.playerComputedStateSummary.HaveAnyKey then
-                            SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, "Don't forget that you have the any key", [upcb(Graphics.key_bmp)])
+                            SendReminder(TrackerModel.ReminderCategory.HaveKeyLadder, "Don't forget that you have the magic key", [upcb(Graphics.key_bmp)])
                         else
                             TrackerModel.remindedAnyKey <- false))
                 elif itemId = TrackerModel.ITEMS.LADDER then

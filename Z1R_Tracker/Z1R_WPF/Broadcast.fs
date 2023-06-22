@@ -129,7 +129,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         let dun = makeViewRect(Point(0.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H), Point(W,START_TIMELINE_H))
         let tri = makeViewRect(Point(0.,0.), Point(W,150.))
         let pro = makeViewRect(Point(ITEM_PROGRESS_FIRST_ITEM,THRU_MAP_AND_LEGEND_H), 
-                                Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.-11.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H))  // -11. because 'Hint decoder' button infringes into empty space by Any Key 
+                                Point(ITEM_PROGRESS_FIRST_ITEM + 13.*30.-11.,THRU_MAIN_MAP_AND_ITEM_PROGRESS_H))  // -11. because 'Hint decoder' button infringes into empty space by Magic Key 
         pro.HorizontalAlignment <- HorizontalAlignment.Left
         pro.Margin <- Thickness(20.,0.,0.,0.)
         let owm = makeViewRect(Point(0.,150.), Point(W,THRU_MAIN_MAP_H))
