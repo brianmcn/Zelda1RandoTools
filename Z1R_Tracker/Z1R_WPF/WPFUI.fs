@@ -388,7 +388,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let ntf = UIHelpers.NotTooFrequently(System.TimeSpan.FromSeconds(0.25))
-    overworldCanvas.MouseLeave.Add(fun _ -> OverworldRouteDrawing.routeDrawingLayer.Clear())
+    let mutable ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes = fun () -> ()
+    overworldCanvas.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
     do! showProgress("overworld before 16x8 loop")
     let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
     let owMapDummyImages = Array2D.init 16 8 (fun i j -> 
@@ -790,11 +791,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 owUpdateFunctions.[i,j] 0 null  // redraw tile
         )
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
-    let ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes() =
+    ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes <- (fun () ->
         let showGettables = owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value
         let maxPale = if showGettables then OverworldRouteDrawing.All else 0
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, 
                     TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, maxPale, whetherToCyanOpenCavesOrArmos())
+        )
             
     owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
 

@@ -124,10 +124,13 @@ since 1.3.0q...
 - zones/coords/gettables/open caves checkboxes are now user-preference-settings, persisted across tracker sessions
 
 
-leaving OW into black space below item boxes cancels gettables, but then entering and leaving an item box fixes gettables, figure out why
 
 
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
+
+
+routing lines are hard to see on light areas (lack of contrast), would be nice to give them dark framing (thicker black transparent line behind it, 
+but also they are expensive garbage so would need to cache them all probably
 
 
 
