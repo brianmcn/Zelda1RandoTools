@@ -135,6 +135,7 @@ type SyntheticEventingBool(recompute, changesToWatch:seq<IEvent<unit>>) =
     interface IEventingReader<bool> with
         member this.Value with get() = this.Value
         member this.Changed = this.Changed
+let FALSE = new EventingBool(false)
 
 let IsCurrentlyBook, ToggleIsCurrentlyBook, IsCurrentlyBookChanged = 
     let mutable isCurrentlyBook = true   // false if this is a boomstick seed

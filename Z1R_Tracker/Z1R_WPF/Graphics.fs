@@ -1014,8 +1014,8 @@ let blockerCurrentDisplay(current) =
 
 let skipped = Brushes.MediumPurple
 let placeSkippedItemXDecorationImpl(innerc:Canvas, size) =
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size)) |> ignore
-    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size)) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=0., Y1=0., X2=size, Y2=size, IsHitTestVisible=false)) |> ignore
+    innerc.Children.Add(new Shapes.Line(Stroke=skipped, StrokeThickness=3., X1=size, Y1=0., X2=0., Y2=size, IsHitTestVisible=false)) |> ignore
 let placeSkippedItemXDecoration(innerc) = placeSkippedItemXDecorationImpl(innerc, 30.)
 
 

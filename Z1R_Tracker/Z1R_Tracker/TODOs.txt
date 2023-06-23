@@ -118,6 +118,9 @@ since 1.3.0q...
 - hovering blockers behaves like hovering the corresponding dungeon tab
 - reset timer button (inside the pause/reset menu) can be clicked via keyboard-left-click hotkey
 - rename 'any key' to 'magic key'
+- {wood sword, wood arrow, blue ring, blue candle} boxes in upper tracker now get displayed "Don't want" if you get a better version first
+
+
 
 
 

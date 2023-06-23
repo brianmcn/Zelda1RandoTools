@@ -134,18 +134,23 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
 
     let extrasCanvasGlobalBoxMouseOverHighlight = new Views.GlobalBoxMouseOverHighlight()
     // brown sword, blue candle, blue ring, magical sword
-    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, timelineID, prop:TrackerModel.BoolProperty, located:TrackerModel.IEventingReader<bool>) =
+    let veryBasicBoxImpl(bmp:System.Drawing.Bitmap, timelineID, prop:TrackerModel.BoolProperty, located:TrackerModel.IEventingReader<bool>, superseded:TrackerModel.IEventingReader<bool>) =
         let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
         let no = CustomComboBoxes.no
         let yes = CustomComboBoxes.yes
         let loc = Brushes.Yellow
+        let sup = CustomComboBoxes.skipped
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
-        c.Children.Add(rect) |> ignore
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
-        c.Children.Add(innerc) |> ignore
         let redraw() =
+            c.Children.Clear()
+            c.Children.Add(rect) |> ignore
+            c.Children.Add(innerc) |> ignore
             if prop.Value() then
                 rect.Stroke <- yes
+            elif superseded.Value then
+                rect.Stroke <- sup
+                Graphics.placeSkippedItemXDecoration(c)
             elif located.Value then
                 rect.Stroke <- loc
             else
@@ -153,6 +158,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         redraw()
         prop.Changed.Add(fun _ -> redraw())
         located.Changed.Add(fun _ -> redraw())
+        superseded.Changed.Add(fun _ -> redraw())
         c.MouseDown.Add(fun _ -> prop.Toggle())
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
         extrasCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
@@ -161,35 +167,41 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
         | None -> ()
         c
-    let basicBoxImpl(tts, tid, img, prop, located) =
-        let c = veryBasicBoxImpl(img, Some(tid), prop, located)
+    let basicBoxImpl(tts, tid, img, prop, located, superseded) =
+        let c = veryBasicBoxImpl(img, Some(tid), prop, located, superseded)
         c.ToolTip <- tts
         c
-    let basicBoxImplNoTimeline(tts, img, prop, located) =
-        let c = veryBasicBoxImpl(img, None, prop, located)
+    let basicBoxImplNoTimeline(tts, img, prop, located, superseded) =
+        let c = veryBasicBoxImpl(img, None, prop, located, superseded)
         c.ToolTip <- tts
         c
+    let FALSE = TrackerModel.FALSE   // always false for e.g. boxes that never light up Yellow to say their shop is found
     let yellowWoodSwordLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerSwordLevel.Value=0 && TrackerModel.woodSwordCaveFound.Value), [TrackerModel.woodSwordCaveFound.Changed; TrackerModel.playerSwordLevel.Changed])
-    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)", Timeline.TimelineID.WoodSword, Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword, yellowWoodSwordLogic)    
+    let woodSwordSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerSwordLevel.Value>=1), [TrackerModel.playerSwordLevel.Changed])
+    let wood_sword_box = basicBoxImpl("Acquired wood sword (mark timeline)", Timeline.TimelineID.WoodSword, Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword, yellowWoodSwordLogic, woodSwordSuperseded)    
     wood_sword_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword1))
     wood_sword_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, wood_sword_box, OW_ITEM_GRID_LOCATIONS.WOOD_SWORD_BOX)
     let yellowArrowLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerArrowLevel.Value=0 && TrackerModel.foundArrowShop.Value), [TrackerModel.foundArrowShop.Changed; TrackerModel.playerArrowLevel.Changed])
-    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)", Timeline.TimelineID.WoodArrow, Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, yellowArrowLogic)
+    let woodArrowSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerArrowLevel.Value>=2), [TrackerModel.playerArrowLevel.Changed])
+    woodArrowSuperseded.Changed.Add(fun _ -> printfn "WA now %b" woodArrowSuperseded.Value)
+    let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)", Timeline.TimelineID.WoodArrow, Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, yellowArrowLogic, woodArrowSuperseded)
     wood_arrow_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, wood_arrow_box, OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
     let yellowCandleLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerCandleLevel.Value=0 && TrackerModel.foundCandleShop.Value), [TrackerModel.foundCandleShop.Changed; TrackerModel.playerCandleLevel.Changed])
-    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)", Timeline.TimelineID.BlueCandle, Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, yellowCandleLogic)
+    let blueCandleSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerCandleLevel.Value>=2), [TrackerModel.playerCandleLevel.Changed])
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)", Timeline.TimelineID.BlueCandle, Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, yellowCandleLogic, blueCandleSuperseded)
     blue_candle_box.MouseEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, blue_candle_box, OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
     let yellowRingLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerRingLevel.Value=0 && TrackerModel.foundBlueRingShop.Value), [TrackerModel.foundBlueRingShop.Changed; TrackerModel.playerRingLevel.Changed])
-    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)", Timeline.TimelineID.BlueRing, Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing, yellowRingLogic)
+    let blueRingSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerRingLevel.Value>=2), [TrackerModel.playerRingLevel.Changed])
+    let blue_ring_box = basicBoxImpl("Acquired blue ring (mark timeline)", Timeline.TimelineID.BlueRing, Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing, yellowRingLogic, blueRingSuperseded)
     blue_ring_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_RING))
     blue_ring_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, blue_ring_box, OW_ITEM_GRID_LOCATIONS.BLUE_RING_BOX)
-    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)\n(10-14 hearts to lift)", Timeline.TimelineID.MagicalSword, Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, TrackerModel.magsCaveFound)
+    let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)\n(10-14 hearts to lift)", Timeline.TimelineID.MagicalSword, Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, TrackerModel.magsCaveFound, FALSE)
     let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
     let redrawMagicalSwordCanvas(c:Canvas) =
         c.Children.Clear()
@@ -203,13 +215,13 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     mags_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
-    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Timeline.TimelineID.BoomstickBook, Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook, TrackerModel.foundBookShop)
+    let boom_book_box = basicBoxImpl("Purchased boomstick book (mark timeline)", Timeline.TimelineID.BoomstickBook, Graphics.boom_book_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBoomBook, TrackerModel.foundBookShop, FALSE)
     boom_book_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOOK))
     boom_book_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, boom_book_box, OW_ITEM_GRID_LOCATIONS.BOOMSTICK_BOX)
     // mark the dungeon wins on timeline via ganon/zelda boxes
-    gridAddTuple(owItemGrid, basicBoxImpl("Killed Gannon (mark timeline)", Timeline.TimelineID.Gannon, Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon, new TrackerModel.EventingBool(false)), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
-    let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", Timeline.TimelineID.Zelda,  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda, new TrackerModel.EventingBool(false))
+    gridAddTuple(owItemGrid, basicBoxImpl("Killed Gannon (mark timeline)", Timeline.TimelineID.Gannon, Graphics.ganon_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon, FALSE, FALSE), OW_ITEM_GRID_LOCATIONS.GANON_BOX)
+    let zelda_box = basicBoxImpl("Rescued Zelda (mark timeline)", Timeline.TimelineID.Zelda,  Graphics.zelda_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda, FALSE, FALSE)
     gridAddTuple(owItemGrid, zelda_box,  OW_ITEM_GRID_LOCATIONS.ZELDA_BOX)
     // hover zelda to display hidden overworld icons (note that Armos/Sword2/Sword3 will not be darkened)
     zelda_box.MouseEnter.Add(fun _ -> 
@@ -267,7 +279,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             TrackerModel.LastChangedTime.ResumeAll()
         )
     // mark whether player currently has bombs, for overworld routing
-    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, None, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs, TrackerModel.foundBombShop)
+    let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, None, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs, TrackerModel.foundBombShop, TrackerModel.FALSE)
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
     bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
@@ -296,28 +308,27 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             null
 
     // these panels need to be created once, at startup time, as they have side effects that populate the timelineItems set
-    let dummy = new TrackerModel.EventingBool(false)   // always false so these boxes never light up Yellow to say their shop is found
     let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("White sword", Timeline.TimelineID.WhiteSword, Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", Timeline.TimelineID.SilverArrow, Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Bow", Timeline.TimelineID.Bow, Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Wand", Timeline.TimelineID.Wand, Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", Timeline.TimelineID.RedCandle, Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", Timeline.TimelineID.Boomerang, Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang, dummy)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", Timeline.TimelineID.MagicBoomerang, Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang, dummy)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("White sword", Timeline.TimelineID.WhiteSword, Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", Timeline.TimelineID.SilverArrow, Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Bow", Timeline.TimelineID.Bow, Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Wand", Timeline.TimelineID.Wand, Graphics.wand_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWand, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Blue candle", Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Red candle", Timeline.TimelineID.RedCandle, Graphics.red_candle_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedCandle, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Boomerang", Timeline.TimelineID.Boomerang, Graphics.boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBoomerang, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Magic boomerang", Timeline.TimelineID.MagicBoomerang, Graphics.magic_boomerang_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicBoomerang, FALSE, FALSE)) |> ignore
     let utilityRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
-    utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Red ring", Timeline.TimelineID.RedRing, Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", Timeline.TimelineID.PowerBracelet, Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Ladder", Timeline.TimelineID.Ladder, Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Raft", Timeline.TimelineID.Raft, Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Recorder", Timeline.TimelineID.Recorder, Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Magic key", Timeline.TimelineID.AnyKey, Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey, dummy)) |> ignore
-    utilityRowPanel.Children.Add(basicBoxImpl("Book", Timeline.TimelineID.Book, Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook, dummy)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImplNoTimeline("Blue ring", Graphics.blue_ring_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueRing, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Red ring", Timeline.TimelineID.RedRing, Graphics.red_ring_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRedRing, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Power bracelet", Timeline.TimelineID.PowerBracelet, Graphics.power_bracelet_bmp, TrackerModel.startingItemsAndExtras.PlayerHasPowerBracelet, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Ladder", Timeline.TimelineID.Ladder, Graphics.ladder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasLadder, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Raft", Timeline.TimelineID.Raft, Graphics.raft_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRaft, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Recorder", Timeline.TimelineID.Recorder, Graphics.recorder_bmp, TrackerModel.startingItemsAndExtras.PlayerHasRecorder, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Magic key", Timeline.TimelineID.AnyKey, Graphics.key_bmp, TrackerModel.startingItemsAndExtras.PlayerHasAnyKey, FALSE, FALSE)) |> ignore
+    utilityRowPanel.Children.Add(basicBoxImpl("Book", Timeline.TimelineID.Book, Graphics.book_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBook, FALSE, FALSE)) |> ignore
     let mutable extrasPanelAndepRefresh = None
     let makeExtrasPanelAndepRefresh() =
         let mutable refreshTDD = fun () -> ()
