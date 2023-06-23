@@ -114,13 +114,23 @@ since 1.3.0p...
 - second shop item discoverable via description in popup
 - add hover eyeball icon to hide overworld map icons (TODO docs)
 since 1.3.0q...
-- make recorder destination circles a little less bright; make exact locator "crosshairs" cyan
+- make recorder destination circles become diamonds, and be a little less bright; make exact locator "crosshairs" cyan
 - hovering blockers behaves like hovering the corresponding dungeon tab
 - reset timer button (inside the pause/reset menu) can be clicked via keyboard-left-click hotkey
 - rename 'any key' to 'magic key'
 - {wood sword, wood arrow, blue ring, blue candle} boxes in upper tracker now get displayed "Don't want" if you get a better version first
 - red dungeon boxes get brighter red as you get more items, so that one item you forgot to dig in 3 will be screaming at you near the end of the run
+- 2Q dungeons and Mirror overworld are now seed-save persisted, not user-preference persisted
 
+
+zones/coords/gettables/open caves checkboxes should be user-preference persisted across tracker sessions
+
+
+no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
+
+
+
+todo: maybe try hellwalker (HDN, blank map)
 
 
 

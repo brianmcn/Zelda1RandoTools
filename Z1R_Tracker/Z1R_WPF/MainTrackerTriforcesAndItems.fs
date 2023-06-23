@@ -27,7 +27,7 @@ let updateGhostBusters() =
     if TrackerModel.IsHiddenDungeonNumbers() then
         for i = 0 to 7 do
             let lc = TrackerModel.GetDungeon(i).LabelChar
-            let twoItemDungeons = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
+            let twoItemDungeons = if TrackerModel.IsSecondQuestDungeons then "123567" else "234567"
             if twoItemDungeons.Contains(lc.ToString()) then
                 mainTrackerGhostbusters.[i].Opacity <- 1.0
             else
@@ -130,8 +130,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 tb2.Opacity <- 0.0
                 )
             c.MouseDown.Add(fun _ ->
-                TrackerModelOptions.IsSecondQuestDungeons.Value <- not TrackerModelOptions.IsSecondQuestDungeons.Value
-                TrackerModelOptions.writeSettings()
+                TrackerModel.IsSecondQuestDungeons <- not TrackerModel.IsSecondQuestDungeons
                 rect.Opacity <- 0.0
                 curve.Opacity <- 0.0
                 tb1.Opacity <- 0.0
@@ -275,7 +274,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 mainTrackerCanvases.[3,4].Children.Remove(finalCanvasOf1Or4) |> ignore
                 mainTrackerCanvases.[0,4].Children.Remove(toggleSecondQuestDungeonCanvas) |> ignore
                 mainTrackerCanvases.[3,4].Children.Remove(toggleSecondQuestDungeonCanvas) |> ignore
-                if TrackerModelOptions.IsSecondQuestDungeons.Value then
+                if TrackerModel.IsSecondQuestDungeons then
                     canvasAdd(mainTrackerCanvases.[3,4], finalCanvasOf1Or4, 0., 0.)
                     canvasAdd(mainTrackerCanvases.[0,4], toggleSecondQuestDungeonCanvas, 0., 0.)
                 else

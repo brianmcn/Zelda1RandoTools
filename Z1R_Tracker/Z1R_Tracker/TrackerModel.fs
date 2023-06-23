@@ -15,8 +15,11 @@ type ReminderCategory =
 
 ///////////////////////////////////////////////////////////////////////////
 
+let mutable IsSecondQuestDungeons = false
+let mutable MirrorOverworld = false
+
 let GetOldManCount(i) =
-    if TrackerModelOptions.IsSecondQuestDungeons.Value then
+    if IsSecondQuestDungeons then
         DungeonData.oldManCounts2Q.[i]
     else
         DungeonData.oldManCounts1Q.[i]
@@ -727,7 +730,7 @@ and Dungeon(id,numBoxes) =
         match DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> boxes
         | DungeonTrackerInstanceKind.DEFAULT ->
-            if id=0 && not(TrackerModelOptions.IsSecondQuestDungeons.Value) || id=3 && TrackerModelOptions.IsSecondQuestDungeons.Value then
+            if id=0 && not(IsSecondQuestDungeons) || id=3 && IsSecondQuestDungeons then
                 [| yield! boxes; yield DungeonTrackerInstance.TheDungeonTrackerInstance.FinalBoxOf1Or4 |]
             else
                 boxes
@@ -744,7 +747,7 @@ and Dungeon(id,numBoxes) =
                         for b in boxes do
                             if b.IsDone() then
                                 numBoxesDone <- numBoxesDone + 1
-                        let twoBoxers = if TrackerModelOptions.IsSecondQuestDungeons.Value then "123567" else "234567"
+                        let twoBoxers = if IsSecondQuestDungeons then "123567" else "234567"
                         numBoxesDone = 3 || (numBoxesDone = 2 && (twoBoxers |> Seq.contains this.LabelChar))
                     else
                         false
@@ -1030,7 +1033,7 @@ let recomputeMapStateSummary() =
                         (owInstance.Bombable(i,j) && not(playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())) ||
                         (owInstance.Burnable(i,j) && playerComputedStateSummary.CandleLevel=0) then
                         ()  // not routeworthy, as the player can't uncover the spot... except...
-                        if i=15 && j=2 && TrackerModelOptions.Overworld.DrawRoutes.Value && TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value && TrackerModelOptions.Overworld.MirrorOverworld.Value then
+                        if i=15 && j=2 && TrackerModelOptions.Overworld.DrawRoutes.Value && TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value && MirrorOverworld then
                             owRouteworthySpots.[i,j] <- true  // can screen scroll to coast island; even though is out-of-logic, is good to teach that is possible
                     else
                         owRouteworthySpots.[i,j] <- true

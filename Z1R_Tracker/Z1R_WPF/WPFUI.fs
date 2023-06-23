@@ -177,8 +177,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     mirrorOW.MouseEnter.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.DarkGray)
     mirrorOW.MouseLeave.Add(fun _ -> mirrorOW.BorderBrush <- Brushes.Gray)
     mirrorOW.MouseDown.Add(fun _ ->
-        TrackerModelOptions.Overworld.MirrorOverworld.Value <- not TrackerModelOptions.Overworld.MirrorOverworld.Value 
-        TrackerModelOptions.writeSettings()
+        TrackerModel.MirrorOverworld <- not TrackerModel.MirrorOverworld
         doUIUpdateEvent.Trigger()
         )
     mirrorOW.ToolTip <- "Toggle mirrored overworld"
@@ -932,7 +931,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let mutable oneTimeRemindLadder, oneTimeRemindAnyKey = None, None
     doUIUpdateEvent.Publish.Add(fun () ->
 //        let diagSW = System.Diagnostics.Stopwatch.StartNew()
-        if displayIsCurrentlyMirrored <> TrackerModelOptions.Overworld.MirrorOverworld.Value then
+        if displayIsCurrentlyMirrored <> TrackerModel.MirrorOverworld then
             // model changed, align the view
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
             if displayIsCurrentlyMirrored then
@@ -1701,7 +1700,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     match loadData with
     | Some(data) ->
         // Overworld
-        TrackerModelOptions.Overworld.MirrorOverworld.Value <- data.Overworld.MirrorOverworld
+        TrackerModel.MirrorOverworld <- data.Overworld.MirrorOverworld
         TrackerModel.startIconX <- data.Overworld.StartIconX
         TrackerModel.startIconY <- data.Overworld.StartIconY
         TrackerModel.customWaypointX <- data.Overworld.CustomWaypointX

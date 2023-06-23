@@ -224,12 +224,12 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
         let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
         match box.Stair with
         | TrackerModel.StairKind.LikeL2 ->
-            let update() = stairImg.Opacity <- if TrackerModelOptions.IsSecondQuestDungeons.Value && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
+            let update() = stairImg.Opacity <- if TrackerModel.IsSecondQuestDungeons && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
             OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
             update()
         | TrackerModel.StairKind.LikeL3 ->
-            let update() = stairImg.Opacity <- if not(TrackerModelOptions.IsSecondQuestDungeons.Value) && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
+            let update() = stairImg.Opacity <- if not(TrackerModel.IsSecondQuestDungeons) && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
             OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(update)
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
             update()
@@ -279,7 +279,7 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
             let owner = 
                 match box.Owner with
                 | TrackerModel.BoxOwner.Dungeon1or4 -> 
-                    if TrackerModelOptions.IsSecondQuestDungeons.Value then TrackerModel.BoxOwner.DungeonIndexAndNth(3,2) else TrackerModel.BoxOwner.DungeonIndexAndNth(0,2)
+                    if TrackerModel.IsSecondQuestDungeons then TrackerModel.BoxOwner.DungeonIndexAndNth(3,2) else TrackerModel.BoxOwner.DungeonIndexAndNth(0,2)
                 | _ -> box.Owner
             match owner with
             | TrackerModel.BoxOwner.DungeonIndexAndNth(i,n) -> 

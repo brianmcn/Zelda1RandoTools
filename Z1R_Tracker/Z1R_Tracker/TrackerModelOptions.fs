@@ -14,7 +14,6 @@ module Overworld =
     let mutable RoutesCanScreenScroll = Bool(false)
     let mutable HighlightNearby = Bool(true)
     let mutable ShowMagnifier = Bool(true)
-    let mutable MirrorOverworld = Bool(false)
     let mutable ShopsFirst = Bool(true)
 module VoiceReminders =
     let mutable DungeonFeedback = Bool(true)
@@ -59,7 +58,6 @@ let mutable ListenForSpeech = Bool(false)
 let mutable RequirePTTForSpeech = Bool(false)
 let mutable PlaySoundWhenUseSpeech = Bool(true)
 let mutable BOARDInsteadOfLEVEL = Bool(false)
-let mutable IsSecondQuestDungeons = Bool(false)
 let mutable ShowBasementInfo = Bool(true)
 let mutable DoDoorInference = Bool(false)
 let mutable DefaultRoomPreferNonDescriptToMaybePushBlock = Bool(false)
@@ -165,7 +163,6 @@ let private writeImpl(filename) =
     data.RoutesCanScreenScroll <- Overworld.RoutesCanScreenScroll.Value
     data.HighlightNearby <- Overworld.HighlightNearby.Value
     data.ShowMagnifier <- Overworld.ShowMagnifier.Value
-    data.MirrorOverworld <- Overworld.MirrorOverworld.Value
     data.ShopsFirst <- Overworld.ShopsFirst.Value
 
     data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
@@ -211,7 +208,6 @@ let private writeImpl(filename) =
     data.RequirePTTForSpeech <- RequirePTTForSpeech.Value
     data.PlaySoundWhenUseSpeech <- PlaySoundWhenUseSpeech.Value
     data.BOARDInsteadOfLEVEL <- BOARDInsteadOfLEVEL.Value
-    data.IsSecondQuestDungeons <- IsSecondQuestDungeons.Value
     data.ShowBasementInfo <- ShowBasementInfo.Value
     data.DoDoorInference <- DoDoorInference.Value
     data.DefaultRoomPreferNonDescriptToMaybePushBlock <- DefaultRoomPreferNonDescriptToMaybePushBlock.Value
@@ -255,7 +251,6 @@ let private read(filename) =
         Overworld.RoutesCanScreenScroll.Value <- data.RoutesCanScreenScroll
         Overworld.HighlightNearby.Value <- data.HighlightNearby
         Overworld.ShowMagnifier.Value <- data.ShowMagnifier
-        Overworld.MirrorOverworld.Value <- data.MirrorOverworld
         Overworld.ShopsFirst.Value <- data.ShopsFirst    
 
         VoiceReminders.DungeonFeedback.Value <- data.Voice_DungeonFeedback
@@ -301,7 +296,6 @@ let private read(filename) =
         RequirePTTForSpeech.Value <- data.RequirePTTForSpeech
         PlaySoundWhenUseSpeech.Value <- data.PlaySoundWhenUseSpeech
         BOARDInsteadOfLEVEL.Value <- data.BOARDInsteadOfLEVEL
-        IsSecondQuestDungeons.Value <- data.IsSecondQuestDungeons
         ShowBasementInfo.Value <- data.ShowBasementInfo
         DoDoorInference.Value <- data.DoDoorInference
         DefaultRoomPreferNonDescriptToMaybePushBlock.Value <- data.DefaultRoomPreferNonDescriptToMaybePushBlock

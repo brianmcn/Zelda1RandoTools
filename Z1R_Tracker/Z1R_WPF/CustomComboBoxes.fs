@@ -48,7 +48,7 @@ let boxCurrentBMP(boxCellCurrent, timelineOrigin) =
             let level = 
                 match tid with
                 | Timeline.TimelineID.LevelBox(i,_) -> Some(i)
-                | Timeline.TimelineID.Level1or4Box3 -> if TrackerModelOptions.IsSecondQuestDungeons.Value then Some(4) else Some(1)
+                | Timeline.TimelineID.Level1or4Box3 -> if TrackerModel.IsSecondQuestDungeons then Some(4) else Some(1)
                 | _ -> None
             match level with
             | Some(i) ->

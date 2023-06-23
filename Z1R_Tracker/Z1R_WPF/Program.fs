@@ -577,7 +577,7 @@ type MyWindow() as this =
                     else
                         TrackerModel.DungeonTrackerInstanceKind.DEFAULT
             if loadData.IsSome then
-                TrackerModelOptions.IsSecondQuestDungeons.Value <- loadData.Value.Items.SecondQuestDungeons
+                TrackerModel.IsSecondQuestDungeons <- loadData.Value.Items.SecondQuestDungeons
 
             let mutable speechRecognitionInstance = null
             if TrackerModelOptions.ListenForSpeech.Value then
