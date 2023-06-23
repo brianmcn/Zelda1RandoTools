@@ -121,9 +121,10 @@ since 1.3.0q...
 - {wood sword, wood arrow, blue ring, blue candle} boxes in upper tracker now get displayed "Don't want" if you get a better version first
 - red dungeon boxes get brighter red as you get more items, so that one item you forgot to dig in 3 will be screaming at you near the end of the run
 - 2Q dungeons and Mirror overworld are now seed-save persisted, not user-preference persisted
+- zones/coords/gettables/open caves checkboxes are now user-preference-settings, persisted across tracker sessions
 
 
-zones/coords/gettables/open caves checkboxes should be user-preference persisted across tracker sessions
+leaving OW into black space below item boxes cancels gettables, but then entering and leaving an item box fixes gettables, figure out why
 
 
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)

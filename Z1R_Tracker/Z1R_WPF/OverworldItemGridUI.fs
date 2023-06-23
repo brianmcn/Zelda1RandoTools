@@ -294,7 +294,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let highlightOpenCavesCB = 
         if isStandardHyrule then
             let highlightOpenCaves = Graphics.BMPtoImage Graphics.openCaveIconBmp
-            let cb = new CheckBox(Content=highlightOpenCaves)
+            let cb = new CheckBox(Content=highlightOpenCaves, IsChecked=TrackerModelOptions.Overworld.OpenCaves.Value)
             cb.ToolTip <- "Highlight unmarked open caves (when hovered)\n" +
                 "When checked, highlights all unmarked open caves until you\neither mark wood sword cave or obtain both a sword and a candle;\n" +
                 "after that, highlights just the armos locations until you mark armos item."
@@ -302,6 +302,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             ToolTipService.SetShowDuration(cb, 15000)
             cb.MouseEnter.Add(fun _ -> showLocatorInstanceFunc(owInstance.Nothingable))
             cb.MouseLeave.Add(fun _ -> hideLocator())
+            cb.Checked.Add(fun _ -> TrackerModelOptions.Overworld.OpenCaves.Value <- true; TrackerModelOptions.writeSettings())
+            cb.Unchecked.Add(fun _ -> TrackerModelOptions.Overworld.OpenCaves.Value <- false; TrackerModelOptions.writeSettings())
             cb
         else
             null

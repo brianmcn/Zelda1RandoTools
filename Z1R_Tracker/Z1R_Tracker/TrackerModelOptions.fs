@@ -15,6 +15,10 @@ module Overworld =
     let mutable HighlightNearby = Bool(true)
     let mutable ShowMagnifier = Bool(true)
     let mutable ShopsFirst = Bool(true)
+    let mutable Zones = Bool(false)
+    let mutable Coords = Bool(false)
+    let mutable Gettables = Bool(true)
+    let mutable OpenCaves = Bool(false)
 module VoiceReminders =
     let mutable DungeonFeedback = Bool(true)
     let mutable SwordHearts = Bool(true)
@@ -87,6 +91,10 @@ type ReadWrite() =
     member val ShowMagnifier = true with get,set
     member val MirrorOverworld = false with get,set
     member val ShopsFirst = false with get,set
+    member val Zones = false with get,set
+    member val Coords = false with get,set
+    member val Gettables = false with get,set
+    member val OpenCaves = false with get,set
 
     member val Voice_DungeonFeedback = true with get,set
     member val Voice_SwordHearts = true with get,set
@@ -164,6 +172,10 @@ let private writeImpl(filename) =
     data.HighlightNearby <- Overworld.HighlightNearby.Value
     data.ShowMagnifier <- Overworld.ShowMagnifier.Value
     data.ShopsFirst <- Overworld.ShopsFirst.Value
+    data.Zones <- Overworld.Zones.Value
+    data.Coords <- Overworld.Coords.Value
+    data.Gettables <- Overworld.Gettables.Value
+    data.OpenCaves <- Overworld.OpenCaves.Value
 
     data.Voice_DungeonFeedback <- VoiceReminders.DungeonFeedback.Value
     data.Voice_SwordHearts <-     VoiceReminders.SwordHearts.Value
@@ -252,6 +264,10 @@ let private read(filename) =
         Overworld.HighlightNearby.Value <- data.HighlightNearby
         Overworld.ShowMagnifier.Value <- data.ShowMagnifier
         Overworld.ShopsFirst.Value <- data.ShopsFirst    
+        Overworld.Zones.Value <- data.Zones
+        Overworld.Coords.Value <- data.Coords
+        Overworld.Gettables.Value <- data.Gettables
+        Overworld.OpenCaves.Value <- data.OpenCaves
 
         VoiceReminders.DungeonFeedback.Value <- data.Voice_DungeonFeedback
         VoiceReminders.SwordHearts.Value <-     data.Voice_SwordHearts

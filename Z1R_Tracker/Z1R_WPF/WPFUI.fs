@@ -21,7 +21,7 @@ let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14.
 let owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents = (let dp = new DockPanel(Background=Brushes.Black) in dp.Children.Add(owRemainingScreensTextBox) |> ignore; dp)
 let owGettableScreensTextBox = new TextBox(Width=80., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                             BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
-let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox, IsChecked=true)
+let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox, IsChecked=TrackerModelOptions.Overworld.Gettables.Value)
 let mutable highlightOpenCavesCheckBox : CheckBox = null
 
 type RouteDestination = LinkRouting.RouteDestination
@@ -1244,8 +1244,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         layout.AddOWGettableScreens(owGettableScreensCheckBox)
     else
         owGettableScreensCheckBox.IsChecked <- false
-    owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate()) 
-    owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate())
+    owGettableScreensCheckBox.Checked.Add(fun _ -> TrackerModel.forceUpdate(); TrackerModelOptions.Overworld.Gettables.Value <- true; TrackerModelOptions.writeSettings()) 
+    owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate(); TrackerModelOptions.Overworld.Gettables.Value <- false; TrackerModelOptions.writeSettings())
     owGettableScreensCheckBox.MouseEnter.Add(fun _ -> 
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, 
                                             TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, OverworldRouteDrawing.All, NoCyan)
@@ -1286,9 +1286,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     canvasAdd(overworldCanvas, placeholderCanvas, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     let cb = new CheckBox(Content=showCoords)
-    cb.IsChecked <- System.Nullable.op_Implicit false
-    cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85)
-    cb.Unchecked.Add(fun _ -> owCoordsGrid.Opacity <- 0.0)
+    cb.IsChecked <- System.Nullable.op_Implicit TrackerModelOptions.Overworld.Coords.Value
+    if TrackerModelOptions.Overworld.Coords.Value then
+        ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85
+    cb.Checked.Add(fun _ -> ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85; TrackerModelOptions.Overworld.Coords.Value <- true; TrackerModelOptions.writeSettings())
+    cb.Unchecked.Add(fun _ -> owCoordsGrid.Opacity <- 0.0; TrackerModelOptions.Overworld.Coords.Value <- false; TrackerModelOptions.writeSettings())
     cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85))
     cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsGrid.Opacity <- 0.0)
     layout.AddShowCoords(cb)
@@ -1551,6 +1553,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     addZoneName(TrackerModel.HintZone.FOREST,         "FOREST", 12.3, 5.1)
     addZoneName(TrackerModel.HintZone.LOST_HILLS,     "LOST\nHILLS", 12.4, 0.3)
     addZoneName(TrackerModel.HintZone.COAST,          "COAST", 14.3, 2.7)
+    if TrackerModelOptions.Overworld.Zones.Value then
+        changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,true)
 
     // timeline, options menu, reminders
     let moreOptionsButton = Graphics.makeButton("Options...", Some(12.), Some(Brushes.Orange))
