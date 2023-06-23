@@ -265,7 +265,7 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                     try CustomComboBoxes.noPct(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Value) 
                     with _ -> CustomComboBoxes.no  // we create fake Views on the startup menu to preview Heart Shuffle; TheDungeonTrackerInstance does not exist yet and throws
             else 
-                rect.Stroke <- CustomComboBoxes.noAndNotEmpty
+                rect.Stroke <- CustomComboBoxes.noAndNotEmpty(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Value)
         | TrackerModel.PlayerHas.SKIPPED -> 
             if bmp=null then 
                 rect.Stroke <- CustomComboBoxes.skippedAndEmpty 

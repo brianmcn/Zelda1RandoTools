@@ -18,9 +18,10 @@ let MouseButtonEventArgsToPlayerHas(ea:Input.MouseButtonEventArgs) =
     elif ea.ChangedButton = Input.MouseButton.Right then TrackerModel.PlayerHas.NO
     else TrackerModel.PlayerHas.SKIPPED
 let no  = new SolidColorBrush(Color.FromRgb(0xA8uy,0x00uy,0x00uy))
-let noPctBrushes = Array.init 101 (fun i -> new SolidColorBrush(Color.FromRgb(0xFFuy - byte(100-i),0x00uy,0x00uy)))
+let noPctBrushes = Array.init 101 (fun i -> new SolidColorBrush(Color.FromRgb(0xFFuy - byte(100-i),byte(i/2),byte(i*2/3))))
 let noPct(f) = noPctBrushes.[int(f*100.)]
-let noAndNotEmpty = Brushes.Red
+let noNEPctBrushes = Array.init 101 (fun i -> new SolidColorBrush(Color.FromRgb(0xFFuy,byte(i/2),byte(i*2/3))))
+let noAndNotEmpty(f) = noNEPctBrushes.[int(f*100.)]
 let yes = new SolidColorBrush(Color.FromRgb(0x32uy,0xA8uy,0x32uy))
 let skipped = Graphics.skipped
 let skippedAndEmpty = Brushes.White
