@@ -122,6 +122,7 @@ since 1.3.0q...
 - red dungeon boxes get brighter red as you get more items, so that one item you forgot to dig in 3 will be screaming at you near the end of the run
 - 2Q dungeons and Mirror overworld are now seed-save persisted, not user-preference persisted
 - zones/coords/gettables/open caves checkboxes are now user-preference-settings, persisted across tracker sessions
+- remember position of mouse magnifier window between sessions
 
 
 
@@ -129,8 +130,8 @@ since 1.3.0q...
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
 
 
-routing lines are hard to see on light areas (lack of contrast), would be nice to give them dark framing (thicker black transparent line behind it, 
-but also they are expensive garbage so would need to cache them all probably
+routing lines are hard to see on light areas (lack of contrast), would be nice to give them dark framing (thicker black transparent line behind it), 
+but also they are expensive garbage so would need to cache them all probably... i experimented a little, and really would need some advanced shaders i think
 
 
 

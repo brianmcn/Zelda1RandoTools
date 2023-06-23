@@ -82,6 +82,7 @@ let mutable MainWindowLT = ""
 let mutable BroadcastWindowLT = ""
 let mutable HotKeyWindowLTWH = ""
 let mutable OverlayLocatorWindowLTWH = ""
+let mutable MouseMagnifierWindowLTWH = ""
 let mutable DungeonSummaryTabMode = 0
 
 type ReadWrite() =
@@ -161,6 +162,7 @@ type ReadWrite() =
     member val BroadcastWindowLT = "" with get,set
     member val HotKeyWindowLTWH = "" with get, set
     member val OverlayLocatorWindowLTWH = "" with get, set
+    member val MouseMagnifierWindowLTWH = "" with get, set
     member val DungeonSummaryTabMode = 0 with get,set
 
 let mutable private cachedSettingJson = null
@@ -240,6 +242,7 @@ let private writeImpl(filename) =
     data.BroadcastWindowLT <- BroadcastWindowLT
     data.HotKeyWindowLTWH <- HotKeyWindowLTWH
     data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
+    data.MouseMagnifierWindowLTWH <- MouseMagnifierWindowLTWH
     data.DungeonSummaryTabMode <- DungeonSummaryTabMode
 
     let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
@@ -332,6 +335,7 @@ let private read(filename) =
         BroadcastWindowLT <- data.BroadcastWindowLT
         HotKeyWindowLTWH <- data.HotKeyWindowLTWH
         OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
+        MouseMagnifierWindowLTWH <- data.MouseMagnifierWindowLTWH
         DungeonSummaryTabMode <- data.DungeonSummaryTabMode
     with e ->
         cachedSettingJson <- null

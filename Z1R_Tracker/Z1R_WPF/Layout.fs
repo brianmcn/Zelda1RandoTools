@@ -424,12 +424,25 @@ let makeMouseMagnifierWindow(cm:CustomComboBoxes.CanvasManager) =
                                 FontSize=16., Margin=Thickness(6.0))
     let b = new Border(Child=text, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Background=Brushes.Black)
     let mutable loaded = false
+    let w = mmWindow
+    let save() = 
+        TrackerModelOptions.MouseMagnifierWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
+        TrackerModelOptions.writeSettings()
+    let leftTopWidthHeight = TrackerModelOptions.MouseMagnifierWindowLTWH
+    let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
+    if matches.Success then
+        w.Left <- float matches.Groups.[1].Value
+        w.Top <- float matches.Groups.[2].Value
+        w.Width <- float matches.Groups.[3].Value
+        w.Height <- float matches.Groups.[4].Value
     mmWindow.LocationChanged.Add(fun _ ->
         if loaded then b.Opacity <- 0.  // dismiss instructions
+        save()
         )
     mmWindow.SizeChanged.Add(fun _ ->
         update()
         if loaded then b.Opacity <- 0.  // dismiss instructions
+        save()
         )
     mmWindow.Loaded.Add(fun _ -> 
         update()
