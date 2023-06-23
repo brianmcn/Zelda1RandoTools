@@ -184,7 +184,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, wood_sword_box, OW_ITEM_GRID_LOCATIONS.WOOD_SWORD_BOX)
     let yellowArrowLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerArrowLevel.Value=0 && TrackerModel.foundArrowShop.Value), [TrackerModel.foundArrowShop.Changed; TrackerModel.playerArrowLevel.Changed])
     let woodArrowSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerArrowLevel.Value>=2), [TrackerModel.playerArrowLevel.Changed])
-    woodArrowSuperseded.Changed.Add(fun _ -> printfn "WA now %b" woodArrowSuperseded.Value)
     let wood_arrow_box = basicBoxImpl("Acquired wood arrow (mark timeline)", Timeline.TimelineID.WoodArrow, Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, yellowArrowLogic, woodArrowSuperseded)
     wood_arrow_box.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW))
     wood_arrow_box.MouseLeave.Add(fun _ -> hideLocator())

@@ -251,19 +251,21 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
         if bmp <> null then
             canvasAdd(innerc, innerCanvasStairwayHider, 3., 3.)  // cover up any stair drawing
             if box.PlayerHas() = TrackerModel.PlayerHas.NO then
-                let image = Graphics.BMPtoImage(Graphics.greyscale bmp)  //Graphics.desaturate(bmp,0.99))
+                let image = Graphics.BMPtoImage(Graphics.greyscale bmp)
                 canvasAdd(innerc, image, 4., 4.)
             else
-                let image = Graphics.BMPtoImage(bmp) //Graphics.desaturate(bmp,0.60))
+                let image = Graphics.BMPtoImage(bmp)
                 canvasAdd(innerc, image, 4., 4.)
-                //image.Stretch <- Stretch.Uniform
-                //image.Width <- 14.
-                //image.Height <- 14.
-                //canvasAdd(innerc, image, 8., 8.)
         // redraw box outline
         match box.PlayerHas() with
         | TrackerModel.PlayerHas.YES -> rect.Stroke <- CustomComboBoxes.yes
-        | TrackerModel.PlayerHas.NO -> rect.Stroke <- if bmp=null then CustomComboBoxes.no else CustomComboBoxes.noAndNotEmpty
+        | TrackerModel.PlayerHas.NO -> 
+            if bmp=null then 
+                rect.Stroke <- 
+                    try CustomComboBoxes.noPct(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Value) 
+                    with _ -> CustomComboBoxes.no  // we create fake Views on the startup menu to preview Heart Shuffle; TheDungeonTrackerInstance does not exist yet and throws
+            else 
+                rect.Stroke <- CustomComboBoxes.noAndNotEmpty
         | TrackerModel.PlayerHas.SKIPPED -> 
             if bmp=null then 
                 rect.Stroke <- CustomComboBoxes.skippedAndEmpty 
@@ -299,6 +301,8 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                             canvasAdd(innerc, img, float(2+j*10), 5.+16.)
             | _ -> ()
     redraw()
+    try TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Changed.Add(fun _ -> redraw())
+    with _ -> () // we create fake Views on the startup menu to preview Heart Shuffle; TheDungeonTrackerInstance does not exist yet and throws
     // interactions
     match cmo with
     | Some cm ->

@@ -112,7 +112,7 @@ type Cell(cd:ChoiceDomain) =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-type IEventingReader<'T when 'T:equality> =
+type IEventingReader<'T> =
     abstract Value : 'T with get
     abstract Changed : IEvent<unit>
 type Eventing<'T when 'T:equality>(orig:'T) =
@@ -641,20 +641,41 @@ type DungeonTrackerInstance(kind) =
         if dungeons = null then
             dungeons <- makeDungeons()
         dungeons
+    let mutable allBoxes : Box[] = null
+    let all() =
+        if allBoxes = null then
+            allBoxes <- 
+                [|
+                for d in getDungeons() do
+                    yield! d.Boxes
+                yield ladderBox
+                yield armosBox
+                yield sword2Box
+                |]
+        allBoxes
+    let allBoxProgress = 
+        let mutable pct = 0.
+        let mutable anyChanged = None
+        let any() =
+            if anyChanged.IsNone then
+                anyChanged <- Some(
+                    new SyntheticEventingBool((fun()-> 
+                        pct <- float(all() |> Seq.sumBy (fun b -> if b.PlayerHas() <> PlayerHas.NO then 1 else 0)) / 20. // 23 items exist; be max red when few left
+                        pct <- min pct 1.0    // don't say e.g. 23./20., and also hidden dungeon numbers has extra boxes
+                        false), all() |> Seq.map (fun b -> b.Changed)))
+            anyChanged.Value
+        { new IEventingReader<float> with
+            member this.Value = pct
+            member this.Changed = any().Changed
+        }
     member _this.Kind = kind
     member _this.Dungeons(i) = getDungeons().[i]
     member _this.FinalBoxOf1Or4 =
         match kind with
         | DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS -> failwith "FinalBoxOf1Or4 does not exist in HIDE_DUNGEON_NUMBERS"
         | DungeonTrackerInstanceKind.DEFAULT -> finalBoxOf1Or4
-    member _this.AllBoxes() =
-        [|
-        for d in getDungeons() do
-            yield! d.Boxes
-        yield ladderBox
-        yield armosBox
-        yield sword2Box
-        |]
+    member _this.AllBoxes() = all()
+    member this.AllBoxProgress = allBoxProgress
     static member TheDungeonTrackerInstance 
         with get() = 
             match theInstance with | Some i -> i | _ -> failwith "uninitialized TheDungeonTrackerInstance" 

@@ -119,7 +119,7 @@ since 1.3.0q...
 - reset timer button (inside the pause/reset menu) can be clicked via keyboard-left-click hotkey
 - rename 'any key' to 'magic key'
 - {wood sword, wood arrow, blue ring, blue candle} boxes in upper tracker now get displayed "Don't want" if you get a better version first
-
+- red dungeon boxes get brighter red as you get more items, so that one item you forgot to dig in 3 will be screaming at you near the end of the run
 
 
 
