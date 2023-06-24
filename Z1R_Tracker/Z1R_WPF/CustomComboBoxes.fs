@@ -171,14 +171,17 @@ let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeEle
 let DoModal(cm:CanvasManager, wh:System.Threading.ManualResetEvent, x, y, element) =
     DoModalCore(cm, wh, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, 0.5)
 
-let DoModalDocked(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, element) =
+let DoModalDockedOpa(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, element, blackSunglassesOpacity) =
     let d = new DockPanel(Width=cm.Width, Height=cm.Height, LastChildFill=false)
     DoModalCore(cm, wh,
                     (fun (c,e) -> 
                         DockPanel.SetDock(e, dock)
                         d.Children.Add(e) |> ignore
                         canvasAdd(c, d, 0., 0.)),
-                    (fun (_c,e) -> d.Children.Remove(e)), element, 0.5)
+                    (fun (_c,e) -> d.Children.Remove(e)), element, blackSunglassesOpacity)
+
+let DoModalDocked(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, element) =
+    DoModalDockedOpa(cm, wh, dock, element, 0.5)
 
 /////////////////////////////////////////
 

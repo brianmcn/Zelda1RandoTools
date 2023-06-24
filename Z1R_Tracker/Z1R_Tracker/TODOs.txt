@@ -127,6 +127,21 @@ since 1.3.0s...
 
 
 
+take-any heart 'consdier magical sword' with no mouse move causes routing lines to disappear, why
+
+
+
+hint decoder do better
+ - make data visible onscreen
+ - hotkeys so less clicks? grid-mouse-key?
+ - homer suggests the space above tris in non-HDN as click start and icon (or just like "DM") place for loc
+ - imagine can click above tri, accelerates into hint decoder for that dungeon, can arrow up down the zone, maybe? or just scroll/click popup above each tri?
+
+
+Kinda wish hotkey or click to make blockers become specific blockers for all, to make visible on top tracker
+
+
+
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
 
 

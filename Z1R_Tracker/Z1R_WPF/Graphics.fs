@@ -700,7 +700,7 @@ let mutable alternativeOverworldMapFilename, shouldInitiallyHideOverworldMap = "
 let blankTileBmp =
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
     let main = System.Drawing.Color.DarkSlateGray
-    let alt = System.Drawing.Color.FromArgb(int main.R + 48, int main.G + 48, int main.B + 48)
+    let alt = System.Drawing.Color.FromArgb(int main.R + 48, int main.G + 48, int main.B + 88)
     for px = 0 to 16*3-1 do
         for py = 0 to 11*3-1 do
             if px >= 15*3 || py >= 10*3 then

@@ -397,7 +397,7 @@ let InteractWithDrawingLayer(cm:CanvasManager, drawingCanvas:Canvas) = async {
     for x in all do
         topCanvasToHoldIcons.Children.Add(x) |> ignore
     // interact
-    do! DoModalDocked(cm, wh, Dock.Bottom, interactionCanvas)
+    do! DoModalDockedOpa(cm, wh, Dock.Bottom, interactionCanvas, 0.35)
     // turn off the heavy parts of the mouse listener, which will continue to fire
     mouse <- None 
     thisSessionHasEnded <- true
