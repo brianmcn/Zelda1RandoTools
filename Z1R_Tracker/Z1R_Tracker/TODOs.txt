@@ -128,6 +128,7 @@ since 1.3.0s...
 - fix Level9 hint halo not working in Hidden Dungeon Numbers
 - fix: floor drops in groundhog/routers-reset should rebrighten
 - fix: Select Voice options should work even if reminders are disabled or Volume is 0
+since 1.3.0t...
 
 
 
