@@ -273,11 +273,19 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
                         let name = v.VoiceInfo.Name
                         let r = new StackPanel(Orientation=Orientation.Horizontal)
                         r.Children.Add(new TextBox(Text=name,IsReadOnly=true,Width=250.)) |> ignore
+                        let testSpeech(f) =   // ensure we test aloud
+                            let wasMuted = TrackerModelOptions.IsMuted
+                            let wasVolumeOtherwiseZero = not wasMuted && TrackerModelOptions.Volume=0
+                            if wasMuted || wasVolumeOtherwiseZero then
+                                voice.Volume <- 30  // default
+                            f()
+                            if wasVolumeOtherwiseZero || wasMuted then
+                                voice.Volume <- 0
                         let sb = Graphics.makeButton("Test it",None,None)
-                        sb.Click.Add(fun _ -> voice.SelectVoice(name); voice.Speak("Hello"))
+                        sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Hello")))
                         r.Children.Add(sb) |> ignore
                         let sb = Graphics.makeButton("Choose this",None,None)
-                        sb.Click.Add(fun _ -> voice.SelectVoice(name); voice.Speak("Voice chosen"); TrackerModelOptions.PreferredVoice <- name; wh.Set() |> ignore)
+                        sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Voice chosen"); TrackerModelOptions.PreferredVoice <- name; wh.Set() |> ignore))
                         r.Children.Add(sb) |> ignore
                         sp.Children.Add(r) |> ignore
                 async {
