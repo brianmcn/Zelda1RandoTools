@@ -367,11 +367,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let selectDungeonTabEvent = new Event<_>()
     // ow map
     let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
-            hideLocator()  // we may be moused in a dungeon right now
+            hideLocator()  // we may be moused in a dungeon right now, clear its locator
             showLocatorExactLocation loc
             do! Async.Sleep(3000)
             do! Async.SwitchToContext ctxt
-            hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon
+            hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon, and routing marks if on overworld
+            // ideally, would have a way to respect the mouse position when done, but the code for mouse is all MouseEnters on overworld/dungeon and no easy way to do
         } 
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
@@ -1489,7 +1490,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             if loc <> TrackerModel.NOTFOUND then
                 showLocatorExactLocation(loc)
             else
-                if TrackerModel.IsHiddenDungeonNumbers() then
+                if TrackerModel.IsHiddenDungeonNumbers() && i<>8 then   // Level 9 works like non-HDN
                     let label = TrackerModel.GetDungeon(i).LabelChar
                     if label >= '1' && label <= '8' then
                         let index = int label - int '1'
