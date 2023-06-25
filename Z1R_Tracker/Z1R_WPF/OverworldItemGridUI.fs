@@ -548,7 +548,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                                     let bright = if cur = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY || cur = TrackerModel.MapSquareChoiceDomainHelper.SWORD1 then 0 else cur
                                     TrackerModel.setOverworldMapExtraData(i,j,cur,bright)
                         // not clear blockers (maybe 4+4 and were keyblocked still)
-                        // not change dungeon maps
+                        // dungeon maps (make darkened floor drops become bright again)
+                        DungeonUI.AhhGlobalVariables.resetDungeonsForRouters()
                         // make reminders play again
                         TrackerModel.ResetForGroundhogOrRoutersOrFourPlusFourEtc()
                         // redraw UI

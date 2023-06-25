@@ -12,6 +12,7 @@ let canvasAdd = Graphics.canvasAdd
 module AhhGlobalVariables =
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable hideLocator = fun() -> ()
+    let mutable resetDungeonsForRouters = fun() -> ()
 
 let TH = 24 // text height
 
@@ -209,6 +210,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     theDungeonTabControl <- dungeonTabs
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState()))
+    let masterRedrawAllRooms = Array.init 9 (fun _ -> fun() -> ())
 
     
     // make the whole canvas
@@ -1338,6 +1340,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             redrawAllDoors()
             redrawAllRooms()
             )
+        masterRedrawAllRooms.[level-1] <- fun() -> redrawAllRooms()
         do! showProgress(sprintf "finish dungeon level %d" level)
     // end -- for level in 1 to 9 do
     do
@@ -1618,6 +1621,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             do! showProgress(sprintf "finished dungeon %d of 9" (i+1))
         }
     OptionsMenu.BOARDInsteadOfLEVELOptionChanged.Trigger() // to populate BOARD v LEVEL text for all tabs the first time
+
+    AhhGlobalVariables.resetDungeonsForRouters <- (fun () ->
+        for idx = 0 to 8 do
+            let rs = masterRoomStates.[idx]
+            for i = 0 to 7 do
+                for j = 0 to 7 do
+                    let room = rs.[i,j]
+                    if not room.FloorDropAppearsBright then
+                        room.ToggleFloorDropBrightness()
+                    // don't update room completeness; for one, is wonky about e.g. lobby, and also replaying a map is mainly about marked-floor-drops loot, not clearing every room
+                    //room.IsComplete <- false
+            masterRedrawAllRooms.[idx]()
+        )
+
     return dungeonTabsWholeCanvas, Point(3.+3.5*39.+3.*12.,float(2*TH)+3.+27.*4.5+12.*4.), // point within dungeonTabsWholeCanvas that is destination of 'tab from overworld' cursor warp
                 grabModeTextBlock, exportDungeonModelsJsonLines, importDungeonModels
     }

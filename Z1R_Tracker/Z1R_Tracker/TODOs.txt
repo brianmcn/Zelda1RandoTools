@@ -126,10 +126,9 @@ since 1.3.0q...
 since 1.3.0s...
 - fix crash when click Heart Shuffle (oops)
 - fix Level9 hint halo not working in Hidden Dungeon Numbers
+- fix: floor drops in groundhog/routers-reset should rebrighten
 
 
-
-floor drop in routers dont un-grey when routers reset
 
 change voice doesnt work while running, only startup, maybe grey out?
 
