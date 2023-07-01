@@ -9,11 +9,11 @@ open HotKeys.MyKey
 // door colors
 let highlightOpacity = 1.0
 let highlight = Brushes.Cyan // new SolidColorBrush(Color.FromRgb(200uy, 200uy, 200uy)) :> Brush
-let unknown = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy)) :> Brush
-let no = new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy)) :> Brush
-let yes = new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy)) :> Brush
-let yellow = new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy))  :> Brush
-let purple = new SolidColorBrush(Color.FromRgb(140uy, 30uy, 140uy))  :> Brush
+let unknown = Graphics.freeze(new SolidColorBrush(Color.FromRgb(30uy, 30uy, 45uy))) :> Brush
+let no      = Graphics.freeze(new SolidColorBrush(Color.FromRgb(145uy, 0uy, 0uy))) :> Brush
+let yes     = Graphics.freeze(new SolidColorBrush(Color.FromRgb(60uy,120uy,60uy))) :> Brush
+let yellow  = Graphics.freeze(new SolidColorBrush(Color.FromRgb(160uy, 160uy, 40uy)))  :> Brush
+let purple  = Graphics.freeze(new SolidColorBrush(Color.FromRgb(140uy, 30uy, 140uy)))  :> Brush
 
 [<RequireQualifiedAccess>]
 type DoorState = 

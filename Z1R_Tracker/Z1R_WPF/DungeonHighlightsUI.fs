@@ -55,7 +55,7 @@ let makeHighlights(level, dungeonTabs:TabControl, dungeonBodyHighlightCanvas:Can
     let roomHighlights = Array2D.zeroCreate 8 8
     for i = 0 to 7 do
         for j = 0 to 7 do
-            let brush = new SolidColorBrush(Colors.Magenta)
+            let brush = Brushes.Magenta
             let extra = 6
             let ellipse = new Shapes.Ellipse(Width=float(13*3+12+2*extra), Height=float(9*3+12+2*extra), Stroke=brush, StrokeThickness=6., IsHitTestVisible=false, Opacity=0.)
             ellipse.StrokeDashArray <- new DoubleCollection( seq[len;len] )

@@ -336,7 +336,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     // middle click overworld circles
     let makeOwCircle(brush) = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=brush, StrokeThickness=3.0, IsHitTestVisible=false)
-    let pinkBrush = new SolidColorBrush(Color.FromRgb(0xFFuy, 0x40uy, 0x99uy))
+    let pinkBrush = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0xFFuy, 0x40uy, 0x99uy)))
     let owCircleColor(data) = if data >= 200 then Brushes.Yellow elif data >= 100 then pinkBrush else Brushes.Cyan
     let overworldCirclesCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  
     overworldCirclesCanvas.IsHitTestVisible <- false
@@ -390,7 +390,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(c, rect, x*OMTW, float(y*11*3))
     let ntf = UIHelpers.NotTooFrequently(System.TimeSpan.FromSeconds(0.25))
     let mutable ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes = fun () -> ()
-    overworldCanvas.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
+    overworldCanvas.MouseLeave.Add(fun _ -> 
+        if not popupIsActive then
+            ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
+        )
     do! showProgress("overworld before 16x8 loop")
     let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
     let owMapDummyImages = Array2D.init 16 8 (fun i j -> 
@@ -600,7 +603,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 owCanvases.[i,j] <- c
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
-                let popupIsActiveRef = ref false
                 let SetNewValue(currentState, originalState) = async {
                     if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
                         if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  
@@ -617,16 +619,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     else
                         System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
                 }
+                let GCOL,GROW = 8,5
+                let GCOUNT = GCOL*GROW
+                let ST = CustomComboBoxes.borderThickness
+                let gridWidth = float(GCOL*(5*3+2*int ST)+int ST)
+                let tileImage = Graphics.BMPtoImage(owMapBMPs.[i,j])
                 let activatePopup(activationDelta) =
-                    popupIsActiveRef := true
-                    let GCOL,GROW = 8,5
-                    let GCOUNT = GCOL*GROW
+                    popupIsActive <- true
+                    let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)   // has to be fresh object for each popup
                     let pos = c.TranslatePoint(Point(), appMainCanvas)
-                    let ST = CustomComboBoxes.borderThickness
-                    let tileImage = Graphics.BMPtoImage(owMapBMPs.[i,j])
-                    let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)
-                    let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
-                    let gridWidth = float(GCOL*(5*3+2*int ST)+int ST)
                     let gridxPosition = 
                         if pos.X < OMTW*2. then 
                             -ST // left align
@@ -634,6 +635,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             OMTW - gridWidth  // right align
                         else
                             (OMTW - gridWidth)/2.  // center align
+                    let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let typicalGESAI(n) : FrameworkElement*_*_ =
                         let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
                         upcast Graphics.BMPtoImage(MapStateProxy(n).DefaultInteriorBmp()), isSelectable, n
@@ -699,10 +701,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
-                        popupIsActiveRef := false
+                        tileCanvas.Children.Clear()   // deparent tileImage
+                        popupIsActive <- false
                         } |> Async.StartImmediate
                 c.MouseDown.Add(fun ea -> 
-                    if not !popupIsActiveRef then
+                    if not popupIsActive then
                         if ea.ChangedButton = Input.MouseButton.Left then
                             if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
                                 // shift left click
@@ -728,7 +731,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
                                 else
                                     async {
-                                        let! needRedraw, needHighlightTileHide = DoLeftClick(cm,msp,i,j,pos,popupIsActiveRef)
+                                        let! needRedraw, needHighlightTileHide = DoLeftClick(cm,msp,i,j,pos)
                                         if needRedraw then 
                                             redrawGridSpot()
                                             animateOverworldTileIfOptionIsChecked(i,j)
@@ -748,7 +751,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             owCircleRedraws.[i,j]()
                     )
                 c.MouseWheel.Add(fun x -> 
-                    if not !popupIsActiveRef then 
+                    if not popupIsActive then 
                         if TrackerModel.overworldMapCircles.[i,j] <> 0 then   // if there's a circle, then it takes scrollwheel priority
                             if x.Delta<0 then
                                 TrackerModel.nextOverworldMapCircleColor(i,j)
@@ -759,7 +762,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             activatePopup(if x.Delta<0 then 1 else -1)
                     )
                 c.MyKeyAdd(fun ea ->
-                    if not !popupIsActiveRef then
+                    if not popupIsActive then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
                         | Some(hotKeyedState) -> 
                             ea.Handled <- true
@@ -793,14 +796,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
     canvasAdd(overworldCanvas, owMapGrid, 0., 0.)
     ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes <- (fun () ->
+//        printfn "eROWGSAOCCB"
         let showGettables = owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value
         let maxPale = if showGettables then OverworldRouteDrawing.All else 0
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, 
                     TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, maxPale, whetherToCyanOpenCavesOrArmos())
         )
             
-    owMapGrid.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
-
     do! showProgress("overworld finish, legend")
 
     let recorderingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  // really the 'extra top layer' canvas for adding final marks to overworld map
@@ -939,7 +941,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             displayIsCurrentlyMirrored <- not displayIsCurrentlyMirrored
             if displayIsCurrentlyMirrored then
                 for fe in mirrorOverworldFEs do
-                    fe.RenderTransform <- new ScaleTransform(-1., 1., fe.ActualWidth/2., fe.ActualHeight/2.)
+                    let scaleTrans = new ScaleTransform(-1., 1., fe.ActualWidth/2., fe.ActualHeight/2.)
+                    if scaleTrans.CanFreeze then
+                        scaleTrans.Freeze()
+                    fe.RenderTransform <- scaleTrans
             else
                 for fe in mirrorOverworldFEs do
                     fe.RenderTransform <- null
@@ -982,10 +987,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 for (i,j),idx in currentRecorderWarpDestinations do
                     //let L = 6.0
                     //let bg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false)
-                    let bg = new Shapes.Rectangle(Width=35., Height=35., Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
+                    let bg = new Shapes.Rectangle(Width=35., Height=35., Stroke=Brushes.Black, StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=DungeonUI.fortyFiveDegrees)
                     bg.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
                     //let fg = new Shapes.Ellipse(Width=float(11*3)-2.+2.0*L, Height=float(11*3)-2.+L, Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
-                    let fg = new Shapes.Rectangle(Width=35., Height=35., Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
+                    let fg = new Shapes.Rectangle(Width=35., Height=35., Stroke=UIComponents.RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=DungeonUI.fortyFiveDegrees)
                     if Graphics.canUseEffectsWithoutDestroyingPerformance then
                         //canvasAdd(recorderingCanvas, bg, OMTW*float i+7.-L+1., float(11*3*j)-L/2.+1.)
                         canvasAdd(recorderingCanvas, bg, OMTW*float i+23., float(11*3*j)-9.)
@@ -1629,7 +1634,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         postgameDecorationCanvas.Children.Add(sp) |> ignore
         let makeViewRectImpl(c:FrameworkElement) = new Shapes.Rectangle(Width=c.Width, Height=c.Height, Fill=new VisualBrush(c))
         let timerClone = makeViewRectImpl(hmsTimeTextBox)
-        timerClone.LayoutTransform <- new ScaleTransform(20./timerClone.Height, 20./timerClone.Height)
+        let scaleTrans = new ScaleTransform(20./timerClone.Height, 20./timerClone.Height)
+        if scaleTrans.CanFreeze then
+            scaleTrans.Freeze()
+        timerClone.LayoutTransform <- scaleTrans
         sp.Children.Add(timerClone) |> ignore
         sp.Children.Add(makeViewRectImpl(owRemainingScreensTextBox)) |> ignore
         let screenshotTimelineFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "most-recent-completion-timeline.png")

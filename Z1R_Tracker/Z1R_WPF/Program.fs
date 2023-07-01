@@ -316,6 +316,8 @@ type MyWindow() as this =
         drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
         if TrackerModelOptions.SmallerAppWindow.Value then 
             let trans = new ScaleTransform(TrackerModelOptions.SmallerAppWindowScaleFactor, TrackerModelOptions.SmallerAppWindowScaleFactor)
+            if trans.CanFreeze then
+                trans.Freeze()
             wholeCanvas.RenderTransform <- trans
         wholeCanvas.Children.Add(cm.RootCanvas) |> ignore
         wholeCanvas.Children.Add(hmsTimerCanvas) |> ignore
@@ -485,9 +487,9 @@ type MyWindow() as this =
             let likelyDoesntFit = workingAreaTooSmallForCurrentHeight  // 'smaller' now might mean larger    && not(TrackerModelOptions.SmallerAppWindow.Value)
             let barColor = 
                 if likelyDoesntFit then 
-                    new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy))   // reddish
+                    Graphics.freeze(new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy)))   // reddish
                 else 
-                    new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy))    // grayish
+                    Graphics.freeze(new SolidColorBrush(Color.FromRgb(50uy, 50uy, 50uy)))    // grayish
             let dp = new DockPanel(Height=(if curFactor<1.0 then 40. else 30.), LastChildFill=true, Background=barColor)
             dp.Children.Add(topBar) |> ignore
             mainStackPanel.Children.Add(dp) |> ignore

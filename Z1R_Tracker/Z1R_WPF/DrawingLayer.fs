@@ -315,7 +315,7 @@ let InteractWithDrawingLayer(cm:CanvasManager, drawingCanvas:Canvas) = async {
         interactionCanvas.Children.Remove(mouseCarry) // if the mouse move into the bottom zone, remove the trailing icon
         )
 
-    let alt = new SolidColorBrush(Color.FromRgb(0x5Fuy,0x2Fuy,0x5Fuy))
+    let alt = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0x5Fuy,0x2Fuy,0x5Fuy)))
     let mkTxtImpl(text,bt,bg) = new TextBox(Text=text, BorderBrush=bg, BorderThickness=Thickness(bt), FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, 
                                             IsHitTestVisible=false, IsReadOnly=true)
     let mkTxtBT(text,bt) = mkTxtImpl(text, bt, Brushes.DarkSlateGray)

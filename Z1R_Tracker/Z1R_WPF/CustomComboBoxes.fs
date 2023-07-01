@@ -278,7 +278,7 @@ type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightB
         let dim(scb:SolidColorBrush) =
             let c = scb.Color
             let nc = Color.FromArgb(byte(255.*opacity), c.R, c.G, c.B)
-            new SolidColorBrush(nc)
+            Graphics.freeze(new SolidColorBrush(nc))
         new ModalGridSelectBrushes(dim(this.OriginalTileHighlightBrush), dim(this.GridSelectableHighlightBrush), dim(this.GridNotSelectableHighlightBrush), dim(this.BorderBrush))
     static member Defaults() =
         new ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)
@@ -321,6 +321,7 @@ let DoModalGridSelect<'State,'Result>
     let grid = makeGrid(gnc, gnr, COLW, ROWH)
     grid.Background <- Brushes.Black
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
+    let mutable allDone = false
     let selfCleanup() =
         for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
@@ -354,7 +355,7 @@ let DoModalGridSelect<'State,'Result>
         | DismissPopupWithNoResult -> dismiss()
         | StayPoppedUp -> ()
         )
-    tileCanvas.MouseLeave.Add(fun _ -> snapBack())
+    tileCanvas.MouseLeave.Add(fun _ -> if not allDone then snapBack())   // don't redraw and do other work after the popup is done
     let centerOf(x,y) = grid.TranslatePoint(Point(ST+float(x*COLW)+idealX, ST+float(y*ROWH)+idealY), cm.AppMainCanvas)
     tileCanvas.MyKeyAdd(fun ea ->
         let x,y = currentState % gnc, currentState / gnc
@@ -461,6 +462,7 @@ let DoModalGridSelect<'State,'Result>
     // activate the modal
     do! DoModal(cm, wh, tileX, tileY, popupCanvas)
     selfCleanup()
+    allDone <- true
     return result
     }
 

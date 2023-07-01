@@ -434,7 +434,7 @@ type RoomType =
 
 let entranceRoomArrowColorBrush = 
     let c = (Graphics.dungeonRoomBmpPairs.[28] |> snd).GetPixel(18, 24)
-    new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B))
+    Graphics.freeze(new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B)))
 
 let scale(bmp, scale) = 
     if bmp = null then
@@ -448,7 +448,7 @@ let scale(bmp, scale) =
         icon
 
 let mutable isDoingDragPaintOffTheMap = false
-let veryDark = new SolidColorBrush(Color.FromArgb(255uy, 60uy, 10uy, 20uy))
+let veryDark = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy, 60uy, 10uy, 20uy)))
 type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright) =
     let mutable isCompleted = isCompleted
     let mutable roomType = roomType

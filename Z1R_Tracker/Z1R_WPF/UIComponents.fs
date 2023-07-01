@@ -12,8 +12,8 @@ let UNICODE_UP = "\U0001F845"
 let UNICODE_LEFT = "\U0001F844"
 let UNICODE_DOWN = "\U0001F847"
 let UNICODE_RIGHT = "\U0001F846"
-let arrowColor = new SolidColorBrush(Color.FromArgb(255uy,0uy,180uy,250uy))
-let bgColor = new SolidColorBrush(Color.FromArgb(220uy,0uy,0uy,0uy))
+let arrowColor = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy,0uy,180uy,250uy)))
+let bgColor = Graphics.freeze(new SolidColorBrush(Color.FromArgb(220uy,0uy,0uy,0uy)))
 
 let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, owMapBMPs:System.Drawing.Bitmap[,]) =
     // nearby ow tiles magnified overlay
@@ -177,7 +177,7 @@ let MakeMagnifier(mirrorOverworldFEs:ResizeArray<FrameworkElement>, owMapNum, ow
 
     onMouseForMagnifier, dungeonTabsOverlay, dungeonTabsOverlayContent
 
-let recorderEllipseNewDungeonsColor = new SolidColorBrush(Color.FromRgb(220uy,220uy,220uy))
+let recorderEllipseNewDungeonsColor = Graphics.freeze(new SolidColorBrush(Color.FromRgb(220uy,220uy,220uy)))
 let recorderEllipseVanillaColor = Brushes.White
 let RecorderEllipseColor() = 
     if TrackerModel.recorderToNewDungeons then
@@ -210,7 +210,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
         makeIcon, theCustomWaypointIcon
 
     // map legend
-    let BG = new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,90uy))
+    let BG = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,90uy)))
     let legendCanvas = new Canvas(Width=586., Height=float(11*3), Background=BG)
     let dungeonLegendIconCanvas = new Canvas(Width=float(16*3), Height=float(11*3))
     let dungeonLegendIconArea = new Canvas(Width=15., Height=float(11*3), Background=Brushes.White, Opacity=0.0001)   // to respond to mouse hover
@@ -218,7 +218,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=BG, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
     //let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
-    let recorderEllipse = new Shapes.Rectangle(Width=35., Height=35., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=new RotateTransform(45.))
+    let recorderEllipse = new Shapes.Rectangle(Width=35., Height=35., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=DungeonUI.fortyFiveDegrees)
 
     let legendTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Text="The LEGEND\nof Z-Tracker:")
     canvasAdd(legendCanvas, legendTB, 0., 0.)
@@ -389,7 +389,10 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
                                                                 "Custom Waypoint", makeCustomWaypointIcon, -2., -5., setCustomWaypointXY)
     let customWaypointButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.8, Height=11.*3.-4.)
     let customWaypointIcon = makeCustomWaypointIcon()
-    customWaypointIcon.RenderTransform <- new ScaleTransform(0.6666,0.6666)
+    let scaleTrans = new ScaleTransform(0.6666,0.6666)
+    if scaleTrans.CanFreeze then
+        scaleTrans.Freeze()
+    customWaypointIcon.RenderTransform <- scaleTrans
     canvasAdd(customWaypointButtonCanvas, customWaypointIcon, 4., 0.)
     let tb = new TextBox(FontSize=10., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Custom\nWaypoint", IsHitTestVisible=false)
     canvasAdd(customWaypointButtonCanvas, tb, 0.8*OMTW, 0.)
@@ -888,7 +891,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
 
     let blockerColumnWidth = int((cm.AppMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
     let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 38)
-    let blockerHighlightBrush = new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy))
+    let blockerHighlightBrush = Graphics.freeze(new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy)))
     blockerGrid.Height <- float(38*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
@@ -935,7 +938,7 @@ let MakeZoneOverlay(overworldCanvas:Canvas, ensurePlaceholderFinished, mirrorOve
     // zone overlay
     let owMapZoneColorCanvases, owMapZoneBlackCanvases =
         let avg(c1:System.Drawing.Color, c2:System.Drawing.Color) = System.Drawing.Color.FromArgb((int c1.R + int c2.R)/2, (int c1.G + int c2.G)/2, (int c1.B + int c2.B)/2)
-        let toBrush(c:System.Drawing.Color) = new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B))
+        let toBrush(c:System.Drawing.Color) = Graphics.freeze(new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B)))
         let colors = 
             dict [
                 'M', avg(System.Drawing.Color.Pink, System.Drawing.Color.Crimson) |> toBrush

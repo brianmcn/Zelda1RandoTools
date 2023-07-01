@@ -52,7 +52,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         broadcastWindow.WindowStartupLocation <- WindowStartupLocation.Manual
 
         let topBar = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center, 
-                                        Background=new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy)), Width=scaleSize, Opacity=0.0)
+                                        Background=Graphics.freeze(new SolidColorBrush(Color.FromRgb(120uy, 30uy, 30uy))), Width=scaleSize, Opacity=0.0)
         let tb = new TextBox(Text="The broadcast window is at least partially off-screen.  Streaming software like OBS cannot capture display updates to off-screen windows.  " +
                                     "Re-position this window so that it is entirely within the bounds of a screen.  It is ok for this window to be BEHIND another window, " +
                                     "such as behind the main Z-Tracker application window.  See the Z-Tracker documentation for details.",
@@ -141,7 +141,10 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         canvasAdd(bottomc, sp, 0., 0.)
         let scaleW = (W - afterSoldItemBoxesX) / W
         let scaleH = (180.-45.)/(THRU_MAIN_MAP_H-150.)
-        owm.RenderTransform <- new ScaleTransform(scaleW,scaleH)
+        let scaleTrans = new ScaleTransform(scaleW,scaleH)
+        if scaleTrans.CanFreeze then
+            scaleTrans.Freeze()
+        owm.RenderTransform <- scaleTrans
         canvasAdd(bottomc, owm, afterSoldItemBoxesX, 45.)
         // WANT!
         let kitty = new Image()
@@ -180,6 +183,8 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         let factor = if size=1 then 0.333333 elif size=2 then 0.666666 else 1.0
         if size=1 || size=2 then
             let trans = new ScaleTransform(factor, factor)
+            if trans.CanFreeze then
+                trans.Freeze()
             dp.LayoutTransform <- trans
             OverworldItemGridUI.broadcastTimeTextBox.LayoutTransform <- trans
             timerX <- timerX * factor

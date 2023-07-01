@@ -13,6 +13,7 @@ module AhhGlobalVariables =
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable hideLocator = fun() -> ()
     let mutable resetDungeonsForRouters = fun() -> ()
+    let mutable popupIsActive = false
 
 let TH = 24 // text height
 
@@ -50,7 +51,7 @@ let MakeSmallLocalTrackerPanel(dungeonIndex, ghostBuster) =
 // the triforce and item inset
 let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglasses, level, ghostBuster, posDestinationWhenMoveCursorLeftF) =
     let dungeonIndex = level-1
-    let yellow = new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B))
+    let yellow = Graphics.freeze(new SolidColorBrush(Color.FromArgb(byte(sunglasses*255.), Colors.Yellow.R, Colors.Yellow.G, Colors.Yellow.B)))
     let sp = new StackPanel(Orientation=Orientation.Vertical, Opacity=sunglasses)
     let BT = 3.
     let SPM = 3.
@@ -125,6 +126,11 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     sp.MouseLeave.Add(fun _ -> unhighlight())
     interiorHighlightCanvas, unhighlight, (fun () -> dungeonView.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y), cm.AppMainCanvas))
 
+let fortyFiveDegrees = 
+    let r = new RotateTransform(45.)
+    if r.CanFreeze then
+        r.Freeze()
+    r
 let makeOutlineShapesImpl(quest:string[]) =
     let outlines = ResizeArray<FrameworkElement>()
     let color = Brushes.MediumPurple
@@ -135,7 +141,7 @@ let makeOutlineShapesImpl(quest:string[]) =
         let p = new Windows.Media.Pen(Brush=color, Thickness=3., StartLineCap=PenLineCap.Square, EndLineCap=PenLineCap.Square)
         let myDrawing = new GeometryDrawing(null, p, myGeometryGroup)
         new DrawingBrush(Drawing=myDrawing, Viewbox=Rect(0., 0., 9., 9.), ViewboxUnits=BrushMappingMode.Absolute, Viewport=Rect(0., 0., 9., 9.), ViewportUnits=BrushMappingMode.Absolute, 
-                          TileMode=TileMode.Tile, Stretch=Stretch.UniformToFill, Transform = new RotateTransform(45.))
+                          TileMode=TileMode.Tile, Stretch=Stretch.UniformToFill, Transform = fortyFiveDegrees)
     // fixed dungeon drawing outlines - vertical segments
     for i = 0 to 6 do
         for j = 0 to 7 do
@@ -404,7 +410,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             headerSp.Children.Add(headerInfo) |> ignore
             levelTab.Header <- headerSp
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) -> 
-            header.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            header.Background <- Graphics.freeze(new SolidColorBrush(Graphics.makeColor(color)))
             header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
             )
         let tileSunglasses = 0.75
@@ -854,7 +860,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let backgroundColorCanvas = new Canvas(Width=float(51*6+12), Height=float(TH))
         canvasAdd(dungeonHeaderCanvas, backgroundColorCanvas, 0., 0.)
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) ->
-            backgroundColorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
+            backgroundColorCanvas.Background <- Graphics.freeze(new SolidColorBrush(Graphics.makeColor(color)))
             )
         let mutable animateDungeonRoomTile = fun _ -> ()
         let highlightColumnCanvases = Array.init 8 (fun _ -> new Canvas(Background=Brushes.White, Width=51., Height=float TH, Opacity=0.0))
@@ -1532,7 +1538,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             miniOuterDock.Children.Add(miniMidDock) |> ignore
             let sltp = MakeSmallLocalTrackerPanel(i, (if i=8 then null else mainTrackerGhostbusters.[i]))
             sltp.Width <- 30.
-            sltp.LayoutTransform <- new ScaleTransform(2./3., 2./3.)
+            let scaleTrans = new ScaleTransform(2./3., 2./3.)
+            if scaleTrans.CanFreeze then
+                scaleTrans.Freeze()
+            sltp.LayoutTransform <- scaleTrans 
             DockPanel.SetDock(sltp, Dock.Right)
             miniMidDock.Children.Add(sltp) |> ignore
 

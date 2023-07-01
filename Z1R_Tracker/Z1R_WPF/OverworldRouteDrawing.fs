@@ -54,19 +54,20 @@ let makeCurve(v1,v2,color) =
 
 let MaxGYR = 12 // default
 let All = 128
-let color1 = new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy))
-let color2 = new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy))
-let color3 = new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy))
-let color4 = new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy))
-let color5 = new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy))
-let color6 = new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy))
-let colorAlt1 = new SolidColorBrush(Color.FromArgb(230uy, 160uy, 220uy, 255uy))
-let colorAlt2 = new SolidColorBrush(Color.FromArgb(200uy, 160uy, 220uy, 255uy))
-let colorAlt3 = new SolidColorBrush(Color.FromArgb(175uy, 160uy, 220uy, 255uy))
-let colorAlt4 = new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy))
-let colorAlt5 = new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy))
-let colorAlt6 = new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy))
+let color1    = Graphics.freeze(new SolidColorBrush(Color.FromArgb(230uy, 255uy, 255uy, 255uy)))
+let color2    = Graphics.freeze(new SolidColorBrush(Color.FromArgb(180uy, 255uy, 255uy, 255uy)))
+let color3    = Graphics.freeze(new SolidColorBrush(Color.FromArgb(150uy, 255uy, 255uy, 255uy)))
+let color4    = Graphics.freeze(new SolidColorBrush(Color.FromArgb(120uy, 255uy, 255uy, 255uy)))
+let color5    = Graphics.freeze(new SolidColorBrush(Color.FromArgb(100uy, 255uy, 255uy, 255uy)))
+let color6    = Graphics.freeze(new SolidColorBrush(Color.FromArgb( 85uy, 255uy, 255uy, 255uy)))
+let colorAlt1 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(230uy, 160uy, 220uy, 255uy)))
+let colorAlt2 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(200uy, 160uy, 220uy, 255uy)))
+let colorAlt3 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(175uy, 160uy, 220uy, 255uy)))
+let colorAlt4 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy)))
+let colorAlt5 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy)))
+let colorAlt6 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy)))
 let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR, whatToCyan) = 
+//    printfn "ORD:drawPathsImpl"
     routeDrawingLayer.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then

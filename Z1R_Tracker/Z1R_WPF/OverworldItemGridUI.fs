@@ -8,6 +8,8 @@ open System.Windows.Media
 
 open OverworldMapTileCustomization
 open HotKeys.MyKey
+open DungeonUI.AhhGlobalVariables
+
 
 let canvasAdd = Graphics.canvasAdd
 let gridAdd = Graphics.gridAdd
@@ -44,8 +46,6 @@ let hmsTimeTextBox = new TextBox(Width=148.,Height=56.,Text="timer",FontSize=42.
 let broadcastTimeTextBox = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 
 // some global mutable variables needed across various UI components
-let mutable popupIsActive = false
-
 let mutable displayIsCurrentlyMirrored = false
 let mutable notesTextBox = null : TextBox
 let mutable currentRecorderDestinationIndex = 0

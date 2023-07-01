@@ -228,6 +228,7 @@ let DoFloorDropDetailPopup(cm:CanvasManager, boxX, boxY, currentFloorDropDetail)
                                 redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
     }
 
+let brushes = (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6)
 let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomState:DungeonRoomState, usedTransports:_[], setNewValue, positionAtEntranceRoomIcons) = async {
     let tweak(im:Image) = im.Opacity <- 0.65; im
     let tileSunglasses = 0.75
@@ -244,7 +245,6 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
     let SCALE = 2.
     
     let tileX,tileY = 555., 766.
-    let brushes = (new CustomComboBoxes.ModalGridSelectBrushes(Brushes.Lime, Brushes.Lime, Brushes.Red, Brushes.Gray)).Dim(0.6)
     let ST = CustomComboBoxes.borderThickness
 
     let tileCanvas = new Canvas(Width=float(13*3)*SCALE, Height=float(9*3)*SCALE)
@@ -278,7 +278,10 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         tileCanvas.Children.Clear()
         fullRoom.RoomType <- curState
         let fullRoomDisplay = fullRoom.CurrentDisplay()
-        fullRoomDisplay.RenderTransform <- new ScaleTransform(SCALE, SCALE)
+        let scaleTrans = new ScaleTransform(SCALE, SCALE)
+        if scaleTrans.CanFreeze then
+            scaleTrans.Freeze()
+        fullRoomDisplay.RenderTransform <- scaleTrans
         RenderOptions.SetBitmapScalingMode(fullRoomDisplay, BitmapScalingMode.NearestNeighbor)
         fullRoomDisplay.Opacity <- tileSunglasses
         canvasAdd(tileCanvas, fullRoomDisplay, 0., 0.)

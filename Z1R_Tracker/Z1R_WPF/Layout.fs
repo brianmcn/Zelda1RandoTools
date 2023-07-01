@@ -242,7 +242,10 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             let scaleW = (W - afterSoldItemBoxesX) / W
             let scaleH = (180.-45.)/(THRU_MAIN_MAP_H-150.)
             let owm = Broadcast.makeViewRectImpl(Point(0.,150.), Point(W,THRU_MAIN_MAP_H), upper)
-            owm.RenderTransform <- new ScaleTransform(scaleW,scaleH)
+            let scaleTrans = new ScaleTransform(scaleW,scaleH)
+            if scaleTrans.CanFreeze then
+                scaleTrans.Freeze()
+            owm.RenderTransform <- scaleTrans
             canvasAdd(lower, owm, afterSoldItemBoxesX, dungeonStart-(180.-45.)-RED_LINE)
         member this.AddLegend(legendCanvas) = 
             canvasAdd(upper, legendCanvas, 0., THRU_MAIN_MAP_H)

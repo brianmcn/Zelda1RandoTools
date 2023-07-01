@@ -103,7 +103,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
         if TrackerModel.IsHiddenDungeonNumbers() then
             null
         else        
-            let c = new Canvas(Width=30., Height=30., Background=new SolidColorBrush(Color.FromRgb(55uy,55uy,85uy)))
+            let c = new Canvas(Width=30., Height=30., Background=Graphics.freeze(new SolidColorBrush(Color.FromRgb(55uy,55uy,85uy))))
             let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=Brushes.White, StrokeThickness=3.0, Opacity=0.0)
             c.Children.Add(rect) |> ignore
             let pf = new PathFigure(Point(0.,20.), [new BezierSegment(Point(0.,10.), Point(60.,10.), Point(60.,20.), true)], false)
@@ -191,7 +191,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             let dungeon = TrackerModel.GetDungeon(i)
             Dungeon.HotKeyAHiddenDungeonLabel(colorCanvas, dungeon, None)
             dungeon.HiddenDungeonColorOrLabelChanged.Add(fun (color,labelChar) -> 
-                colorCanvas.Background <- new SolidColorBrush(Graphics.makeColor(color))
+                colorCanvas.Background <- Graphics.freeze(new SolidColorBrush(Graphics.makeColor(color)))
                 colorCanvas.Children.Clear()
                 let color = if Graphics.isBlackGoodContrast(color) then System.Drawing.Color.Black else System.Drawing.Color.White
                 if TrackerModel.GetDungeon(i).LabelChar <> '?' then  // ? and 7 look alike, and also it is easier to parse 'blank' as unknown/unset dungeon number

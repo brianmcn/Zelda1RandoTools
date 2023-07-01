@@ -7,6 +7,8 @@ open System.Windows.Media
 
 let mutable theWindow : System.Windows.Window = null
 
+let freeze(b:SolidColorBrush) = (if b.CanFreeze then b.Freeze()); b
+
 type POINT = struct
     val x:int
     val y:int
@@ -206,8 +208,8 @@ let scaleUpCheckBoxBox(cb:CheckBox, scale) =
     cb.LayoutTransform <- new ScaleTransform(scale, scale)
     (cb.Content :?> FrameworkElement).LayoutTransform <- new ScaleTransform(1.0/scale, 1.0/scale)
 
-let almostBlack = new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy))
-let almostBlackHoverFeedback = new SolidColorBrush(Color.FromRgb(30uy, 50uy, 50uy))
+let almostBlack = freeze(new SolidColorBrush(Color.FromRgb(30uy, 30uy, 30uy)))
+let almostBlackHoverFeedback = freeze(new SolidColorBrush(Color.FromRgb(30uy, 50uy, 50uy)))
 let makeButton(text, fontSizeOpt, fgOpt) =
     let tb = new TextBox(Text=text, IsReadOnly=true, IsHitTestVisible=false, TextAlignment=TextAlignment.Center, BorderThickness=Thickness(0.), Background=almostBlack)
     match fontSizeOpt with | None -> () | Some x -> tb.FontSize <- x
@@ -294,13 +296,13 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
-let green = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50)))
-let cyan = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.FromArgb(0xFF, 0, 0xFF, 0xFF), 0.30)))
-let yellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50)))
-let red = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50)))
-let palegreen = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65)))
-let paleyellow = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65)))
-let palered = new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65)))
+let green = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50))))
+let cyan = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.FromArgb(0xFF, 0, 0xFF, 0xFF), 0.30))))
+let yellow = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50))))
+let red = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.50))))
+let palegreen = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.65))))
+let paleyellow = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.65))))
+let palered = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Red, 0.65))))
 type TileHighlightRectangle() as this =
     let s = new Shapes.Rectangle(Width=OMTW,Height=11.*3.,Stroke=Brushes.Lime,StrokeThickness=3.,Opacity=0.0,IsHitTestVisible=false)
     let Draw(isPale) =
@@ -750,8 +752,8 @@ let genericDungeonInterior_bmp =
     bmp
 
 let X_OPACITY = 0.55
-let overworldCommonestFloorColorBrush = new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy))
-let overworldCommonestFloorColorDarkBrush = new SolidColorBrush(Color.FromRgb(byte(float 204 * X_OPACITY),byte(float 176 * X_OPACITY),byte(float 136 * X_OPACITY)))
+let overworldCommonestFloorColorBrush = freeze(new SolidColorBrush(Color.FromRgb(204uy,176uy,136uy)))
+let overworldCommonestFloorColorDarkBrush = freeze(new SolidColorBrush(Color.FromRgb(byte(float 204 * X_OPACITY),byte(float 176 * X_OPACITY),byte(float 136 * X_OPACITY))))
 let unmarkedBmp = new System.Drawing.Bitmap(5*3,9*3)
 let dontCareBmp = new System.Drawing.Bitmap(5*3,9*3)
 

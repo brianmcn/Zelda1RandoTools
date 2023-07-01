@@ -7,6 +7,8 @@ open System.Windows.Media
 let OMTW = Graphics.OMTW
 let canvasAdd = Graphics.canvasAdd
 
+open DungeonUI.AhhGlobalVariables
+
 ///////////////////////////////////////////////
 
 // there are a few bits of code that need to 'point' at the owItemGrid in the top right of the main tracker
@@ -319,13 +321,13 @@ let ToggleOverworldTileIfItIsToggleable(i, j, state) =
         else
             TrackerModel.setOverworldMapExtraData(i,j,state,state)
 
-let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
+let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
     if msp.State = -1 then
         // left click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 
         return true, true
     elif msp.IsThreeItemShop then
-        popupIsActive := true
+        popupIsActive <- true
         let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based
         let item2 = TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP) - 1   // 0-based
         let ST = CustomComboBoxes.borderThickness
@@ -376,7 +378,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point,popupIsActive:ref<bool>) = as
                 TrackerModel.setOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP,currentState+1)  // extraData is 1-based
                 true, (originalState = -1 && currentState <> -1)
             | None -> false, false
-        popupIsActive := false
+        popupIsActive <- false
         return r
     else
         if toggleables |> Array.contains msp.State then
