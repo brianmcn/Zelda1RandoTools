@@ -178,6 +178,7 @@ type MyWindow() as this =
     inherit MyWindowBase()
     let mutable updateTimeline = fun _ -> ()
     let mutable lastUpdateMinute = 0
+    let mutable lastUpdateSecond = 0
     //                             items  ow map  prog  dungeon tabs                                    timeline   
     let HEIGHT_SANS_CHROME = float(30*5 + 11*3*9 + 30 + OverworldItemGridUI.TH + 30 + 27*8 + 12*7 + 3 + OverworldItemGridUI.TCH + 6)
     let WIDTH_SANS_CHROME = float(16*16*3)  // ow map width
@@ -624,7 +625,7 @@ type MyWindow() as this =
             displayStartupTimeDiagnostics(sprintf "total startup took %dms" totalsw.ElapsedMilliseconds)
             appMainCanvas.Children.Remove(mainDock)  // remove for good
             HotKeys.InitializeWindow(this, OverworldItemGridUI.notesTextBox)
-            WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; updateTimeline(0); this.SetStartTimeToNow())
+            WPFUI.resetTimerEvent.Publish.Add(fun _ -> lastUpdateMinute <- 0; lastUpdateSecond <- 0; updateTimeline(0); this.SetStartTimeToNow())
             if loadData.IsNone then
                 WPFUI.resetTimerEvent.Trigger()  // takes a few seconds to load everything, reset timer at start
             Graphics.canvasAdd(hmsTimerCanvas, OverworldItemGridUI.hmsTimeTextBox, Layout.RIGHT_COL+190., 0.)
@@ -838,17 +839,17 @@ type MyWindow() as this =
         base.Update(f10Press)
         // update time
         let ts = DateTime.Now - this.StartTime.Time
-        let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
-        let time = sprintf "%2d:%02d:%02d" h m s
-        OverworldItemGridUI.hmsTimeTextBox.Text <- time
-        OverworldItemGridUI.broadcastTimeTextBox.Text <- time
-        // update timeline
-        //if f10Press || (ts.TotalSeconds |> round |> int)%1 = 0 then
-        //    updateTimeline((ts.TotalSeconds |> round |> int)/1)
-        let curMinute = int ts.TotalMinutes
-        if f10Press || curMinute > lastUpdateMinute then
-            lastUpdateMinute <- curMinute
-            updateTimeline(curMinute)
+        let curSecond = int ts.TotalSeconds
+        if curSecond > lastUpdateSecond then
+            lastUpdateSecond <- curSecond
+            let h,m,s = ts.Hours, ts.Minutes, ts.Seconds
+            let time = sprintf "%2d:%02d:%02d" h m s
+            OverworldItemGridUI.hmsTimeTextBox.Text <- time
+            OverworldItemGridUI.broadcastTimeTextBox.Text <- time
+            let curMinute = int ts.TotalMinutes
+            if f10Press || curMinute > lastUpdateMinute then
+                lastUpdateMinute <- curMinute
+                updateTimeline(curMinute)
 
 // in order for multiple app windows to not have a forced Z-Order from Owner-Child relationship, need a hidden dummy window to own all the visible windows
 type DummyWindow() as this =
