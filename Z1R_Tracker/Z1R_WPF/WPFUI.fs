@@ -605,20 +605,21 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 mirrorOverworldFEs.Add(c)
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 let SetNewValue(currentState, originalState) = async {
-                    if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
-                        if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  
-                            // remind destructive changes
-                            RemindOverworldOverwrites(i, j, originalState, currentState, spokenOWTiles, AsyncBrieflyHighlightAnOverworldLocation(i,j))
-                        if currentState >=0 && currentState <=8 then
-                            selectDungeonTabEvent.Trigger(currentState)
-                        match overworldAcceleratorTable.TryGetValue(currentState) with
-                        | (true,f) -> do! f(cm,c,i,j)
-                        | _ -> ()
-                        redrawGridSpot()
-                        if originalState = -1 && currentState <> -1 then OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(i,j).Hide()  // dismiss any green/yellow highlight on this tile
-                        animateOverworldTileIfOptionIsChecked(i,j)
-                    else
-                        System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
+                    if currentState <> originalState then   // only do work if they actually changed anything
+                        if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
+                            if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  
+                                // remind destructive changes
+                                RemindOverworldOverwrites(i, j, originalState, currentState, spokenOWTiles, AsyncBrieflyHighlightAnOverworldLocation(i,j))
+                            if currentState >=0 && currentState <=8 then
+                                selectDungeonTabEvent.Trigger(currentState)
+                            match overworldAcceleratorTable.TryGetValue(currentState) with
+                            | (true,f) -> do! f(cm,c,i,j)
+                            | _ -> ()
+                            redrawGridSpot()
+                            if originalState = -1 && currentState <> -1 then OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(i,j).Hide()  // dismiss any green/yellow highlight on this tile
+                            animateOverworldTileIfOptionIsChecked(i,j)
+                        else
+                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
                 }
                 let GCOL,GROW = 8,5
                 let GCOUNT = GCOL*GROW

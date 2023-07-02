@@ -969,42 +969,43 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     | Some n -> usedTransports.[n] <- usedTransports.[n] + 1
                 let SetNewValue(newState:DungeonRoomState) =
                     let originalState = roomStates.[i,j]
-                    let originallyWasNotMarked = originalState.RoomType.IsNotMarked
-                    let isLegal = newState.RoomType = originalState.RoomType || 
-                                    (match newState.RoomType.KnownTransportNumber with
-                                        | None -> true
-                                        | Some n -> usedTransports.[n]<>2)
-                    if isLegal then
-                        usedTransportsRemoveState(roomStates.[i,j])
-                        if roomStates.[i,j].RoomType.IsOldMan then
-                            oldManCount <- oldManCount - 1
-                        roomStates.[i,j] <- newState
-                        if roomStates.[i,j].RoomType.IsOldMan then
-                            oldManCount <- oldManCount + 1
-                        updateOldManCountText()
-                        usedTransportsAddState(roomStates.[i,j])
-                        // conservative door inference
-                        if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
-                            // they appear to have walked into this room from an adjacent room
-                            let possibleEntries = ResizeArray()
-                            if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
-                                possibleEntries.Add(horizontalDoors.[i-1,j])
-                            if i < 7 && not(roomStates.[i+1,j].IsEmpty) then
-                                possibleEntries.Add(horizontalDoors.[i,j])
-                            if j > 0 && not(roomStates.[i,j-1].IsEmpty) then
-                                possibleEntries.Add(verticalDoors.[i,j-1])
-                            if j < 7 && not(roomStates.[i,j+1].IsEmpty) then
-                                possibleEntries.Add(verticalDoors.[i,j])
-                            if possibleEntries.Count = 1 then
-                                let door = possibleEntries.[0]
-                                if door.State = Dungeon.DoorState.UNKNOWN then
-                                    door.State <- Dungeon.DoorState.YES
-                        updateHeaderCanvases()
-                        redraw()
-                        redrawAllDoors()   // in case off-the-map changed, this adjusts adjacent doors; TODO probably expensive during Load of a save file
-                        animateDungeonRoomTile(i,j)
-                    else
-                        System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
+                    if not(originalState.Equals(newState)) then   // don't do work if nothing changed
+                        let originallyWasNotMarked = originalState.RoomType.IsNotMarked
+                        let isLegal = newState.RoomType = originalState.RoomType || 
+                                        (match newState.RoomType.KnownTransportNumber with
+                                            | None -> true
+                                            | Some n -> usedTransports.[n]<>2)
+                        if isLegal then
+                            usedTransportsRemoveState(roomStates.[i,j])
+                            if roomStates.[i,j].RoomType.IsOldMan then
+                                oldManCount <- oldManCount - 1
+                            roomStates.[i,j] <- newState
+                            if roomStates.[i,j].RoomType.IsOldMan then
+                                oldManCount <- oldManCount + 1
+                            updateOldManCountText()
+                            usedTransportsAddState(roomStates.[i,j])
+                            // conservative door inference
+                            if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
+                                // they appear to have walked into this room from an adjacent room
+                                let possibleEntries = ResizeArray()
+                                if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
+                                    possibleEntries.Add(horizontalDoors.[i-1,j])
+                                if i < 7 && not(roomStates.[i+1,j].IsEmpty) then
+                                    possibleEntries.Add(horizontalDoors.[i,j])
+                                if j > 0 && not(roomStates.[i,j-1].IsEmpty) then
+                                    possibleEntries.Add(verticalDoors.[i,j-1])
+                                if j < 7 && not(roomStates.[i,j+1].IsEmpty) then
+                                    possibleEntries.Add(verticalDoors.[i,j])
+                                if possibleEntries.Count = 1 then
+                                    let door = possibleEntries.[0]
+                                    if door.State = Dungeon.DoorState.UNKNOWN then
+                                        door.State <- Dungeon.DoorState.YES
+                            updateHeaderCanvases()
+                            redraw()
+                            redrawAllDoors()   // in case off-the-map changed, this adjusts adjacent doors; TODO probably expensive during Load of a save file
+                            animateDungeonRoomTile(i,j)
+                        else
+                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
                 setNewValueFunctions.[i,j] <- SetNewValue
                 let activatePopup(positionAtEntranceRoomIcons) = async {
                     popupIsActive <- true

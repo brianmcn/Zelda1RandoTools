@@ -130,23 +130,8 @@ since 1.3.0s...
 - fix: Select Voice options should work even if reminders are disabled or Volume is 0
 since 1.3.0t...
 - fix vanilla 1Q dungeon location marking 9 in wrong spot
-- a lot of performance improvements
-
-
-PERF:
-- scenario focused, e.g. right click overworld tile response speed (WPF is hard to measure)
-- DONE: WPFUI:activatePopup(), maybe cache images and Canvases
-- CustomComboBoxes:doModalGridSelect(), DONE: cache MakePrettyDashes? TODO: could rewrite a bit to cache borders etc
-- https://kynosarges.org/WpfPerformance.html turn off anti-aliasing, DONE: freeze all immutable brushes and transforms
-- DONE: hideLocator() is probably getting called due to implicit MouseLeave() when popup draws atop map, i should definitely exclude some work while the popup is active
-- DONE: mapStateSummary.OwGettableLocations is a list of coords, should be array of bools, so Contains() calls can just be array lookup
-- DONE: ensureRespecting...() when not drawing route marks should just iterate over the map tiles rather than doing the whole BFS each time
-- WPFUI: let rect = ... for mouse highlight OW could reuse rect better
-- DONE: cache some other Images and hotkey strings for perf based on profiling
-- try on my surface (can compare to 't')
-
-
-if right click OW tile, and not change it, change animation highlight still happens
+- don't animate tile change when you don't actually change it
+- a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 
 
 armos hotkey, then heart hotkey does not work (the accerator for armos/sword2 maybe don't hotkey the remote item box)
@@ -515,6 +500,21 @@ startup performance
 https://github.com/microsoft/perfview
 -OR- turn off tail calls IN BOTH PROJECTS and use VS profiler
 prior work showed that 'routing' (computing accessible, drawing paths) is a big one; wonder if some kind of cache would be faster, but is a lot of work
+PERF:
+- scenario focused, e.g. right click overworld tile response speed (WPF is hard to measure)
+- DONE: WPFUI:activatePopup(), maybe cache images and Canvases
+- CustomComboBoxes:doModalGridSelect(), DONE: cache MakePrettyDashes? TODO: could rewrite a bit to cache borders etc
+- https://kynosarges.org/WpfPerformance.html turn off anti-aliasing, DONE: freeze all immutable brushes and transforms
+- DONE: hideLocator() is probably getting called due to implicit MouseLeave() when popup draws atop map, i should definitely exclude some work while the popup is active
+- DONE: mapStateSummary.OwGettableLocations is a list of coords, should be array of bools, so Contains() calls can just be array lookup
+- DONE: ensureRespecting...() when not drawing route marks should just iterate over the map tiles rather than doing the whole BFS each time
+- WPFUI: let rect = ... for mouse highlight OW could reuse rect better
+- DONE: cache some other Images and hotkey strings for perf based on profiling
+- testing on my surface is useful
+- for best performance on very low-end machines, use Tall window layout (Square draws about twice as much stuff) and turn off both "Draw Routes" and "Highlight Nearby" (most expensive stuff)
+
+
+
 
 
 BIG

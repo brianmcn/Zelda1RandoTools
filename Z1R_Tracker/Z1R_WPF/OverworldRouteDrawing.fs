@@ -110,7 +110,7 @@ let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.W
             let toHighlight,accumulatedLines = ResizeArray(), ResizeArray()
             for i = 0 to 15 do
                 for j = 0 to 7 do
-                    if owRouteworthySpots.[i,j] then
+                    if owRouteworthySpots.[i,j] && owUnmarked.[i,j] then
                         toHighlight.Add(i,j,false)
             doComputedDrawing(toHighlight, whatToCyan, accumulatedLines)
     else

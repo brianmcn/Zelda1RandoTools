@@ -457,6 +457,12 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     let mutable floorDropShouldAppearBright = floorDropShouldAppearBright
     let DARKEN = 0.5
     new() = DungeonRoomState(false, RoomType.Unmarked, MonsterDetail.Unmarked, FloorDropDetail.Unmarked, true)
+    override this.Equals(other) =
+        match other with
+        | :? DungeonRoomState as drs -> drs.IsComplete = this.IsComplete && drs.RoomType = this.RoomType && drs.MonsterDetail = this.MonsterDetail &&
+                                            drs.FloorDropDetail = this.FloorDropDetail && drs.FloorDropAppearsBright = this.FloorDropAppearsBright
+        | _ -> false
+    override this.GetHashCode() = roomType.GetHashCode()
     member this.Clone() = new DungeonRoomState(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright)
     member this.IsComplete with get() = isCompleted and set(x) = isCompleted <- x
     member this.RoomType with get() = roomType and set(x) = roomType <- x
