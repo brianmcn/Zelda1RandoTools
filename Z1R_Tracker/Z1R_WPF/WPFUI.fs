@@ -401,6 +401,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         image.Opacity <- 0.001
         image
         )
+    let defaultInteriorBmpImageCache = Array.init MapStateProxy.NumStates (fun n -> Graphics.BMPtoImage(MapStateProxy(n).DefaultInteriorBmp()))
     for i = 0 to 15 do
         for j = 0 to 7 do
             let activateCircleLabelPopup() =
@@ -638,7 +639,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let typicalGESAI(n) : FrameworkElement*_*_ =
                         let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)
-                        upcast Graphics.BMPtoImage(MapStateProxy(n).DefaultInteriorBmp()), isSelectable, n
+                        upcast defaultInteriorBmpImageCache.[n], isSelectable, n
                     let gridElementsSelectablesAndIDs : (FrameworkElement*bool*int)[] = [|
                         // three full rows
                         for n = 0 to 23 do

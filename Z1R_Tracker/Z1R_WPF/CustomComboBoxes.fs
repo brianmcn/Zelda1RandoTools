@@ -334,10 +334,13 @@ let DoModalGridSelect<'State,'Result>
     grid.Background <- Brushes.Black
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
     let mutable allDone = false
+    let canvasesToClear = ResizeArray<Canvas>()
     let selfCleanup() =
         for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
         popupCanvas.Children.Remove(pretty)
+        for c in canvasesToClear do
+            c.Children.Clear()
     let dismiss() =
         wh.Set() |> ignore
     let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
@@ -357,7 +360,7 @@ let DoModalGridSelect<'State,'Result>
         while not(isSelectable()) do
             currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
         changeCurrentState(currentState)
-    let snapBack() = changeCurrentState(originalStateIndex)
+    let snapBack() = if not allDone then changeCurrentState(originalStateIndex)     // don't redraw and do other work after the popup is done (MouseLeave can be very error-prone if not careful!)
     // original tile
     redrawTile(stateID())
     tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
@@ -368,7 +371,7 @@ let DoModalGridSelect<'State,'Result>
         | DismissPopupWithNoResult -> dismiss()
         | StayPoppedUp -> ()
         )
-    tileCanvas.MouseLeave.Add(fun _ -> if not allDone then snapBack())   // don't redraw and do other work after the popup is done
+    tileCanvas.MouseLeave.Add(fun _ -> snapBack())
     let centerOf(x,y) = grid.TranslatePoint(Point(ST+float(x*COLW)+idealX, ST+float(y*ROWH)+idealY), cm.AppMainCanvas)
     tileCanvas.MyKeyAdd(fun ea ->
         let x,y = currentState % gnc, currentState / gnc
@@ -432,6 +435,7 @@ let DoModalGridSelect<'State,'Result>
             let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,Unchecked.defaultof<_>
             if icon <> null then
                 let c = new Canvas(Background=Brushes.Black, Width=float gcw, Height=float grh)  // ensure the canvas has a surface on which to receive mouse clicks
+                canvasesToClear.Add(c)
                 c.Children.Add(icon) |> ignore
                 if not(isSelectable) then // grey out
                     c.Children.Add(new Canvas(Width=float gcw, Height=float grh, Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
