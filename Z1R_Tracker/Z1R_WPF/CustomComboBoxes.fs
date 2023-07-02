@@ -240,7 +240,7 @@ let DoModalMessageBox(cm:CanvasManager, icon:System.Drawing.Icon, mainText, butt
 /////////////////////////////////////////
 
 // draw a pretty dashed rectangle with thickness ST around outside of (0,0) to (W,H)
-let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
+let MakePrettyDashesImpl(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
     let dashLength = dash * ST
     let spaceLength = space * ST
     let computeDashArray(length) =
@@ -267,6 +267,16 @@ let MakePrettyDashes(canvas:Canvas, brush, W, H, ST, dash:float, space:float) =
     let rightLine = new Shapes.Line(X1 = W+ST/2., Y1 = -ST, X2 = W+ST/2., Y2 = H+ST, StrokeThickness=ST, Stroke=brush)
     rightLine.StrokeDashArray <- new DoubleCollection(computeDashArray (H+2.*ST))
     canvasAdd(canvas, rightLine, 0., 0.)
+
+let prettyDashesCache = new System.Collections.Generic.Dictionary<string,Canvas>()
+let GetPrettyDashes(name:string, brush, W, H, ST, dash:float, space:float) =
+    match prettyDashesCache.TryGetValue(name) with
+    | true, c -> c
+    | false, _ ->
+        let c = new Canvas()
+        MakePrettyDashesImpl(c, brush, W, H, ST, dash, space)
+        prettyDashesCache.Add(name, c)
+        c
 
 // TODO: factor out background brush color (assumes black)
 type ModalGridSelectBrushes(originalTileHighlightBrush, gridSelectableHighlightBrush, gridNotSelectableHighlightBrush, borderBrush) =
@@ -307,14 +317,16 @@ let DoModalGridSelect<'State,'Result>
                 extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
                 brushes:ModalGridSelectBrushes,
                 gridClickDismissalDoesMouseWarpBackToTileCenter,
-                who:System.Threading.ManualResetEvent option      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
+                who:System.Threading.ManualResetEvent option,      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
+                uniqueName:string       // for PrettyDashes caching
                 ) = async {
     let wh = match who with Some(x) -> x | _ -> new System.Threading.ManualResetEvent(false)
     let mutable result = None
     let popupCanvas = new Canvas()  // we will draw outside the canvas
     canvasAdd(popupCanvas, tileCanvas, 0., 0.)
     let ST = borderThickness
-    MakePrettyDashes(popupCanvas, brushes.OriginalTileHighlightBrush, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
+    let pretty = GetPrettyDashes(uniqueName, brushes.OriginalTileHighlightBrush, tileCanvas.Width, tileCanvas.Height, ST, 2., 1.2)
+    popupCanvas.Children.Add(pretty) |> ignore
     if gridElementsSelectablesAndIDs.Length > gnr*gnc then
         failwith "the grid is not big enough to accomodate all the choices"
     let COLW, ROWH = gcw+2*int ST, grh+2*int ST
@@ -325,6 +337,7 @@ let DoModalGridSelect<'State,'Result>
     let selfCleanup() =
         for (d,_x,_y) in extraDecorations do
             popupCanvas.Children.Remove(d)
+        popupCanvas.Children.Remove(pretty)
     let dismiss() =
         wh.Set() |> ignore
     let isSelectable() = let _,s,_ = gridElementsSelectablesAndIDs.[currentState] in s
@@ -550,7 +563,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), 
-                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None)
+                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None, "ItemBox")
     }
 
 let makeVersionButtonWithBehavior(cm:CanvasManager) =

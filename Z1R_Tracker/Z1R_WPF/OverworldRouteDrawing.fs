@@ -207,7 +207,7 @@ let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.W
                         thr.MakeGreen()
                     else
                         thr.MakePaleGreen()
-                elif not(TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j)) then  
+                elif not(TrackerModel.mapStateSummary.OwGettableLocations.[i,j]) then  
                     if bright then
                         thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
                     else

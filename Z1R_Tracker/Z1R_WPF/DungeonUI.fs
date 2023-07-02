@@ -303,7 +303,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored later
                 async {
                     let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                    float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None)
+                                    float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "VanillaDungeonOutline")
                     match r with
                     | Some(state) -> currentOutlineDisplayState.[SI] <- state
                     | None -> ()
@@ -913,14 +913,12 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         canvasAdd(tbc, tb, 0., -8.)
                         let button = new Button(Height=float(TH), Content=tbc, BorderThickness=Thickness(2.), Margin=Thickness(0.), Padding=Thickness(0.), BorderBrush=Brushes.White)
                         canvasAdd(dungeonCanvas, button, float(i*51)+6., 0.)
-                        let mutable popupIsActive = false
                         button.Click.Add(fun _ ->
                             if not popupIsActive then
                                 popupIsActive <- true
                                 let pos = tb.TranslatePoint(Point(tb.Width/2., tb.Height/2.), cm.AppMainCanvas)
                                 async {
-                                    do! Dungeon.HiddenDungeonColorChooserPopup(cm, 75., 310., 110., 110., TrackerModel.GetDungeon(level-1).Color, level-1)
-                                    Graphics.WarpMouseCursorTo(pos)
+                                    do! Dungeon.HiddenDungeonCustomizerPopup(cm, level-1, TrackerModel.GetDungeon(level-1).Color, TrackerModel.GetDungeon(level-1).LabelChar, false, true, pos)
                                     popupIsActive <- false
                                     } |> Async.StartImmediate
                             )
@@ -1013,9 +1011,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     let roomPos = c.TranslatePoint(Point(), cm.AppMainCanvas)
                     let dashCanvas = new Canvas()
                     canvasAdd(c, dashCanvas, -BUFFER, -BUFFER)
-                    CustomComboBoxes.MakePrettyDashes(dashCanvas, Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
+                    let pretty = CustomComboBoxes.GetPrettyDashes("DungeonRoomSelectActivatePopup", Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
+                    dashCanvas.Children.Add(pretty) |> ignore
                     let pos = Point(roomPos.X+13.*3./2., roomPos.Y+9.*3./2.)
                     do! DungeonPopups.DoDungeonRoomSelectPopup(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
+                    dashCanvas.Children.Remove(pretty)
                     c.Children.Remove(dashCanvas)
                     Graphics.WarpMouseCursorTo(pos)
                     redraw()

@@ -20,7 +20,7 @@ let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14.
                                             BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents = (let dp = new DockPanel(Background=Brushes.Black) in dp.Children.Add(owRemainingScreensTextBox) |> ignore; dp)
 let owGettableScreensTextBox = new TextBox(Width=80., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
-                                            BorderThickness=Thickness(0.), Text=sprintf "%d gettable" TrackerModel.mapStateSummary.OwGettableLocations.Count)
+                                            BorderThickness=Thickness(0.), Text="0 gettable")
 let owGettableScreensCheckBox = new CheckBox(Content = owGettableScreensTextBox, IsChecked=TrackerModelOptions.Overworld.Gettables.Value)
 let mutable highlightOpenCavesCheckBox : CheckBox = null
 
@@ -39,7 +39,7 @@ let drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBol
                     let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                     let cbld = (couldBeLetterDungeon && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?')
                     if cur = -1 || cbld then
-                        if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) || cbld then
+                        if TrackerModel.mapStateSummary.OwGettableLocations.[i,j] || cbld then
                             owTargetworthySpots.[i,j] <- true
                             unmarked.[i,j] <- true  // for cbld case
                         else
@@ -697,7 +697,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         tileCanvas.Children.Add(dp) |> ignore
                                         ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None)
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "OWGridTile")
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
@@ -1369,7 +1369,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         let cur = TrackerModel.overworldMapMarks.[i,j].Current()
                         let isLetteredNumberlessDungeon = (alsoHighlightABCDEFGH && cur>=0 && cur<=7 && TrackerModel.GetDungeon(cur).LabelChar='?')
                         if cur = -1 || isLetteredNumberlessDungeon then
-                            if TrackerModel.mapStateSummary.OwGettableLocations.Contains(i,j) then
+                            if TrackerModel.mapStateSummary.OwGettableLocations.[i,j] then
                                 if owInstance.SometimesEmpty(i,j) then
                                     owLocatorTileRectangles.[i,j].MakeYellow()
                                 else

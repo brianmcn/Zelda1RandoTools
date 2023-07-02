@@ -136,10 +136,10 @@ PERF:
 - scenario focused, e.g. right click overworld tile response speed (WPF is hard to measure)
 - DONE: WPFUI:activatePopup(), maybe cache images and Canvases
 - is there periodic (0.5s) recompute timers I should disable while popup activated?
-- CustomComboBoxes:doModalGridSelect(), cache MakePrettyDashes? could rewrite a bit to cache borders etc
+- CustomComboBoxes:doModalGridSelect(), DONE: cache MakePrettyDashes? TODO: could rewrite a bit to cache borders etc
 - https://kynosarges.org/WpfPerformance.html turn off anti-aliasing, DONE: freeze all immutable brushes and transforms
 - DONE: hideLocator() is probably getting called due to implicit MouseLeave() when popup draws atop map, i should definitely exclude some work while the popup is active
-- mapStateSummary.OwGettableLocations is a list of coords, should be array of bools, so Contains() calls can just be array lookup
+- DONE: mapStateSummary.OwGettableLocations is a list of coords, should be array of bools, so Contains() calls can just be array lookup
 - ensureRespecting...() when not drawing route marks should just iterate over the map tiles rather than doing the whole BFS each time
 - WPFUI: let rect = ... for mouse highlight OW could reuse rect better
 - try on my surface (can compare to 't')

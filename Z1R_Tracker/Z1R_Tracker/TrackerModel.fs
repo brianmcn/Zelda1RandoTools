@@ -970,7 +970,7 @@ type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Locat
     member _this.OwRouteworthySpots = owRouteworthySpots
     member _this.FirstQuestOnlyInterestingMarks = firstQuestOnlyInterestingMarks
     member _this.SecondQuestOnlyInterestingMarks = secondQuestOnlyInterestingMarks
-let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,ResizeArray(),null,0,null,null,null)
+let mutable mapStateSummary = MapStateSummary(null,null,NOTFOUND,NOTFOUND,NOTFOUND,NOTFOUND,0,Array2D.zeroCreate 16 8,null,0,null,null,null)
 let mapStateSummaryComputedEvent = new Event<_>()
 let mapStateSummaryLastComputedTime = new LastChangedTime()
 let recomputeMapStateSummary() =
@@ -981,7 +981,7 @@ let recomputeMapStateSummary() =
     let mutable sword2Location = NOTFOUND
     let mutable sword1Location = NOTFOUND
     let mutable owSpotsRemain = 0
-    let owGettableLocations = ResizeArray()
+    let owGettableLocations = Array2D.zeroCreate 16 8
     let owWhistleSpotsRemain = ResizeArray()
     let mutable owPowerBraceletSpotsRemain = 0
     let mutable owRouteworthySpots = Array2D.create 16 8 false
@@ -1037,7 +1037,7 @@ let recomputeMapStateSummary() =
                             owRouteworthySpots.[i,j] <- true  // can screen scroll to coast island; even though is out-of-logic, is good to teach that is possible
                     else
                         owRouteworthySpots.[i,j] <- true
-                        owGettableLocations.Add(i,j)
+                        owGettableLocations.[i,j] <- true
                 | n when n=MapSquareChoiceDomainHelper.DARK_X ->
                     if getOverworldMapExtraData(i, j, n)=n then
                         owSpotsRemain <- owSpotsRemain + 1         // un-revealed spots count as remaining
@@ -1479,7 +1479,12 @@ let allUIEventingLogic(ite : ITrackerEvents) =
         if not(playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) && mapStateSummary.Sword3Location<>NOTFOUND then
             ite.AnnounceConsiderSword3()
     // map
-    ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain, mapStateSummary.OwGettableLocations.Count)
+    let mutable remain = 0
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            if mapStateSummary.OwGettableLocations.[i,j] then
+                remain <- remain + 1
+    ite.OverworldSpotsRemaining(mapStateSummary.OwSpotsRemain, remain)
     if mapStateSummary.OwSpotsRemain <> priorOWSpotsRemain then
         priorOWSpotsRemain <- mapStateSummary.OwSpotsRemain
         let span = System.DateTime.Now - theStartTime.Time

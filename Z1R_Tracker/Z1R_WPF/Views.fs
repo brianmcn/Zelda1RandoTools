@@ -151,7 +151,7 @@ let MakeTriforceDisplayView(cmo:CustomComboBoxes.CanvasManager option, trackerIn
                     popupIsActive <- true
                     let pos = innerc.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
                     async {
-                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, pos)
+                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, trackerIndex, dungeon.Color, dungeon.LabelChar, true, false, pos)
                         popupIsActive <- false
                         } |> Async.StartImmediate
             )

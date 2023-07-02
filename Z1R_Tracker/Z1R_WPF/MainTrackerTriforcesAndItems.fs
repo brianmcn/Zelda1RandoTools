@@ -183,7 +183,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                     popupIsActive <- true
                     let pos = colorButton.TranslatePoint(Point(15., 15.), cm.AppMainCanvas)
                     async {
-                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, pos)
+                        do! Dungeon.HiddenDungeonCustomizerPopup(cm, i, TrackerModel.GetDungeon(i).Color, TrackerModel.GetDungeon(i).LabelChar, false, false, pos)
                         popupIsActive <- false
                         } |> Async.StartImmediate
                 )
