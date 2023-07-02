@@ -130,17 +130,17 @@ since 1.3.0s...
 - fix: Select Voice options should work even if reminders are disabled or Volume is 0
 since 1.3.0t...
 - fix vanilla 1Q dungeon location marking 9 in wrong spot
+- fix clicks possibly getting missed when 'falling between the cracks' of the popup grids
 - don't animate tile change when you don't actually change it
+- change Broadcast Window layout a little, in order to...
+- ...fix Mouse Magnifier Window cursor not being quite right
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 
 
-armos hotkey, then heart hotkey does not work (the accerator for armos/sword2 maybe don't hotkey the remote item box)
+
 
 
 equations wants e.g. floor item or basement hotkeys in dungeons to auto-box-warp to mark items, which might be interesting but is a big change
-
-
-
 
 
 if get potion letter (OW mark), show in shopping area HUD somewhere

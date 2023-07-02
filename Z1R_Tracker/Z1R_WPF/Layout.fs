@@ -418,10 +418,10 @@ let makeMouseMagnifierWindow(cm:CustomComboBoxes.CanvasManager) =
     let fakeMouse = addFakeMouse(c)
     let round(x:float) = System.Math.Round(x)
     let update() =        
-        Canvas.SetLeft(fakeMouse, round(mmWindow.Width / 2.))
-        Canvas.SetTop(fakeMouse, round(mmWindow.Height / 2.))
-        st.CenterX <- round(mmWindow.Width / 2.)
-        st.CenterY <- round(mmWindow.Height / 2.)
+        Canvas.SetLeft(fakeMouse, round(c.ActualWidth / 2.))
+        Canvas.SetTop(fakeMouse, round(c.ActualHeight / 2.))
+        st.CenterX <- round(c.ActualWidth / 2.)
+        st.CenterY <- round(c.ActualHeight / 2.)
     let desc = "You can resize this window by grabbing\nthe bottom right of it, or move this window\nby grabbing the title bar with the mouse."
     let text = new TextBox(Text=desc, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                                 FontSize=16., Margin=Thickness(6.0))
@@ -461,8 +461,8 @@ let makeMouseMagnifierWindow(cm:CustomComboBoxes.CanvasManager) =
         )
     cm.RootCanvas.MouseMove.Add(fun ea ->   // we need RootCanvas to see mouse moving in popups
         let mousePos = ea.GetPosition(cm.AppMainCanvas)
-        Canvas.SetLeft(wholeView, round(SCALE * ((mmWindow.Width / 2.)  - mousePos.X)))
-        Canvas.SetTop( wholeView, round(SCALE * ((mmWindow.Height / 2.) - mousePos.Y)))
+        Canvas.SetLeft(wholeView, round(SCALE * ((c.ActualWidth  / 2.) - mousePos.X)))
+        Canvas.SetTop( wholeView, round(SCALE * ((c.ActualHeight / 2.) - mousePos.Y)))
         )
     mmWindow
 

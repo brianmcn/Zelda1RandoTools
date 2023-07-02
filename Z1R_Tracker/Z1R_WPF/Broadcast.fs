@@ -89,7 +89,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
             cm.AfterCreatePopupCanvas.Add(fun pc ->
                 let vb = new VisualBrush(pc)
                 vb.ViewboxUnits <- BrushMappingMode.Absolute
-                vb.Viewbox <- Rect(Point(0.,0.), Point(appMainCanvas.Width,appMainCanvas.Height+CustomComboBoxes.BROADCAST_KLUDGE))
+                vb.Viewbox <- Rect(Point(0.,0.), Point(appMainCanvas.Width,appMainCanvas.Height))
                 vb.Stretch <- Stretch.None
                 let bwRect = new Shapes.Rectangle(Width=vb.Viewbox.Width, Height=vb.Viewbox.Height)
                 bwRect.Fill <- vb
@@ -136,6 +136,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         let sp = new StackPanel(Orientation=Orientation.Vertical)
         sp.Children.Add(tri) |> ignore
         sp.Children.Add(pro) |> ignore
+        sp.Children.Add(new DockPanel(Height=50.)) |> ignore
         sp.Children.Add(dun) |> ignore
         let bottomc = new Canvas(Width=W, Height=H)
         canvasAdd(bottomc, sp, 0., 0.)
@@ -145,23 +146,23 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         if scaleTrans.CanFreeze then
             scaleTrans.Freeze()
         owm.RenderTransform <- scaleTrans
-        canvasAdd(bottomc, owm, afterSoldItemBoxesX, 45.)
+        canvasAdd(bottomc, owm, afterSoldItemBoxesX, 95.)
         // WANT!
         let kitty = new Image()
         let imageStream = Graphics.GetResourceStream("CroppedBrianKitty.png")
         kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
         kitty.Width <- 45.
         kitty.Height <- 45.
-        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+120. + 20., 0.)
+        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+120. + 20., 50.)
         let ztlogo = new Image()
         let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
         ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
         ztlogo.Width <- 30.
         ztlogo.Height <- 30.
         let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
-        canvasAdd(bottomc, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 11.)
+        canvasAdd(bottomc, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 61.)
         canvasAdd(bottomc, drawingOverTop, 0., 0.)
-        dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 180., bottomc)
+        dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 230., bottomc)
 
         // draw fake mice on top level 
         let addFakeMouse(c:Canvas) =
@@ -217,16 +218,7 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
                         dp.Children.RemoveAt(1)
                         dp.Children.Add(bottomc) |> ignore
                 Canvas.SetLeft(fakeBottomMouse, mousePos.X)
-                if mousePos.Y > START_TIMELINE_H && cm.PopupCanvasStack.Count=0 then
-                    // The timeline is docked to the bottom in both the upper and lower views.
-                    // There is 'dead space' below the dungeons area and above the timeline in the broadcast window.
-                    // The fakeMouse should 'jump over' this dead space so that mouse-gestures in the timeline show in the right spot on the timeline.
-                    // However this means that certain areas of the options-pane popup won't be fakeMouse-displayed correctly, 
-                    // so we only do this offset when no popup is active.
-                    let yDistanceMouseToBottom = appMainCanvas.Height - mousePos.Y
-                    Canvas.SetTop(fakeBottomMouse, H - yDistanceMouseToBottom)
-                else
-                    Canvas.SetTop(fakeBottomMouse, mousePos.Y - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 180.)
+                Canvas.SetTop(fakeBottomMouse, mousePos.Y - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H + 230.)
             )
         broadcastWindow
     let mutable broadcastWindow = null

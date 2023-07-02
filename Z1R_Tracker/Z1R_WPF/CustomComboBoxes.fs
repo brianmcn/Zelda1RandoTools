@@ -88,7 +88,6 @@ using (System.IO.FileStream filestream = new System.IO.FileStream(FilePath, Syst
     filestream.Close();
 }
 *)
-let BROADCAST_KLUDGE = 50.  // the bottom-half broadcast window has the bottom of timeline peek out beyond the popup-sunglasses, causing bottom-timeline to be bright; this 'fixes' it
 type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     static let mutable theOnlyCanvasManager = None
     do
@@ -104,7 +103,7 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
     let afterCreatePopupCanvas = new Event<_>()
     let beforeDismissPopupCanvas = new Event<_>()
     let width = rootCanvas.Width
-    let sunglasses = new Canvas(Width=width, Height=rootCanvas.Height+BROADCAST_KLUDGE, Background=Brushes.Black, IsHitTestVisible=false)
+    let sunglasses = new Canvas(Width=width, Height=rootCanvas.Height, Background=Brushes.Black, IsHitTestVisible=false)
     member _this.Width = width
     member _this.Height = rootCanvas.Height
     member _this.SetHeight(h) = 
@@ -435,7 +434,7 @@ let DoModalGridSelect<'State,'Result>
             let n = y*gnc + x
             let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,Unchecked.defaultof<_>
             if icon <> null then
-                let b = new Border(BorderThickness=Thickness(ST))
+                let b = new Border(BorderThickness=Thickness(ST), Background=Brushes.Black)
                 gridAdd(grid, b, x, y)
                 let c = new Canvas(Background=Brushes.Black, Width=float gcw, Height=float grh)  // ensure the canvas has a surface on which to receive mouse clicks
                 b.Child <- c
