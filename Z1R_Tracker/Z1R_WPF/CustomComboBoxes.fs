@@ -332,6 +332,7 @@ let DoModalGridSelect<'State,'Result>
     let COLW, ROWH = gcw+2*int ST, grh+2*int ST
     let grid = makeGrid(gnc, gnr, COLW, ROWH)
     grid.Background <- Brushes.Black
+    canvasAdd(popupCanvas, new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid), gx, gy)
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
     let mutable allDone = false
     let canvasesToClear = ResizeArray<Canvas>()
@@ -434,12 +435,14 @@ let DoModalGridSelect<'State,'Result>
             let n = y*gnc + x
             let icon,isSelectable,_ = if n < gridElementsSelectablesAndIDs.Length then gridElementsSelectablesAndIDs.[n] else null,false,Unchecked.defaultof<_>
             if icon <> null then
+                let b = new Border(BorderThickness=Thickness(ST))
+                gridAdd(grid, b, x, y)
                 let c = new Canvas(Background=Brushes.Black, Width=float gcw, Height=float grh)  // ensure the canvas has a surface on which to receive mouse clicks
+                b.Child <- c
                 canvasesToClear.Add(c)
                 c.Children.Add(icon) |> ignore
                 if not(isSelectable) then // grey out
                     c.Children.Add(new Canvas(Width=float gcw, Height=float grh, Background=Brushes.Black, Opacity=0.6, IsHitTestVisible=false)) |> ignore
-                let b = new Border(BorderThickness=Thickness(ST), Child=c)
                 b.MouseEnter.Add(fun _ -> changeCurrentState(n))
                 let redraw() = b.BorderBrush <- (if n = currentState then (if isSelectable then brushes.GridSelectableHighlightBrush else brushes.GridNotSelectableHighlightBrush) else Brushes.Black)
                 redrawGridFuncs.Add(redraw)
@@ -458,7 +461,6 @@ let DoModalGridSelect<'State,'Result>
                         | StayPoppedUp -> ()
                     )
                 b.MyKeyAdd(handleCursorHotKey(x,y))
-                gridAdd(grid, b, x, y)
             else
                 let dp = new DockPanel(Background=Brushes.Black)
                 dp.MouseEnter.Add(fun _ -> snapBack())
@@ -466,8 +468,6 @@ let DoModalGridSelect<'State,'Result>
                 dp.MyKeyAdd(handleCursorHotKey(x,y))
                 gridAdd(grid, dp, x, y)
     grid.MouseLeave.Add(fun _ -> snapBack())
-    let b = new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid)
-    canvasAdd(popupCanvas, b, gx, gy)
     for (d,x,y) in extraDecorations do
         canvasAdd(popupCanvas, d, x, y)
     // initial input
