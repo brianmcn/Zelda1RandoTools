@@ -27,8 +27,8 @@ let mutable highlightOpenCavesCheckBox : CheckBox = null
 type RouteDestination = LinkRouting.RouteDestination
 
 let NoCyan(_i,_j) = false
-let drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR, whatToCyan) =
-    let maxPaleGYR = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.All else maxPaleGYR
+let drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, showPale, whatToCyan) =
+    let showPale = if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then true else showPale
     let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
     let interestingButInaccesible = ResizeArray()
     let owTargetworthySpots = Array2D.zeroCreate 16 8
@@ -49,19 +49,19 @@ let drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBol
     | Some(RouteDestination.OW_MAP(spots)) ->
         for x,y in spots do
             owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, 0, 0, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, 0, false, whatToCyan)
         lightUpDestinations <- true
     | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
         processHint(hz,couldBeLetterDungeon)
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.All, 0, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.All, false, whatToCyan)
     | Some(RouteDestination.UNMARKEDINSTANCEFUNC(f)) ->
         for x = 0 to 15 do
             for y = 0 to 7 do
                 if unmarked.[x,y] && f(x,y) then
                     owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.MaxGYR, OverworldRouteDrawing.All, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.MaxGYR, true, whatToCyan)
     | None ->
-        OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxBoldGYR, maxPaleGYR, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxBoldGYR, showPale, whatToCyan)
     for x,y in interestingButInaccesible do
         OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(x,y).MakeRed()
     if lightUpDestinations then
@@ -109,8 +109,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     if owMapNum < 0 || owMapNum > 4 then
         failwith "bad owMapNum"
     let isStandardHyrule = owMapNum <> 4   // should features assume we know the overworld map as standard/mirrored z1r
-    let drawRoutesTo(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR, whatToCyan) =
-        if isStandardHyrule then drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, maxPaleGYR, whatToCyan)
+    let drawRoutesTo(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, whatToCyan) =
+        if isStandardHyrule then 
+            drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBoldGYR, (owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value), whatToCyan)
         else ()
     TrackerModel.initializeAll(owInstance, kind)
     if not heartShuffle then
@@ -449,7 +450,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         let mousePos = if displayIsCurrentlyMirrored then Point(OMTW - mousePos.X, mousePos.Y) else mousePos
                                         ntf.SendThunk(fun () -> 
                                             drawRoutesTo(currentRouteTarget(), mousePos, i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
-                                                            (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                                             (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                                             whetherToCyanOpenCavesOrArmos())
                                             )
@@ -799,9 +799,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes <- (fun () ->
 //        printfn "eROWGSAOCCB"
         let showGettables = owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value
-        let maxPale = if showGettables then OverworldRouteDrawing.All else 0
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, maxPale, whetherToCyanOpenCavesOrArmos())
+                    TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, showGettables, whetherToCyanOpenCavesOrArmos())
         )
             
     do! showProgress("overworld finish, legend")
@@ -1010,7 +1009,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 if i>=0 && i<16 && j>=0 && j<8 then
                     drawRoutesTo(currentRouteTarget(), Point(0.,0.), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     whetherToCyanOpenCavesOrArmos())
                 else
                     ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()
@@ -1182,9 +1180,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             owLocatorTileRectangles.[i,j].MakeBoldGreen()
                         else
                             () // do nothing - don't highlight completed dungeons
-            drawRoutesTo(None, Point(), 0, 0, false, 0, 
-                (if owGettableScreensCheckBox.IsChecked.HasValue && owGettableScreensCheckBox.IsChecked.Value then OverworldRouteDrawing.MaxGYR else 0),
-                whetherToCyanOpenCavesOrArmos())
+            drawRoutesTo(None, Point(), 0, 0, false, 0, whetherToCyanOpenCavesOrArmos())
         else
             let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
             if (i,j) <> TrackerModel.NOTFOUND then
@@ -1192,7 +1188,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
                 // ...and behave like we are moused there
                 drawRoutesTo(None, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
-                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
                                     whetherToCyanOpenCavesOrArmos())
     level9ColorCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
@@ -1240,7 +1235,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     layout.AddOWRemainingScreens(owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents)
     owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents.MouseEnter.Add(fun _ ->
         let unmarked = TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1)
-        OverworldRouteDrawing.drawPathsImpl(unmarked, unmarked, Point(0.,0.), 0, 0, false, true, OverworldRouteDrawing.All, 0, NoCyan)
+        OverworldRouteDrawing.drawPathsImpl(unmarked, unmarked, Point(0.,0.), 0, 0, false, true, OverworldRouteDrawing.All, false, NoCyan)
         if not(TrackerModel.playerComputedStateSummary.HaveRaft) then
             // drawPathsImpl cannot reach the raft locations and won't color them, so just ad-hoc those two spots
             for i,j in [5,4 ; 15,2] do
@@ -1257,7 +1252,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     owGettableScreensCheckBox.Unchecked.Add(fun _ -> TrackerModel.forceUpdate(); TrackerModelOptions.Overworld.Gettables.Value <- false; TrackerModelOptions.writeSettings())
     owGettableScreensCheckBox.MouseEnter.Add(fun _ -> 
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, 
-                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, OverworldRouteDrawing.All, NoCyan)
+                                            TrackerModel.overworldMapMarks |> Array2D.map (fun cell -> cell.Current() = -1), Point(0.,0.), 0, 0, false, true, 0, true, NoCyan)
         )
     owGettableScreensCheckBox.MouseLeave.Add(fun _ -> ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes())
 

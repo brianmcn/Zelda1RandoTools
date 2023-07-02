@@ -370,6 +370,7 @@ let PrettyKey(skm:SingleKeyboardModifier,key:Input.Key) =
 type HotKeyProcessor<'v when 'v : equality>(contextName) =
     let table = new System.Collections.Generic.Dictionary<SingleKeyboardModifier*Input.Key,'v>()
     let stateToKeys = new System.Collections.Generic.Dictionary<_,_>()  // caching
+    let cachedDescriptions = new System.Collections.Generic.Dictionary<_,_>()  // hotkeys never change during runtime, so first lookup is always the permanent description
     member this.ContextName = contextName
     member this.TryGetValue(skm,k) = 
         match table.TryGetValue((skm,k)) with
@@ -401,11 +402,17 @@ type HotKeyProcessor<'v when 'v : equality>(contextName) =
         else
             None
     member this.AppendHotKeyToDescription(desc, state) =
-        let keys = this.StateToKeys(state)
-        if keys.Count > 0 then
-            sprintf "%s\nHotKey = %s" desc (PrettyKey(keys.[0]))
-        else
-            desc
+        match cachedDescriptions.TryGetValue(state) with
+        | true, r -> r
+        | false, _ ->
+            let r = 
+                let keys = this.StateToKeys(state)
+                if keys.Count > 0 then
+                    sprintf "%s\nHotKey = %s" desc (PrettyKey(keys.[0]))
+                else
+                    desc
+            cachedDescriptions.Add(state, r)
+            r
 
 // area specific
 let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")

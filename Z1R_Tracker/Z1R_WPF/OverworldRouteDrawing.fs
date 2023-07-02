@@ -30,6 +30,38 @@ type RouteDrawingLayer() =
     member this.AddSelfTo(c) = canvasAdd(c, routeDrawingCanvas, 0., 0.)
 let routeDrawingLayer = new RouteDrawingLayer()
 
+let doComputedDrawing(toHighlight, whatToCyan, accumulatedLines) =
+    for (i,j,bright) in toHighlight do
+        let thr = routeDrawingLayer.GetHighlightTile(i,j)
+        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+        if cur>=0 && cur<=7 then // most callers pass in owUnmarked equal to TrackerModel.overworldMapMarks, but some pass dungeon letters A-H as unmarked too, color them accessible
+            if bright then
+                thr.MakeGreen()
+            else
+                thr.MakePaleGreen()
+        elif not(TrackerModel.mapStateSummary.OwGettableLocations.[i,j]) then  
+            if bright then
+                thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
+            else
+                thr.MakePaleRed()
+        elif TrackerModel.owInstance.SometimesEmpty(i,j) then
+            if bright then
+                thr.MakeYellow()
+            else
+                thr.MakePaleYellow()
+        else
+            if bright then
+                thr.MakeGreen()
+            else
+                thr.MakePaleGreen()
+    // cyan overrides all
+    for i = 0 to 15 do
+        for j = 0 to 7 do
+            if whatToCyan(i,j) then
+                routeDrawingLayer.GetHighlightTile(i,j).MakeCyan()
+    for line in accumulatedLines do
+        routeDrawingLayer.AddRouteMark(line)
+
 let coords(Vertex(x,y,p)) =
     let cx = float(x*int OMTW+8*3)
     let cy = float(y*11*3+5*3)
@@ -66,12 +98,21 @@ let colorAlt3 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(175uy, 160uy,
 let colorAlt4 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(150uy, 160uy, 220uy, 255uy)))
 let colorAlt5 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(125uy, 160uy, 220uy, 255uy)))
 let colorAlt6 = Graphics.freeze(new SolidColorBrush(Color.FromArgb(100uy, 160uy, 220uy, 255uy)))
-let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, maxPaleGYR, whatToCyan) = 
+let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.Windows.Point, i, j, drawRouteMarks, fadeOut, maxBoldGYR, showPale, whatToCyan) = 
 //    printfn "ORD:drawPathsImpl"
     routeDrawingLayer.Clear()
     let ok, st = screenTypes.TryGetValue((i,j))
     if not ok then
         failwith "missing st"
+    elif drawRouteMarks=false && maxBoldGYR=0 then
+        if showPale then
+            // if we are not drawing routes and are not highlighting nearby, then we can do the cheap thing:
+            let toHighlight,accumulatedLines = ResizeArray(), ResizeArray()
+            for i = 0 to 15 do
+                for j = 0 to 7 do
+                    if owRouteworthySpots.[i,j] then
+                        toHighlight.Add(i,j,false)
+            doComputedDrawing(toHighlight, whatToCyan, accumulatedLines)
     else
         let v = 
             match st with
@@ -182,55 +223,23 @@ let drawPathsImpl(owRouteworthySpots:_[,], owUnmarked:bool[,], mousePos:System.W
                             let (cost,_preds) = r
                             pq.Enqueue(cost, (i,j))
         let N = maxBoldGYR
-        let M = maxPaleGYR
-        // bold highlight cheapest N unmarked, pale highlight next cheapest M unmarked
-        if N+M > 0 then
-            let toHighlight = ResizeArray()
+        // bold highlight cheapest N unmarked, pale highlight rest
+        let toHighlight = ResizeArray()
+        if N > 0 || showPale then
             let rec iterate(N,recentCost) =
                 if not pq.IsEmpty then
                     let nextCost,(i,j) = pq.Dequeue()
                     if maxBoldGYR > 0 && (N > 0 || nextCost = recentCost) then
                         toHighlight.Add(i,j,true)
                         iterate(N-1,nextCost)
-                    elif N > -M then
+                    else
                         toHighlight.Add(i,j,false)
                         iterate(N-1,999999)
             if not pq.IsEmpty then
                 let recentCost,(i,j) = pq.Dequeue()
                 toHighlight.Add(i,j,N>0)
                 iterate(N-1,recentCost)
-            for (i,j,bright) in toHighlight do
-                let thr = routeDrawingLayer.GetHighlightTile(i,j)
-                let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                if cur>=0 && cur<=7 then // most callers pass in owUnmarked equal to TrackerModel.overworldMapMarks, but some pass dungeon letters A-H as unmarked too, color them accessible
-                    if bright then
-                        thr.MakeGreen()
-                    else
-                        thr.MakePaleGreen()
-                elif not(TrackerModel.mapStateSummary.OwGettableLocations.[i,j]) then  
-                    if bright then
-                        thr.MakeRed()  // many callers pass in routeworthy meaning 'acccesible & interesting', but some just pass 'interesting' and here is how we display 'inaccesible'
-                    else
-                        thr.MakePaleRed()
-                elif TrackerModel.owInstance.SometimesEmpty(i,j) then
-                    if bright then
-                        thr.MakeYellow()
-                    else
-                        thr.MakePaleYellow()
-                else
-                    if bright then
-                        thr.MakeGreen()
-                    else
-                        thr.MakePaleGreen()
-        // cyan overrides all
-        for i = 0 to 15 do
-            for j = 0 to 7 do
-                if whatToCyan(i,j) then
-                    routeDrawingLayer.GetHighlightTile(i,j).MakeCyan()
-        for line in accumulatedLines do
-            routeDrawingLayer.AddRouteMark(line)
-
-
+        doComputedDrawing(toHighlight, whatToCyan, accumulatedLines)
 
 
 

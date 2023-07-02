@@ -16,6 +16,24 @@ type RouteDestination =
     | HINTZONE of TrackerModel.HintZone * bool // bool is couldBeLetterDungeon
     | UNMARKEDINSTANCEFUNC of (int*int -> bool)
 
+let linkImages = Array.init 4 (fun n ->
+    let bmp =
+        if n=0 then Graphics.linkFaceForward_bmp
+        elif n=1 then Graphics.linkFaceRight_bmp
+        elif n=2 then Graphics.linkRunRight_bmp
+        else Graphics.linkGotTheThing_bmp
+    let linkImage = bmp |> Graphics.BMPtoImage
+    linkImage.Width <- 30.
+    linkImage.Height <- 30.
+    linkImage.Stretch <- Stretch.UniformToFill
+    linkImage
+    )
+let duplicateLinkImage() = 
+    let linkImage = Graphics.linkGotTheThing_bmp |> Graphics.BMPtoImage
+    linkImage.Width <- 30.
+    linkImage.Height <- 30.
+    linkImage.Stretch <- Stretch.UniformToFill
+    linkImage
 let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget, eliminateCurrentRouteTarget, isSpecificRouteTargetActive, blockerQueries,
                         updateNumberedTriforceDisplayImpl, isMirrored, sword2bmp, owInstance:OverworldData.OverworldInstance, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas) =
     // help the player route to locations
@@ -23,18 +41,8 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
     let mutable linkIconN = 0
     let setLinkIconImpl(n,linkIcon:Canvas) =
         linkIconN <- n
-        let bmp =
-            if n=0 then Graphics.linkFaceForward_bmp
-            elif n=1 then Graphics.linkFaceRight_bmp
-            elif n=2 then Graphics.linkRunRight_bmp
-            elif n=3 then Graphics.linkGotTheThing_bmp
-            else failwith "bad link position"
-        let linkImage = bmp |> Graphics.BMPtoImage
-        linkImage.Width <- 30.
-        linkImage.Height <- 30.
-        linkImage.Stretch <- Stretch.UniformToFill
         linkIcon.Children.Clear()
-        canvasAdd(linkIcon, linkImage, 0., 0.)
+        canvasAdd(linkIcon, linkImages.[n], 0., 0.)
     let setLinkIcon(n) = setLinkIconImpl(n,linkIcon)
     setLinkIcon(0)
     linkIcon.ToolTip <- "Click me and I'll help route you to a destination!"
@@ -83,7 +91,7 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             // bright, clickable targets
             let duplicateLinkIcon = new Canvas(Width=30., Height=30., Background=Brushes.Black)
             canvasAdd(wholeAppCanvas, duplicateLinkIcon, 16.*OMTW-60., 120.)
-            setLinkIconImpl(3,duplicateLinkIcon)
+            duplicateLinkIcon.Children.Add(duplicateLinkImage()) |> ignore
             let makeIconTargetImpl(w, h, draw, drawLinkTarget, (x, y), routeDest) =
                 let c = new Canvas(Width=w, Height=h, Background=Brushes.Black)
                 draw(c)

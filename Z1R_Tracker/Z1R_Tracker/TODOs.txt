@@ -139,8 +139,9 @@ PERF:
 - https://kynosarges.org/WpfPerformance.html turn off anti-aliasing, DONE: freeze all immutable brushes and transforms
 - DONE: hideLocator() is probably getting called due to implicit MouseLeave() when popup draws atop map, i should definitely exclude some work while the popup is active
 - DONE: mapStateSummary.OwGettableLocations is a list of coords, should be array of bools, so Contains() calls can just be array lookup
-- ensureRespecting...() when not drawing route marks should just iterate over the map tiles rather than doing the whole BFS each time
+- DONE: ensureRespecting...() when not drawing route marks should just iterate over the map tiles rather than doing the whole BFS each time
 - WPFUI: let rect = ... for mouse highlight OW could reuse rect better
+- DONE: cache some other Images and hotkey strings for perf based on profiling
 - try on my surface (can compare to 't')
 
 
