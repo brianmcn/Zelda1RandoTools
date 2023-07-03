@@ -946,7 +946,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     if not skipRedrawInsideCurrentImport then
                         c.Children.Clear()
                         roomCirclesCanvas.Children.Remove(roomCircles.[i,j])
-                        let image = roomStates.[i,j].CurrentDisplay()
+                        let image = roomStates.[i,j].CurrentDisplayEx(usedTransports)
                         image.IsHitTestVisible <- false
                         canvasAdd(c, image, -BUFFER, -BUFFER)
                         if roomIsCircled.[i,j] then
@@ -960,13 +960,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 let usedTransportsRemoveState(roomState:DungeonRoomState) =
                     // track transport being changed away from
                     match roomState.RoomType.KnownTransportNumber with
-                    | None -> ()
-                    | Some n -> usedTransports.[n] <- usedTransports.[n] - 1
+                    | None -> false
+                    | Some n -> usedTransports.[n] <- usedTransports.[n] - 1; true
                 let usedTransportsAddState(roomState:DungeonRoomState) =
                     // note any new transports
                     match roomState.RoomType.KnownTransportNumber with
-                    | None -> ()
-                    | Some n -> usedTransports.[n] <- usedTransports.[n] + 1
+                    | None -> false
+                    | Some n -> usedTransports.[n] <- usedTransports.[n] + 1; true
                 let SetNewValue(newState:DungeonRoomState) =
                     let originalState = roomStates.[i,j]
                     if not(originalState.Equals(newState)) then   // don't do work if nothing changed
@@ -976,14 +976,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                             | None -> true
                                             | Some n -> usedTransports.[n]<>2)
                         if isLegal then
-                            usedTransportsRemoveState(roomStates.[i,j])
+                            let removedTransport = usedTransportsRemoveState(roomStates.[i,j])
                             if roomStates.[i,j].RoomType.IsOldMan then
                                 oldManCount <- oldManCount - 1
                             roomStates.[i,j] <- newState
                             if roomStates.[i,j].RoomType.IsOldMan then
                                 oldManCount <- oldManCount + 1
                             updateOldManCountText()
-                            usedTransportsAddState(roomStates.[i,j])
+                            let addedTransport = usedTransportsAddState(roomStates.[i,j])
+                            if removedTransport || addedTransport then
+                                redrawAllRooms()   // to change numeral colors
                             // conservative door inference
                             if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
                                 // they appear to have walked into this room from an adjacent room

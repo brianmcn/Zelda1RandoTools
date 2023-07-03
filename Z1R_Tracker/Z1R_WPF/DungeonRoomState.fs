@@ -449,6 +449,7 @@ let scale(bmp, scale) =
 
 let mutable isDoingDragPaintOffTheMap = false
 let veryDark = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy, 60uy, 10uy, 20uy)))
+let fakeUsedTransports = Array.init 9 (fun _ -> 2)
 type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDetail, floorDropShouldAppearBright) =
     let mutable isCompleted = isCompleted
     let mutable roomType = roomType
@@ -472,7 +473,8 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
     member this.FloorDropDetail with get() = floorDropDetail and set(x) = floorDropDetail <- x
     member this.FloorDropAppearsBright with get() = floorDropShouldAppearBright
     member this.ToggleFloorDropBrightness() = floorDropShouldAppearBright <- not floorDropShouldAppearBright
-    member this.CurrentDisplay() : FrameworkElement =
+    member this.CurrentDisplay() = this.CurrentDisplayEx(fakeUsedTransports)
+    member this.CurrentDisplayEx(usedTransports) : FrameworkElement =
         // optimize the common case to avoid new-ing up an extra canvas
         if roomType = RoomType.Unmarked && monsterDetail = MonsterDetail.Unmarked && floorDropDetail = FloorDropDetail.Unmarked then
             upcast (Graphics.BMPtoImage (roomType.UncompletedBmp()))
@@ -487,7 +489,18 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
                     //canvasAdd(black, new Shapes.Rectangle(Width=black.Width, Height=black.Height, Stroke=veryDark, StrokeThickness=1.), 0., 0.)
                     canvasAdd(black, new Shapes.Rectangle(Width=13.*3., Height=9.*3., Stroke=veryDark, StrokeThickness=2.), 6., 6.)
             | _ ->
-                let roomIcon = Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
+                let roomIcon = 
+                    let which = if isCompleted then snd else fst
+                    match roomType with
+                    | RoomType.Transport1 when usedTransports.[1] < 2 -> Graphics.dungeonRoomBmpPairs.[34] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport2 when usedTransports.[2] < 2 -> Graphics.dungeonRoomBmpPairs.[35] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport3 when usedTransports.[3] < 2 -> Graphics.dungeonRoomBmpPairs.[36] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport4 when usedTransports.[4] < 2 -> Graphics.dungeonRoomBmpPairs.[37] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport5 when usedTransports.[5] < 2 -> Graphics.dungeonRoomBmpPairs.[38] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport6 when usedTransports.[6] < 2 -> Graphics.dungeonRoomBmpPairs.[39] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport7 when usedTransports.[7] < 2 -> Graphics.dungeonRoomBmpPairs.[40] |> which |> Graphics.BMPtoImage
+                    | RoomType.Transport8 when usedTransports.[8] < 2 -> Graphics.dungeonRoomBmpPairs.[41] |> which |> Graphics.BMPtoImage
+                    | _ -> Graphics.BMPtoImage (if isCompleted then roomType.CompletedBmp() else roomType.UncompletedBmp())
                 canvasAdd(c, roomIcon, 0., 0.)
             match roomType with
             | RoomType.StartEnterFromE -> canvasAdd(c, new Canvas(Background=entranceRoomArrowColorBrush, Width=3., Height=9.), 13.*3., 3.*3.)
