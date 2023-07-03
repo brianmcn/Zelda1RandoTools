@@ -987,17 +987,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             if removedTransport || addedTransport then
                                 redrawAllRooms()   // to change numeral colors
                             // conservative door inference
-                            if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && newState.RoomType.KnownTransportNumber.IsNone && not newState.IsGannonOrZelda then
+                            let secondTransport = newState.RoomType.KnownTransportNumber.IsSome && usedTransports.[newState.RoomType.KnownTransportNumber.Value] = 2
+                            if TrackerModelOptions.DoDoorInference.Value && originallyWasNotMarked && not newState.IsEmpty && not secondTransport && not newState.IsGannonOrZelda then
                                 // they appear to have walked into this room from an adjacent room
                                 let possibleEntries = ResizeArray()
+                                let maybeAdd(door:Dungeon.Door) =
+                                    if door.State <> Dungeon.DoorState.NO then
+                                        possibleEntries.Add(door)
                                 if i > 0 && not(roomStates.[i-1,j].IsEmpty) then
-                                    possibleEntries.Add(horizontalDoors.[i-1,j])
+                                    maybeAdd(horizontalDoors.[i-1,j])
                                 if i < 7 && not(roomStates.[i+1,j].IsEmpty) then
-                                    possibleEntries.Add(horizontalDoors.[i,j])
+                                    maybeAdd(horizontalDoors.[i,j])
                                 if j > 0 && not(roomStates.[i,j-1].IsEmpty) then
-                                    possibleEntries.Add(verticalDoors.[i,j-1])
+                                    maybeAdd(verticalDoors.[i,j-1])
                                 if j < 7 && not(roomStates.[i,j+1].IsEmpty) then
-                                    possibleEntries.Add(verticalDoors.[i,j])
+                                    maybeAdd(verticalDoors.[i,j])
                                 if possibleEntries.Count = 1 then
                                     let door = possibleEntries.[0]
                                     if door.State = Dungeon.DoorState.UNKNOWN then

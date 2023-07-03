@@ -130,20 +130,13 @@ since 1.3.0s...
 - fix: Select Voice options should work even if reminders are disabled or Volume is 0
 since 1.3.0t...
 - dungeon rooms: make unpaired transport numerals light up
+- improve Door Inference option
 - fix vanilla 1Q dungeon location marking 9 in wrong spot
 - fix clicks possibly getting missed when 'falling between the cracks' of the popup grids
 - don't animate tile change when you don't actually change it
 - change Broadcast Window layout a little, in order to...
 - ...fix Mouse Magnifier Window cursor not being quite right
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
-
-
-
-better door inference:
-- if two adjacent rooms, but one has red 'door', then can assume other
-- if a question-mark transport, can treat like a room
-- (maybe) if first of 2 numbered transports, can treat like a room
-
 
 
 
