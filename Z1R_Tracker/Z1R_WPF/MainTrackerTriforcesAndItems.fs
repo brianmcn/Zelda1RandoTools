@@ -201,6 +201,13 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             colorButton.MouseLeave.Add(fun _ -> hideLocator())
         else
             let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+            TrackerModel.LevelHintChanged(i).Add(fun hz -> 
+                colorCanvas.Children.Clear()
+                canvasAdd(colorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(hz.AsDisplayTwoChars()), 2., 2.)
+                )
+            OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), colorCanvas, i, true)
+            mainTrackerCanvases.[i,0] <- colorCanvas
+            Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(colorCanvas)
             gridAdd(mainTrackerGrid, colorCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
@@ -228,6 +235,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
+    OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true)
     gridAdd(mainTrackerGrid, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
     let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
@@ -249,7 +257,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i-1,j].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
                         ea.Handled <- true
-                        if j>1 then
+                        if j>0 then
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                         ea.Handled <- true

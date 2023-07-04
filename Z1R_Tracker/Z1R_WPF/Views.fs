@@ -8,13 +8,6 @@ open HotKeys.MyKey
 
 let canvasAdd = Graphics.canvasAdd
 
-(*
-This module is for reusable display elements with the following properties:
- - they represent a display of some portion of the TrackerModel
- - they can redraw themselves by listening for changes to the TrackerModel, and never need to otherwise be redrawn, as their state is entirely TrackerModel-evented
- - they might optionally also have interactive/update abilities to change the model (which will, of course, be reflected back in their display view)
-*)
-
 type GlobalBoxMouseOverHighlight() =
     let globalBoxMouseOverHighlight = new System.Windows.Shapes.Rectangle(Width=34., Height=34., Stroke=Brushes.DarkTurquoise, StrokeThickness=2.0, Opacity=0.0)
     let mutable setGlobalBoxMouseOverHighlight = fun(_b,_e:UIElement) -> ()
@@ -37,8 +30,16 @@ type GlobalBoxMouseOverHighlight() =
         e.MouseLeave.Add(fun _ -> setGlobalBoxMouseOverHighlight(false,e))
 let appMainCanvasGlobalBoxMouseOverHighlight = new GlobalBoxMouseOverHighlight()
 
-let hintHighlightBrush = new LinearGradientBrush(Colors.Yellow, Colors.DarkGreen, 45.)
+let HHS,HHE = Colors.Yellow,Colors.DarkGreen
+let hintHighlightBrush = (let r = new LinearGradientBrush(HHS, HHE, 45.) in (if r.CanFreeze then r.Freeze()); r)
 let makeHintHighlight(size) = new Shapes.Rectangle(Width=size, Height=size, StrokeThickness=0., Fill=hintHighlightBrush)
+
+(*
+The rest of this module is for reusable display elements with the following properties:
+ - they represent a display of some portion of the TrackerModel
+ - they can redraw themselves by listening for changes to the TrackerModel, and never need to otherwise be redrawn, as their state is entirely TrackerModel-evented
+ - they might optionally also have interactive/update abilities to change the model (which will, of course, be reflected back in their display view)
+*)
 
 let emptyUnfoundTriforce_bmp(i) =
     match TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.Kind with

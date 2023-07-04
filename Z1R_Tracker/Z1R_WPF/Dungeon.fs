@@ -326,7 +326,7 @@ let HiddenDungeonColorChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, til
     let brushes=CustomComboBoxes.ModalGridSelectBrushes.Defaults()
     let gridClickDismissalDoesMouseWarpBackToTileCenter = false
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                            float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "HDNColorChooser")
+                            float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "HDNColorChooser", None)
     }
 
 let MakeTriforceDecoderDiagram() =
@@ -401,7 +401,7 @@ let HiddenDungeonNumberChooserPopup(cm:CustomComboBoxes.CanvasManager, tileX, ti
     HDNCP <- Some(dungeon, wh)
     Graphics.WarpMouseCursorTo(Point(tileX+gx+float gcw/2.+18., tileY+gy+float grh/2.+15.))   // the +(18,15) makes mouse still inside the box but not overlapping the '?', easier to see
     do! Async.Ignore <| CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                    44., 34., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, Some(wh), "HDNNumberChooser")
+                    44., 34., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, Some(wh), "HDNNumberChooser", None)
     HDNCP <- None
     }
 do

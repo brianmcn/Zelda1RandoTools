@@ -699,7 +699,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         tileCanvas.Children.Add(dp) |> ignore
                                         ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "OWGridTile")
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "OWGridTile", None)
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
@@ -719,6 +719,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                 if msp.IsX then
                                     if Graphics.shouldInitiallyHideOverworldMap then
                                         let ex = TrackerModel.getOverworldMapExtraData(i,j,msp.State)
+                                        popupIsActive <- true
                                         async {
                                             if ex=msp.State then
                                                 // hidden -> unmarked           (and recall that unmarked left clicks to DontCare)
@@ -728,16 +729,19 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                                 // DontCare -> hidden           (thus left click is a 3-cycle hidden, unmarked, DontCare)
                                                 TrackerModel.setOverworldMapExtraData(i,j,msp.State,msp.State)
                                             redrawGridSpot()
+                                            popupIsActive <- false
                                         } |> Async.StartImmediate
                                     else
                                         activatePopup(0)  // thus, if you have unmarked, then left-click left-click pops up, as the first marks X, and the second now pops up
                                 else
+                                    popupIsActive <- true
                                     async {
                                         let! needRedraw, needHighlightTileHide = DoLeftClick(cm,msp,i,j,pos)
                                         if needRedraw then 
                                             redrawGridSpot()
                                             animateOverworldTileIfOptionIsChecked(i,j)
                                         if needHighlightTileHide then OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(i,j).Hide()  // dismiss any green/yellow highlight on this tile
+                                        popupIsActive <- false
                                     } |> Async.StartImmediate
                         elif ea.ChangedButton = Input.MouseButton.Right then
                             if Input.Keyboard.IsKeyDown(Input.Key.LeftShift) || Input.Keyboard.IsKeyDown(Input.Key.RightShift) then
@@ -767,11 +771,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if not popupIsActive then
                         match HotKeys.OverworldHotKeyProcessor.TryGetValue(ea.Key) with
                         | Some(hotKeyedState) -> 
+                            popupIsActive <- true
                             ea.Handled <- true
                             let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                             let state = OverworldMapTileCustomization.DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState)
                             async {
                                 do! SetNewValue(state, originalState)
+                                popupIsActive <- false
                             } |> Async.StartImmediate
                         | None -> ()
                     )

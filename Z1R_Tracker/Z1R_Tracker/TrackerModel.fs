@@ -1261,6 +1261,19 @@ type HintZone =
         | DEAD_WOODS -> 'W'
         | NEAR_START -> 'S'
         | FOREST -> 'F'
+    member this.AsDisplayTwoChars() =
+        match this with
+        | UNKNOWN -> "UN"
+        | DEATH_MOUNTAIN -> "DM"
+        | LAKE -> "LK"
+        | LOST_HILLS -> "LH"
+        | RIVER -> "RI"
+        | GRAVE -> "GR"
+        | DESERT -> "DE"
+        | COAST -> "CO"
+        | DEAD_WOODS -> "DW"
+        | NEAR_START -> "ST"
+        | FOREST -> "FO"
     override this.ToString() =
         match this with
         | UNKNOWN -> "(Unknown)"

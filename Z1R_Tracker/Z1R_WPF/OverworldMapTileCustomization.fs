@@ -371,7 +371,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple o
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "SecondShopItem")
+                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "SecondShopItem", None)
         let r =
             match g with
             | Some(currentState) ->

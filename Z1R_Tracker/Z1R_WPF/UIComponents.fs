@@ -655,7 +655,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
             let gridClickDismissalDoesMouseWarpBackToTileCenter = false
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "HintDecoder")
+                                                float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "HintDecoder", None)
                 match r with
                 | Some(i) ->
                     TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
@@ -796,13 +796,14 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                                 (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentDisplay(db)), db.PlayerCouldBeBlockedByThis(), db), 
                                 System.Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), 12., 12., -90., 30., popupRedraw,
-                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "Blocker")
+                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "Blocker", None)
                 match r with
                 | Some(db) -> SetNewValue(db)
                 | None -> () 
                 popupIsActive <- false
                 } |> Async.StartImmediate
         let doPanel(pos:Point) =
+            popupIsActive <- true
             let border = new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Background=Brushes.Black, Width=110.)
             let style = new Style(typeof<TextBox>)
             style.Setters.Add(new Setter(TextBox.BorderThicknessProperty, Thickness(0.)))
@@ -841,6 +842,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             let wh = new System.Threading.ManualResetEvent(false)
             async {
                 do! CustomComboBoxes.DoModal(cm, wh, pos.X-80., pos.Y+30., border)
+                popupIsActive <- false
             } |> Async.StartImmediate
         c.MouseWheel.Add(fun x -> if not popupIsActive then activate(if x.Delta<0 then 1 else -1))
         c.MouseDown.Add(fun ea ->

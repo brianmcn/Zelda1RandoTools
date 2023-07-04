@@ -41,6 +41,7 @@ let SetupReminderDisplayAndProcessing(cm) =
     DockPanel.SetDock(reminderDisplayInnerBorder, Dock.Right)
     reminderDisplayInnerBorder.MouseDown.Add(fun _ ->
         if not popupIsActive then
+            popupIsActive <- true
             let wh = new System.Threading.ManualResetEvent(false)
             let sp = new StackPanel(Orientation=Orientation.Vertical)
             sp.Children.Add(new TextBox(Text="Recent reminders log", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., IsHitTestVisible=false, 
@@ -55,6 +56,7 @@ let SetupReminderDisplayAndProcessing(cm) =
             async {
                 do! CustomComboBoxes.DoModal(cm, wh, 10., 10., b)
                 reminderView.Content <- null // deparent log for future reuse
+                popupIsActive <- false
             } |> Async.StartImmediate
         )
     reminderDisplayInnerBorder.MouseEnter.Add(fun _ -> reminderDisplayInnerBorder.BorderBrush <- Brushes.Cyan)

@@ -167,8 +167,10 @@ let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeEle
     cm.DismissPopup()
     }
 
-let DoModal(cm:CanvasManager, wh:System.Threading.ManualResetEvent, x, y, element) =
-    DoModalCore(cm, wh, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, 0.5)
+let DoModalOpa(cm:CanvasManager, wh:System.Threading.ManualResetEvent, x, y, element, opa) =
+    DoModalCore(cm, wh, (fun (c,e) -> canvasAdd(c, e, x, y)), (fun (c,e) -> c.Children.Remove(e)), element, opa)
+
+let DoModal(cm, wh, x, y, element) = DoModalOpa(cm, wh, x, y, element, 0.5)
 
 let DoModalDockedOpa(cm:CanvasManager, wh:System.Threading.ManualResetEvent, dock, element, blackSunglassesOpacity) =
     let d = new DockPanel(Width=cm.Width, Height=cm.Height, LastChildFill=false)
@@ -317,7 +319,8 @@ let DoModalGridSelect<'State,'Result>
                 brushes:ModalGridSelectBrushes,
                 gridClickDismissalDoesMouseWarpBackToTileCenter,
                 who:System.Threading.ManualResetEvent option,      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
-                uniqueName:string       // for PrettyDashes caching
+                uniqueName:string,      // for PrettyDashes caching
+                opaOpt:float option     // blackSunglassesOpacity
                 ) = async {
     let wh = match who with Some(x) -> x | _ -> new System.Threading.ManualResetEvent(false)
     let mutable result = None
@@ -476,7 +479,9 @@ let DoModalGridSelect<'State,'Result>
     |  1 -> next()
     | _ -> failwith "bad activationDelta"
     // activate the modal
-    do! DoModal(cm, wh, tileX, tileY, popupCanvas)
+    match opaOpt with
+    | Some opa -> do! DoModalOpa(cm, wh, tileX, tileY, popupCanvas, opa)
+    | _ -> do! DoModal(cm, wh, tileX, tileY, popupCanvas)
     selfCleanup()
     allDone <- true
     return result
@@ -566,7 +571,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), 
-                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None, "ItemBox")
+                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None, "ItemBox", None)
     }
 
 let makeVersionButtonWithBehavior(cm:CanvasManager) =
