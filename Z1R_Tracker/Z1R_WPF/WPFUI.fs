@@ -50,17 +50,17 @@ let drawRoutesToImpl(routeDestinationOption, point, i, j, drawRouteMarks, maxBol
     | Some(RouteDestination.OW_MAP(spots)) ->
         for x,y in spots do
             owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, 0, false, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, 0, false, NoCyan)
         lightUpDestinations <- true
     | Some(RouteDestination.HINTZONE(hz,couldBeLetterDungeon)) ->
         processHint(hz,couldBeLetterDungeon)
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.All, false, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.All, false, NoCyan)
     | Some(RouteDestination.UNMARKEDINSTANCEFUNC(f)) ->
         for x = 0 to 15 do
             for y = 0 to 7 do
                 if unmarked.[x,y] && f(x,y) then
                     owTargetworthySpots.[x,y] <- true
-        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.MaxGYR, true, whatToCyan)
+        OverworldRouteDrawing.drawPathsImpl(owTargetworthySpots, unmarked, point, i, j, true, false, OverworldRouteDrawing.MaxGYR, true, NoCyan)
     | None ->
         OverworldRouteDrawing.drawPathsImpl(TrackerModel.mapStateSummary.OwRouteworthySpots, unmarked, point, i, j, drawRouteMarks, true, maxBoldGYR, showPale, whatToCyan)
     for x,y in interestingButInaccesible do
