@@ -201,15 +201,17 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             colorButton.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
             colorButton.MouseLeave.Add(fun _ -> hideLocator())
         else
-            let colorCanvas = new Canvas(Width=28., Height=28., Background=Brushes.Black)
+            let hintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
             TrackerModel.LevelHintChanged(i).Add(fun hz -> 
-                colorCanvas.Children.Clear()
-                canvasAdd(colorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(hz.AsDisplayTwoChars()), 2., 2.)
+                hintCanvas.Children.Clear()
+                canvasAdd(hintCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 2., 2.)
                 )
-            OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), colorCanvas, i, true)
-            mainTrackerCanvases.[i,0] <- colorCanvas
-            Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(colorCanvas)
-            gridAdd(mainTrackerGrid, colorCanvas, i, 0)
+            OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), hintCanvas, i, true)
+            mainTrackerCanvases.[i,0] <- hintCanvas
+            Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(hintCanvas)
+            hintCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
+            hintCanvas.MouseLeave.Add(fun _ -> hideLocator())
+            gridAdd(mainTrackerGrid, hintCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
         mainTrackerCanvases.[i,1] <- c

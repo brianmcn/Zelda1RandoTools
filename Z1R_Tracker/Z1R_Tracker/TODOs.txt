@@ -146,11 +146,9 @@ since 1.3.0t...
    - old Hint Decoder button and UI still exists, but
    - new faster version available (in non-Hidden-Dungeon-Numbers) if player knows Aquamentus Awaits means Level 1
       - scroll (or click) blank area above a triforce (or 9 numeral) to select hint for that dungeon location
-      - scroll the white sword icon or magical sword icon to select hint for those locations
-TODO L9, WS, MS location not displayed
- - could put WS/MS above them in blank space
- - where to show L9?
- - should be a new hotkey context to hotkey them (which might need some short animation for visual confirmation)
+      - scroll the white sword icon or magical sword icon (or blank area above) to select hint for those locations
+      - can see two-letter hinted locations on-screen (for all except L9) without having to hover to see the map region
+      - TODO hotkeys
 
 
 

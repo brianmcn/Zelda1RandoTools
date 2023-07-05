@@ -73,6 +73,10 @@ let HintZoneDisplayTextBox(s) : FrameworkElement =
                          FontSize=12., FontWeight=FontWeights.Bold, HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
                          HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center) 
     upcast Graphics.center(tb, 24, 24)
+let hintyBrush = 
+    let HHS,HHE = Views.HHS, Views.HHE
+    let c = Color.FromRgb(HHS.R/2uy + HHE.R/2uy, HHS.G/2uy + HHE.G/2uy, HHS.B/2uy + HHE.B/2uy)
+    Graphics.freeze(new SolidColorBrush(c))
 let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     let tb = HintZoneDisplayTextBox
     let gesai(hz:TrackerModel.HintZone) = tb(hz.AsDisplayTwoChars()), true, hz
@@ -97,8 +101,9 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     let tile = new Canvas(Width=24., Height=24., Background=Brushes.Black)
     let levelHintDescription = new TextBox(Text="", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20.)
     let levelHintLocation    = new TextBox(Text="", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20.)
-    let extraDecoration = 
-        let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), Width=200., Height=96.)
+    let boxDecoration : FrameworkElement = upcast new Border(BorderBrush=hintyBrush, BorderThickness=Thickness(3.), Width=30., Height=30.)
+    let descDecoration = 
+        let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(3.), Width=200., Height=96.)
         let sp = new StackPanel(Orientation=Orientation.Vertical)
         sp.Children.Add(levelHintDescription) |> ignore
         sp.Children.Add(levelHintLocation) |> ignore
@@ -111,12 +116,9 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
         levelHintLocation.Text <- hz.ToString()
         hideLocator()
         showLocatorHintedZone(hz, false)
-    let HHS,HHE = Views.HHS, Views.HHE
-    let c = Color.FromRgb(HHS.R/2uy + HHE.R/2uy, HHS.G/2uy + HHE.G/2uy, HHS.B/2uy + HHE.B/2uy)
-    let b = Graphics.freeze(new SolidColorBrush(c))
-    let brushes = CustomComboBoxes.ModalGridSelectBrushes(b, Brushes.Lime, Brushes.Red, Brushes.Gray)
+    let brushes = CustomComboBoxes.ModalGridSelectBrushes(hintyBrush, Brushes.Lime, Brushes.Red, Brushes.DarkGray)
     let! r = CustomComboBoxes.DoModalGridSelect(cm, px, py, tile, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 3, 24, 24), 
-                                17., 12., -3., 27., redrawTile, onClick, [extraDecoration, 123., 27.], brushes, false, None, "FastHintSelector", Some(0.3))
+                                17., 12., 27., 27., redrawTile, onClick, [descDecoration, 153., 27.; boxDecoration, -3., 27.], brushes, false, None, "FastHintSelector", Some(0.2))
     hideLocator()
     return r
     }
@@ -124,6 +126,7 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
     fe.MouseWheel.Add(fun x ->
         if not popupIsActive then 
             popupIsActive <- true
+            Graphics.SilentlyWarpMouseCursorTo(Point(px+15., py+15.))   // white/magical sword can activate scroll from icons below; just always center on box when activated
             async {
                 let! r = FastHintSelector(cm, i, float px+3., py+3., if x.Delta<0 then 1 else -1)
                 match r with
@@ -133,9 +136,10 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
             } |> Async.StartImmediate
         )
     if activateOnClick then
-        fe.MouseDown.Add(fun _ ->
+        fe.MouseDown.Add(fun ea ->
             if not popupIsActive then 
                 popupIsActive <- true
+                ea.Handled <- true
                 async {
                     let! r = FastHintSelector(cm, i, float (30*i+3), 3., 0)
                     match r with
@@ -192,8 +196,11 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, rerouteClick(armos, armosBoxImpl), OW_ITEM_GRID_LOCATIONS.ARMOS_ICON)
     armos.ToolTip <- "The item box to the right is for the item found under an Armos robot on the overworld."
     let white_sword_canvas = new Canvas(Width=30., Height=30.)
+    let wsHintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
     let redrawWhiteSwordCanvas(c:Canvas) =
         c.Children.Clear()
+        if not(TrackerModel.IsHiddenDungeonNumbers()) then
+            canvasAdd(c, wsHintCanvas, 0., -30.)
         if not(TrackerModel.playerComputedStateSummary.HaveWhiteSwordItem) &&           // don't have it yet
                 TrackerModel.mapStateSummary.Sword2Location=TrackerModel.NOTFOUND &&    // have not found cave
                 TrackerModel.GetLevelHint(9)<>TrackerModel.HintZone.UNKNOWN then        // have a hint
@@ -201,8 +208,14 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         canvasAdd(c, Graphics.BMPtoImage Graphics.white_sword_bmp, 4., 4.)
         Views.drawTinyIconIfLocationIsOverworldBlock(c, Some(owInstance), TrackerModel.mapStateSummary.Sword2Location)
     redrawWhiteSwordCanvas(white_sword_canvas)
-    TrackerModel.LevelHintChanged(9).Add(fun _ -> redrawWhiteSwordCanvas(white_sword_canvas))
-    ApplyFastHintSelectorBehavior(cm, OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON), white_sword_canvas, 9, false)
+    if not(TrackerModel.IsHiddenDungeonNumbers()) then
+        TrackerModel.LevelHintChanged(9).Add(fun hz -> 
+            wsHintCanvas.Children.Clear()
+            canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 4., 4.)
+            redrawWhiteSwordCanvas(white_sword_canvas))
+        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true)
     (*  don't need to do this, as redrawWhiteSwordCanvas() is currently called every doUIUpdate, heh
     // redraw after we can look up its new location coordinates
     let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
@@ -283,8 +296,11 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, blue_ring_box, OW_ITEM_GRID_LOCATIONS.BLUE_RING_BOX)
     let mags_box = basicBoxImpl("Acquired magical sword (mark timeline)\n(10-14 hearts to lift)", Timeline.TimelineID.MagicalSword, Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, TrackerModel.magsCaveFound, FALSE)
     let mags_canvas = mags_box.Children.[1] :?> Canvas // a tiny bit fragile
+    let magsHintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
     let redrawMagicalSwordCanvas(c:Canvas) =
         c.Children.Clear()
+        if not(TrackerModel.IsHiddenDungeonNumbers()) then
+            canvasAdd(c, magsHintCanvas, 0., -30.)
         if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) &&   // dont have sword
                 TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
                 TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then              // have a hint
@@ -292,8 +308,14 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)
     redrawMagicalSwordCanvas(mags_canvas)
     gridAddTuple(owItemGrid, mags_box, OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
-    TrackerModel.LevelHintChanged(10).Add(fun _ -> redrawMagicalSwordCanvas(mags_canvas))
-    ApplyFastHintSelectorBehavior(cm, OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX), mags_canvas, 10, false)
+    if not(TrackerModel.IsHiddenDungeonNumbers()) then
+        TrackerModel.LevelHintChanged(10).Add(fun hz -> 
+            magsHintCanvas.Children.Clear()
+            canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 4., 4.)
+            redrawMagicalSwordCanvas(mags_canvas))
+        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true)
     mags_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)
