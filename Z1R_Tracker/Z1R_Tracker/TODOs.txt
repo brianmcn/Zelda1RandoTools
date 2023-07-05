@@ -153,8 +153,6 @@ TODO L9, WS, MS location not displayed
 
 
 
-mark all FQ done button slow, force ui update?
-
 when link chasing icon, cyan still active - should it?
 
 UCC may need testing of popup menus

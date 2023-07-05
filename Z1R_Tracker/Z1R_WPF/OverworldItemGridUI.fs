@@ -759,6 +759,7 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                                 if OverworldData.owMapSquaresFirstQuestOnly.[y].Chars(x) = 'X' then
                                     let cell = TrackerModel.overworldMapMarks.[x,y]
                                     cell.AttemptToSet(TrackerModel.MapSquareChoiceDomainHelper.DARK_X) |> ignore
+                        OptionsMenu.requestRedrawOverworldEvent.Trigger()
                         wh.Set() |> ignore
                         )
                     right.Children.Add(clearFQbutton) |> ignore
@@ -773,6 +774,7 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
                                 if OverworldData.owMapSquaresSecondQuestOnly.[y].Chars(x) = 'X' then
                                     let cell = TrackerModel.overworldMapMarks.[x,y]
                                     cell.AttemptToSet(TrackerModel.MapSquareChoiceDomainHelper.DARK_X) |> ignore
+                        OptionsMenu.requestRedrawOverworldEvent.Trigger()
                         wh.Set() |> ignore
                         )
                     right.Children.Add(clearSQbutton) |> ignore
