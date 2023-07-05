@@ -8,6 +8,7 @@ let OMTW = Graphics.OMTW
 let canvasAdd = Graphics.canvasAdd
 
 open DungeonUI.AhhGlobalVariables
+open CustomComboBoxes.GlobalFlag
 
 ///////////////////////////////////////////////
 

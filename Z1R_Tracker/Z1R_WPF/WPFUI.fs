@@ -11,6 +11,7 @@ open HotKeys.MyKey
 open OverworldItemGridUI
 open Reminders
 open MainTrackerTriforcesAndItems
+open CustomComboBoxes.GlobalFlag
 
 module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
 

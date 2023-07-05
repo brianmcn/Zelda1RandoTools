@@ -5,6 +5,7 @@ open System.Windows.Controls
 open System.Windows
 
 open HotKeys.MyKey
+open CustomComboBoxes.GlobalFlag
 
 // door colors
 let highlightOpacity = 1.0
@@ -457,8 +458,8 @@ let HiddenDungeonCustomizerPopup(cm:CustomComboBoxes.CanvasManager, dungeonIndex
     let theBorder = new Border(BorderBrush=Brushes.Black, BorderThickness=Thickness(10.), Child=mainDock)
     let theBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(4.), Child=theBorder)
 
+    let mutable popupIsActive = false  // second level of popup, need local copy
     // hook up the button actions
-    let mutable popupIsActive = false
     let button1Body() =
         if not popupIsActive then
             popupIsActive <- true

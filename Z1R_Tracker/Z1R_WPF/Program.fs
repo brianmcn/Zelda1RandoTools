@@ -3,6 +3,8 @@ open System.Windows
 open System.Windows.Controls 
 open System.Windows.Media
 
+open CustomComboBoxes.GlobalFlag
+
 open System.Runtime.InteropServices 
 module Winterop = 
     [<DllImport("User32.dll")>]
@@ -473,7 +475,6 @@ type MyWindow() as this =
                                     IsReadOnly=true, BorderThickness=Thickness(0.), FontSize=fs, VerticalAlignment=VerticalAlignment.Center)
             topBar.Children.Add(tb) |> ignore
             let b = Graphics.makeButton("Click here for options", Some(fs), None)
-            let mutable popupIsActive = false
             b.Click.Add(fun _ -> 
                 if startButtonHasBeenClicked then () else
                 if not popupIsActive then
@@ -818,6 +819,7 @@ type MyWindow() as this =
                         if System.IO.File.Exists(SaveAndLoad.AutoSaveFilename) then
                             let autoSaveTime = System.IO.File.GetLastWriteTime(SaveAndLoad.AutoSaveFilename)
                             if autoSaveTime > (crashTime - TimeSpan.FromMinutes(2.)) then
+                                popupIsActive <- true
                                 async {
                                 // there was an autosave just before the crash
                                 let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, 
@@ -825,6 +827,7 @@ type MyWindow() as this =
                                                                                 "There is a recent auto-save from a\n"+
                                                                                 "minute or so before the crash.\n\n"+
                                                                                 "Would you like to try loading the auto-save?", ["Yes, load auto-save"; "No"])
+                                popupIsActive <- false
                                 if r <> "No" then
                                     let json = System.IO.File.ReadAllText(SaveAndLoad.AutoSaveFilename)
                                     let loadData = Some(DungeonSaveAndLoad.LoadAll(json))

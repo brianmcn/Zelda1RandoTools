@@ -5,6 +5,7 @@ open System.Windows.Media
 open System.Windows
 
 open HotKeys.MyKey
+open CustomComboBoxes.GlobalFlag
 
 let canvasAdd = Graphics.canvasAdd
 
@@ -147,7 +148,6 @@ let MakeTriforceDisplayView(cmo:CustomComboBoxes.CanvasManager option, trackerIn
     // interactions
     match cmo with
     | Some(cm) ->
-        let mutable popupIsActive = false
         innerc.MouseDown.Add(fun _ -> 
             if not popupIsActive then
                 dungeon.ToggleTriforce()
@@ -313,7 +313,6 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
     // interactions
     match cmo with
     | Some cm ->
-        let mutable popupIsActive = false
         let activateComboBox(activationDelta) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)

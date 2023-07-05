@@ -9,6 +9,7 @@ open System.Windows.Media
 open OverworldMapTileCustomization
 open HotKeys.MyKey
 open DungeonUI.AhhGlobalVariables
+open CustomComboBoxes.GlobalFlag
 
 
 let canvasAdd = Graphics.canvasAdd
@@ -69,7 +70,7 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 
 let HintZoneDisplayTextBox(s) : FrameworkElement = 
     let tb = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
-                         FontSize=12., HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
+                         FontSize=12., FontWeight=FontWeights.Bold, HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
                          HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center) 
     upcast Graphics.center(tb, 24, 24)
 let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {

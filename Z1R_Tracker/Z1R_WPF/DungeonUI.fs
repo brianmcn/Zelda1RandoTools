@@ -13,7 +13,6 @@ module AhhGlobalVariables =
     let mutable showShopLocatorInstanceFunc = fun(_item:int) -> ()
     let mutable hideLocator = fun() -> ()
     let mutable resetDungeonsForRouters = fun() -> ()
-    let mutable popupIsActive = false
 
 let TH = 24 // text height
 
@@ -24,6 +23,7 @@ module FloatHelper =
             this >= x && this <= y
 open FloatHelper
 open DungeonRoomState
+open CustomComboBoxes.GlobalFlag
 
 let MakeSmallLocalTrackerPanel(dungeonIndex, ghostBuster) =
     let sp = new StackPanel(Orientation=Orientation.Vertical)
@@ -212,7 +212,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     Child=new TextBlock(TextWrapping=TextWrapping.Wrap, FontSize=16., Foreground=Brushes.Black, Background=Brushes.Gray, IsHitTestVisible=false,
                                         Text="You are now in 'grab mode', which can be used to move an entire segment of dungeon rooms and doors at once.\n\nTo abort grab mode, click again on 'GRAB' in the upper right of the dungeon tracker.\n\nTo move a segment, first click any marked room, to pick up that room and all contiguous rooms.  Then click again on a new location to 'drop' the segment you grabbed.  After grabbing, hovering the mouse shows a preview of where you would drop.  This behaves like 'cut and paste', and adjacent doors will come along for the ride.\n\nUpon completion, you will be prompted to keep changes or undo them, so you can experiment.")
         )
-    let mutable popupIsActive = false
     let dungeonTabs = new TabControl(FontSize=12., Background=Brushes.Black)
     theDungeonTabControl <- dungeonTabs
     let masterRoomStates = Array.init 9 (fun _ -> Array2D.init 8 8 (fun _ _ -> new DungeonRoomState()))
@@ -235,7 +234,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         BorderThickness=Thickness(0.), Text=txt, VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center,
                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
 
-        let mutable popupIsActive = false
         button.MouseEnter.Add(fun _ -> isHoveringFQSQ.Value <- true)
         button.MouseLeave.Add(fun _ -> isHoveringFQSQ.Value <- false)
         button.Click.Add(fun _ ->

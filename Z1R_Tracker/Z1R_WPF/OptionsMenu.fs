@@ -4,6 +4,8 @@ open System.Windows.Controls
 open System.Windows.Media
 open System.Windows
 
+open CustomComboBoxes.GlobalFlag
+
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let defaultVoice = try voice.Voice.Name with _ -> ""
 do
@@ -109,86 +111,94 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
     let moreButton = Graphics.makeButton(" More settings... ",None,None)
     moreButton.HorizontalAlignment <- HorizontalAlignment.Left
     options1sp.Children.Add(moreButton) |> ignore
-    let mutable popupIsActive = false
-    moreButton.Click.Add(fun _ ->
-        if not popupIsActive then
-            popupIsActive <- true
-            let wh = new System.Threading.ManualResetEvent(false)
-            let sp = new StackPanel(Orientation=Orientation.Vertical)
-            let tb = new TextBox(Text="Overworld marks to hide", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
-            sp.Children.Add(tb) |> ignore
-            let desc = "Sometimes you want to mark certain map tiles (e.g. Door Repairs) so the tracker can help you (e.g. by keeping count), but " +
-                        "you don't want to clutter your overworld map with icons (e.g. Door icons) that you don't need to see or come back to.  " +
-                        "In these cases, you can opt to 'hide' certain icons, so that they appear like \"Don't Care\" spots (just grayed out tile " +
-                        "with no icon) rather than with an icon on the map.\n\n" + 
-                        "Check each tile that you would prefer to hide after you mark it."
-            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
-            sp.Children.Add(tb) |> ignore
-            let firstThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[0..3]
-            let secondThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[4..7]
-            let finalThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[8..11]
-            let boxes = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(20.,5.,0.,5.))
-            let first = new StackPanel(Orientation=Orientation.Vertical)
-            let second = new StackPanel(Orientation=Orientation.Vertical)
-            let third = new StackPanel(Orientation=Orientation.Vertical)
-            boxes.Children.Add(first) |> ignore
-            boxes.Children.Add(second) |> ignore
-            boxes.Children.Add(third) |> ignore
-            sp.Children.Add(boxes) |> ignore
-            let addTo(sp:StackPanel, a) = 
-                for tile in a do
-                    let desc = let _,_,_,s = TrackerModel.dummyOverworldTiles.[tile] in s
-                    let desc = 
-                        let i = desc.IndexOf('\n')
-                        if i <> -1 then
-                            desc.Substring(0, i)
-                        else
-                        desc
-                    let cb = new CheckBox(Content=new TextBox(Text=desc,IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-                    let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(tile)
-                    link(cb, b, false, requestRedrawOverworldEvent.Trigger)
-                    sp.Children.Add(cb) |> ignore
-            addTo(first, firstThird)
-            addTo(second, secondThird)
-            addTo(third, finalThird)
-            let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
-                        "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
-                        "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
-                        "a bright icon in that case.\n\n" +
-                        "You can also hide no-longer-relevant shop items (key shop after you get the Magic Key, ring shop after you obtain either blue or red ring, " +
-                        "candle shop after you obtain blue or red candle, arrow shop after you buy it or obtain silvers, boomstick book after you buy it) " +
-                        "by checking the box below."
-            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))
-            sp.Children.Add(tb) |> ignore
-            let cb = new CheckBox(Content=new TextBox(Text="Hide no-longer-relevant shop items",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-            let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
-            link(cb, b, false, requestRedrawOverworldEvent.Trigger)
-            sp.Children.Add(cb) |> ignore
-            let desc = "Note that bomb shops and shield shops always stay visible.\n\nMeat shops also are always visible, unless you also click the box below, to make " +
-                        "them always be invisible.  If you check this box, then to see the meat shops, you must either (1) uncheck this box, (2) mouse hover Zelda (see below), " +
-                        "(3) mark a meat Blocker and then mouse-hover the Blocker, or (4) place a HungryGoriya room in a dungeon and hover that room " +
-                        "(options (3) or (4) are best).\nThis option is for folks who like to mark meat shops but also know that " +
-                        "in 99% of seed, they'll be unnecessary and just clutter the map.  In the 1% of seeds that have a meat block, mark the Blocker and then mouse hover it to find the shop."
-            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
-            sp.Children.Add(tb) |> ignore
-            let cb = new CheckBox(Content=new TextBox(Text="When hiding no-longer-relevant shop items, always hide meat shops",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
-            let b = TrackerModelOptions.OverworldTilesToHide.AlwaysHideMeatShops
-            link(cb, b, false, requestRedrawOverworldEvent.Trigger)
-            sp.Children.Add(cb) |> ignore
-            let tb = new TextBox(Text="", IsReadOnly=true, TextWrapping=TextWrapping.Wrap) |> header
-            sp.Children.Add(tb) |> ignore
-            let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired. And when you finish the seed and click Zelda, all icons reappear."
-            let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
-            sp.Children.Add(tb) |> ignore
-            AddStyle(sp)
-            let sv = new ScrollViewer(Content=sp, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled)
-            let b = new Border(Child=sv, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
-                                Width=720., MaxHeight=cm.Height-90., HorizontalAlignment=HorizontalAlignment.Right)
-            async {
-                do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
-                popupIsActive <- false
-            } |> Async.StartImmediate
-        )
+    do  // scope local mutable popupIsActive variable to this one button
+        let mutable popupIsActive = false  // second level of popup, need local copy
+        let mutable changedGlobal = false
+        moreButton.Click.Add(fun _ ->
+            if not popupIsActive then
+                popupIsActive <- true
+                // the options menu is not popped up on the start screen, but is in the main app, so we need to make this consistent for both
+                if not CustomComboBoxes.GlobalFlag.popupIsActive then
+                    CustomComboBoxes.GlobalFlag.popupIsActive <- true  // must be start screen
+                    changedGlobal <- true
+                let wh = new System.Threading.ManualResetEvent(false)
+                let sp = new StackPanel(Orientation=Orientation.Vertical)
+                let tb = new TextBox(Text="Overworld marks to hide", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
+                sp.Children.Add(tb) |> ignore
+                let desc = "Sometimes you want to mark certain map tiles (e.g. Door Repairs) so the tracker can help you (e.g. by keeping count), but " +
+                            "you don't want to clutter your overworld map with icons (e.g. Door icons) that you don't need to see or come back to.  " +
+                            "In these cases, you can opt to 'hide' certain icons, so that they appear like \"Don't Care\" spots (just grayed out tile " +
+                            "with no icon) rather than with an icon on the map.\n\n" + 
+                            "Check each tile that you would prefer to hide after you mark it."
+                let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+                sp.Children.Add(tb) |> ignore
+                let firstThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[0..3]
+                let secondThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[4..7]
+                let finalThird = TrackerModel.MapSquareChoiceDomainHelper.TilesThatSupportHidingOverworldMarks.[8..11]
+                let boxes = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(20.,5.,0.,5.))
+                let first = new StackPanel(Orientation=Orientation.Vertical)
+                let second = new StackPanel(Orientation=Orientation.Vertical)
+                let third = new StackPanel(Orientation=Orientation.Vertical)
+                boxes.Children.Add(first) |> ignore
+                boxes.Children.Add(second) |> ignore
+                boxes.Children.Add(third) |> ignore
+                sp.Children.Add(boxes) |> ignore
+                let addTo(sp:StackPanel, a) = 
+                    for tile in a do
+                        let desc = let _,_,_,s = TrackerModel.dummyOverworldTiles.[tile] in s
+                        let desc = 
+                            let i = desc.IndexOf('\n')
+                            if i <> -1 then
+                                desc.Substring(0, i)
+                            else
+                            desc
+                        let cb = new CheckBox(Content=new TextBox(Text=desc,IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+                        let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(tile)
+                        link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+                        sp.Children.Add(cb) |> ignore
+                addTo(first, firstThird)
+                addTo(second, secondThird)
+                addTo(third, finalThird)
+                let desc = "Note that even when hidden, certain tiles can be toggled 'bright' by left-clicking them.  For example, a Hint Shop where " +
+                            "you have not yet bought out all the hints, but intend to return later, could be left-clicked to toggle it from dark to " +
+                            "bright.  This behavior is retained even if you choose to hide the tile: left-clicking toggles between a hidden icon and " +
+                            "a bright icon in that case.\n\n" +
+                            "You can also hide no-longer-relevant shop items (key shop after you get the Magic Key, ring shop after you obtain either blue or red ring, " +
+                            "candle shop after you obtain blue or red candle, arrow shop after you buy it or obtain silvers, boomstick book after you buy it) " +
+                            "by checking the box below."
+                let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap, Margin=Thickness(0.,0.,0.,5.))
+                sp.Children.Add(tb) |> ignore
+                let cb = new CheckBox(Content=new TextBox(Text="Hide no-longer-relevant shop items",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+                let b = TrackerModel.MapSquareChoiceDomainHelper.AsTrackerModelOptionsOverworldTilesToHide(TrackerModel.MapSquareChoiceDomainHelper.SHOP)
+                link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+                sp.Children.Add(cb) |> ignore
+                let desc = "Note that bomb shops and shield shops always stay visible.\n\nMeat shops also are always visible, unless you also click the box below, to make " +
+                            "them always be invisible.  If you check this box, then to see the meat shops, you must either (1) uncheck this box, (2) mouse hover Zelda (see below), " +
+                            "(3) mark a meat Blocker and then mouse-hover the Blocker, or (4) place a HungryGoriya room in a dungeon and hover that room " +
+                            "(options (3) or (4) are best).\nThis option is for folks who like to mark meat shops but also know that " +
+                            "in 99% of seed, they'll be unnecessary and just clutter the map.  In the 1% of seeds that have a meat block, mark the Blocker and then mouse hover it to find the shop."
+                let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+                sp.Children.Add(tb) |> ignore
+                let cb = new CheckBox(Content=new TextBox(Text="When hiding no-longer-relevant shop items, always hide meat shops",IsReadOnly=true), Margin=Thickness(20.,0.,0.,0.))
+                let b = TrackerModelOptions.OverworldTilesToHide.AlwaysHideMeatShops
+                link(cb, b, false, requestRedrawOverworldEvent.Trigger)
+                sp.Children.Add(cb) |> ignore
+                let tb = new TextBox(Text="", IsReadOnly=true, TextWrapping=TextWrapping.Wrap) |> header
+                sp.Children.Add(tb) |> ignore
+                let desc = "\nYou can mouse-hover the Zelda icon in the top of the tracker to temporarily make all hidden icons re-appear, if desired. And when you finish the seed and click Zelda, all icons reappear."
+                let tb = new TextBox(Text=desc, IsReadOnly=true, TextWrapping=TextWrapping.Wrap)
+                sp.Children.Add(tb) |> ignore
+                AddStyle(sp)
+                let sv = new ScrollViewer(Content=sp, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled)
+                let b = new Border(Child=sv, BorderThickness=Thickness(2.), BorderBrush=Brushes.DarkGray, Background=Brushes.Black, Padding=Thickness(5.), 
+                                    Width=720., MaxHeight=cm.Height-90., HorizontalAlignment=HorizontalAlignment.Right)
+                async {
+                    do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, b)
+                    popupIsActive <- false
+                    if changedGlobal then
+                        CustomComboBoxes.GlobalFlag.popupIsActive <- false
+                } |> Async.StartImmediate
+            )
 
     let tb = new TextBox(Text="Dungeon settings", IsReadOnly=true, FontWeight=FontWeights.Bold) |> header
     options1sp.Children.Add(tb) |> ignore
@@ -261,44 +271,53 @@ let makeOptionsCanvas(cm:CustomComboBoxes.CanvasManager, includePopupExplainer, 
     if voice.GetInstalledVoices() |> Seq.filter (fun v -> v.Enabled) |> Seq.length > 1 then
         let changeVoiceButton = Graphics.makeButton("Change voice",None,None)
         changeVoiceButton.HorizontalAlignment <- HorizontalAlignment.Left
-        changeVoiceButton.Click.Add(fun _ ->
-            if not popupIsActive then
-                popupIsActive <- true
-                let wh = new System.Threading.ManualResetEvent(false)
-                let sp = new StackPanel(Orientation=Orientation.Vertical)
-                AddStyle(sp)
-                sp.Children.Add(new TextBox(Text="Select preferred voice",IsReadOnly=true)) |> ignore
-                for v in voice.GetInstalledVoices() do
-                    if v.Enabled then
-                        let name = v.VoiceInfo.Name
-                        let r = new StackPanel(Orientation=Orientation.Horizontal)
-                        r.Children.Add(new TextBox(Text=name,IsReadOnly=true,Width=250.)) |> ignore
-                        let testSpeech(f) =   // ensure we test aloud
-                            let wasMuted = TrackerModelOptions.IsMuted
-                            let wasVolumeOtherwiseZero = not wasMuted && TrackerModelOptions.Volume=0
-                            if wasMuted || wasVolumeOtherwiseZero then
-                                voice.Volume <- 30  // default
-                            f()
-                            if wasVolumeOtherwiseZero || wasMuted then
-                                voice.Volume <- 0
-                        let sb = Graphics.makeButton("Test it",None,None)
-                        sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Hello")))
-                        r.Children.Add(sb) |> ignore
-                        let sb = Graphics.makeButton("Choose this",None,None)
-                        sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Voice chosen"); TrackerModelOptions.PreferredVoice <- name; wh.Set() |> ignore))
-                        r.Children.Add(sb) |> ignore
-                        sp.Children.Add(r) |> ignore
-                async {
-                    do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), HorizontalAlignment=HorizontalAlignment.Center))
-                    try
-                        voice.SelectVoice(TrackerModelOptions.PreferredVoice)
-                    with _ -> 
+        do  // scope local mutable popupIsActive variable to this one button
+            let mutable popupIsActive = false  // second level of popup, need local copy
+            let mutable changedGlobal = false
+            changeVoiceButton.Click.Add(fun _ ->
+                if not popupIsActive then
+                    popupIsActive <- true
+                    // the options menu is not popped up on the start screen, but is in the main app, so we need to make this consistent for both
+                    if not CustomComboBoxes.GlobalFlag.popupIsActive then
+                        CustomComboBoxes.GlobalFlag.popupIsActive <- true  // must be start screen
+                        changedGlobal <- true
+                    let wh = new System.Threading.ManualResetEvent(false)
+                    let sp = new StackPanel(Orientation=Orientation.Vertical)
+                    AddStyle(sp)
+                    sp.Children.Add(new TextBox(Text="Select preferred voice",IsReadOnly=true)) |> ignore
+                    for v in voice.GetInstalledVoices() do
+                        if v.Enabled then
+                            let name = v.VoiceInfo.Name
+                            let r = new StackPanel(Orientation=Orientation.Horizontal)
+                            r.Children.Add(new TextBox(Text=name,IsReadOnly=true,Width=250.)) |> ignore
+                            let testSpeech(f) =   // ensure we test aloud
+                                let wasMuted = TrackerModelOptions.IsMuted
+                                let wasVolumeOtherwiseZero = not wasMuted && TrackerModelOptions.Volume=0
+                                if wasMuted || wasVolumeOtherwiseZero then
+                                    voice.Volume <- 30  // default
+                                f()
+                                if wasVolumeOtherwiseZero || wasMuted then
+                                    voice.Volume <- 0
+                            let sb = Graphics.makeButton("Test it",None,None)
+                            sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Hello")))
+                            r.Children.Add(sb) |> ignore
+                            let sb = Graphics.makeButton("Choose this",None,None)
+                            sb.Click.Add(fun _ -> testSpeech(fun() -> voice.SelectVoice(name); voice.Speak("Voice chosen"); TrackerModelOptions.PreferredVoice <- name; wh.Set() |> ignore))
+                            r.Children.Add(sb) |> ignore
+                            sp.Children.Add(r) |> ignore
+                    async {
+                        do! CustomComboBoxes.DoModalDocked(cm, wh, Dock.Bottom, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.), HorizontalAlignment=HorizontalAlignment.Center))
                         try
-                            voice.SelectVoice(defaultVoice)
-                        with _ -> ()
-                    popupIsActive <- false
-                } |> Async.StartImmediate
-            )
+                            voice.SelectVoice(TrackerModelOptions.PreferredVoice)
+                        with _ -> 
+                            try
+                                voice.SelectVoice(defaultVoice)
+                            with _ -> ()
+                        popupIsActive <- false
+                        if changedGlobal then
+                            CustomComboBoxes.GlobalFlag.popupIsActive <- false
+                    } |> Async.StartImmediate
+                )
         options2sp.Children.Add(changeVoiceButton) |> ignore
 
     optionsAllsp.Children.Add(new DockPanel(Width=2.,Background=Brushes.Gray)) |> ignore

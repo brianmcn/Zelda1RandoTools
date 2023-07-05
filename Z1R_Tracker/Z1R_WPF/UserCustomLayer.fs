@@ -82,6 +82,8 @@ open System.Windows
 open System.Windows.Controls
 open System.Windows.Media
 
+open CustomComboBoxes.GlobalFlag
+
 let extraIconsDirectory = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ExtraIcons")
 let checklistFilename = System.IO.Path.Combine(extraIconsDirectory, "UserCustomChecklist.json")
 
@@ -188,7 +190,6 @@ let InitializeUserCustom(cm:CustomComboBoxes.CanvasManager, timelineItems:Resize
         sp.Children.Add(hp) |> ignore
         hp.Children.Add(mkTxt("Click outside this popup (below here) to exit the checklist, or\nclick the icon to the right to mark extra Zelda items obtained here: ")) |> ignore
         let extrasImage = Graphics.dock(Graphics.BMPtoImage Graphics.iconExtras_bmp, Dock.Bottom)
-        let mutable popupIsActive = false
         extrasImage.MouseDown.Add(fun _ -> 
                 async {
                     if not popupIsActive then

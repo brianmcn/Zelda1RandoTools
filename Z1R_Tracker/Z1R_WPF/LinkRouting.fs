@@ -5,6 +5,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 open OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
+open CustomComboBoxes.GlobalFlag
 
 let canvasAdd = Graphics.canvasAdd
 let OMTW = OverworldRouteDrawing.OMTW
@@ -61,7 +62,6 @@ let SetupLinkRouting(cm:CustomComboBoxes.CanvasManager, changeCurrentRouteTarget
             elif linkIconN=2 then
                 setLinkIcon(1)
     do   // scope for local variable names to not leak out
-        let mutable popupIsActive = false
         let activatePopup() = async {
             popupIsActive <- true
             setLinkIcon(3)

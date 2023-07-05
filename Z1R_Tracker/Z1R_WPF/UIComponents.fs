@@ -3,6 +3,7 @@
 open OverworldItemGridUI
 open DungeonUI.AhhGlobalVariables
 open HotKeys.MyKey
+open CustomComboBoxes.GlobalFlag
 
 open System.Windows
 open System.Windows.Controls 

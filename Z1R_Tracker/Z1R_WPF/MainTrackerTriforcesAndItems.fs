@@ -8,6 +8,7 @@ open System.Windows.Media
 open DungeonUI.AhhGlobalVariables
 open HotKeys.MyKey
 open OverworldItemGridUI
+open CustomComboBoxes.GlobalFlag
 
 let makeGhostBusterImpl(color,isForLinkRouting) =  // for marking off the third box of completed 2-item dungeons in Hidden Dungeon Numbers
     let c = new Canvas(Width=30., Height=30., Opacity=0.0, IsHitTestVisible=false)

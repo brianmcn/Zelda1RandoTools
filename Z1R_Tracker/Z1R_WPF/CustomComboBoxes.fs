@@ -10,6 +10,10 @@ let makeGrid = Graphics.makeGrid
 
 open HotKeys.MyKey
 
+module GlobalFlag = 
+    let mutable popupIsActive = false
+open GlobalFlag
+
 ////////////////////////////////////////////////////////////
 // ItemComboBox
 
@@ -147,6 +151,8 @@ type CanvasManager(rootCanvas:Canvas, appMainCanvas:Canvas) as this =
 
 // TODO rename DoModals
 let DoModalCore(cm:CanvasManager, wh:System.Threading.ManualResetEvent, placeElementOntoCanvas, removeElementFromCanvas, element:FrameworkElement, blackSunglassesOpacity) = async {
+    if not popupIsActive then
+        failwith "DoModalCore: popupIsActive was not set, which indicates programming error where a re-entrant UI thread may crash the program"
     // rather than use MouseCapture() API, just draw a canvas over entire window which will intercept all mouse gestures
     let c = cm.CreatePopup(blackSunglassesOpacity)
     // place the element
@@ -576,9 +582,9 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
 
 let makeVersionButtonWithBehavior(cm:CanvasManager) =
     let vb = Graphics.makeButton(sprintf "v%s" OverworldData.VersionString, Some(12.), Some(Brushes.Orange))
-    let mutable popupIsActive = false
     vb.Click.Add(fun _ ->
         if not popupIsActive then
+            popupIsActive <- true
             async {
                 let! r = DoModalMessageBox(cm, System.Drawing.SystemIcons.Information, OverworldData.AboutBody, ["Go to website"; "Ok"])
                 popupIsActive <- false

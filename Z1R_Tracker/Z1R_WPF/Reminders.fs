@@ -6,7 +6,7 @@ open System.Windows.Controls
 open System.Windows.Media
 
 open OverworldItemGridUI
-open DungeonUI.AhhGlobalVariables
+open CustomComboBoxes.GlobalFlag
 
 let voice = OptionsMenu.voice
 let upcb(bmp) : FrameworkElement = upcast Graphics.BMPtoImage bmp
