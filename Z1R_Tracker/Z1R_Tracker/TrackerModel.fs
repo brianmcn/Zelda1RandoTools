@@ -953,8 +953,8 @@ let setOverworldMapExtraData(i,j,k,v) =
     overworldMapExtraData.[i,j].[k] <- v
     mapLastChangedTime.SetNow()
 let NOTFOUND = (-1,-1)
-let magsCaveFound, woodSwordCaveFound, foundBlueRingShop, foundBookShop, foundCandleShop, foundArrowShop, foundBombShop = 
-    new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false)
+let magsCaveFound, woodSwordCaveFound, foundBlueRingShop, foundBookShop, foundCandleShop, foundArrowShop, foundBombShop, havePotionLetter = 
+    new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false), new EventingBool(false)
 type MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks) =
     member _this.DungeonLocations = dungeonLocations
@@ -987,7 +987,8 @@ let recomputeMapStateSummary() =
     let mutable owRouteworthySpots = Array2D.create 16 8 false
     let firstQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
     let secondQuestOnlyInterestingMarks = Array2D.zeroCreate 16 8
-    let mutable magsCaveFound_, woodSwordCaveFound_, foundBlueRingShop_, foundBookShop_, foundCandleShop_, foundArrowShop_, foundBombShop_ = false, false, false, false, false, false, false
+    let mutable magsCaveFound_, woodSwordCaveFound_, foundBlueRingShop_, foundBookShop_, foundCandleShop_, foundArrowShop_, foundBombShop_, havePotionLetter_ = 
+                            false, false, false, false, false, false, false, false
     for i = 0 to 15 do
         for j = 0 to 7 do
             if not(owInstance.AlwaysEmpty(i,j)) then
@@ -1059,7 +1060,8 @@ let recomputeMapStateSummary() =
                         if n = item || (getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.SHOP) = MapSquareChoiceDomainHelper.ToItem(item)) then
                             foundBombShop_ <- true
                     else
-                        () // other
+                        if n=MapSquareChoiceDomainHelper.THE_LETTER && getOverworldMapExtraData(i,j,MapSquareChoiceDomainHelper.THE_LETTER)=0 then 
+                            havePotionLetter_ <- true
                 let isInteresting = overworldMapMarks.[i,j].Current() <> -1 && overworldMapMarks.[i,j].Current() <> mapSquareChoiceDomain.MaxKey
                 if OverworldData.owMapSquaresSecondQuestOnly.[j].Chars(i) = 'X' then 
                     secondQuestOnlyInterestingMarks.[i,j] <- isInteresting 
@@ -1073,6 +1075,7 @@ let recomputeMapStateSummary() =
     foundCandleShop.Value <- foundCandleShop_
     foundArrowShop.Value <- foundArrowShop_
     foundBombShop.Value <- foundBombShop_
+    havePotionLetter.Value <- havePotionLetter_
     mapStateSummary <- MapStateSummary(dungeonLocations,anyRoadLocations,armosLocation,sword3Location,sword2Location,sword1Location,owSpotsRemain,owGettableLocations,
                                         owWhistleSpotsRemain,owPowerBraceletSpotsRemain,owRouteworthySpots,firstQuestOnlyInterestingMarks,secondQuestOnlyInterestingMarks)
     mapStateSummaryLastComputedTime.SetNow()

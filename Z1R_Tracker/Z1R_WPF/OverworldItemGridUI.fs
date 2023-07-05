@@ -242,6 +242,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             c.Children.Add(innerc) |> ignore
             if prop.Value() then
                 rect.Stroke <- yes
+                if obj.Equals(TrackerModel.foundBombShop, located) && located.Value then  // special case handling for bombs
+                    canvasAdd(c, new Shapes.Rectangle(Width=24., Height=24., StrokeThickness=2.0, Stroke=loc), 3., 3.)
             elif superseded.Value then
                 rect.Stroke <- sup
                 Graphics.placeSkippedItemXDecoration(c)
@@ -284,7 +286,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     gridAddTuple(owItemGrid, wood_arrow_box, OW_ITEM_GRID_LOCATIONS.WOOD_ARROW_BOX)
     let yellowCandleLogic = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerCandleLevel.Value=0 && TrackerModel.foundCandleShop.Value), [TrackerModel.foundCandleShop.Changed; TrackerModel.playerCandleLevel.Changed])
     let blueCandleSuperseded = new TrackerModel.SyntheticEventingBool((fun() -> TrackerModel.playerCandleLevel.Value>=2), [TrackerModel.playerCandleLevel.Changed])
-    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects routing)", Timeline.TimelineID.BlueCandle, Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, yellowCandleLogic, blueCandleSuperseded)
+    let blue_candle_box = basicBoxImpl("Acquired blue candle (mark timeline, affects gettables and routing)", Timeline.TimelineID.BlueCandle, Graphics.blue_candle_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBlueCandle, yellowCandleLogic, blueCandleSuperseded)
     blue_candle_box.MouseEnter.Add(fun _ -> if TrackerModel.playerComputedStateSummary.CandleLevel=0 then showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BLUE_CANDLE) else showLocatorInstanceFunc(owInstance.Burnable))
     blue_candle_box.MouseLeave.Add(fun _ -> hideLocator())
     gridAddTuple(owItemGrid, blue_candle_box, OW_ITEM_GRID_LOCATIONS.BLUE_CANDLE_BOX)
@@ -386,7 +388,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let bombIcon = veryBasicBoxImpl(Graphics.bomb_bmp, None, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs, TrackerModel.foundBombShop, TrackerModel.FALSE)
     bombIcon.MouseEnter.Add(fun _ -> showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB))
     bombIcon.MouseLeave.Add(fun _ -> hideLocator())
-    bombIcon.ToolTip <- "Player currently has bombs (affects routing)"
+    bombIcon.ToolTip <- "Player currently has bombs (affects gettables and routing)"
     gridAddTuple(owItemGrid, bombIcon, OW_ITEM_GRID_LOCATIONS.BOMB_BOX)
 
     // hover target to look for money - highlight gambling money making game casinos, as well as unknown secrets and un-taken secret spots

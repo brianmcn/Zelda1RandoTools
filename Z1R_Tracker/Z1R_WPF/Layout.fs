@@ -38,7 +38,7 @@ type IApplicationLayoutBase =
     abstract member AddOWRemainingScreens : owRemainingScreensTextBox:UIElement -> unit
     abstract member AddOWGettableScreens : owGettableScreensCheckBox:UIElement -> unit
     abstract member AddCurrentMaxHearts : currentMaxHeartsTextBox:UIElement -> unit
-    abstract member AddShowCoords : showCoordsCB:UIElement -> unit
+    abstract member AddShowCoords : showCoordsCB:UIElement * havePotionLetterImage:Image -> unit
     abstract member AddOWZoneOverlay : zone_checkbox:UIElement -> unit
     abstract member AddMouseHoverExplainer : mouseHoverExplainerIcon:UIElement * c:UIElement -> unit
     abstract member AddLinkTarget : currentTargetGhostBuster:UIElement -> unit
@@ -120,7 +120,8 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
         member this.AddCurrentMaxHearts(currentMaxHeartsTextBox) = 
             canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
-        member this.AddShowCoords(showCoordsCB) = 
+        member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
+            canvasAdd(appMainCanvas, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
             canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
             canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
@@ -325,7 +326,8 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, owGettableScreensCheckBox, RIGHT_COL, 110.)
         member this.AddCurrentMaxHearts(currentMaxHeartsTextBox) = 
             canvasAdd(upper, currentMaxHeartsTextBox, RIGHT_COL, 130.)
-        member this.AddShowCoords(showCoordsCB) = 
+        member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
+            canvasAdd(upper, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
             canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
             canvasAdd(upper, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)

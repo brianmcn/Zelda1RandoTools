@@ -1305,7 +1305,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     cb.Unchecked.Add(fun _ -> owCoordsGrid.Opacity <- 0.0; TrackerModelOptions.Overworld.Coords.Value <- false; TrackerModelOptions.writeSettings())
     cb.MouseEnter.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then (ensurePlaceholderFinished(); owCoordsGrid.Opacity <- 0.85))
     cb.MouseLeave.Add(fun _ -> if not cb.IsChecked.HasValue || not cb.IsChecked.Value then owCoordsGrid.Opacity <- 0.0)
-    layout.AddShowCoords(cb)
+    let havePotionLetterImage = Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.THE_LETTER].[0]
+    havePotionLetterImage.Opacity <- 0.
+    havePotionLetterImage.ToolTip <- "If a potion letter icon is displayed here, then\nyou have the potion letter, according to your overworld map"
+    TrackerModel.havePotionLetter.Changed.Add(fun _ -> havePotionLetterImage.Opacity <- if TrackerModel.havePotionLetter.Value then 1.0 else 0.0)
+    layout.AddShowCoords(cb, havePotionLetterImage)
 
     // zone overlay
     let zone_checkbox, addZoneName, changeZoneOpacity, allOwMapZoneBlackCanvases = 
