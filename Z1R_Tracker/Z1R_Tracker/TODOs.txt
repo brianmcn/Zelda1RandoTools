@@ -144,7 +144,7 @@ since 1.3.0t...
 
 
 
-- New hint tracking UI
+- New hint tracking UI (TODO document it)
    - old Hint Decoder button and UI still exists, but
    - new faster version available (in non-Hidden-Dungeon-Numbers) if player knows Aquamentus Awaits means Level 1
       - scroll (or click) blank area above a triforce (or 9 numeral) to select hint for that dungeon location
@@ -155,6 +155,10 @@ since 1.3.0t...
 
 
 UCC may need testing of popup menus
+
+
+if you accidentally click the OFF-map toggle in corner of dungeon and don't know it exists, it is hard to recover... any way to 'message' it? ...
+ - at minimum, left-click-no-drag could paint a single room back on, even if dunno what happening, allows basic clicker to recover
 
 
 

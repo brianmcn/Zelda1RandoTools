@@ -899,6 +899,8 @@ let takeThisWoodSwordBMP = loadBMP("take-this-wood-sword.png")
 let takeThisCandleBMP = loadBMP("take-this-candle.png")
 let takeThisLeaveBMP = loadBMP("take-this-leave.png")
 
+let z1rSampleHintBMP = loadBMP("z1r-sample-hint.png")
+
 let firstQuestItemReferenceBMP = loadBMP("first-quest-item-reference.png")
 let secondQuestItemReferenceBMP = loadBMP("second-quest-item-reference.png")
 let mirrorOverworldBMP = loadBMP("mirror-overworld.png")

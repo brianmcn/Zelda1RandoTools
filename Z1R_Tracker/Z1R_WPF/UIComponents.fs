@@ -578,6 +578,26 @@ let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
             have_key.Opacity <- 0.; grey_key.Opacity <- 1.
     redrawItemProgressBar, itemProgressCanvas, tb
 
+let hintExplainer =
+    let img = Graphics.BMPtoImage Graphics.z1rSampleHintBMP
+    let showHotKeysWidthToRightEdge = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H + 115. + 20.  // +20 is a kludge to make this wider
+    let w = showHotKeysWidthToRightEdge - 24.
+    img.Height <- img.Height / img.Width * w
+    img.Width <- w
+    let sp = new StackPanel(Orientation=Orientation.Vertical)
+    let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20., Margin=Thickness(3.,0.,0.,0.)) 
+    tb.Text <- "Z1R Hints Explained!"
+    sp.Children.Add(tb) |> ignore
+    sp.Children.Add(new DockPanel(Height=3., Background=Brushes.Orange, Margin=Thickness(6.))) |> ignore
+    let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(3.,0.,0.,0.)) 
+    tb.Text <- "Each z1r hint takes the form\n\n(encoded dungeon/cave name)\n(map region)\n\nor\n\n" +
+                "(encoded dungeon/cave name)\nwith (some item)\n\nUse the table at the left\nto decode the locations and\nto record any map regions\n\nSample Hint:"
+    sp.Children.Add(new DockPanel(Height=6.)) |> ignore
+    sp.Children.Add(tb) |> ignore
+    sp.Children.Add(new Border(BorderBrush=Brushes.DarkSlateBlue, BorderThickness=Thickness(3.), Child=img, Width=showHotKeysWidthToRightEdge-18., Margin=Thickness(6.))) |> ignore
+    let b = new Border(BorderBrush=Brushes.White, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp, Width=showHotKeysWidthToRightEdge)
+    b.MouseDown.Add(fun ea -> ea.Handled <- true)
+    b
 let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     let HINTGRID_W, HINTGRID_H = 180., 36.
     let hintGrid = makeGrid(3,OverworldData.hintMeanings.Length,int HINTGRID_W,int HINTGRID_H)
@@ -685,6 +705,7 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
     otherChoices.Children.Add(otherButton)|> ignore
     hintSP.Children.Add(otherChoices) |> ignore
     let hintBorder = new Border(BorderBrush=Brushes.Gray, BorderThickness=Thickness(8.), Background=Brushes.Black, Child=hintSP)
+    hintBorder.MouseDown.Add(fun ea -> ea.Handled <- true)
     let tb = Graphics.makeButton("Hint Decoder", Some(12.), Some(Brushes.Orange))
     tb.MouseEnter.Add(fun _ -> showHintShopLocator())
     tb.MouseLeave.Add(fun _ -> hideLocator())
@@ -700,7 +721,11 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
                 wh.Set() |> ignore
                 )
             async {
-                do! CustomComboBoxes.DoModal(cm, wh, 0., 65., hintBorder)
+                let all = new Canvas()
+                canvasAdd(all, hintBorder, 0., 0.)
+                canvasAdd(all, hintExplainer, 560., 0.)
+                do! CustomComboBoxes.DoModal(cm, wh, 0., 65., all)
+                all.Children.Clear()
                 if otherButtonWasClicked then
                     wh.Reset() |> ignore
                     let otherSP = new StackPanel(Orientation=Orientation.Vertical)

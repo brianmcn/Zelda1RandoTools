@@ -93,6 +93,7 @@
     <EmbeddedResource Include="icons\take-this-wood-sword.png" />
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
+    <EmbeddedResource Include="icons\z1r-sample-hint.png" />
     <EmbeddedResource Include="icons\first-quest-item-reference.png" />
     <EmbeddedResource Include="icons\second-quest-item-reference.png" />
     <EmbeddedResource Include="icons\eyeball.png" />

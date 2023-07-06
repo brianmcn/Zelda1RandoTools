@@ -77,6 +77,20 @@ let hintyBrush =
     let HHS,HHE = Views.HHS, Views.HHE
     let c = Color.FromRgb(HHS.R/2uy + HHE.R/2uy, HHS.G/2uy + HHE.G/2uy, HHS.B/2uy + HHE.B/2uy)
     Graphics.freeze(new SolidColorBrush(c))
+let learnMoreHintDecoration =
+    let img = Graphics.BMPtoImage Graphics.z1rSampleHintBMP
+    let showHotKeysWidthToRightEdge = THRU_MAIN_MAP_AND_ITEM_PROGRESS_H - THRU_MAIN_MAP_H + 115.
+    let w = showHotKeysWidthToRightEdge - 24.
+    img.Height <- img.Height / img.Width * w
+    img.Width <- w
+    let sp = new StackPanel(Orientation=Orientation.Vertical)
+    let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=12., Margin=Thickness(3.,0.,0.,0.)) 
+    tb.Text <- "Learn more about z1r hints via\nthe Hint Decoder button\n<--\n\nSample Hint:"
+    sp.Children.Add(new DockPanel(Height=6.)) |> ignore
+    sp.Children.Add(tb) |> ignore
+    sp.Children.Add(new Border(BorderBrush=Brushes.DarkSlateBlue, BorderThickness=Thickness(3.), Child=img, Width=showHotKeysWidthToRightEdge-18., Margin=Thickness(6.))) |> ignore
+    let b = new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp, Width=showHotKeysWidthToRightEdge, IsHitTestVisible=false)
+    b, 16.*OMTW - showHotKeysWidthToRightEdge, THRU_MAIN_MAP_H
 let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     let tb = HintZoneDisplayTextBox
     let gesai(hz:TrackerModel.HintZone) = tb(hz.AsDisplayTwoChars()), true, hz
@@ -117,8 +131,14 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
         hideLocator()
         showLocatorHintedZone(hz, false)
     let brushes = CustomComboBoxes.ModalGridSelectBrushes(hintyBrush, Brushes.Lime, Brushes.Red, Brushes.DarkGray)
+    let learnDeco, learnX, learnY = learnMoreHintDecoration
+    let extraDecorations = [
+        descDecoration, 153., 27. 
+        boxDecoration, -3., 27.
+        upcast learnDeco, learnX - px, learnY - py
+        ]
     let! r = CustomComboBoxes.DoModalGridSelect(cm, px, py, tile, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 3, 24, 24), 
-                                17., 12., 27., 27., redrawTile, onClick, [descDecoration, 153., 27.; boxDecoration, -3., 27.], brushes, false, None, "FastHintSelector", Some(0.2))
+                                17., 12., 27., 27., redrawTile, onClick, extraDecorations, brushes, false, None, "FastHintSelector", Some(0.2))
     hideLocator()
     return r
     }
