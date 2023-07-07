@@ -1253,9 +1253,14 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                                     workingCopy.RoomType <- next  // cycle the entrance arrow around cardinal positions
                                                     SetNewValue(workingCopy)
                                                 | None ->
-                                                    // toggle completedness
-                                                    workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
-                                                    SetNewValue(workingCopy)
+                                                    if roomStates.[i,j].RoomType = RoomType.OffTheMap then
+                                                        // left clicking an off the map paints it back on; helps recover people who accidentally toggle all OffTheMap
+                                                        workingCopy.RoomType <- RoomType.Unmarked
+                                                        SetNewValue(workingCopy)
+                                                    else
+                                                        // toggle completedness
+                                                        workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
+                                                        SetNewValue(workingCopy)
                                         redraw()
                                     ea.Handled <- true
                             elif ea.ChangedButton = Input.MouseButton.Right then

@@ -135,7 +135,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, t2c, 24., START_TIMELINE_H)
             canvasAdd(appMainCanvas, t3c, 24., START_TIMELINE_H)
             canvasAdd(appMainCanvas, moreOptionsButton, 0., START_TIMELINE_H)
-            canvasAdd(appMainCanvas, drawButton, 0., START_TIMELINE_H+25.)
+            canvasAdd(appMainCanvas, drawButton, 750., START_TIMELINE_H+25.)
         member this.GetTimelineBounds() =
             Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
         member this.GetFullAppBounds() =

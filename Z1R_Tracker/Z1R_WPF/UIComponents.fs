@@ -208,6 +208,24 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
             canvasAdd(c, fg, 1., 0.)
             c
         let theCustomWaypointIcon = makeIcon()
+        let animBrush = new LinearGradientBrush(new GradientStopCollection([new GradientStop(Colors.Orange, 0.0); new GradientStop(Colors.Orange, 0.6); new GradientStop(Colors.White, 1.0)]), 
+                                                Point(0.5,0.5), Point(1.,0.))
+        (theCustomWaypointIcon.Children.Item(theCustomWaypointIcon.Children.Count-1) :?> Shapes.Ellipse).Stroke <- animBrush
+        let anim = new Animation.PointAnimationUsingKeyFrames()
+        anim.KeyFrames <- new Animation.PointKeyFrameCollection()
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(1.0,0.5), KeyTime=Animation.KeyTime.FromPercent(0.0)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.8,0.8), KeyTime=Animation.KeyTime.FromPercent(0.125)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.5,1.0), KeyTime=Animation.KeyTime.FromPercent(0.25)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.2,0.8), KeyTime=Animation.KeyTime.FromPercent(0.375)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.0,0.5), KeyTime=Animation.KeyTime.FromPercent(0.5)))    |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.2,0.2), KeyTime=Animation.KeyTime.FromPercent(0.625)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.5,0.0), KeyTime=Animation.KeyTime.FromPercent(0.75)))  |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(0.8,0.2), KeyTime=Animation.KeyTime.FromPercent(0.875)))   |> ignore
+        anim.KeyFrames.Add(new Animation.LinearPointKeyFrame(Value=Point(1.0,0.5), KeyTime=Animation.KeyTime.FromPercent(1.)))    |> ignore
+        anim.Duration <- new Duration(System.TimeSpan.FromSeconds(4.))
+        anim.RepeatBehavior <- Animation.RepeatBehavior.Forever
+        anim.AutoReverse <- false
+        animBrush.BeginAnimation(LinearGradientBrush.EndPointProperty, anim)
         makeIcon, theCustomWaypointIcon
 
     // map legend

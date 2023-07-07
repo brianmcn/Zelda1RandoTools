@@ -1133,7 +1133,6 @@ type DungeonBlocker =
         | DungeonBlocker.RECORDER -> not playerComputedStateSummary.HaveRecorder
         | DungeonBlocker.BOW_AND_ARROW -> not (playerComputedStateSummary.HaveBow && playerComputedStateSummary.ArrowLevel > 0)
         | DungeonBlocker.KEY -> not playerComputedStateSummary.HaveAnyKey
-        | DungeonBlocker.COMBAT -> not(playerComputedStateSummary.SwordLevel=3 && playerComputedStateSummary.RingLevel=2)
         | _ -> true
     member this.AsHotKeyName() =
         match this with

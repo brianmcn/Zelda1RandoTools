@@ -131,26 +131,27 @@ since 1.3.0s...
 since 1.3.0t...
 - dungeon rooms: make unpaired transport numerals light up
 - improve Door Inference option
+- found bomb shops give yellow outline to bomb icon even if have marked you have bombs
+- display if potion letter obtained (based on overworld map markup, displays right of bomb icon)
+- change Broadcast Window layout a little, in order to...
+- ...fix Mouse Magnifier Window cursor not being quite right
+- New hint tracking UI (TODO document it)
+   - old Hint Decoder button and UI still exists, with improvememnts, but
+   - new faster version available (in non-Hidden-Dungeon-Numbers), if player knows e.g. Aquamentus Awaits means Level 1
+      - scroll (or click) blank area above a triforce (or 9 numeral) to select hint for that dungeon location
+      - scroll the white sword icon or magical sword icon (or blank area above) to select hint for those locations
+      - can see two-letter hinted zone locations on-screen without having to hover to see the map region
+      - can also setup hotkeys
+- swap "OW Completion" and "Draw" on timeline, so OW Completion look more like the y-axis label that it is
+- animate the Custom Waypoint
 - fix vanilla 1Q dungeon location marking 9 in wrong spot
 - fix clicks possibly getting missed when 'falling between the cracks' of the popup grids
 - fix a significant number of latent potential crash bugs
 - fix LinkRouting to now show cyan open cave highlights
+- fix so you can always mark combat blocker, even if have mags and red ring
+- fix so left-clicking an OffTheMap dungeon room now paints it back onto the map
 - don't animate tile change when you don't actually change it
-- found bomb shops give yellow outline to bomb icon even if have marked you have bombs
-- display if potion letter obtained (based on overworld map markup, shows right of bomb icon)
-- change Broadcast Window layout a little, in order to...
-- ...fix Mouse Magnifier Window cursor not being quite right
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
-- New hint tracking UI (TODO document it)
-   - old Hint Decoder button and UI still exists, with improvememnts, but
-   - new faster version available (in non-Hidden-Dungeon-Numbers) if player knows Aquamentus Awaits means Level 1
-      - scroll (or click) blank area above a triforce (or 9 numeral) to select hint for that dungeon location
-      - scroll the white sword icon or magical sword icon (or blank area above) to select hint for those locations
-      - can see two-letter hinted locations on-screen without having to hover to see the map region
-      - hotkeys
-
-
-thilo discussion: get rid of cannot-mark-combat-blocker-after-mags-plus-red-ring
 
 
 
@@ -158,12 +159,6 @@ thilo discussion: get rid of cannot-mark-combat-blocker-after-mags-plus-red-ring
 
 UCC may need testing of popup menus
 
-
-
-
-
-if you accidentally click the OFF-map toggle in corner of dungeon and don't know it exists, it is hard to recover... any way to 'message' it? ...
- - at minimum, left-click-no-drag could paint a single room back on, even if dunno what happening, allows basic clicker to recover
 
 
 Califax: might ne nice if could choose fewer monsters in popup for easier mousing
@@ -187,17 +182,10 @@ the double-blue-bars could explain themselves better (the two maps)
 
 
 if e.g. hover recorder, and all recorderable spots are marked, no feedback ('None found' reuse? it's more like 'none left', hm)
-
-
-alex didn't know timeline what blue line measured - OW completion and 'draw' swap places maybe?
-consider swapping 'draw' and 'ow completion', as axis label typically on left, and 'draw' not very useful to notice
+ - or maybe subscript on item progress of how many each left? not obvious what means, though, and also no way to see remain bomb spot count
 
 
 Max Hearts: should also have a display like the game, people bad at counting.  Would require rejiggering of upper right area.
-
-
-homer wanted custom waypoint to 'glow/pulse', given its an optional thing no one would use, that's probably reasonable
-
 
 
 consider moving the tooltips in-window so they can get video captured, as their absence does make e.g. explainer videos more challenging
@@ -209,20 +197,11 @@ when mouseover the empty item box in upper left tracker, it might have a tooltip
 - or consider alex conversation; alternative 5x5 art for stair, or in-game 16x16 stair icon
 
 
-Kinda wish hotkey or click to make blockers become specific blockers for all, to make visible on top tracker
-
-
-
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
 
 
 routing lines are hard to see on light areas (lack of contrast), would be nice to give them dark framing (thicker black transparent line behind it), 
 but also they are expensive garbage so would need to cache them all probably... i experimented a little, and really would need some advanced shaders i think
-
-
-
-todo: maybe try hellwalker (HDN, blank map)
-- works ok-ish... Draw is tedious but workable
 
 
 

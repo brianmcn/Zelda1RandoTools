@@ -149,7 +149,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             n <- n + 1
         canvasAdd(timelineCanvas, graphCanvas, 0., 0.)
         owAxisLabel.RenderTransform <- new RotateTransform(-90.)
-        Canvas.SetLeft(owAxisLabel, graphCanvas.Width)
+        Canvas.SetLeft(owAxisLabel, -24.)
         Canvas.SetBottom(owAxisLabel, -8.)
         graphCanvas.Children.Add(owAxisLabel) |> ignore
         canvasAdd(timelineCanvas, itemCanvas, 0., 0.)
