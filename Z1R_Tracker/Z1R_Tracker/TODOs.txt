@@ -152,6 +152,7 @@ since 1.3.0t...
 - fix so left-clicking an OffTheMap dungeon room now paints it back onto the map
 - don't animate tile change when you don't actually change it
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
+since 1.3.0u...
 
 
 

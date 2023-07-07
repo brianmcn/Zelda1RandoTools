@@ -22,6 +22,7 @@ This is a major update with a number of usability improvements and new features.
  - [New Dungeon Summary Tab layouts](#v13-summary-tab)
  - [New Monster choices](#v13-monsters)
  - [Mirror-overworld and 2nd-quest-dungeons toggles](#v13-mirror)
+ - [Faster map region hints](#v13-fast-hint)
  - [A bunch of other stuff](#v13-other-stuff)
 
 ### <a id="v13-alt-size">Alternate app size</a>
@@ -94,6 +95,17 @@ The Second Quest Dungeons toggle has moved out of the Options Menu, and now appe
 
 ![new buttons](screenshots/new-buttons.png)
 
+### <a id="v13-fast-hint">Faster map region hints</a>
+
+For those who don't need the "Hint Decoder" button to know that "Manhandla Threatens" means Dungeon 3, you can mark map-region-hints directly by mouse-scrolling the
+blank areas above the triforces, above the dungeon 9 numeral, above white sword icon, and above the magical sword box:
+
+![fast hints](screenshots/fast-hints.png)
+
+There are new hotkeys for hint zones, which are applied when the mouse is hovering these areas.
+
+This feature is only when not using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is on).
+
 ### <a id="v13-other-stuff">A bunch of other stuff</a>
 
 - usability: the clickable stuff now gives mouse-hover feedback to make it clearer it's clickable
@@ -109,16 +121,19 @@ The Second Quest Dungeons toggle has moved out of the Options Menu, and now appe
 - after finishing and clicking zelda, dungeon 9 appears on the summary tab for most-recent-completion-full-screenshot.png to see everything
 - can choose a different voice for spoken reminders, if installed
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map
-- hovering "4/9 found" or dungeon icon in LEGEND shows locations of all dungeons, just like hovering 'S' summary tab header does
+- hovering dungeon icon in LEGEND shows locations of all dungeons, just like hovering 'S' summary tab header does
 - Blockers numerals turn white when the corresponding dungeon is located on the overworld
 - new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets
 - upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
 - new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
 - new eyeball icon in upper right, hover to hide overworld map icons (to see unobscured map)
-- performance improvements
 - hidden setting UseBlurEffect, set it to false if using the "Coords" checkbox causes the whole app to get super laggy (due to BlurEffect rendering in software rather than hardware)
+- dungeon rooms: unpaired transport numerals light up
+- improved Door Inference option
+- display if potion letter obtained (based on overworld map markup, displays right of bomb icon)
 - a lot of small fixes
+- a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 
 ---
 
