@@ -115,6 +115,12 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             let tb2 = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=9., Margin=Thickness(0.),
                                     VerticalContentAlignment=VerticalAlignment.Center, HorizontalContentAlignment=HorizontalAlignment.Center, 
                                     Text="dungeon quest", Foreground=Brushes.White, Background=Brushes.Black, Opacity=0.0)
+            let explainer = new TextBox(IsHitTestVisible=false, BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, FontSize=14., Margin=Thickness(0.),
+                                        Text="Usually dungeon 1 has three items and dungeon 4 has two.\n"+
+                                        "However if you are playing with the 'second quest dungeons' flag\n"+
+                                        "then dungeon 4 gets a third item and dungeon 1 will only have 2.\n"+
+                                        "This toggle is used to decide which dungeon (1 or 4) gets the third box.", 
+                                        Padding=Thickness(3.), Foreground=Brushes.Orange, Background=Brushes.Black)
             canvasAdd(mainTrackerCanvas, curve, 30., 118.)
             canvasAdd(mainTrackerCanvas, tb1, 30., 115.)
             canvasAdd(mainTrackerCanvas, tb2, 28., 137.)
@@ -123,12 +129,14 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 curve.Opacity <- 1.0
                 tb1.Opacity <- 1.0
                 tb2.Opacity <- 1.0
+                layout.AddTopLayerHover(explainer, 140., 54.)
                 )
             c.MouseLeave.Add(fun _ ->
                 rect.Opacity <- 0.0
                 curve.Opacity <- 0.0
                 tb1.Opacity <- 0.0
                 tb2.Opacity <- 0.0
+                layout.ClearTopLayerHovers()
                 )
             c.MouseDown.Add(fun _ ->
                 TrackerModel.IsSecondQuestDungeons <- not TrackerModel.IsSecondQuestDungeons
@@ -136,6 +144,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 curve.Opacity <- 0.0
                 tb1.Opacity <- 0.0
                 tb2.Opacity <- 0.0
+                layout.ClearTopLayerHovers()
                 OptionsMenu.secondQuestDungeonsOptionChanged.Trigger()
                 )
             c

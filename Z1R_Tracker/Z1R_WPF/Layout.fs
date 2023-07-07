@@ -49,11 +49,15 @@ type IApplicationLayoutBase =
     abstract member AddPostGameDecorationCanvas : postgameDecorationCanvas:UIElement -> unit
     abstract member AddSpotSummary : spotSummaryCanvas:UIElement -> unit
     abstract member AddDiskIcon : diskIcon:UIElement -> unit
+    abstract member AllDone : unit -> unit
+    abstract member AddTopLayerHover : fe:FrameworkElement * x:float * y:float -> unit
+    abstract member ClearTopLayerHovers : unit -> unit
     abstract member FocusOverworld : unit -> unit
     abstract member FocusDungeon : unit -> unit
 
 type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     let appMainCanvas = cm.AppMainCanvas
+    let topLayerHoverCanvas = new Canvas()   // for temporary bits that appear on hover, to ensure they appear on top of everything else in the app, when no other popup active
     interface IApplicationLayoutBase with
         member this.AddMainTracker(mainTracker) =
             canvasAdd(appMainCanvas, mainTracker, 0., 0.)
@@ -148,6 +152,10 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, spotSummaryCanvas, 50., 3.)
         member this.AddDiskIcon(diskIcon) =
             canvasAdd(appMainCanvas, diskIcon, OMTW*16.-40., START_TIMELINE_H+60.)
+        member this.AllDone() =
+            canvasAdd(appMainCanvas, topLayerHoverCanvas, 0., 0.)
+        member this.AddTopLayerHover(fe, x, y) = canvasAdd(topLayerHoverCanvas, fe, x, y)
+        member this.ClearTopLayerHovers() = topLayerHoverCanvas.Children.Clear()
         member this.FocusOverworld() = ()
         member this.FocusDungeon() = ()
 
@@ -156,6 +164,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
 type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     inherit ApplicationLayout(cm) 
     let appMainCanvas = cm.AppMainCanvas
+    let topLayerHoverCanvas = new Canvas()   // for temporary bits that appear on hover, to ensure they appear on top of everything else in the app, when no other popup active
     let blockerGridHeight = float(38*3) // from blocker code
     let RED_LINE = 3.
     let DUNGEON_H = START_TIMELINE_H - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
@@ -366,6 +375,10 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
                     H
             let CHROME_HEIGHT = 39.  // Windows app border
             ((cm.RootCanvas.Parent :?> Canvas).Parent :?> Window).Height <- H + CHROME_HEIGHT // this is fragile, but don't know a better way right now
+        member this.AllDone() =
+            canvasAdd(appMainCanvas, topLayerHoverCanvas, 0., 0.)
+        member this.AddTopLayerHover(fe, x, y) = canvasAdd(topLayerHoverCanvas, fe, x, y)
+        member this.ClearTopLayerHovers() = topLayerHoverCanvas.Children.Clear()
         member this.FocusOverworld() = 
             let ctxt = System.Threading.SynchronizationContext.Current
             async {

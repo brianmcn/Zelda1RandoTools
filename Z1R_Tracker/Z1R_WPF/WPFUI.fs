@@ -1940,6 +1940,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     Views.appMainCanvasGlobalBoxMouseOverHighlight.AttachToGlobalCanvas(appMainCanvas)
     
     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
+    layout.AllDone()
     do! showProgress("all done")
     return drawTimeline
     }
