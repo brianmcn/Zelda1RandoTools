@@ -266,6 +266,7 @@ type GlobalHotkeyTargets =
         GlobalHotkeyTargets.ScrollDown
         |]
 
+let pad(s:string,n) = if s.Length < n then s + String.replicate (n - s.Length) " " else s
 // Note to self; NumPad . and + are called Decimal and Add, not OemPeriod or OemPlus.  NumPad 'enter' is not supported, sadly.
 let MakeDefaultHotKeyFile(filename:string, isSample) =
     let lines = ResizeArray()
@@ -291,35 +292,48 @@ let MakeDefaultHotKeyFile(filename:string, isSample) =
     // items
     lines.Add("# ITEMS - these hotkey bindings take effect when mouse-hovering an item box")
     lines.Add("# Note that BookOrShield refers to Book in a non-boomstick-seed, and Shield in a boomstick seed")
+    let n = [0..14] |> Seq.map (fun i -> TrackerModel.ITEMS.AsHotKeyName(i).Length + 5) |> Seq.max
     for i = 0 to 14 do
-        lines.Add("Item_" + TrackerModel.ITEMS.AsHotKeyName(i) + " = ")
-    lines.Add("Item_Nothing = ")
+        lines.Add(pad("Item_" + TrackerModel.ITEMS.AsHotKeyName(i),n) + " = ")
+    lines.Add(pad("Item_Nothing",n) + " = ")
     lines.Add("")
     lines.Add("# OVERWORLD - these hotkey bindings take effect when mouse-hovering an overworld map tile")
     lines.Add("# Note that Level1-Level8 refer to dungeons A-H if using the 'Hide Dungeon Numbers' flag setting")
+    let n = [0..TrackerModel.dummyOverworldTiles.Length-1] |> Seq.map (fun i -> TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i).Length + 10) |> Seq.max
     for i = 0 to TrackerModel.dummyOverworldTiles.Length-1 do
-        lines.Add("Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i) + " = ")
-    lines.Add("Overworld_Nothing = ")
+        lines.Add(pad("Overworld_" + TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(i),n) + " = ")
+    lines.Add(pad("Overworld_Nothing",n) + " = ")
     lines.Add("")
     lines.Add("# BLOCKERS - these hotkey bindings take effect when mouse-hovering a blocker box")
+    let n = TrackerModel.DungeonBlocker.All |> Seq.map (fun b -> b.AsHotKeyName().Length) |> Seq.max
     for b in TrackerModel.DungeonBlocker.All do
-        lines.Add(b.AsHotKeyName() + " = ")
+        let s = b.AsHotKeyName()
+        lines.Add(pad(s,(if s.Contains("Maybe") || s.Contains("Nothing") then n else n-6)) + " = ")
     lines.Add("")
     lines.Add("# DUNGEON ROOMS - these hotkey bindings take effect when mouse-hovering a room in a dungeon")
     for x in AllDungeonRoomNames do
         if x.Contains("MonsterDetail_Bow") then
             lines.Add("# Note that MonsterDetail_Bow actually means MonsterDetail_Gohma, but the old Bow name is still used instead, for HotKeys.txt backward compatibility")
-        lines.Add(x + " = ")
+        let n = if x.Contains("RoomType") then 42 elif x.Contains("MonsterDetail") then 38 elif x.Contains("FloorDropDetail") then 40 else 30
+        lines.Add(pad(x,n) + " = ")
+    lines.Add("")
+    lines.Add("# HINT ZONES - these hotkey bindings take effect when mouse-hovering a hint zone box (above triforces in non-hidden-dungeon-numbers)")
+    let n = TrackerModel.HintZone.All |> Seq.map (fun hz -> hz.AsHotKeyName().Length) |> Seq.max
+    for hz in TrackerModel.HintZone.All do
+        lines.Add(pad(hz.AsHotKeyName(),n) + " = ")
     lines.Add("")
     lines.Add("# CONTEXTUAL CHOICES - these hotkey bindings only take effect when the corresponding menus are on-screen")
+    let n = [ yield! TakeAnyNames; yield! TakeThisNames ] |> Seq.map (fun x -> x.Length) |> Seq.max
     for x in TakeAnyNames do
-        lines.Add(x + " = ")
+        lines.Add(pad(x,n) + " = ")
     for x in TakeThisNames do
-        lines.Add(x + " = ")
+        lines.Add(pad(x,n) + " = ")
     lines.Add("")
     lines.Add("# GLOBAL - these hotkey bindings take effect anywhere, and cannot conflict with any other non-contextuals")
     for x in GlobalHotkeyTargets.All do
-        lines.Add("Global_" + x.AsHotKeyName() + " = ")
+        let s = x.AsHotKeyName()
+        let n = if s.Contains("Toggle") then 25 elif s.Contains("Move") || s.Contains("Click") || s.Contains("Scroll") then 22 else 0
+        lines.Add(pad("Global_" + s,n) + " = ")
     lines.Add("")
     System.IO.File.WriteAllLines(filename, lines)
 
@@ -419,6 +433,7 @@ let ItemHotKeyProcessor = new HotKeyProcessor<int>("Item")
 let OverworldHotKeyProcessor = new HotKeyProcessor<int>("Overworld")
 let BlockerHotKeyProcessor = new HotKeyProcessor<TrackerModel.DungeonBlocker>("Blocker")
 let DungeonRoomHotKeyProcessor = new HotKeyProcessor<Choice<DungeonRoomState.RoomType,DungeonRoomState.MonsterDetail,DungeonRoomState.FloorDropDetail,DungeonRoomState.DoorHotKeyResponse> >("DungeonRoom")
+let HintZoneHotKeyProcessor = new HotKeyProcessor<TrackerModel.HintZone>("HintZone")
 // contextual
 let TakeAnyHotKeyProcessor = new HotKeyProcessor<int>("TakeAny")
 let TakeThisHotKeyProcessor = new HotKeyProcessor<int>("TakeThis")
@@ -455,6 +470,11 @@ let PopulateHotKeyTables() =
                 if name = b.AsHotKeyName() then
                     Add(BlockerHotKeyProcessor, chOpt, b)
                     found <- true
+            if not found then
+                for hz in TrackerModel.HintZone.All do
+                    if name = hz.AsHotKeyName() then
+                        Add(HintZoneHotKeyProcessor, chOpt, hz)
+                        found <- true
             if not found then
                 for i = 0 to 14 do
                     if name = "Item_" + TrackerModel.ITEMS.AsHotKeyName(i) then

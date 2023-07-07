@@ -1251,6 +1251,32 @@ type HintZone =
     | DEAD_WOODS
     | NEAR_START
     | FOREST
+    static member All = [|
+        HintZone.UNKNOWN
+        HintZone.DEATH_MOUNTAIN
+        HintZone.LAKE
+        HintZone.LOST_HILLS
+        HintZone.RIVER
+        HintZone.GRAVE
+        HintZone.DESERT
+        HintZone.COAST
+        HintZone.DEAD_WOODS
+        HintZone.NEAR_START
+        HintZone.FOREST
+        |]
+    member this.AsHotKeyName() =
+        match this with
+        | UNKNOWN -> "HintZone_Unknown"
+        | DEATH_MOUNTAIN -> "HintZone_DeathMountain"
+        | LAKE -> "HintZone_Lake"
+        | LOST_HILLS -> "HintZone_LostHills"
+        | RIVER -> "HintZone_River"
+        | GRAVE -> "HintZone_Grave"
+        | DESERT -> "HintZone_Desert"
+        | COAST -> "HintZone_Coast"
+        | DEAD_WOODS -> "HintZone_DeadWoods"
+        | NEAR_START -> "HintZone_CloseToStart"
+        | FOREST -> "HintZone_Forest"
     member this.AsDataChar() =  // as per OverworldData.owMapZone
         match this with
         | UNKNOWN -> '_'

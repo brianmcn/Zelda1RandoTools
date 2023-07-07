@@ -68,8 +68,9 @@ let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 
 
+let hintBG = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,120uy)))
 let HintZoneDisplayTextBox(s) : FrameworkElement = 
-    let tb = new TextBox(Text=s, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+    let tb = new TextBox(Text=s, Foreground=Brushes.Orange, Background=hintBG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
                          FontSize=12., FontWeight=FontWeights.Bold, HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
                          HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center) 
     upcast Graphics.center(tb, 24, 24)
@@ -114,10 +115,10 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     let onClick(_ea,ident) = CustomComboBoxes.DismissPopupWithResult(ident)
     let tile = new Canvas(Width=24., Height=24., Background=Brushes.Black)
     let levelHintDescription = new TextBox(Text="", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20.)
-    let levelHintLocation    = new TextBox(Text="", Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20.)
+    let levelHintLocation    = new TextBox(Text="", Foreground=Brushes.Orange, Background=hintBG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), FontSize=20.)
     let boxDecoration : FrameworkElement = upcast new Border(BorderBrush=hintyBrush, BorderThickness=Thickness(3.), Width=30., Height=30.)
     let descDecoration = 
-        let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(3.), Width=200., Height=96.)
+        let b = new Border(Background=Brushes.Black, BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(3.), Width=200., Height=112.)
         let sp = new StackPanel(Orientation=Orientation.Vertical)
         sp.Children.Add(levelHintDescription) |> ignore
         sp.Children.Add(levelHintLocation) |> ignore
@@ -127,7 +128,7 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
         tile.Children.Clear()
         tile.Children.Add(HintZoneDisplayTextBox(hz.AsDisplayTwoChars())) |> ignore
         levelHintDescription.Text <- snd OverworldData.hintMeanings.[levelHintIndex] + "\n" + fst OverworldData.hintMeanings.[levelHintIndex]
-        levelHintLocation.Text <- hz.ToString()
+        levelHintLocation.Text <- HotKeys.HintZoneHotKeyProcessor.AppendHotKeyToDescription(hz.ToString(), hz)
         hideLocator()
         showLocatorHintedZone(hz, false)
     let brushes = CustomComboBoxes.ModalGridSelectBrushes(hintyBrush, Brushes.Lime, Brushes.Red, Brushes.DarkGray)
@@ -236,6 +237,13 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true)
+        wsHintCanvas.MyKeyAdd(fun ea -> 
+            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(hz) -> 
+                ea.Handled <- true
+                TrackerModel.SetLevelHint(9, hz)
+            | _ -> ()
+            )
     (*  don't need to do this, as redrawWhiteSwordCanvas() is currently called every doUIUpdate, heh
     // redraw after we can look up its new location coordinates
     let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
@@ -338,6 +346,13 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true)
+        magsHintCanvas.MyKeyAdd(fun ea -> 
+            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(hz) -> 
+                ea.Handled <- true
+                TrackerModel.SetLevelHint(10, hz)
+            | _ -> ()
+            )
     mags_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)

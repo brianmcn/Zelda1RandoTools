@@ -211,6 +211,13 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(hintCanvas)
             hintCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
             hintCanvas.MouseLeave.Add(fun _ -> hideLocator())
+            hintCanvas.MyKeyAdd(fun ea -> 
+                match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
+                | Some(hz) -> 
+                    ea.Handled <- true
+                    TrackerModel.SetLevelHint(i, hz)
+                | _ -> ()
+                )
             gridAdd(mainTrackerGrid, hintCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
@@ -238,13 +245,27 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
     // dungeon 9 doesn't need a color, we display a 'found summary' here instead
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
-    OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true)
+    if not(TrackerModel.IsHiddenDungeonNumbers()) then
+        TrackerModel.LevelHintChanged(8).Add(fun hz -> 
+            level9ColorCanvas.Children.Clear()
+            canvasAdd(level9ColorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 2., 2.)
+            )
+        OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true)
+        level9ColorCanvas.MyKeyAdd(fun ea -> 
+            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(hz) -> 
+                ea.Handled <- true
+                TrackerModel.SetLevelHint(8, hz)
+            | _ -> ()
+            )
     gridAdd(mainTrackerGrid, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
+(*
     let foundDungeonsTB1 = new TextBox(Text="0/9", FontSize=20., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     let foundDungeonsTB2 = new TextBox(Text="found", FontSize=12., Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
     canvasAdd(level9ColorCanvas, foundDungeonsTB1, 4., -6.)
     canvasAdd(level9ColorCanvas, foundDungeonsTB2, 4., 16.)
+*)
     for i = 0 to mainTrackerCanvases.GetLength(0)-1 do
         for j = 0 to mainTrackerCanvases.GetLength(1)-1 do
             if mainTrackerCanvases.[i,j] <> null then
@@ -268,6 +289,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | _ -> ()
                 )
+(*
     let updateFoundDungeonsCount() =
         let mutable r = 0
         for trackerIndex = 0 to 8 do    
@@ -278,6 +300,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
     for trackerIndex = 0 to 8 do    
         let d = TrackerModel.GetDungeon(trackerIndex)
         d.HasBeenLocatedChanged.Add(fun _ -> updateFoundDungeonsCount())
+*)
     do 
         let RedrawForSecondQuestDungeonToggle() =
             if not(TrackerModel.IsHiddenDungeonNumbers()) then
