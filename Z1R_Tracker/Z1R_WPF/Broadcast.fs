@@ -153,14 +153,14 @@ let MakeBroadcastWindow(cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas,
         kitty.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
         kitty.Width <- 45.
         kitty.Height <- 45.
-        canvasAdd(bottomc, kitty, afterSoldItemBoxesX+120. + 20., 50.)
+        canvasAdd(bottomc, kitty, 0., 180.)
         let ztlogo = new Image()
         let imageStream = Graphics.GetResourceStream("ZTlogo64x64.png")
         ztlogo.Source <- System.Windows.Media.Imaging.BitmapFrame.Create(imageStream)
         ztlogo.Width <- 30.
         ztlogo.Height <- 30.
         let logoBorder = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=ztlogo)
-        canvasAdd(bottomc, logoBorder, afterSoldItemBoxesX+120. + 20. + 25., 61.)
+        canvasAdd(bottomc, logoBorder, 25., 191.)
         canvasAdd(bottomc, drawingOverTop, 0., 0.)
         dealWithPopups(THRU_MAIN_MAP_AND_ITEM_PROGRESS_H, 230., bottomc)
 
