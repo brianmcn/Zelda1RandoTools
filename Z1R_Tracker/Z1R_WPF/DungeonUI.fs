@@ -297,11 +297,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         ):FrameworkElement), float gx, float gnr*(2.*ST+float grh)+2.*ST
                     |]
                 let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
-                let gridClickDismissalDoesMouseWarpBackToTileCenter = false
                 outlineDrawingCanvases.[SI].Children.Clear()  // remove current outline; the tileCanvas is transparent, and seeing the old one is bad. restored later
                 async {
                     let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                    float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "VanillaDungeonOutline", None)
+                                    float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, CustomComboBoxes.NoWarp, None, "VanillaDungeonOutline", None)
                     match r with
                     | Some(state) -> currentOutlineDisplayState.[SI] <- state
                     | None -> ()
@@ -406,6 +405,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
             headerInfo.Children.Add(oldManUnreadHeaderCanvas) |> ignore
             headerSp.Children.Add(headerInfo) |> ignore
+            headerSp.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(level))
+            headerSp.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(level))
             levelTab.Header <- headerSp
         TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun (color,_) -> 
             header.Background <- Graphics.freeze(new SolidColorBrush(Graphics.makeColor(color)))
@@ -479,12 +480,15 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         // main dungeon content
         contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(level))
         contentCanvas.MouseLeave.Add(fun ea -> 
-            // only hide the locator if we actually left
-            // MouseLeave fires (erroneously?) when we e.g. click a room, and redraw() causes the element we are Entered to be removed from the tree and replaced by another,
-            // even though we never left the bounds of the enclosing canvas
+            // only hide the locator if we "actually" left
+            // MouseLeave fires
+            //  - when we click a room, redraw() causes the element we are Entered to be removed from the tree and replaced by another, even though we never left the bounds of the enclosing canvas
+            //  - when we right-click a room, as the mouse is warped outside the canvas in the popup
+            // avoid spuriously changing the overworld locator (which is expensive and visually distracting) in these cases
             let pos = ea.GetPosition(contentCanvas)
             if (pos.X < 0. || pos.X > contentCanvas.ActualWidth) || (pos.Y < 0. || pos.Y > contentCanvas.ActualHeight) then
-                contentCanvasMouseLeaveFunc(level)
+                if cm.PopupCanvasStack.Count = 0 then
+                    contentCanvasMouseLeaveFunc(level)
             )
         let dungeonCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7), Background=Brushes.Black)  
         let dungeonHeaderCanvas = new Canvas(Height=float(TH), Width=float(39*8 + 12*7))         // draw e.g. BOARD-5 here
@@ -1019,10 +1023,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     let pretty = CustomComboBoxes.GetPrettyDashes("DungeonRoomSelectActivatePopup", Brushes.Lime, 13.*3., 9.*3., 3., 2., 1.2)
                     dashCanvas.Children.Add(pretty) |> ignore
                     let pos = Point(roomPos.X+13.*3./2., roomPos.Y+9.*3./2.)
-                    do! DungeonPopups.DoDungeonRoomSelectPopup(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons) 
+                    do! DungeonPopups.DoDungeonRoomSelectPopup(cm, roomStates.[i,j], usedTransports, SetNewValue, positionAtEntranceRoomIcons, CustomComboBoxes.WarpTo(pos)) 
                     dashCanvas.Children.Remove(pretty)
                     c.Children.Remove(dashCanvas)
-                    Graphics.WarpMouseCursorTo(pos)
                     redraw()
                     popupIsActive <- false
                     }
@@ -1107,6 +1110,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 isFirstTimeClickingAnyRoom.[level-1].Value <- false  // hotkey cancels first-time click accelerator, so not to interfere with all-hotkey folks
                                 numeral.Opacity <- 0.0
                     )
+                let mutable justHighlightedMeatShop = false
                 c.MouseEnter.Add(fun _ ->
                     if not popupIsActive then
                         if grabHelper.IsGrabMode then
@@ -1128,6 +1132,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             Canvas.SetTop(roomHighlightOutline, float(j*39)-2.)
                             if roomStates.[i,j].RoomType = RoomType.HungryGoriyaMeatBlock then
                                 AhhGlobalVariables.showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.MEAT)
+                                justHighlightedMeatShop <- true
                     )
                 c.MouseLeave.Add(fun _ ->
                     if not popupIsActive then
@@ -1136,9 +1141,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     highlightRow(None)
                     highlightColumn(None)
                     roomHighlightOutline.Opacity <- 0.0
-                    // turn off showShopLocatorInstanceFunc and go back to the highlight for this level
-                    AhhGlobalVariables.hideLocator()
-                    contentCanvasMouseEnterFunc(level)  
+                    if justHighlightedMeatShop then
+                        justHighlightedMeatShop <- false
+                        // turn off showShopLocatorInstanceFunc and go back to the highlight for this level
+                        AhhGlobalVariables.hideLocator()
+                        contentCanvasMouseEnterFunc(level)  
                     )
                 let doMonsterDetailPopup() = 
                     async {

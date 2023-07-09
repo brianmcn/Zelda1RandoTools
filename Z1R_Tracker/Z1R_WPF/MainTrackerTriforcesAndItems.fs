@@ -213,7 +213,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             let hintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
             TrackerModel.LevelHintChanged(i).Add(fun hz -> 
                 hintCanvas.Children.Clear()
-                canvasAdd(hintCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 2., 2.)
+                canvasAdd(hintCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
                 )
             OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), hintCanvas, i, true)
             mainTrackerCanvases.[i,0] <- hintCanvas
@@ -257,7 +257,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         TrackerModel.LevelHintChanged(8).Add(fun hz -> 
             level9ColorCanvas.Children.Clear()
-            canvasAdd(level9ColorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 2., 2.)
+            canvasAdd(level9ColorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             )
         OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true)
         level9ColorCanvas.MyKeyAdd(fun ea -> 

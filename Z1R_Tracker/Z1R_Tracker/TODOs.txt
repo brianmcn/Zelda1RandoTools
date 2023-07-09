@@ -163,6 +163,9 @@ since 1.3.0u...
 
 single locator cyan crosshairs are messy on mixed overworld with many highlights... something else?
 
+rerun perf tests
+
+
 
 
 UCC may need testing of popup menus

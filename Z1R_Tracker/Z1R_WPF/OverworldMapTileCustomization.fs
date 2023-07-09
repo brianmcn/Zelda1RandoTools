@@ -322,7 +322,7 @@ let ToggleOverworldTileIfItIsToggleable(i, j, state) =
         else
             TrackerModel.setOverworldMapExtraData(i,j,state,state)
 
-let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
+let DoLeftClick(cm:CustomComboBoxes.CanvasManager,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
     if msp.State = -1 then
         // left click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 
@@ -372,7 +372,7 @@ let DoLeftClick(cm,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple o
                             canvasAdd(tileCanvas, tileImage, 0., 0.)
                             ),
                         (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "SecondShopItem", None)
+                        extraDecorations, CustomComboBoxes.ModalGridSelectBrushes.Defaults(), CustomComboBoxes.WarpToCenter, None, "SecondShopItem", None)
         let r =
             match g with
             | Some(currentState) ->

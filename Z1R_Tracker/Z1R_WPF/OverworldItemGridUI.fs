@@ -146,7 +146,7 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
         upcast learnDeco, learnX - px, learnY - py
         ]
     let! r = CustomComboBoxes.DoModalGridSelect(cm, px, py, tile, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 3, 24, 24), 
-                                17., 12., 27., 27., redrawTile, onClick, extraDecorations, brushes, false, None, "FastHintSelector", Some(0.2))
+                                17., 12., 27., 27., redrawTile, onClick, extraDecorations, brushes, CustomComboBoxes.WarpToCenter, None, "FastHintSelector", Some(0.2))
     hideLocator()
     return r
     }
@@ -156,7 +156,7 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
             popupIsActive <- true
             Graphics.SilentlyWarpMouseCursorTo(Point(px+15., py+15.))   // white/magical sword can activate scroll from icons below; just always center on box when activated
             async {
-                let! r = FastHintSelector(cm, i, float px+3., py+3., if x.Delta<0 then 1 else -1)
+                let! r = FastHintSelector(cm, i, px+3., py+3., if x.Delta<0 then 1 else -1)
                 match r with
                 | Some hz -> TrackerModel.SetLevelHint(i, hz)
                 | _ -> ()
@@ -169,7 +169,7 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
                 popupIsActive <- true
                 ea.Handled <- true
                 async {
-                    let! r = FastHintSelector(cm, i, float (30*i+3), 3., 0)
+                    let! r = FastHintSelector(cm, i, px+3., py+3., 0)
                     match r with
                     | Some hz -> TrackerModel.SetLevelHint(i, hz)
                     | _ -> ()
@@ -239,7 +239,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         TrackerModel.LevelHintChanged(9).Add(fun hz -> 
             wsHintCanvas.Children.Clear()
-            canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 4., 4.)
+            canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawWhiteSwordCanvas(white_sword_canvas))
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false)
@@ -348,7 +348,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         TrackerModel.LevelHintChanged(10).Add(fun hz -> 
             magsHintCanvas.Children.Clear()
-            canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 4., 4.)
+            canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawMagicalSwordCanvas(mags_canvas))
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false)

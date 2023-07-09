@@ -691,10 +691,9 @@ let MakeHintDecoderUI(cm:CustomComboBoxes.CanvasManager) =
             let onClick(_ea, i) = CustomComboBoxes.DismissPopupWithResult(i)
             let extraDecorations = []
             let brushes = CustomComboBoxes.ModalGridSelectBrushes.Defaults()
-            let gridClickDismissalDoesMouseWarpBackToTileCenter = false
             async {
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-                                                float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, None, "HintDecoder", None)
+                                                float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, CustomComboBoxes.NoWarp, None, "HintDecoder", None)
                 match r with
                 | Some(i) ->
                     TrackerModel.SetLevelHint(thisRow, TrackerModel.HintZone.FromIndex(i))
@@ -840,7 +839,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                 let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, pc, TrackerModel.DungeonBlocker.All |> Array.map (fun db ->
                                 (if db=TrackerModel.DungeonBlocker.NOTHING then upcast Canvas() else upcast Graphics.blockerCurrentDisplay(db)), db.PlayerCouldBeBlockedByThis(), db), 
                                 System.Array.IndexOf(TrackerModel.DungeonBlocker.All, current), activationDelta, (4, 4, 24, 24), 12., 12., -90., 30., popupRedraw,
-                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "Blocker", None)
+                                (fun (_ea,db) -> CustomComboBoxes.DismissPopupWithResult(db)), [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), CustomComboBoxes.WarpToCenter, None, "Blocker", None)
                 match r with
                 | Some(db) -> SetNewValue(db)
                 | None -> () 

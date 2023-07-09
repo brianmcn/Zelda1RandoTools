@@ -296,6 +296,7 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
+let magenta = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Magenta, 0.30))))
 let green = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50))))
 let cyan = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.FromArgb(0xFF, 0, 0xFF, 0xFF), 0.30))))
 let yellow = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50))))
@@ -308,6 +309,25 @@ type TileHighlightRectangle() as this =
     let Draw(isPale) =
         s.Opacity <- 1.0
         s.StrokeThickness <- if isPale then 2.0 else 4.0
+    member _this.MakeMagentaWithAnimation() = 
+        Draw(false)
+        let sb = new Animation.Storyboard()
+        let da = new System.Windows.Media.Animation.DoubleAnimation(12.0, 3.0, new Duration(System.TimeSpan.FromSeconds(0.5)))
+        sb.Children.Add(da)
+        Animation.Storyboard.SetTarget(da, s)
+        Animation.Storyboard.SetTargetProperty(da, new PropertyPath(Shapes.Rectangle.StrokeThicknessProperty))
+        let da = new System.Windows.Media.Animation.DoubleAnimation(3.0, 6.0, new Duration(System.TimeSpan.FromSeconds(1.0)))
+        da.RepeatBehavior <- Animation.RepeatBehavior.Forever
+        da.AutoReverse <- true
+        da.BeginTime <- TimeSpan.FromSeconds(0.5)
+        sb.Children.Add(da)
+        Animation.Storyboard.SetTarget(da, s)
+        Animation.Storyboard.SetTargetProperty(da, new PropertyPath(Shapes.Rectangle.StrokeThicknessProperty))
+        sb.Begin()
+        let ca = new System.Windows.Media.Animation.ColorAnimation(From=Colors.Cyan, To=magenta.Color, Duration=new Duration(System.TimeSpan.FromSeconds(0.5)))
+        let brush = new SolidColorBrush()
+        s.Stroke <- brush
+        brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
     member _this.MakeRed() = s.Stroke <- red; Draw(false)
     member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
     member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
@@ -1030,11 +1050,34 @@ let RestartTheApplication() =
     System.Diagnostics.Process.Start(thisExe) |> ignore
     System.Windows.Application.Current.MainWindow.Close()
 
-let WarpMouseCursorTo(pos:Point) =
-    Win32.SetCursor(pos.X, pos.Y)
-    PlaySoundForSpeechRecognizedAndUsedToMark()
+// ideas from
+// https://kent-boogaart.com/blog/dispatcher-frames
+// from https://stackoverflow.com/questions/4502037/where-is-the-application-doevents-in-wpf
+// see also
+// https://stackoverflow.com/questions/21248643/how-can-i-convert-win32-mouse-messages-to-wpf-mouse-events 
+let mutable sawMouseEvent = false
+let setup(w:Window) =
+    w.MouseMove.Add(fun _ -> sawMouseEvent <- true)
 let SilentlyWarpMouseCursorTo(pos:Point) =
+    let frame = new System.Windows.Threading.DispatcherFrame()
+    let sw = System.Diagnostics.Stopwatch.StartNew()
+    let rec pump = new System.Windows.Threading.DispatcherOperationCallback(fun _ -> 
+        if not sawMouseEvent && sw.ElapsedMilliseconds>100L then
+            printfn "uh oh too slow"
+            sawMouseEvent <- true
+        if sawMouseEvent then
+            frame.Continue <- false
+        else
+            System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, pump, null) |> ignore
+        null
+        )
+    sawMouseEvent <- false
+    System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, pump, null) |> ignore
     Win32.SetCursor(pos.X, pos.Y)
+    System.Windows.Threading.Dispatcher.PushFrame(frame)
+let WarpMouseCursorTo(pos:Point) =
+    SilentlyWarpMouseCursorTo(pos)
+    PlaySoundForSpeechRecognizedAndUsedToMark()
 let NavigationallyWarpMouseCursorTo(pos:Point) =   // can abstract over whether keyboard 'arrow' keys play the sound or not
     SilentlyWarpMouseCursorTo(pos)
     (*

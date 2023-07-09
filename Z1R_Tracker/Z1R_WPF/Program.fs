@@ -305,7 +305,9 @@ type MyWindow() as this =
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
-        this.Loaded.Add(fun _ -> this.Focus() |> ignore)
+        this.Loaded.Add(fun _ -> 
+            Graphics.setup(this)
+            this.Focus() |> ignore)
         this.Background <- Brushes.Black  // on a device with say 125% pixels and UseLayoutRounding=true, there's a white line at the bottom/right edge where RootCanvas doesn't cover app 
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas

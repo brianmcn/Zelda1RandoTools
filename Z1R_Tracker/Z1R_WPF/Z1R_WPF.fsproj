@@ -48,6 +48,7 @@
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--warnon:1182</OtherFlags>
     <StartArguments>noHeartShuffle 3</StartArguments>
+    <NoWarn>40</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

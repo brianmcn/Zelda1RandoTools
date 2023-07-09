@@ -306,10 +306,13 @@ type PopupClickBehavior<'a> =
     | DismissPopupWithResult of 'a     // return result
     | DismissPopupWithNoResult         // tear down popup as though user clicked outside it
     | StayPoppedUp                     // keep awaiting more clicks
-
+type GridClickDismissalWarpReturn =
+    | NoWarp
+    | WarpTo of Point
+    | WarpToCenter
 (*
 CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
-    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalDoesMouseWarpBackToTileCenter, who)
+    gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalWarpReturn, who)
 *)
 let DoModalGridSelect<'State,'Result>
         (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
@@ -323,8 +326,8 @@ let DoModalGridSelect<'State,'Result>
                 onClick,  // called on tile click or selectable grid click, you choose what to do:   (mousebuttonEA, currentStateID) -> PopupClickBehavior<'Result>
                 extraDecorations:seq<FrameworkElement*float*float>,  // extra things to draw at (x,y)s
                 brushes:ModalGridSelectBrushes,
-                gridClickDismissalDoesMouseWarpBackToTileCenter,
-                who:System.Threading.ManualResetEvent option,      // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
+                gridClickDismissalWarpReturn,
+                who:System.Threading.ManualResetEvent option,        // pass an unset one, if caller wants to be able to early-dismiss the dialog on its own
                 uniqueName:string,      // for PrettyDashes caching
                 opaOpt:float option     // blackSunglassesOpacity
                 ) = async {
@@ -456,16 +459,19 @@ let DoModalGridSelect<'State,'Result>
                 redrawGridFuncs.Add(redraw)
                 redraw()
                 let mouseWarpDismiss() =
-                    let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), cm.AppMainCanvas)
-                    Graphics.WarpMouseCursorTo(pos)
+                    match gridClickDismissalWarpReturn with
+                    | WarpTo(pos) -> Graphics.WarpMouseCursorTo(pos)
+                    | WarpToCenter -> 
+                        let pos = tileCanvas.TranslatePoint(Point(tileCanvas.Width/2.,tileCanvas.Height/2.), cm.AppMainCanvas)
+                        Graphics.WarpMouseCursorTo(pos)
+                    | NoWarp -> ()
                     dismiss()
                 b.MouseDown.Add(fun ea -> 
                     ea.Handled <- true
                     if isSelectable then
-                        let dismisser = if gridClickDismissalDoesMouseWarpBackToTileCenter then mouseWarpDismiss else dismiss
                         match onClick(ea, stateID()) with
-                        | DismissPopupWithResult(r) -> result <- Some(r); dismisser()
-                        | DismissPopupWithNoResult -> dismisser()
+                        | DismissPopupWithResult(r) -> result <- Some(r); mouseWarpDismiss()
+                        | DismissPopupWithNoResult -> mouseWarpDismiss()
                         | StayPoppedUp -> ()
                     )
                 b.MyKeyAdd(handleCursorHotKey(x,y))
@@ -577,7 +583,7 @@ let DisplayItemComboBox(cm:CanvasManager, boxX, boxY, boxCellCurrent, activation
             Canvas.SetLeft(dp, 138.)
     let extraDecorations = [yield itemBoxMouseButtonExplainerDecoration, decoX, decoY; yield! callerExtraDecorations]
     return! DoModalGridSelect(cm, boxX+3., boxY+3., innerc, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (4, 4, 21, 21), 
-                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, true, None, "ItemBox", None)
+                                17., 12., gridX, gridY, redrawTile, onClick, extraDecorations, itemBoxModalGridSelectBrushes, WarpToCenter, None, "ItemBox", None)
     }
 
 let makeVersionButtonWithBehavior(cm:CanvasManager) =

@@ -700,7 +700,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                         tileCanvas.Children.Add(dp) |> ignore
                                         ),
                                     (fun (_ea, currentState) -> CustomComboBoxes.DismissPopupWithResult(currentState)),
-                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), true, None, "OWGridTile", None)
+                                    [], CustomComboBoxes.ModalGridSelectBrushes.Defaults(), CustomComboBoxes.WarpToCenter, None, "OWGridTile", None)
                         match r with
                         | Some(currentState) -> do! SetNewValue(currentState, originalState)
                         | None -> ()
@@ -1175,29 +1175,32 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let rightwardCanvas = new Canvas()
     let levelTabSelected = new Event<_>()  // blockers listens, to subtly highlight a dungeon
     let blockersHoverEvent = new Event<bool>()
+    let mutable currentCCLevel = -1
     let contentCanvasMouseEnterFunc(level) =
-        if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
-            for i = 0 to 15 do
-                for j = 0 to 7 do
-                    let cur = TrackerModel.overworldMapMarks.[i,j].Current()
-                    if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
-                        let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
-                        if (curLevel = level-11) || (level=10) then  // if hovering this particular dungeon within summary tab, or if hovering 'S' header
-                            owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
-                        elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
-                            owLocatorTileRectangles.[i,j].MakeBoldGreen()
-                        else
-                            () // do nothing - don't highlight completed dungeons
-            drawRoutesTo(None, Point(), 0, 0, false, 0, whetherToCyanOpenCavesOrArmos())
-        else
-            let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
-            if (i,j) <> TrackerModel.NOTFOUND then
-                // when mouse in a dungeon map, show its location...
-                showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
-                // ...and behave like we are moused there
-                drawRoutesTo(None, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
-                                    (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
-                                    whetherToCyanOpenCavesOrArmos())
+        if level <> currentCCLevel then
+            currentCCLevel <- level
+            if level>=10 then // 10+ = summary tab, show all dungeon locations; 11 means moused over 1, 12 means 2, ...
+                for i = 0 to 15 do
+                    for j = 0 to 7 do
+                        let cur = TrackerModel.overworldMapMarks.[i,j].Current()
+                        if cur >= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 && cur <= TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_9 then
+                            let curLevel = cur-TrackerModel.MapSquareChoiceDomainHelper.DUNGEON_1 // 0-8
+                            if (curLevel = level-11) || (level=10) then  // if hovering this particular dungeon within summary tab, or if hovering 'S' header
+                                owLocatorTileRectangles.[i,j].MakeGreenWithBriefAnimation()
+                            elif not(TrackerModel.GetDungeon(curLevel).IsComplete) then
+                                owLocatorTileRectangles.[i,j].MakeBoldGreen()
+                            else
+                                () // do nothing - don't highlight completed dungeons
+                drawRoutesTo(None, Point(), 0, 0, false, 0, whetherToCyanOpenCavesOrArmos())
+            else
+                let i,j = TrackerModel.mapStateSummary.DungeonLocations.[level-1]
+                if (i,j) <> TrackerModel.NOTFOUND then
+                    // when mouse in a dungeon map, show its location...
+                    showLocatorExactLocation(TrackerModel.mapStateSummary.DungeonLocations.[level-1])
+                    // ...and behave like we are moused there
+                    drawRoutesTo(None, Point(), i, j, TrackerModelOptions.Overworld.DrawRoutes.Value, 
+                                        (if TrackerModelOptions.Overworld.HighlightNearby.Value then OverworldRouteDrawing.MaxGYR else 0),
+                                        whetherToCyanOpenCavesOrArmos())
     level9ColorCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
     level9ColorCanvas.MouseLeave.Add(fun _ -> hideLocator())
     let! dungeonTabs,posToWarpToWhenTabbingFromOverworld,grabModeTextBlock,exportDungeonModelsJsonLinesF,importDungeonModels = 
@@ -1330,6 +1333,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     showLocatorExactLocation <- (fun (x,y) ->
         if (x,y) <> TrackerModel.NOTFOUND then
+            owLocatorTileRectangles.[x,y].MakeMagentaWithAnimation()
+            (*
             let OPA = 0.85
             let COL = Brushes.Cyan
             let leftLine = new Shapes.Line(X1=OMTW*float x, Y1=0., X2=OMTW*float x, Y2=float(8*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
@@ -1340,6 +1345,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             canvasAdd(owLocatorCanvas, topLine, 0., 0.)
             let bottomLine = new Shapes.Line(X1=0., Y1=float((y+1)*11*3)-1., X2=OMTW*float(16*3), Y2=float((y+1)*11*3)-1., Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
+            *)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
         OverworldRouteDrawing.routeDrawingLayer.Clear()
@@ -1543,6 +1549,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         // ensureRespectingOwGettableScreensAndOpenCavesCheckBoxes()  // do not do this, we want the map to be blank, to make the ghostbuster 'pop' more and the non-found-ness to be more apparent
         )
     hideLocator <- (fun () ->
+//        printfn "some other HL: %s" ((new System.Diagnostics.StackTrace()).ToString())
+        currentCCLevel <- -1
         if not zone_checkbox.IsChecked.HasValue || not zone_checkbox.IsChecked.Value then changeZoneOpacity(TrackerModel.HintZone.UNKNOWN,false)
         allOwMapZoneBlackCanvases |> Array2D.iteri (fun _x _y zbc -> zbc.Opacity <- 0.0)
         for i = 0 to 15 do
