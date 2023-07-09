@@ -232,11 +232,12 @@ type MyWindow() as this =
                 logCrashInfo "Or you can delete it, and an empty hotkeys template file will be created in its place."
                 logCrashInfo ""
                 finishCrashInfo()
-                System.Threading.Thread.Sleep(2000)
                 let fileToSelect = HotKeys.HotKeyFilename
                 let args = sprintf "/Select, \"%s\"" fileToSelect
                 let psi = new System.Diagnostics.ProcessStartInfo("Explorer.exe", args)
                 System.Diagnostics.Process.Start(psi) |> ignore
+                printfn "Press a key to close this window"
+                System.Console.ReadKey() |> ignore
             | _ ->
                 logCrashInfo <| sprintf "%s" (ex.ToString())
                 finishCrashInfo()
