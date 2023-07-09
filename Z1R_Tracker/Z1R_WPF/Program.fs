@@ -136,44 +136,56 @@ let ApplyKonamiCodeEasterEgg(cm:CustomComboBoxes.CanvasManager, fe:FrameworkElem
             i <- i + 1
 //            printfn "%A" ea.Key
             if i = code.Length then
-                let wh = new System.Threading.ManualResetEvent(false)
-                let tips = new StackPanel(Orientation=Orientation.Vertical)
-                let header(txt) =
-                    let tb = MakeTipTextBox(txt)
-                    tb.BorderThickness <- Thickness(0.,0.,0.,2.)
-                    tb.BorderBrush <- Brushes.Orange
-                    tb.FontSize <- tb.FontSize + 2.
-                    tb.Margin <- Thickness(0., 15., 0., 10.)
-                    tb
-                let mutable even = false
-                let body(txt) =
-                    let tb = MakeTipTextBox(txt)
-                    tb.Margin <- Thickness(0., 8., 0., 0.)
-                    if even then
-                        tb.Background <- Brushes.Black
-                    else
-                        tb.Background <- Graphics.almostBlack
-                    even <- not even
-                    tb
-                tips.Children.Add(header("ALL OF TIPS")) |> ignore   // grammar mimics 'ALL OF ITEMS' in LoZ startup scroll
-                tips.Children.Add(header("Novice-level tips")) |> ignore
-                for t in DungeonData.Factoids.noviceTips do
-                    tips.Children.Add(body(t)) |> ignore
-                tips.Children.Add(header("Intermediate-level tips")) |> ignore
-                for t in DungeonData.Factoids.intermediateTips do
-                    tips.Children.Add(body(t)) |> ignore
-                tips.Children.Add(header("Advanced-level tips")) |> ignore
-                for t in DungeonData.Factoids.advancedTips do
-                    tips.Children.Add(body(t)) |> ignore
-                tips.Children.Add(header("Z-Tracker tips")) |> ignore
-                for t in DungeonData.Factoids.zTrackerTips do
-                    tips.Children.Add(body(t)) |> ignore
-                let sv = new ScrollViewer(HorizontalAlignment=HorizontalAlignment.Left, VerticalAlignment=VerticalAlignment.Top, Content=tips)
-                let BUFFER = 160.
-                let tipsBorder = new Border(Width=cm.AppMainCanvas.Width-BUFFER, Height=cm.AppMainCanvas.Height-BUFFER, Background=Brushes.Black, 
-                                            BorderBrush=Brushes.Orange, BorderThickness=Thickness(3.), Child=sv)
-                tipsBorder.Resources.Add(typeof<TextBox>, fe.Resources.[typeof<TextBox>])
-                CustomComboBoxes.DoModal(cm, wh, BUFFER/2., BUFFER/2., tipsBorder) |> Async.StartImmediate
+                if not popupIsActive then
+                    popupIsActive <- true
+                    let wh = new System.Threading.ManualResetEvent(false)
+                    let all = new DockPanel()
+                    let tips = new StackPanel(Orientation=Orientation.Vertical, Margin=Thickness(3.))
+                    let header(txt) =
+                        let tb = MakeTipTextBox(txt)
+                        tb.BorderThickness <- Thickness(0.,0.,0.,2.)
+                        tb.BorderBrush <- Brushes.Orange
+                        tb.FontSize <- tb.FontSize + 2.
+                        tb.Margin <- Thickness(0., 15., 0., 10.)
+                        tb
+                    let mutable even = false
+                    let body(txt) =
+                        let tb = MakeTipTextBox(txt)
+                        tb.Margin <- Thickness(0., 8., 0., 0.)
+                        if even then
+                            tb.Background <- Brushes.Black
+                        else
+                            tb.Background <- Graphics.almostBlack
+                        even <- not even
+                        tb
+                    let desc = MakeTipTextBox("ALL OF TIPS")    // grammar mimics 'ALL OF ITEMS' in LoZ startup scroll
+                    desc.FontSize <- 18.
+                    desc.Margin <- Thickness(5.)
+                    let b = new Border(BorderBrush=Brushes.Orange, BorderThickness=Thickness(0.,0.,0.,2.), Child=desc, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,0.,5.))
+                    all.Children.Add(b) |> ignore
+                    DockPanel.SetDock(b, Dock.Top)
+                    let sv = new ScrollViewer(HorizontalAlignment=HorizontalAlignment.Left, VerticalAlignment=VerticalAlignment.Top, Content=tips)
+                    all.Children.Add(sv) |> ignore
+                    tips.Children.Add(header("Novice-level tips")) |> ignore
+                    for t in DungeonData.Factoids.noviceTips do
+                        tips.Children.Add(body(t)) |> ignore
+                    tips.Children.Add(header("Intermediate-level tips")) |> ignore
+                    for t in DungeonData.Factoids.intermediateTips do
+                        tips.Children.Add(body(t)) |> ignore
+                    tips.Children.Add(header("Advanced-level tips")) |> ignore
+                    for t in DungeonData.Factoids.advancedTips do
+                        tips.Children.Add(body(t)) |> ignore
+                    tips.Children.Add(header("Z-Tracker tips")) |> ignore
+                    for t in DungeonData.Factoids.zTrackerTips do
+                        tips.Children.Add(body(t)) |> ignore
+                    let BUFFER = 160.
+                    let tipsBorder = new Border(Width=cm.AppMainCanvas.Width-BUFFER, Height=cm.AppMainCanvas.Height-BUFFER, Background=Brushes.Black, 
+                                                BorderBrush=Brushes.Orange, BorderThickness=Thickness(3.), Child=all)
+                    tipsBorder.Resources.Add(typeof<TextBox>, fe.Resources.[typeof<TextBox>])
+                    async { 
+                        do! CustomComboBoxes.DoModal(cm, wh, BUFFER/2., BUFFER/2., tipsBorder)
+                        popupIsActive <- false
+                    } |> Async.StartImmediate
         )
 
 type MyWindow() as this = 
@@ -541,20 +553,54 @@ type MyWindow() as this =
         cutoffCanvas.Children.Add(hsGrid) |> ignore
         let border = new Border(BorderBrush=Brushes.DarkGray, BorderThickness=Thickness(8.,8.,0.,0.), Child=cutoffCanvas)
 
-        let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center)
-        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        let finalChildTipArea = new Canvas()
+        let explainerGrid = new Grid(Width=WIDTH*5./6., Height=160.)
+        let explainerBorder = new Border(Child=explainerGrid, BorderThickness=Thickness(1.), BorderBrush=Brushes.Orange, Opacity=0., Background=Brushes.Black)
+        let explainerLine = new Shapes.Line(Stroke=Brushes.Orange, StrokeThickness=1., Opacity=0.)
+        let hoverExplain(fe:FrameworkElement, desc) =
+            if not startButtonHasBeenClicked then
+                let explanation = MakeTipTextBox(desc)
+                explanation.FontSize <- 18.
+                explanation.Margin <- Thickness(20.)
+                explainerGrid.Children.Clear()
+                explainerGrid.Children.Add(explanation) |> ignore
+                explainerBorder.Opacity <- 1.
+                if not(finalChildTipArea.Children.Contains(explainerBorder)) then
+                    let x,y = WIDTH/12. - CHROME_WIDTH/2., 10.
+                    Graphics.canvasAdd(finalChildTipArea, explainerBorder, x, y)
+                    explainerLine.X1 <- x
+                    explainerLine.Y1 <- y
+                    finalChildTipArea.Children.Add(explainerLine) |> ignore
+                let p = finalChildTipArea.TranslatePoint(Point(), fe)
+                explainerLine.X2 <- - p.X
+                explainerLine.Y2 <- - p.Y
+                explainerLine.Opacity <- 1.
+        let explainHide() =
+            explainerBorder.Opacity <- 0.
+            explainerLine.Opacity <- 0.
+
+        let checkboxSP = new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center, Margin=Thickness(0.,0.,20.,0.))
+        let hscb = new CheckBox(Content=new TextBox(Text="Heart Shuffle",IsReadOnly=true,BorderThickness=Thickness(0.),IsHitTestVisible=false, Margin=Thickness(2.)))
         Graphics.scaleUpCheckBoxBox(hscb, 1.66)
         hscb.IsChecked <- System.Nullable.op_Implicit true
         hscb.Checked.Add(fun _ -> turnHeartShuffleOn())
         hscb.Unchecked.Add(fun _ -> turnHeartShuffleOff())
-        checkboxSP.Children.Add(hscb) |> ignore
+        let hsArea = new Border(BorderBrush=Brushes.SaddleBrown, BorderThickness=Thickness(1.), Child=hscb)
+        hsArea.MouseEnter.Add(fun _ -> hoverExplain(hsArea,"This checkbox corresponds to the randomizer setting:\n\nDungeon Items (tab)\n - Shuffle Dungeon Hearts (checkbox)"))
+        hsArea.MouseLeave.Add(fun _ -> explainHide())
+        checkboxSP.Children.Add(hsArea) |> ignore
 
-        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true,BorderThickness=Thickness(0.)), Margin=Thickness(10.))
+        checkboxSP.Children.Add(new DockPanel(Height=10.)) |> ignore
+
+        let hdcb = new CheckBox(Content=new TextBox(Text="Hide Dungeon Numbers",IsReadOnly=true,BorderThickness=Thickness(0.),IsHitTestVisible=false), Margin=Thickness(2.))
         Graphics.scaleUpCheckBoxBox(hdcb, 1.66)
         hdcb.IsChecked <- System.Nullable.op_Implicit false
         hdcb.Checked.Add(fun _ -> turnHideDungeonNumbersOn())
         hdcb.Unchecked.Add(fun _ -> turnHideDungeonNumbersOff())
-        checkboxSP.Children.Add(hdcb) |> ignore
+        let hdnArea = new Border(BorderBrush=Brushes.SaddleBrown, BorderThickness=Thickness(1.), Child=hdcb)
+        hdnArea.MouseEnter.Add(fun _ -> hoverExplain(hdnArea,"This checkbox corresponds to the randomizer setting:\n\nDungeons (tab)\n - Hide Dungeon Numbers (checkbox)"))
+        hdnArea.MouseLeave.Add(fun _ -> explainHide())
+        checkboxSP.Children.Add(hdnArea) |> ignore
 
         hsPanel.Children.Add(checkboxSP) |> ignore
         hsPanel.Children.Add(border) |> ignore
@@ -639,6 +685,7 @@ type MyWindow() as this =
         let startButtonBehavior(n) = 
             if startButtonHasBeenClicked then () else
             startButtonHasBeenClicked <- true
+            explainHide()
             turnHeartShuffleOn()  // To draw the display, I have been interacting with the global ChoiceDomain for items.  This switches all the boxes back to empty, 'zeroing out' what we did.
             async {
                 TrackerModelOptions.writeSettings()
@@ -682,6 +729,9 @@ type MyWindow() as this =
             3, "Mixed - Second Quest Overworld\n(or randomized quest)"
             999, "from a previously saved state"
             |]
+        let addQuestExplainer(startButton:FrameworkElement) =
+            startButton.MouseEnter.Add(fun _ -> hoverExplain(startButton,"Choose the start button that matches the randomizer setting:\n\nOverworld Quest (dropdown)"))
+            startButton.MouseLeave.Add(fun _ -> explainHide())
         for n,q in quests do
             let startButton = Graphics.makeButton(sprintf "Start: %s" q, None, None)
             if n=999 then
@@ -708,6 +758,8 @@ type MyWindow() as this =
                 otherButton.Margin <-Thickness(6.,0.,0.,0.)
                 dp.Children.Add(otherButton) |> ignore
                 otherButton.Click.Add(fun _ -> 
+                    if popupIsActive then () else
+                    popupIsActive <- true
                     let dialog1 = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
                     addDarkTheme(dialog1.Resources)
                     let tb1 = new TextBox(IsReadOnly=true, BorderThickness=Thickness(0.), Foreground=Brushes.Orange)
@@ -770,14 +822,17 @@ type MyWindow() as this =
                                         "Do whatever works for you.  Good luck!"
                             let! _r = CustomComboBoxes.DoModalMessageBoxCore(cm, System.Drawing.SystemIcons.Information, text, ["Ok"], 30., 30.)
                             startButtonBehavior(4)
+                        popupIsActive <- false
                     } |> Async.StartImmediate
                     )
                 DockPanel.SetDock(otherButton, Dock.Right)
                 dp.Children.Add(startButton) |> ignore
+                addQuestExplainer(startButton)
                 stackPanel.Children.Add(dp) |> ignore
             else
                 startButton.Width <- WIDTH/2.
                 stackPanel.Children.Add(startButton) |> ignore
+                if n<=3 then addQuestExplainer(startButton)
             startButton.Click.Add(fun _ -> startButtonBehavior(n))
 
         let tipsp = new StackPanel(Orientation=Orientation.Vertical)
@@ -787,7 +842,9 @@ type MyWindow() as this =
         //let tb = MakeTipTextBox(DungeonData.Factoids.allTips |> Array.sortBy (fun s -> s.Length) |> Seq.last)   // show the longest tip (to test screen layout)
         tb.Margin <- spacing
         tipsp.Children.Add(tb) |> ignore
-        stackPanel.Children.Add(new Border(Child=tipsp, BorderThickness=Thickness(1.), Margin=Thickness(0., 20., 0., 0.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)) |> ignore
+        stackPanel.Children.Add(finalChildTipArea) |> ignore
+        let tip = new Border(Child=tipsp, BorderThickness=Thickness(1.), Padding=Thickness(5.), BorderBrush=Brushes.Orange, Width=WIDTH*2./3.)
+        Graphics.canvasAdd(finalChildTipArea, tip, WIDTH/6. - CHROME_WIDTH/2., 55.)
 
         let bottomSP = new StackPanel(Orientation=Orientation.Vertical, HorizontalAlignment=HorizontalAlignment.Center)
         bottomSP.Children.Add(new Shapes.Rectangle(HorizontalAlignment=HorizontalAlignment.Stretch, Fill=Brushes.Black, Height=2., Margin=spacing)) |> ignore
