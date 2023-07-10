@@ -743,17 +743,23 @@ XX...XX.
             questionMark
 
 let BLUE = System.Drawing.Color.FromArgb(71, 47, 228)
-let MakeLetterBmpInZeldaFont(letter, preferBlack) =
-    let bmp = new System.Drawing.Bitmap(8, 8)
-    for x = 0 to 7 do
-        for y = 0 to 7 do
-            bmp.SetPixel(x,y,System.Drawing.Color.Transparent)
-    let a = ZeldaFont.fromLetter(letter)
-    for x = 0 to 7 do
-        for y = 0 to 7 do
-            if a.[y].Chars(x)='X' then
-                bmp.SetPixel(x, y, if preferBlack then System.Drawing.Color.Black else System.Drawing.Color.White)
-    bmp
+let zeldaLetterCache = new System.Collections.Generic.Dictionary<_,_>()
+let MakeLetterBIInZeldaFont(letter, preferBlack) =
+    match zeldaLetterCache.TryGetValue((letter,preferBlack)) with
+    | true, v -> v
+    | _ ->
+        let bmp = new System.Drawing.Bitmap(8, 8)
+        for x = 0 to 7 do
+            for y = 0 to 7 do
+                bmp.SetPixel(x,y,System.Drawing.Color.Transparent)
+        let a = ZeldaFont.fromLetter(letter)
+        for x = 0 to 7 do
+            for y = 0 to 7 do
+                if a.[y].Chars(x)='X' then
+                    bmp.SetPixel(x, y, if preferBlack then System.Drawing.Color.Black else System.Drawing.Color.White)
+        let bi = Graphics.BMPToBI bmp
+        zeldaLetterCache.Add((letter, preferBlack), bi)
+        bi
 let MakeMiniMiniMapBmp() =
     let bmp = new System.Drawing.Bitmap(8, 8)
     for x = 0 to 7 do

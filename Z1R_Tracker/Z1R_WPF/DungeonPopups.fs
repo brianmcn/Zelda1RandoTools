@@ -264,7 +264,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         if i = grid.Length-1 then
             null, false, rt
         else
-            upcast tweak(Graphics.BMPtoImage(rt.UncompletedBmp())), isLegal, rt
+            upcast tweak(Graphics.BItoImage(rt.UncompletedBI())), isLegal, rt
         )
     let originalStateIndex = match (grid |> Array.tryFindIndex (fun x -> x = originalRoomState.RoomType)) with Some x -> x | _ -> grid |> Array.findIndex (fun x -> x = RoomType.Unmarked)
     let activationDelta = 0

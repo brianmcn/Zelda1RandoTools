@@ -106,6 +106,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | 4 -> Graphics.overworldMapBMPs(4), false,  new OverworldData.OverworldInstance(OverworldData.OWQuest.BLANK), 4, TrackerModel.MaxRemainUQ
             | _ -> failwith "bad load data at root.Overworld.Quest"
         | _ -> failwith "bad/unsupported (owMapNum,loadData)"
+    let owMapBIs = owMapBMPs |> Array2D.map Graphics.BMPToBI
     do! showProgress("after ow map load")
     if owMapNum < 0 || owMapNum > 4 then
         failwith "bad owMapNum"
@@ -233,7 +234,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     owOpaqueMapGrid.IsHitTestVisible <- false  // do not let this layer see/absorb mouse interactions
     for i = 0 to 15 do
         for j = 0 to 7 do
-            let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+            let image = Graphics.BItoImage(owMapBIs.[i,j])
             let c = new Canvas(Width=OMTW, Height=float(11*3))
             canvasAdd(c, image, 0., 0.)
             gridAdd(owOpaqueMapGrid, c, i, j)
@@ -399,7 +400,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do! showProgress("overworld before 16x8 loop")
     let centerOf(i,j) = overworldCanvas.TranslatePoint(Point(float(i)*OMTW+OMTW/2., float(j*11*3)+float(11*3)/2.), appMainCanvas)
     let owMapDummyImages = Array2D.init 16 8 (fun i j -> 
-        let image = Graphics.BMPtoImage(owMapBMPs.[i,j])
+        let image = Graphics.BItoImage(owMapBIs.[i,j])
         image.Opacity <- 0.001
         image
         )
@@ -629,7 +630,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 let GCOUNT = GCOL*GROW
                 let ST = CustomComboBoxes.borderThickness
                 let gridWidth = float(GCOL*(5*3+2*int ST)+int ST)
-                let tileImage = Graphics.BMPtoImage(owMapBMPs.[i,j])
+                let tileImage = Graphics.BItoImage(owMapBIs.[i,j])
                 let activatePopup(activationDelta) =
                     popupIsActive <- true
                     let tileCanvas = new Canvas(Width=OMTW, Height=11.*3.)   // has to be fresh object for each popup
@@ -1287,19 +1288,20 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             canvasAdd(placeholderCanvas, zoneCanvas, 0., 0.)
     for i = 0 to 15 do
         for j = 0 to 7 do
+            let c = new Canvas(Width=OMTW, Height=float(11*3))
+            gridAdd(owCoordsGrid, c, i, j) 
             // https://stackoverflow.com/questions/4114590/how-to-make-wpf-text-on-aero-glass-background-readable
-            let tbb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),
-                                    Foreground=Brushes.Black, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
-                                    FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
-            tbb.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
-            let tb = new TextBox(Text=sprintf "%c  %d" (char (int 'A' + j)) (i+1),
+            let coordStr = sprintf "%c  %d" (char (int 'A' + j)) (i+1)
+            let tb = new TextBox(Text=coordStr,
                                     Foreground=Brushes.White, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
                                     FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
-            let c = new Canvas(Width=OMTW, Height=float(11*3))
             if Graphics.canUseEffectsWithoutDestroyingPerformance then
+                let tbb = new TextBox(Text=coordStr,
+                                        Foreground=Brushes.Black, Background=Brushes.Transparent, BorderThickness=Thickness(0.0), 
+                                        FontFamily=FontFamily("Consolas"), FontSize=16.0, FontWeight=FontWeights.Bold, IsHitTestVisible=false)
+                tbb.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
                 canvasAdd(c, tbb, 2., 6.)
             canvasAdd(c, tb, 2., 6.)
-            gridAdd(owCoordsGrid, c, i, j) 
     mirrorOverworldFEs.Add(owCoordsGrid)
     canvasAdd(overworldCanvas, placeholderCanvas, 0., 0.)
     let showCoords = new TextBox(Text="Coords",FontSize=14.0,Background=Brushes.Black,Foreground=Brushes.Orange,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)

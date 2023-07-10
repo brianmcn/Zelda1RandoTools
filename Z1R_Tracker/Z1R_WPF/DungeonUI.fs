@@ -782,10 +782,10 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         // toggler to invert Unmarked versus OffTheMap rooms
         do
             let dp = new DockPanel(LastChildFill=true, Background=Brushes.Black)
-            let i1 = RoomType.OffTheMap.CompletedBmp() |> Graphics.BMPtoImage
+            let i1 = RoomType.OffTheMap.CompletedBI() |> Graphics.BItoImage
             i1.Stretch <- Stretch.Uniform; i1.StretchDirection <- StretchDirection.Both; i1.Width <- 13.; i1.Height <- System.Double.NaN
             dp.Children.Add(i1) |> ignore
-            let i2 = RoomType.Unmarked.CompletedBmp() |> Graphics.BMPtoImage
+            let i2 = RoomType.Unmarked.CompletedBI() |> Graphics.BItoImage
             i2.Stretch <- Stretch.Uniform; i2.StretchDirection <- StretchDirection.Both; i2.Width <- 13.; i2.Height <- System.Double.NaN
             dp.Children.Add(i2) |> ignore
             DockPanel.SetDock(i1, Dock.Left)
@@ -879,8 +879,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         for i = 0 to 7 do
             if i<>7 then
                 let makeLetter(bmpFunc) =
-                    let bmp = bmpFunc() 
-                    let img = Graphics.BMPtoImage bmp
+                    let bi = bmpFunc() 
+                    let img = Graphics.BItoImage bi
                     img.Width <- float TH
                     img.Height <- float TH
                     img.Stretch <- Stretch.UniformToFill
@@ -892,7 +892,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         let update() =
                             dungeonHeaderCanvas.Children.Remove(img)
                             dungeonHeaderCanvas.Children.Remove(highlightColumnCanvases.[i])
-                            img <- makeLetter(fun() -> Dungeon.MakeLetterBmpInZeldaFont(((if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
+                            img <- makeLetter(fun() -> Dungeon.MakeLetterBIInZeldaFont(((if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL")+"-9").Substring(i,1).[0], 
                                                                                                 Graphics.isBlackGoodContrast(TrackerModel.GetDungeon(level-1).Color)))
                             canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                             canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
@@ -925,7 +925,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                     } |> Async.StartImmediate
                             )
                 else
-                    let bmpFunc() = Dungeon.MakeLetterBmpInZeldaFont((sprintf "%s-%d " (if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
+                    let bmpFunc() = Dungeon.MakeLetterBIInZeldaFont((sprintf "%s-%d " (if TrackerModelOptions.BOARDInsteadOfLEVEL.Value then "BOARD" else "LEVEL") level).Substring(i,1).[0], false)
                     let mutable img = makeLetter(bmpFunc)
                     canvasAdd(dungeonHeaderCanvas, img, float(i*51)+9., 0.)
                     canvasAdd(dungeonHeaderCanvas, highlightColumnCanvases.[i], float(i*51)-6., 0.)
@@ -1433,7 +1433,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 let e = 
                                     match room.RoomType with
                                     | RoomType.OffTheMap -> null
-                                    | roomType -> Graphics.BMPtoImage (if room.IsComplete then roomType.TinyCompletedBmp() else roomType.TinyUncompletedBmp())
+                                    | roomType -> Graphics.BItoImage (if room.IsComplete then roomType.TinyCompletedBI() else roomType.TinyUncompletedBI())
                                 canvasAdd(tinyMaps.[i], e, float(13*x), float(9*y))
                     levelTabSelected.Trigger(10)
             with _ -> ()

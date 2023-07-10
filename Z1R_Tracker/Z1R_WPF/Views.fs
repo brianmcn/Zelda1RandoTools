@@ -103,12 +103,12 @@ let IDEAL_BOX_MOUSE_Y = 17.
 
 let redrawTriforces = ResizeArray()
 let MakeTriforceDisplayView(cmo:CustomComboBoxes.CanvasManager option, trackerIndex, owInstanceOpt) =    // cmo=Some(cm) means "makeInteractive"
+    let emptyUnfoundTriImage = Graphics.BMPtoImage(emptyUnfoundTriforce_bmp(trackerIndex))
+    let emptyFoundTriImage   = Graphics.BMPtoImage(emptyFoundTriforce_bmp(trackerIndex))
+    let fullUnfoundTriImage  = Graphics.BMPtoImage(fullUnfoundTriforce_bmp(trackerIndex))
+    let fullFoundTriImage    = Graphics.BMPtoImage(fullFoundTriforce_bmp(trackerIndex))
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     let dungeon = TrackerModel.GetDungeon(trackerIndex)
-    let emptyUnfoundTriImages = Array.init 8 (fun i -> Graphics.BMPtoImage(emptyUnfoundTriforce_bmp(i)))
-    let emptyFoundTriImages   = Array.init 8 (fun i -> Graphics.BMPtoImage(emptyFoundTriforce_bmp(i)))
-    let fullUnfoundTriImages  = Array.init 8 (fun i -> Graphics.BMPtoImage(fullUnfoundTriforce_bmp(i)))
-    let fullFoundTriImages    = Array.init 8 (fun i -> Graphics.BMPtoImage(fullFoundTriforce_bmp(i)))
     let redraw() =
         innerc.Children.Clear()
         let found = dungeon.HasBeenLocated()
@@ -122,9 +122,9 @@ let MakeTriforceDisplayView(cmo:CustomComboBoxes.CanvasManager option, trackerIn
                 if not(found) && TrackerModel.GetLevelHint(hintIndex)<>TrackerModel.HintZone.UNKNOWN then
                     innerc.Children.Add(makeHintHighlight(30.)) |> ignore
         if not(dungeon.PlayerHasTriforce()) then 
-            innerc.Children.Add(if not(found) then emptyUnfoundTriImages.[trackerIndex] else emptyFoundTriImages.[trackerIndex]) |> ignore
+            innerc.Children.Add(if not(found) then emptyUnfoundTriImage else emptyFoundTriImage) |> ignore
         else
-            innerc.Children.Add(if not(found) then fullUnfoundTriImages.[trackerIndex] else fullFoundTriImages.[trackerIndex]) |> ignore 
+            innerc.Children.Add(if not(found) then fullUnfoundTriImage else fullFoundTriImage) |> ignore 
         drawTinyIconIfLocationIsOverworldBlock(innerc, owInstanceOpt, TrackerModel.mapStateSummary.DungeonLocations.[trackerIndex])
         if TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON <> 3 then
             failwith "This UI was designed for 3 blockers per dungeon"

@@ -109,13 +109,13 @@ overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD2, (
 let sword2LeftSideFullTileBmp =
     let interiorBmp = Graphics.theInteriorBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.SWORD2].[0]
     let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
-    let TRANS_BG = Graphics.TRANS_BG
+    let BG = System.Drawing.Color.FromArgb(int Graphics.TRANS_BG.A, int Graphics.TRANS_BG.R, int Graphics.TRANS_BG.G, int Graphics.TRANS_BG.B)   // the compiler is being stupid, clone this color to workaround
     for px = 0 to 16*3-1 do
         for py = 0 to 11*3-1 do
             if px>=1*3 && px<6*3 && py>=1*3 && py<10*3 then 
                 fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-1*3, py-1*3))
             else
-                fullTileBmp.SetPixel(px, py, TRANS_BG)
+                fullTileBmp.SetPixel(px, py, BG)
     fullTileBmp
 
 let twoItemShopBmpCache = new System.Collections.Generic.Dictionary<_,_>()
@@ -672,7 +672,7 @@ let MakeMappedHotKeysDisplay() =
         |]
     let dungeonRoomPanel = makePanel(thingies, HotKeys.DungeonRoomHotKeyProcessor, (fun c ->
         match c with 
-        | Choice1Of4 rt -> upcast Graphics.BMPtoImage(rt.UncompletedBmp())
+        | Choice1Of4 rt -> upcast Graphics.BItoImage(rt.UncompletedBI())
         | Choice2Of4 md -> (let i = md.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Left; i))
         | Choice3Of4 fd -> (let i = fd.Bmp() |> bmpElseSize(18,18) in (i.HorizontalAlignment <- HorizontalAlignment.Right; i))
         | Choice4Of4 dr -> 

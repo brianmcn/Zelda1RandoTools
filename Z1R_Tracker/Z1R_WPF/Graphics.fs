@@ -273,6 +273,18 @@ let darken(bmp:System.Drawing.Bitmap) =
 let mediaColor(c:System.Drawing.Color) =
     Media.Color.FromArgb(c.A, c.R, c.G, c.B)
 
+let BItoImage(bi:System.Windows.Media.Imaging.BitmapImage) = new Image(Source=bi)
+let BMPToBI(b:System.Drawing.Bitmap) =
+    use ms = new System.IO.MemoryStream()
+    b.Save(ms, System.Drawing.Imaging.ImageFormat.Png)
+    ms.Position <- 0L
+    let bitmapImage = new System.Windows.Media.Imaging.BitmapImage()
+    bitmapImage.BeginInit()
+    bitmapImage.StreamSource <- ms
+    bitmapImage.CacheOption <- System.Windows.Media.Imaging.BitmapCacheOption.OnLoad
+    bitmapImage.EndInit()
+    bitmapImage.Freeze()
+    bitmapImage
 let BMPtoImage(bmp:System.Drawing.Bitmap) =
     let ms = new System.IO.MemoryStream()
     bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png)  // must be png (not bmp) to save transparency info
@@ -628,7 +640,8 @@ let fairy_bmp =
                 r.SetPixel(x, y, c)
     r
 
-let dungeonRoomBmpPairs =
+let mutable entranceRoomArrowColor = None
+let dungeonRoomBmpPairsF() =
     let imageStream = GetResourceStream("new_icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -639,10 +652,13 @@ let dungeonRoomBmpPairs =
                 for py = 0 to 9*3-1 do
                     ur.SetPixel(px, py, bmp.GetPixel(px/3 + i*13,   py/3))
                     cr.SetPixel(px, py, bmp.GetPixel(px/3 + i*13, 9+py/3))
-            yield (ur,cr)
+            if i=28 then 
+                entranceRoomArrowColor <- Some(cr.GetPixel(18, 24))
+            yield (BMPToBI ur, BMPToBI cr)
     |]
     a
-let dungeonRoomTinyBmpPairs =
+let dungeonRoomBmpPairs = dungeonRoomBmpPairsF()
+let dungeonRoomTinyBmpPairsF() =
     let imageStream = GetResourceStream("new_icons13x9.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -653,9 +669,10 @@ let dungeonRoomTinyBmpPairs =
                 for py = 0 to 9-1 do
                     ur.SetPixel(px, py, bmp.GetPixel(px + i*13,   py))
                     cr.SetPixel(px, py, bmp.GetPixel(px + i*13, 9+py))
-            yield (ur,cr)
+            yield (BMPToBI ur, BMPToBI cr)
     |]
     a
+let dungeonRoomTinyBmpPairs = dungeonRoomTinyBmpPairsF()
 
 (*
 let dungeonRoomFloorDrops, dungeonRoomMonsters =
@@ -876,8 +893,10 @@ do
     theInteriorBmpTable.[35].Add(darkxbmp)
 // full tiles just have interior bmp in the center and transparent pixels all around (except for the final 'X' one)
 let theFullTileBmpTable = Array.init theInteriorBmpTable.Length (fun _ -> ResizeArray())
-do
-    for i = 0 to theInteriorBmpTable.Length-1 do
+let initFull() =
+    let len = theInteriorBmpTable.Length
+    let BG = System.Drawing.Color.FromArgb(int TRANS_BG.A, int TRANS_BG.R, int TRANS_BG.G, int TRANS_BG.B)   // the compiler is being stupid, clone this color to workaround
+    for i = 0 to len-1 do
         for interiorBmp in theInteriorBmpTable.[i] do
             let fullTileBmp = new System.Drawing.Bitmap(16*3,11*3)
             for px = 0 to 16*3-1 do
@@ -885,9 +904,11 @@ do
                     if px>=5*3 && px<10*3 && py>=1*3 && py<10*3 then 
                         fullTileBmp.SetPixel(px, py, interiorBmp.GetPixel(px-5*3, py-1*3))
                     else
-                        fullTileBmp.SetPixel(px, py, if i=theInteriorBmpTable.Length-1 then System.Drawing.Color.Black else TRANS_BG)
+                        fullTileBmp.SetPixel(px, py, if i=len-1 then System.Drawing.Color.Black else BG)
             theFullTileBmpTable.[i].Add(fullTileBmp)
-            
+do  
+    initFull()
+
 let linkFaceForward_bmp,linkRunRight_bmp,linkFaceRight_bmp,linkGotTheThing_bmp =
     let imageStream = GetResourceStream("link_icons.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
@@ -1067,7 +1088,7 @@ let setup(w:Window) =
         theTimer.Tick.Add(fun _ -> 
             if theFrame <> null then   // avoid a race
                 if not sawMouseEvent && theCounter>4 then
-                    printfn "uh oh too slow"
+//                    printfn "uh oh too slow"
                     sawMouseEvent <- true
                 if sawMouseEvent then
                     theFrame.Continue <- false
