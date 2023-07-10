@@ -306,8 +306,9 @@ let MaybePollSeedAndFlags() =
     if TrackerModelOptions.SnoopSeedAndFlags.Value then
         let procs = System.Diagnostics.Process.GetProcesses()
         for p in procs do
-            if not(System.String.IsNullOrEmpty(p.MainWindowTitle)) then
-                let m = seedAndFlagsRegex.Match(p.MainWindowTitle)
+            let title = p.MainWindowTitle
+            if not(System.String.IsNullOrEmpty(title)) then
+                let m = seedAndFlagsRegex.Match(title)
                 if m.Success then
                     let seed = m.Groups.[1].Value
                     let flags = m.Groups.[2].Value

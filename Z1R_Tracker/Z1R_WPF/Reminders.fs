@@ -85,7 +85,7 @@ let SetupReminderDisplayAndProcessing(cm) =
                 if shouldRemindVisual then
                     do! Async.Sleep(200) // give reminder clink sound time to play
                 let startSpeakTime = DateTime.Now
-                if shouldRemindVoice then
+                if shouldRemindVoice && voice.Volume <> 0 then
                     voice.Speak(text) 
                 if shouldRemindVisual then
                     let minimumDuration = TimeSpan.FromSeconds(max 3 iconCount |> float)  // ensure at least 3s, and at least 1s per icon

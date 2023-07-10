@@ -614,7 +614,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             if currentState >=0 && currentState <=8 then
                                 selectDungeonTabEvent.Trigger(currentState)
                             match overworldAcceleratorTable.TryGetValue(currentState) with
-                            | (true,f) -> do! f(cm,c,i,j)
+                            | (true,f) -> 
+                                let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
+                                do! f(cm,c,i,j)
+                                Graphics.WarpMouseCursorTo(pos)
                             | _ -> ()
                             redrawGridSpot()
                             if originalState = -1 && currentState <> -1 then OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(i,j).Hide()  // dismiss any green/yellow highlight on this tile

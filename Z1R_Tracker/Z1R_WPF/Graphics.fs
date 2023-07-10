@@ -1056,25 +1056,35 @@ let RestartTheApplication() =
 // see also
 // https://stackoverflow.com/questions/21248643/how-can-i-convert-win32-mouse-messages-to-wpf-mouse-events 
 let mutable sawMouseEvent = false
+let mutable theTimer = null
+let mutable theFrame = null : System.Windows.Threading.DispatcherFrame
+let mutable theCounter = 0
 let setup(w:Window) =
-    w.MouseMove.Add(fun _ -> sawMouseEvent <- true)
+    if theTimer=null then
+        theTimer <- new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
+        theTimer.Stop()
+        theTimer.Interval <- TimeSpan.FromSeconds(0.03)
+        theTimer.Tick.Add(fun _ -> 
+            if theFrame <> null then   // avoid a race
+                if not sawMouseEvent && theCounter>4 then
+                    printfn "uh oh too slow"
+                    sawMouseEvent <- true
+                if sawMouseEvent then
+                    theFrame.Continue <- false
+                    theTimer.Stop()
+                else
+                    theCounter <- theCounter + 1
+            )
+        w.MouseMove.Add(fun _ -> sawMouseEvent <- true)
 let SilentlyWarpMouseCursorTo(pos:Point) =
-    let frame = new System.Windows.Threading.DispatcherFrame()
-    let sw = System.Diagnostics.Stopwatch.StartNew()
-    let rec pump = new System.Windows.Threading.DispatcherOperationCallback(fun _ -> 
-        if not sawMouseEvent && sw.ElapsedMilliseconds>100L then
-            printfn "uh oh too slow"
-            sawMouseEvent <- true
-        if sawMouseEvent then
-            frame.Continue <- false
-        else
-            System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, pump, null) |> ignore
-        null
-        )
-    sawMouseEvent <- false
-    System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, pump, null) |> ignore
-    Win32.SetCursor(pos.X, pos.Y)
-    System.Windows.Threading.Dispatcher.PushFrame(frame)
+    if theFrame = null then  // Note: cannot process a second of these calls while one is active; I think that's fine
+        theFrame <- new System.Windows.Threading.DispatcherFrame()
+        sawMouseEvent <- false
+        theCounter <- 0
+        theTimer.Start()
+        Win32.SetCursor(pos.X, pos.Y)    // this queues a mouse move input, and we want to block until that event is processed, to avoid spurious MouseLeave()s and other reasons
+        System.Windows.Threading.Dispatcher.PushFrame(theFrame)   // creates a blocking message pump that only stops when Continue set to false
+        theFrame <- null
 let WarpMouseCursorTo(pos:Point) =
     SilentlyWarpMouseCursorTo(pos)
     PlaySoundForSpeechRecognizedAndUsedToMark()

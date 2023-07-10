@@ -156,6 +156,7 @@ since 1.3.0u...
 - add explainer to 2nd-quest-dungeon-toggle-thingy when you hover dungeon 4's third box
 - add hover explainers to checkboxes and start buttons on the startup screen
 - make ALL OF TIPS prettier
+- more performance improvements
 - fix crash bugs on the startup screen
 - fix: "Hide Timer" option now also applies to Broadcast Window
 - fix: bad hotkeys should leave diagnostic info onscreen
@@ -163,8 +164,6 @@ since 1.3.0u...
 
 
 single locator cyan crosshairs are messy on mixed overworld with many highlights... something else?
-
-rerun perf tests
 
 
 

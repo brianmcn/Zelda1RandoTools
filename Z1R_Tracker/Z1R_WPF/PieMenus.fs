@@ -149,7 +149,7 @@ let FourWayPieMenu(cm,h,displaysDocksBehaviors:((Canvas*_)*_*_)[],hkp:HotKeys.Ho
         )
 *)
     Graphics.WarpMouseCursorTo(center)
-    do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly
+    //do! Async.Sleep(10)  // ensure the cursor is warped by yielding briefly       // no longer necessary now that Warp...() does a synchronous pump
     let tb = new TextBox(Text="Indicate which option you chose", Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=16., IsHitTestVisible=false,
                             BorderThickness=Thickness(1.), TextAlignment=TextAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center)
     canvasAdd(c, tb, 270., -15.)
@@ -162,12 +162,6 @@ let takeAnyH = 220.
 let BT = 5.
 let rightMarginSize = 40.
 
-let resizeImage(screenshotBMP) =
-    let image = Graphics.BMPtoImage screenshotBMP
-    image.Width <- takeAnyW
-    image.Height <- takeAnyH
-    image.Stretch <- Stretch.UniformToFill
-    image
 let makeSkippedHeart() =
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     canvasAdd(c, Graphics.BMPtoImage(Graphics.owHeartEmpty_bmp), 0., 0.)
@@ -180,10 +174,10 @@ let makeItemBox(itemBMP, yesno) =
     c
 let makeXtoY(x,y,rightMargin,group:StackPanel) =
     let row = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center, Margin=Thickness(0.,0.,rightMargin,0.))
+    group.Children.Add(row) |> ignore
     row.Children.Add(x) |> ignore
     row.Children.Add(Graphics.BMPtoImage Graphics.iconRightArrow_bmp) |> ignore
     row.Children.Add(y) |> ignore
-    group.Children.Add(row) |> ignore
 
 let TAKE_ANY = TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY
 let SWORD1 = TrackerModel.MapSquareChoiceDomainHelper.SWORD1
@@ -207,7 +201,7 @@ let takeAnyCandlePanel(keyOpt) =
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[1], rightMarginSize, group)
     makeXtoY(c1, c2, 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeAnyCandleBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeAnyCandleBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+2.*BT, Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
     c.Children.Add(b) |> ignore
@@ -220,7 +214,7 @@ let takeAnyPotionPanel(keyOpt) =
     makeXtoY(Graphics.BMPtoImage Graphics.owHeartEmpty_bmp, makeSkippedHeart(), rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeAnyPotionBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeAnyPotionBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+2.*BT, Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
     c.Children.Add(b) |> ignore
@@ -233,7 +227,7 @@ let takeAnyHeartPanel(keyOpt) =
     makeXtoY(Graphics.BMPtoImage Graphics.owHeartEmpty_bmp, Graphics.BMPtoImage Graphics.owHeartFull_bmp, rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeAnyHeartBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeAnyHeartBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
     c.Children.Add(b) |> ignore
@@ -244,7 +238,7 @@ let takeAnyLeavePanel(keyOpt) =
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[TAKE_ANY].[0], 0., group)
-    col.Children.Add(resizeImage Graphics.takeAnyLeaveBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeAnyLeaveBMP) |> ignore
     col.Children.Add(group) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
@@ -300,7 +294,7 @@ let takeThisCandlePanel(keyOpt) =
     makeXtoY(c1, c2, rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeThisCandleBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeThisCandleBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
     c.Children.Add(b) |> ignore
@@ -315,7 +309,7 @@ let takeThisWoodSwordPanel(keyOpt) =
     makeXtoY(c1, c2, rightMarginSize, group)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[1], 0., group)
     col.Children.Add(group) |> ignore
-    col.Children.Add(resizeImage Graphics.takeThisWoodSwordBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeThisWoodSwordBMP) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)
     c.Children.Add(b) |> ignore
@@ -326,7 +320,7 @@ let takeThisLeavePanel(keyOpt) =
     let col = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
     let group = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     makeXtoY(Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], Graphics.BMPtoImage Graphics.theInteriorBmpTable.[SWORD1].[0], 0., group)
-    col.Children.Add(resizeImage Graphics.takeThisLeaveBMP) |> ignore
+    col.Children.Add(Graphics.BMPtoImage Graphics.takeThisLeaveBMP) |> ignore
     col.Children.Add(group) |> ignore
     let b = new Border(Child=col, BorderBrush=Brushes.Gray, BorderThickness=Thickness(BT), Width=takeAnyW+6., Height=takeAnyH+2.*BT+30., HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center)
     let c = new Canvas(Width=b.Width, Height=b.Height)

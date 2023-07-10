@@ -345,7 +345,7 @@ let DoModalGridSelect<'State,'Result>
     grid.Background <- Brushes.Black
     canvasAdd(popupCanvas, new Border(BorderThickness=Thickness(ST), BorderBrush=brushes.BorderBrush, Child=grid), gx, gy)
     let mutable currentState = originalStateIndex   // the only bit of local mutable state during the modal - it ranges from 0..gridElements.Length-1
-    let mutable allDone = false
+    let mutable allDoneSoNoLongerNeedToMouseLeaveSnapback = false
     let canvasesToClear = ResizeArray<Canvas>()
     let selfCleanup() =
         for (d,_x,_y) in extraDecorations do
@@ -372,7 +372,7 @@ let DoModalGridSelect<'State,'Result>
         while not(isSelectable()) do
             currentState <- (currentState-1+gridElementsSelectablesAndIDs.Length) % gridElementsSelectablesAndIDs.Length
         changeCurrentState(currentState)
-    let snapBack() = if not allDone then changeCurrentState(originalStateIndex)     // don't redraw and do other work after the popup is done (MouseLeave can be very error-prone if not careful!)
+    let snapBack() = if not allDoneSoNoLongerNeedToMouseLeaveSnapback then changeCurrentState(originalStateIndex)     // don't redraw and do other work after the popup is done (MouseLeave can be very error-prone if not careful!)
     // original tile
     redrawTile(stateID())
     tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
@@ -459,6 +459,7 @@ let DoModalGridSelect<'State,'Result>
                 redrawGridFuncs.Add(redraw)
                 redraw()
                 let mouseWarpDismiss() =
+                    allDoneSoNoLongerNeedToMouseLeaveSnapback <- true
                     match gridClickDismissalWarpReturn with
                     | WarpTo(pos) -> Graphics.WarpMouseCursorTo(pos)
                     | WarpToCenter -> 
@@ -495,7 +496,7 @@ let DoModalGridSelect<'State,'Result>
     | Some opa -> do! DoModalOpa(cm, wh, tileX, tileY, popupCanvas, opa)
     | _ -> do! DoModal(cm, wh, tileX, tileY, popupCanvas)
     selfCleanup()
-    allDone <- true
+    allDoneSoNoLongerNeedToMouseLeaveSnapback <- true
     return result
     }
 
