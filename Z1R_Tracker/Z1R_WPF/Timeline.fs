@@ -121,7 +121,8 @@ let ICON_SPACING = 6.
 let BIG_HASH = 15.
 let LINE_THICKNESS = 3.
 let numTicks, ticksPerHash = 60, 5
-type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[], topRowReserveWidth:float) =
+type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[], moreOptionsButton:Button, drawButton:Button) =
+    let topRowReserveWidth = moreOptionsButton.DesiredSize.Width-24.
     let iconAreaHeight = float numRows*(iconSize+ICON_SPACING)
     let timelineCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
     let graphCanvas = new Canvas(Height=iconAreaHeight+BIG_HASH, Width=lineWidth)
@@ -167,6 +168,11 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
         for x = 0 to int topRowReserveWidth do
             iconAreaFilled.[x, 0] <- 99
     member this.Canvas = timelineCanvas
+    member this.ThisIsNowTheVisibleTimeline() =
+        if moreOptionsButton.Parent <> null then (moreOptionsButton.Parent :?> Canvas).Children.Remove(moreOptionsButton)
+        if drawButton.Parent <> null then (drawButton.Parent :?> Canvas).Children.Remove(drawButton)
+        canvasAdd(timelineCanvas, moreOptionsButton, -24., 0.)
+        canvasAdd(timelineCanvas, drawButton, 724., 25.)
     member this.Update(minute, timelineItems:seq<TimelineItem>, maxOverworldRemain) =
         if not isCurrentlyLoadingASave then
             let tick = minute / minutesPerTick
@@ -258,13 +264,13 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                         c.Children.Add(img) |> ignore
                         if has = TrackerModel.PlayerHas.SKIPPED then Graphics.placeSkippedItemXDecorationImpl(c, iconSize)
                         c.MouseEnter.Add(fun _ ->
-                            itemCanvas.Children.Remove(timeToolTip)
+                            timelineCanvas.Children.Remove(timeToolTip)
                             timeToolTip.Text <- System.TimeSpan.FromSeconds(float totalSeconds).ToString("""hh\:mm\:ss""") + "\n" + tid.Identifier
                             let x = xminOrig
-                            let x = min x (float(16*16*3 - 100))  // don't go off right screen edge
-                            canvasAdd(itemCanvas, timeToolTip, x, float row*(iconSize+ICON_SPACING)-35.)
+                            let x = min x (float(16*16*3 - 120))  // don't go off right screen edge
+                            canvasAdd(timelineCanvas, timeToolTip, x, float row*(iconSize+ICON_SPACING)-40.)
                             )
                         c.MouseLeave.Add(fun _ ->
-                            itemCanvas.Children.Remove(timeToolTip)
+                            timelineCanvas.Children.Remove(timeToolTip)
                             )
                         canvasAdd(itemCanvas, c, float xminOrig, float row*(iconSize+ICON_SPACING))

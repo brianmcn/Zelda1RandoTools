@@ -1594,26 +1594,35 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     optionsCanvas.Opacity <- 1.
     optionsCanvas.IsHitTestVisible <- true
 
-    let theTimeline1 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 1, [|"0:00";"0:10";"0:20";"0:30";"0:40";"0:50";"1:00"|], moreOptionsButton.DesiredSize.Width-24.)
-    let theTimeline2 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 2, [|"0:00";"0:20";"0:40";"1:00";"1:20";"1:40";"2:00"|], moreOptionsButton.DesiredSize.Width-24.)
-    let theTimeline3 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 3, [|"0:00";"0:30";"1:00";"1:30";"2:00";"2:30";"3:00"|], moreOptionsButton.DesiredSize.Width-24.)
+    let drawButton = Graphics.makeButton("D\nr\na\nw", Some(12.), Some(Brushes.Orange))
+    if layout.IsShort then 
+        drawButton.Opacity <- 0. // draw button disabled in short layout
+        drawButton.IsEnabled <- false  // make not clickable (even if invisible)
+
+    let theTimeline1 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 1, [|"0:00";"0:10";"0:20";"0:30";"0:40";"0:50";"1:00"|], moreOptionsButton, drawButton)
+    let theTimeline2 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 2, [|"0:00";"0:20";"0:40";"1:00";"1:20";"1:40";"2:00"|], moreOptionsButton, drawButton)
+    let theTimeline3 = new Timeline.Timeline(21., 4, appMainCanvas.Width-48., 3, [|"0:00";"0:30";"1:00";"1:30";"2:00";"2:30";"3:00"|], moreOptionsButton, drawButton)
+    theTimeline1.ThisIsNowTheVisibleTimeline()
     theTimeline1.Canvas.Opacity <- 1.
     theTimeline2.Canvas.Opacity <- 0.
     theTimeline3.Canvas.Opacity <- 0.
     let drawTimeline(minute) =
         if minute <= 60 then
+            theTimeline1.ThisIsNowTheVisibleTimeline()
             theTimeline1.Canvas.Opacity <- 1.
             theTimeline2.Canvas.Opacity <- 0.
             theTimeline3.Canvas.Opacity <- 0.
             theTimeline1.Update(minute, timelineItems, maxOverworldRemain)
         elif minute <= 120 then
             theTimeline1.Canvas.Opacity <- 0.
+            theTimeline2.ThisIsNowTheVisibleTimeline()
             theTimeline2.Canvas.Opacity <- 1.
             theTimeline3.Canvas.Opacity <- 0.
             theTimeline2.Update(minute, timelineItems, maxOverworldRemain)
         else
             theTimeline1.Canvas.Opacity <- 0.
             theTimeline2.Canvas.Opacity <- 0.
+            theTimeline3.ThisIsNowTheVisibleTimeline()
             theTimeline3.Canvas.Opacity <- 1.
             theTimeline3.Update(minute, timelineItems, maxOverworldRemain)
     TrackerModel.TimelineItemModel.TimelineChanged.Add(drawTimeline)
@@ -1631,8 +1640,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 popupIsActive <- false
                 } |> Async.StartImmediate
         )
-    let drawButton = Graphics.makeButton("D\nr\na\nw", Some(12.), Some(Brushes.Orange))
-    layout.AddTimelineAndButtons(theTimeline1.Canvas, theTimeline2.Canvas, theTimeline3.Canvas, moreOptionsButton, drawButton)
+    layout.AddTimeline(theTimeline1.Canvas, theTimeline2.Canvas, theTimeline3.Canvas)
     drawButton.Click.Add(fun _ -> 
         if not popupIsActive then
             popupIsActive <- true
@@ -1880,7 +1888,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     TrackerModel.forceUpdate()
     timer.Start()  // don't start the tick timer updating, until the entire app is loaded
     do  // auto-save every 1 min
-        let diskIcon = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Gray, Child=Graphics.BMPtoImage(Graphics.iconDisk_bmp), Opacity=0.0)
+        let diskIcon = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Background=Brushes.Gray, Child=Graphics.BMPtoImage(Graphics.iconDisk_bmp), Opacity=0.0, IsHitTestVisible=false)
         layout.AddDiskIcon(diskIcon)
         let timer = new System.Windows.Threading.DispatcherTimer()
         timer.Interval <- TimeSpan.FromSeconds(60.0)

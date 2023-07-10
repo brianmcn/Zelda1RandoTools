@@ -42,7 +42,7 @@ type IApplicationLayoutBase =
     abstract member AddOWZoneOverlay : zone_checkbox:UIElement -> unit
     abstract member AddMouseHoverExplainer : mouseHoverExplainerIcon:UIElement * c:UIElement -> unit
     abstract member AddLinkTarget : currentTargetGhostBuster:UIElement -> unit
-    abstract member AddTimelineAndButtons : t1c:UIElement * t2c:UIElement * t3c:UIElement * moreOptionsButton:UIElement * drawButton:UIElement -> unit
+    abstract member AddTimeline : t1c:UIElement * t2c:UIElement * t3c:UIElement-> unit
     abstract member GetTimelineBounds : unit -> Rect
     abstract member GetFullAppBounds : unit -> Rect
     abstract member AddReminderDisplayOverlay : reminderDisplayOuterDockPanel:UIElement -> unit
@@ -54,6 +54,7 @@ type IApplicationLayoutBase =
     abstract member ClearTopLayerHovers : unit -> unit
     abstract member FocusOverworld : unit -> unit
     abstract member FocusDungeon : unit -> unit
+    abstract member IsShort : bool
 
 type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     let appMainCanvas = cm.AppMainCanvas
@@ -134,12 +135,10 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, c, 0., 0.)
         member this.AddLinkTarget(currentTargetGhostBuster) =
             canvasAdd(appMainCanvas, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
-        member this.AddTimelineAndButtons(t1c, t2c, t3c, moreOptionsButton, drawButton) =
+        member this.AddTimeline(t1c, t2c, t3c) =
             canvasAdd(appMainCanvas, t1c, 24., START_TIMELINE_H)
             canvasAdd(appMainCanvas, t2c, 24., START_TIMELINE_H)
             canvasAdd(appMainCanvas, t3c, 24., START_TIMELINE_H)
-            canvasAdd(appMainCanvas, moreOptionsButton, 0., START_TIMELINE_H)
-            canvasAdd(appMainCanvas, drawButton, 750., START_TIMELINE_H+25.)
         member this.GetTimelineBounds() =
             Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
         member this.GetFullAppBounds() =
@@ -158,6 +157,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.ClearTopLayerHovers() = topLayerHoverCanvas.Children.Clear()
         member this.FocusOverworld() = ()
         member this.FocusDungeon() = ()
+        member this.IsShort = false
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -345,13 +345,10 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, c, 0., 0.)
         member this.AddLinkTarget(currentTargetGhostBuster) =
             canvasAdd(upper, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
-        member this.AddTimelineAndButtons(t1c, t2c, t3c, moreOptionsButton, drawButton) =
+        member this.AddTimeline(t1c, t2c, t3c) =
             canvasAdd(lower, t1c, 24., timelineStart)
             canvasAdd(lower, t2c, 24., timelineStart)
             canvasAdd(lower, t3c, 24., timelineStart)
-            canvasAdd(lower, moreOptionsButton, 0., timelineStart)
-            //canvasAdd(lower, drawButton, 0., timelineStart+25.)
-            ignore drawButton  // draw does not work in ShorterApplicationLayout
             let timelineView = Broadcast.makeViewRectImpl(Point(0.,timelineStart), Point(W,timelineStart + TIMELINE_H), lower)
             canvasAdd(upper, timelineView, 0., upperTimelineStart)
         member this.GetTimelineBounds() =
@@ -393,6 +390,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
                 do! Async.SwitchToContext(ctxt)
                 switchToDungeon()
             } |> Async.StartImmediate
+        member this.IsShort = true
 
 ////////////////////////////////////////////////////////////////////////
 

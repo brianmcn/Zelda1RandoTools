@@ -158,6 +158,7 @@ since 1.3.0u...
 - make ALL OF TIPS prettier
 - much, much more performance improvements
 - fix crash bugs on the startup screen
+- fix Timeline hover-tooltips should draw atop "Options..." button
 - fix: "Hide Timer" option now also applies to Broadcast Window
 - fix: bad hotkeys should leave diagnostic info onscreen
 
