@@ -99,7 +99,7 @@ let learnMoreHintDecoration =
     sp.Children.Add(new Border(BorderBrush=Brushes.DarkSlateBlue, BorderThickness=Thickness(3.), Child=img, Width=showHotKeysWidthToRightEdge-18., Margin=Thickness(6.))) |> ignore
     let b = new Border(BorderBrush=Brushes.LightGray, BorderThickness=Thickness(3.), Background=Brushes.Black, Child=sp, Width=showHotKeysWidthToRightEdge, IsHitTestVisible=false)
     b, 16.*OMTW - showHotKeysWidthToRightEdge, THRU_MAIN_MAP_H
-let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
+let FastHintSelector(cm, levelHintIndex, px, py, activationDelta, shouldDescriptionGoOnLeft) = async {
     let tb = HintZoneDisplayTextBox
     let gesai(hz:TrackerModel.HintZone) = tb(hz.AsDisplayTwoChars()), true, hz
     let gridElementsSelectablesAndIDs = [|
@@ -134,14 +134,14 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     let redrawTile(hz:TrackerModel.HintZone) = 
         tile.Children.Clear()
         tile.Children.Add(HintZoneDisplayTextBox(hz.AsDisplayTwoChars())) |> ignore
-        levelHintDescription.Text <- snd OverworldData.hintMeanings.[levelHintIndex] + "\n" + fst OverworldData.hintMeanings.[levelHintIndex]
+        levelHintDescription.Text <- OverworldData.hintMeaningsDecriptionTextForUI.[levelHintIndex]
         levelHintLocation.Text <- HotKeys.HintZoneHotKeyProcessor.AppendHotKeyToDescription(hz.ToString(), hz)
         hideLocator()
         showLocatorHintedZone(hz, false)
     let brushes = CustomComboBoxes.ModalGridSelectBrushes(hintyBrush, Brushes.Lime, Brushes.Red, Brushes.DarkGray)
     let learnDeco, learnX, learnY = learnMoreHintDecoration
     let extraDecorations = [
-        descDecoration, 153., 27. 
+        (if shouldDescriptionGoOnLeft then descDecoration, -203., 27. else descDecoration, 153., 27.)
         boxDecoration, -3., 27.
         upcast learnDeco, learnX - px, learnY - py
         ]
@@ -150,13 +150,13 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta) = async {
     hideLocator()
     return r
     }
-let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activateOnClick) =
+let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activateOnClick, shouldDescriptionGoOnLeft) =
     fe.MouseWheel.Add(fun x ->
         if not popupIsActive then 
             popupIsActive <- true
             Graphics.SilentlyWarpMouseCursorTo(Point(px+15., py+15.))   // white/magical sword can activate scroll from icons below; just always center on box when activated
             async {
-                let! r = FastHintSelector(cm, i, px+3., py+3., if x.Delta<0 then 1 else -1)
+                let! r = FastHintSelector(cm, i, px+3., py+3., (if x.Delta<0 then 1 else -1), shouldDescriptionGoOnLeft)
                 match r with
                 | Some hz -> TrackerModel.SetLevelHint(i, hz)
                 | _ -> ()
@@ -169,7 +169,7 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
                 popupIsActive <- true
                 ea.Handled <- true
                 async {
-                    let! r = FastHintSelector(cm, i, px+3., py+3., 0)
+                    let! r = FastHintSelector(cm, i, px+3., py+3., 0, shouldDescriptionGoOnLeft)
                     match r with
                     | Some hz -> TrackerModel.SetLevelHint(i, hz)
                     | _ -> ()
@@ -242,8 +242,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawWhiteSwordCanvas(white_sword_canvas))
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true, true)
         wsHintCanvas.MyKeyAdd(fun ea -> 
             match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(hz) -> 
@@ -351,8 +351,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawMagicalSwordCanvas(mags_canvas))
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true, true)
         magsHintCanvas.MyKeyAdd(fun ea -> 
             match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(hz) -> 
