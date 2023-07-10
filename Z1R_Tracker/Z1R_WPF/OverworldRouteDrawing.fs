@@ -13,6 +13,7 @@ type RouteDrawingLayer() =
     let routeDrawingCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3), IsHitTestVisible=false)
     let highlightTiles = Array2D.init 16 8 (fun _ _ -> new Graphics.TileHighlightRectangle())
     let routingMarksCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))
+    let mutable routeMarksHolder : Canvas = null  // Clear()ing hundreds of marks is expensive; instead we store them all in a holder, and then just discard the holder
     do
         // these permanently live in the routeDrawingCanvas
         for i = 0 to 15 do
@@ -23,9 +24,15 @@ type RouteDrawingLayer() =
         for i = 0 to 15 do
             for j = 0 to 7 do
                 highlightTiles.[i,j].Hide()
-    member this.ClearRouteMarks() = routingMarksCanvas.Children.Clear()
+    member this.ClearRouteMarks() = 
+        routingMarksCanvas.Children.Clear()
+        routeMarksHolder <- null
     member this.Clear() = this.ClearHighlights(); this.ClearRouteMarks()
-    member this.AddRouteMark(m) = canvasAdd(routingMarksCanvas, m, 0., 0.)
+    member this.AddRouteMark(m) = 
+        if routeMarksHolder = null then
+            routeMarksHolder <- new Canvas()
+            routingMarksCanvas.Children.Add(routeMarksHolder) |> ignore
+        routeMarksHolder.Children.Add(m) |> ignore
     member this.GetHighlightTile(i,j) = highlightTiles.[i,j]
     member this.AddSelfTo(c) = canvasAdd(c, routeDrawingCanvas, 0., 0.)
 let routeDrawingLayer = new RouteDrawingLayer()

@@ -993,7 +993,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             member _this.Sword2(x,y) = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons
             member _this.RoutingInfo(haveLadder,haveRaft,currentRecorderWarpDestinations,currentAnyRoadDestinations,_owRouteworthySpots) = 
                 // clear and redraw routing
-                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations|>Seq.map fst,currentAnyRoadDestinations,displayIsCurrentlyMirrored)
+                OverworldRouting.repopulate(haveLadder,haveRaft,currentRecorderWarpDestinations|>Seq.map fst|>Seq.toArray,currentAnyRoadDestinations|>Seq.toArray,displayIsCurrentlyMirrored)
                 // redraw recorder dests
                 for (i,j),idx in currentRecorderWarpDestinations do
                     //let L = 6.0

@@ -89,11 +89,11 @@ let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, tra
     }
 
 let overworldAcceleratorTable = new System.Collections.Generic.Dictionary<_,_>()
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeAnyPieMenuAsync(cm, 666.)
     TrackerModel.setOverworldMapExtraData(i, j, TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.TAKE_ANY else 0)
     }))
-overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,c:Canvas,i,j) -> async {
+overworldAcceleratorTable.Add(TrackerModel.MapSquareChoiceDomainHelper.SWORD1, (fun (cm:CustomComboBoxes.CanvasManager,_c:Canvas,i,j) -> async {
     let! shouldMarkTakeAnyAsComplete = PieMenus.TakeThisPieMenuAsync(cm, 666.)
     TrackerModel.setOverworldMapExtraData(i, j, TrackerModel.MapSquareChoiceDomainHelper.SWORD1, if shouldMarkTakeAnyAsComplete then TrackerModel.MapSquareChoiceDomainHelper.SWORD1 else 0)
     }))
@@ -118,33 +118,38 @@ let sword2LeftSideFullTileBmp =
                 fullTileBmp.SetPixel(px, py, TRANS_BG)
     fullTileBmp
 
+let twoItemShopBmpCache = new System.Collections.Generic.Dictionary<_,_>()
 let makeTwoItemShopBmp(item1, item2) =  // 0-based, -1 for blank
     if item1 = item2 then
         let state = item1 + TrackerModel.MapSquareChoiceDomainHelper.ARROW
         Graphics.theFullTileBmpTable.[state].[0]
     else
-        // cons up a two-item shop image
-        let tile = new System.Drawing.Bitmap(16*3,11*3)
-        for px = 0 to 16*3-1 do
-            for py = 0 to 11*3-1 do
-                // two-icon area
-                if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
-                    tile.SetPixel(px, py, Graphics.itemBackgroundColor)
-                else
-                    tile.SetPixel(px, py, Graphics.TRANS_BG)
-                if item1 >=0 then
-                    // icon 1
-                    if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
-                        let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
-                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                            tile.SetPixel(px, py, c)
-                if item2 >= 0 then
-                    // icon 2
-                    if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
-                        let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
-                        if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
-                            tile.SetPixel(px, py, c)
-        tile
+        match twoItemShopBmpCache.TryGetValue((item1,item2)) with
+        | true, r -> r
+        | _ ->
+            // cons up a two-item shop image
+            let tile = new System.Drawing.Bitmap(16*3,11*3)
+            for px = 0 to 16*3-1 do
+                for py = 0 to 11*3-1 do
+                    // two-icon area
+                    if px/3 >= 3 && px/3 <= 11 && py/3 >= 1 && py/3 <= 9 then
+                        tile.SetPixel(px, py, Graphics.itemBackgroundColor)
+                    else
+                        tile.SetPixel(px, py, Graphics.TRANS_BG)
+                    if item1 >=0 then
+                        // icon 1
+                        if px/3 >= 4 && px/3 <= 6 && py/3 >= 2 && py/3 <= 8 then
+                            let c = Graphics.itemsBMP.GetPixel(item1*3 + px/3-4, py/3-2)
+                            if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                                tile.SetPixel(px, py, c)
+                    if item2 >= 0 then
+                        // icon 2
+                        if px/3 >= 8 && px/3 <= 10 && py/3 >= 2 && py/3 <= 8 then
+                            let c = Graphics.itemsBMP.GetPixel(item2*3 + px/3-8, py/3-2)
+                            if c.ToArgb() <> System.Drawing.Color.Black.ToArgb() then
+                                tile.SetPixel(px, py, c)
+            twoItemShopBmpCache.Add((item1,item2), tile)
+            tile
 
 let temporarilyDisplayHiddenOverworldTileMarks = Array2D.create 16 8 false
 let ShouldHide(state,i,j) =

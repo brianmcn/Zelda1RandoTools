@@ -282,7 +282,7 @@ type ScreenType =
     | WHOLE
     | NS
     | EW
-let generateScreenTypeList(a) =
+let generateScreenTypeListImpl(a) =
     // sanity check all (x,y) rooms have concordant 'portion'
     let d = new System.Collections.Generic.Dictionary<_,_>()
     let tryAdd(Vertex(x,y,p)) =
@@ -303,6 +303,17 @@ let generateScreenTypeList(a) =
     if d.Keys.Count <> 16*8 then  // sanity check all grid spots have a screen type
         failwith "bad map data"   // but only works when raft=true, else no vertex for those spots as no edges go there
     d
+let mutable screenTypeListCache = null
+let generateScreenTypeList(a) =
+    // The result is just a list of all 16*8 screens with their "potion" info.
+    // Unless there is a programming error, there's no need to revalidate the map data each time, so cache results in non-DEBUG mode.
+#if DEBUG
+    generateScreenTypeListImpl(a)
+#else
+    if screenTypeListCache = null then
+        screenTypeListCache <- generateScreenTypeListImpl(a)
+    screenTypeListCache
+#endif
 
 type PortionDetail =
     // on grid spots with two halves, we may need to inquire about
@@ -334,9 +345,9 @@ let convertToCanonicalVertex(x,y,st:System.Collections.Generic.Dictionary<_,_>,p
                     )
     else
         failwith "impossible st"
-let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoads, isMirror) =
+let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoads, isMirror, canScreenScroll) =
     let a = ResizeArray()
-    if TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value then
+    if canScreenScroll then
         if isMirror then
             a.AddRange(staticMirrorScreenScrolls)
             if ladder then
@@ -360,18 +371,38 @@ let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoa
     addExtra(currentAnyRoads |> Seq.map (fun (x,y) -> convertToCanonicalVertex(x,y,st,STAIRS)), currentAnyRoads, ANY_ROAD_ARRIVAL, 4)
     let d = makeAdjacencyDict(a)
     st, d
-let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray(), false)
+let mutable screenTypes, adjacencyDict = populateDynamic(false,false,ResizeArray(),ResizeArray(), false, false)
 let mutable adjacencyDictSansWarps = new System.Collections.Generic.Dictionary<_,_>()
-let mutable recorderDests : seq<int*int> = upcast ResizeArray()
-let mutable anyRoads : seq<int*int> = upcast ResizeArray()
+let mutable recorderDests : (int*int)[] = Array.zeroCreate 0
+let mutable anyRoads : (int*int)[] = Array.zeroCreate 0
+// p_ is the prior value - these change infrequently, so we avoid expensive recomputation if they didn't change since the prior call
+let mutable p_ladder,p_raft,p_currentRecorderWarpDestinations,p_currentAnyRoads,p_isMirror,p_canScreenScroll = false, false, Array.zeroCreate 0, Array.zeroCreate 0, false, false
 let repopulate(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads,isMirror) =
-    recorderDests <- currentRecorderWarpDestinations
-    anyRoads <- currentAnyRoads
-    let st,ad = populateDynamic(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads,isMirror)
-    screenTypes <- st
-    adjacencyDict <- ad
-    let _st,ad = populateDynamic(ladder,raft,ResizeArray(),ResizeArray(),isMirror)
-    adjacencyDictSansWarps <- ad
+    let canScreenScroll = TrackerModelOptions.Overworld.RoutesCanScreenScroll.Value
+    let workIfAnythingChanged() =
+        p_currentRecorderWarpDestinations <- currentRecorderWarpDestinations
+        p_currentAnyRoads <- currentAnyRoads
+        recorderDests <- currentRecorderWarpDestinations
+        anyRoads <- currentAnyRoads
+        let st,ad = populateDynamic(ladder,raft,currentRecorderWarpDestinations,currentAnyRoads,isMirror,canScreenScroll)
+        screenTypes <- st
+        adjacencyDict <- ad
+    if p_ladder=ladder && p_raft=raft && p_isMirror=isMirror && p_canScreenScroll=canScreenScroll then
+        // above did not change, thus adjacencyDictSansWarps doed not need to be recomputed
+        if p_currentRecorderWarpDestinations=currentRecorderWarpDestinations && p_currentAnyRoads=currentAnyRoads then
+            // above did not change, thus adjacencyDict also does not need to be recomputed
+            ()  // nothing to do, hurray!
+        else
+            workIfAnythingChanged()
+    else
+        workIfAnythingChanged()
+        p_ladder <- ladder
+        p_raft <- raft
+        p_isMirror <- isMirror
+        p_canScreenScroll <- canScreenScroll
+        let st,ad = populateDynamic(ladder,raft,ResizeArray(),ResizeArray(),isMirror,canScreenScroll)
+        screenTypes <- st
+        adjacencyDictSansWarps <- ad
 
 /////////////////////////////////////////////
 
