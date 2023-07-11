@@ -155,6 +155,7 @@ since 1.3.0t...
 since 1.3.0u...
 - add explainer to 2nd-quest-dungeon-toggle-thingy when you hover dungeon 4's third box
 - add hover explainers to checkboxes and start buttons on the startup screen
+- monster marked in lobby gets top precedence in monster list on dungeon summary detail 
 - make ALL OF TIPS prettier
 - much, much more performance improvements
 - fix crash bugs on the startup screen
@@ -166,9 +167,6 @@ since 1.3.0u...
 
 single locator cyan crosshairs are messy on mixed overworld with many highlights... something else?
  - current thing is not loud enough
-
-
-give lobby MonsterPriority
 
 
 UCC may need testing of popup menus

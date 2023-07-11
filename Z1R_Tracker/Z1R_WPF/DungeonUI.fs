@@ -1396,12 +1396,20 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             let rs = masterRoomStates.[dunIdx]
             let hasMonster = new System.Collections.Generic.Dictionary<_,_>()
             monsterPriority |> Seq.iter (fun m -> hasMonster.Add(m, false))
+            let mutable lobbyMonster = None
             for i = 0 to 7 do
                 for j = 0 to 7 do
-                    hasMonster.[ rs.[i,j].MonsterDetail ] <- true
+                    let monster = rs.[i,j].MonsterDetail
+                    hasMonster.[ monster ] <- true
+                    if rs.[i,j].RoomType.NextEntranceRoom().IsSome && monster<>MonsterDetail.Unmarked then
+                        lobbyMonster <- Some(monster)
             [|
+                match lobbyMonster with
+                | Some m -> yield m.Bmp() |> Graphics.BMPtoImage
+                | _ -> ()
                 for m in monsterPriority do
-                    if m <> MonsterDetail.Unmarked && hasMonster.[m] then
+                    if m <> MonsterDetail.Unmarked && hasMonster.[m] && 
+                                not(lobbyMonster.IsSome && lobbyMonster.Value=m) then   // don't duplicate the lobby
                         yield m.Bmp() |> Graphics.BMPtoImage
             |]
         let w, h = int contentCanvas.Width / 3, int contentCanvas.Height / 3
