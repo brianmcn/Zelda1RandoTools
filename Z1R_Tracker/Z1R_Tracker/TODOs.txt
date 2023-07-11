@@ -158,6 +158,7 @@ since 1.3.0u...
 - monster marked in lobby gets top precedence in monster list on dungeon summary detail 
 - make ALL OF TIPS prettier
 - change showLocatorExactLocation display color
+- new basement stair icon for dungeon item boxes
 - much, much more performance improvements
 - fix crash bugs on the startup screen
 - fix Timeline hover-tooltips should draw atop "Options..." button
@@ -186,18 +187,17 @@ zones generally are, but have to check the borders periodically to remember "is 
 
 
 
-Califax: might ne nice if could choose fewer monsters in popup for easier mousing
-
-
-Thilo: Request: be able to click an unknown secret as obtained (or at least dimmed like a hint shop). (He just DontCares taken secrets.)  
- - But homer suggests then just using e.g. bright 'medium secret' for unknown.
+Califax: might be nice if could choose fewer monsters in popup for easier mousing (but that's what hotkeys are for)
 
 
 equations wants e.g. floor item or basement hotkeys in dungeons to auto-box-warp to mark items, which might be interesting but is a big change
 
 
 some kind of on-map better viz of the dungeons, e.g. you're standing next to 3 yellow numerals, but what are blockers? which still has items? gotta look all over
- - could be nice to project a monetser there maybe too, maybe select something to project, ... ? the monster on the lobby could take priority!
+ - could be nice to project a monster there maybe too, maybe select something to project, ... ? the monster on the lobby could take priority!
+ - there really isn't room to display everything; a single 16x16 icon is about right to put off to the side, but is monster, or remain items, or blocker most important?
+ - maybe could be a mouse-hover, like hover the dungeon and it pops up the full detail?  or something puts the details of all dungeons on map near them?
+ - basically, there is a ton of info player need to consider to decide stuff, and not easy to find way to group it all in small field of view...
 
 
 the double-blue-bars could explain themselves better (the two maps)
@@ -212,11 +212,6 @@ Max Hearts: should also have a display like the game, people bad at counting.  W
 
 consider moving the tooltips in-window so they can get video captured, as their absence does make e.g. explainer videos more challenging
 - could also have some tooltips with icons etc
-
-
-re: basement item icon: I agree that the icon doesn't communicate itself to a newcomer; I wonder if there's a way to say more (e.g. maybe 
-when mouseover the empty item box in upper left tracker, it might have a tooltip explainer or something, hm)
-- or consider alex conversation; alternative 5x5 art for stair, or in-game 16x16 stair icon
 
 
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)

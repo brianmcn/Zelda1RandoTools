@@ -226,7 +226,7 @@ TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
 let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     if box.Stair <> TrackerModel.StairKind.Never then
-        let stairImg = Graphics.basement_stair_bmp |> Graphics.BMPtoImage
+        let stairImg = Graphics.zi_staircase_unborderedBI |> Graphics.BItoImage
         match box.Stair with
         | TrackerModel.StairKind.LikeL2 ->
             let update() = stairImg.Opacity <- if TrackerModel.IsSecondQuestDungeons && TrackerModelOptions.ShowBasementInfo.Value then 1.0 else 0.0
@@ -243,7 +243,7 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
             OptionsMenu.showBasementInfoOptionChanged.Publish.Add(update)
             update()
         | _ -> ()
-        canvasAdd(c, stairImg, 3., 3.)
+        canvasAdd(c, stairImg, 7., 7.)
     let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., Stroke=CustomComboBoxes.no, StrokeThickness=3.0)
     c.Children.Add(rect) |> ignore
     let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
