@@ -805,7 +805,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             | TrackerModel.DungeonBlocker.BOMB ->           showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.BOMB)
             | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  showShopLocatorInstanceFunc(TrackerModel.MapSquareChoiceDomainHelper.ARROW)
             | TrackerModel.DungeonBlocker.MONEY ->          showLocatorRupees()
-            | _ -> ()
+            | _ -> contentCanvasMouseEnterFunc(dungeonIndex+1)   // if nothing specific for this box to show, default to parent's hover behavior
             )
         c.MouseLeave.Add(fun _ -> hideLocator())
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
@@ -963,7 +963,7 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             else
                 let dungeonIndex = (3*j+i)-1
                 let labelChar = if TrackerModel.IsHiddenDungeonNumbers() then "ABCDEFGH".[dungeonIndex] else "12345678".[dungeonIndex]
-                let sp = new StackPanel(Orientation=Orientation.Horizontal)
+                let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black)
                 levelTabSelected.Publish.Add(fun level -> if level=dungeonIndex+1 then sp.Background <- blockerHighlightBrush else sp.Background <- Brushes.Black)
                 let tb = new TextBox(Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., Text=labelChar.ToString(), Width=10., Height=14., IsHitTestVisible=false,
                                         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.),

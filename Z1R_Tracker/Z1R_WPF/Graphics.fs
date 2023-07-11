@@ -308,7 +308,6 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     i
 
 let OMTW = 48.  // overworld map tile width - at normal aspect ratio, is 48 (16*3)
-let magenta = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Magenta, 0.30))))
 let green = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Lime, 0.50))))
 let cyan = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.FromArgb(0xFF, 0, 0xFF, 0xFF), 0.30))))
 let yellow = freeze(new SolidColorBrush(mediaColor(desaturateColor(System.Drawing.Color.Yellow, 0.50))))
@@ -321,25 +320,6 @@ type TileHighlightRectangle() as this =
     let Draw(isPale) =
         s.Opacity <- 1.0
         s.StrokeThickness <- if isPale then 2.0 else 4.0
-    member _this.MakeMagentaWithAnimation() = 
-        Draw(false)
-        let sb = new Animation.Storyboard()
-        let da = new System.Windows.Media.Animation.DoubleAnimation(12.0, 3.0, new Duration(System.TimeSpan.FromSeconds(0.5)))
-        sb.Children.Add(da)
-        Animation.Storyboard.SetTarget(da, s)
-        Animation.Storyboard.SetTargetProperty(da, new PropertyPath(Shapes.Rectangle.StrokeThicknessProperty))
-        let da = new System.Windows.Media.Animation.DoubleAnimation(3.0, 6.0, new Duration(System.TimeSpan.FromSeconds(1.0)))
-        da.RepeatBehavior <- Animation.RepeatBehavior.Forever
-        da.AutoReverse <- true
-        da.BeginTime <- TimeSpan.FromSeconds(0.5)
-        sb.Children.Add(da)
-        Animation.Storyboard.SetTarget(da, s)
-        Animation.Storyboard.SetTargetProperty(da, new PropertyPath(Shapes.Rectangle.StrokeThicknessProperty))
-        sb.Begin()
-        let ca = new System.Windows.Media.Animation.ColorAnimation(From=Colors.Cyan, To=magenta.Color, Duration=new Duration(System.TimeSpan.FromSeconds(0.5)))
-        let brush = new SolidColorBrush()
-        s.Stroke <- brush
-        brush.BeginAnimation(SolidColorBrush.ColorProperty, ca)
     member _this.MakeRed() = s.Stroke <- red; Draw(false)
     member _this.MakeYellow() = s.Stroke <- yellow; Draw(false)
     member _this.MakeBoldGreen() = s.Stroke <- green; Draw(false); s.StrokeThickness <- 6.0
@@ -348,6 +328,7 @@ type TileHighlightRectangle() as this =
     member _this.MakePaleRed() = s.Stroke <- palered; Draw(true)
     member _this.MakePaleYellow() = s.Stroke <- paleyellow; Draw(true)
     member _this.MakePaleGreen() = s.Stroke <- palegreen; Draw(true)
+    member _this.MakeMagenta() = s.Stroke <- Brushes.Magenta; s.Opacity <- 0.85; s.StrokeThickness <- 5.
     member _this.Hide() = s.Opacity <- 0.0
     member _this.MakeGreenWithBriefAnimation() = 
         if TrackerModelOptions.AnimateShopHighlights.Value then

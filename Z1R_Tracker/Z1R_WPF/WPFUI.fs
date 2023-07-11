@@ -1338,19 +1338,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     showLocatorExactLocation <- (fun (x,y) ->
         if (x,y) <> TrackerModel.NOTFOUND then
-            owLocatorTileRectangles.[x,y].MakeMagentaWithAnimation()
-            (*
+            owLocatorTileRectangles.[x,y].MakeMagenta()
             let OPA = 0.85
-            let COL = Brushes.Cyan
-            let leftLine = new Shapes.Line(X1=OMTW*float x, Y1=0., X2=OMTW*float x, Y2=float(8*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
+            let COL = Brushes.Magenta
+            let THI = 2.
+            let leftLine = new Shapes.Line(X1=OMTW*float x, Y1=0., X2=OMTW*float x, Y2=float(8*11*3), Stroke=COL, StrokeThickness=THI, IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, leftLine, 0., 0.)
-            let rightLine = new Shapes.Line(X1=OMTW*float (x+1)-1., Y1=0., X2=OMTW*float (x+1)-1., Y2=float(8*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
+            let rightLine = new Shapes.Line(X1=OMTW*float (x+1)-1., Y1=0., X2=OMTW*float (x+1)-1., Y2=float(8*11*3), Stroke=COL, StrokeThickness=THI, IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, rightLine, 0., 0.)
-            let topLine = new Shapes.Line(X1=0., Y1=float(y*11*3), X2=OMTW*float(16*3), Y2=float(y*11*3), Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
+            let topLine = new Shapes.Line(X1=0., Y1=float(y*11*3), X2=OMTW*float(16*3), Y2=float(y*11*3), Stroke=COL, StrokeThickness=THI, IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, topLine, 0., 0.)
-            let bottomLine = new Shapes.Line(X1=0., Y1=float((y+1)*11*3)-1., X2=OMTW*float(16*3), Y2=float((y+1)*11*3)-1., Stroke=COL, StrokeThickness=2., IsHitTestVisible=false, Opacity=OPA)
+            let bottomLine = new Shapes.Line(X1=0., Y1=float((y+1)*11*3)-1., X2=OMTW*float(16*3), Y2=float((y+1)*11*3)-1., Stroke=COL, StrokeThickness=THI, IsHitTestVisible=false, Opacity=OPA)
             canvasAdd(owLocatorCanvas, bottomLine, 0., 0.)
-            *)
         )
     showLocatorHintedZone <- (fun (hinted_zone, alsoHighlightABCDEFGH) ->
         OverworldRouteDrawing.routeDrawingLayer.Clear()

@@ -308,7 +308,8 @@ let generateScreenTypeList(a) =
     // The result is just a list of all 16*8 screens with their "potion" info.
     // Unless there is a programming error, there's no need to revalidate the map data each time, so cache results in non-DEBUG mode.
 #if DEBUG
-    generateScreenTypeListImpl(a)
+    screenTypeListCache <- generateScreenTypeListImpl(a)   // call it every time
+    screenTypeListCache
 #else
     if screenTypeListCache = null then
         screenTypeListCache <- generateScreenTypeListImpl(a)

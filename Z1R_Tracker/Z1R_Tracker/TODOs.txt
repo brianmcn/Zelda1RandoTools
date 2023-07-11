@@ -157,16 +157,14 @@ since 1.3.0u...
 - add hover explainers to checkboxes and start buttons on the startup screen
 - monster marked in lobby gets top precedence in monster list on dungeon summary detail 
 - make ALL OF TIPS prettier
+- change showLocatorExactLocation display color
 - much, much more performance improvements
 - fix crash bugs on the startup screen
 - fix Timeline hover-tooltips should draw atop "Options..." button
 - fix: "Hide Timer" option now also applies to Broadcast Window
 - fix: bad hotkeys should leave diagnostic info onscreen
+- fix: cyan box highlighting mouse-hover-target not moving smoothly 
 
-
-
-single locator cyan crosshairs are messy on mixed overworld with many highlights... something else?
- - current thing is not loud enough
 
 
 UCC may need testing of popup menus
