@@ -415,6 +415,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             )
         let tileSunglasses = 0.75
         let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        contentCanvas.ClipToBounds <- true  // TODO does this have any bad side effects? useful so that 'midi' works properly, but suggests something was drawing off to the right
         levelTab.Content <- contentCanvas
         // rupee/blank/key/bomb row highlighter
         let highlightRow =

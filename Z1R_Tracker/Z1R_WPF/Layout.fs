@@ -166,7 +166,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     inherit ApplicationLayout(cm) 
     let appMainCanvas = cm.AppMainCanvas
     let topLayerHoverCanvas = new Canvas()   // for temporary bits that appear on hover, to ensure they appear on top of everything else in the app, when no other popup active
-    let blockerGridHeight = float(38*3) // from blocker code
+    let blockerGridHeight = float(36*3) // from blocker code
     let RED_LINE = 3.
     let DUNGEON_H = START_TIMELINE_H - THRU_MAIN_MAP_AND_ITEM_PROGRESS_H
     let TIMELINE_H = THRU_TIMELINE_H - START_TIMELINE_H
