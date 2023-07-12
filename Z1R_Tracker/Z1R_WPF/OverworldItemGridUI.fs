@@ -42,7 +42,7 @@ let START_TIMELINE_H = THRU_DUNGEON_AND_NOTES_AREA_H
 let THRU_TIMELINE_H = START_TIMELINE_H + float TCH
 let LEFT_OFFSET = 78.0
 let BLOCKERS_AND_NOTES_OFFSET = 408. + 42.  // dungeon area and side-tracker-panel
-let ITEM_PROGRESS_FIRST_ITEM = 130.
+let ITEM_PROGRESS_FIRST_ITEM = 129.
 let hmsTimeTextBox = new TextBox(Width=148.,Height=56.,Text="timer",FontSize=42.0,Background=Brushes.Transparent,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
 let broadcastTimeTextBox = 
     let r = new TextBox(Text="timer",FontSize=42.0,Background=Brushes.Black,Foreground=Brushes.LightGreen,BorderThickness=Thickness(0.0),IsReadOnly=true,IsHitTestVisible=false)
@@ -77,10 +77,13 @@ let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 
 let hintBG = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,120uy)))
 let HintZoneDisplayTextBox(s) : FrameworkElement = 
-    let tb = new TextBox(Text=s, Foreground=Brushes.Orange, Background=hintBG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
-                         FontSize=12., FontWeight=FontWeights.Bold, HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
-                         HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center) 
-    upcast Graphics.center(tb, 24, 24)
+    if s="" then
+        upcast new Canvas()   // don't display anything, we pass "" for HintZone.Unknown on the MainTracker, and also want to avoid hintBG from the textbox
+    else
+        let tb = new TextBox(Text=s, Foreground=Brushes.Orange, Background=hintBG, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.),
+                             FontSize=12., FontWeight=FontWeights.Bold, HorizontalContentAlignment=HorizontalAlignment.Center, TextAlignment=TextAlignment.Center,
+                             HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment=VerticalAlignment.Center) 
+        upcast Graphics.center(tb, 24, 24)
 let hintyBrush = 
     let HHS,HHE = Views.HHS, Views.HHE
     let c = Color.FromRgb(HHS.R/2uy + HHE.R/2uy, HHS.G/2uy + HHE.G/2uy, HHS.B/2uy + HHE.B/2uy)

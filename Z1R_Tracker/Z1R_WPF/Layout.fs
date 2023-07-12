@@ -136,9 +136,10 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddLinkTarget(currentTargetGhostBuster) =
             canvasAdd(appMainCanvas, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
         member this.AddTimeline(t1c, t2c, t3c) =
-            canvasAdd(appMainCanvas, t1c, 24., START_TIMELINE_H)
-            canvasAdd(appMainCanvas, t2c, 24., START_TIMELINE_H)
-            canvasAdd(appMainCanvas, t3c, 24., START_TIMELINE_H)
+            let TCX = 22.  // should be 24, but moving two pixels to the left is simplest fix to get timeline items on 3n pixel boundaries so 2/3 size looks good
+            canvasAdd(appMainCanvas, t1c, TCX, START_TIMELINE_H)
+            canvasAdd(appMainCanvas, t2c, TCX, START_TIMELINE_H)
+            canvasAdd(appMainCanvas, t3c, TCX, START_TIMELINE_H)
         member this.GetTimelineBounds() =
             Rect(Point(0.,START_TIMELINE_H), Point(appMainCanvas.Width,THRU_TIMELINE_H))
         member this.GetFullAppBounds() =
@@ -346,9 +347,10 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddLinkTarget(currentTargetGhostBuster) =
             canvasAdd(upper, currentTargetGhostBuster, 16.*OMTW-30., 120.)  // location where Link's currentTarget is
         member this.AddTimeline(t1c, t2c, t3c) =
-            canvasAdd(lower, t1c, 24., timelineStart)
-            canvasAdd(lower, t2c, 24., timelineStart)
-            canvasAdd(lower, t3c, 24., timelineStart)
+            let TCX = 22.  // should be 24, but moving two pixels to the left is simplest fix to get timeline items on 3n pixel boundaries so 2/3 size looks good
+            canvasAdd(lower, t1c, TCX, timelineStart)
+            canvasAdd(lower, t2c, TCX, timelineStart)
+            canvasAdd(lower, t3c, TCX, timelineStart)
             let timelineView = Broadcast.makeViewRectImpl(Point(0.,timelineStart), Point(W,timelineStart + TIMELINE_H), lower)
             canvasAdd(upper, timelineView, 0., upperTimelineStart)
         member this.GetTimelineBounds() =

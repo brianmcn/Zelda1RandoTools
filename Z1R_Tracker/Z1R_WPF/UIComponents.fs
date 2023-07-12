@@ -233,7 +233,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let legendCanvas = new Canvas(Width=586., Height=float(11*3), Background=BG)
     let dungeonLegendIconCanvas = new Canvas(Width=float(16*3), Height=float(11*3))
     let dungeonLegendIconArea = new Canvas(Width=15., Height=float(11*3), Background=Brushes.White, Opacity=0.0001)   // to respond to mouse hover
-    canvasAdd(legendCanvas, dungeonLegendIconCanvas, 163., 0.)
+    canvasAdd(legendCanvas, dungeonLegendIconCanvas, 162., 0.)
     let recorderDestinationButtonCanvas = new Canvas(Width=OMTW, Height=float(11*3), Background=BG, ClipToBounds=true)
     let recorderDestinationMouseHoverHighlight = new Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=Brushes.DarkCyan, StrokeThickness=1., Opacity=0.)
     //let recorderEllipse = new Shapes.Ellipse(Width=float(11*3)-2.+12.0, Height=float(11*3)-2.+6., Stroke=RecorderEllipseColor(), StrokeThickness=3.0, IsHitTestVisible=false)
@@ -323,9 +323,9 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
         )
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
-    canvasAdd(legendCanvas, anyRoadLegendIcon, 70., 0.)
+    canvasAdd(legendCanvas, anyRoadLegendIcon, 69., 0.)
     let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=BG, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Any Road\n(Warp)")
-    canvasAdd(legendCanvas, tb, 104., 0.)
+    canvasAdd(legendCanvas, tb, 102., 0.)
 
     let legendStartIconButtonCanvas = new Canvas(Background=BG, Width=OMTW*1.45, Height=11.*3.)
     let legendStartIcon = makeStartIcon()
@@ -934,10 +934,11 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
         blockerBoxes.[dungeonIndex, blockerIndex] <- c
         c
 
-    let blockerColumnWidth = int((cm.AppMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)
-    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 38)
+    //let blockerColumnWidth = int((cm.AppMainCanvas.Width-BLOCKERS_AND_NOTES_OFFSET)/3.)   // would be 106
+    let blockerColumnWidth = 108 // multiple of 9, to make 2/3 size avoid looking blurry
+    let blockerGrid = makeGrid(3, 3, blockerColumnWidth, 36)
     let blockerHighlightBrush = Graphics.freeze(new SolidColorBrush(Color.FromRgb(50uy, 70uy, 50uy)))
-    blockerGrid.Height <- float(38*3)
+    blockerGrid.Height <- float(36*3)
     for i = 0 to 2 do
         for j = 0 to 2 do
             if i=0 && j=0 then

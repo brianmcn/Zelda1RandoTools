@@ -150,17 +150,17 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             n <- n + 1
         canvasAdd(timelineCanvas, graphCanvas, 0., 0.)
         owAxisLabel.RenderTransform <- new RotateTransform(-90.)
-        Canvas.SetLeft(owAxisLabel, -24.)
+        Canvas.SetLeft(owAxisLabel, -25.)
         Canvas.SetBottom(owAxisLabel, -8.)
         graphCanvas.Children.Add(owAxisLabel) |> ignore
         canvasAdd(timelineCanvas, itemCanvas, 0., 0.)
         for i = 0 to numTicks do
             if i%(2*ticksPerHash)=0 then
-                let line = new Shapes.Line(X1=x(i), Y1=iconAreaHeight, X2=x(i), Y2=iconAreaHeight+BIG_HASH, Stroke=TLC, StrokeThickness=LINE_THICKNESS)
+                let line = new Shapes.Line(X1=x(i)+0.5, Y1=iconAreaHeight, X2=x(i)+0.5, Y2=iconAreaHeight+BIG_HASH, Stroke=TLC, StrokeThickness=LINE_THICKNESS)
                 canvasAdd(timelineCanvas, line, 0., 0.)
                 placeTextLabel(x(i))
             elif i%(ticksPerHash)=0 then
-                let line = new Shapes.Line(X1=x(i), Y1=iconAreaHeight+BIG_HASH/4., X2=x(i), Y2=iconAreaHeight+BIG_HASH*3./4., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
+                let line = new Shapes.Line(X1=x(i)+0.5, Y1=iconAreaHeight+BIG_HASH/4., X2=x(i)+0.5, Y2=iconAreaHeight+BIG_HASH*3./4., Stroke=TLC, StrokeThickness=LINE_THICKNESS)
                 canvasAdd(timelineCanvas, line, 0., 0.)
         canvasAdd(timelineCanvas, line1, 0., 0.)
         canvasAdd(timelineCanvas, curTime, 0., 0.)
@@ -171,8 +171,8 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
     member this.ThisIsNowTheVisibleTimeline() =
         if moreOptionsButton.Parent <> null then (moreOptionsButton.Parent :?> Canvas).Children.Remove(moreOptionsButton)
         if drawButton.Parent <> null then (drawButton.Parent :?> Canvas).Children.Remove(drawButton)
-        canvasAdd(timelineCanvas, moreOptionsButton, -24., 0.)
-        canvasAdd(timelineCanvas, drawButton, 724., 25.)
+        canvasAdd(timelineCanvas, moreOptionsButton, -22., 0.)
+        canvasAdd(timelineCanvas, drawButton, 729., 25.)
     member this.Update(minute, timelineItems:seq<TimelineItem>, maxOverworldRemain) =
         if not isCurrentlyLoadingASave then
             let tick = minute / minutesPerTick
@@ -181,8 +181,8 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
             else
                 this.DrawGraph(tick, maxOverworldRemain)
                 this.DrawItemsAndGuidelines(timelineItems)
-                curTime.X1 <- xf(float (minute / minutesPerTick))
-                curTime.X2 <- xf(float (minute / minutesPerTick))
+                curTime.X1 <- xf(float (minute / minutesPerTick)) + 0.5
+                curTime.X2 <- xf(float (minute / minutesPerTick)) + 0.5
     member private this.DrawGraph(curTick, maxOverworldRemain) =
         if TrackerModel.timelineDataOverworldSpotsRemain.Count > 0 then
             // populate data to graph
@@ -248,7 +248,7 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                 if rowBmps.Count > 0 then
                     // guideline
                     let bottomRow = rowBmps |> Seq.maxBy fst |> fst
-                    let line = new Shapes.Line(X1=x(tick), Y1=float(bottomRow+1)*(iconSize+ICON_SPACING)-ICON_SPACING, X2=x(tick), Y2=iconAreaHeight+BIG_HASH/2., Stroke=Brushes.Gray, StrokeThickness=LINE_THICKNESS)
+                    let line = new Shapes.Line(X1=x(tick)+0.5, Y1=float(bottomRow+1)*(iconSize+ICON_SPACING)-ICON_SPACING, X2=x(tick)+0.5, Y2=iconAreaHeight+BIG_HASH/2., Stroke=Brushes.Gray, StrokeThickness=LINE_THICKNESS)
                     canvasAdd(itemCanvas, line, 0., 0.)
                     // items
                     for row,(bmp,totalSeconds,has,tid) in rowBmps do
@@ -273,4 +273,4 @@ type Timeline(iconSize, numRows, lineWidth, minutesPerTick, sevenTexts:string[],
                         c.MouseLeave.Add(fun _ ->
                             timelineCanvas.Children.Remove(timeToolTip)
                             )
-                        canvasAdd(itemCanvas, c, float xminOrig, float row*(iconSize+ICON_SPACING))
+                        canvasAdd(itemCanvas, c, System.Math.Ceiling(xminOrig), float row*(iconSize+ICON_SPACING))

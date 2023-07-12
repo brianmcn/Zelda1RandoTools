@@ -641,7 +641,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         elif pos.X > OMTW*13. then 
                             OMTW - gridWidth  // right align
                         else
-                            (OMTW - gridWidth)/2.  // center align
+                            let r = int((OMTW - gridWidth)/2.)  // center align
+                            let r = float(r - r%3)  // ensure at a multiple-of-3 pixel, to look good at 2/3 size
+                            r
                     let originalState = TrackerModel.overworldMapMarks.[i,j].Current()
                     let typicalGESAI(n) : FrameworkElement*_*_ =
                         let isSelectable = ((n = originalState) || TrackerModel.mapSquareChoiceDomain.CanAddUse(n)) && isLegalHere(n)

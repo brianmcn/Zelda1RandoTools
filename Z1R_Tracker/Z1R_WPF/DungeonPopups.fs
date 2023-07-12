@@ -17,7 +17,7 @@ let dungeonRoomExplainer, setOpacity =
     let mkTxt(txt) = new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                     BorderThickness=Thickness(0.), FontSize=16., VerticalAlignment=VerticalAlignment.Center)
     let border(fe) = new Border(Child=fe, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
-    let marginAndSunglasses(c:FrameworkElement) = c.Margin <- Thickness(5.,0.,0.,0.); c.Opacity <- sunglassesOpacity; c
+    let marginAndSunglasses(c:FrameworkElement) = c.Margin <- Thickness(6.,0.,0.,0.); c.Opacity <- sunglassesOpacity; c
     let left(tb:TextBox) = 
         tb.HorizontalContentAlignment <- HorizontalAlignment.Left
         tb.HorizontalAlignment <- HorizontalAlignment.Left
@@ -38,8 +38,8 @@ let dungeonRoomExplainer, setOpacity =
     dp.Children.Add(header) |> ignore
     let g = makeGrid(3,4,250,33)
     g.ColumnDefinitions.[0].Width <- GridLength(218.)
-    g.ColumnDefinitions.[1].Width <- GridLength(380.)
-    g.ColumnDefinitions.[2].Width <- GridLength(170.)
+    g.ColumnDefinitions.[1].Width <- GridLength(378.)
+    g.ColumnDefinitions.[2].Width <- GridLength(172.)
 
     let tb = right <| mkTxt("Left-click")
     gridAdd(g, border(tb), 0, 0)
@@ -121,7 +121,7 @@ let dungeonRoomExplainer, setOpacity =
     gridAdd(g, border(sp), 2, 3)
 
     dp.Children.Add(g) |> ignore
-    (new Border(Child=dp, BorderThickness=Thickness(0.,1.,0.,1.), BorderBrush=Brushes.Gray, Background=Brushes.Black) :> FrameworkElement),
+    (new Border(Child=dp, BorderThickness=Thickness(0.,3.,0.,3.), BorderBrush=Brushes.DimGray, Background=Brushes.Black) :> FrameworkElement),
         fun op -> dp.Opacity <- op
 
 let DoMonsterDetailPopup(cm:CanvasManager, boxX, boxY, currentMonsterDetail) = async {
@@ -244,7 +244,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         tb
     let SCALE = 2.
     
-    let tileX,tileY = 555., 766.
+    let tileX,tileY = 555., 768.
     let ST = CustomComboBoxes.borderThickness
 
     let tileCanvas = new Canvas(Width=float(13*3)*SCALE, Height=float(9*3)*SCALE)
@@ -271,7 +271,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
     let (gnc, gnr, gcw, grh) = 7, 5, 13*3, 9*3
     let totalGridWidth = float gnc*(float gcw + 2.*ST)
     let totalGridHeight = float gnr*(float grh + 2.*ST)
-    let gx,gy = -116.,-75.-totalGridHeight
+    let gx,gy = -117.,-78.-totalGridHeight
     let fullRoom = originalRoomState.Clone()  // a copy with the original decorations, used for redrawTile display
     fullRoom.IsComplete <- false
     let redrawTile(curState:RoomType) =
@@ -304,7 +304,7 @@ let DoDungeonRoomSelectPopup(cm:CustomComboBoxes.CanvasManager, originalRoomStat
         else
             CustomComboBoxes.StayPoppedUp
     let extraDecorations = [| 
-        dungeonRoomExplainer, -3.-tileX, 345.-tileY
+        dungeonRoomExplainer, -3.-tileX, 342.-tileY
         |]
     setOpacity(0.5)
     if positionAtEntranceRoomIcons then

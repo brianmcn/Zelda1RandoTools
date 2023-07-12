@@ -508,6 +508,8 @@ let itemBoxMouseButtonExplainerDecoration =
     let mouse = Graphics.BMPtoImage mouseBMP
     mouse.Height <- 90.
     mouse.Width <- float(mouseBMP.Width) * 90. / float(mouseBMP.Height)
+    while (int mouse.Width)%3 <> 0 do
+        mouse.Width <- mouse.Width + 1.   // ensure multiple of 3, so 2/3 size looks good for the panel on the right
     mouse.Stretch <- Stretch.Uniform
     d.Children.Add(mouse) |> ignore
     DockPanel.SetDock(mouse,Dock.Left)
