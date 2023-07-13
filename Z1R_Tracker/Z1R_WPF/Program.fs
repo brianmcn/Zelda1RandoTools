@@ -242,6 +242,8 @@ type MyWindow() as this =
                 logCrashInfo <| sprintf "%s" (ex.ToString())
                 finishCrashInfo()
         System.Windows.Application.Current.DispatcherUnhandledException.Add(fun e -> 
+            if System.Diagnostics.Debugger.IsAttached then
+                System.Diagnostics.Debugger.Break()
             let ex = e.Exception
             logCrashInfo <| sprintf "An unhandled exception from UI thread:"
             handle(ex)
@@ -250,6 +252,8 @@ type MyWindow() as this =
             Application.Current.Shutdown()
             )
         System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
+            if System.Diagnostics.Debugger.IsAttached then
+                System.Diagnostics.Debugger.Break()
             match e.ExceptionObject with
             | :? System.Exception as ex ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread:"
@@ -710,17 +714,23 @@ type MyWindow() as this =
                             if ver.Version <> OverworldData.VersionString then
                                 let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file might not work, but Z-Tracker will attempt to load it anyway." 
                                                     OverworldData.VersionString ver.Version
+                                popupIsActive <- true
                                 let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Attempt Load"])
+                                popupIsActive <- false
                                 ignore r
                             loadData <- Some(DungeonSaveAndLoad.LoadAll(json))
                         with e ->
                             let msg = sprintf "Loading the save file\n%s\nfailed with error:\n%s"  ofd.FileName e.Message
+                            popupIsActive <- true
                             let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Restart"])
+                            popupIsActive <- false
                             ignore r
                             Graphics.RestartTheApplication()
                     else
                         let msg = sprintf "Failed to load a save file."
+                        popupIsActive <- true
                         let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Restart"])
+                        popupIsActive <- false
                         ignore r
                         Graphics.RestartTheApplication()
                 do! doStartup(n,loadData)

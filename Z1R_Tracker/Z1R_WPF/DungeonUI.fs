@@ -360,6 +360,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         canvasAdd(dungeonTabsWholeCanvas, sqcb, 426., 0.) 
 
     let levelTabs = Array.zeroCreate 9
+    let contentCanvasesWithBadYOffsets = Array.zeroCreate 9
     let contentCanvases = Array.zeroCreate 9
     let dummyCanvas = new Canvas(Opacity=0.0001, IsHitTestVisible=false)  // a kludge to help work around TabControl unloading tabs when not selected
     let localDungeonTrackerPanelWidth = 42.
@@ -371,7 +372,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         Height=float(27*8 + 12*7), Width=float(39*8 + 12*7), VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
                         HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
     let getLabelChar(level) = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
-    let CCOFF = 1.  // the content canvas Y coordinate is not a multiple of 3, so add this to the height of anything added to it, to get it 3-aligned (to make e.g. 2/3 size be pixel-perfect)
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         dungeonTabs.Items.Add(levelTab) |> ignore
@@ -414,9 +414,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             header.Foreground <- if Graphics.isBlackGoodContrast(color) then Brushes.Black else Brushes.White
             )
         let tileSunglasses = 0.75
-        let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        let contentCanvasWithBadYOffset = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        levelTab.Content <- contentCanvasWithBadYOffset
+        let contentCanvas = new Canvas(Width=contentCanvasWithBadYOffset.Width, Height=contentCanvasWithBadYOffset.Height, Background=Brushes.Black)
         contentCanvas.ClipToBounds <- true  // TODO does this have any bad side effects? useful so that 'midi' works properly, but suggests something was drawing off to the right
-        levelTab.Content <- contentCanvas
+        canvasAdd(contentCanvasWithBadYOffset, contentCanvas, 0., 1.)   // so that all content is at multiples of 3, so that 2/3 view does not look blurry
         // rupee/blank/key/bomb row highlighter
         let highlightRow =
             let bmp = Dungeon.MakeLoZMinimapDisplayBmp(Array2D.zeroCreate 8 8, '?') 
@@ -429,11 +431,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             i.Height <- 64.
             i.Stretch <- Stretch.UniformToFill
             RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
-            canvasAdd(contentCanvas, i, contentCanvas.Width-20., 3.+CCOFF)
+            canvasAdd(contentCanvas, i, contentCanvas.Width-20., 3.)
             let rowHighlightGrid = Graphics.makeGrid(1,8,20,8)
             let rowHighlighter = new Canvas(Width=16., Height=8., Background=Brushes.Gray, Opacity=0.)
             Graphics.gridAdd(rowHighlightGrid, rowHighlighter, 0, 0)
-            canvasAdd(contentCanvas, rowHighlightGrid, contentCanvas.Width-40., 3.+CCOFF)
+            canvasAdd(contentCanvas, rowHighlightGrid, contentCanvas.Width-40., 3.)
             let highlightRow(rowOpt) =
                 match rowOpt with
                 | None -> rowHighlighter.Opacity <- 0.
@@ -460,7 +462,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> updateOldManCountText())
         if TrackerModel.IsHiddenDungeonNumbers() then
             TrackerModel.GetDungeon(level-1).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateOldManCountText())
-        canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.+CCOFF)
+        canvasAdd(contentCanvas, oldManBorder, contentCanvas.Width-44., 69.)
         // local dungeon tracker
         let LD_X, LD_Y = contentCanvas.Width-localDungeonTrackerPanelWidth, 90.
         let pos = Point(0. + LD_X, posYF() + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
@@ -474,7 +476,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 if localDungeonTrackerPanel<> null then
                     contentCanvas.Children.Remove(localDungeonTrackerPanel)  // remove old one
                 localDungeonTrackerPanel <- ldtp
-                canvasAdd(contentCanvas, localDungeonTrackerPanel, LD_X, LD_Y+CCOFF) // add new one
+                canvasAdd(contentCanvas, localDungeonTrackerPanel, LD_X, LD_Y) // add new one
                 // don't remove the old 'unhighlight' event listener - this is technically a leak, but unless you toggle '2nd quest dungeons' button a million times in one session, it won't matter
                 dungeonTabs.SelectionChanged.Add(fun _ -> unhighlight())  // an extra safeguard, since the highlight is not a popup, but just a crazy mark over the main canvas
             PopulateLocalDungeonTrackerPanel()
@@ -514,10 +516,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             } |> Async.Start
         let dungeonSourceHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab-source highlights here
         let dungeonHighlightCanvas = new Canvas(Height=float(TH + 27*8 + 12*7), Width=float(39*8 + 12*7))  // draw grab highlights here
-        canvasAdd(contentCanvas, dungeonCanvas, 3., 3.+CCOFF)
-        canvasAdd(contentCanvas, dungeonSourceHighlightCanvas, 3., 3.+CCOFF)
-        canvasAdd(contentCanvas, dungeonHighlightCanvas, 3., 3.+CCOFF)
+        canvasAdd(contentCanvas, dungeonCanvas, 3., 3.)
+        canvasAdd(contentCanvas, dungeonSourceHighlightCanvas, 3., 3.)
+        canvasAdd(contentCanvas, dungeonHighlightCanvas, 3., 3.)
 
+        contentCanvasesWithBadYOffsets.[level-1] <- contentCanvasWithBadYOffset
         contentCanvases.[level-1] <- contentCanvas
         if level = 1 then // just set this once
             dungeonTabs.Height <- contentCanvas.Height + 30.
@@ -741,7 +744,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             haveMapCB.IsChecked <- System.Nullable.op_Implicit false
             haveMapCB.Checked.Add(fun _ -> TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon <- true)
             haveMapCB.Unchecked.Add(fun _ -> TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon <- false)
-            canvasAdd(contentCanvas, cbOrAtlasCanvas, LD_X+5., LD_Y+171.+CCOFF)
+            canvasAdd(contentCanvas, cbOrAtlasCanvas, LD_X+5., LD_Y+171.)
             TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeonChanged.Add(fun _ -> haveMapCB.IsChecked <- System.Nullable.op_Implicit (TrackerModel.GetDungeon(level-1).PlayerHasMapOfThisDungeon))
         // minimap-draw-er
         let hoverCanvas = new Canvas(Width=26., Height=26., Background=Brushes.Black, IsHitTestVisible=true)
@@ -752,7 +755,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         minimini.Margin <- Thickness(1.)
         let miniBorder = new Border(Child=minimini, BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray)
         canvasAdd(hoverCanvas, miniBorder, 0., 0.)
-        canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.+CCOFF)
+        canvasAdd(contentCanvas, hoverCanvas, LD_X+8., LD_Y+191.)
         showMinimaps <- (fun () ->
             let make(markedRooms) = 
                 let bmp = Dungeon.MakeLoZMinimapDisplayBmp(markedRooms, if TrackerModel.IsHiddenDungeonNumbers() then '?' else char(level+int '0')) 
@@ -817,7 +820,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     redrawAllRooms()
                     redrawAllDoors()
                 )
-            canvasAdd(contentCanvas, b, LD_X+2., LD_Y+191.+32.+CCOFF)
+            canvasAdd(contentCanvas, b, LD_X+2., LD_Y+191.+32.)
         // grab button for this tab
         let grabTB = new TextBox(FontSize=float(TH-12), Foreground=Brushes.Gray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false,
                                 Text="GRAB", BorderThickness=Thickness(0.), Margin=Thickness(0.), Padding=Thickness(0.),
@@ -849,7 +852,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 let x = ea.AddedItems.[0]
                 if obj.ReferenceEquals(x,levelTab) then
                     dummyCanvas.Children.Clear()
-                    levelTab.Content <- contentCanvas   // re-parent the content which may have been deparented by summary tab
+                    canvasAdd(contentCanvasWithBadYOffset, contentCanvas, 0., 1.)   // re-parent the content which may have been deparented by summary tab; y=1 so that all content is at multiples of 3, so that 2/3 view does not look blurry
                     levelTabSelected.Trigger(level)
                     showNumeral()
             with _ -> ()
@@ -1380,11 +1383,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         headerGrid.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))
         headerGrid.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
         levelTab.Header <- headerGrid
-        let contentCanvas = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
-        levelTab.Content <- contentCanvas
+        let contentCanvasWithBadYOffset = new Canvas(Height=float(TH + 3 + 27*8 + 12*7 + 3), Width=float(3 + 39*8 + 12*7 + 3)+localDungeonTrackerPanelWidth, Background=Brushes.Black)
+        levelTab.Content <- contentCanvasWithBadYOffset
         //contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(10))  // just the mini's call Enter
-        contentCanvas.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
-        contentCanvas.Children.Add(dummyCanvas) |> ignore
+        contentCanvasWithBadYOffset.MouseLeave.Add(fun _ -> contentCanvasMouseLeaveFunc(10))
+        canvasAdd(contentCanvasWithBadYOffset, dummyCanvas, 0., 1.)
         let monsterPriority = // in order of what goes top of the list to surface, down to bottom
             [| MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.RedLynel; MonsterDetail.RedGoriya; MonsterDetail.BlueMoblin;         // principal mobs
                MonsterDetail.Patra; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.Gleeok; MonsterDetail.Manhandla;    // blocker bosses
@@ -1414,7 +1417,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                 not(lobbyMonster.IsSome && lobbyMonster.Value=m) then   // don't duplicate the lobby
                         yield m.Bmp() |> Graphics.BMPtoImage
             |]
-        let w, h = int contentCanvas.Width / 3, int contentCanvas.Height / 3
+        let w, h = int contentCanvasWithBadYOffset.Width / 3, int contentCanvasWithBadYOffset.Height / 3
         let monsterSPs : StackPanel[] = Array.init 9 (fun _ -> new StackPanel(Orientation=Orientation.Vertical, VerticalAlignment=VerticalAlignment.Center, 
                                                                                 HorizontalAlignment=HorizontalAlignment.Center, Width=20., MaxHeight=float h-20.))
         let tinyMaps = Array.init 9 (fun _ -> new Canvas(Width=float(13*8), Height=float(9*8)))
@@ -1425,7 +1428,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     dummyCanvas.Children.Clear()
                     for i = 0 to 8 do
                         // deparent content canvases
-                        levelTabs.[i].Content <- null
+                        contentCanvasesWithBadYOffsets.[i].Children.Clear()
                         // make them visually here (but hidden by the dummy's lack of opacity), so that updates (like BOARD<->LEVEL) get visually drawn to be picked up by VisualBrush
                         dummyCanvas.Children.Add(contentCanvases.[i]) |> ignore
                         // redraw the monster tables
@@ -1450,15 +1453,6 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             )
         // grid
         let g = Graphics.makeGrid(3, 3, w, h)
-        do // put gridlines to bound each dungeon
-            let ccw,cch = contentCanvas.Width, int contentCanvas.Height
-            let gc = new Canvas(Width=float ccw, Height=float cch)
-            gc.Children.Add(g) |> ignore
-            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=float cch/3., Y2=float cch/3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=float cch*2./3., Y2=float cch*2./3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=float ccw/3., X2=float ccw/3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(gc, new Shapes.Line(X1=float ccw*2./3., X2=float ccw*2./3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
-            canvasAdd(contentCanvas, gc, 0., 0.+CCOFF)
         let summaryMode = TrackerModel.EventingInt(TrackerModelOptions.DungeonSummaryTabMode)   // 0=default, 1=preview, 2=detail
         let makeMidiPreviewBehavior(i, fe:FrameworkElement) =
             // midi at 2/3 size looks fine and covers notes area fine when hovering summary of a dungeon
@@ -1646,6 +1640,16 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 g.Children.Remove(tb)
                 Graphics.gridAdd(g, tb, 0, 0)
             )
+        do // put gridlines to bound each dungeon
+            let ccw,cch = contentCanvasWithBadYOffset.Width, int contentCanvasWithBadYOffset.Height
+            let gc = new Canvas(Width=float ccw, Height=float cch)
+            gc.Children.Add(g) |> ignore
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=0.5+float cch/3., Y2=0.5+float cch/3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0., X2=float ccw, Y1=0.5+float cch*2./3., Y2=0.5+float cch*2./3., Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0.5+float ccw/3., X2=0.5+float ccw/3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(gc, new Shapes.Line(X1=0.5+float ccw*2./3., X2=0.5+float ccw*2./3., Y1=0., Y2=float cch, Stroke=Brushes.Gray, StrokeThickness=1.), 0., 0.)
+            canvasAdd(contentCanvasWithBadYOffset, gc, 0., 0.)
+    // end summary tab
     dungeonTabs.SelectedIndex <- 9
     selectDungeonTabEvent.Publish.Add(fun i -> dungeonTabs.SelectedIndex <- i)
 
