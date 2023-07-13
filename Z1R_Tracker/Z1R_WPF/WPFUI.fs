@@ -375,7 +375,11 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             do! Async.Sleep(3000)
             do! Async.SwitchToContext ctxt
             hideLocator()  // this does mean the dungeon location highlight will disappear if we're moused in a dungeon, and routing marks if on overworld
-            // ideally, would have a way to respect the mouse position when done, but the code for mouse is all MouseEnters on overworld/dungeon and no easy way to do
+            // ideally, would have a way to respect the mouse position when done, but the code for mouse is all MouseEnters on overworld/dungeon and no easy way to do...
+            // ...or is there?
+            let p = Input.Mouse.GetPosition(cm.AppMainCanvas)
+            Graphics.SilentlyWarpMouseCursorTo(Point(0.,0.))
+            Graphics.SilentlyWarpMouseCursorTo(p)
         } 
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
