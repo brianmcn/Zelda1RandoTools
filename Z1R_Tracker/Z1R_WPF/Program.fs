@@ -310,9 +310,6 @@ type MyWindow() as this =
         this.Width <- APP_WIDTH
         this.Height <- APP_HEIGHT
         this.FontSize <- 18.
-        this.Loaded.Add(fun _ -> 
-            Graphics.setup(this)
-            this.Focus() |> ignore)
         this.Background <- Brushes.Black  // on a device with say 125% pixels and UseLayoutRounding=true, there's a white line at the bottom/right edge where RootCanvas doesn't cover app 
 
         let appMainCanvas, cm =  // a scope, so code below is less likely to touch rootCanvas
@@ -330,6 +327,9 @@ type MyWindow() as this =
             appMainCanvas, cm
         let wholeCanvas, hmsTimerCanvas = new Canvas(), new Canvas()
         this.Content <- wholeCanvas
+        this.Loaded.Add(fun _ -> 
+            Graphics.setup(this, wholeCanvas)
+            this.Focus() |> ignore)
         let drawingCanvasHolder = new Canvas()  // gets the app RenderTransform (can't RenderTransform the drawingCanvas itself without screwing up Broadcast Window)
         let drawingCanvas = new Canvas(IsHitTestVisible=false)
         drawingCanvasHolder.Children.Add(drawingCanvas) |> ignore
@@ -945,9 +945,8 @@ type DummyWindow() as this =
 //method1: scale = 1.250000    actualHeight=864.000000    waHeight=824.000000
 //method2: scale = 1.250000
             // method 2
-            let dpiScale = VisualTreeHelper.GetDpi(this)
-            let scale = dpiScale.DpiScaleY
-            printfn "method2: scale = %f" scale
+            let dpi = VisualTreeHelper.GetDpi(this)
+            printfn "method2: scale = %f, ppi = %f" dpi.DpiScaleY dpi.PixelsPerInchY
 *)
 
             let mainW = new MyWindow()

@@ -273,7 +273,17 @@ let darken(bmp:System.Drawing.Bitmap) =
 let mediaColor(c:System.Drawing.Color) =
     Media.Color.FromArgb(c.A, c.R, c.G, c.B)
 
-let BItoImage(bi:System.Windows.Media.Imaging.BitmapImage) = new Image(Source=bi)
+let mutable dpi = None : DpiScale option
+let BItoImage(bi:System.Windows.Media.Imaging.BitmapImage) =
+    if dpi.Value.DpiScaleX=1.0 && dpi.Value.DpiScaleY=1.0 then
+        new Image(Source=bi)
+    else
+        //let ppiy = System.Math.Round(dpi.Value.PixelsPerInchY)
+        let pf = PixelFormats.Bgra32   // Bitmap uses System.Drawing.Imaging.PixelFormat.Format32bppArgb, and this is the corresponding thingy
+        let rawStride = (bi.PixelWidth * pf.BitsPerPixel + 7) / 8
+        let rawImage : byte[] = Array.zeroCreate (rawStride * bi.PixelHeight)
+        bi.CopyPixels(rawImage, rawStride, 0)                                                            // dpi.ppix, dpi.ppiy
+        new Image(Source=System.Windows.Media.Imaging.BitmapSource.Create(bi.PixelWidth, bi.PixelHeight, 96., 96., pf, null, rawImage, rawStride))
 let BMPToBI(b:System.Drawing.Bitmap) =
     use ms = new System.IO.MemoryStream()
     b.Save(ms, System.Drawing.Imaging.ImageFormat.Png)
@@ -1068,8 +1078,9 @@ let mutable sawMouseEvent = false
 let mutable theTimer = null
 let mutable theFrame = null : System.Windows.Threading.DispatcherFrame
 let mutable theCounter = 0
-let setup(w:Window) =
+let setup(w:Window, v) =
     if theTimer=null then
+        dpi <- Some(VisualTreeHelper.GetDpi(v))
         theTimer <- new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
         theTimer.Stop()
         theTimer.Interval <- TimeSpan.FromSeconds(0.03)

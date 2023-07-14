@@ -1326,8 +1326,11 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     scb.BeginAnimation(SolidColorBrush.ColorProperty, ca)
             animateDungeonRoomTile <- animateRoomTile
         // "sunglasses"; make it 6 extra wide&tall (3 off each edge) to cover lobby entrance arrows that draw off the map boundaries
-        let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width+6., Height=dungeonCanvas.Height+6., StrokeThickness = 0., Fill=Brushes.Black, Opacity=0.15, IsHitTestVisible=false)
+        let darkenRect = new Shapes.Rectangle(Width=dungeonCanvas.Width+6., Height=dungeonCanvas.Height+6., StrokeThickness = 0., Fill=Brushes.Black, IsHitTestVisible=false)
         canvasAdd(dungeonCanvas, darkenRect, -3., -3.)
+        let doSunglasses() = if TrackerModelOptions.GiveDungeonTrackerSunglasses.Value then darkenRect.Opacity <- 0.15 else darkenRect.Opacity <- 0.
+        doSunglasses()
+        OptionsMenu.dungeonSunglassesChanged.Publish.Add(fun _ -> doSunglasses())
         canvasAdd(dungeonBodyCanvas, numeral, 0., 0.)  // so numeral displays atop all else
         // highlights
         DungeonHighlightsUI.makeHighlights(level, dungeonTabs, dungeonBodyHighlightCanvas, rightwardCanvas, roomStates, usedTransports, 
