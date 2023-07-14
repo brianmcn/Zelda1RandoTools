@@ -8,7 +8,7 @@ A summary of the features/fixes in the various releases of Z-Tracker
  - [Version 1.1](#v1.1) (released 2022-02-06)
  - [Version 1.0](#v1.0) (released 2021-12-11)
 
-[Horizontal rule](screenshots/horizontal-rule.png)
+![Horizontal rule](screenshots/horizontal-rule.png)
 
 ## <a id="v1.3.1"></a>Version 1.3.1
 
