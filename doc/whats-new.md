@@ -23,6 +23,7 @@ This is a major update with a number of usability improvements and new features.
  - [New Monster choices](#v13-monsters)
  - [Mirror-overworld and 2nd-quest-dungeons toggles](#v13-mirror)
  - [Faster map region hints](#v13-fast-hint)
+ - ["Have I found X yet" at a glance](#v13-glance-found)
  - [A bunch of other stuff](#v13-other-stuff)
 
 ### <a id="v13-alt-size">Alternate app size</a>
@@ -106,6 +107,18 @@ There are new hotkeys for hint zones, which are applied when the mouse is hoveri
 
 This feature is only when not using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is on).
 
+### <a id="v13-glance-found">"Have I found X yet" at a glance</a>
+
+For those thinking "I have 246 rupees, have I even found the blue ring shop yet?" the tracker is even more helpful than before.
+
+You can always mouse-hover the blue-ring icon, and any blue-ring shops you have mark on the overworld map will be displayed.
+
+But now, you can also just glance at the tracker to answer to question:
+
+![Have I found the blue ring shop yet](screenshots/have-i-found-blue-ring-shop-yet.png)
+
+Similar effects happen on all these boxes: magical sword, wood sword, blue ring, boomstick book, blue candle, wood arrow, bombs.
+
 ### <a id="v13-other-stuff">A bunch of other stuff</a>
 
 - usability: the clickable stuff now gives mouse-hover feedback to make it clearer it's clickable
@@ -124,7 +137,6 @@ This feature is only when not using Hidden Dungeon Numbers (as those portions of
 - hovering dungeon icon in LEGEND shows locations of all dungeons, just like hovering 'S' summary tab header does
 - Blockers numerals turn white when the corresponding dungeon is located on the overworld
 - new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets
-- upper right boxes turn yellow if shop/location found, but item (or better) not yet obtained: mags, wood sword, blue ring, boom book, blue candle, wood arrow, bomb
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
 - new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
 - new eyeball icon in upper right, hover to hide overworld map icons (to see unobscured map)
