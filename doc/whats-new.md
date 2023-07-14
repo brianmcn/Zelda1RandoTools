@@ -150,7 +150,7 @@ Similar effects happen on all these boxes: magical sword, wood sword, blue ring,
 - a lot of small fixes
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 
----
+![Horizontal rule](screenshots/horizontal-rule.png)
 
 ## <a id="v1.2.3"></a>Version 1.2.3
 
@@ -321,7 +321,7 @@ Furthermore, you can now bind any keyboard keys (not just 0-9/A-Z).  See [HotKey
  - improved readability of 'Coords' display
  - recorder destination in map legend is now clickable, to cycle dungeon numbers 1-8, to optionally keep track of where you just recordered to
 
----
+![Horizontal rule](screenshots/horizontal-rule.png)
 
 ## <a id="v1.1"></a>Version 1.1
 
@@ -409,7 +409,7 @@ A number of minor improvements:
  - fix HFQ/HSQ buttons to be more useful and to display less ugly
  - fix windows/taskbar to now properly display Z-Tracker logo icon
 
----
+![Horizontal rule](screenshots/horizontal-rule.png)
 
 ## <a id="v1.0"></a>Version 1.0
 
