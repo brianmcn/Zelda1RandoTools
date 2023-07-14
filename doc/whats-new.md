@@ -132,6 +132,9 @@ This feature is only when not using Hidden Dungeon Numbers (as those portions of
 - dungeon rooms: unpaired transport numerals light up
 - improved Door Inference option
 - display if potion letter obtained (based on overworld map markup, displays right of bomb icon)
+- a few more hover "explainers" (e.g. on startup screen) to help out folks who are new to the game
+- a lot of improvements to crispness of art/images when using 2/3 size mode
+- new option to turn off Dungeon 'sunglasses', to make dungeon tracker use brighter colors/higher contrast
 - a lot of small fixes
 - a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 

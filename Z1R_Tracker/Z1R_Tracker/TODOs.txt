@@ -173,7 +173,8 @@ since 1.3.0v...
 since 1.3.0w...
  - fixes to make 2/3 preview hovering in summmary tab look better (without breaking 2/3 overall app view)
  - fix high DPI Bitmap scaling
- - new option to turn off Dungeon 'sunglasses' for those who want bright high contrast
+ - new option to turn off Dungeon 'sunglasses' for those who want bright high contrast (TODO doc)
+since 1.3.0x...
 
 
 
