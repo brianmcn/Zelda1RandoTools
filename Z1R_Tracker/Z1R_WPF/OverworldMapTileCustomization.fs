@@ -425,7 +425,7 @@ let DoSpecialHotKeyHandlingForOverworldTiles(i, j, originalState, hotKeyedState)
 
 ///////////////////////////////////////////////////
 
-let MakeRemainderSummaryDisplay() =
+let MakeRemainderSummaryDisplay() =   // Spot Summary
     let sp = new StackPanel(Orientation=Orientation.Vertical)
     let b x = new Border(Child=x, BorderThickness=Thickness(3.), BorderBrush=Brushes.Black)
     let HEIGHT = 3. + 27. + 3.

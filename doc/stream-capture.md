@@ -7,6 +7,24 @@ For best results, set the 'Window Match Priority' to 'Window title must match'.
 Be sure that your emulator does not need window focus (e.g. in FCEUX Config, Enable 'Run in Background' and 'Background Input'), as Z-Tracker requires window focus to
 respond to mousing and hotkeys.
 
+### Preventing Z-Tracker reminder sounds/speech from being restreamed
+
+If you are playing in a race that will be restreamed, and you want to hear Z-Tracker reminder sounds or speech, but don't want those sounds to be streamed, you can do this
+(assuming you have OBS version 28 or higher):
+
+- Add a Source, of type "Application Audio Capture (BETA)"
+- optionally rename it
+- Choose the source to be from e.g. your NES Console Emulator
+
+This will cause a new Element to appear in the Audio Mixer, so that you can
+
+- Mute the Desktop Audio channel (that typically outputs all computer audio to your stream)
+- Just enable the new Source, which captures Audio only from one specific application (e.g. your emulator)
+
+After the restreamed race is completed, you can switch back to normal streaming by muting the new audio source and unmuting Desktop Audio.
+
+(To permanently remove this new source from your Audio Mixer, just remove the Source you added to your Sources back in the first step.)
+
 ### For those using the Broadcast Window...
 
 Read the [Broadcast Window section](extras.md#broadcast-window) for more capture and sizing options.  If you do use the Broadcast Window, then you should probably turn OFF the

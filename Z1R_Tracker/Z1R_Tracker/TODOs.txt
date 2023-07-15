@@ -179,8 +179,16 @@ since 1.3.0x...
 
 
 
-document capturing just game emu audio, to avoid ZT audio (OBS v 28+)
+potato (et al) want a 'clear my entire dungeon map' button, for the 'i royally screwed up' case
 
+
+panulphe:
+ - sent seed to count potion shops (maybe get rid of hard bound for pot/DR/MMG/TAH/hint? would need to adjust spot summary)
+    - if you do mismark, when you get to e.g. the 8th of 7 potion shops, it's like, ok, maybe I mismarked the 3rd one, but I'm standing here now 
+        in front of the 8th and it'd be nice to mark it but you wont let me... 
+ - would like 'replace WS/MS with BU' bomb icon in item pool for WS (and presumably replace MS icon up top; what about sword3 OW icon?)
+    - consider if/how do any of that
+    - if WS cave has BU, then cant distinguish from MS cave until hearts
 
 
 possible new reminder category - item obtained in first 5 mins, remind 5 mins later?
