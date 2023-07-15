@@ -766,13 +766,24 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 RenderOptions.SetBitmapScalingMode(i, BitmapScalingMode.NearestNeighbor)
                 i
             let normal = make(roomStates |> Array2D.map (fun s -> not(s.IsEmpty)))
-            let inverse = make(roomStates |> Array2D.map (fun s -> not(s.RoomType=RoomType.OffTheMap)))
-            let i = new StackPanel(Orientation=Orientation.Vertical)
+            let i = new StackPanel(Orientation=Orientation.Vertical, Background=Brushes.Black)
             let mutable anyOff = false
             roomStates |> Array2D.iter (fun s -> if(s.RoomType=RoomType.OffTheMap) then anyOff <- true)
-            if anyOff then i.Children.Add(inverse) |> ignore
+            if anyOff then 
+                let inverse = make(roomStates |> Array2D.map (fun s -> not(s.RoomType=RoomType.OffTheMap)))
+                i.Children.Add(new TextBox(FontSize=14., Foreground=Brushes.DarkGray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Margin=Thickness(0.,0., 0., 6.),
+                                            Text="Full map, minus any Off-The-Map\nmarks you have painted:"
+                                            )) |> ignore
+                i.Children.Add(inverse) |> ignore
+                i.Children.Add(new DockPanel(Height=2.)) |> ignore
+                i.Children.Add(new TextBox(FontSize=14., Foreground=Brushes.DarkGray, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
+                                            BorderThickness=Thickness(0.), Margin=Thickness(0.,6., 0., 6.),
+                                            Text="Your room marks:"
+                                            )) |> ignore
             i.Children.Add(normal) |> ignore
-            let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
+            i.Children.Add(new DockPanel(Height=2.)) |> ignore   // this, and a lot of fine-tuning of pixel margins, is to make 2/3 version also look good
+            let b = new Border(Child=new Border(Child=i, BorderThickness=Thickness(10.,4.,8.,8.), BorderBrush=Brushes.Black), BorderThickness=Thickness(2.), BorderBrush=Brushes.Gray)
             Canvas.SetBottom(b, 0.)
             Canvas.SetLeft(b, 0.)
             rightwardCanvas.Children.Clear()
