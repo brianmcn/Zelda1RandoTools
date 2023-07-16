@@ -179,7 +179,23 @@ since 1.3.0x...
 
 
 
-potato (et al) want a 'clear my entire dungeon map' button, for the 'i royally screwed up' case
+consider cheap and expensive keys and meats as separate marks? 
+
+
+lots of new icons that could appear in Draw menu
+
+
+
+PedanticPotato (et al) want a 'clear my entire dungeon map' button, for the 'i royally screwed up' case
+Since it was mentioned last night...
+Suppose I wanted a 'clear all my dungeon marks from this dungeon tab because I royally screwed up' button.
+It needs to be findable by the player; currently all the pixels of the dungeon tracker area are already spoken for, but I can imagine putting a button 
+inside the GRAB context explanation that pops up, since GRAB is the place you go to do rocket surgery to try to fix a broken map anyway.
+So maybe there's a button in there like "Nuke this dungeon tab map" and if you click it it gives a big modal dialog that says what you're about to do 
+and asks for confirmation.  And if you choose to nuke, all room/monster/floordrop/door for the tab are deleted (and it's like a fresh tab when you started Z-Tracker).  Sound plausible?
+I feel like I need to talk it through to foresee pitfalls/issues.
+PedanticPotato: Yeah, it'd definitely have to have a modal popup for confirmation.  I can't think of a better place than grab.  But maybe it's lower priority than it felt during the race last night.
+
 
 
 panulphe:
@@ -189,9 +205,17 @@ panulphe:
  - would like 'replace WS/MS with BU' bomb icon in item pool for WS (and presumably replace MS icon up top; what about sword3 OW icon?)
     - consider if/how do any of that
     - if WS cave has BU, then cant distinguish from MS cave until hearts
+    - prior note: swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
+
 
 
 possible new reminder category - item obtained in first 5 mins, remind 7 mins later? bow, silvers, akey, ladder
+ - "dont forget you got an early X"
+ - could trigger early if get arrow/silver after bow, or bow after arrow... or maybe 'now that you have a bow an arrow' maybe just have an auto-reminder for that combo? hm
+     - can hook into ""if not priorBowArrow"" logic
+ - if mark any moat room, with ladder, one-time extra ladder reminder? (one-time for e.g. routing scenario, where may mark moats with ladder)
+ - could have a whole sub-pop-up menu of extra reminders and individual categories
+Related: possible easteregg/configurable random speech, like motivationals or something?
 
 
 UCC may need testing of popup menus
@@ -215,6 +239,7 @@ aside: make a better tracker for restreaming 2 racers... main things I would wan
     - but see https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/wpf-and-win32-interoperation?view=netframeworkdesktop-4.8#hosting-a-microsoft-win32-window-in-wpf
        - hwnd would be drawn atop, would need separate window to e.g. draw cropping atop it
        - or maybe not: http://www.jonathanantoine.com/2011/09/24/wpf-4-5-%E2%80%93-part-8-no-more-airspace-problems-integrating-wpf-with-win32/
+ - chatted with AsmadiGames about restreaming, he talked about need for second person to be tracker as first reason to 'introduce network' (e.g. app runs web server trackers can interact with)
 
 
 McMonkey: something that would help me in regards to the hints is an option to have a permanent thick border around the overworld zones. At this point I know where all of the 
@@ -269,7 +294,7 @@ Broadcast option: always focus overworld ? bighead scenario - see what he thinks
 
 
 
-in quick-start, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
+in quick-start docs, maybe prioritize what people should track, so noobs can bite off smaller piece (maybe intersperse 'if you are new to z1r' advice in red/indent-italic text throughout, or something)
  - overworld: click 'dont care' all done things, except mark things to come back to: dungeons, any roads, white/magical sword caves, possibly some shops
  - dungeon items: tri & items as you get them, to know when dungeon is 'done'
  - dungeon maps: can do nothing... marking all stairs in 9... could mark blocker room in prior dungeon, and blocker type in blockers... eventually all of 9...
@@ -326,9 +351,6 @@ beware, many buttons are Focusable, which can alter how hotkeys get routed
 doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
 
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
-
-swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
-
 
 
 

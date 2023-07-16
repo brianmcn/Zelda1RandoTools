@@ -105,7 +105,7 @@ blank areas above the triforces, above the dungeon 9 numeral, above white sword 
 
 There are new hotkeys for hint zones, which are applied when the mouse is hovering these areas.
 
-This feature is only when not using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is on).
+This feature is only available when not using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is on).
 
 ### <a id="v13-glance-found">"Have I found X yet" at a glance</a>
 
