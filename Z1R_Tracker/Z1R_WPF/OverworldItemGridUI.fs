@@ -230,8 +230,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let wsHintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
     let redrawWhiteSwordCanvas(c:Canvas) =
         c.Children.Clear()
-        if not(TrackerModel.IsHiddenDungeonNumbers()) then
-            canvasAdd(c, wsHintCanvas, 0., -30.)
         if not(TrackerModel.playerComputedStateSummary.HaveWhiteSwordItem) &&           // don't have it yet
                 TrackerModel.mapStateSummary.Sword2Location=TrackerModel.NOTFOUND &&    // have not found cave
                 TrackerModel.GetLevelHint(9)<>TrackerModel.HintZone.UNKNOWN then        // have a hint
@@ -240,13 +238,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         Views.drawTinyIconIfLocationIsOverworldBlock(c, Some(owInstance), TrackerModel.mapStateSummary.Sword2Location)
     redrawWhiteSwordCanvas(white_sword_canvas)
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
+        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
+        canvasAdd(cm.AppMainCanvas, wsHintCanvas, px, py-30.)   // this is kinda gross, poking this onto appMainCanvas, but it doesn't fit into normal layout rules easily
         TrackerModel.LevelHintChanged(9).Add(fun hz -> 
             wsHintCanvas.Children.Clear()
             canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawWhiteSwordCanvas(white_sword_canvas))
-        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.WHITE_SWORD_ICON)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false, true)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true, true)
+        Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(wsHintCanvas)
         wsHintCanvas.MyKeyAdd(fun ea -> 
             match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(hz) -> 
@@ -339,8 +339,6 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let magsHintCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // Background to accept mouse input
     let redrawMagicalSwordCanvas(c:Canvas) =
         c.Children.Clear()
-        if not(TrackerModel.IsHiddenDungeonNumbers()) then
-            canvasAdd(c, magsHintCanvas, 0., -30.)
         if not(TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value()) &&   // dont have sword
                 TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
                 TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then              // have a hint
@@ -349,13 +347,15 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     redrawMagicalSwordCanvas(mags_canvas)
     gridAddTuple(owItemGrid, mags_box, OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
+        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
+        canvasAdd(cm.AppMainCanvas, magsHintCanvas, px, py-30.)   // this is kinda gross, poking this onto appMainCanvas, but it doesn't fit into normal layout rules easily
         TrackerModel.LevelHintChanged(10).Add(fun hz -> 
             magsHintCanvas.Children.Clear()
             canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawMagicalSwordCanvas(mags_canvas))
-        let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false, true)
         ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true, true)
+        Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(magsHintCanvas)
         magsHintCanvas.MyKeyAdd(fun ea -> 
             match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(hz) -> 

@@ -252,7 +252,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
     mainTrackerCanvases.[8,1] <- level9NumeralCanvas
     level9NumeralCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex 8))
     level9NumeralCanvas.MouseLeave.Add(fun _ -> hideLocator())
-    // dungeon 9 doesn't need a color, we display a 'found summary' here instead
+    // dungeon 9 doesn't need a color, we display a 'found summary' here instead (except we don't any more)
     let level9ColorCanvas = new Canvas(Width=30., Height=30., Background=Brushes.Black)  
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         TrackerModel.LevelHintChanged(8).Add(fun hz -> 
@@ -260,6 +260,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             canvasAdd(level9ColorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             )
         OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true, false)
+        Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(level9ColorCanvas)
         level9ColorCanvas.MyKeyAdd(fun ea -> 
             match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(hz) -> 
