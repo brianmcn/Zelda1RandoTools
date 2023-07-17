@@ -215,18 +215,9 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 hintCanvas.Children.Clear()
                 canvasAdd(hintCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
                 )
-            OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), hintCanvas, i, true, false)
+            OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*i),0.), hintCanvas, i, true, Some(ShowLocatorDescriptor.DungeonIndex i), false)
             mainTrackerCanvases.[i,0] <- hintCanvas
             Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(hintCanvas)
-            hintCanvas.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.DungeonIndex i))
-            hintCanvas.MouseLeave.Add(fun _ -> hideLocator())
-            hintCanvas.MyKeyAdd(fun ea -> 
-                match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
-                | Some(hz) -> 
-                    ea.Handled <- true
-                    TrackerModel.SetLevelHint(i, hz)
-                | _ -> ()
-                )
             gridAdd(mainTrackerGrid, hintCanvas, i, 0)
         // triforce itself and label
         let c = new Canvas(Width=30., Height=30.)
@@ -259,15 +250,8 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             level9ColorCanvas.Children.Clear()
             canvasAdd(level9ColorCanvas, OverworldItemGridUI.HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             )
-        OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true, false)
+        OverworldItemGridUI.ApplyFastHintSelectorBehavior(cm, (float(30*8), 0.), level9ColorCanvas, 8, true, Some(ShowLocatorDescriptor.DungeonIndex 8), false)
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(level9ColorCanvas)
-        level9ColorCanvas.MyKeyAdd(fun ea -> 
-            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
-            | Some(hz) -> 
-                ea.Handled <- true
-                TrackerModel.SetLevelHint(8, hz)
-            | _ -> ()
-            )
     gridAdd(mainTrackerGrid, level9ColorCanvas, 8, 0) 
     mainTrackerCanvases.[8,0] <- level9ColorCanvas
 (*

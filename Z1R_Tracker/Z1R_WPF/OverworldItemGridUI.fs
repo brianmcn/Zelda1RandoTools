@@ -153,7 +153,7 @@ let FastHintSelector(cm, levelHintIndex, px, py, activationDelta, shouldDescript
     hideLocator()
     return r
     }
-let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activateOnClick, shouldDescriptionGoOnLeft) =
+let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activateOnClickAndAcceptHotKey, showLocatorDescriptorOpt, shouldDescriptionGoOnLeft) =
     fe.MouseWheel.Add(fun x ->
         if not popupIsActive then 
             popupIsActive <- true
@@ -166,7 +166,7 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
                 popupIsActive <- false
             } |> Async.StartImmediate
         )
-    if activateOnClick then
+    if activateOnClickAndAcceptHotKey then
         fe.MouseDown.Add(fun ea ->
             if not popupIsActive then 
                 popupIsActive <- true
@@ -179,6 +179,18 @@ let ApplyFastHintSelectorBehavior(cm, (px, py), fe:FrameworkElement, i, activate
                     popupIsActive <- false
                 } |> Async.StartImmediate
             )
+        fe.MyKeyAdd(fun ea -> 
+            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
+            | Some(hz) -> 
+                ea.Handled <- true
+                TrackerModel.SetLevelHint(i, hz)
+            | _ -> ()
+            )
+    match showLocatorDescriptorOpt with
+    | Some(sld) ->
+        fe.MouseEnter.Add(fun _ -> showLocator(sld))
+        fe.MouseLeave.Add(fun _ -> if not popupIsActive then hideLocator())  // don't hide when popup active, else that hides right as they activate the popup and first display does not show
+    | _ -> ()
 
 let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:ResizeArray<Timeline.TimelineItem>, owInstance:OverworldData.OverworldInstance, 
                     extrasImage:Image, resetTimerEvent:Event<unit>, isStandardHyrule, doUIUpdateEvent:Event<unit>, makeManualSave) =
@@ -244,16 +256,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             wsHintCanvas.Children.Clear()
             canvasAdd(wsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawWhiteSwordCanvas(white_sword_canvas))
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false, true)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), white_sword_canvas, 9, false, None, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), wsHintCanvas, 9, true, Some(ShowLocatorDescriptor.Sword2), true)
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(wsHintCanvas)
-        wsHintCanvas.MyKeyAdd(fun ea -> 
-            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
-            | Some(hz) -> 
-                ea.Handled <- true
-                TrackerModel.SetLevelHint(9, hz)
-            | _ -> ()
-            )
     (*  don't need to do this, as redrawWhiteSwordCanvas() is currently called every doUIUpdate, heh
     // redraw after we can look up its new location coordinates
     let newLocation = Views.SynthesizeANewLocationKnownEvent(TrackerModel.mapSquareChoiceDomain.Changed |> Event.filter (fun (_,key) -> key=TrackerModel.MapSquareChoiceDomainHelper.SWORD2))
@@ -353,16 +358,9 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             magsHintCanvas.Children.Clear()
             canvasAdd(magsHintCanvas, HintZoneDisplayTextBox(if hz=TrackerModel.HintZone.UNKNOWN then "" else hz.AsDisplayTwoChars()), 3., 3.)
             redrawMagicalSwordCanvas(mags_canvas))
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false, true)
-        ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), mags_canvas, 10, false, None, true)
+        ApplyFastHintSelectorBehavior(cm, (px,py-30.), magsHintCanvas, 10, true, Some(ShowLocatorDescriptor.Sword3), true)
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(magsHintCanvas)
-        magsHintCanvas.MyKeyAdd(fun ea -> 
-            match HotKeys.HintZoneHotKeyProcessor.TryGetValue(ea.Key) with
-            | Some(hz) -> 
-                ea.Handled <- true
-                TrackerModel.SetLevelHint(10, hz)
-            | _ -> ()
-            )
     mags_box.MouseEnter.Add(fun _ -> showLocator(ShowLocatorDescriptor.Sword3))
     mags_box.MouseLeave.Add(fun _ -> hideLocator())
     // boomstick book, to mark when purchase in boomstick seed (normal book will become shield found in dungeon)

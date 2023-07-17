@@ -177,7 +177,7 @@ since 1.3.0w...
 since 1.3.0x...
  - two-maps-popup during map-painting adds an explanation, also is now less blurry in 2/3 version
  - fix: fast hint areas above 9, WS, MS get blue box mouseover highlight, just like 1-8 do
-
+ - fix: a bunch of other UI bugs related to FastHintSelector
 
 
 
