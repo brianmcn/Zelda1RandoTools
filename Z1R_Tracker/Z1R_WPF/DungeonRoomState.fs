@@ -532,7 +532,7 @@ type DungeonRoomState private(isCompleted, roomType, monsterDetail, floorDropDet
                 if isCompleted then
                     let shouldDarken =
                         match md with
-                        | MonsterDetail.BlueBubble | MonsterDetail.RedBubble -> false
+                        | MonsterDetail.BlueBubble | MonsterDetail.RedBubble | MonsterDetail.Other | MonsterDetail.Other2 | MonsterDetail.Traps -> false
                         | _ -> true
                     if shouldDarken then
                         let dp = new DockPanel(Width=K, Height=K, Background=Brushes.Black, Opacity=DARKEN)
