@@ -498,7 +498,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
 let bg16x16 = System.Drawing.Color.FromArgb(45, 50, 00)
 let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bmp, dodongo_bmp, red_bubble_bmp, blue_bubble_bmp, blue_darknut_bmp, other_monster_bmp, old_man_bmp,
         vire_bmp, zol_bmp, pols_voice_bmp, red_tektite, red_goriya, rope, stalfos, wallmaster, gel, keese, likelike, gibdo, red_lynel, blue_moblin, aquamentus, blue_lanmola,
-        moldorm, rupee_boss, other_monster2, other_monster3) =
+        moldorm, rupee_boss, traps, other_monster2) =
     let imageStream = GetResourceStream("zelda_bosses16x16.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  

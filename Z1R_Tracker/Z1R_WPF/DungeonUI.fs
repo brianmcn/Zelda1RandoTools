@@ -1408,7 +1408,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                MonsterDetail.PolsVoice;                                                                                                                  // not exactly a blocker, but bow helps tons
                MonsterDetail.Keese; MonsterDetail.Gel; MonsterDetail.Stalfos; MonsterDetail.Zol; MonsterDetail.RedTektite; MonsterDetail.Rope;           // easy notables
                MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.Aquamentus; MonsterDetail.BlueLanmola;              // other notables, rest of bosses
-               MonsterDetail.Moldorm; MonsterDetail.RupeeBoss; MonsterDetail.Other2; MonsterDetail.Other3;                                               // all the
+               MonsterDetail.Moldorm; MonsterDetail.RupeeBoss; MonsterDetail.Other2; MonsterDetail.Traps;                                                // all the
                MonsterDetail.Wallmaster; MonsterDetail.Likelike; MonsterDetail.Gibdo; MonsterDetail.Vire; MonsterDetail.Unmarked |]                      // rest
         if monsterPriority.Length <> MonsterDetail.All().Length then
             failwith "design-time bug, not all monsters prioritized"
