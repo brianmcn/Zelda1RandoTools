@@ -161,7 +161,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             new Layout.ShorterApplicationLayout(cm) :> Layout.IApplicationLayoutBase
         else
             new Layout.ApplicationLayout(cm) :> Layout.IApplicationLayoutBase
-    let boxItemImpl, extrasImage, updateNumberedTriforceDisplayImpl, updateNumberedTriforceDisplayIfItExists, level9ColorCanvas = 
+    let boxItemImpl, extrasImage, updateNumberedTriforceDisplayImpl, updateNumberedTriforceDisplayIfItExists = 
         MainTrackerTriforcesAndItems.setup(cm, owInstance, layout, kind)
 
     let owLocatorTileRectangles = Array2D.zeroCreate 16 8

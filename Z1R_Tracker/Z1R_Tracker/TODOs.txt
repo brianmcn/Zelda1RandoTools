@@ -178,10 +178,15 @@ since 1.3.0x...
  - two-maps-popup during map-painting adds an explanation, also is now less blurry in 2/3 version
  - fix: fast hint areas above 9, WS, MS get blue box mouseover highlight, just like 1-8 do
  - fix: a bunch of other UI bugs related to FastHintSelector
+ - update '?' dungeon stair icon to match unpaired number stairs (yellow numeral)
+ - make larger blue&red dots in dungeon tab header (for bomb upgrade/old man hint)
+ - four more MonsterDetail marks for dungeon rooms (Moldorm, RupeeBoss, Other2, and Other3)
 
 
+TODO i got FsWebView working, after fixing .proj file, fool around with it now
 
 
+BT: display how many bomb spots left in this region
 
 
 consider cheap and expensive keys and meats as separate marks? 
@@ -213,20 +218,23 @@ panulphe:
     - prior note: swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
 
+new armos reminder: 5 mins after you have marked at least 3 armos spots, if the armos item box is still empty, remind once
 
 possible new reminder category - item obtained in first 5 mins, remind 7 mins later? bow, silvers, akey, ladder
  - "dont forget you got an early X"
  - could trigger early if get arrow/silver after bow, or bow after arrow... or maybe 'now that you have a bow an arrow' maybe just have an auto-reminder for that combo? hm
      - can hook into ""if not priorBowArrow"" logic
  - if mark any moat room, with ladder, one-time extra ladder reminder? (one-time for e.g. routing scenario, where may mark moats with ladder)
+ - if recorder-to-unbeaten is on, reminder about it when you first get recorder
  - could have a whole sub-pop-up menu of extra reminders and individual categories
-Related: possible easteregg/configurable random speech, like motivationals or something?
+Related: possible easteregg/configurable random speech, like motivationals or something? (kibitz.txt) would need option to turn it off, when you want to get serious
 
 
 UCC may need testing of popup menus
 
 
 feature to paint your map of 7/8 as a 'vanilla map outline' onto 8/7, with user-chosen offset? that is, entirely manual process?
+ - or BeefSupremeTV, just an option to see 8 while in 7, or vice versa (like summary hover, shows over Notes maybe)
 
 
 aside: make a better tracker for restreaming 2 racers... main things I would want to change
@@ -234,13 +242,14 @@ aside: make a better tracker for restreaming 2 racers... main things I would wan
     - but complicates e.g. player has wood sword, but knows about white, in the usual layout where all swords share same box, hm
  - timeline for both players
  - have some way to keep track of hearts (e.g. triple-heart 1), maybe MainTracker in addition to typical down-the-middle 15-items thingy?
-    - having a main tracker thingy also provide a way to note if items/tris/dungeons are blocked
+    - having a main tracker thingy also provide a way to note if items/tris/dungeons are blocked, what was floor versus basement, etc
  - have a free-form text box for e.g. flags summary, starting items, etc
     - in addition to comms/tracking, runners, event title that's already there
  - have basic overworld map (start spot, dungeon locations, WS/MS caves, armos, any roads)
  - probably naturally be 1280x720? 1600x900?  would need large enough graphics to scale nicely
  - can embed my own faux-browser in the app, e.g. WebView2: https://learn.microsoft.com/en-us/microsoft-edge/webview2/webview2-api-reference?tabs=dotnetcsharp
     - then can be easy to do crops, show boundaries, etc... and presumably also surface playback/audio controls directly from twitch
+       - can also save crop info on a per-runner/game basis, since folks' layouts tend to be static
     - but see https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/wpf-and-win32-interoperation?view=netframeworkdesktop-4.8#hosting-a-microsoft-win32-window-in-wpf
        - hwnd would be drawn atop, would need separate window to e.g. draw cropping atop it
        - or maybe not: http://www.jonathanantoine.com/2011/09/24/wpf-4-5-%E2%80%93-part-8-no-more-airspace-problems-integrating-wpf-with-win32/

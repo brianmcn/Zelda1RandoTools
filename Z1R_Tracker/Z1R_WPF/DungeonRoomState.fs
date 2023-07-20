@@ -52,7 +52,11 @@ type MonsterDetail =
     | BlueMoblin
     | Aquamentus
     | BlueLanmola
+    | Moldorm
+    | RupeeBoss
     | Other
+    | Other2
+    | Other3
     member this.AsHotKeyName() =
         match this with
         | Unmarked    -> "MonsterDetail_Unmarked"
@@ -82,7 +86,11 @@ type MonsterDetail =
         | BlueMoblin  -> "MonsterDetail_BlueMoblin"
         | Aquamentus  -> "MonsterDetail_Aquamentus"
         | BlueLanmola -> "MonsterDetail_BlueLanmola"
+        | Moldorm     -> "MonsterDetail_Moldorm"
+        | RupeeBoss   -> "MonsterDetail_RupeeBoss"
         | Other       -> "MonsterDetail_Other"
+        | Other2      -> "MonsterDetail_Other2"
+        | Other3      -> "MonsterDetail_Other3"
     member this.IsNotMarked = this = MonsterDetail.Unmarked
     member this.Bmp() =
         match this with
@@ -113,7 +121,11 @@ type MonsterDetail =
         | BlueMoblin  -> Graphics.blue_moblin
         | Aquamentus  -> Graphics.aquamentus
         | BlueLanmola -> Graphics.blue_lanmola
+        | Moldorm     -> Graphics.moldorm
+        | RupeeBoss   -> Graphics.rupee_boss
         | Other       -> Graphics.other_monster_bmp
+        | Other2      -> Graphics.other_monster2
+        | Other3      -> Graphics.other_monster3
     member this.DisplayDescription =
         match this with
         | Unmarked    -> "(None)"
@@ -143,12 +155,16 @@ type MonsterDetail =
         | BlueMoblin  -> "Moblin"
         | Aquamentus  -> "Aquamentus"
         | BlueLanmola -> "Lanmola"
+        | Moldorm     -> "Moldorm"
+        | RupeeBoss   -> "Rupee Boss"
         | Other       -> "Other"
+        | Other2      -> "Other2"
+        | Other3      -> "Other3"
     static member All() = 
-        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.Patra; MonsterDetail.Manhandla; MonsterDetail.Aquamentus; 
-           MonsterDetail.BlueLanmola; MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.RedLynel; MonsterDetail.PolsVoice; MonsterDetail.RedGoriya; MonsterDetail.Gibdo; 
-           MonsterDetail.Vire; MonsterDetail.Keese; MonsterDetail.Zol; MonsterDetail.Gel; MonsterDetail.Stalfos; MonsterDetail.Wallmaster; MonsterDetail.Likelike; 
-           MonsterDetail.Other; MonsterDetail.Rope; MonsterDetail.BlueMoblin; MonsterDetail.RedTektite; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.Unmarked; |]
+        [| MonsterDetail.Gleeok; MonsterDetail.Bow; MonsterDetail.Digdogger; MonsterDetail.Dodongo; MonsterDetail.Patra; MonsterDetail.Manhandla; MonsterDetail.Aquamentus; MonsterDetail.Moldorm;
+           MonsterDetail.BlueLanmola; MonsterDetail.BlueWizzrobe; MonsterDetail.BlueDarknut; MonsterDetail.RedLynel; MonsterDetail.PolsVoice; MonsterDetail.RedGoriya; MonsterDetail.Gibdo; MonsterDetail.Rope;
+           MonsterDetail.Vire; MonsterDetail.Keese; MonsterDetail.Zol; MonsterDetail.Gel; MonsterDetail.Stalfos; MonsterDetail.Wallmaster; MonsterDetail.Likelike; MonsterDetail.BlueMoblin;
+           MonsterDetail.Other2; MonsterDetail.Other; MonsterDetail.Other3; MonsterDetail.RedTektite; MonsterDetail.BlueBubble; MonsterDetail.RedBubble; MonsterDetail.RupeeBoss; MonsterDetail.Unmarked; |]
     static member FromHotKeyName(hkn) =
         let mutable r = MonsterDetail.Unmarked
         for x in MonsterDetail.All() do

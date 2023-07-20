@@ -381,8 +381,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                     HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
         let baitMeatImage = Graphics.bait_bmp |> Graphics.BMPtoImage
         let baitMeatCheckmarkHeaderCanvas = new Canvas(Opacity=0.)
-        let bombUpgradeMarkHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.DodgerBlue, Opacity=0.)
-        let oldManUnreadHeaderCanvas = new Canvas(Width=3., Height=3., Background=Brushes.Red, Opacity=0.)
+        let bombUpgradeMarkHeaderCanvas = new Canvas(Width=5., Height=5., Background=Brushes.DodgerBlue, Opacity=0.)
+        let oldManUnreadHeaderCanvas = new Canvas(Width=5., Height=5., Background=Brushes.Red, Opacity=0.)
         do
             // bait meat
             let baitMeatHeaderCanvas = new Canvas(Width=8., Height=16., ClipToBounds=true)
@@ -401,9 +401,9 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
             headerSp.Children.Add(baitMeatHeaderCanvas) |> ignore
             headerSp.Children.Add(header) |> ignore
             let headerInfo = new StackPanel(Orientation=Orientation.Vertical, Width=7.)
-            headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
+            headerInfo.Children.Add(new Canvas(Width=3., Height=2.)) |> ignore
             headerInfo.Children.Add(bombUpgradeMarkHeaderCanvas) |> ignore
-            headerInfo.Children.Add(new Canvas(Width=3., Height=3.)) |> ignore
+            headerInfo.Children.Add(new Canvas(Width=3., Height=2.)) |> ignore
             headerInfo.Children.Add(oldManUnreadHeaderCanvas) |> ignore
             headerSp.Children.Add(headerInfo) |> ignore
             headerSp.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(level))
@@ -1408,7 +1408,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                MonsterDetail.PolsVoice;                                                                                                                  // not exactly a blocker, but bow helps tons
                MonsterDetail.Keese; MonsterDetail.Gel; MonsterDetail.Stalfos; MonsterDetail.Zol; MonsterDetail.RedTektite; MonsterDetail.Rope;           // easy notables
                MonsterDetail.Other; MonsterDetail.RedBubble; MonsterDetail.BlueBubble; MonsterDetail.Aquamentus; MonsterDetail.BlueLanmola;              // other notables, rest of bosses
-               MonsterDetail.Wallmaster; MonsterDetail.Likelike; MonsterDetail.Gibdo; MonsterDetail.Vire; MonsterDetail.Unmarked |]                      // the rest
+               MonsterDetail.Moldorm; MonsterDetail.RupeeBoss; MonsterDetail.Other2; MonsterDetail.Other3;                                               // all the
+               MonsterDetail.Wallmaster; MonsterDetail.Likelike; MonsterDetail.Gibdo; MonsterDetail.Vire; MonsterDetail.Unmarked |]                      // rest
         if monsterPriority.Length <> MonsterDetail.All().Length then
             failwith "design-time bug, not all monsters prioritized"
         let findAnyMarkedMonsters(dunIdx) = 

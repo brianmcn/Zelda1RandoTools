@@ -318,4 +318,4 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
             for i = 0 to 7 do
                 TrackerModel.GetDungeon(i).HiddenDungeonColorOrLabelChanged.Add(fun _ -> updateGhostBusters())
     
-    boxItemImpl, extrasImage, updateNumberedTriforceDisplayImpl, updateNumberedTriforceDisplayIfItExists, level9ColorCanvas
+    boxItemImpl, extrasImage, updateNumberedTriforceDisplayImpl, updateNumberedTriforceDisplayIfItExists
