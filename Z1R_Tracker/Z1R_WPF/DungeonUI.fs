@@ -418,7 +418,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         levelTab.Content <- contentCanvasWithBadYOffset
         let contentCanvas = new Canvas(Width=contentCanvasWithBadYOffset.Width, Height=contentCanvasWithBadYOffset.Height, Background=Brushes.Black)
         contentCanvas.ClipToBounds <- true  // TODO does this have any bad side effects? useful so that 'midi' works properly, but suggests something was drawing off to the right
-        canvasAdd(contentCanvasWithBadYOffset, contentCanvas, 0., 1.)   // so that all content is at multiples of 3, so that 2/3 view does not look blurry
+        if false then // we don't do this now; a SelectionChanged will do it later during startup, and doing it twice throws an exception
+            canvasAdd(contentCanvasWithBadYOffset, contentCanvas, 0., 1.)   // so that all content is at multiples of 3, so that 2/3 view does not look blurry
         // rupee/blank/key/bomb row highlighter
         let highlightRow =
             let bmp = Dungeon.MakeLoZMinimapDisplayBmp(Array2D.zeroCreate 8 8, '?') 

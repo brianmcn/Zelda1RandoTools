@@ -273,7 +273,43 @@ let darken(bmp:System.Drawing.Bitmap) =
 let mediaColor(c:System.Drawing.Color) =
     Media.Color.FromArgb(c.A, c.R, c.G, c.B)
 
+(*
+let ConvertPixelFormat(pixelFormat:System.Drawing.Imaging.PixelFormat) =
+    if (pixelFormat = System.Drawing.Imaging.PixelFormat.Format24bppRgb)       then System.Windows.Media.PixelFormats.Bgr24
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb)      then System.Windows.Media.PixelFormats.Bgr32
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppPArgb)     then System.Windows.Media.PixelFormats.Pbgra32
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb)       then System.Windows.Media.PixelFormats.Bgr32
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format16bppGrayScale)   then System.Windows.Media.PixelFormats.Gray16
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format16bppRgb555)    then System.Windows.Media.PixelFormats.Bgr555
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format16bppRgb565)    then System.Windows.Media.PixelFormats.Bgr565
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Indexed)              then System.Windows.Media.PixelFormats.Bgr101010
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format1bppIndexed)    then System.Windows.Media.PixelFormats.Indexed1
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format4bppIndexed)    then System.Windows.Media.PixelFormats.Indexed4
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format8bppIndexed)    then System.Windows.Media.PixelFormats.Indexed8
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format48bppRgb)       then System.Windows.Media.PixelFormats.Rgb48
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Format64bppArgb)      then System.Windows.Media.PixelFormats.Prgba64
+
+    elif (pixelFormat = System.Drawing.Imaging.PixelFormat.Undefined)            then System.Windows.Media.PixelFormats.Default
+    else
+        raise(new NotSupportedException("Convertion not supported with " + pixelFormat.ToString()))
+*)
 let mutable dpi = None : DpiScale option
+(*
+let BmpToSource(bmp:System.Drawing.Bitmap) =
+    let bitmapData = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat)
+    let bitmapSource = 
+        System.Windows.Media.Imaging.BitmapSource.Create(bitmapData.Width, bitmapData.Height, float bmp.HorizontalResolution, float bmp.VerticalResolution,
+            //PixelFormats.Bgra32, 
+            ConvertPixelFormat(bmp.PixelFormat),
+            null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride)
+    bmp.UnlockBits(bitmapData)
+    bitmapSource
+*)
 let BItoImage(bi:System.Windows.Media.Imaging.BitmapImage) =
     if dpi.Value.DpiScaleX=1.0 && dpi.Value.DpiScaleY=1.0 then
         new Image(Source=bi)
@@ -313,6 +349,7 @@ let BMPtoImage(bmp:System.Drawing.Bitmap) =
     bmimage.EndInit()
     let i = new Image()
     i.Source <- bmimage
+//    i.Source <- BmpToSource(bmp)
     i.Height <- float bmp.Height 
     i.Width <- float bmp.Width 
     i
