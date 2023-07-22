@@ -188,12 +188,18 @@ let RecorderEllipseColor() =
 let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
     let makeStartIcon() = 
         let back = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false)
-        back.Effect <- new Effects.BlurEffect(Radius=5.0, KernelType=Effects.KernelType.Gaussian)
+        //back.StrokeDashArray <- new DoubleCollection([5.; 4.8; 9.7; 4.8; 5.])
+        //let back = new Shapes.Rectangle(Width=23., Height=23., Stroke=Brushes.DarkViolet, StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=DungeonUI.fortyFiveDegrees)
+        back.Effect <- new Effects.BlurEffect(Radius=7.0, KernelType=Effects.KernelType.Gaussian)
         let front = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false)
+        //front.StrokeDashArray <- new DoubleCollection([5.; 4.8; 9.7; 4.8; 5.])
+        //let front = new Shapes.Rectangle(Width=23., Height=23., Stroke=Brushes.Lime, StrokeThickness=3.0, IsHitTestVisible=false, RenderTransform=DungeonUI.fortyFiveDegrees)
         let c = new Canvas(Width=front.Width, Height=front.Height)
         if Graphics.canUseEffectsWithoutDestroyingPerformance then
-            c.Children.Add(back) |> ignore
-        c.Children.Add(front) |> ignore
+            canvasAdd(c, back, 0., 0.)
+            //canvasAdd(c, back, 15., 0.)
+        canvasAdd(c, front, 0., 0.)
+        //canvasAdd(c, front, 15., 0.)
         c
     let startIcon = makeStartIcon()
     let makeCustomWaypointIcon, theCustomWaypointIcon =

@@ -181,6 +181,8 @@ since 1.3.0x...
  - update '?' dungeon stair icon to match unpaired number stairs (yellow numeral)
  - make larger blue&red dots in dungeon tab header (for bomb upgrade/old man hint)
  - four more MonsterDetail marks for dungeon rooms (Moldorm, RupeeBoss, Traps, and Other2)
+ - blue-ish middle click overworld circle color changed, to maybe make less confused with start spot circle
+
 
 
 TODO i got FsWebView working, after fixing .proj file, fool around with it now

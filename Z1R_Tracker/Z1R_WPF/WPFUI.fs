@@ -340,7 +340,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     // middle click overworld circles
     let makeOwCircle(brush) = new Shapes.Ellipse(Width=float(11*3)-2., Height=float(11*3)-2., Stroke=brush, StrokeThickness=3.0, IsHitTestVisible=false)
     let pinkBrush = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0xFFuy, 0x40uy, 0x99uy)))
-    let owCircleColor(data) = if data >= 200 then Brushes.Yellow elif data >= 100 then pinkBrush else Brushes.Cyan
+    let brightBlueBrush = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0x00uy, 0xD0uy, 0xFFuy)))
+    let owCircleColor(data) = if data >= 200 then Brushes.Yellow elif data >= 100 then pinkBrush else brightBlueBrush
     let overworldCirclesCanvas = new Canvas(Width=16.*OMTW, Height=float(8*11*3))  
     overworldCirclesCanvas.IsHitTestVisible <- false
     let owCircleRedraws = Array2D.init 16 8 (fun i j -> 
