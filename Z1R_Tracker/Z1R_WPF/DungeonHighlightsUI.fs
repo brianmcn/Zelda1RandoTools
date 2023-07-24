@@ -193,3 +193,4 @@ Rooms that might contain un-taken transport stairs, or that you have not visited
             else
                 unhighlight()
         )
+    dungeonTabs.SelectionChanged.Add(fun _ -> unhighlight())   // so that we stop running animation if they hover BLOCKERS and then e.g. hotkey to switch tabs

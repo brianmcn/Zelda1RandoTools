@@ -182,6 +182,13 @@ since 1.3.0x...
  - make larger blue&red dots in dungeon tab header (for bomb upgrade/old man hint)
  - four more MonsterDetail marks for dungeon rooms (Moldorm, RupeeBoss, Traps, and Other2)
  - blue-ish middle click overworld circle color changed, to maybe make less confused with start spot circle
+ - fix: end the BLOCKERS dungeon continuations animation if you switch tabs
+
+
+
+if I want popups like shothotkeys, the two i really want for racing probably are
+- spotsummary as always onscreen popout
+- remain item pool display (bow, silvers, ladder, recorder, pb, raft, wand, red ring, any key, white sword, book, red candle, boomer, boomer, hearts-with-count)
 
 
 
