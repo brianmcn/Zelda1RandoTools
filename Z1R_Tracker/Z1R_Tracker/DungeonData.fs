@@ -18,6 +18,7 @@ module Factoids =
     let intermediateTips = [|
         "A room with a gleeok cannot have a push block."
         "While most dungeon 'old man' rooms can be shuffled in 1Q/Shapes dungeons, there is one exception: a bomb upgrade can never appear in level 9."
+        "The first two rooms of Level 9 (lobby and old man) never contain any bombable walls."
         "If you defeat 1 of 2 Lanmolas/Moldorms, or 1 of 3 small Digdoggers, and then leave the room, the monsters will all be gone when you return a moment later."
         "A single dodongo in a room is a boss (will not respawn if killed and room is exited).  Three dodongos in a room is an enemy group (that can respawn)."
         "If you pirouette a dungeon entrance (walk out, walk right back in), you will unlock or bomb-hole a possible doorway on the wall opposite the entrance."

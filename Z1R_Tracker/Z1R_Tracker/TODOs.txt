@@ -185,10 +185,8 @@ since 1.3.0x...
  - fix: end the BLOCKERS dungeon continuations animation if you switch tabs
  - fix: right clicking recorder destination steals keyboard focus
  - Show/Run Custom now comes with useful defaults (TODO doc)
+ - added another tip
 
-
-
-tip: second lobby of L9 never bomb wall
 
 
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
