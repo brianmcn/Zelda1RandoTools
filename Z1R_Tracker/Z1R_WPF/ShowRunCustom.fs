@@ -21,7 +21,20 @@ let MakeDefaultShowRunCustomFile(filename:string) =
 
 # All of the SHOW and RUN lines will be activated when you click the 'Show/Run Custom' button in the app.
 
+# Below are some sample commands you might find useful.  You can activate them by removing the comment
+# character '#' before RUN or SHOW, saving this file, and then clicking 'Show/Run Custom' in the app.
+
+# Vanilla 1Q and 2Q maps
 # RUN "https://z1r.fandom.com/wiki/Maps"
+
+# The Zelda in-game inventory display completely full of items - useful reference when playing 'sprite shuffle'
+# SHOW ".\ShowRunCustomImages\all-items-hud.png"
+
+# A picture showing 'rooms that never drop in 1Q/Shapes dungeons', as well as enemy drop tables
+# SHOW ".\ShowRunCustomImages\enemy-drop-table-and-rooms-that-never-drop.png"
+
+# A textual version of the 'rooms that never drop in 1Q/Shapes dungeons'
+# SHOW ".\ShowRunCustomImages\rooms-that-never-drop-text.png"
         """ OverworldData.ProgramNameString)
 
 [<RequireQualifiedAccess>]

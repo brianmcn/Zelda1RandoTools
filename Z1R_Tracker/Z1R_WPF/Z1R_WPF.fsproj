@@ -103,6 +103,15 @@
     <EmbeddedResource Include="icons\new_icons13x9.png" />
     <EmbeddedResource Include="icons\zelda_bosses16x16.png" />
     <EmbeddedResource Include="icons\zelda_items16x16.png" />
+    <Content Include="ShowRunCustomImages\all-items-hud.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShowRunCustomImages\enemy-drop-table-and-rooms-that-never-drop.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ShowRunCustomImages\rooms-that-never-drop-text.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Gamepad.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="CustomMessageBox.fs" />

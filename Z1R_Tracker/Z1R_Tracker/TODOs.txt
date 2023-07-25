@@ -180,10 +180,11 @@ since 1.3.0x...
  - fix: a bunch of other UI bugs related to FastHintSelector
  - update '?' dungeon stair icon to match unpaired number stairs (yellow numeral)
  - make larger blue&red dots in dungeon tab header (for bomb upgrade/old man hint)
- - four more MonsterDetail marks for dungeon rooms (Moldorm, RupeeBoss, Traps, and Other2)
+ - four more MonsterDetail marks for dungeon rooms (Moldorm, RupeeBoss, Traps, and Other2)  (TODO doc)
  - blue-ish middle click overworld circle color changed, to maybe make less confused with start spot circle
  - fix: end the BLOCKERS dungeon continuations animation if you switch tabs
  - fix: right clicking recorder destination steals keyboard focus
+ - Show/Run Custom now comes with useful defaults (TODO doc)
 
 
 
@@ -191,9 +192,6 @@ tip: second lobby of L9 never bomb wall
 
 
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
-
-
-package 'all_items_hud.png' with it, and have showruncustom default to that popup, for sprite shuffle? or some other aside-static-image stuff?
 
 
 if I want popups like shothotkeys, the two i really want for racing probably are
