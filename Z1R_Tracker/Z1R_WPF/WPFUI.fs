@@ -835,7 +835,32 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             UIComponents.MakeLegend(cm, doUIUpdateEvent)
     layout.AddLegend(legendCanvas)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
-    layout.AddItemProgress(itemProgressCanvas, itemProgressTB)
+    let img(i) = let r = CustomComboBoxes.boxCurrentBMP(i, None) |> Graphics.BMPtoImage in r.Margin <- Thickness(0.,0.,3.,0.); r
+    let itemProgressHoverTarget =
+        let dp = new DockPanel(Background=Brushes.Transparent)  // Background to get mouse events
+        dp.Children.Add(itemProgressTB) |> ignore
+        dp.MouseEnter.Add(fun _ -> 
+            spotSummaryCanvas.Children.Clear()
+            itemProgressTB.BorderBrush <- Brushes.DarkTurquoise
+            let hsp = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(3.))
+            for i in TrackerModel.ITEMS.PriorityOrderForRemainingDisplay do
+                if TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(i) then
+                    hsp.Children.Add(img(i)) |> ignore
+            let h = TrackerModel.ITEMS.HEARTCONTAINER
+            let c = TrackerModel.allItemWithHeartShuffleChoiceDomain.MaxUses(h) - TrackerModel.allItemWithHeartShuffleChoiceDomain.NumUses(h)
+            for x = 1 to c do
+                hsp.Children.Add(img(h)) |> ignore
+            if hsp.Children.Count=0 then
+                hsp.Children.Add(new TextBox(Text="None",FontSize=12.,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.),Foreground=Brushes.Orange,Background=Brushes.Black)) |> ignore
+            let vsp = new StackPanel(Orientation=Orientation.Vertical)
+            vsp.Children.Add(new TextBox(Text="Remaining unmarked items:",FontSize=12.,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.),Foreground=Brushes.Orange,Background=Brushes.Black)) |> ignore
+            vsp.Children.Add(hsp) |> ignore
+            let b = new Border(Child=vsp, Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.))
+            canvasAdd(spotSummaryCanvas, b, 0., 394.)  // fragile placement in layout, but easiest solution
+            )
+        dp.MouseLeave.Add(fun _ -> itemProgressTB.BorderBrush <- Brushes.Gray; spotSummaryCanvas.Children.Clear())
+        dp
+    layout.AddItemProgress(itemProgressCanvas, itemProgressHoverTarget)
 
     
     // Version

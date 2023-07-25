@@ -189,6 +189,7 @@ module ITEMS =
     let WAND = 12
     let WHITESWORD = 13
     let HEARTCONTAINER = 14
+    let PriorityOrderForRemainingDisplay = [| BOW; SILVERARROW; LADDER; RECORDER; POWERBRACELET; RAFT; WAND; REDRING; KEY; WHITESWORD; BOOKSHIELD; REDCANDLE; MAGICBOOMERANG; BOOMERANG |]
     let AsPronounceString(n) =
         match n with
         | 0 -> if IsCurrentlyBook() then "book" else "shield"

@@ -431,7 +431,8 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
 let MakeItemProgressBar(owInstance:OverworldData.OverworldInstance) =
     // item progress
     let itemProgressCanvas = new Canvas(Width=16.*OMTW, Height=30.)
-    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Item Progress", IsHitTestVisible=false)
+    let tb = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, 
+                            BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.), Text="Item Progress", IsHitTestVisible=false)
     itemProgressCanvas.MouseMove.Add(fun ea ->
         let pos = ea.GetPosition(itemProgressCanvas)
         let x = pos.X - ITEM_PROGRESS_FIRST_ITEM
