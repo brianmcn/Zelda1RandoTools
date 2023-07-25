@@ -315,6 +315,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
                 0
         currentRecorderDestinationIndex <- (currentRecorderDestinationIndex + 8 + delta) % 8
         updateCurrentRecorderDestinationNumeral()
+        ea.Handled <- true
         )
     recorderDestinationButtonCanvas.MyKeyAdd(fun ea ->
         let _skm,k = ea.Key
