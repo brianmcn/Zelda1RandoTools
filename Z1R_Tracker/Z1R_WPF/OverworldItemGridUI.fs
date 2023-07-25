@@ -286,7 +286,8 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             if prop.Value() then
                 rect.Stroke <- yes
                 if obj.Equals(TrackerModel.foundBombShop, located) && located.Value then  // special case handling for bombs
-                    canvasAdd(c, new Shapes.Rectangle(Width=24., Height=24., StrokeThickness=2.0, Stroke=loc), 3., 3.)
+                    canvasAdd(c, new Shapes.Line(X1=0., X2=30., Y1=1.5, Y2=1.5, StrokeThickness=3.0, Stroke=loc), 0., 0.)
+                    canvasAdd(c, new Shapes.Line(X1=28.5, X2=28.5, Y1=0., Y2=30., StrokeThickness=3.0, Stroke=loc), 0., 0.)
             elif superseded.Value then
                 rect.Stroke <- sup
                 Graphics.placeSkippedItemXDecoration(c)

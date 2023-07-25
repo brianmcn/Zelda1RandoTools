@@ -187,6 +187,7 @@ since 1.3.0x...
  - Show/Run Custom now comes with useful defaults (TODO doc)
  - added another tip
  - hover 'Item Progress' text in legend now shows remaining items to locate (TODO doc)
+ - change display of have-bombs-and-know-where-shop-is
 
 
 
