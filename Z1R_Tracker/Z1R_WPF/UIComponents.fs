@@ -317,6 +317,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
         updateCurrentRecorderDestinationNumeral()
         ea.Handled <- true
         )
+    (*   // This screwed me up multiple times, and the fact that it's not user-rebindable is bad.
     recorderDestinationButtonCanvas.MyKeyAdd(fun ea ->
         let _skm,k = ea.Key
         if k >= Input.Key.D1 && k <= Input.Key.D8 then
@@ -328,6 +329,7 @@ let MakeLegend(cm:CustomComboBoxes.CanvasManager, doUIUpdateEvent:Event<unit>) =
             updateCurrentRecorderDestinationNumeral()
             ea.Handled <- true
         )
+    *)
 
     let anyRoadLegendIcon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[9].[0])
     canvasAdd(legendCanvas, anyRoadLegendIcon, 69., 0.)

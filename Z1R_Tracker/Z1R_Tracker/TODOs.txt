@@ -191,6 +191,13 @@ since 1.3.0x...
 
 
 
+press ctrl or something does eyeball show-map toggle thingy?
+
+
+Max Hearts: should also have a display like the game, people bad at counting.  Would require rejiggering of upper right area.
+ - more generally, should have a way to project whole inventory HUD, for when pick up item not sure what it was
+
+
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
 
 
@@ -300,9 +307,6 @@ some kind of on-map better viz of the dungeons, e.g. you're standing next to 3 y
 
 if e.g. hover recorder, and all recorderable spots are marked, no feedback ('None found' reuse? it's more like 'none left', hm)
  - or maybe subscript on item progress of how many each left? not obvious what means, though, and also no way to see remain bomb spot count
-
-
-Max Hearts: should also have a display like the game, people bad at counting.  Would require rejiggering of upper right area.
 
 
 consider moving the tooltips in-window so they can get video captured, as their absence does make e.g. explainer videos more challenging
