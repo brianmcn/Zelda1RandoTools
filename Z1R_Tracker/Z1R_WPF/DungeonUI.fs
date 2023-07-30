@@ -888,7 +888,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 highlightColumnCanvases.[i].Opacity <- 0.0
             match colOpt with
             | None -> ()
-            | Some c -> highlightColumnCanvases.[c].Opacity <- 0.2
+            | Some c -> highlightColumnCanvases.[c].Opacity <- 0.3
         canvasAdd(dungeonBodyCanvas, roomHighlightOutline, 0., 0.)
         let roomCirclesCanvas = new Canvas()
         dungeonBodyCanvas.Children.Add(roomCanvas) |> ignore

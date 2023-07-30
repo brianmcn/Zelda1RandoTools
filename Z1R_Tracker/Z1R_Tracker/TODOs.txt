@@ -189,11 +189,13 @@ since 1.3.0x...
  - change display of have-bombs-and-know-where-shop-is
  - reminder log displays category of reminder in tooltip
  - in Hidden Dungeon Numbers, if you mark bottom of 3 items, then turns out to be 2-item dungeon, if middle box is empty, will auto-swap bottom item up to middle box
+ - make column highlight in dungeon a little brighter
 
 
 
 
 homer: tiny armos number mark, to know which to push (inputs, display UI, not easy)
+ - shift left click works well for it tho
 
 
 
