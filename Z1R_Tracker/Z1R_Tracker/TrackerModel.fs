@@ -12,6 +12,16 @@ type ReminderCategory =
     | Blockers
     | DoorRepair
     | OverworldOverwrites
+    member this.DisplayName =
+        match this with
+        | DungeonFeedback -> "Dungeon feedback"
+        | SwordHearts -> "Sword hearts"
+        | CoastItem -> "Coast Item"
+        | RecorderPBSpotsAndBoomstickBook -> "Recorder/PB/Boomstick"
+        | HaveKeyLadder -> "Have magic key/ladder"
+        | Blockers -> "Blockers"
+        | DoorRepair -> "Door Repair Count"
+        | OverworldOverwrites -> "Overworld overwrites"
 
 ///////////////////////////////////////////////////////////////////////////
 

@@ -60,7 +60,6 @@ since 1.2.3...
 - mouse magnifier window (TODO get feedback, it kinda sucks)
 - hotkeys can have shift/alt/ctrl modifiers (TODO doc)
 - keyboard nav (arrow most grids, 'tab' OW/Dung) and simulated mouse clicks&scrolls (TODO docs)
-- keyboard 1-8 (or numpad 1-8) when hovering 'recorder destination' now change to that number (not rebindable) (TODO document)
 - FQ/SQ buttons now update front half (1-6) and back half (7-9) vanilla maps all at once, rather than per-dungeon (TODO update docs)
 - dungeon summary tab improvements - each dungeon shows if have map, shows monsters marked in each dungeon, highlights dungeons on overworld while mouse inside (TODO update docs)
 - dungeons have a checkbox to mark you got the map, top right tracker has checkbox for book=atlas (TODO update docs)
@@ -188,10 +187,17 @@ since 1.3.0x...
  - added another tip
  - hover 'Item Progress' text in legend now shows remaining items to locate (TODO doc)
  - change display of have-bombs-and-know-where-shop-is
+ - reminder log displays category of reminder in tooltip
+ - in Hidden Dungeon Numbers, if you mark bottom of 3 items, then turns out to be 2-item dungeon, if middle box is empty, will auto-swap bottom item up to middle box
 
 
 
-press ctrl or something does eyeball show-map toggle thingy?
+
+homer: tiny armos number mark, to know which to push (inputs, display UI, not easy)
+
+
+
+press ctrl or something does eyeball show-map toggle thingy?  or experiment with it like 'blinking away' all the tiles every 2s or something
 
 
 Max Hearts: should also have a display like the game, people bad at counting.  Would require rejiggering of upper right area.
@@ -698,14 +704,16 @@ Vertical Rows  2 3 4 5 6 7 8 9  1
 
 
 
-These 7 rooms NEVER drop in ANY Shapes dungeon
-    Gannon (can only have standing drop, or drop map)
-    Zelda           Bomb droppers: BrCrhBrBhh
-    3 Rows                         1234567890
-    Circle Wall                    * .  * *
-    Single Block
+These 6 rooms NEVER drop in ANY Shapes dungeon
+    Zelda           
+    3 Rows                Bomb droppers: BrCrhBrBhh
+    Circle Wall                          1234567890
+    Single Block                         * .  * *
     <spike trap angles>
     *Lava Moat
+
+Note: Triforce/Gannon (only standing drop, or drop map)
+
 These 10 rooms NEVER drop in CERTAIN Shapes dungeons
                Never drops in   Can drop in
 *Vertical Rows 2 3 4 5 6 7 8 9  1
@@ -720,7 +728,7 @@ Grid           4 5              1 2 3 6 7 8 9
 T              1                2 3 4 5 6 7 8 9
 
 *only if second quest rooms enabled
-(whole table assume 'Remove Most Open Stairs' not in use)
+(whole table assumes 'Remove Most Open Stairs' not on)
 
 
 within-dungeon pirouette: 

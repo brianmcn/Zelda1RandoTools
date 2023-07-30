@@ -60,21 +60,21 @@ let data1d = [|
     |]
 
 let data2 = [|
-    "Dungeon feedback", "Note when dungeons are located/completed, triforces obtained, and go-time", 
+    TrackerModel.ReminderCategory.DungeonFeedback.DisplayName, "Note when dungeons are located/completed, triforces obtained, and go-time", 
         TrackerModelOptions.VoiceReminders.DungeonFeedback, TrackerModelOptions.VisualReminders.DungeonFeedback
-    "Sword hearts", "Remind to consider white/magical sword when you get 4-6 or 10-14 hearts", 
+    TrackerModel.ReminderCategory.SwordHearts.DisplayName, "Remind to consider white/magical sword when you get 4-6 or 10-14 hearts", 
         TrackerModelOptions.VoiceReminders.SwordHearts,     TrackerModelOptions.VisualReminders.SwordHearts
-    "Coast Item", "Reminder to fetch to coast item when you have the ladder", 
+    TrackerModel.ReminderCategory.CoastItem.DisplayName, "Reminder to fetch to coast item when you have the ladder", 
         TrackerModelOptions.VoiceReminders.CoastItem,       TrackerModelOptions.VisualReminders.CoastItem
-    "Recorder/PB/Boomstick", "Periodic reminders of how many recorder/power-bracelet spots remain, or that the boomstick is available", 
+    TrackerModel.ReminderCategory.RecorderPBSpotsAndBoomstickBook.DisplayName, "Periodic reminders of how many recorder/power-bracelet spots remain, or that the boomstick is available", 
         TrackerModelOptions.VoiceReminders.RecorderPBSpotsAndBoomstickBook, TrackerModelOptions.VisualReminders.RecorderPBSpotsAndBoomstickBook
-    "Have magic key/ladder", "One-time reminder, a little while after obtaining these items, that you have them", 
+    TrackerModel.ReminderCategory.HaveKeyLadder.DisplayName, "One-time reminder, a little while after obtaining these items, that you have them", 
         TrackerModelOptions.VoiceReminders.HaveKeyLadder,   TrackerModelOptions.VisualReminders.HaveKeyLadder
-    "Blockers", "Reminder when you may have become unblocked on a previously-aborted dungeon", 
+    TrackerModel.ReminderCategory.Blockers.DisplayName, "Reminder when you may have become unblocked on a previously-aborted dungeon", 
         TrackerModelOptions.VoiceReminders.Blockers,        TrackerModelOptions.VisualReminders.Blockers
-    "Door Repair Count", "Each time you uncover a door repair charge, remind the count of how many you have found", 
+    TrackerModel.ReminderCategory.DoorRepair.DisplayName, "Each time you uncover a door repair charge, remind the count of how many you have found", 
         TrackerModelOptions.VoiceReminders.DoorRepair,        TrackerModelOptions.VisualReminders.DoorRepair
-    "Overworld overwrites", "Each time you make a destructive change to an overworld mark, remind the change, in case it was accidental", 
+    TrackerModel.ReminderCategory.OverworldOverwrites.DisplayName, "Each time you make a destructive change to an overworld mark, remind the change, in case it was accidental", 
         TrackerModelOptions.VoiceReminders.OverworldOverwrites, TrackerModelOptions.VisualReminders.OverworldOverwrites
     |]
 

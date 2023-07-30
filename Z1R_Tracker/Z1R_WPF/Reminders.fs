@@ -26,7 +26,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
             | TrackerModel.ReminderCategory.OverworldOverwrites -> TrackerModelOptions.VoiceReminders.OverworldOverwrites.Value, TrackerModelOptions.VisualReminders.OverworldOverwrites.Value
         if not(Timeline.isCurrentlyLoadingASave) then 
-            reminderAgent.Post(text, TrackerModelOptions.IsMuted, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
+            reminderAgent.Post(text, category, TrackerModelOptions.IsMuted, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
     SendReminderImpl(category, text, icons, None)
 let ReminderTextBox(txt) : FrameworkElement = 
@@ -65,7 +65,7 @@ let SetupReminderDisplayAndProcessing(cm) =
     reminderDisplayOuterDockPanel.Children.Add(reminderDisplayInnerBorder) |> ignore
     reminderAgent <- MailboxProcessor.Start(fun inbox -> 
         let rec messageLoop() = async {
-            let! (text,wasMuted,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
+            let! (text,category,wasMuted,shouldRemindVoice,icons,shouldRemindVisual,visualUpdateToSynchronizeWithReminder) = inbox.Receive()
             do! Async.SwitchToContext(ctxt)
             let sp = new StackPanel(Orientation=Orientation.Horizontal, Background=Brushes.Black, Margin=Thickness(6.))
             for i in icons do
@@ -100,7 +100,7 @@ let SetupReminderDisplayAndProcessing(cm) =
             sp.Margin <- Thickness(0.)
             sp.Children.Insert(0, new DockPanel(Background=Brushes.Gray, Width=18., Height=3., Margin=Thickness(6.,0.,6.,0.), VerticalAlignment=VerticalAlignment.Center))
             sp.Children.Insert(0, ReminderTextBox(timeString))
-            sp.ToolTip <- text
+            sp.ToolTip <- sprintf "%s\n(%s)" text category.DisplayName
             let hasAny = reminderLogSP.Children.Count > 0
             let grayOut = muted || (not shouldRemindVisual && not shouldRemindVoice)
             if grayOut then

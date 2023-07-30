@@ -31,6 +31,16 @@ let updateGhostBusters() =
             let twoItemDungeons = if TrackerModel.IsSecondQuestDungeons then "123567" else "234567"
             if twoItemDungeons.Contains(lc.ToString()) then
                 mainTrackerGhostbusters.[i].Opacity <- 1.0
+                let boxes = TrackerModel.GetDungeon(i).Boxes
+                if boxes.[1].PlayerHas() = TrackerModel.PlayerHas.NO && boxes.[1].CellCurrent() = -1 &&            // middle box empty
+                    (boxes.[2].PlayerHas() <> TrackerModel.PlayerHas.NO || boxes.[2].CellCurrent() <> -1) then     // bottom box non-empty
+                    // swap the two on behalf of the player
+                    let v = boxes.[2].CellCurrent()
+                    let ph = boxes.[2].PlayerHas()
+                    if not(boxes.[2].AttemptToSet(-1, TrackerModel.PlayerHas.NO)) then
+                        failwith "impossible"
+                    if not(boxes.[1].AttemptToSet(v,ph)) then
+                        failwith "impossible"
             else
                 mainTrackerGhostbusters.[i].Opacity <- 0.0
 
