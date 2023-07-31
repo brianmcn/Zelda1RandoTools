@@ -2,7 +2,8 @@
 
 You should use OBS 'Window Capture' to capture the Z-Tracker window for streaming.  
 
-For best results, set the 'Window Match Priority' to 'Window title must match'.
+For best results, set the 'Window Match Priority' to 'Window title must match'.  (In streamlabs, scroll down in the initial source selection and pick "Window Capture." 
+The options for Window Match Priority comes up for that, and then you pick "Window title must match.")
 
 Be sure that your emulator does not need window focus (e.g. in FCEUX Config, Enable 'Run in Background' and 'Background Input'), as Z-Tracker requires window focus to
 respond to mousing and hotkeys.

@@ -209,10 +209,22 @@ Max Hearts: should also have a display like the game, people bad at counting.  W
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
 
 
-if I want popups like shothotkeys, the two i really want for racing probably are spotsummary and itemprogress (currently availableas hovers)
+if I want popups like showhotkeys, the two i really want for racing probably are spotsummary and itemprogress (currently available as hovers)
+prior: context-sensitive second window popout ideas
+ - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
+ - more something with ShowRunCustom? hotkey ability to launch? brainstorm
+old notes: if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
+related:
+If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
+(was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
+in the upper right corner of the app.  
+***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
+that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
+ - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
+ - or vanilla drop rooms if you have 1Q/2Q maps selected
 
 
-TODO i got FsWebView working, after fixing .proj file, fool around with it now
+
 
 
 BT: display how many bomb spots left in this region
@@ -264,25 +276,6 @@ UCC may need testing of popup menus
 
 feature to paint your map of 7/8 as a 'vanilla map outline' onto 8/7, with user-chosen offset? that is, entirely manual process?
  - or BeefSupremeTV, just an option to see 8 while in 7, or vice versa (like summary hover, shows over Notes maybe)
-
-
-aside: make a better tracker for restreaming 2 racers... main things I would want to change
- - have item boxes have 3-way: has, chose not to get, knows about, like ZT
-    - but complicates e.g. player has wood sword, but knows about white, in the usual layout where all swords share same box, hm
- - timeline for both players
- - have some way to keep track of hearts (e.g. triple-heart 1), maybe MainTracker in addition to typical down-the-middle 15-items thingy?
-    - having a main tracker thingy also provide a way to note if items/tris/dungeons are blocked, what was floor versus basement, etc
- - have a free-form text box for e.g. flags summary, starting items, etc
-    - in addition to comms/tracking, runners, event title that's already there
- - have basic overworld map (start spot, dungeon locations, WS/MS caves, armos, any roads)
- - probably naturally be 1280x720? 1600x900?  would need large enough graphics to scale nicely
- - can embed my own faux-browser in the app, e.g. WebView2: https://learn.microsoft.com/en-us/microsoft-edge/webview2/webview2-api-reference?tabs=dotnetcsharp
-    - then can be easy to do crops, show boundaries, etc... and presumably also surface playback/audio controls directly from twitch
-       - can also save crop info on a per-runner/game basis, since folks' layouts tend to be static
-    - but see https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/wpf-and-win32-interoperation?view=netframeworkdesktop-4.8#hosting-a-microsoft-win32-window-in-wpf
-       - hwnd would be drawn atop, would need separate window to e.g. draw cropping atop it
-       - or maybe not: http://www.jonathanantoine.com/2011/09/24/wpf-4-5-%E2%80%93-part-8-no-more-airspace-problems-integrating-wpf-with-win32/
- - chatted with AsmadiGames about restreaming, he talked about need for second person to be tracker as first reason to 'introduce network' (e.g. app runs web server trackers can interact with)
 
 
 McMonkey: something that would help me in regards to the hints is an option to have a permanent thick border around the overworld zones. At this point I know where all of the 
@@ -366,20 +359,6 @@ macros? e.g. one hotkey means press these keys in sequence (could be zelda room 
 homer suggests: hotkey for mark-a-set-of-no-bomb-wall (for e.g. zelda room, or coming out into a single-room segment in the middle of 9)
  - actually, a hotkey that is 'mark all unmarked adjacent doors to this room as umbombable' has good value
 
-context-sensitive second window popout ideas
- - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
- - more something with ShowRunCustom? hotkey ability to launch? brainstorm
-old notes: if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
-related:
-If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
-(was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
-in the upper right corner of the app.  
-***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
-that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
- - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
- - or vanilla drop rooms if you have 1Q/2Q maps selected
-
-
 
 
 
@@ -388,15 +367,13 @@ Way to export&import labeled circled on overworld, for e.g. 1Q/2Q dungeons, shop
 
 beware, many buttons are Focusable, which can alter how hotkeys get routed
 
-doc streamlabs:  scroll down in the initial source selection and pick "Window Capture." The options for Window Match Priority only comes up for that, and then you pick "Window title must match."
-
 vincent bug: if you GRAB and drag a stair-pair room off the map, it's 'lost' and you can't mark 
 
 
 
 also, doc all OptionsMenu
 probably more description/screenshot of options menu, say initial defaults tailored to new folks
-
+maybe also have an advanced/clean set of options, like I did for GM, hm
 
 
 
@@ -431,10 +408,6 @@ possibly a 'blank quest' alongside 1st/2nd/mixed for randomized overworlds, just
  - TODO maybe remove choicedomain limits, e.g. TrackerModel's overworldTiles(isFirstQuestOverworld) code
 TODO documentation of '...' options from startup screen and brief docs about DrawingLayer
 
-
-
-
-Alternative broadcast window that looks kinda like the emotracker one with triforce and item progress?  or like the 4-way SpeedGaming item/tri ones?
 
 
 
