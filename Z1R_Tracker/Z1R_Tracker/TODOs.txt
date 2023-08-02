@@ -193,6 +193,7 @@ since 1.3.0x...
  - clicking a dungeon mark on overworld map switches to that dungeon tab and behaves like ToggleCursorOverworldOrDungeon hotkey (TODO doc)
  - ToggleCursorOverworldOrDungeon shows a brief animation to help locate the mouse cursor (in default Tall application layout only)
 since 1.3.0y...
+ - fix: when mirror overworld, left/right hotkeys swap meaning
 
 
 

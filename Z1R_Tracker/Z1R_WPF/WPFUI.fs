@@ -471,21 +471,23 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                       dungeonTabsOverlay.Opacity <- 0.
                                       )
             c.MyKeyAdd(fun ea ->
-                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
-                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key), displayIsCurrentlyMirrored with
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight),false 
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft),true -> 
                     ea.Handled <- true
                     if i<15 then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(i+1,j))
-                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft),false
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight),true ->
                     ea.Handled <- true
                     if i>0 then
                         let n = i-1   // without this I seem to encounter a compiler bug?!?
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(n,j))
-                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown),_ -> 
                     ea.Handled <- true
                     if j<7 then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(i,j+1))
-                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp),_ -> 
                     ea.Handled <- true
                     if j>0 then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(i,j-1))
