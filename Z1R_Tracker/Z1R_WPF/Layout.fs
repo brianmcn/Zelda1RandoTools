@@ -54,11 +54,13 @@ type IApplicationLayoutBase =
     abstract member ClearTopLayerHovers : unit -> unit
     abstract member FocusOverworld : unit -> unit
     abstract member FocusDungeon : unit -> unit
+    abstract member ShowMouseWarp : Point -> unit
     abstract member IsShort : bool
 
 type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
     let appMainCanvas = cm.AppMainCanvas
     let topLayerHoverCanvas = new Canvas()   // for temporary bits that appear on hover, to ensure they appear on top of everything else in the app, when no other popup active
+    let ctxt = System.Threading.SynchronizationContext.Current  // this class is created on the UI thread
     interface IApplicationLayoutBase with
         member this.AddMainTracker(mainTracker) =
             canvasAdd(appMainCanvas, mainTracker, 0., 0.)
@@ -158,6 +160,32 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.ClearTopLayerHovers() = topLayerHoverCanvas.Children.Clear()
         member this.FocusOverworld() = ()
         member this.FocusDungeon() = ()
+        member this.ShowMouseWarp(newPos:Point) =
+            let oldPos = Input.Mouse.GetPosition(cm.AppMainCanvas)
+            let line = new Shapes.Line(X1=oldPos.X, X2=newPos.X, Y1=oldPos.Y, Y2=newPos.Y, Stroke=Brushes.White, StrokeThickness=2.)
+            cm.AppMainCanvas.Children.Add(line) |> ignore
+            let x1 = new Animation.DoubleAnimation(oldPos.X, newPos.X, new Duration(TimeSpan.FromMilliseconds(300.)))
+            x1.BeginTime <- TimeSpan.FromMilliseconds(150.)
+            Animation.Storyboard.SetTarget(x1, line)
+            Animation.Storyboard.SetTargetProperty(x1, new PropertyPath(Shapes.Line.X1Property))
+            let x2 = new Animation.DoubleAnimation(oldPos.X, newPos.X, new Duration(TimeSpan.FromMilliseconds(300.)))
+            Animation.Storyboard.SetTarget(x2, line)
+            Animation.Storyboard.SetTargetProperty(x2, new PropertyPath(Shapes.Line.X2Property))
+            let y1 = new Animation.DoubleAnimation(oldPos.Y, newPos.Y, new Duration(TimeSpan.FromMilliseconds(300.)))
+            y1.BeginTime <- TimeSpan.FromMilliseconds(150.)
+            Animation.Storyboard.SetTarget(y1, line)
+            Animation.Storyboard.SetTargetProperty(y1, new PropertyPath(Shapes.Line.Y1Property))
+            let y2 = new Animation.DoubleAnimation(oldPos.Y, newPos.Y, new Duration(TimeSpan.FromMilliseconds(300.)))
+            Animation.Storyboard.SetTarget(y2, line)
+            Animation.Storyboard.SetTargetProperty(y2, new PropertyPath(Shapes.Line.Y2Property))
+            let sb = new Animation.Storyboard()
+            sb.Children.Add(x1); sb.Children.Add(x2); sb.Children.Add(y1); sb.Children.Add(y2)
+            sb.Begin()
+            async {
+                do! Async.Sleep(500)
+                do! Async.SwitchToContext(ctxt)
+                cm.AppMainCanvas.Children.Remove(line)
+            } |> Async.StartImmediate
         member this.IsShort = false
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -392,6 +420,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
                 do! Async.SwitchToContext(ctxt)
                 switchToDungeon()
             } |> Async.StartImmediate
+        member this.ShowMouseWarp(_newPos:Point) = ()
         member this.IsShort = true
 
 ////////////////////////////////////////////////////////////////////////

@@ -323,11 +323,16 @@ let ToggleOverworldTileIfItIsToggleable(i, j, state) =
         else
             TrackerModel.setOverworldMapExtraData(i,j,state,state)
 
+let mutable goToDungeon = fun (_idx:int) -> ()
+
 let DoLeftClick(cm:CustomComboBoxes.CanvasManager,msp:MapStateProxy,i,j,pos:Point) = async { // returns tuple of two booleans (needRedrawGridSpot, needHighlightTileHide)
     if msp.State = -1 then
         // left click empty tile changes to 'X'
         TrackerModel.overworldMapMarks.[i,j].Prev() 
         return true, true
+    elif msp.IsDungeon then
+        goToDungeon(msp.State)
+        return false, false
     elif msp.IsThreeItemShop then
         popupIsActive <- true
         let item1 = msp.State - TrackerModel.MapSquareChoiceDomainHelper.ARROW  // 0-based

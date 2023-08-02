@@ -1241,6 +1241,12 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         DungeonUI.makeDungeonTabs(cm, (fun x -> layout.AddDungeonTabs(x)), (fun () -> layout.GetDungeonY()), selectDungeonTabEvent, TH, rightwardCanvas,
                                     levelTabSelected, blockersHoverEvent, mainTrackerGhostbusters, showProgress, contentCanvasMouseEnterFunc, (fun _level -> hideLocator()))
     exportDungeonModelsJsonLines <- exportDungeonModelsJsonLinesF
+    OverworldMapTileCustomization.goToDungeon <- (fun index ->
+        selectDungeonTabEvent.Trigger(index)
+        let newPos = dungeonTabs.TranslatePoint(posToWarpToWhenTabbingFromOverworld, appMainCanvas)
+        layout.ShowMouseWarp(newPos)
+        Graphics.NavigationallyWarpMouseCursorTo(newPos)
+        layout.FocusDungeon())
     layout.AddDungeonTabsOverlay(dungeonTabsOverlay)
 
     do! showProgress("blockers")
@@ -1975,10 +1981,14 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             | HotKeys.GlobalHotkeyTargets.ScrollDown         -> Graphics.Win32.ScrollWheelRotateDown(); refocusKeyboard()       
             | HotKeys.GlobalHotkeyTargets.ToggleCursorOverworldOrDungeon ->
                 if overworldCanvas.IsMouseOver then
-                    Graphics.NavigationallyWarpMouseCursorTo(dungeonTabs.TranslatePoint(posToWarpToWhenTabbingFromOverworld, appMainCanvas))
+                    let newPos = dungeonTabs.TranslatePoint(posToWarpToWhenTabbingFromOverworld, appMainCanvas)
+                    layout.ShowMouseWarp(newPos)
+                    Graphics.NavigationallyWarpMouseCursorTo(newPos)
                     layout.FocusDungeon()
                 else
-                    Graphics.NavigationallyWarpMouseCursorTo(overworldCanvas.TranslatePoint(Point(OMTW*8.5,11.*3.*4.5), appMainCanvas))
+                    let newPos = overworldCanvas.TranslatePoint(Point(OMTW*8.5,11.*3.*4.5), appMainCanvas)
+                    layout.ShowMouseWarp(newPos)
+                    Graphics.NavigationallyWarpMouseCursorTo(newPos)
                     layout.FocusOverworld()
             | _ -> () // MoveCursor not handled at this level
         | None -> 

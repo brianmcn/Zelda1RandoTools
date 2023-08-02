@@ -190,6 +190,8 @@ since 1.3.0x...
  - reminder log displays category of reminder in tooltip
  - in Hidden Dungeon Numbers, if you mark bottom of 3 items, then turns out to be 2-item dungeon, if middle box is empty, will auto-swap bottom item up to middle box
  - make column highlight in dungeon a little brighter
+ - clicking a dungeon mark on overworld map switches to that dungeon tab and behaves like ToggleCursorOverworldOrDungeon hotkey (TODO doc)
+ - ToggleCursorOverworldOrDungeon shows a brief animation to help locate the mouse cursor (in default Tall application layout only)
 
 
 
