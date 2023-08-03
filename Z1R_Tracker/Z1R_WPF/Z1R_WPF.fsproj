@@ -98,6 +98,7 @@
     <EmbeddedResource Include="icons\first-quest-item-reference.png" />
     <EmbeddedResource Include="icons\second-quest-item-reference.png" />
     <EmbeddedResource Include="icons\eyeball.png" />
+    <EmbeddedResource Include="icons\ws-ms-bu.png" />
     <EmbeddedResource Include="icons\mirror-overworld.png" />
     <EmbeddedResource Include="icons\open_cave20x20.png" />
     <EmbeddedResource Include="icons\new_icons13x9.png" />

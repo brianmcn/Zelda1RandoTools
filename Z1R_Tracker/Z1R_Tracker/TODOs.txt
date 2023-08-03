@@ -194,8 +194,19 @@ since 1.3.0x...
  - ToggleCursorOverworldOrDungeon shows a brief animation to help locate the mouse cursor (in default Tall application layout only)
 since 1.3.0y...
  - fix: when mirror overworld, left/right hotkeys swap meaning
+ - add "WS/MS replaced by BU" toggle button in upper right of app, just changes WS/MS icons to bomb upgrade icons (TODO doc)
 
 
+
+
+panulphe:
+ - sent seed to count potion shops (maybe get rid of hard bound for pot/DR/MMG/TAH/hint? would need to adjust spot summary)
+    - if you do mismark, when you get to e.g. the 8th of 7 potion shops, it's like, ok, maybe I mismarked the 3rd one, but I'm standing here now 
+        in front of the 8th and it'd be nice to mark it but you wont let me... 
+ - would like 'replace WS/MS with BU' bomb icon in item pool for WS (and presumably replace MS icon up top; what about sword3 OW icon?)
+    - consider if/how do any of that
+    - if WS cave has BU, then cant distinguish from MS cave until hearts
+    - prior note: swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
 
 homer: tiny armos number mark, to know which to push (inputs, display UI, not easy)
@@ -251,16 +262,6 @@ and asks for confirmation.  And if you choose to nuke, all room/monster/floordro
 I feel like I need to talk it through to foresee pitfalls/issues.
 PedanticPotato: Yeah, it'd definitely have to have a modal popup for confirmation.  I can't think of a better place than grab.  But maybe it's lower priority than it felt during the race last night.
 
-
-
-panulphe:
- - sent seed to count potion shops (maybe get rid of hard bound for pot/DR/MMG/TAH/hint? would need to adjust spot summary)
-    - if you do mismark, when you get to e.g. the 8th of 7 potion shops, it's like, ok, maybe I mismarked the 3rd one, but I'm standing here now 
-        in front of the 8th and it'd be nice to mark it but you wont let me... 
- - would like 'replace WS/MS with BU' bomb icon in item pool for WS (and presumably replace MS icon up top; what about sword3 OW icon?)
-    - consider if/how do any of that
-    - if WS cave has BU, then cant distinguish from MS cave until hearts
-    - prior note: swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
 
 new armos reminder: 5 mins after you have marked at least 3 armos spots, if the armos item box is still empty, remind once

@@ -192,15 +192,15 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     hideIconsEyeball.ToolTip <- "Hover to hide icons\n(peek at unobscured overworld map)"
     ToolTipService.SetPlacement(hideIconsEyeball, System.Windows.Controls.Primitives.PlacementMode.Bottom)
     let white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCB, bookIsAtlasCB, highlightOpenCavesCB, timerResetButton, spotSummaryTB = 
+        owItemGrid, toggleBookShieldCB, bookIsAtlasCB, highlightOpenCavesCB, timerResetButton, spotSummaryTB, ws_ms_bu_toggleButton = 
             MakeItemGrid(cm, boxItemImpl, timelineItems, owInstance, extrasImage, resetTimerEvent, isStandardHyrule, doUIUpdateEvent, MakeManualSave)
     toggleBookShieldCheckBox <- toggleBookShieldCB
     bookIsAtlasCheckBox <- bookIsAtlasCB
     highlightOpenCavesCheckBox <- highlightOpenCavesCB
     if isStandardHyrule then
-        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, moreFQSQoptionsButton)
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, moreFQSQoptionsButton, ws_ms_bu_toggleButton)
     else
-        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, null)
+        layout.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, null, ws_ms_bu_toggleButton)
 
     do! showProgress("link")
 
@@ -1666,6 +1666,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     for j = 0 to 7 do
         TrackerModel.GetDungeon(j).HiddenDungeonColorOrLabelChanged.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged()) // e.g. to change heart label from E -> 3
     OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged())  // e.g. to change heart label from 1 -> 4
+    TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> TrackerModel.TimelineItemModel.TriggerTimelineChanged())  // e.g. change mags icon to BU
 
     moreOptionsButton.Click.Add(fun _ -> 
         if not popupIsActive then
@@ -1847,6 +1848,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             toggleBookShieldCheckBox.IsChecked <- System.Nullable.op_Implicit true
         if data.IsAtlasSeed then
             bookIsAtlasCheckBox.IsChecked <- System.Nullable.op_Implicit true
+        if data.IsWSMSReplacedByBUSeed then
+            TrackerModel.ToggleWSMSReplacedByBU()
         updateCurrentRecorderDestinationNumeral()
         // Dungeon Maps
         do! importDungeonModels(showProgress, data.DungeonMaps)

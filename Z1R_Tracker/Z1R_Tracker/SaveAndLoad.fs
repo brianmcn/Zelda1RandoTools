@@ -337,6 +337,7 @@ let SaveAll(notesText:string, selectedDungeonTab:int, dungeonModelsJsonLines:str
         yield sprintf """    "RecorderToUnbeatenDungeons": %b,""" TrackerModel.recorderToUnbeatenDungeons
         yield sprintf """    "IsBoomstickSeed": %b,""" isBoomstickSeed
         yield sprintf """    "IsAtlasSeed": %b,""" isAtlasSeed
+        yield sprintf """    "IsWSMSReplacedByBUSeed": %b,""" (TrackerModel.IsWSMSReplacedByBU())
         yield sprintf """    "DungeonTabSelected": %d,""" selectedDungeonTab
         yield sprintf """    "DungeonMaps": [ {"""
         yield! dungeonModelsJsonLines |> Array.map (fun s -> "    "+s)

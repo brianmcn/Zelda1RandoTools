@@ -45,7 +45,7 @@ let boxCurrentBMP(boxCellCurrent, timelineOrigin) =
     | 10 -> Graphics.red_ring_bmp
     | 11 -> Graphics.silver_arrow_bmp
     | 12 -> Graphics.wand_bmp
-    | 13 -> Graphics.white_sword_bmp
+    | 13 -> (if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.white_sword_bmp)
     |  _ -> 
         match timelineOrigin with 
         | Some(tid) -> 

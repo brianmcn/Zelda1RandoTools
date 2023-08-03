@@ -515,7 +515,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
         brown_sword_bmp, magical_sword_bmp, blue_candle_bmp, blue_ring_bmp,
-        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp, rupee_bmp, basement_stair_bmp) =
+        ganon_bmp, zelda_bmp, bomb_bmp, bow_and_arrow_bmp, bait_bmp, question_marks_bmp, rupee_bmp, basement_stair_bmp, ws_ms_bomb_upgrade_bmp) =
     let imageStream = GetResourceStream("icons7x7.png")
     let bmp = new System.Drawing.Bitmap(imageStream)
     let a = [|  
@@ -530,7 +530,7 @@ let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder
     |]
     (a.[0], a.[1], a.[2], a.[3], a.[4], a.[5], a.[6], a.[7], a.[8], a.[9],
         a.[10], a.[11], a.[12], a.[13], a.[14], a.[15], a.[16], a.[17], a.[18], a.[19],
-        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29], a.[30])
+        a.[20], a.[21], a.[22], a.[23], a.[24], a.[25], a.[26], a.[27], a.[28], a.[29], a.[30], a.[31])
 
 let bg16x16 = System.Drawing.Color.FromArgb(45, 50, 00)
 let (digdogger_bmp, gleeok_bmp, gohma_bmp, manhandla_bmp, wizzrobe_bmp, patra_bmp, dodongo_bmp, red_bubble_bmp, blue_bubble_bmp, blue_darknut_bmp, other_monster_bmp, old_man_bmp,
@@ -982,6 +982,7 @@ let firstQuestItemReferenceBMP = loadBMP("first-quest-item-reference.png")
 let secondQuestItemReferenceBMP = loadBMP("second-quest-item-reference.png")
 let mirrorOverworldBMP = loadBMP("mirror-overworld.png")
 let eyeballBMP = loadBMP("eyeball.png")
+let wsmsbuBMP = loadBMP("ws-ms-bu.png")
 
 (*
 code for clipping screenshots to same size

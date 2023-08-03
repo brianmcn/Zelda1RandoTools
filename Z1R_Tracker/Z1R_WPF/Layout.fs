@@ -15,7 +15,7 @@ type IApplicationLayoutBase =
     abstract member AddMainTracker : mainTracker:UIElement -> unit
     abstract member AddNumberedTriforceCanvas : triforceCanvas:Canvas * i:int -> unit 
     abstract member AddItemGridStuff : owItemGrid:UIElement * toggleBookShieldCheckBox:UIElement * bookIsAtlasCheckBox:UIElement * highlightOpenCavesCheckBox:UIElement * 
-                                            timerResetButton:UIElement * spotSummaryTB:UIElement * mirrorOW:UIElement * hideIconsEyeball:UIElement * moreFQSQoptionsButton:Button -> unit
+                                            timerResetButton:UIElement * spotSummaryTB:UIElement * mirrorOW:UIElement * hideIconsEyeball:UIElement * moreFQSQoptionsButton:Button * ws_ms_bu_toggleButton:UIElement -> unit
     abstract member AddHideQuestCheckboxes : hideFirstQuestCheckBox:UIElement * hideSecondQuestCheckBox:UIElement -> unit
     abstract member AddLinkRouting : linkIcon:UIElement * currentTargetIcon:UIElement -> unit
     abstract member AddWebcamLine : unit -> unit
@@ -66,25 +66,25 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, mainTracker, 0., 0.)
         member this.AddNumberedTriforceCanvas(triforceCanvas, i) =
             canvasAdd(appMainCanvas, triforceCanvas, OW_ITEM_GRID_LOCATIONS.OFFSET+30.*float i, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, moreFQSQoptionsButton) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, 
+                                        hideIconsEyeball, moreFQSQoptionsButton, ws_ms_bu_toggleButton) =
             canvasAdd(appMainCanvas, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
-            canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 35.)
-            canvasAdd(appMainCanvas, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
+            canvasAdd(appMainCanvas, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 35.)
+            canvasAdd(appMainCanvas, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+182.+53., 35.)
             canvasAdd(appMainCanvas, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(appMainCanvas, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(appMainCanvas, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(appMainCanvas, hideIconsEyeball, WEBCAM_LINE+5., 0.)
-            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+5., 70.)
+            canvasAdd(appMainCanvas, hideIconsEyeball, WEBCAM_LINE+4., 2.)
+            canvasAdd(appMainCanvas, mirrorOW, WEBCAM_LINE+4., 26.)
             canvasAdd(appMainCanvas, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
+            canvasAdd(appMainCanvas, ws_ms_bu_toggleButton, WEBCAM_LINE-11., 59.)
         member this.AddHideQuestCheckboxes(hideFirstQuestCheckBox, hideSecondQuestCheckBox) = 
             canvasAdd(appMainCanvas, hideFirstQuestCheckBox,  WEBCAM_LINE + 5., 110.) 
             canvasAdd(appMainCanvas, hideSecondQuestCheckBox, WEBCAM_LINE + 5., 130.)
         member this.AddLinkRouting(linkIcon, currentTargetIcon) =
             canvasAdd(appMainCanvas, linkIcon, 16.*OMTW-60., 120.)
             canvasAdd(appMainCanvas, currentTargetIcon, 16.*OMTW-30., 120.)
-        member this.AddWebcamLine() =
-            let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
-            canvasAdd(appMainCanvas, webcamLine, WEBCAM_LINE, 0.)
+        member this.AddWebcamLine() = () // the webcam area was always too small to be useful
         member this.AddOverworldCanvas(overworldCanvas) =
             canvasAdd(appMainCanvas, overworldCanvas, 0., 150.)
         member this.AddLegend(legendCanvas) = 
@@ -129,9 +129,9 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(appMainCanvas, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
-            canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
+            canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
-            canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
+            canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 52.)
         member this.AddMouseHoverExplainer(mouseHoverExplainerIcon, c) =
             canvasAdd(appMainCanvas, mouseHoverExplainerIcon, 540., 0.)
             canvasAdd(appMainCanvas, c, 0., 0.)
@@ -254,16 +254,18 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             if i=1 then // only once
                 let ntView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,0.), Point(OW_ITEM_GRID_LOCATIONS.OFFSET+float(30*8), float(30)), upper)
                 canvasAdd(lower, ntView, OW_ITEM_GRID_LOCATIONS.OFFSET, 0.)
-        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, hideIconsEyeball, moreFQSQoptionsButton) =
+        member this.AddItemGridStuff(owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCheckBox, timerResetButton, spotSummaryTB, mirrorOW, 
+                                        hideIconsEyeball, moreFQSQoptionsButton, ws_ms_bu_toggleButton) =
             canvasAdd(upper, owItemGrid, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
-            canvasAdd(upper, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180., 35.)
-            canvasAdd(upper, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+180.+55., 35.)
+            canvasAdd(upper, toggleBookShieldCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 35.)
+            canvasAdd(upper, bookIsAtlasCheckBox, OW_ITEM_GRID_LOCATIONS.OFFSET+182.+53., 35.)
             canvasAdd(upper, highlightOpenCavesCheckBox, 510., 120.)
             canvasAdd(upper, timerResetButton, 12.8*OMTW, 60.)
             canvasAdd(upper, spotSummaryTB, 12.8*OMTW, 90.)
-            canvasAdd(appMainCanvas, hideIconsEyeball, WEBCAM_LINE+5., 0.)
-            canvasAdd(upper, mirrorOW, WEBCAM_LINE+5., 70.)
+            canvasAdd(upper, hideIconsEyeball, WEBCAM_LINE+4., 2.)
+            canvasAdd(upper, mirrorOW, WEBCAM_LINE+4., 26.)
             canvasAdd(upper, moreFQSQoptionsButton, WEBCAM_LINE+70., 120.)
+            canvasAdd(upper, ws_ms_bu_toggleButton, WEBCAM_LINE-11., 59.)
             // just capture a swath of stuff
             let swathView = Broadcast.makeViewRectImpl(Point(OW_ITEM_GRID_LOCATIONS.OFFSET,30.), Point(WEBCAM_LINE, float(30*5)), upper)
             canvasAdd(lower, swathView, OW_ITEM_GRID_LOCATIONS.OFFSET, 30.)
@@ -273,9 +275,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddLinkRouting(linkIcon, currentTargetIcon) =
             canvasAdd(upper, linkIcon, 16.*OMTW-60., 120.)
             canvasAdd(upper, currentTargetIcon, 16.*OMTW-30., 120.)
-        member this.AddWebcamLine() =
-            let webcamLine = new Canvas(Background=Brushes.Orange, Width=2., Height=150., Opacity=0.4)
-            canvasAdd(upper, webcamLine, WEBCAM_LINE, 0.)
+        member this.AddWebcamLine() = () // the webcam area was always too small to be useful
         member this.AddOverworldCanvas(overworldCanvas) =
             canvasAdd(upper, overworldCanvas, 0., 150.)
             let scaleW = (W - afterSoldItemBoxesX) / W
@@ -366,9 +366,9 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, currentMaxHeartsTextBox, RIGHT_COL, 130.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(upper, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
-            canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
+            canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
-            canvasAdd(upper, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
+            canvasAdd(upper, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 52.)
         member this.AddMouseHoverExplainer(mouseHoverExplainerIcon, c) =
             canvasAdd(upper, mouseHoverExplainerIcon, 540., 0.)
             canvasAdd(upper, c, 0., 0.)

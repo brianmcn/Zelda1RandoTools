@@ -164,6 +164,13 @@ let IsBookAnAtlas, ToggleBookIsAtlas, IsBookAnAtlasChanged =
     let ToggleBookIsAtlas() = isBookAnAtlas <- not isBookAnAtlas; isBookAnAtlasChangedEvent.Trigger(isBookAnAtlas)
     let IsBookAnAtlasChanged = isBookAnAtlasChangedEvent.Publish
     IsBookAnAtlas, ToggleBookIsAtlas, IsBookAnAtlasChanged
+let IsWSMSReplacedByBU, ToggleWSMSReplacedByBU, IsWSMSReplacedByBUChanged = 
+    let mutable isWSMSReplacedByBU = false
+    let isWSMSReplacedByBUChangedEvent = new Event<_>()
+    let IsWSMSReplacedByBU() = isWSMSReplacedByBU
+    let ToggleWSMSReplacedByBU() = isWSMSReplacedByBU <- not isWSMSReplacedByBU; isWSMSReplacedByBUChangedEvent.Trigger(isWSMSReplacedByBU)
+    let IsWSMSReplacedByBUChanged = isWSMSReplacedByBUChangedEvent.Publish
+    IsWSMSReplacedByBU, ToggleWSMSReplacedByBU, IsWSMSReplacedByBUChanged
 let playerComputedStateSummaryForPlayerHasBookChanged = new Event<unit>()
 
 module ITEMS =

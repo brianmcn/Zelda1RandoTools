@@ -223,6 +223,10 @@ TrackerModel.DungeonBlockersContainer.AnyBlockerChanged.Add(fun _ ->
     for f in redrawBoxes do
         f()
     )
+TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ ->
+    for f in redrawBoxes do
+        f()
+    )
 let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, box:TrackerModel.Box, accelerateIntoComboBox, computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt) = 
     let c = new Canvas(Width=30., Height=30., Background=Brushes.Black)
     if box.Stair <> TrackerModel.StairKind.Never then

@@ -279,7 +279,25 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let sup = CustomComboBoxes.skipped
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
+        let bmpF() =
+            if obj.Equals(Graphics.magical_sword_bmp, bmp) then
+                // for the starting items panel
+                if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.magical_sword_bmp
+            else
+                match timelineID with
+                | Some tid -> 
+                    if tid=Timeline.TimelineID.MagicalSword then
+                        // for the overworld item grid shopping area
+                        if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.magical_sword_bmp
+                    elif tid=Timeline.TimelineID.WhiteSword then
+                        // for the starting items panel
+                        if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.white_sword_bmp
+                    else
+                        bmp
+                | _ -> bmp
         let redraw() =
+            innerc.Children.Clear()
+            canvasAdd(innerc, Graphics.BMPtoImage (bmpF()), 4., 4.)
             c.Children.Clear()
             c.Children.Add(rect) |> ignore
             c.Children.Add(innerc) |> ignore
@@ -299,12 +317,12 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         prop.Changed.Add(fun _ -> redraw())
         located.Changed.Add(fun _ -> redraw())
         superseded.Changed.Add(fun _ -> redraw())
+        TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> redraw())
         c.MouseDown.Add(fun _ -> prop.Toggle())
         Views.appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
         extrasCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
-        canvasAdd(innerc, Graphics.BMPtoImage bmp, 4., 4.)
         match timelineID with
-        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, fun()->bmp))
+        | Some tid -> timelineItems.Add(new Timeline.TimelineItem(tid, bmpF))
         | None -> ()
         c
     let basicBoxImpl(tts, tid, img, prop, located, superseded) =
@@ -349,9 +367,11 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
                 TrackerModel.mapStateSummary.Sword3Location=TrackerModel.NOTFOUND &&           // not yet located cave
                 TrackerModel.GetLevelHint(10)<>TrackerModel.HintZone.UNKNOWN then              // have a hint
             canvasAdd(c, makeHintHighlight(21.), 4., 4.)
-        canvasAdd(c, Graphics.BMPtoImage Graphics.magical_sword_bmp, 4., 4.)
+        let bmp = if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.magical_sword_bmp
+        canvasAdd(c, Graphics.BMPtoImage bmp, 4., 4.)
     redrawMagicalSwordCanvas(mags_canvas)
     gridAddTuple(owItemGrid, mags_box, OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
+    TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> redrawMagicalSwordCanvas(mags_canvas))
     if not(TrackerModel.IsHiddenDungeonNumbers()) then
         let px,py = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.MAGS_BOX)
         canvasAdd(cm.AppMainCanvas, magsHintCanvas, px, py-30.)   // this is kinda gross, poking this onto appMainCanvas, but it doesn't fit into normal layout rules easily
@@ -741,8 +761,18 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
             )   
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
         
+    // ws ms bu toggle button
+    let ws_ms_bu_toggleButton = 
+        let icon = Graphics.BMPtoImage Graphics.wsmsbuBMP
+        let b = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=icon)
+        let redraw() = b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then Brushes.Lime else Brushes.Gray
+        b.MouseDown.Add(fun _ -> TrackerModel.ToggleWSMSReplacedByBU())
+        TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> redraw())
+        b.ToolTip <- "Replace White Sword and Magical Sword with\nBomb Upgrades (changes their icons)"
+        b
+
     white_sword_canvas, mags_canvas, redrawWhiteSwordCanvas, redrawMagicalSwordCanvas, spotSummaryCanvas, invokeExtras,
-        owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCB, timerResetButton, spotSummaryTB
+        owItemGrid, toggleBookShieldCheckBox, bookIsAtlasCheckBox, highlightOpenCavesCB, timerResetButton, spotSummaryTB, ws_ms_bu_toggleButton
 
 let mutable hideFirstQuestFromMixed = fun _b -> ()
 let mutable hideSecondQuestFromMixed = fun _b -> ()
