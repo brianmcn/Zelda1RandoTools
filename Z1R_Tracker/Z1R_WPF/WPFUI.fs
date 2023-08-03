@@ -371,7 +371,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let selectDungeonTabEvent = new Event<_>()
     // ow map
     let AsyncBrieflyHighlightAnOverworldLocation(loc) = async {
-            hideLocator()  // we may be moused in a dungeon right now, clear its locator
             showLocatorExactLocation loc
             do! Async.Sleep(3000)
             do! Async.SwitchToContext ctxt
@@ -1376,6 +1375,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
 
     showLocatorExactLocation <- (fun (x,y) ->
         if (x,y) <> TrackerModel.NOTFOUND then
+            hideLocator()  // clear prior locators, there are various scenarios where prior might not be cleared
             owLocatorTileRectangles.[x,y].MakeMagenta()
             let OPA = 0.85
             let COL = Brushes.Magenta

@@ -195,6 +195,7 @@ since 1.3.0x...
 since 1.3.0y...
  - fix: when mirror overworld, left/right hotkeys swap meaning
  - add "WS/MS replaced by BU" toggle button in upper right of app, just changes WS/MS icons to bomb upgrade icons (TODO doc)
+ - fix a showLocator bug
 
 
 
