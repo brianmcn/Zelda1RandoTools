@@ -762,11 +762,14 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
         
     // ws ms bu toggle button
+    let midGreen = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0x00uy,0xC0uy,0x50uy)))
     let ws_ms_bu_toggleButton = 
         let icon = Graphics.BMPtoImage Graphics.wsmsbuBMP
         let b = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=icon)
         let redraw() = b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then Brushes.Lime else Brushes.Gray
         b.MouseDown.Add(fun _ -> TrackerModel.ToggleWSMSReplacedByBU())
+        b.MouseEnter.Add(fun _ -> b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then midGreen else Brushes.LightGray)
+        b.MouseLeave.Add(fun _ -> b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then Brushes.Lime else Brushes.Gray)
         TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> redraw())
         b.ToolTip <- "Replace White Sword and Magical Sword with\nBomb Upgrades (changes their icons)"
         b
