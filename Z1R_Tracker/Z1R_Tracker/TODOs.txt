@@ -196,8 +196,13 @@ since 1.3.0y...
  - fix: when mirror overworld, left/right hotkeys swap meaning
  - add "WS/MS replaced by BU" toggle button in upper right of app, just changes WS/MS icons to bomb upgrade icons (TODO doc)
  - fix a showLocator bug
+ - hovering 'Max Hearts' shows your inventory and hearts display just like game does (useful if you pick up item, but not sure what got) (TODO doc)
 
 
+
+
+no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
+ - couldn't I always just replace 4's ghostbusters with the blue canvas and something something?
 
 
 panulphe:
@@ -214,12 +219,7 @@ homer: tiny armos number mark, to know which to push (inputs, display UI, not ea
  - shift left click works well for it tho
 
 
-
 press ctrl or something does eyeball show-map toggle thingy?  or experiment with it like 'blinking away' all the tiles every 2s or something
-
-
-Max Hearts: should also have a display like the game, people bad at counting.  Would require rejiggering of upper right area.
- - more generally, should have a way to project whole inventory HUD, for when pick up item not sure what it was
 
 
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
@@ -303,6 +303,7 @@ Califax: might be nice if could choose fewer monsters in popup for easier mousin
 
 
 equations wants e.g. floor item or basement hotkeys in dungeons to auto-box-warp to mark items, which might be interesting but is a big change
+ - some other tab-like key when hover room-with-basement or somesuch?
 
 
 some kind of on-map better viz of the dungeons, e.g. you're standing next to 3 yellow numerals, but what are blockers? which still has items? gotta look all over
@@ -318,9 +319,6 @@ if e.g. hover recorder, and all recorderable spots are marked, no feedback ('Non
 
 consider moving the tooltips in-window so they can get video captured, as their absence does make e.g. explainer videos more challenging
 - could also have some tooltips with icons etc
-
-
-no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
 
 
 routing lines are hard to see on light areas (lack of contrast), would be nice to give them dark framing (thicker black transparent line behind it), 

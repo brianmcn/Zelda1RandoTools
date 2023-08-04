@@ -824,6 +824,7 @@ type PlayerComputedStateSummary(haveRecorder,haveLadder,haveAnyKey,haveCoastItem
     member _this.BoomerangLevel = boomerangLevel
 
 let mutable playerComputedStateSummary = PlayerComputedStateSummary(false,false,false,false,false,false,false,3,0,0,0,false,0,false,false,0)
+let PlayerHasTheBook() = if IsCurrentlyBook() then playerComputedStateSummary.HaveBookOrShield else playerProgressAndTakeAnyHearts.PlayerHasBoomBook.Value()
 let playerComputedStateSummaryLastComputedTime = new LastChangedTime()
 let playerSwordLevel, playerCandleLevel, playerRingLevel, playerArrowLevel = new EventingInt(0), new EventingInt(0), new EventingInt(0), new EventingInt(0)
 let recomputePlayerStateSummary() =

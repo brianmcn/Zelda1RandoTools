@@ -74,6 +74,68 @@ let mutable showLocatorRupees = fun() -> ()
 let mutable showLocatorNoneFound = fun() -> ()
 let mutable showLocator = fun(_sld:ShowLocatorDescriptor) -> ()
 
+let makeFauxItemsAndHeartsHUD() =
+    let r = new System.Drawing.Bitmap(98,61+18)
+    let best = Graphics.allItemsHUDBestBMP
+    let worst = Graphics.allItemsHUDWorstBMP
+    let BLACK = System.Drawing.Color.Black
+    // draw full HUD
+    for x = 0 to best.Width-1 do
+        for y = 0 to best.Height-1 do
+            r.SetPixel(x,y,best.GetPixel(x,y))
+    // erase or change based on inventory
+    let maybeErase(x1,x2,y1,y2,b) =
+        if not(b) then
+            for x = x1 to x2 do
+                for y = y1 to y2 do
+                    r.SetPixel(x,y,BLACK)
+    let copyWorse(x1,x2,y1,y2,b) =
+        if b then
+            for x = x1 to x2 do
+                for y = y1 to y2 do
+                    r.SetPixel(x,y,worst.GetPixel(x,y))
+    // top row
+    maybeErase(6,19,0,15,TrackerModel.playerComputedStateSummary.HaveRaft)
+    maybeErase(29,36,0,15,TrackerModel.PlayerHasTheBook())
+    maybeErase(42,48,3,11,TrackerModel.playerComputedStateSummary.RingLevel>0)
+    copyWorse(42,48,3,11,TrackerModel.playerComputedStateSummary.RingLevel=1)
+    maybeErase(53,68,0,15,TrackerModel.playerComputedStateSummary.HaveLadder)
+    maybeErase(73,81,0,15,TrackerModel.playerComputedStateSummary.HaveAnyKey)
+    maybeErase(85,92,0,15,TrackerModel.playerComputedStateSummary.HavePowerBracelet)
+    // middle row
+    maybeErase(10,14,28,35,TrackerModel.playerComputedStateSummary.BoomerangLevel>0)
+    copyWorse(10,14,28,35,TrackerModel.playerComputedStateSummary.BoomerangLevel=1)
+    // (just assume have bombs)
+    maybeErase(55,59,24,39,TrackerModel.playerComputedStateSummary.ArrowLevel>0)
+    copyWorse(55,59,24,39,TrackerModel.playerComputedStateSummary.ArrowLevel=1)
+    maybeErase(61,69,24,39,TrackerModel.playerComputedStateSummary.HaveBow)
+    maybeErase(81,88,24,39,TrackerModel.playerComputedStateSummary.CandleLevel>0)
+    copyWorse(81,88,24,39,TrackerModel.playerComputedStateSummary.CandleLevel=1)
+    // bottom row
+    maybeErase(12,14,40,55,TrackerModel.playerComputedStateSummary.HaveRecorder)
+    // (just assume have meat)
+    copyWorse(57,64,40,55,true)
+    maybeErase(57,64,40,55,TrackerModel.havePotionLetter.Value)
+    maybeErase(83,86,40,55,TrackerModel.playerComputedStateSummary.HaveWand)
+    // add hearts display
+    if TrackerModel.playerComputedStateSummary.PlayerHearts > 8 then
+        // top row
+        for i = 0 to TrackerModel.playerComputedStateSummary.PlayerHearts - 9 do
+            for dx = 0 to 7 do
+                for dy = 0 to 7 do
+                    r.SetPixel(12+i*8+dx, 63+dy, Graphics.empty_small_heart_bmp.GetPixel(dx,dy))
+    // bottom row, 3 red
+    for i = 0 to (min TrackerModel.playerComputedStateSummary.PlayerHearts 3)-1 do
+        for dx = 0 to 7 do
+            for dy = 0 to 7 do
+                r.SetPixel(12+i*8+dx, 71+dy, Graphics.filled_small_heart_bmp.GetPixel(dx,dy))
+    // bottom row rest
+    for i = 3 to (min TrackerModel.playerComputedStateSummary.PlayerHearts 8) - 1 do
+        for dx = 0 to 7 do
+            for dy = 0 to 7 do
+                r.SetPixel(12+i*8+dx, 71+dy, Graphics.empty_small_heart_bmp.GetPixel(dx,dy))
+    // maybe change green to white/red based on ring? given randomize tunic colors, seems frivolous, so naah
+    r
 
 let hintBG = Graphics.freeze(new SolidColorBrush(Color.FromArgb(255uy,0uy,0uy,120uy)))
 let HintZoneDisplayTextBox(s) : FrameworkElement = 

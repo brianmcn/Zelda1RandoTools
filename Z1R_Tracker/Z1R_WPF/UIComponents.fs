@@ -1184,6 +1184,18 @@ let MakeMouseHoverExplainer(appMainCanvas:Canvas) =
     Canvas.SetTop(desc, 170.)
     c.Children.Add(desc) |> ignore
 
+    let COL = Brushes.CornflowerBlue
+    let dx,dy = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.HEARTS)
+    let maxhearts = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 124.,28.; 124.,10.; 227.,10.; 227.,28.; 124.,28. ] |> Seq.map (fun (x,y) -> Point(dx+x,dy+y))))
+    maxhearts.Points.Add(Point(390.,160.))
+    canvasAdd(c, maxhearts, 0., 0.)
+    let desc = mkTxt("Show inventory\n& max hearts")
+    desc.TextAlignment <- TextAlignment.Right
+    Canvas.SetRight(desc, c.Width-390.)
+    Canvas.SetTop(desc, 160.)
+    c.Children.Add(desc) |> ignore
+
+    let COL = Brushes.Green
     let openCaves = new Shapes.Polyline(Stroke=COL, StrokeThickness=ST, Points=new PointCollection( [ 531.,138.; 547.,138.; 547.,122.; 531.,122.; 531.,138. ] |> Seq.map Point))
     addLabel(openCaves, "Show locations of unmarked open caves", 430., 180.)
 

@@ -79,6 +79,7 @@
     <EmbeddedResource Include="icons\ZTlogo64x64.png" />
     <EmbeddedResource Include="icons\CroppedBrianKitty.png" />
     <EmbeddedResource Include="icons\icons7x7.png" />
+    <EmbeddedResource Include="icons\icons8x8.png" />
     <EmbeddedResource Include="icons\icons10x10.png" />
     <EmbeddedResource Include="icons\icons3x7.png" />
     <EmbeddedResource Include="icons\icons8x16.png" />
@@ -95,6 +96,8 @@
     <EmbeddedResource Include="icons\take-this-leave.png" />
     <EmbeddedResource Include="icons\take-this-candle.png" />
     <EmbeddedResource Include="icons\z1r-sample-hint.png" />
+    <EmbeddedResource Include="icons\all-items-hud-pixels1.png" />
+    <EmbeddedResource Include="icons\all-items-hud-pixels1-worse.png" />
     <EmbeddedResource Include="icons\first-quest-item-reference.png" />
     <EmbeddedResource Include="icons\second-quest-item-reference.png" />
     <EmbeddedResource Include="icons\eyeball.png" />

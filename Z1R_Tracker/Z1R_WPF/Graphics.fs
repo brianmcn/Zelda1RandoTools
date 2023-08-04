@@ -511,6 +511,21 @@ let openCaveIconBmp =
     let bmp = new System.Drawing.Bitmap(imageStream)
     bmp
 
+let (filled_small_heart_bmp, empty_small_heart_bmp) =
+    let imageStream = GetResourceStream("icons8x8.png")
+    let bmp = new System.Drawing.Bitmap(imageStream)
+    let a = [|  
+        for i = 0 to bmp.Width/8 - 1 do
+            let r = new System.Drawing.Bitmap(8,8)
+            for px = 0 to 8-1 do
+                for py = 0 to 8-1 do
+                    let color = bmp.GetPixel(px + i*8, py)
+                    //let color = if color.ToArgb() = System.Drawing.Color.Black.ToArgb() then System.Drawing.Color.Transparent else color
+                    r.SetPixel(px, py, color)
+            yield r
+        |]
+    (a.[0], a.[1])
+
 let (boomerang_bmp, bow_bmp, magic_boomerang_bmp, raft_bmp, ladder_bmp, recorder_bmp, wand_bmp, red_candle_bmp, book_bmp, key_bmp, 
         silver_arrow_bmp, wood_arrow_bmp, red_ring_bmp, magic_shield_bmp, boom_book_bmp, 
         heart_container_bmp, power_bracelet_bmp, white_sword_bmp, ow_key_armos_bmp,
@@ -977,6 +992,8 @@ let takeThisCandleBMP = loadBMP("take-this-candle.png")
 let takeThisLeaveBMP = loadBMP("take-this-leave.png")
 
 let z1rSampleHintBMP = loadBMP("z1r-sample-hint.png")
+let allItemsHUDBestBMP = loadBMP("all-items-hud-pixels1.png")
+let allItemsHUDWorstBMP = loadBMP("all-items-hud-pixels1-worse.png")
 
 let firstQuestItemReferenceBMP = loadBMP("first-quest-item-reference.png")
 let secondQuestItemReferenceBMP = loadBMP("second-quest-item-reference.png")

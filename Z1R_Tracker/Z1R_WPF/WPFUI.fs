@@ -1311,7 +1311,33 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     do! showProgress("coords/zone overlays")
 
     // current max hearts
-    layout.AddCurrentMaxHearts(currentMaxHeartsTextBox)
+    let currentMaxHeartsTextBoxClickable = new Border(Background=Brushes.Black, Child=currentMaxHeartsTextBox, BorderThickness=Thickness(0.))
+    layout.AddCurrentMaxHearts(currentMaxHeartsTextBoxClickable)
+    currentMaxHeartsTextBoxClickable.MouseEnter.Add(fun _ -> 
+        let bmp = OverworldItemGridUI.makeFauxItemsAndHeartsHUD()
+        let img = Graphics.BMPtoImage bmp
+        img.Width <- 3. * img.Width
+        img.Height <- 3. * img.Height
+        img.Stretch <- Stretch.UniformToFill
+        RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor)
+        let sp = new StackPanel(Orientation=Orientation.Vertical)
+        sp.Children.Add(img) |> ignore
+        let playerKnowsLocationOfWoodBoomer = TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() |> Seq.exists (fun b -> b.CellCurrent()=TrackerModel.ITEMS.BOOMERANG)
+        let playerKnowsLocationOfWhiteSword = TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() |> Seq.exists (fun b -> b.CellCurrent()=TrackerModel.ITEMS.WHITESWORD)
+        if TrackerModel.playerComputedStateSummary.BoomerangLevel=2 && not(playerKnowsLocationOfWoodBoomer) then
+            let tb = new TextBox(FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
+                                    Text="Note: having magical boomerang may make\n   it hard to notice wooden boomerang pick up")
+            sp.Children.Add(tb) |> ignore
+        if TrackerModel.playerComputedStateSummary.SwordLevel=3 && not(playerKnowsLocationOfWhiteSword) then
+            let tb = new TextBox(FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
+                                    Text="Note: having magical sword may make it\n   hard to notice if white sword picked up")
+            sp.Children.Add(tb) |> ignore
+        let b = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Black, Child=sp)
+        let b = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Child=b, Background=Brushes.Black)
+        spotSummaryCanvas.Children.Clear()
+        canvasAdd(spotSummaryCanvas, b, 270., 162.)
+        )
+    currentMaxHeartsTextBoxClickable.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
     // coordinate grid
     let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
     let zoneCanvas = new Canvas()
