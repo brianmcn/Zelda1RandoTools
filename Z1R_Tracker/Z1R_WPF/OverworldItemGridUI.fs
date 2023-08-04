@@ -105,7 +105,7 @@ let makeFauxItemsAndHeartsHUD() =
     // middle row
     maybeErase(10,14,28,35,TrackerModel.playerComputedStateSummary.BoomerangLevel>0)
     copyWorse(10,14,28,35,TrackerModel.playerComputedStateSummary.BoomerangLevel=1)
-    // (just assume have bombs)
+    maybeErase(33,40,24,39,TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasBombs.Value())
     maybeErase(55,59,24,39,TrackerModel.playerComputedStateSummary.ArrowLevel>0)
     copyWorse(55,59,24,39,TrackerModel.playerComputedStateSummary.ArrowLevel=1)
     maybeErase(61,69,24,39,TrackerModel.playerComputedStateSummary.HaveBow)
@@ -113,8 +113,8 @@ let makeFauxItemsAndHeartsHUD() =
     copyWorse(81,88,24,39,TrackerModel.playerComputedStateSummary.CandleLevel=1)
     // bottom row
     maybeErase(12,14,40,55,TrackerModel.playerComputedStateSummary.HaveRecorder)
-    // (just assume have meat)
-    copyWorse(57,64,40,55,true)
+    copyWorse(33,40,40,55,true)  // worse has a greyscale meat, tracker doesn't know if player has
+    copyWorse(57,64,40,55,true)  // worse shows potion letter, maybeErased below
     maybeErase(57,64,40,55,TrackerModel.havePotionLetter.Value)
     maybeErase(83,86,40,55,TrackerModel.playerComputedStateSummary.HaveWand)
     // add hearts display

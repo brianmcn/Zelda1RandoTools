@@ -16,7 +16,7 @@ open CustomComboBoxes.GlobalFlag
 module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
 
 let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
-                                            BorderThickness=Thickness(0.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+                                            BorderBrush=Brushes.Transparent, BorderThickness=Thickness(1.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                             BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents = (let dp = new DockPanel(Background=Brushes.Black) in dp.Children.Add(owRemainingScreensTextBox) |> ignore; dp)
@@ -1314,6 +1314,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let currentMaxHeartsTextBoxClickable = new Border(Background=Brushes.Black, Child=currentMaxHeartsTextBox, BorderThickness=Thickness(0.))
     layout.AddCurrentMaxHearts(currentMaxHeartsTextBoxClickable)
     currentMaxHeartsTextBoxClickable.MouseEnter.Add(fun _ -> 
+        currentMaxHeartsTextBox.BorderBrush <- Brushes.DarkTurquoise
         let bmp = OverworldItemGridUI.makeFauxItemsAndHeartsHUD()
         let img = Graphics.BMPtoImage bmp
         img.Width <- 3. * img.Width
@@ -1337,7 +1338,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         spotSummaryCanvas.Children.Clear()
         canvasAdd(spotSummaryCanvas, b, 270., 162.)
         )
-    currentMaxHeartsTextBoxClickable.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
+    currentMaxHeartsTextBoxClickable.MouseLeave.Add(fun _ -> 
+        currentMaxHeartsTextBox.BorderBrush <- Brushes.Transparent
+        spotSummaryCanvas.Children.Clear()
+        )
     // coordinate grid
     let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
     let zoneCanvas = new Canvas()

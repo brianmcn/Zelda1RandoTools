@@ -200,8 +200,6 @@ since 1.3.0y...
 
 
 
-note about starting item duplicates in max heart hover Note:s
-maybe haveBombs for that part of inv.?
 
 
 no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)

@@ -126,7 +126,7 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddOWGettableScreens(owGettableScreensCheckBox) =
             canvasAdd(appMainCanvas, owGettableScreensCheckBox, RIGHT_COL, 110.)
         member this.AddCurrentMaxHearts(currentMaxHeartsTextBox) = 
-            canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL, 130.)
+            canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL-1., 130.-1.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(appMainCanvas, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
             canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
@@ -363,7 +363,7 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
         member this.AddOWGettableScreens(owGettableScreensCheckBox) =
             canvasAdd(upper, owGettableScreensCheckBox, RIGHT_COL, 110.)
         member this.AddCurrentMaxHearts(currentMaxHeartsTextBox) = 
-            canvasAdd(upper, currentMaxHeartsTextBox, RIGHT_COL, 130.)
+            canvasAdd(upper, currentMaxHeartsTextBox, RIGHT_COL-1., 130.-1.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(upper, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
             canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
