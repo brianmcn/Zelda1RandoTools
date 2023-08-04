@@ -12,7 +12,7 @@ A summary of the features/fixes in the various releases of Z-Tracker
 
 ## <a id="v1.3.1"></a>Version 1.3.1
 
-This is a major update with a number of usability improvements and new features.
+This is a major update with a large number of usability improvements and new features.
 
  - [Alternate app size](#v13-alt-size)
  - [Navigation hotkeys](#v13-hotkeys)
@@ -24,6 +24,10 @@ This is a major update with a number of usability improvements and new features.
  - [Mirror-overworld and 2nd-quest-dungeons toggles](#v13-mirror)
  - [Faster map region hints](#v13-fast-hint)
  - ["Have I found X yet" at a glance](#v13-glance-found)
+ - [Better visibility for stairs not-yet-taken](#v13-unpaired-stairs)
+ - [Hover 'Item Progress' to see remaining unmarked items](#v13-remaining-items)
+ - [Replace White Sword and Magical Sword with Bomb Upgrades](#v13-ws-ms-bu)
+ - [Hovering 'Max Hearts' displays an inventory summary](#v13-max-hearts-inventory)
  - [A bunch of other stuff](#v13-other-stuff)
 
 ### <a id="v13-alt-size">Alternate app size</a>
@@ -119,6 +123,34 @@ But now, you can also just glance at the tracker to answer to question:
 
 Similar effects happen on all these boxes: magical sword, wood sword, blue ring, boomstick book, blue candle, wood arrow, bombs.
 
+### <a id="v13-unpaired-stairs">Better visibility for stairs not-yet-taken</a>
+
+A transport stair whose other-end-pair has not yet been marked, as well as unknown stairways, now have the numeral/question-mark light up yellow, so they attract more attention from your eyeballs:
+
+![unpaired stairs](screenshots/unpaired-unknown-transport-stairs.png)
+
+### <a id="v13-remaining-items">Hover 'Item Progress' to see remaining unmarked items</a>
+
+A mouse hover can now display the set of remaining items that could appear in an empty item box:
+
+![remaining items](screenshots/remaining-unmarked-items.png)
+
+### <a id="v13-ws-ms-bu">Replace White Sword and Magical Sword with Bomb Upgrades</a>
+
+This z1r rando flag is now supported by the app; clicking the toggle button (circled in red in the screenshot) will change the White Sword item or Magical Sword item icons into
+Bomb Upgrade icons (pointed at by orange arrows in the screenshot).  (The screenshot imagines the player found the White Sword Bomb Upgrade in dungeon 5, and obtained the Magical
+Sword Bomb Upgrade.)
+
+![WS MS BU](screenshots/ws-ms-bu.png)
+
+### <a id="v13-max-hearts-inventory">Hovering 'Max Hearts' displays an inventory summary</a>
+
+Sometimes you are in a dungeon, and as you clear a room, you hear the 'item pickup' sound, but can't tell what item you just picked up.  Hovering 'Max Hearts' will display a popup window:
+
+![max hearts hover](screenshots/max-hearts-inventory.png)
+
+which shows your inventory and maximum hearts, as far as the tracker knows.  Then you can visually compare with your in-game inventory to help identify what item you picked up.
+
 ### <a id="v13-other-stuff">A bunch of other stuff</a>
 
 - usability: the clickable stuff now gives mouse-hover feedback to make it clearer it's clickable
@@ -135,8 +167,11 @@ Similar effects happen on all these boxes: magical sword, wood sword, blue ring,
 - can choose a different voice for spoken reminders, if installed
 - hovering Hint Decoder button shows locations of hint shops marked on overworld map
 - hovering dungeon icon in LEGEND shows locations of all dungeons, just like hovering 'S' summary tab header does
+- Show/Run Custom now comes with some useful defaults (try clicking the button, uncommenting some SHOW lines in the text file, saving, clicking the button again; dragging the new windows around will save their locations for next time)
 - Blockers numerals turn white when the corresponding dungeon is located on the overworld
 - new rupee icon in upper right, hovering it (or money blocker in blockers) shows all MMGs, Unknown Secrets, or un-taken Secrets
+- ToggleCursorOverworldOrDungeon hotkey shows a brief animation to help locate the warped mouse cursor (only in default Tall application layout)
+- left-clicking a dungeon mark on overworld map switches to that dungeon tab and behaves like ToggleCursorOverworldOrDungeon hotkey
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
 - new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
 - new eyeball icon in upper right, hover to hide overworld map icons (to see unobscured map)
@@ -148,7 +183,7 @@ Similar effects happen on all these boxes: magical sword, wood sword, blue ring,
 - a lot of improvements to crispness of art/images when using 2/3 size mode
 - new option to turn off Dungeon 'sunglasses', to make dungeon tracker use brighter colors/higher contrast
 - a lot of small fixes
-- a lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
+- a whole lot of performance improvements (for best performance on very low-end machines, use Tall window layout and turn off both "Draw Routes" and "Highlight Nearby")
 
 ![Horizontal rule](screenshots/horizontal-rule.png)
 
