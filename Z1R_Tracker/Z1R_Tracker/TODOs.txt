@@ -197,6 +197,7 @@ since 1.3.0y...
  - add "WS/MS replaced by BU" toggle button in upper right of app, just changes WS/MS icons to bomb upgrade icons (TODO doc)
  - fix a showLocator bug
  - hovering 'Max Hearts' shows your inventory and hearts display just like game does (useful if you pick up item, but not sure what got) (TODO doc)
+since 1.3.0z...
 
 
 
