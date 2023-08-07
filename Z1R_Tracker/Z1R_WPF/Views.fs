@@ -271,7 +271,13 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
         | TrackerModel.PlayerHas.NO -> 
             if bmp=null then 
                 rect.Stroke <- 
-                    try CustomComboBoxes.noPct(TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Value) 
+                    try
+                        let redify = 
+                            match TrackerModel.IsHiddenDungeonNumbers(), box.Owner with
+                            | false, TrackerModel.BoxOwner.Dungeon1or4 -> not(TrackerModel.GetDungeon(if TrackerModel.IsSecondQuestDungeons then 3 else 0).Boxes.[1].IsEmptyRedBox)
+                            | false, TrackerModel.BoxOwner.DungeonIndexAndNth(i,2) -> not(TrackerModel.GetDungeon(i).Boxes.[1].IsEmptyRedBox)
+                            | _ -> false
+                        CustomComboBoxes.noPct(if redify then 1. else TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Value) 
                     with _ -> CustomComboBoxes.no  // we create fake Views on the startup menu to preview Heart Shuffle; TheDungeonTrackerInstance does not exist yet and throws
             else 
                 rect.Stroke <- 

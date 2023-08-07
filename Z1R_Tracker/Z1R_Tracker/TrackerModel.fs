@@ -595,6 +595,7 @@ type Box(stair:StairKind, owner) =
     let changed = new Event<_>()
     member _this.Changed = changed.Publish
     member _this.PlayerHas() = playerHas           // note that the state (cell = -1, playerHas = SKIPPED) is used to mean 'white-highlighted box' in the UI
+    member this.IsEmptyRedBox = this.PlayerHas() = PlayerHas.NO && this.CellCurrent() = -1
     member _this.Stair = stair
     member _this.Owner = owner
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
@@ -681,7 +682,7 @@ type DungeonTrackerInstance(kind) =
             if anyChanged.IsNone then
                 anyChanged <- Some(
                     new SyntheticEventingBool((fun()-> 
-                        pct <- float(all() |> Seq.sumBy (fun b -> if b.PlayerHas() <> PlayerHas.NO then 1 else 0)) / 20. // 23 items exist; be max red when few left
+                        pct <- float(all() |> Seq.sumBy (fun b -> if not(b.IsEmptyRedBox) then 1 else 0)) / 20. // 23 items exist; be max red when few left
                         pct <- min pct 1.0    // don't say e.g. 23./20., and also hidden dungeon numbers has extra boxes
                         false), all() |> Seq.map (fun b -> b.Changed)))
             anyChanged.Value
