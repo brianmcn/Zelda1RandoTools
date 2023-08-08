@@ -614,15 +614,19 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 // two of the arrow keys should still work
                 match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                    ea.Handled <- true
                     if adir = RR then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
+                    ea.Handled <- true
                     if adir = RR then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                    ea.Handled <- true
                     if adir = DD then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(float bi, float bj))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                    ea.Handled <- true
                     if adir = DD then
                         Graphics.NavigationallyWarpMouseCursorTo(centerOf(float ai, float aj))
                 | _ -> ()

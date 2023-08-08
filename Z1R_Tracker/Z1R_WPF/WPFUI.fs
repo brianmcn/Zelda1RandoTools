@@ -1984,6 +1984,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         )
         timer.Start()
 
+    let ARROW_DELTA = 20.
     appMainCanvas.MyKeyAdd(fun ea ->
         match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
         | Some(hotKeyedState) -> 
@@ -2025,7 +2026,23 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     layout.ShowMouseWarp(newPos)
                     Graphics.NavigationallyWarpMouseCursorTo(newPos)
                     layout.FocusOverworld()
-            | _ -> () // MoveCursor not handled at this level
+            // If no element reacted to the arrow key hotkeys, nudge the mouse a small bit
+            | HotKeys.GlobalHotkeyTargets.MoveCursorLeft -> 
+                let pos = Input.Mouse.GetPosition(appMainCanvas)
+                if pos.X > ARROW_DELTA then
+                    Graphics.SilentlyWarpMouseCursorTo(Point(pos.X - ARROW_DELTA, pos.Y))
+            | HotKeys.GlobalHotkeyTargets.MoveCursorRight -> 
+                let pos = Input.Mouse.GetPosition(appMainCanvas)
+                if pos.X < appMainCanvas.Width - ARROW_DELTA then
+                    Graphics.SilentlyWarpMouseCursorTo(Point(pos.X + ARROW_DELTA, pos.Y))
+            | HotKeys.GlobalHotkeyTargets.MoveCursorUp -> 
+                let pos = Input.Mouse.GetPosition(appMainCanvas)
+                if pos.Y > ARROW_DELTA then
+                    Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y - ARROW_DELTA))
+            | HotKeys.GlobalHotkeyTargets.MoveCursorDown -> 
+                let pos = Input.Mouse.GetPosition(appMainCanvas)
+                if pos.Y < appMainCanvas.Height - ARROW_DELTA then
+                    Graphics.SilentlyWarpMouseCursorTo(Point(pos.X, pos.Y + ARROW_DELTA))
         | None -> 
             ()
     )
