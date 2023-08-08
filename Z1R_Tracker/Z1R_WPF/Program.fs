@@ -18,6 +18,7 @@ module Winterop =
     [<DllImport("user32.dll")>]
     extern bool ShowWindow(IntPtr hWnd, int nCmdShow)
     let SW_HIDE = 0
+    let SW_SHOWNORMAL = 1
     let SW_SHOW = 5
     let SW_MINIMIZE = 6
 
@@ -188,6 +189,9 @@ let ApplyKonamiCodeEasterEgg(cm:CustomComboBoxes.CanvasManager, fe:FrameworkElem
                     } |> Async.StartImmediate
         )
 
+let mutable theDummyWindow : Window = null
+let waitForConsole = new System.Threading.ManualResetEvent(true)
+
 type MyWindow() as this = 
     inherit MyWindowBase()
     let mutable updateTimeline = fun _ -> ()
@@ -205,6 +209,22 @@ type MyWindow() as this =
     let crashLogFilename = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Z1R_Tracker_crash_log.txt")
     let dateTimeFormat = "yyyy-MM-dd-HH:mm:ss"
     do
+        let showCrashOnConsole() =
+            waitForConsole.Reset() |> ignore
+            async {
+                let handle = Winterop.GetConsoleWindow()
+                Winterop.ShowWindow(handle, Winterop.SW_SHOWNORMAL) |> ignore
+                while Console.KeyAvailable do
+                    Console.ReadKey(false) |> ignore   // clear keyboard buffer
+                if gotThruStartup then
+                    printfn ""
+                    printfn "If Z-Tracker crashed while you were playing, you might be able to restore the most recent"
+                    printfn "auto-save, by restarting Z-Tracker right now."
+                printfn ""
+                printfn "Press a key to close this window"
+                System.Console.ReadKey() |> ignore
+                waitForConsole.Set() |> ignore
+            } |> Async.Start
         let logCrashInfo(s:string) =
             printfn "%s" s
             try
@@ -249,7 +269,9 @@ type MyWindow() as this =
             handle(ex)
             e.Handled <- true
             finishCrashInfo()
-            Application.Current.Shutdown()
+            showCrashOnConsole()
+            if theDummyWindow <> null then
+                theDummyWindow.Close()
             )
         System.AppDomain.CurrentDomain.UnhandledException.Add(fun e -> 
             if System.Diagnostics.Debugger.IsAttached then
@@ -262,6 +284,7 @@ type MyWindow() as this =
             | _ ->
                 logCrashInfo <| sprintf "An unhandled exception from background thread occurred."
                 finishCrashInfo()
+            showCrashOnConsole()
             )
 
         HotKeys.PopulateHotKeyTables()
@@ -972,7 +995,8 @@ let main _argv =
 #else
         try
 #endif
-            app.Run(DummyWindow()) |> ignore
+            theDummyWindow <- DummyWindow()
+            app.Run(theDummyWindow) |> ignore
 #if DEBUG
 #else
         with e ->
@@ -997,4 +1021,5 @@ let main _argv =
         printfn "(Press a key to dismiss this console window)"
         System.Console.ReadKey() |> ignore
 
+    Async.RunSynchronously(Async.AwaitWaitHandle(waitForConsole)) |> ignore
     0
