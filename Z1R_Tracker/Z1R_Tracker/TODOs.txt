@@ -199,10 +199,10 @@ since 1.3.0y...
  - hovering 'Max Hearts' shows your inventory and hearts display just like game does (useful if you pick up item, but not sure what got) (TODO doc)
 since 1.3.0z...
  - fix glow-red-brighter logic for empty item boxes, and also special case 3rd box of 1/4/8 in non-HDN to glow brighter when 2nd box non-empty
+ - add ladder-ful coast-to-forest-interior screen scrolls
+    - tracker now shows all useful scrolls except: desert to forest fairy (fairy not 'interesting'), A1-to-start-screen (hard to compute/draw), and mirror-OW-to-coast-island (breaks logic)
 
 
-add ladder-conditional screen scrolls to the coast docks in non-mirror
-add scroll from A1 to start spot if its marked?
 
 
 if WSMSBU, maybe not X out wood sword, or turn off cyan highlights, even if 'have better sword'

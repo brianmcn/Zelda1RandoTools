@@ -241,6 +241,8 @@ let staticNormalScreenScrolls =
     table.Add(Vertex(1,5,FULL), Vertex(0,5,FULL), 2)
     table.Add(Vertex(5,7,EAST), Vertex(4,7,FULL), 2)
     table.Add(Vertex(5,7,EAST), Vertex(5,7,WEST), 2)
+    // warp to start
+//    table.Add(Vertex(0,0,FULL), Vertex(1,0,FULL), 4)   // without knowing start spot, and computing interesting/accessible, there's no good way to make this get drawn at right time
     // L -> R
     ()
     // cross rivers splits
@@ -358,6 +360,8 @@ let populateDynamic(ladder, raft, currentRecorderWarpDestinations, currentAnyRoa
             a.AddRange(staticNormalScreenScrolls)
             if ladder then
                 a.Add(Vertex(0,6,FULL), Vertex(15,5,FULL), 3)   // world wrap
+                a.Add(Vertex(15,4,FULL), Vertex(14,4,FULL), 2)
+                a.Add(Vertex(15,5,FULL), Vertex(14,5,FULL), 2)
     a.AddRange(populateStaticOverworldData(ladder,raft))
     let st = generateScreenTypeList(a)
     let allVertex = new System.Collections.Generic.HashSet<_>()
