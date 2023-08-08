@@ -315,7 +315,7 @@ CustomComboBoxes.DoModalGridSelect(cm, tileX, tileY, tileCanvas, gridElementsSel
     gx, gy, redrawTile, onClick, extraDecorations, brushes, gridClickDismissalWarpReturn, who)
 *)
 let DoModalGridSelect<'State,'Result>
-        (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, one which you will redrawTile your preview-tile
+        (cm:CanvasManager, tileX, tileY, tileCanvas:Canvas, // tileCanvas - an empty Canvas with just Width and Height set, on which you will redrawTile your preview-tile
                 gridElementsSelectablesAndIDs:(FrameworkElement*bool*'State)[], // array of display elements, whether they're selectable, and your stateID name/identifier for them
                 originalStateIndex:int, // originalStateIndex is array index into the array
                 activationDelta:int, // activationDelta is -1/0/1 if we should give initial input of scrollup/none/scrolldown
@@ -375,7 +375,12 @@ let DoModalGridSelect<'State,'Result>
     let snapBack() = if not allDoneSoNoLongerNeedToMouseLeaveSnapback then changeCurrentState(originalStateIndex)     // don't redraw and do other work after the popup is done (MouseLeave can be very error-prone if not careful!)
     // original tile
     redrawTile(stateID())
-    tileCanvas.MouseWheel.Add(fun x -> if x.Delta<0 then next() else prev())
+    let centerOfTile = Point(tileX+tileCanvas.Width/2., tileY+tileCanvas.Height/2.)   // use actual center, not the "ideal" coords, as we want the most wiggle-room, even if mouse obscures item a little
+    // you can scroll to activate a box along its edge, such that clicking after the scroll ends up outside the tile; center the mouse when scrolling, as scrolling often jiggles it too
+    let recenterMouse() = Graphics.SilentlyWarpMouseCursorTo(centerOfTile)
+    if activationDelta <> 0 then  
+        recenterMouse()
+    tileCanvas.MouseWheel.Add(fun x -> recenterMouse(); if x.Delta<0 then next() else prev())
     tileCanvas.MouseDown.Add(fun ea -> 
         ea.Handled <- true
         match onClick(ea, stateID()) with
