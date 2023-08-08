@@ -204,6 +204,9 @@ since 1.3.0z...
  - fix to display the console window if app crashes
  - fix items boxes: scroll-to-activate a grid-popup automatically moves mouse to center of tile, to avoid case where activate on edge where a subsequent click is outside the menu
  - if mouse not over a grid that reacts to arrow hotkeys, then arrow hotkeys 'nudge' the mouse 20 pixels
+ - upper-left tri/item area allow arrow hotkeys to let mouse 'escape' downward/rightward using above mechanism
+ - blockers area allows arrow hotkeys to let mouse 'escape' upward/leftward using above mechanism
+
 
 
 if WSMSBU, maybe not X out wood sword, or turn off cyan highlights, even if 'have better sword'

@@ -276,9 +276,10 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                 mainTrackerCanvases.[i,j].MyKeyAdd(fun ea ->
                     match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
-                        ea.Handled <- true
                         if i<mainTrackerCanvases.GetLength(0)-1 then
+                            ea.Handled <- true
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i+1,j].TranslatePoint(IDEAL,cm.AppMainCanvas))
+                        // else unhandled, so app global handler will nudge mouse right
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                         ea.Handled <- true
                         if i>0 then
@@ -288,9 +289,10 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
                         if j>0 then
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j-1].TranslatePoint(IDEAL,cm.AppMainCanvas))
                     | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
-                        ea.Handled <- true
                         if j<4 then
+                            ea.Handled <- true
                             Graphics.NavigationallyWarpMouseCursorTo(mainTrackerCanvases.[i,j+1].TranslatePoint(IDEAL,cm.AppMainCanvas))
+                        // else unhandled, so app global handler will nudge mouse down
                     | _ -> ()
                 )
 (*

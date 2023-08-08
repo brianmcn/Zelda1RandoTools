@@ -918,19 +918,22 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
                     elif dungeonIndex<>1 && dungeonIndex<>4 && dungeonIndex<>7 then
                         Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex+1,0].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
-                    ea.Handled <- true
                     if blockerIndex>0 then
+                        ea.Handled <- true
                         Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex,blockerIndex-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                     elif dungeonIndex<>0 && dungeonIndex<>2 && dungeonIndex<>5 then
+                        ea.Handled <- true
                         Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex-1,TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    // else unhandled, so app global handler will nudge mouse left
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
                     ea.Handled <- true
-                    if dungeonIndex<4 then
+                    if dungeonIndex<5 then
                         Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex+3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
                 | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
-                    ea.Handled <- true
                     if dungeonIndex>2 then
+                        ea.Handled <- true
                         Graphics.NavigationallyWarpMouseCursorTo(blockerBoxes.[dungeonIndex-3,blockerIndex].TranslatePoint(Point(15.,15.),cm.AppMainCanvas))
+                    // else unhandled, so app global handler will nudge mouse up
                 | _ -> ()
                 match HotKeys.BlockerHotKeyProcessor.TryGetValue(ea.Key) with
                 | Some(db) -> 

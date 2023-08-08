@@ -2026,7 +2026,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     layout.ShowMouseWarp(newPos)
                     Graphics.NavigationallyWarpMouseCursorTo(newPos)
                     layout.FocusOverworld()
-            // If no element reacted to the arrow key hotkeys, nudge the mouse a small bit
+            // If no element reacted to the arrow key hotkeys, nudge the mouse a small bit.
+            // Note that MainTracker and Blockers specifically leave some arrow-hotkeys unhandled so that this activates.
             | HotKeys.GlobalHotkeyTargets.MoveCursorLeft -> 
                 let pos = Input.Mouse.GetPosition(appMainCanvas)
                 if pos.X > ARROW_DELTA then
