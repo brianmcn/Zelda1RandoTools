@@ -207,6 +207,7 @@ since 1.3.0z...
  - upper-left tri/item area allow arrow hotkeys to let mouse 'escape' downward/rightward using above mechanism
  - blockers area allows arrow hotkeys to let mouse 'escape' upward/leftward using above mechanism
 since 1.3.0A...
+ - attempt to fix issue with app Left/Top coordinates getting saved as -32000 (minimized) preventing app from reopening (probable race condition)
 
 
 

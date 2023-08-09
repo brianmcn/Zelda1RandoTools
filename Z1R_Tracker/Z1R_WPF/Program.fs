@@ -324,10 +324,11 @@ type MyWindow() as this =
             this.Left <- float matches.Groups.[1].Value
             this.Top <- float matches.Groups.[2].Value
         this.LocationChanged.Add(fun _ ->
-            if this.Left < -30000.0 || this.Top < -30000.0 then
+            let left, top = this.Left, this.Top  // cache to local variable; I suspect there is a race where 2 subsequent reads yield different values during app shutdown
+            if left < -30000.0 || top < -30000.0 then
                 ()  // when you Minimize the window, -32000,-32000 are reported. Don't save that, as it's hard to recover window later
             else
-                TrackerModelOptions.MainWindowLT <- sprintf "%d,%d" (int this.Left) (int this.Top)
+                TrackerModelOptions.MainWindowLT <- sprintf "%d,%d" (int left) (int top)
                 TrackerModelOptions.writeSettings()
             )
         this.Width <- APP_WIDTH
