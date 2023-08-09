@@ -533,6 +533,7 @@ let extrasLastChangedTime = new LastChangedTime()
 type StartingItemsAndExtras() =
     let triforces = Array.init 8 (fun _ -> BoolProperty(false,fun()->extrasLastChangedTime.SetNow()))
     let whiteSword = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
+    let magicalSword = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let silverArrow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let bow = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let wand = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
@@ -548,7 +549,8 @@ type StartingItemsAndExtras() =
     let book = BoolProperty(false,fun()->extrasLastChangedTime.SetNow())
     let mutable maxHeartsDiff = 0
     member _this.HDNStartingTriforcePieces = triforces
-    member _this.PlayerHasWhiteSword         = whiteSword
+    member _this.PlayerHasWhiteSword = whiteSword         // Note that unlike the item box / cave versions of these items, the starting item
+    member _this.PlayerHasMagicalSword = magicalSword     // versions of these mean the player actually has a sword, even if WSMS->BU flag is on
     member _this.PlayerHasSilverArrow = silverArrow
     member _this.PlayerHasBow = bow
     member _this.PlayerHasWand = wand
@@ -862,10 +864,11 @@ let recomputePlayerStateSummary() =
             elif b.CellCurrent() = ITEMS.WAND then
                 haveWand <- true
             elif b.CellCurrent() = ITEMS.WHITESWORD then
-                swordLevel <- max swordLevel 2
+                if not(IsWSMSReplacedByBU()) then
+                    swordLevel <- max swordLevel 2
     if playerProgressAndTakeAnyHearts.PlayerHasBlueCandle.Value() then
         candleLevel <- max candleLevel 1
-    if playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() then
+    if playerProgressAndTakeAnyHearts.PlayerHasMagicalSword.Value() && not(IsWSMSReplacedByBU()) then
         swordLevel <- 3
     if playerProgressAndTakeAnyHearts.PlayerHasWoodSword.Value() then
         swordLevel <- max swordLevel 1
@@ -875,6 +878,8 @@ let recomputePlayerStateSummary() =
         arrowLevel <- max arrowLevel 1
     if startingItemsAndExtras.PlayerHasWhiteSword.Value() then
         swordLevel <- max swordLevel 2
+    if startingItemsAndExtras.PlayerHasMagicalSword.Value() then
+        swordLevel <- 3
     if startingItemsAndExtras.PlayerHasSilverArrow.Value() then
         arrowLevel <- 2
     if startingItemsAndExtras.PlayerHasBoomerang.Value() then
@@ -1035,6 +1040,7 @@ let recomputeMapStateSummary() =
                     if not playerComputedStateSummary.HaveWhiteSwordItem && playerComputedStateSummary.PlayerHearts >= 4 then
                         owRouteworthySpots.[i,j] <- true
                 | x when x=MapSquareChoiceDomainHelper.SWORD1 -> 
+                    // TODO if not took item, is routeworthy
                     woodSwordCaveFound_ <- true
                     sword1Location <- i,j
                 | n when n=MapSquareChoiceDomainHelper.ARMOS -> 
@@ -1772,12 +1778,13 @@ type TimelineItemModel(desc: TimelineItemDescription) =
         all.Add(TimelineItemDescription.ExtrasOrShopping("WoodArrow", playerProgressAndTakeAnyHearts.PlayerHasWoodArrow))
         all.Add(TimelineItemDescription.ExtrasOrShopping("BlueCandle", playerProgressAndTakeAnyHearts.PlayerHasBlueCandle))
         all.Add(TimelineItemDescription.ExtrasOrShopping("BlueRing", playerProgressAndTakeAnyHearts.PlayerHasBlueRing))
-        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicalSword", playerProgressAndTakeAnyHearts.PlayerHasMagicalSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("MagicalSword", playerProgressAndTakeAnyHearts.PlayerHasMagicalSword))   // might be a BU
         all.Add(TimelineItemDescription.ExtrasOrShopping("BoomstickBook", playerProgressAndTakeAnyHearts.PlayerHasBoomBook))
         all.Add(TimelineItemDescription.ExtrasOrShopping("Gannon", playerProgressAndTakeAnyHearts.PlayerHasDefeatedGanon))
         all.Add(TimelineItemDescription.ExtrasOrShopping("Zelda", playerProgressAndTakeAnyHearts.PlayerHasRescuedZelda))
         // extras
         all.Add(TimelineItemDescription.ExtrasOrShopping("WhiteSword", startingItemsAndExtras.PlayerHasWhiteSword))
+        all.Add(TimelineItemDescription.ExtrasOrShopping("StartingMagicalSword", startingItemsAndExtras.PlayerHasMagicalSword))   // always mags
         all.Add(TimelineItemDescription.ExtrasOrShopping("SilverArrow", startingItemsAndExtras.PlayerHasSilverArrow))
         all.Add(TimelineItemDescription.ExtrasOrShopping("Bow", startingItemsAndExtras.PlayerHasBow))
         all.Add(TimelineItemDescription.ExtrasOrShopping("Wand", startingItemsAndExtras.PlayerHasWand))

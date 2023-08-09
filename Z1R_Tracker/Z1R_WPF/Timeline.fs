@@ -11,8 +11,9 @@ let canvasAdd = Graphics.canvasAdd
 type TimelineID =
     // "items"
     | WoodSword
-    | WhiteSword
-    | MagicalSword
+    | WhiteSword             // the starting item (which is always a sword)   (Note that e.g. LevelBox(3,1) might me WHITESWORD which might be a BU)
+    | MagicalSword           // the shopping area box (which might be a BU)
+    | StartingMagicalSword   // the starting item (which is always a sword)
     | Boomerang
     | MagicBoomerang
     | WoodArrow
@@ -70,6 +71,7 @@ type TimelineID =
         | WoodSword -> "WoodSword"
         | WhiteSword -> "WhiteSword"
         | MagicalSword -> "MagicalSword"
+        | StartingMagicalSword -> "StartingMagicalSword"
         | Boomerang -> "Boomerang"
         | MagicBoomerang -> "MagicBoomerang"
         | WoodArrow -> "WoodArrow"

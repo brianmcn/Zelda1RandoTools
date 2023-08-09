@@ -95,6 +95,7 @@ type PlayerProgressAndTakeAnyHeartsModel() =
 type StartingItemsAndExtrasModel() =
     member val HDNStartingTriforcePieces : bool[] = null with get,set
     member val PlayerHasWhiteSword = false with get,set
+    member val PlayerHasMagicalSword = false with get,set
     member val PlayerHasSilverArrow = false with get,set
     member val PlayerHasBow = false with get,set
     member val PlayerHasWand = false with get,set
@@ -113,6 +114,7 @@ type StartingItemsAndExtrasModel() =
         let r = new StartingItemsAndExtrasModel()
         r.HDNStartingTriforcePieces <- Array.init 8 (fun i -> TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Value())
         r.PlayerHasWhiteSword <- TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword.Value()
+        r.PlayerHasMagicalSword <- TrackerModel.startingItemsAndExtras.PlayerHasMagicalSword.Value()
         r.PlayerHasSilverArrow <- TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow.Value()
         r.PlayerHasBow <- TrackerModel.startingItemsAndExtras.PlayerHasBow.Value()
         r.PlayerHasWand <- TrackerModel.startingItemsAndExtras.PlayerHasWand.Value()
@@ -132,6 +134,7 @@ type StartingItemsAndExtrasModel() =
         for i = 0 to 7 do
             TrackerModel.startingItemsAndExtras.HDNStartingTriforcePieces.[i].Set(this.HDNStartingTriforcePieces.[i])
         TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword.Set(this.PlayerHasWhiteSword)
+        TrackerModel.startingItemsAndExtras.PlayerHasMagicalSword.Set(this.PlayerHasMagicalSword)
         TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow.Set(this.PlayerHasSilverArrow)
         TrackerModel.startingItemsAndExtras.PlayerHasBow.Set(this.PlayerHasBow)
         TrackerModel.startingItemsAndExtras.PlayerHasWand.Set(this.PlayerHasWand)

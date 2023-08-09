@@ -342,18 +342,11 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let rect = new System.Windows.Shapes.Rectangle(Width=30., Height=30., StrokeThickness=3.0)
         let innerc = new Canvas(Width=30., Height=30., Background=Brushes.Transparent)  // just has item drawn on it, not the box
         let bmpF() =
-            if obj.Equals(Graphics.magical_sword_bmp, bmp) then
-                // for the starting items panel
-                if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.magical_sword_bmp
-            else
                 match timelineID with
                 | Some tid -> 
                     if tid=Timeline.TimelineID.MagicalSword then
                         // for the overworld item grid shopping area
                         if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.magical_sword_bmp
-                    elif tid=Timeline.TimelineID.WhiteSword then
-                        // for the starting items panel
-                        if TrackerModel.IsWSMSReplacedByBU() then Graphics.ws_ms_bomb_upgrade_bmp else Graphics.white_sword_bmp
                     else
                         bmp
                 | _ -> bmp
@@ -545,7 +538,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
     let weaponsRowPanel = new StackPanel(Orientation=Orientation.Horizontal, HorizontalAlignment=HorizontalAlignment.Center)
     weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood sword", Graphics.brown_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodSword, FALSE, FALSE)) |> ignore
     weaponsRowPanel.Children.Add(basicBoxImpl("White sword", Timeline.TimelineID.WhiteSword, Graphics.white_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasWhiteSword, FALSE, FALSE)) |> ignore
-    weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Magical sword", Graphics.magical_sword_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasMagicalSword, FALSE, FALSE)) |> ignore
+    weaponsRowPanel.Children.Add(basicBoxImpl("Magical sword", Timeline.TimelineID.StartingMagicalSword, Graphics.magical_sword_bmp, TrackerModel.startingItemsAndExtras.PlayerHasMagicalSword, FALSE, FALSE)) |> ignore
     weaponsRowPanel.Children.Add(basicBoxImplNoTimeline("Wood arrow", Graphics.wood_arrow_bmp, TrackerModel.playerProgressAndTakeAnyHearts.PlayerHasWoodArrow, FALSE, FALSE)) |> ignore
     weaponsRowPanel.Children.Add(basicBoxImpl("Silver arrow", Timeline.TimelineID.SilverArrow, Graphics.silver_arrow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasSilverArrow, FALSE, FALSE)) |> ignore
     weaponsRowPanel.Children.Add(basicBoxImpl("Bow", Timeline.TimelineID.Bow, Graphics.bow_bmp, TrackerModel.startingItemsAndExtras.PlayerHasBow, FALSE, FALSE)) |> ignore
@@ -829,7 +822,7 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         let icon = Graphics.BMPtoImage Graphics.wsmsbuBMP
         let b = new Border(BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, Child=icon)
         let redraw() = b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then Brushes.Lime else Brushes.Gray
-        b.MouseDown.Add(fun _ -> TrackerModel.ToggleWSMSReplacedByBU())
+        b.MouseDown.Add(fun _ -> TrackerModel.ToggleWSMSReplacedByBU(); TrackerModel.recomputePlayerStateSummary())
         b.MouseEnter.Add(fun _ -> b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then midGreen else Brushes.LightGray)
         b.MouseLeave.Add(fun _ -> b.BorderBrush <- if TrackerModel.IsWSMSReplacedByBU() then Brushes.Lime else Brushes.Gray)
         TrackerModel.IsWSMSReplacedByBUChanged.Add(fun _ -> redraw())

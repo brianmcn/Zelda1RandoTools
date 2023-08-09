@@ -43,8 +43,12 @@ These screenshots show the default tall app, the square app when the mouse is in
 You can now navigate a great deal of the app without touching the mouse, if desired:
 
 - You can now map 4 "arrow" hotkeys, which can be used to navigate most grids (overworld, dungeon rooms, ...) as an alternative to moving the mouse
-- You can now map keyboard keys to mean 'left click, middle click, right click, scroll up, or scroll down'.
+- You can now map keyboard keys to mean 'left click, middle click, right click, scroll up, or scroll down'
 - You can now map hotkeys with 1 optional modifier (SHIFT/ALT/CTRL)
+- You can map a hotkey to ToggleCursorOverworldOrDungeon which moves the mouse to the center of the overworld if outside the overworld, or the center of the dungeon area otherwise
+- Left-clicking a dungeon on the overworld switches to that tab and ToggleCursorOverworldOrDungeon-moves the mouse there
+- When the mouse is not over an arrow-able grid, the "arrow" hotkeys will nudge the mouse 20 pixels
+- You can "arrow" the mouse downward or rightward out of the top triforce/item area, or leftward/upward out of the Blockers area, but other 'grids' confine the mouse arrowing
 
 Users of prior versions of Z-Tracker can simply copy over their existing "HotKeys.txt" file into the new install folder.  Then inspect the file
 "HotKeys_BlankSampleTemplate.txt" to learn about new hotkey options (at the bottoms of the Global_ and DungeonRoom_ sections), and then edit your
@@ -142,6 +146,10 @@ Bomb Upgrade icons (pointed at by orange arrows in the screenshot).  (The screen
 Sword Bomb Upgrade.)
 
 ![WS MS BU](screenshots/ws-ms-bu.png)
+
+The tracker also understands the actual sword logic, e.g. knowing that a bomb upgrade is not "a better sword" that would trigger a combat Blockers reminder.  If you start with the 
+white sword or magical sword as a starting in a seed that replaces those found items with Bomb Upgrades, you can still mark the actual swords in the "Starting Items and Extra Drops"
+(via the '...' under dungeon 9).
 
 ### <a id="v13-max-hearts-inventory">Hovering 'Max Hearts' displays an inventory summary</a>
 
