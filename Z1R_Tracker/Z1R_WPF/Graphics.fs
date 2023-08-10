@@ -1137,13 +1137,13 @@ let mutable theCounter = 0
 let setup(w:Window, v) =
     if theTimer=null then
         dpi <- Some(VisualTreeHelper.GetDpi(v))
-        theTimer <- new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
+        theTimer <- new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Render) // this only runs for a very short time when warping mouse; use high priority to avoid noticeable latency
         theTimer.Stop()
         theTimer.Interval <- TimeSpan.FromSeconds(0.03)
         theTimer.Tick.Add(fun _ -> 
             if theFrame <> null then   // avoid a race
                 if not sawMouseEvent && theCounter>4 then
-//                    printfn "uh oh too slow"
+                    //printfn "uh oh too slow"     // or, the mouse didn't move at all
                     sawMouseEvent <- true
                 if sawMouseEvent then
                     theFrame.Continue <- false
@@ -1152,8 +1152,6 @@ let setup(w:Window, v) =
                     theCounter <- theCounter + 1
             )
         w.MouseMove.Add(fun _ -> sawMouseEvent <- true)
-let SilentlyWarpMouseCursorToNonBlocking(pos:Point) =
-    Win32.SetCursor(pos.X, pos.Y)  // I can feel a tiny bit of latency when I scroll up an item box, due to waiting for WPF to pump and see the mouse move message; this avoids it
 let SilentlyWarpMouseCursorTo(pos:Point) =
     if theFrame = null then  // Note: cannot process a second of these calls while one is active; I think that's fine
         theFrame <- new System.Windows.Threading.DispatcherFrame()

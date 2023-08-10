@@ -216,7 +216,7 @@ since 1.3.0A...
  - in Hidden Dungeon Numbers, selecting a vanilla map outline on A-H will
     - if the dungeon number label is unknown, will mark it based on the selected map label
     - if 2Q1 or 2Q4 map is selected on any tab, will switch to Second Quest Dungeons mode (where 4, rather than 1, has a third item)
- - scrolling item boxes to activate popup (just changed recently) now does not run message pump when mouse warping to center of tile (as the latency was perceptible if we wait for the pump)
+ - fix perceptible latency in mouse warps
 
 
 

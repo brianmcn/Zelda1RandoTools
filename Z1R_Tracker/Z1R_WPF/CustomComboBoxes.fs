@@ -377,7 +377,7 @@ let DoModalGridSelect<'State,'Result>
     redrawTile(stateID())
     let centerOfTile = Point(tileX+tileCanvas.Width/2., tileY+tileCanvas.Height/2.)   // use actual center, not the "ideal" coords, as we want the most wiggle-room, even if mouse obscures item a little
     // you can scroll to activate a box along its edge, such that clicking after the scroll ends up outside the tile; center the mouse when scrolling, as scrolling often jiggles it too
-    let recenterMouse() = Graphics.SilentlyWarpMouseCursorToNonBlocking(centerOfTile)
+    let recenterMouse() = Graphics.SilentlyWarpMouseCursorTo(centerOfTile)
     if activationDelta <> 0 then  
         recenterMouse()
     tileCanvas.MouseWheel.Add(fun x -> recenterMouse(); if x.Delta<0 then next() else prev())
