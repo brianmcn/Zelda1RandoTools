@@ -271,20 +271,10 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
                     else
                         fullTileBmp.SetPixel(px, py, TRANS_BG)
             fullTileBmp
-        // Note: in HDN, you might have found dungeon G, but if you have starting triforce 4, and dunno if 4=G, we don't know if can recorder there
-        // We color green/yellow as we would if no starting/extra tris have been obtained, but hover-highlights over recorder destination button behave differently.
-        // Neither is 'correct', as there's incomplete information.
-        (*
-        let isGreen = 
-            if TrackerModel.recorderToNewDungeons then
-                (TrackerModel.GetDungeon(ms.State).PlayerHasTriforce() <> TrackerModel.recorderToUnbeatenDungeons) && TrackerModel.playerComputedStateSummary.HaveRecorder
-            else
-                false
-        *)
-        let isGreen = false     // green confused many users, thought it meant 'done'... we'll now use different iconography for recorder destinations
+        let isDarker = TrackerModel.GetDungeon(ms.State).IsComplete
         if TrackerModel.IsHiddenDungeonNumbers() then 
             if TrackerModel.GetDungeon(ms.State).LabelChar <> '?' then
-                if isGreen then
+                if isDarker then
                     let letter = Graphics.theInteriorBmpTable.[ms.State].[3]
                     let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[1]
                     false, combine(number,letter), []
@@ -293,12 +283,12 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
                     let number = Graphics.theInteriorBmpTable.[int(TrackerModel.GetDungeon(ms.State).LabelChar) - int('1')].[0]
                     false, combine(number,letter), []
             else
-                if isGreen then
+                if isDarker then
                     false, Graphics.theFullTileBmpTable.[ms.State].[3], []
                 else
                     false, Graphics.theFullTileBmpTable.[ms.State].[2], []
         else 
-            if isGreen then
+            if isDarker then
                 false, Graphics.theFullTileBmpTable.[ms.State].[1], []
             else
                 false, Graphics.theFullTileBmpTable.[ms.State].[0], []

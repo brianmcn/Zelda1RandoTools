@@ -384,13 +384,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let owMapGrid = makeGrid(16, 8, int OMTW, 11*3)
     let owCanvases = Array2D.zeroCreate 16 8
     let owUpdateFunctions = Array2D.create 16 8 (fun _ _ -> ())
-    let drawCompletedDungeonHighlight(c,x,y,isWider) =
-        // darken the number
-        let w = if isWider then 27.0 else 15.0
-        let rect = new System.Windows.Shapes.Rectangle(Width=w*OMTW/48., Height=27.0, Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
-                                                        Fill=System.Windows.Media.Brushes.Black, Opacity=0.4, IsHitTestVisible=false)
-        let diff = (if displayIsCurrentlyMirrored then 18.0*OMTW/48. else 15.0*OMTW/48.) - (if isWider then 6.0 else 0.0)
-        canvasAdd(c, rect, x*OMTW+diff, float(y*11*3)+3.0)
     let drawDarkening(c,x,y) =
         let rect = new System.Windows.Shapes.Rectangle(Width=OMTW, Height=float(11*3), Stroke=System.Windows.Media.Brushes.Black, StrokeThickness = 3.,
                                                         Fill=System.Windows.Media.Brushes.Black, Opacity=X_OPACITY)
@@ -554,7 +547,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                     if iconBMP <> null then 
                         if temporarilyHideAllIconsWhileHoveringEyeball then
                             let icon = Graphics.BMPtoImage(Graphics.theFullTileBmpTable.[TrackerModel.MapSquareChoiceDomainHelper.DARK_X].[0])
-                            icon.Opacity <- X_OPACITY
+                            icon.Opacity <- X_OPACITY / 3.
                             canvasAdd(owDarkeningMapGridCanvases.[i,j], icon, 0., 0.)  // the icon 'is' the darkening
                         elif ms.IsX || shouldAppearLikeDarkX then
                             if ms.IsX && TrackerModel.getOverworldMapExtraData(i,j,ms.State)=ms.State then
@@ -1018,8 +1011,6 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 owRemainingScreensTextBox.Text <- sprintf "%d OW spots left" remain
                 owGettableScreensTextBox.Text <- sprintf "%d gettable" gettable
             member _this.DungeonLocation(i,x,y,hasTri,isCompleted) =
-                if isCompleted then
-                    drawCompletedDungeonHighlight(recorderingCanvas,float x,y,(TrackerModel.IsHiddenDungeonNumbers() && TrackerModel.GetDungeon(i).LabelChar<>'?'))
                 owUpdateFunctions.[x,y] 0 null
             member _this.AnyRoadLocation(i,x,y) = ()
             member _this.Armos(x,y)  = owUpdateFunctions.[x,y] 0 null  // redraw the tile, to update bright/dark or remove icon if player hides useless icons

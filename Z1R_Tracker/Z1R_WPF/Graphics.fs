@@ -870,9 +870,9 @@ do
             for py = 0 to 9*3-1 do
                 bmp.SetPixel(px, py, interiorIconStrip.GetPixel(i*5+px/3, py/3))
         bmp
-    // 0-8  dungeons: 4 varieties (numbered yellow, numbered green, lettered yellow, lettered green)
+    // 0-8  dungeons: 4 varieties (numbered yellow, numbered dark-yellow, lettered yellow, lettered dark-yellow)
     for labels in ["123456789";"ABCDEFGH9"] do
-        for color in [System.Drawing.Color.Yellow; System.Drawing.Color.Lime] do
+        for color in [System.Drawing.Color.Yellow; System.Drawing.Color.FromArgb(153,153,0)] do
             labels |> Seq.iteri (fun i ch ->
                 let bmp = new System.Drawing.Bitmap(5*3,9*3)
                 for px = 0 to 5*3-1 do
