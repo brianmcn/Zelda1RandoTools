@@ -221,6 +221,14 @@ since 1.3.0A...
 
 
 
+
+spot summary needs darturq border when hover
+all 3 of those hovers should have 'right click to popout window'
+windows update appropriately, save locations, save show-ed-ness, etc
+
+
+
+
 SpecialK: wants yellow% https://discord.com/channels/368763663986982912/920498784142774332/1137693935435784234
 
 
@@ -239,12 +247,14 @@ homer: tiny armos number mark, to know which to push (inputs, display UI, not ea
 
 
 press ctrl or something does eyeball show-map toggle thingy?  or experiment with it like 'blinking away' all the tiles every 2s or something
+ - i tried both of these and didn't love either... still looking for a way for me not to confuse e.g. 1Q3 and river cave when walking to them and obscured by icons
 
 
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
 
 
 if I want popups like showhotkeys, the two i really want for racing probably are spotsummary and itemprogress (currently available as hovers)
+ - and now also player inventory/maxhearts, a new hover
 prior: context-sensitive second window popout ideas
  - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
  - more something with ShowRunCustom? hotkey ability to launch? brainstorm

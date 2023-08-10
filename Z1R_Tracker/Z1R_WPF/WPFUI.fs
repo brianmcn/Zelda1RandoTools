@@ -16,7 +16,7 @@ open CustomComboBoxes.GlobalFlag
 module OW_ITEM_GRID_LOCATIONS = OverworldMapTileCustomization.OW_ITEM_GRID_LOCATIONS
 
 let currentMaxHeartsTextBox = new TextBox(Width=100., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
-                                            BorderBrush=Brushes.Transparent, BorderThickness=Thickness(1.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
+                                            BorderBrush=Brushes.Gray, BorderThickness=Thickness(1.), Text=sprintf "Max Hearts: %d" TrackerModel.playerComputedStateSummary.PlayerHearts)
 let owRemainingScreensTextBox = new TextBox(Width=110., Height=20., FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, 
                                             BorderThickness=Thickness(0.), Text=sprintf "%d OW spots left" TrackerModel.mapStateSummary.OwSpotsRemain)
 let owRemainingScreensTextBoxContainerPanelThatSeesMouseEvents = (let dp = new DockPanel(Background=Brushes.Black) in dp.Children.Add(owRemainingScreensTextBox) |> ignore; dp)
@@ -1330,7 +1330,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         canvasAdd(spotSummaryCanvas, b, 270., 162.)
         )
     currentMaxHeartsTextBoxClickable.MouseLeave.Add(fun _ -> 
-        currentMaxHeartsTextBox.BorderBrush <- Brushes.Transparent
+        currentMaxHeartsTextBox.BorderBrush <- Brushes.Gray
         spotSummaryCanvas.Children.Clear()
         )
     // coordinate grid

@@ -807,14 +807,18 @@ let MakeItemGrid(cm:CustomComboBoxes.CanvasManager, boxItemImpl, timelineItems:R
         )
     // spot summary
     let spotSummaryTB = new Border(Child=new TextBox(Text="Spot Summary", FontSize=16., IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), Foreground=Brushes.Orange, Background=Brushes.Black), 
-                                    BorderThickness=Thickness(1.), IsHitTestVisible=true, Background=Brushes.Black)
+                                    BorderThickness=Thickness(1.), BorderBrush=Brushes.Gray, IsHitTestVisible=true, Background=Brushes.Black)
     let spotSummaryCanvas = new Canvas()
     if isStandardHyrule then   // Spot Summary only makes sense in standard map
         spotSummaryTB.MouseEnter.Add(fun _ ->
+            spotSummaryTB.BorderBrush <- Brushes.DarkTurquoise
             spotSummaryCanvas.Children.Clear()
             spotSummaryCanvas.Children.Add(OverworldMapTileCustomization.MakeRemainderSummaryDisplay()) |> ignore
             )   
-        spotSummaryTB.MouseLeave.Add(fun _ -> spotSummaryCanvas.Children.Clear())
+        spotSummaryTB.MouseLeave.Add(fun _ -> 
+            spotSummaryTB.BorderBrush <- Brushes.Gray
+            spotSummaryCanvas.Children.Clear()
+            )
         
     // ws ms bu toggle button
     let midGreen = Graphics.freeze(new SolidColorBrush(Color.FromRgb(0x00uy,0xC0uy,0x50uy)))
