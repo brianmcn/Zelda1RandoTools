@@ -141,8 +141,9 @@ let DoShowRunCustom(refocusMainWindow) =
                     window.SizeToContent <- SizeToContent.WidthAndHeight
                 let cur = i
                 let update() = 
-                    data.[cur] <- Line.SHOW(imgFile, Some(window.Left,window.Top,window.ActualWidth,window.ActualHeight))
-                    WriteShowRunCustomFile(ShowRunCustomFilename, data)
+                    if not(window.Left < -30000.) then // minimized
+                        data.[cur] <- Line.SHOW(imgFile, Some(window.Left,window.Top,window.ActualWidth,window.ActualHeight))
+                        WriteShowRunCustomFile(ShowRunCustomFilename, data)
                 window.SizeChanged.Add(fun _ -> update(); refocusMainWindow())
                 window.LocationChanged.Add(fun _ -> update(); refocusMainWindow())
                 window.Show()

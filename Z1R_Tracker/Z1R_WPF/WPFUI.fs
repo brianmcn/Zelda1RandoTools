@@ -77,12 +77,8 @@ let mutable currentlyMousedOWX, currentlyMousedOWY = -1, -1
 let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:Canvas, owMapNum, heartShuffle, kind, loadData:DungeonSaveAndLoad.AllData option, 
                 showProgress, speechRecognitionInstance:SpeechRecognition.SpeechRecognitionInstance) = async {
     let ctxt = System.Threading.SynchronizationContext.Current
-    let refocusMainWindow() =   // keep hotkeys working
-        async {
-            do! Async.Sleep(500)  // give new window time to pop up
-            do! Async.SwitchToContext(ctxt)
-            mainWindow.Focus() |> ignore
-        } |> Async.StartImmediate
+    Popouts.Initialize(mainWindow,ctxt)
+    let refocusMainWindow = Popouts.refocusMainWindow
     match loadData with
     | Some(data) ->
         Graphics.alternativeOverworldMapFilename <- data.AlternativeOverworldMapFilename
@@ -829,30 +825,18 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
             UIComponents.MakeLegend(cm, doUIUpdateEvent)
     layout.AddLegend(legendCanvas)
     let redrawItemProgressBar, itemProgressCanvas, itemProgressTB = UIComponents.MakeItemProgressBar(owInstance)
-    let img(i) = let r = CustomComboBoxes.boxCurrentBMP(i, None) |> Graphics.BMPtoImage in r.Margin <- Thickness(0.,0.,3.,0.); r
     let itemProgressHoverTarget =
         let dp = new DockPanel(Background=Brushes.Transparent)  // Background to get mouse events
         dp.Children.Add(itemProgressTB) |> ignore
         dp.MouseEnter.Add(fun _ -> 
             spotSummaryCanvas.Children.Clear()
             itemProgressTB.BorderBrush <- Brushes.DarkTurquoise
-            let hsp = new StackPanel(Orientation=Orientation.Horizontal, Margin=Thickness(3.))
-            for i in TrackerModel.ITEMS.PriorityOrderForRemainingDisplay do
-                if TrackerModel.allItemWithHeartShuffleChoiceDomain.CanAddUse(i) then
-                    hsp.Children.Add(img(i)) |> ignore
-            let h = TrackerModel.ITEMS.HEARTCONTAINER
-            let c = TrackerModel.allItemWithHeartShuffleChoiceDomain.MaxUses(h) - TrackerModel.allItemWithHeartShuffleChoiceDomain.NumUses(h)
-            for x = 1 to c do
-                hsp.Children.Add(img(h)) |> ignore
-            if hsp.Children.Count=0 then
-                hsp.Children.Add(new TextBox(Text="None",FontSize=12.,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.),Foreground=Brushes.Orange,Background=Brushes.Black)) |> ignore
-            let vsp = new StackPanel(Orientation=Orientation.Vertical)
-            vsp.Children.Add(new TextBox(Text="Remaining unmarked items:",FontSize=12.,IsReadOnly=true,IsHitTestVisible=false,BorderThickness=Thickness(0.),Foreground=Brushes.Orange,Background=Brushes.Black)) |> ignore
-            vsp.Children.Add(hsp) |> ignore
+            let vsp = Popouts.MakeRemainingItemsDisplay()
             let b = new Border(Child=vsp, Background=Brushes.Black, BorderBrush=Brushes.Gray, BorderThickness=Thickness(3.))
             canvasAdd(spotSummaryCanvas, b, 0., 394.)  // fragile placement in layout, but easiest solution
             )
         dp.MouseLeave.Add(fun _ -> itemProgressTB.BorderBrush <- Brushes.Gray; spotSummaryCanvas.Children.Clear())
+        dp.MouseDown.Add(fun ea -> Popouts.makePopout(Popouts.RemainingItemsPoput, not(ea.ChangedButton = Input.MouseButton.Right), ea.ChangedButton = Input.MouseButton.Right, doUIUpdateEvent))
         dp
     layout.AddItemProgress(itemProgressCanvas, itemProgressHoverTarget)
 
@@ -885,28 +869,8 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     let showHotKeysTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), Text="Show HotKeys", IsHitTestVisible=false)
     let showHotKeysButton = new Button(Content=showHotKeysTB)
     layout.AddShowHotKeysButton(showHotKeysButton)
-    let showHotKeys(isRightClick) =
-        let none,p = OverworldMapTileCustomization.MakeMappedHotKeysDisplay()
-        let w = new Window(Title="Z-Tracker HotKeys", Owner=Application.Current.MainWindow, Content=p, ResizeMode=ResizeMode.CanResizeWithGrip)
-        let save() = 
-            TrackerModelOptions.HotKeyWindowLTWH <- sprintf "%d,%d,%d,%d" (int w.Left) (int w.Top) (int w.Width) (int w.Height)
-            TrackerModelOptions.writeSettings()
-        let leftTopWidthHeight = TrackerModelOptions.HotKeyWindowLTWH
-        let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
-        if not none && not isRightClick && matches.Success then
-            w.Left <- float matches.Groups.[1].Value
-            w.Top <- float matches.Groups.[2].Value
-            w.Width <- float matches.Groups.[3].Value
-            w.Height <- float matches.Groups.[4].Value
-        else
-            p.Measure(Size(1280., 720.))
-            w.Width <- p.DesiredSize.Width + 16.
-            w.Height <- p.DesiredSize.Height + 40.
-        w.SizeChanged.Add(fun _ -> save(); refocusMainWindow())
-        w.LocationChanged.Add(fun _ -> save(); refocusMainWindow())
-        w.Show()
-    showHotKeysButton.Click.Add(fun _ -> showHotKeys(false))
-    showHotKeysButton.MouseRightButtonDown.Add(fun _ -> showHotKeys(true))
+    showHotKeysButton.Click.Add(fun _ -> Popouts.showHotKeys(false))
+    showHotKeysButton.MouseRightButtonDown.Add(fun _ -> Popouts.showHotKeys(true))
 
     // show/run custom button
     let showRunCustomTB = new TextBox(FontSize=12., Foreground=Brushes.Orange, Background=Graphics.almostBlack, IsReadOnly=true, BorderThickness=Thickness(0.), 
@@ -1306,24 +1270,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     layout.AddCurrentMaxHearts(currentMaxHeartsTextBoxClickable)
     currentMaxHeartsTextBoxClickable.MouseEnter.Add(fun _ -> 
         currentMaxHeartsTextBox.BorderBrush <- Brushes.DarkTurquoise
-        let bmp = OverworldItemGridUI.makeFauxItemsAndHeartsHUD()
-        let img = Graphics.BMPtoImage bmp
-        img.Width <- 3. * img.Width
-        img.Height <- 3. * img.Height
-        img.Stretch <- Stretch.UniformToFill
-        RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor)
-        let sp = new StackPanel(Orientation=Orientation.Vertical)
-        sp.Children.Add(img) |> ignore
-        let playerKnowsLocationOfWoodBoomer = TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() |> Seq.exists (fun b -> b.CellCurrent()=TrackerModel.ITEMS.BOOMERANG)
-        let playerKnowsLocationOfWhiteSword = TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxes() |> Seq.exists (fun b -> b.CellCurrent()=TrackerModel.ITEMS.WHITESWORD)
-        if TrackerModel.playerComputedStateSummary.BoomerangLevel=2 && not(playerKnowsLocationOfWoodBoomer) then
-            let tb = new TextBox(FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
-                                    Text="Note: having magical boomerang may make\n   it hard to notice wooden boomerang pick up")
-            sp.Children.Add(tb) |> ignore
-        if TrackerModel.playerComputedStateSummary.SwordLevel=3 && not(playerKnowsLocationOfWhiteSword) then
-            let tb = new TextBox(FontSize=14., Foreground=Brushes.Orange, Background=Brushes.Black, IsReadOnly=true, IsHitTestVisible=false, BorderThickness=Thickness(0.), 
-                                    Text="Note: having magical sword may make it\n   hard to notice if white sword picked up")
-            sp.Children.Add(tb) |> ignore
+        let sp = Popouts.MakeInventoryAndHearts()
         let b = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Black, Child=sp)
         let b = new Border(BorderThickness=Thickness(3.), BorderBrush=Brushes.Gray, Child=b, Background=Brushes.Black)
         spotSummaryCanvas.Children.Clear()
@@ -1333,6 +1280,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
         currentMaxHeartsTextBox.BorderBrush <- Brushes.Gray
         spotSummaryCanvas.Children.Clear()
         )
+    currentMaxHeartsTextBoxClickable.MouseDown.Add(fun ea -> Popouts.makePopout(Popouts.InventoryAndHeartsPopout, not(ea.ChangedButton = Input.MouseButton.Right), ea.ChangedButton = Input.MouseButton.Right, doUIUpdateEvent))
     // coordinate grid
     let placeholderCanvas = new Canvas()  // for startup perf, only add in coords & zone overlays on demand
     let zoneCanvas = new Canvas()
@@ -2045,6 +1993,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
     
     Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()  // the very first call to this lags the system for some reason, so get it out of the way at startup
     layout.AllDone()
+    Popouts.Startup(doUIUpdateEvent)
     do! showProgress("all done")
     return drawTimeline
     }

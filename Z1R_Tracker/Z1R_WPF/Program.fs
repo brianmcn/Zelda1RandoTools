@@ -710,6 +710,7 @@ type MyWindow() as this =
             }
 
         this.Closed.Add(fun _ ->  // still does not handle 'rude' shutdown, like if they close the console window
+            Popouts.theMainWindowHasClosed <- true
             if settingsWereSuccessfullyRead then      // don't overwrite an unreadable file, the user may have been intentionally hand-editing it and needs feedback
                 TrackerModelOptions.writeSettings()  // save any settings changes they made before closing the startup window
             )

@@ -218,13 +218,17 @@ since 1.3.0A...
     - if 2Q1 or 2Q4 map is selected on any tab, will switch to Second Quest Dungeons mode (where 4, rather than 1, has a third item)
  - fix perceptible latency in mouse warps
  - make darkened tiles somewhat brighter when hover eyeball to see icon-less overworld map
+ - 'Spot Summary', 'Item Progress', and 'Max Hearts' can be left-clicked to 'pop out' a window of their corresponding displays (TODO doc)
+    - window location and visibility is remembered for next session; click the 'X' to close any window to get rid of it; left-click text again to restore to same location
+    - right-clicking will place in a fresh location on-screen (useful if window gets 'lost' off-screen)
 
 
 
 
-spot summary needs darturq border when hover
-all 3 of those hovers should have 'right click to popout window'
-windows update appropriately, save locations, save show-ed-ness, etc
+More contextual popout ideas:
+ - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
+ - or vanilla drop rooms if you have 1Q/2Q maps selected
+
 
 
 
@@ -251,24 +255,6 @@ press ctrl or something does eyeball show-map toggle thingy?  or experiment with
 
 
 mouseover OW tile, maybe there's a statusbar that says coords, what the mark is (in case hidden), etc?
-
-
-if I want popups like showhotkeys, the two i really want for racing probably are spotsummary and itemprogress (currently available as hovers)
- - and now also player inventory/maxhearts, a new hover
-prior: context-sensitive second window popout ideas
- - OW hover shows spot summary; dungeon hover shows vanilla maps, or rooms that drop, or vanilla drop rooms, ...
- - more something with ShowRunCustom? hotkey ability to launch? brainstorm
-old notes: if i need more mouse-hover space, a separate floating window could provide it... was imagining inverse-item-progress showing what is left, and what-all it could block (when hovered)
-related:
-If I keep the 'remaining door repair count' on-screen, where is the best place for it, in your view?  I could either make room near the item-progress bar 
-(was kinda thinking of also putting counters on e.g. power bracelet there, to say how many power-bracelet-spots remain unmarked on the overworld), or somewhere 
-in the upper right corner of the app.  
-***And a final crazy option is I could have an extra floating window (which you could place wherever you like on your desktop) 
-that publishes 'extra info you want' with a bunch of options to e.g. always show spot summary, or always show counts, or I dunno what.  Just brainstorming...
- - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
- - or vanilla drop rooms if you have 1Q/2Q maps selected
-
-
 
 
 

@@ -84,6 +84,9 @@ let mutable BroadcastWindowLT = ""
 let mutable HotKeyWindowLTWH = ""
 let mutable OverlayLocatorWindowLTWH = ""
 let mutable MouseMagnifierWindowLTWH = ""
+let mutable SpotSummaryPopout_DisplayedLT = ""
+let mutable InventoryAndHeartsPopout_DisplayedLT = ""
+let mutable RemainingItemsPoput_DisplayedLT = ""
 let mutable DungeonSummaryTabMode = 0
 
 type ReadWrite() =
@@ -165,6 +168,9 @@ type ReadWrite() =
     member val HotKeyWindowLTWH = "" with get, set
     member val OverlayLocatorWindowLTWH = "" with get, set
     member val MouseMagnifierWindowLTWH = "" with get, set
+    member val SpotSummaryPopout_DisplayedLT = "" with get,set
+    member val InventoryAndHeartsPopout_DisplayedLT = "" with get,set
+    member val RemainingItemsPoput_DisplayedLT = "" with get,set
     member val DungeonSummaryTabMode = 0 with get,set
 
 let mutable private cachedSettingJson = null
@@ -246,6 +252,9 @@ let private writeImpl(filename) =
     data.HotKeyWindowLTWH <- HotKeyWindowLTWH
     data.OverlayLocatorWindowLTWH <- OverlayLocatorWindowLTWH
     data.MouseMagnifierWindowLTWH <- MouseMagnifierWindowLTWH
+    data.SpotSummaryPopout_DisplayedLT <- SpotSummaryPopout_DisplayedLT
+    data.InventoryAndHeartsPopout_DisplayedLT <- InventoryAndHeartsPopout_DisplayedLT
+    data.RemainingItemsPoput_DisplayedLT <- RemainingItemsPoput_DisplayedLT
     data.DungeonSummaryTabMode <- DungeonSummaryTabMode
 
     let json = JsonSerializer.Serialize<ReadWrite>(data, new JsonSerializerOptions(WriteIndented=true))
@@ -340,6 +349,9 @@ let private read(filename) =
         HotKeyWindowLTWH <- data.HotKeyWindowLTWH
         OverlayLocatorWindowLTWH <- data.OverlayLocatorWindowLTWH
         MouseMagnifierWindowLTWH <- data.MouseMagnifierWindowLTWH
+        SpotSummaryPopout_DisplayedLT <- data.SpotSummaryPopout_DisplayedLT
+        InventoryAndHeartsPopout_DisplayedLT <- data.InventoryAndHeartsPopout_DisplayedLT
+        RemainingItemsPoput_DisplayedLT <- data.RemainingItemsPoput_DisplayedLT
         DungeonSummaryTabMode <- data.DungeonSummaryTabMode
     with e ->
         cachedSettingJson <- null
