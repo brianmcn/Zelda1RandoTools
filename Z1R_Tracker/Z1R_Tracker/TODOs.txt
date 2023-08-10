@@ -216,6 +216,7 @@ since 1.3.0A...
  - in Hidden Dungeon Numbers, selecting a vanilla map outline on A-H will
     - if the dungeon number label is unknown, will mark it based on the selected map label
     - if 2Q1 or 2Q4 map is selected on any tab, will switch to Second Quest Dungeons mode (where 4, rather than 1, has a third item)
+ - scrolling item boxes to activate popup (just changed recently) now does not run message pump when mouse warping to center of tile (as the latency was perceptible if we wait for the pump)
 
 
 
@@ -230,10 +231,6 @@ panulphe:
  - sent seed to count potion shops (maybe get rid of hard bound for pot/DR/MMG/TAH/hint? would need to adjust spot summary)
     - if you do mismark, when you get to e.g. the 8th of 7 potion shops, it's like, ok, maybe I mismarked the 3rd one, but I'm standing here now 
         in front of the 8th and it'd be nice to mark it but you wont let me... 
- - would like 'replace WS/MS with BU' bomb icon in item pool for WS (and presumably replace MS icon up top; what about sword3 OW icon?)
-    - consider if/how do any of that
-    - if WS cave has BU, then cant distinguish from MS cave until hearts
-    - prior note: swordless as a dynamic option: change WS/MS icons, and also change 'combat' reminder, reminders wordings like 'white sword' and mag sword'?
 
 
 homer: tiny armos number mark, to know which to push (inputs, display UI, not easy)

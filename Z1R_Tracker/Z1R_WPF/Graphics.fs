@@ -1152,6 +1152,8 @@ let setup(w:Window, v) =
                     theCounter <- theCounter + 1
             )
         w.MouseMove.Add(fun _ -> sawMouseEvent <- true)
+let SilentlyWarpMouseCursorToNonBlocking(pos:Point) =
+    Win32.SetCursor(pos.X, pos.Y)  // I can feel a tiny bit of latency when I scroll up an item box, due to waiting for WPF to pump and see the mouse move message; this avoids it
 let SilentlyWarpMouseCursorTo(pos:Point) =
     if theFrame = null then  // Note: cannot process a second of these calls while one is active; I think that's fine
         theFrame <- new System.Windows.Threading.DispatcherFrame()
