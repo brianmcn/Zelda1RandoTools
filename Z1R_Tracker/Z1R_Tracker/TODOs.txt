@@ -213,19 +213,13 @@ since 1.3.0A...
     - BUs are not sword upgrades that trigger combat blocker reminders
     - Wood Sword box does not get 'X'ed out if get a BU
     - cyan highlights to help find open cave with wood sword do not go away if get BU
+ - in Hidden Dungeon Numbers, selecting a vanilla map outline on A-H will
+    - if the dungeon number label is unknown, will mark it based on the selected map label
+    - if 2Q1 or 2Q4 map is selected on any tab, will switch to Second Quest Dungeons mode (where 4, rather than 1, has a third item)
 
 
 
 SpecialK: wants yellow% https://discord.com/channels/368763663986982912/920498784142774332/1137693935435784234
-
-
-no way to do 2nd quest dungeons in HDN (1 always has 3, 4 always has 2)
- - couldn't I always just replace 4's ghostbusters with the blue canvas and something something?
-
-
-
-
-
 
 
 fun side project: no enemies: https://discord.com/channels/368763663986982912/576879458552643594/1137607507192332368

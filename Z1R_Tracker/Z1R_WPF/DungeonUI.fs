@@ -302,9 +302,21 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     let! r = CustomComboBoxes.DoModalGridSelect(cm, pos.X, pos.Y, tileCanvas, gridElementsSelectablesAndIDs, originalStateIndex, activationDelta, (gnc, gnr, gcw, grh),
                                     float gcw/2., float grh/2., gx, gy, redrawTile, onClick, extraDecorations, brushes, CustomComboBoxes.NoWarp, None, "VanillaDungeonOutline", None)
                     match r with
-                    | Some(state) -> currentOutlineDisplayState.[SI] <- state
+                    | Some(state) -> 
+                        currentOutlineDisplayState.[SI] <- state
+                        doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
+                        if TrackerModel.GetDungeon(SI).LabelChar = '?' then
+                            if state >= 1 && state <= 8 then
+                                TrackerModel.GetDungeon(SI).LabelChar <- char(int '0' + state)
+                            if state >= 10 && state <= 17 then
+                                TrackerModel.GetDungeon(SI).LabelChar <- char(int '1' + state - 10)
+                        let mutable appearsToBe2qFrontHalf = false
+                        for i = 0 to 7 do
+                            if currentOutlineDisplayState.[i] = 10 || currentOutlineDisplayState.[i] = 13 then   // 2Q1 or 2Q4
+                                appearsToBe2qFrontHalf <- true
+                        TrackerModel.IsSecondQuestDungeons <- appearsToBe2qFrontHalf
+                        OptionsMenu.secondQuestDungeonsOptionChanged.Trigger()
                     | None -> ()
-                    doVanillaOutlineRedraw(outlineDrawingCanvases.[SI], currentOutlineDisplayState.[SI])
                     popupIsActive <- false
                     } |> Async.StartImmediate
             )

@@ -148,7 +148,7 @@ Sword Bomb Upgrade.)
 ![WS MS BU](screenshots/ws-ms-bu.png)
 
 The tracker also understands the actual sword logic, e.g. knowing that a bomb upgrade is not "a better sword" that would trigger a combat Blockers reminder.  If you start with the 
-white sword or magical sword as a starting in a seed that replaces those found items with Bomb Upgrades, you can still mark the actual swords in the "Starting Items and Extra Drops"
+white sword or magical sword as a starting item in a seed that replaces those found items with Bomb Upgrades, you can still mark the actual swords in the "Starting Items and Extra Drops"
 (via the '...' under dungeon 9).
 
 ### <a id="v13-max-hearts-inventory">Hovering 'Max Hearts' displays an inventory summary</a>
@@ -188,6 +188,7 @@ which shows your inventory and maximum hearts, as far as the tracker knows.  The
 - improved Door Inference option
 - display if potion letter obtained (based on overworld map markup, displays right of bomb icon)
 - a few more hover "explainers" (e.g. on startup screen) to help out folks who are new to the game
+- in Hidden Dungeon Numbers, using 'FQ/SQ' button to select vanilla maps does smart things about number labels (and about whether dungeon 1 or 4 has a third item)
 - a lot of improvements to crispness of art/images when using 2/3 size mode
 - new option to turn off Dungeon 'sunglasses', to make dungeon tracker use brighter colors/higher contrast
 - a lot of small fixes
