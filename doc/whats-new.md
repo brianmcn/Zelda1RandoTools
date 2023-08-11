@@ -25,9 +25,10 @@ This is a major update with a large number of usability improvements and new fea
  - [Faster map region hints](#v13-fast-hint)
  - ["Have I found X yet" at a glance](#v13-glance-found)
  - [Better visibility for stairs not-yet-taken](#v13-unpaired-stairs)
- - [Hover 'Item Progress' to see remaining unmarked items](#v13-remaining-items)
  - [Replace White Sword and Magical Sword with Bomb Upgrades](#v13-ws-ms-bu)
+ - [Hover 'Item Progress' to see remaining unmarked items](#v13-remaining-items)
  - [Hovering 'Max Hearts' displays an inventory summary](#v13-max-hearts-inventory)
+ - [Popout windows for 3 hover displays](#v13-popouts)
  - [A bunch of other stuff](#v13-other-stuff)
 
 ### <a id="v13-alt-size">Alternate app size</a>
@@ -133,12 +134,6 @@ A transport stair whose other-end-pair has not yet been marked, as well as unkno
 
 ![unpaired stairs](screenshots/unpaired-unknown-transport-stairs.png)
 
-### <a id="v13-remaining-items">Hover 'Item Progress' to see remaining unmarked items</a>
-
-A mouse hover can now display the set of remaining items that could appear in an empty item box:
-
-![remaining items](screenshots/remaining-unmarked-items.png)
-
 ### <a id="v13-ws-ms-bu">Replace White Sword and Magical Sword with Bomb Upgrades</a>
 
 This z1r rando flag is now supported by the app; clicking the toggle button (circled in red in the screenshot) will change the White Sword item or Magical Sword item icons into
@@ -151,6 +146,12 @@ The tracker also understands the actual sword logic, e.g. knowing that a bomb up
 white sword or magical sword as a starting item in a seed that replaces those found items with Bomb Upgrades, you can still mark the actual swords in the "Starting Items and Extra Drops"
 (via the '...' under dungeon 9).
 
+### <a id="v13-remaining-items">Hover 'Item Progress' to see remaining unmarked items</a>
+
+A mouse hover can now display the set of remaining items that could appear in an empty item box:
+
+![remaining items](screenshots/remaining-unmarked-items.png)
+
 ### <a id="v13-max-hearts-inventory">Hovering 'Max Hearts' displays an inventory summary</a>
 
 Sometimes you are in a dungeon, and as you clear a room, you hear the 'item pickup' sound, but can't tell what item you just picked up.  Hovering 'Max Hearts' will display a popup window:
@@ -158,6 +159,18 @@ Sometimes you are in a dungeon, and as you clear a room, you hear the 'item pick
 ![max hearts hover](screenshots/max-hearts-inventory.png)
 
 which shows your inventory and maximum hearts, as far as the tracker knows.  Then you can visually compare with your in-game inventory to help identify what item you picked up.
+
+### <a id="v13-popouts">Popout windows for 3 hover displays</a>
+
+Usually the Spot Summary display, Remaining Items display, and Inventory display are only available on-screen when you hover 'Spot Summary' or 'Item Progress' or 'Max Hearts'
+in the main window.  But now you can click each of those three hover-targets to create popout windows of each display, which you can place wherever you like on your desktop to keep this
+information permanently available on your screen.  Here's an example screenshot:
+
+![popouts](screenshots/popouts.png)
+
+As with windows that SHOW from Show/Run Custom, these popout windows will remember where they are positioned on-screen across Z-Tracker sessions.  You can close a popout window with
+the 'X' in the window titlebar, or move it by dragging the window titlebar, but these windows cannot be resized.  (As with the 'Show Hotkeys' popout window, if the popout window is 
+ever 'lost' off-screen, you can right-click the button that creates the popout in order to reset its position somewhere on-screen.)
 
 ### <a id="v13-other-stuff">A bunch of other stuff</a>
 
