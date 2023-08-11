@@ -64,18 +64,20 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         e.MyKeyAdd(fun ea ->
             match HotKeys.GlobalHotKeyProcessor.TryGetValue(ea.Key) with
             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorDown) -> 
+                ea.Handled <- true
                 if canDown then
-                    ea.Handled <- true
                     let pos = e.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y+30.), cm.AppMainCanvas)
                     Graphics.NavigationallyWarpMouseCursorTo(pos)
             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorUp) -> 
+                ea.Handled <- true
                 if canUp then
-                    ea.Handled <- true
                     let pos = e.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y-30.), cm.AppMainCanvas)
                     Graphics.NavigationallyWarpMouseCursorTo(pos)
             | Some(HotKeys.GlobalHotkeyTargets.MoveCursorLeft) -> 
                 ea.Handled <- true
                 Graphics.NavigationallyWarpMouseCursorTo(posDestinationWhenMoveCursorLeftF())
+            | Some(HotKeys.GlobalHotkeyTargets.MoveCursorRight) -> 
+                ea.Handled <- true   // just to prevent mouse escape (allow user to 'hammer right' in the dungeon area to get to this panel
             | _ -> ()
             )
     // draw triforce (or label if 9) and N boxes, populated as now

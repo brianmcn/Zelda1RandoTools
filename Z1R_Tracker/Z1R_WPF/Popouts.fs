@@ -4,6 +4,8 @@ open System.Windows
 open System.Windows.Media
 open System.Windows.Controls
 
+let MINIMIZED_THRESHOLD = ShowRunCustom.MINIMIZED_THRESHOLD
+
 let mutable theMainWindow : Window = null
 let mutable theMainWindowHasClosed = false
 let mutable ctxt : System.Threading.SynchronizationContext = null
@@ -27,7 +29,7 @@ let showHotKeys(isRightClick) =
         TrackerModelOptions.writeSettings()
     let leftTopWidthHeight = TrackerModelOptions.HotKeyWindowLTWH
     let matches = System.Text.RegularExpressions.Regex.Match(leftTopWidthHeight, """^(-?\d+),(-?\d+),(\d+),(\d+)$""")
-    if not none && not isRightClick && matches.Success && not(float matches.Groups.[1].Value < -30000.) then
+    if not none && not isRightClick && matches.Success && not(float matches.Groups.[1].Value < MINIMIZED_THRESHOLD) then
         w.Left <- float matches.Groups.[1].Value
         w.Top <- float matches.Groups.[2].Value
         w.Width <- float matches.Groups.[3].Value
@@ -201,7 +203,7 @@ let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
             w.Title <- "Spot Summary popout"
             w.Content <- spotSummaryContent()
             save <- (fun() ->
-                if w.Left < -30000. then // minimized or closing
+                if w.Left < MINIMIZED_THRESHOLD then // minimized or closing
                     TrackerModelOptions.SpotSummaryPopout_DisplayedLT <- sprintf "0,%d,%d" (int w.RestoreBounds.Left) (int w.RestoreBounds.Top)
                 else
                     TrackerModelOptions.SpotSummaryPopout_DisplayedLT <- sprintf "1,%d,%d" (int w.Left) (int w.Top)
@@ -220,7 +222,7 @@ let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
             w.Title <- "Inventory and Max Hearts popout"
             w.Content <- inventoryAndHeartsContent(doUIUpdateEvent)
             save <- (fun() ->
-                if w.Left < -30000. then // minimized or closing
+                if w.Left < MINIMIZED_THRESHOLD then // minimized or closing
                     TrackerModelOptions.InventoryAndHeartsPopout_DisplayedLT <- sprintf "0,%d,%d" (int w.RestoreBounds.Left) (int w.RestoreBounds.Top)
                 else
                     TrackerModelOptions.InventoryAndHeartsPopout_DisplayedLT <- sprintf "1,%d,%d" (int w.Left) (int w.Top)
@@ -239,7 +241,7 @@ let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
             w.Title <- "Remaining Items popout"
             w.Content <- remainingItemsContent(doUIUpdateEvent)
             save <- (fun() ->
-                if w.Left < -30000. then // minimized or closing
+                if w.Left < MINIMIZED_THRESHOLD then // minimized or closing
                     TrackerModelOptions.RemainingItemsPoput_DisplayedLT <- sprintf "0,%d,%d" (int w.RestoreBounds.Left) (int w.RestoreBounds.Top)
                 else
                     TrackerModelOptions.RemainingItemsPoput_DisplayedLT <- sprintf "1,%d,%d" (int w.Left) (int w.Top)
@@ -252,7 +254,7 @@ let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
                 )
             System.Text.RegularExpressions.Regex.Match(TrackerModelOptions.RemainingItemsPoput_DisplayedLT, """^(1|0),(-?\d+),(-?\d+)$""")
     let ok,disp,left,top = 
-        if matches.Success && not(float matches.Groups.[2].Value < -30000.) then
+        if matches.Success && not(float matches.Groups.[2].Value < MINIMIZED_THRESHOLD) then
             true,(int matches.Groups.[1].Value)=1, float matches.Groups.[2].Value, float matches.Groups.[3].Value
         else
             false,false,0.,0.
@@ -263,7 +265,7 @@ let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
         w.Top <- top
     // otherwise (e.g. right click, bad data) just display a new window at default location selected by Windows
     w.LocationChanged.Add(fun _ -> save(); refocusMainWindow())
-    w.Closed.Add(fun _ -> if not(theMainWindowHasClosed) && not(insideMakePopoutCall) then (printfn "blah"; noDisplay()))
+    w.Closed.Add(fun _ -> if not(theMainWindowHasClosed) && not(insideMakePopoutCall) then noDisplay())
     w.Show()
     insideMakePopoutCall <- false
 
@@ -271,7 +273,7 @@ let Startup(doUIUpdateEvent:Event<unit>) =
     let f(kind, setting) =
         let matches = System.Text.RegularExpressions.Regex.Match(setting, """^(1|0),(-?\d+),(-?\d+)$""")
         let disp,_left,_top = 
-            if matches.Success && not(float matches.Groups.[2].Value < -30000.) then
+            if matches.Success && not(float matches.Groups.[2].Value < MINIMIZED_THRESHOLD) then
                 (int matches.Groups.[1].Value)=1, float matches.Groups.[2].Value, float matches.Groups.[3].Value
             else
                 false,0.,0.

@@ -2,6 +2,16 @@
 
 open System.Windows
 
+// When Windows minimizes, or is closing a window, it moves it to -32000,-32000 and WPF reports those values as Left and Top.
+// However, on a high-DPI device, that number gets scaled, e.g. at 1.75, you see -18285 get reported.
+// Since I am using the value as a way to detect 'junk' coordinates, there's am issue deciding which coordinates are junk versus
+// large and negative real.
+// In practice, it seems today devices are unlikely to have a DPI scale of more than 2.0, which means -16000 would be a useful cutoff.
+// So if a Left/Top coordinate is less than this value, assume junk:
+let MINIMIZED_THRESHOLD = -15999.
+
+
+
 let MakeDefaultShowRunCustomFile(filename:string) =
     System.IO.File.WriteAllText(filename, sprintf """
 # %s ShowRunCustom file
@@ -141,7 +151,7 @@ let DoShowRunCustom(refocusMainWindow) =
                     window.SizeToContent <- SizeToContent.WidthAndHeight
                 let cur = i
                 let update() = 
-                    if not(window.Left < -30000.) then // minimized
+                    if not(window.Left < MINIMIZED_THRESHOLD) then // minimized
                         data.[cur] <- Line.SHOW(imgFile, Some(window.Left,window.Top,window.ActualWidth,window.ActualHeight))
                         WriteShowRunCustomFile(ShowRunCustomFilename, data)
                 window.SizeChanged.Add(fun _ -> update(); refocusMainWindow())
