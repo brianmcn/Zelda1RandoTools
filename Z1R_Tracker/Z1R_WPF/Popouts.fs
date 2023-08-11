@@ -190,7 +190,10 @@ let remainingItemsContent(doUIUpdateEvent:Event<unit>) =
 
 let mutable insideMakePopoutCall = false
 let makePopout(kind, isLeftClick, isRightClick, doUIUpdateEvent:Event<unit>) =
-    let w = new Window(Owner=Application.Current.MainWindow, ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.WidthAndHeight)
+    let w = new Window(ResizeMode=ResizeMode.NoResize, SizeToContent=SizeToContent.WidthAndHeight, Topmost=false, ShowActivated=false)
+    //w.Owner <- Application.Current.MainWindow  // we don't do this; doing so causes clicking any window to bring all ZT windows to the front, making impossible to layer
+                                                 // popout ZT windows with other Windows applications in Z-order of windows desktop
+    Application.Current.MainWindow.Closed.Add(fun _ -> theMainWindowHasClosed <- true; try w.Close() with _ -> ())  // do this to get similar close behavior to ownership
     let mutable save = fun() -> ()
     let mutable noDisplay = fun() -> ()
     insideMakePopoutCall <- true
