@@ -8,8 +8,10 @@ open CustomComboBoxes.GlobalFlag
 
 let voice = new System.Speech.Synthesis.SpeechSynthesizer()
 let defaultVoice = try voice.Voice.Name with _ -> ""
-do
-    try voice.SelectVoice(TrackerModelOptions.PreferredVoice)
+let InitializeVoice() =
+    try 
+        voice.Volume <- TrackerModelOptions.Volume
+        voice.SelectVoice(TrackerModelOptions.PreferredVoice)
     with _ -> ()
 
 let mutable microphoneFailedToInitialize = false

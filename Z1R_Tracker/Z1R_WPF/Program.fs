@@ -291,7 +291,7 @@ type MyWindow() as this =
         let mutable settingsWereSuccessfullyRead = false
         TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
-        OptionsMenu.voice.Volume <- TrackerModelOptions.Volume
+        OptionsMenu.InitializeVoice()
 
         do
             let shellLink = 
