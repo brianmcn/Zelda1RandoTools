@@ -148,6 +148,9 @@ The Second Quest Dungeons toggle has moved out of the Options Menu, and now appe
 
 ![new buttons](screenshots/new-buttons.png)
 
+(Note that in Hidden Dungeon Numbers, there is no Second Quest Dungeons toggle button, but the app will draw the correct inference if the player uses the "FQ/SQ" button to place a 2Q1 or 2Q4 
+vanilla dungeon outline on any dungeon tab.)
+
 ### <a id="v13-fast-hint">Faster map region hints</a>
 
 For those who don't need the "Hint Decoder" button to know that "Manhandla Threatens" means Dungeon 3, you can mark map-region-hints directly by mouse-scrolling the
@@ -157,19 +160,20 @@ blank areas above the triforces, above the dungeon 9 numeral, above white sword 
 
 There are new hotkeys for hint zones, which are applied when the mouse is hovering these areas.
 
-This feature is only available when not using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is on).
+This feature is only available when _not_ using Hidden Dungeon Numbers (as those portions of the screen have other uses when that setting is active).
 
 ### <a id="v13-glance-found">"Have I found X yet" at a glance</a>
 
 For those thinking "I have 246 rupees, have I even found the blue ring shop yet?" the tracker is even more helpful than before.
 
-You can always mouse-hover the blue-ring icon, and any blue-ring shops you have mark on the overworld map will be displayed.
+You could always mouse-hover the blue-ring icon, and any blue-ring shops you have mark on the overworld map will be displayed.
 
-But now, you can also just glance at the tracker to answer to question:
+But now you can just glance at the tracker to answer to question:
 
 ![Have I found the blue ring shop yet](screenshots/have-i-found-blue-ring-shop-yet.png)
 
-Similar effects happen on all these boxes: magical sword, wood sword, blue ring, boomstick book, blue candle, wood arrow, bombs.
+The box outline colors show you what you need to know; similar effects happen on all these boxes: magical sword, wood sword, blue ring, boomstick book, blue candle, wood arrow, and bombs.  
+(The bomb box will be half-green and half-yellow if you have both marked that you have bombs, and also marked the location of a bomb shop on the overworld.)
 
 ### <a id="v13-unpaired-stairs">Better visibility for stairs not-yet-taken</a>
 
@@ -180,14 +184,14 @@ A transport stair whose other-end-pair has not yet been marked, as well as unkno
 ### <a id="v13-ws-ms-bu">Replace White Sword and Magical Sword with Bomb Upgrades</a>
 
 This z1r rando flag is now supported by the app; clicking the toggle button (circled in red in the screenshot) will change the White Sword item or Magical Sword item icons into
-Bomb Upgrade icons (pointed at by orange arrows in the screenshot).  (The screenshot imagines the player found the White Sword Bomb Upgrade in dungeon 5, and obtained the Magical
+Bomb Upgrade icons (pointed at by four orange arrows in the screenshot).  (The screenshot imagines the player found the White Sword Bomb Upgrade in dungeon 5, and obtained the Magical
 Sword Bomb Upgrade.)
 
 ![WS MS BU](screenshots/ws-ms-bu.png)
 
 The tracker also understands the actual sword logic, e.g. knowing that a bomb upgrade is not "a better sword" that would trigger a combat Blockers reminder.  If you start with the 
 white sword or magical sword as a starting item in a seed that replaces those found items with Bomb Upgrades, you can still mark the actual swords in the "Starting Items and Extra Drops"
-(via the '...' under dungeon 9).
+(via the '...' button under dungeon 9's items).
 
 ### <a id="v13-remaining-items">Hover 'Item Progress' to see remaining unmarked items</a>
 
