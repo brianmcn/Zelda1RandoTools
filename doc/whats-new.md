@@ -47,12 +47,15 @@ You can now navigate a great deal of the app without touching the mouse, if desi
 - You can now map keyboard keys to mean 'left click, middle click, right click, scroll up, or scroll down'
 - You can now map hotkeys with 1 optional modifier (SHIFT/ALT/CTRL)
 - You can map a hotkey to ToggleCursorOverworldOrDungeon which moves the mouse to the center of the overworld if outside the overworld, or the center of the dungeon area otherwise
+- There are now hotkey mappings while hovering a dungeon room that cycle the N/S/E/W doors (so that e.g. you might map 'up' to move the cursor up to the next room, and 'shift up' to cycle the north door state)
 - Left-clicking a dungeon on the overworld switches to that tab and ToggleCursorOverworldOrDungeon-moves the mouse there
-- When the mouse is not over an arrow-able grid, the "arrow" hotkeys will nudge the mouse 20 pixels
+- When the mouse is _not_ over an arrow-able grid, the "arrow" hotkeys will nudge the mouse 20 pixels
 - You can "arrow" the mouse downward or rightward out of the top triforce/item area, or leftward/upward out of the Blockers area, but other 'grids' confine the mouse arrowing
 
+Along with the existing "global" HotKeys for marking items like the Magical Sword, or for switching dungeon tabs, this means you can use the majority of the app without touching the mouse.
+
 Users of prior versions of Z-Tracker can simply copy over their existing "HotKeys.txt" file into the new install folder.  Then inspect the file
-"HotKeys_BlankSampleTemplate.txt" to learn about new hotkey options (at the bottoms of the Global_ and DungeonRoom_ sections), and then edit your
+"HotKeys_BlankSampleTemplate.txt" to learn about new v1.3 hotkey options (at the bottoms of the Global_ and DungeonRoom_ sections), and then edit your
 HotKeys.txt to add your own.
 
 ### <a id="v13-reset">Reset buttons</a>

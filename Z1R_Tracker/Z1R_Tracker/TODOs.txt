@@ -222,6 +222,8 @@ since 1.3.0A...
  - 'Spot Summary', 'Item Progress', and 'Max Hearts' can be left-clicked to 'pop out' a window of their corresponding displays (TODO doc)
     - window location and visibility is remembered for next session; click the 'X' to close any window to get rid of it; left-click text again to restore to same location
     - right-clicking will place in a fresh location on-screen (useful if window gets 'lost' off-screen)
+since 1.3.0B...
+
 
 
 
