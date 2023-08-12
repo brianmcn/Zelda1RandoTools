@@ -92,7 +92,37 @@ If you obtain a sword but don't yet have the armos item, the tracker will switch
 
 ### <a id="v13-summary-tab">New Dungeon Summary Tab layouts</a>
 
-TODO screenshots and explanation
+There are now 3 different modes for viewing a summary of the dungeons on the summary tab.  The prior versions of Z-Tracker had a version like this, now called 'preview' mode:
+
+![preview mode](screenshots/mode-preview.png)
+
+where you just see 1/3-sized versions of the dungeon maps.
+
+A new mode, called 'detail', shows more details about each dungeon:
+
+![detail mode](screenshots/mode-detail.png)
+
+In addition to a very tiny version of the room map, detail mode also shows:
+
+- blockers
+- whether the player has marked that they have the map, or whether they have the atlas
+- the triforce and items for the dungeon
+- a summary of MonsterDetails from the dungeon the player has marked (any MonsterDetail marked in the dungeon lobby room will appear first in the list)
+
+Finally, the third mode is called 'default' and suggested to be the most useful for mid-game decision-making:
+
+![default mode](screenshots/mode-default.png)
+
+This mode is similar to 'detail' mode, but cleaner, in that completed dungeons (where they player has already got all items and the triforce) and not-yet-located dungeons
+are displayed much more simply.
+
+Note that in any mode, mouse-hovering any of the 9 areas in the summary tab will display a larger preview of the dungeon over the Notes area.  For example, here's what it
+looks like when the mouse is over the bottom right portion of the summary tab:
+
+![hovering a summary](screenshots/mode-hover.png)
+
+Hovering the upper-left box previews dungeon 9.  Clicking the mode button in the upper-left box cycles which mode is used, and the app remembers your preferred mode setting
+across sessions.
 
 ### <a id="v13-monsters">New Monster choices</a>
 
