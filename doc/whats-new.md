@@ -19,7 +19,7 @@ This is a major update with a large number of usability improvements and new fea
  - [Reset buttons](#v13-reset)
  - [Recorder Destination options](#v13-recorder)
  - [Highlight open caves checkbox](#v13-open-caves)
- - [New Dungeon Summary Tab layouts](#v13-summary-tab)
+ - [New Dungeon Summary Tab modes](#v13-summary-tab)
  - [New Monster choices](#v13-monsters)
  - [Mirror-overworld and 2nd-quest-dungeons toggles](#v13-mirror)
  - [Faster map region hints](#v13-fast-hint)
@@ -44,10 +44,10 @@ These screenshots show the default tall app, the square app when the mouse is in
 You can now navigate a great deal of the app without touching the mouse, if desired:
 
 - You can now map 4 "arrow" hotkeys, which can be used to navigate most grids (overworld, dungeon rooms, ...) as an alternative to moving the mouse
-- You can now map keyboard keys to mean 'left click, middle click, right click, scroll up, or scroll down'
+- You can now map keyboard keys to mean 'left click', 'middle click', 'right click', 'scroll up', and 'scroll down'
 - You can now map hotkeys with 1 optional modifier (SHIFT/ALT/CTRL)
 - You can map a hotkey to ToggleCursorOverworldOrDungeon which moves the mouse to the center of the overworld if outside the overworld, or the center of the dungeon area otherwise
-- There are now hotkey mappings while hovering a dungeon room that cycle the N/S/E/W doors (so that e.g. you might map 'up' to move the cursor up to the next room, and 'shift up' to cycle the north door state)
+- There are now hotkey mappings while hovering a dungeon room that cycle the N/S/E/W doors (so that e.g. you might map 'up arrow' to move the cursor north to the next room, and 'shift up arrow' to cycle the north door state)
 - Left-clicking a dungeon on the overworld switches to that tab and ToggleCursorOverworldOrDungeon-moves the mouse there
 - When the mouse is _not_ over an arrow-able grid, the "arrow" hotkeys will nudge the mouse 20 pixels
 - You can "arrow" the mouse downward or rightward out of the top triforce/item area, or leftward/upward out of the Blockers area, but other 'grids' confine the mouse arrowing
@@ -90,13 +90,19 @@ highlights disappear once you obtain a sword.
 
 If you obtain a sword but don't yet have the armos item, the tracker will switch to highlighting only unmarked armos spots cyan.
 
-### <a id="v13-summary-tab">New Dungeon Summary Tab layouts</a>
+### <a id="v13-summary-tab">New Dungeon Summary Tab modes</a>
 
-There are now 3 different modes for viewing a summary of the dungeons on the summary tab.  The prior versions of Z-Tracker had a version like this, now called 'preview' mode:
+There are now 3 different modes for viewing a summary of the dungeons on the summary tab.  
+
+##### Preview mode
+
+The prior versions of Z-Tracker had a version like the screenshot here, now called 'preview' mode:
 
 ![preview mode](screenshots/mode-preview.png)
 
-where you just see 1/3-sized versions of the dungeon maps.
+Preview mode just displays one-third-sized versions of the dungeon tabs.
+
+##### Detail mode
 
 A new mode, called 'detail', shows more details about each dungeon:
 
@@ -107,21 +113,25 @@ In addition to a very tiny version of the room map, detail mode also shows:
 - blockers
 - whether the player has marked that they have the map, or whether they have the atlas
 - the triforce and items for the dungeon
-- a summary of MonsterDetails from the dungeon the player has marked (any MonsterDetail marked in the dungeon lobby room will appear first in the list)
+- a summary of MonsterDetails the player has marked (a MonsterDetail marked in the dungeon lobby room, takes priority, and will appear first in the list)
 
-Finally, the third mode is called 'default' and suggested to be the most useful for mid-game decision-making:
+##### Default mode
+
+Finally, the third mode is called 'default' and is suggested as the most useful for mid-game decision-making:
 
 ![default mode](screenshots/mode-default.png)
 
-This mode is similar to 'detail' mode, but cleaner, in that completed dungeons (where they player has already got all items and the triforce) and not-yet-located dungeons
+This mode is similar to 'detail' mode, but cleaner, in that completed dungeons (where they player already got all items&triforce) and not-yet-located dungeons
 are displayed much more simply.
 
-Note that in any mode, mouse-hovering any of the 9 areas in the summary tab will display a larger preview of the dungeon over the Notes area.  For example, here's what it
+Note that in _any_ mode, mouse-hovering any of the 9 areas in the summary tab will display a larger preview of the dungeon over the Notes area.  For example, here's what it
 looks like when the mouse is over the bottom right portion of the summary tab:
 
 ![hovering a summary](screenshots/mode-hover.png)
 
-Hovering the upper-left box previews dungeon 9.  Clicking the mode button in the upper-left box cycles which mode is used, and the app remembers your preferred mode setting
+In the screenshot above, mouse-hovering 8 in the summary tab displays a readable (two-thirds size) preview of tab 8 over the Notes area.
+
+Hovering the upper-left box previews dungeon 9.  Clicking the mode button in the upper-left box cycles which mode is used, and the app remembers your preferred mode
 across sessions.
 
 ### <a id="v13-monsters">New Monster choices</a>
