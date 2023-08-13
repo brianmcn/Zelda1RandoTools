@@ -69,7 +69,7 @@ Before explaining the feature in detail, imagine 'c' is your ChevyMoat (room) Ho
  - pressing 'ccc' will mark a room as a ChevyMoat and also add a Maybe-Ladder blocker to this dungeon
  - pressing 'hhh' will mark a room with a floor drop heart, and also mark the appropriate item box in this dungeon with the Heart Container you just picked up
 
-That is, this feature provides a way to use your existing hotkeys, repeatedly, to activate new behaviors.  The full explanation follows.
+That is, this feature provides a way to use your existing HotKeys, repeatedly, to activate new behaviors.  The full explanation follows.
 
 ##### Unmark-Remark interactions
 
@@ -126,7 +126,7 @@ So now, if you enter dungeon 7, and there's only one bomb-hole out of the lobby,
  - (fourth and fifth) 'cc' is another Unmark-Remark, which triggers promoting the Maybe-Ladder blocker to a (full) Ladder blocker on dungeon 7
 
 Imagine you're halfway through dungeon 8 and you discover a Digdogger blocking access to the left half of the dungeon.  Press 'ddd' (assuming 'd' is your Digdogger HotKey) to mark the room as
-a Digdogger and mark a Maybe-Recorder block on dungeon 8.
+a Digdogger and mark a Maybe-Recorder blocker on dungeon 8.
 
 Imagine you get a Red Candle off the floor in dungeon 3.  Press 'iii' (assuming 'i' is your OtherKeyItem HotKey) to mark the room as the floor drop room, and to activate dungeon 3's first 
 item box popup (where you can arrow-HotKey over to the Red Candle and then LeftClick-HotKey to mark it), and then the mouse cursor will automagically warp back to the item room where 
