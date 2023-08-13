@@ -493,7 +493,7 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                         // ladderBox position in main canvas
                         let lx,ly = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_GRID_LOCATIONS.LADDER_ITEM_BOX)
                         seq(OverworldMapTileCustomization.computeExtraDecorationArrow(lx, ly, boxPos))
-                    let coastBoxOnOwGrid = Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.ladderBox, false, Some extraDecorationsF)
+                    let coastBoxOnOwGrid = fst(Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.ladderBox, false, Some extraDecorationsF))
                     mirrorOverworldFEs.Add(coastBoxOnOwGrid)
                     canvasAdd(c, coastBoxOnOwGrid, OMTW-31., 1.)
                     //TrackerModel.ladderBox.Changed.Add(fun _ -> // this would make the box go away instantly once got

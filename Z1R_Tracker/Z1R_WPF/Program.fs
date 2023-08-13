@@ -292,6 +292,7 @@ type MyWindow() as this =
         TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
         OptionsMenu.InitializeVoice()
+        Graphics.volumeChanged.Trigger(TrackerModelOptions.Volume)
 
         do
             let shellLink = 
@@ -575,8 +576,8 @@ type MyWindow() as this =
         turnHideDungeonNumbersOff()
         let row1boxes = Array.init 3 (fun _ -> new TrackerModel.Box(TrackerModel.StairKind.Never, TrackerModel.BoxOwner.None))
         for i = 0 to 2 do
-            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, row1boxes.[i]), i, 1)
-            Graphics.gridAdd(hsGrid, Views.MakeBoxItem(cm, new TrackerModel.Box(TrackerModel.StairKind.Never, TrackerModel.BoxOwner.None)), i, 2)
+            Graphics.gridAdd(hsGrid, fst(Views.MakeBoxItem(cm, row1boxes.[i])), i, 1)
+            Graphics.gridAdd(hsGrid, fst(Views.MakeBoxItem(cm, new TrackerModel.Box(TrackerModel.StairKind.Never, TrackerModel.BoxOwner.None))), i, 2)
         let turnHeartShuffleOn() = for b in row1boxes do b.Set(-1, TrackerModel.PlayerHas.NO)
         let turnHeartShuffleOff() = for b in row1boxes do b.Set(14, TrackerModel.PlayerHas.NO)
         turnHeartShuffleOn()

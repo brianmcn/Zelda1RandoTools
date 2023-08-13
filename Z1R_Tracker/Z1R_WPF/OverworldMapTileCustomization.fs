@@ -80,7 +80,7 @@ let (armosX, armosY), (sword2x,sword2y) = OW_ITEM_GRID_LOCATIONS.Locate(OW_ITEM_
 let DoRemoteItemComboBox(cm:CustomComboBoxes.CanvasManager, activationDelta, trackerModelBoxToUpdate:TrackerModel.Box,
                             topX,topY,pos:Point) = async {  // topX,topY,pos are relative to appMainCanvas; top is for tracker box, pos is for mouse-local box
     let extraDecorations = computeExtraDecorationArrow(topX, topY, pos)
-    let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, trackerModelBoxToUpdate.PlayerHas(), extraDecorations)
+    let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, trackerModelBoxToUpdate.CellCurrent(), activationDelta, trackerModelBoxToUpdate.PlayerHas(), extraDecorations, CustomComboBoxes.WarpToCenter)
     match r with
     | Some(newBoxCellValue, newPlayerHas) ->
         trackerModelBoxToUpdate.Set(newBoxCellValue, newPlayerHas)
@@ -250,7 +250,7 @@ let GetIconBMPAndExtraDecorations(cm, ms:MapStateProxy,i,j) =   // returns: (sho
             let extraDecorationsF(boxPos:Point) =
                 let extraDecorations = computeExtraDecorationArrow(sword2x, sword2y, boxPos)
                 seq extraDecorations
-            false, sword2LeftSideFullTileBmp, [Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.sword2Box, false, Some extraDecorationsF), OMTW-30., 1.]
+            false, sword2LeftSideFullTileBmp, [fst(Views.MakeBoxItemWithExtraDecorations(Some(cm), TrackerModel.sword2Box, false, Some extraDecorationsF)), OMTW-30., 1.]
         else
             ShouldHide(ms.State,i,j), Graphics.theFullTileBmpTable.[ms.State].[1], []
     elif ms.State = TrackerModel.MapSquareChoiceDomainHelper.SWORD3 then

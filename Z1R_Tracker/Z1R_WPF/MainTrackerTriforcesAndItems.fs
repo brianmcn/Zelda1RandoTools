@@ -58,7 +58,7 @@ let setup(cm:CustomComboBoxes.CanvasManager, owInstance:OverworldData.OverworldI
 
     // items (we draw these before drawing triforces, as triforce display can draw slightly atop the item boxes, when there's a triforce-specific-blocker drawn)
     let boxItemImpl(tid, box:TrackerModel.Box, requiresForceUpdate) = 
-        let c = Views.MakeBoxItem(cm, box)
+        let c,_ = Views.MakeBoxItem(cm, box)
         box.Changed.Add(fun _ -> if requiresForceUpdate then TrackerModel.forceUpdate())
         c.MouseEnter.Add(fun _ -> 
             match box.CellCurrent() with

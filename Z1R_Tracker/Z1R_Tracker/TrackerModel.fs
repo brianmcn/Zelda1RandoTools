@@ -569,6 +569,9 @@ let startingItemsAndExtras = StartingItemsAndExtras()
 
 let mutable playerHasAtlas = fun() -> false
 
+let mutable IsHiddenDungeonNumbers = fun () -> false
+let mutable GetDungeonLabelChar = fun (_idx) -> '?'
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Dungeons and Boxes
 
@@ -599,6 +602,32 @@ type Box(stair:StairKind, owner) =
     member _this.PlayerHas() = playerHas           // note that the state (cell = -1, playerHas = SKIPPED) is used to mean 'white-highlighted box' in the UI
     member this.IsEmptyRedBox = this.PlayerHas() = PlayerHas.NO && this.CellCurrent() = -1
     member _this.Stair = stair
+    member _this.CurrentlyHasBasementStair =
+        if IsHiddenDungeonNumbers() then
+            match owner with
+            | BoxOwner.DungeonIndexAndNth(i,n) ->
+                if i=8 then true else   // dungeon 9 has all basements
+                let lc = GetDungeonLabelChar(i)
+                if IsSecondQuestDungeons then
+                    match lc with
+                    |'1'|'3' -> false
+                    |'2'|'5'|'6'|'7' -> n=1
+                    |'4'|'8' -> n=1 || n=2
+                    | _ -> false
+                else
+                    match lc with
+                    |'1' -> n=2
+                    |'2' -> false
+                    |'3'|'4'|'5'|'6'|'7' -> n=1
+                    |'8' -> n=1 || n=2
+                    | _ -> false
+            | _ -> false
+        else
+            match stair with
+            | StairKind.LikeL2 -> IsSecondQuestDungeons
+            | StairKind.LikeL3 -> not(IsSecondQuestDungeons)
+            | StairKind.Always -> true
+            | StairKind.Never -> false
     member _this.Owner = owner
     member _this.CellNextFreeKey() = allItemWithHeartShuffleChoiceDomain.NextFreeKey(cell.Current())
     member _this.CellPrevFreeKey() = allItemWithHeartShuffleChoiceDomain.PrevFreeKey(cell.Current())
@@ -787,7 +816,8 @@ and Dungeon(id,numBoxes) =
     member _this.HiddenDungeonColorOrLabelChanged = hiddenDungeonColorLabelChangeEvent.Publish
 
 let GetDungeon(i) = DungeonTrackerInstance.TheDungeonTrackerInstance.Dungeons(i)
-let IsHiddenDungeonNumbers() = DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+do IsHiddenDungeonNumbers <- fun() -> DungeonTrackerInstance.TheDungeonTrackerInstance.Kind = DungeonTrackerInstanceKind.HIDE_DUNGEON_NUMBERS
+do GetDungeonLabelChar <- fun i -> GetDungeon(i).LabelChar
 let GetTriforceHaves() =
     if IsHiddenDungeonNumbers() then
         let haves = Array.zeroCreate 8

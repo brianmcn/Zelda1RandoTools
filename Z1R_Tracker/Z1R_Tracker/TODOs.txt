@@ -225,7 +225,24 @@ since 1.3.0A...
 since 1.3.0B...
  - fix Preferred Voice option not being loaded correctly
 since 1.3.0C...
-
+ - fix volume not being applied to shwoop/clink noises at startup
+ - Unmark-Remark HotKey behavior (TODO doc)
+    - when mouse-hovering a dungeon room that has specific marks, if you successively unmark and remark certain rooms/monsters/floordrops via hotkeys, then specific behaviors are triggered:
+       Simple behaviors
+       - FloorDropDetail.Triforce: toggle has-triforce
+       - FloorDropDetail.Map: toggle has-map
+       Item box accelerators
+       - RoomType.ItemBasement: activate the bottommost empty basement box (or the bottommost if none are empty)
+       - FloorDropDetail.Heart: replace topmost empty (or DontHaveIt-Heart) box with a (HaveIt) Heart
+       - FloorDropDetail.OtherKeyItem: activate the topmost empty non-basement box (or the topmost if none are empty)
+       Blocker accelerators
+       - RoomType.(Any Moat): do blocker(Ladder) logic
+       - RoomType.HungryGoriyaMeatBlock: do blocker(Bait) logic
+       - RoomType.LifeOrMoney: do blocker(Money) logic
+       - MonsterDetail.Bow: (Gohma) do blocker(BowAndArrow) logic
+       - MonsterDetail.Digdogger: do blocker(Recorder) logic
+       - MonsterDetail.Dodongo: do blocker(Bomb) logic
+       where Blocker(X) logic means: if there is already an X blocker, do nothing, else if there is a Maybe-X blocker, promote it to an X, else if there is an empty blocker box, fill it with Maybe-X
 
 
 
@@ -233,6 +250,7 @@ since 1.3.0C...
 More contextual popout ideas:
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
  - or vanilla drop rooms if you have 1Q/2Q maps selected
+ - map puzzle-piecing - just show the player-marked room map outlines of 1-6 or 7-9, and let the player 'do it in their head'
 
 
 
@@ -305,6 +323,7 @@ UCC may need testing of popup menus
 
 feature to paint your map of 7/8 as a 'vanilla map outline' onto 8/7, with user-chosen offset? that is, entirely manual process?
  - or BeefSupremeTV, just an option to see 8 while in 7, or vice versa (like summary hover, shows over Notes maybe)
+ (see also idea as popout window of maps)
 
 
 McMonkey: something that would help me in regards to the hints is an option to have a permanent thick border around the overworld zones. At this point I know where all of the 
@@ -323,10 +342,6 @@ zones generally are, but have to check the borders periodically to remember "is 
 
 
 Califax: might be nice if could choose fewer monsters in popup for easier mousing (but that's what hotkeys are for)
-
-
-equations wants e.g. floor item or basement hotkeys in dungeons to auto-box-warp to mark items, which might be interesting but is a big change
- - some other tab-like key when hover room-with-basement or somesuch?
 
 
 some kind of on-map better viz of the dungeons, e.g. you're standing next to 3 yellow numerals, but what are blockers? which still has items? gotta look all over

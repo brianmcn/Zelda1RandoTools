@@ -25,6 +25,121 @@ open FloatHelper
 open DungeonRoomState
 open CustomComboBoxes.GlobalFlag
 
+let unmarkRemarkBehavior(cm:CustomComboBoxes.CanvasManager, (_i,_j,hk), boxViewsAndActivations:(Canvas*((int*CustomComboBoxes.GridClickDismissalWarpReturn)->unit))[], dungeonIndex, returnPos) =
+    let dungeon = TrackerModel.GetDungeon(dungeonIndex)
+    let blockerLogic(maybe:TrackerModel.DungeonBlocker) =
+        let full = maybe.HardCanonical()
+        if dungeonIndex = 8 then  
+            // dungeon 9 has no blocker storage
+            System.Media.SystemSounds.Asterisk.Play()
+        else
+            // NOTE: this logic ignores Blockers' AppliesTo info
+            let mutable firstFull, firstMaybe, firstEmpty = -1, -1, -1
+            for bi = 0 to TrackerModel.DungeonBlockersContainer.MAX_BLOCKERS_PER_DUNGEON-1 do
+                let b = TrackerModel.DungeonBlockersContainer.GetDungeonBlocker(dungeonIndex, bi)
+                if b = full then 
+                    if firstFull = -1 then firstFull <- bi
+                elif b = maybe then
+                    if firstMaybe = -1 then firstMaybe <- bi
+                elif b = TrackerModel.DungeonBlocker.NOTHING then
+                    if firstEmpty = -1 then firstEmpty <- bi
+            if firstFull <> -1 then
+                () // there is already a hard block marked, do nothing
+            elif firstMaybe <> -1 then
+                // change maybe to full
+                TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, firstMaybe, full)
+            elif firstEmpty <> -1 then
+                // mark a maybe
+                TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, firstEmpty, maybe)
+            else
+                // there was no prior blocker of this kind, but there's no empty box to mark one
+                System.Media.SystemSounds.Asterisk.Play()
+    let activateBox(boxIndex) =
+        let view,activate = boxViewsAndActivations.[boxIndex]
+        let pos = view.TranslatePoint(Point(15.,15.), cm.AppMainCanvas)
+        Graphics.WarpMouseCursorTo(pos)
+        activate(0, CustomComboBoxes.GridClickDismissalWarpReturn.WarpTo returnPos)
+    let boxes = dungeon.Boxes
+    let validBoxIndices =
+        if TrackerModel.IsHiddenDungeonNumbers() then
+            let lc = dungeon.LabelChar
+            let twoItemDungeons = if TrackerModel.IsSecondQuestDungeons then "123567" else "234567"
+            if twoItemDungeons.Contains(lc.ToString()) then
+                [0..1]     // filter out ghostbustered third box
+            else
+                [0..boxes.Length-1]
+        else
+            [0..boxes.Length-1]
+    match hk with
+    | Some(Choice1Of4(RoomType.ItemBasement)) -> 
+        // find the bottommost empty basement, if it exists, otherwise just choose bottommost non-ghostbustered box
+        let idxs = validBoxIndices |> List.rev
+        let mutable r = -1
+        for i in idxs do
+            if r = -1 && boxes.[i].CurrentlyHasBasementStair && boxes.[i].CellCurrent() = -1 then
+                r <- i
+        if r = -1 then
+            r <- idxs.Head
+        // r is now the index of the box we want
+        activateBox(r)
+    | Some(Choice1Of4(RoomType.Chevy)) 
+    | Some(Choice1Of4(RoomType.CircleMoat)) 
+    | Some(Choice1Of4(RoomType.DoubleMoat)) 
+    | Some(Choice1Of4(RoomType.LavaMoat)) 
+    | Some(Choice1Of4(RoomType.RightMoat)) 
+    | Some(Choice1Of4(RoomType.TopMoat)) -> 
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_LADDER)
+    | Some(Choice1Of4(RoomType.HungryGoriyaMeatBlock)) -> 
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_BAIT)
+    | Some(Choice1Of4(RoomType.LifeOrMoney)) -> 
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_MONEY)
+
+    | Some(Choice2Of4(MonsterDetail.Bow)) ->
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_BOW_AND_ARROW)
+    | Some(Choice2Of4(MonsterDetail.Digdogger)) ->
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_RECORDER)
+    | Some(Choice2Of4(MonsterDetail.Dodongo)) ->
+        blockerLogic(TrackerModel.DungeonBlocker.MAYBE_BOMB)
+
+    | Some(Choice3Of4(FloorDropDetail.Triforce)) ->
+        dungeon.ToggleTriforce()
+    | Some(Choice3Of4(FloorDropDetail.OtherKeyItem)) ->
+        // find the topmost empty non-basement, if it exists, otherwise just choose topmost box
+        let idxs = validBoxIndices
+        let mutable r = -1
+        for i in idxs do
+            if r = -1 && not(boxes.[i].CurrentlyHasBasementStair) && boxes.[i].CellCurrent() = -1 then
+                r <- i
+        if r = -1 then
+            r <- idxs.Head
+        // r is now the index of the box we want
+        activateBox(r)
+    | Some(Choice3Of4(FloorDropDetail.Heart)) ->
+        // if there is a playerHas=NO floor heart, then YES it...
+        let mutable r = -1
+        for i in validBoxIndices do
+            if r = -1 && not(boxes.[i].CurrentlyHasBasementStair) && boxes.[i].CellCurrent() = TrackerModel.ITEMS.HEARTCONTAINER && boxes.[i].PlayerHas() = TrackerModel.PlayerHas.NO then
+                r <- i
+        if r <> -1 then
+            boxes.[r].SetPlayerHas(TrackerModel.PlayerHas.YES)
+        else
+            // otherwise, if there is an empty non-basement box, fill it with a heart
+            r <- -1
+            for i in validBoxIndices do
+                if r = -1 && not(boxes.[i].CurrentlyHasBasementStair) && boxes.[i].CellCurrent() = -1 then
+                    r <- i
+            if r <> -1 then
+                if not(boxes.[r].AttemptToSet(TrackerModel.ITEMS.HEARTCONTAINER,TrackerModel.PlayerHas.YES)) then
+                    // there are no heart containers left in the item pool, beep
+                    System.Media.SystemSounds.Asterisk.Play()
+            else
+                // there were no empty floor boxes to fill, beep
+                System.Media.SystemSounds.Asterisk.Play()
+    | Some(Choice3Of4(FloorDropDetail.Map)) ->
+        // toggle has-map checkbox
+        dungeon.PlayerHasMapOfThisDungeon <- not dungeon.PlayerHasMapOfThisDungeon
+    | _ -> ()
+
 let MakeSmallLocalTrackerPanel(dungeonIndex, ghostBuster) =
     let sp = new StackPanel(Orientation=Orientation.Vertical)
     // color/number canvas
@@ -40,7 +155,7 @@ let MakeSmallLocalTrackerPanel(dungeonIndex, ghostBuster) =
     let d = TrackerModel.GetDungeon(dungeonIndex)
     for box in d.Boxes do
         let c = new Canvas(Width=30., Height=30.)
-        let view = Views.MakeBoxItemWithExtraDecorations(None, box, false, None)
+        let view,_activate = Views.MakeBoxItemWithExtraDecorations(None, box, false, None)
         canvasAdd(c, view, 0., 0.)
         sp.Children.Add(c) |> ignore
         if dungeonIndex <> 8 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
@@ -91,15 +206,19 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
     sp.Children.Add(dungeonView) |> ignore
     // item boxes
     let d = TrackerModel.GetDungeon(dungeonIndex)
-    for box in d.Boxes do
-        let c = new Canvas(Width=30., Height=30.)
-        let view = Views.MakeBoxItem(cm, box)
-        AddCursorBehaviorTo(view, not(obj.ReferenceEquals(box, d.Boxes.[d.Boxes.Length-1])), true)
-        canvasAdd(c, view, 0., 0.)
-        sp.Children.Add(c) |> ignore
-        if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
-            let r = new Shapes.Rectangle(Width=30., Height=30., Fill=new VisualBrush(ghostBuster), IsHitTestVisible=false)
-            canvasAdd(c, r, 0., 0.)
+    let boxViewsAndActivations =
+        [|
+            for box in d.Boxes do
+                let c = new Canvas(Width=30., Height=30.)
+                let view,activate = Views.MakeBoxItem(cm, box)
+                AddCursorBehaviorTo(view, not(obj.ReferenceEquals(box, d.Boxes.[d.Boxes.Length-1])), true)
+                canvasAdd(c, view, 0., 0.)
+                sp.Children.Add(c) |> ignore
+                if level <> 9 && TrackerModel.IsHiddenDungeonNumbers() && sp.Children.Count = 5 then
+                    let r = new Shapes.Rectangle(Width=30., Height=30., Fill=new VisualBrush(ghostBuster), IsHitTestVisible=false)
+                    canvasAdd(c, r, 0., 0.)
+                yield view,activate
+        |]
     sp.Margin <- Thickness(SPM)
     // dynamic highlight
     let line,triangle = Graphics.makeArrow(30.*float dungeonIndex+15., 36.+float(d.Boxes.Length+1)*30., pos.X+21., pos.Y-3., yellow)
@@ -126,7 +245,7 @@ let MakeLocalTrackerPanel(cm:CustomComboBoxes.CanvasManager, pos:Point, sunglass
         border.BorderBrush <- Brushes.DimGray
     sp.MouseEnter.Add(fun _ -> highlight())
     sp.MouseLeave.Add(fun _ -> unhighlight())
-    interiorHighlightCanvas, unhighlight, (fun () -> dungeonView.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y), cm.AppMainCanvas))
+    interiorHighlightCanvas, unhighlight, (fun () -> dungeonView.TranslatePoint(Point(Views.IDEAL_BOX_MOUSE_X,Views.IDEAL_BOX_MOUSE_Y), cm.AppMainCanvas)), boxViewsAndActivations
 
 let fortyFiveDegrees = 
     let r = new RotateTransform(45.)
@@ -386,6 +505,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                         Height=float(27*8 + 12*7), Width=float(39*8 + 12*7), VerticalAlignment=VerticalAlignment.Center, FontWeight=FontWeights.Bold,
                         HorizontalContentAlignment=HorizontalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), Padding=Thickness(0.))
     let getLabelChar(level) = if level = 9 then '9' else if TrackerModel.IsHiddenDungeonNumbers() then (char(int 'A' - 1 + level)) else (char(int '0' + level))
+    let mutable justUnmarked = None
     for level = 1 to 9 do
         let levelTab = new TabItem(Background=Brushes.Black, Foreground=Brushes.Black)
         dungeonTabs.Items.Add(levelTab) |> ignore
@@ -483,10 +603,13 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
         let pos = Point(0. + LD_X, posYF() + LD_Y)  // appMainCanvas coords where the local tracker panel will be placed
         let mutable localDungeonTrackerPanel = null
         let mutable localDungeonTrackerPanelPosToCursorRightToF = fun() -> Point()
+        let mutable boxViewsAndActivations = [||]
         do
             let PopulateLocalDungeonTrackerPanel() =
                 let posDestinationWhenMoveCursorLeft() = contentCanvas.TranslatePoint(Point(3. + 39.*7.5 + 12.*7.,float(TH)+ 3. + 27.*4.5 + 12.*4.), cm.AppMainCanvas)
-                let ldtp,unhighlight,posIn = MakeLocalTrackerPanel(cm, pos, tileSunglasses, level, (if level=9 then null else mainTrackerGhostbusters.[level-1]), posDestinationWhenMoveCursorLeft)
+                let ldtp,unhighlight,posIn,bvaa = 
+                    MakeLocalTrackerPanel(cm, pos, tileSunglasses, level, (if level=9 then null else mainTrackerGhostbusters.[level-1]), posDestinationWhenMoveCursorLeft)
+                boxViewsAndActivations <- bvaa
                 localDungeonTrackerPanelPosToCursorRightToF <- posIn
                 if localDungeonTrackerPanel<> null then
                     contentCanvas.Children.Remove(localDungeonTrackerPanel)  // remove old one
@@ -494,8 +617,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                 canvasAdd(contentCanvas, localDungeonTrackerPanel, LD_X, LD_Y) // add new one
                 // don't remove the old 'unhighlight' event listener - this is technically a leak, but unless you toggle '2nd quest dungeons' button a million times in one session, it won't matter
                 dungeonTabs.SelectionChanged.Add(fun _ -> unhighlight())  // an extra safeguard, since the highlight is not a popup, but just a crazy mark over the main canvas
-            PopulateLocalDungeonTrackerPanel()
             OptionsMenu.secondQuestDungeonsOptionChanged.Publish.Add(fun _ -> PopulateLocalDungeonTrackerPanel())
+            PopulateLocalDungeonTrackerPanel()
         // main dungeon content
         contentCanvas.MouseEnter.Add(fun _ -> contentCanvasMouseEnterFunc(level))
         contentCanvas.MouseLeave.Add(fun ea -> 
@@ -1062,6 +1185,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                     dashCanvas.Children.Remove(pretty)
                     c.Children.Remove(dashCanvas)
                     redraw()
+                    justUnmarked <- None
                     popupIsActive <- false
                     }
                 let highlightImpl(canvas,contiguous:_[,], brush) =
@@ -1104,33 +1228,46 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             | _ -> ()
                             if ea.Handled then ()
                             else
+                            let urb(hk) =   // Unmark-Remark behavior
+                                match justUnmarked with
+                                | Some(x,y,phk) when x=i && y=j && phk=hk -> unmarkRemarkBehavior(cm, justUnmarked.Value, boxViewsAndActivations, level-1, centerOf(float i, float j))
+                                | _ -> justUnmarked <- None
                             // idempotent action on marked part toggles to Unmarked; user can left click to toggle completed-ness
-                            match HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key) with
+                            let hk = HotKeys.DungeonRoomHotKeyProcessor.TryGetValue(ea.Key)
+                            match hk with
                             | Some(Choice1Of4(roomType)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.RoomType = roomType then
                                     workingCopy.RoomType <- RoomType.Unmarked
+                                    justUnmarked <- Some(i,j,hk)
                                 else
                                     workingCopy.RoomType <- roomType
+                                    urb(hk)
                                 SetNewValue(workingCopy)
                             | Some(Choice2Of4(monsterDetail)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.MonsterDetail = monsterDetail then
                                     workingCopy.MonsterDetail <- MonsterDetail.Unmarked
+                                    justUnmarked <- Some(i,j,hk)
                                 else
                                     workingCopy.MonsterDetail <- monsterDetail
+                                    urb(hk)
                                 SetNewValue(workingCopy)
                             | Some(Choice3Of4(floorDropDetail)) -> 
                                 ea.Handled <- true
                                 let workingCopy = roomStates.[i,j].Clone()
                                 if workingCopy.FloorDropDetail = floorDropDetail then
                                     workingCopy.FloorDropDetail <- FloorDropDetail.Unmarked
+                                    justUnmarked <- Some(i,j,hk)
                                 else
                                     workingCopy.FloorDropDetail <- floorDropDetail
+                                    urb(hk)
                                 SetNewValue(workingCopy)
                             | Some(Choice4Of4(doorHotKeyResponse)) -> 
+                                ea.Handled <- true
+                                justUnmarked <- None
                                 match doorHotKeyResponse.Direction, doorHotKeyResponse.Action with
                                 | DoorDirection.West, DoorAction.Increment -> if i>0 then horizontalDoors.[i-1,j].Next()
                                 | DoorDirection.West, DoorAction.Decrement -> if i>0 then horizontalDoors.[i-1,j].Prev()
@@ -1192,6 +1329,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             workingCopy.MonsterDetail <- md
                             SetNewValue(workingCopy)
                         | None -> ()
+                        justUnmarked <- None
                         popupIsActive <- false
                     } |> Async.StartImmediate
                 let doFloorDropDetailPopup() = 
@@ -1204,6 +1342,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             workingCopy.FloorDropDetail <- fd
                             SetNewValue(workingCopy)
                         | None -> ()
+                        justUnmarked <- None
                         popupIsActive <- false
                     } |> Async.StartImmediate
                 c.MouseWheel.Add(fun x -> 
@@ -1282,6 +1421,7 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                             workingCopy.RoomType <- defaultRoom()
                                             workingCopy.IsComplete <- true
                                             SetNewValue(workingCopy)
+                                            justUnmarked <- None
                                         else
                                             if isFirstTimeClickingAnyRoom.[level-1].Value then
                                                 workingCopy.RoomType <- RoomType.StartEnterFromS
@@ -1289,20 +1429,24 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                                                 SetNewValue(workingCopy)
                                                 isFirstTimeClickingAnyRoom.[level-1].Value <- false
                                                 numeral.Opacity <- 0.0
+                                                justUnmarked <- None
                                             else
                                                 match roomStates.[i,j].RoomType.NextEntranceRoom() with
                                                 | Some(next) -> 
                                                     workingCopy.RoomType <- next  // cycle the entrance arrow around cardinal positions
                                                     SetNewValue(workingCopy)
+                                                    justUnmarked <- None
                                                 | None ->
                                                     if roomStates.[i,j].RoomType = RoomType.OffTheMap then
                                                         // left clicking an off the map paints it back on; helps recover people who accidentally toggle all OffTheMap
                                                         workingCopy.RoomType <- RoomType.Unmarked
                                                         SetNewValue(workingCopy)
+                                                        justUnmarked <- None
                                                     else
                                                         // toggle completedness
                                                         workingCopy.IsComplete <- not roomStates.[i,j].IsComplete
                                                         SetNewValue(workingCopy)
+                                                        justUnmarked <- None
                                         redraw()
                                     ea.Handled <- true
                             elif ea.ChangedButton = Input.MouseButton.Right then

@@ -320,15 +320,18 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
     redraw()
     try TrackerModel.DungeonTrackerInstance.TheDungeonTrackerInstance.AllBoxProgress.Changed.Add(fun _ -> redraw())
     with _ -> () // we create fake Views on the startup menu to preview Heart Shuffle; TheDungeonTrackerInstance does not exist yet and throws
+    // redraw on changes
+    redrawBoxes.Add(fun() -> redraw())
+    box.Changed.Add(fun _ -> redraw())
     // interactions
     match cmo with
     | Some cm ->
-        let activateComboBox(activationDelta) =
+        let activateComboBox(activationDelta, gridClickDismissalWarpReturn) =
             popupIsActive <- true
             let pos = c.TranslatePoint(Point(),cm.AppMainCanvas)
             let extraDecorations = match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with | Some f -> f(pos) | None -> seq[]
             async {
-                let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations)
+                let! r = CustomComboBoxes.DisplayItemComboBox(cm, pos.X, pos.Y, box.CellCurrent(), activationDelta, box.PlayerHas(), extraDecorations, gridClickDismissalWarpReturn)
                 match r with
                 | Some(newBoxCellValue, newPlayerHas) -> box.Set(newBoxCellValue, newPlayerHas)
                 | None -> ()
@@ -340,18 +343,18 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                         (ea.ChangedButton = Input.MouseButton.Left || ea.ChangedButton = Input.MouseButton.Middle || ea.ChangedButton = Input.MouseButton.Right) then
                     ea.Handled <- true
                     if box.CellCurrent() = -1 then
-                        activateComboBox(0)
+                        activateComboBox(0, CustomComboBoxes.WarpToCenter)
                     else
                         let desire = CustomComboBoxes.MouseButtonEventArgsToPlayerHas ea
                         if desire = box.PlayerHas() then
-                            activateComboBox(0) // rather than idempotent gesture doing nothing, a second try (e.g. left click and already-have item) reactivates popup (easier to discover than scroll)
+                            activateComboBox(0, CustomComboBoxes.WarpToCenter) // rather than idempotent gesture doing nothing, a second try (e.g. left click and already-have item) reactivates popup (easier to discover than scroll)
                         else
                             box.SetPlayerHas(desire)
             )
         c.MouseWheel.Add(fun ea -> 
             if not popupIsActive then 
                 ea.Handled <- true
-                activateComboBox(if ea.Delta<0 then 1 else -1)
+                activateComboBox((if ea.Delta<0 then 1 else -1), CustomComboBoxes.WarpToCenter)
             )
         c.MyKeyAdd(fun ea -> 
             if not popupIsActive then
@@ -380,7 +383,7 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                 | None -> ()
             )
         if accelerateIntoComboBox then
-            c.Loaded.Add(fun _ -> activateComboBox(0))
+            c.Loaded.Add(fun _ -> activateComboBox(0, CustomComboBoxes.WarpToCenter))
         // hover behavior
         appMainCanvasGlobalBoxMouseOverHighlight.ApplyBehavior(c)
         match computeExtraDecorationsWhenPopupActivatedOrMouseOverOpt with
@@ -397,11 +400,9 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                 )
             c.MouseLeave.Add(fun _ -> cm.AppMainCanvas.Children.Remove(hoverCanvas))
         | None -> ()
-    | _ -> ()
-    // redraw on changes
-    redrawBoxes.Add(fun() -> redraw())
-    box.Changed.Add(fun _ -> redraw())
-    c
+        c, activateComboBox
+    | _ -> c, fun(_,_)->()
+    
 let MakeBoxItem(cm:CustomComboBoxes.CanvasManager, box:TrackerModel.Box) = 
     MakeBoxItemWithExtraDecorations(Some(cm), box, false, None)
 
