@@ -15,7 +15,8 @@ A summary of the features/fixes in the various releases of Z-Tracker
 This is a major update with a large number of usability improvements and new features.
 
  - [Alternate app size](#v13-alt-size)
- - [Navigation hotkeys](#v13-hotkeys)
+ - [Navigation HotKeys](#v13-hotkeys)
+ - [More dungeon room HotKey behaviors](#v13-dungeon-hotkeys)
  - [Reset buttons](#v13-reset)
  - [Recorder Destination options](#v13-recorder)
  - [Highlight open caves checkbox](#v13-open-caves)
@@ -39,13 +40,13 @@ These screenshots show the default tall app, the square app when the mouse is in
 
 ![app sizes](screenshots/app-sizes.png)
 
-### <a id="v13-hotkeys">Navigation hotkeys</a>
+### <a id="v13-hotkeys">Navigation HotKeys</a>
 
 You can now navigate a great deal of the app without touching the mouse, if desired:
 
-- You can now map 4 "arrow" hotkeys, which can be used to navigate most grids (overworld, dungeon rooms, ...) as an alternative to moving the mouse
+- You can now map 4 "arrow" HotKeys, which can be used to navigate most grids (overworld, dungeon rooms, ...) as an alternative to moving the mouse
 - You can now map keyboard keys to mean 'left click', 'middle click', 'right click', 'scroll up', and 'scroll down'
-- You can now map hotkeys with 1 optional modifier (SHIFT/ALT/CTRL)
+- You can now map HotKeys with 1 optional modifier (SHIFT/ALT/CTRL)
 - You can map a hotkey to ToggleCursorOverworldOrDungeon which moves the mouse to the center of the overworld if outside the overworld, or the center of the dungeon area otherwise
 - There are now hotkey mappings while hovering a dungeon room that cycle the N/S/E/W doors (so that e.g. you might map 'up arrow' to move the cursor north to the next room, and 'shift up arrow' to cycle the north door state)
 - Left-clicking a dungeon on the overworld switches to that tab and ToggleCursorOverworldOrDungeon-moves the mouse there
@@ -57,6 +58,79 @@ Along with the existing "global" HotKeys for marking items like the Magical Swor
 Users of prior versions of Z-Tracker can simply copy over their existing "HotKeys.txt" file into the new install folder.  Then inspect the file
 "HotKeys_BlankSampleTemplate.txt" to learn about new v1.3 hotkey options (at the bottoms of the Global_ and DungeonRoom_ sections), and then edit your
 HotKeys.txt to add your own.
+
+### <a id="v13-dungeon-hotkeys">More dungeon room HotKey behaviors</a>
+
+There are now some new HotKey behaviors which take affect when the mouse is over certain dungeon rooms.  These new behaviors are designed to let HotKey enthusiasts touch the mouse
+even less, by providing facilities for changing triforce/items/has-map/blockers without leaving the dungeon-room area.
+
+Before explaining the feature in detail, if 'c' is your ChevyMoat (room) HotKey, and 'h' is your Heart (floor drop) hotkey, then when mouse hovering a dungeon room,
+
+ - pressing 'ccc' will mark a room as a ChevyMoat and also add a Maybe-Ladder blocker to this dungeon
+ - pressing 'hhh' will mark a room with a floor drop heart, and also mark the appropriate item box in this dungeon with the Heart Container you got
+
+That is, this feature provides a way to use your existing hotkeys, repeatedly, to activate new behaviors.  The full explanation follows.
+
+##### Unmark-Remark interactions
+
+The new HotKey behaviors are activated by an "Unmark-Remark" interaction.  Here's an explanation of "Unmark-Remark" with an example:
+
+Suppose 't' is your HotKey to mark a room's FloorDropDetail.Triforce.  Pressing 't' when the mouse is over an empty room causes the Triforce icon to appear in the lower-right of the 
+room display, because you have marked the room as having the Triforce FloorDropDetail.
+
+Pressing 't' a second time will Unmark the room's FloorDropDetail - the Triforce icon will disappear.  Pressing 't' a third time will Remark the room, and the Triforce will re-appear.
+
+None of the previous two paragraphs is new behavior; this is how Z-Tracker behaved since version 1.2.
+
+The new behaviors in version 1.3 are that now Z-Tracker will detect successive "Unmark-Remark" interactions and activate specific behaviors.  For the Triforce, it will toggle whether you 
+have the triforce in the current dungeon.  The implications are best illustrated with a scenario:
+
+ - you walk into dungeon 6
+ - the first room past the lobby has the triforce; you decide to take it and leave the dungeon immediately
+
+ In version 1.2, you would probably just mark the lobby, and then mouse north one room and mark the triforce room (or just a completed room), and then mouse over to 6's triforce and click it.
+
+ In version 1.3, you can just mark the lobby, "up arrow" HotKey north one room, and press 'ttt':
+
+ - the first 't' marks the room as the triforce room
+ - the second and third 't's are the Unmark-Remark interaction, which triggers the Triforce behavior of toggling has-triforce for this dungeon
+
+ This behavior is slightly underwhelming when just considering the Triforce, but it extends to many different HotKeys you can use when the mouse is over a dungeon room.  Here's the full list:
+
+ | HotKey | Unmark-Remark behavior |
+ | ------ | ---------------------- |
+ | FloorDropDetail.Triforce | toggle has-triforce |
+ | FloorDropDetail.Map | toggle has-map |
+ | RoomType.ItemBasement | activate the bottommost empty basement box (or the bottommost if none are empty) |
+ | FloorDropDetail.Heart | replace topmost empty (or DontHaveIt-Heart) box with a (HaveIt) Heart |
+ | FloorDropDetail.OtherKeyItem | activate the topmost empty non-basement box (or the topmost if none are empty) |
+ | RoomType.(Any Moat) | do blocker(Ladder) logic |
+ | RoomType.HungryGoriyaMeatBlock | do blocker(Bait) logic |
+ | RoomType.LifeOrMoney | do blocker(Money) logic |
+ | MonsterDetail.Bow | (Gohma) do blocker(BowAndArrow) logic |
+ | MonsterDetail.Digdogger | do blocker(Recorder) logic |
+ | MonsterDetail.Dodongo | do blocker(Bomb) logic |
+
+where "Blocker(X) logic" means: 
+ 
+ - if there is already an X blocker, do nothing, 
+ - else if there is a Maybe-X blocker, promote it to an X
+ - else if there is an empty blocker box, fill it with Maybe-X
+
+##### More example scenarios
+
+So now, if you enter dungeon 7, and there's only one bomb-hole out of the lobby, and the next room is a Chevy Moat, you know you can press 'ccccc' to mark the dungeon fully ladder-blocked:
+
+ - (first) 'c' marks the room as a Chevy Moat
+ - (second and third) 'cc' is an Unmark-Remark, which triggers putting a Maybe-Ladder blocker on dungeon 7
+ - (fourth and fifth) 'cc' is another Unmark-Remark, which triggers promoting the Maybe-Ladder blocker to a (full) Ladder blocker on dungeon 7
+
+If you're halfway through dungeon 8 and you discover a Digdogger blocking access to the left half of the dungeon, press 'ddd' (assuming 'd' is your Digdogger HotKey) to mark the room as
+a Digdogger and mark a Maybe-Recorder block on dungeon 8.
+
+If you get a Red Candle off the floor in dungeon 3, press 'iii' (assuming 'i' is your OtherKeyItem HotKey) to mark the room as the floor drop room, and to activate dungeon 3's first 
+item box popup (where you can arrow-HotKey over to the Red Candle and then LeftClick-HotKey to mark it), and then the mouse cursor will automagically warp back to the item room where 
+you picked it up.
 
 ### <a id="v13-reset">Reset buttons</a>
 
