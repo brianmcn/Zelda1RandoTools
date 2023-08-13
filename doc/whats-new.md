@@ -61,7 +61,7 @@ HotKeys.txt to add your own.
 
 ### <a id="v13-dungeon-hotkeys">More dungeon room HotKey behaviors</a>
 
-There are now some new HotKey behaviors which take affect when the mouse is over certain dungeon rooms.  These new behaviors are designed to let HotKey enthusiasts touch the mouse
+There are now some new HotKey behaviors which take effect when the mouse is over certain dungeon rooms.  These new behaviors are designed to let HotKey enthusiasts touch the mouse
 even less, by providing facilities for changing triforce/items/has-map/blockers without leaving the dungeon-room area.
 
 Before explaining the feature in detail, imagine 'c' is your ChevyMoat (room) HotKey, and 'h' is your Heart (floor drop) hotkey... then when mouse-hovering a dungeon room,
