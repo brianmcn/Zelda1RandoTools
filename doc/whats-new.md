@@ -64,10 +64,10 @@ HotKeys.txt to add your own.
 There are now some new HotKey behaviors which take affect when the mouse is over certain dungeon rooms.  These new behaviors are designed to let HotKey enthusiasts touch the mouse
 even less, by providing facilities for changing triforce/items/has-map/blockers without leaving the dungeon-room area.
 
-Before explaining the feature in detail, if 'c' is your ChevyMoat (room) HotKey, and 'h' is your Heart (floor drop) hotkey, then when mouse hovering a dungeon room,
+Before explaining the feature in detail, imagine 'c' is your ChevyMoat (room) HotKey, and 'h' is your Heart (floor drop) hotkey... then when mouse-hovering a dungeon room,
 
  - pressing 'ccc' will mark a room as a ChevyMoat and also add a Maybe-Ladder blocker to this dungeon
- - pressing 'hhh' will mark a room with a floor drop heart, and also mark the appropriate item box in this dungeon with the Heart Container you got
+ - pressing 'hhh' will mark a room with a floor drop heart, and also mark the appropriate item box in this dungeon with the Heart Container you just picked up
 
 That is, this feature provides a way to use your existing hotkeys, repeatedly, to activate new behaviors.  The full explanation follows.
 
@@ -107,7 +107,7 @@ have the triforce in the current dungeon.  The implications are best illustrated
  | RoomType.(Any Moat) | do blocker(Ladder) logic |
  | RoomType.HungryGoriyaMeatBlock | do blocker(Bait) logic |
  | RoomType.LifeOrMoney | do blocker(Money) logic |
- | MonsterDetail.Bow | (Gohma) do blocker(BowAndArrow) logic |
+ | MonsterDetail.Bow (Gohma) | do blocker(BowAndArrow) logic |
  | MonsterDetail.Digdogger | do blocker(Recorder) logic |
  | MonsterDetail.Dodongo | do blocker(Bomb) logic |
 
@@ -125,12 +125,14 @@ So now, if you enter dungeon 7, and there's only one bomb-hole out of the lobby,
  - (second and third) 'cc' is an Unmark-Remark, which triggers putting a Maybe-Ladder blocker on dungeon 7
  - (fourth and fifth) 'cc' is another Unmark-Remark, which triggers promoting the Maybe-Ladder blocker to a (full) Ladder blocker on dungeon 7
 
-If you're halfway through dungeon 8 and you discover a Digdogger blocking access to the left half of the dungeon, press 'ddd' (assuming 'd' is your Digdogger HotKey) to mark the room as
+Imagine you're halfway through dungeon 8 and you discover a Digdogger blocking access to the left half of the dungeon.  Press 'ddd' (assuming 'd' is your Digdogger HotKey) to mark the room as
 a Digdogger and mark a Maybe-Recorder block on dungeon 8.
 
-If you get a Red Candle off the floor in dungeon 3, press 'iii' (assuming 'i' is your OtherKeyItem HotKey) to mark the room as the floor drop room, and to activate dungeon 3's first 
+Imagine you get a Red Candle off the floor in dungeon 3.  Press 'iii' (assuming 'i' is your OtherKeyItem HotKey) to mark the room as the floor drop room, and to activate dungeon 3's first 
 item box popup (where you can arrow-HotKey over to the Red Candle and then LeftClick-HotKey to mark it), and then the mouse cursor will automagically warp back to the item room where 
 you picked it up.
+
+More HotKeys, less mousing!
 
 ### <a id="v13-reset">Reset buttons</a>
 
