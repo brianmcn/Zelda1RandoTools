@@ -104,12 +104,12 @@ have the triforce in the current dungeon.  The implications are best illustrated
  | RoomType.ItemBasement | activate the bottommost empty basement box (or the bottommost if none are empty) |
  | FloorDropDetail.Heart | replace topmost empty (or DontHaveIt-Heart) box with a (HaveIt) Heart |
  | FloorDropDetail.OtherKeyItem | activate the topmost empty non-basement box (or the topmost if none are empty) |
- | RoomType.(Any Moat) | do blocker(Ladder) logic |
- | RoomType.HungryGoriyaMeatBlock | do blocker(Bait) logic |
- | RoomType.LifeOrMoney | do blocker(Money) logic |
- | MonsterDetail.Bow (Gohma) | do blocker(BowAndArrow) logic |
- | MonsterDetail.Digdogger | do blocker(Recorder) logic |
- | MonsterDetail.Dodongo | do blocker(Bomb) logic |
+ | RoomType.(Any Moat) | do Blocker(Ladder) logic |
+ | RoomType.HungryGoriyaMeatBlock | do Blocker(Bait) logic |
+ | RoomType.LifeOrMoney | do Blocker(Money) logic |
+ | MonsterDetail.Bow (Gohma) | do Blocker(BowAndArrow) logic |
+ | MonsterDetail.Digdogger | do Blocker(Recorder) logic |
+ | MonsterDetail.Dodongo | do Blocker(Bomb) logic |
 
 where "Blocker(X) logic" means: 
  
