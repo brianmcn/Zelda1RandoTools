@@ -243,7 +243,9 @@ since 1.3.0C...
        - MonsterDetail.Digdogger: do blocker(Recorder) logic
        - MonsterDetail.Dodongo: do blocker(Bomb) logic
        where Blocker(X) logic means: if there is already an X blocker, do nothing, else if there is a Maybe-X blocker, promote it to an X, else if there is an empty blocker box, fill it with Maybe-X
-
+since 1.3.0D...
+ - all error beeps now come with a Reminder Log, so you can see exactly what Z-Tracker was unhappy about
+ - Reminder Log now displays full text (no need to hover it to read it)
 
 
 'ccc' lets you mark a ladder block even if you have the ladder, should it? mousing woulnd't let you
@@ -528,9 +530,6 @@ https://www.thewindowsclub.com/manage-quarantined-exclusions-windows-defender-se
 
 
 SMALL
-
-change each 'asterisk' beep warning into a more detailed message about what is wrong?
- - text on timeline reminder area?
 
 link probably doesn't route to rupees, might be easy to add
 

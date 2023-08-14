@@ -150,6 +150,7 @@ volumeChanged.Publish.Add(fun v ->
     soundPlayer2.Volume <- float v / 300.
     )
 
+let mutable ErrorBeepWithReminderLogText = fun (_txt:string) -> ()
 
 let GetResourceStream(name) = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name)
 

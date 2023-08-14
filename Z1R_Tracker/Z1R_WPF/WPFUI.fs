@@ -603,7 +603,9 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                 mirrorOverworldFEs.Add(owDarkeningMapGridCanvases.[i,j])
                 let SetNewValue(currentState, originalState) = async {
                     if currentState <> originalState then   // only do work if they actually changed anything
-                        if isLegalHere(currentState) && TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
+                        if not(isLegalHere(currentState)) then
+                            Graphics.ErrorBeepWithReminderLogText("Tried to mark Armos on an overworld tile other than the 5 possible Armos screens")
+                        elif TrackerModel.overworldMapMarks.[i,j].AttemptToSet(currentState) then
                             if originalState<>TrackerModel.MapSquareChoiceDomainHelper.DARK_X && originalState <> -1 then  
                                 // remind destructive changes
                                 RemindOverworldOverwrites(i, j, originalState, currentState, spokenOWTiles, AsyncBrieflyHighlightAnOverworldLocation(i,j))
@@ -619,7 +621,10 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                             if originalState = -1 && currentState <> -1 then OverworldRouteDrawing.routeDrawingLayer.GetHighlightTile(i,j).Hide()  // dismiss any green/yellow highlight on this tile
                             animateOverworldTileIfOptionIsChecked(i,j)
                         else
-                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set armos on non-armos, or tried to set Level1 when already found elsewhere
+                            // e.g. they tried to set Level1 when already found elsewhere
+                            Graphics.ErrorBeepWithReminderLogText(sprintf "Tried to mark overworld tile %s as %s but that is already fully marked elsewhere" 
+                                                                    (sprintf "%c%d" (char (int 'A' + j)) (if TrackerModel.MirrorOverworld then 16-i else (i+1)))
+                                                                    (TrackerModel.MapSquareChoiceDomainHelper.AsHotKeyName(currentState)))
                 }
                 let GCOL,GROW = 8,5
                 let GCOUNT = GCOL*GROW

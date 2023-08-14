@@ -25,6 +25,7 @@ let SendReminderImpl(category, text:string, icons:seq<FrameworkElement>, visualU
             | TrackerModel.ReminderCategory.SwordHearts ->     TrackerModelOptions.VoiceReminders.SwordHearts.Value,     TrackerModelOptions.VisualReminders.SwordHearts.Value
             | TrackerModel.ReminderCategory.DoorRepair ->      TrackerModelOptions.VoiceReminders.DoorRepair.Value,      TrackerModelOptions.VisualReminders.DoorRepair.Value
             | TrackerModel.ReminderCategory.OverworldOverwrites -> TrackerModelOptions.VoiceReminders.OverworldOverwrites.Value, TrackerModelOptions.VisualReminders.OverworldOverwrites.Value
+            | TrackerModel.ReminderCategory.Asterisk ->        false, false
         if not(Timeline.isCurrentlyLoadingASave) then 
             reminderAgent.Post(text, category, TrackerModelOptions.IsMuted, shouldRemindVoice, icons, shouldRemindVisual, visualUpdateToSynchronizeWithReminder)
 let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
@@ -32,6 +33,14 @@ let SendReminder(category, text:string, icons:seq<FrameworkElement>) =
 let ReminderTextBox(txt) : FrameworkElement = 
     upcast new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=20., FontWeight=FontWeights.Bold, IsHitTestVisible=false,
         VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Center)
+let ReminderDescriptionTextBox(txt) = 
+    new TextBox(Text=txt, Foreground=Brushes.Orange, Background=Brushes.Black, FontSize=12., IsHitTestVisible=false,
+        VerticalAlignment=VerticalAlignment.Center, HorizontalAlignment=HorizontalAlignment.Center, BorderThickness=Thickness(0.), TextAlignment=TextAlignment.Left)
+do
+    Graphics.ErrorBeepWithReminderLogText <- (fun txt -> 
+        System.Media.SystemSounds.Asterisk.Play()
+        SendReminder(TrackerModel.ReminderCategory.Asterisk, txt, [Graphics.BMPtoImage Graphics.other_monster2; ReminderTextBox("Error beep")])
+        )
 
 let SetupReminderDisplayAndProcessing(cm) =
     let ctxt = System.Threading.SynchronizationContext.Current
@@ -52,9 +61,9 @@ let SetupReminderDisplayAndProcessing(cm) =
             sp.Children.Add(new DockPanel(Background=Brushes.Gray, Margin=Thickness(6.,3.,6.,0.), Height=3.)) |> ignore
             let reminderView = new ScrollViewer(Content=reminderLogSP, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, MaxHeight=340., Margin=Thickness(3.))
             sp.Children.Add(reminderView) |> ignore
-            let b = new Border(BorderBrush=Brushes.Gray, Background=Brushes.Black, BorderThickness=Thickness(3.), Child=sp)
+            let b = new Border(BorderBrush=Brushes.Gray, Background=Brushes.Black, BorderThickness=Thickness(3.), Child=sp, MaxWidth=748.)
             async {
-                do! CustomComboBoxes.DoModal(cm, wh, 10., 10., b)
+                do! CustomComboBoxes.DoModal(cm, wh, 10., 60., b)
                 reminderView.Content <- null // deparent log for future reuse
                 popupIsActive <- false
             } |> Async.StartImmediate
@@ -77,6 +86,7 @@ let SetupReminderDisplayAndProcessing(cm) =
                 let iconCount = sp.Children.Count
                 if shouldRemindVisual then
                     Graphics.PlaySoundForReminder()
+                if shouldRemindVisual || category=TrackerModel.ReminderCategory.Asterisk then
                     reminderDisplayInnerBorder.Child <- sp
                 match visualUpdateToSynchronizeWithReminder with
                 | None -> ()
@@ -87,7 +97,7 @@ let SetupReminderDisplayAndProcessing(cm) =
                 let startSpeakTime = DateTime.Now
                 if shouldRemindVoice && voice.Volume <> 0 then
                     voice.Speak(text) 
-                if shouldRemindVisual then
+                if shouldRemindVisual || category=TrackerModel.ReminderCategory.Asterisk then
                     let minimumDuration = TimeSpan.FromSeconds(max 3 iconCount |> float)  // ensure at least 3s, and at least 1s per icon
                     let elapsed = DateTime.Now - startSpeakTime
                     if elapsed < minimumDuration then
@@ -100,12 +110,13 @@ let SetupReminderDisplayAndProcessing(cm) =
             sp.Margin <- Thickness(0.)
             sp.Children.Insert(0, new DockPanel(Background=Brushes.Gray, Width=18., Height=3., Margin=Thickness(6.,0.,6.,0.), VerticalAlignment=VerticalAlignment.Center))
             sp.Children.Insert(0, ReminderTextBox(timeString))
-            sp.ToolTip <- sprintf "%s\n(%s)" text category.DisplayName
+            sp.Children.Add(ReminderDescriptionTextBox(sprintf "%s\n(%s)" text category.DisplayName)) |> ignore
             let hasAny = reminderLogSP.Children.Count > 0
             let grayOut = muted || (not shouldRemindVisual && not shouldRemindVoice)
+            let grayOut = if category=TrackerModel.ReminderCategory.Asterisk then false else grayOut   // never gray out error beeps
             if grayOut then
                 anyReminderGrayedOut <- true
-            reminderLogSP.Children.Insert(0, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(0.,0.,0.,if hasAny then 1. else 0.), Opacity=if grayOut then 0.5 else 1.0))
+            reminderLogSP.Children.Insert(0, new Border(Child=sp, BorderBrush=Brushes.Gray, BorderThickness=Thickness(0.,0.,0.,if hasAny then 1. else 0.), Opacity=if grayOut then 0.6 else 1.0))
             return! messageLoop()
             }
         messageLoop()

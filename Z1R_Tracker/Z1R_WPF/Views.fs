@@ -379,7 +379,8 @@ let MakeBoxItemWithExtraDecorations(cmo:CustomComboBoxes.CanvasManager option, b
                     else
                         // changing from empty/other-item box to this item value always NO on first hotkey press, as this is 'model harmless'
                         if not(box.AttemptToSet(i, TrackerModel.PlayerHas.NO)) then
-                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this box to Bow when another box already has 'Bow'
+                            // e.g. they tried to set this box to Bow when another box already has 'Bow'
+                            Graphics.ErrorBeepWithReminderLogText(sprintf "Tried to mark item box as %s, but that item is already marked in a different box" (TrackerModel.ITEMS.AsDisplayDescription(i)))
                 | None -> ()
             )
         if accelerateIntoComboBox then

@@ -253,7 +253,7 @@ let TakeAnyPieMenuAsync(cm,h) =
         elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(2)=0 then 2
         elif TrackerModel.playerProgressAndTakeAnyHearts.GetTakeAnyHeart(3)=0 then 3
         else 
-            System.Media.SystemSounds.Asterisk.Play()  // warn the user something is awry
+            Graphics.ErrorBeepWithReminderLogText("All four take-any hearts have already been marked, so no marking will be made")
             -1
     let mutable r = false
     let candleBehavior() =

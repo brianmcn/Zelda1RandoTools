@@ -812,7 +812,8 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
     hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideFirstQuestCheckBox.Checked.Add(fun _ -> 
         if thereAreMarks(OverworldData.owMapSquaresFirstQuestOnly) then
-            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+            // warn, but let them
+            Graphics.ErrorBeepWithReminderLogText("There are first-quest locations already marked, but you chose to hide them anyway")
         hideFirstQuestFromMixed false
         hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )
@@ -821,7 +822,8 @@ let MakeFQSQStuff(cm, isMixed, owLocatorTilesZone:Graphics.TileHighlightRectangl
     hideSecondQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
     hideSecondQuestCheckBox.Checked.Add(fun _ -> 
         if thereAreMarks(OverworldData.owMapSquaresSecondQuestOnly) then
-            System.Media.SystemSounds.Asterisk.Play()   // warn, but let them
+            // warn, but let them
+            Graphics.ErrorBeepWithReminderLogText("There are second-quest locations already marked, but you chose to hide them anyway")
         hideSecondQuestFromMixed false
         hideFirstQuestCheckBox.IsChecked <- System.Nullable.op_Implicit false
         )

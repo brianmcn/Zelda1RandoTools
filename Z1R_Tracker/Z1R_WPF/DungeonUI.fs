@@ -30,8 +30,7 @@ let unmarkRemarkBehavior(cm:CustomComboBoxes.CanvasManager, (_i,_j,hk), boxViews
     let blockerLogic(maybe:TrackerModel.DungeonBlocker) =
         let full = maybe.HardCanonical()
         if dungeonIndex = 8 then  
-            // dungeon 9 has no blocker storage
-            System.Media.SystemSounds.Asterisk.Play()
+            Graphics.ErrorBeepWithReminderLogText("Blockers cannot be marked for dungeon 9")
         else
             // NOTE: this logic ignores Blockers' AppliesTo info
             let mutable firstFull, firstMaybe, firstEmpty = -1, -1, -1
@@ -53,7 +52,7 @@ let unmarkRemarkBehavior(cm:CustomComboBoxes.CanvasManager, (_i,_j,hk), boxViews
                 TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, firstEmpty, maybe)
             else
                 // there was no prior blocker of this kind, but there's no empty box to mark one
-                System.Media.SystemSounds.Asterisk.Play()
+                Graphics.ErrorBeepWithReminderLogText(sprintf "There are no empty blocker boxes to mark a %s in this dungeon" (full.AsHotKeyName()))
     let activateBox(boxIndex) =
         let view,activate = boxViewsAndActivations.[boxIndex]
         let pos = view.TranslatePoint(Point(15.,15.), cm.AppMainCanvas)
@@ -130,11 +129,9 @@ let unmarkRemarkBehavior(cm:CustomComboBoxes.CanvasManager, (_i,_j,hk), boxViews
                     r <- i
             if r <> -1 then
                 if not(boxes.[r].AttemptToSet(TrackerModel.ITEMS.HEARTCONTAINER,TrackerModel.PlayerHas.YES)) then
-                    // there are no heart containers left in the item pool, beep
-                    System.Media.SystemSounds.Asterisk.Play()
+                    Graphics.ErrorBeepWithReminderLogText("There are no Heart Containers remaining in the item pool; cannot mark another")
             else
-                // there were no empty floor boxes to fill, beep
-                System.Media.SystemSounds.Asterisk.Play()
+                Graphics.ErrorBeepWithReminderLogText("There were no floor-drop item boxes remaining in this dungeon, to mark a floor-heart pickup")
     | Some(Choice3Of4(FloorDropDetail.Map)) ->
         // toggle has-map checkbox
         dungeon.PlayerHasMapOfThisDungeon <- not dungeon.PlayerHasMapOfThisDungeon
@@ -1171,7 +1168,8 @@ let makeDungeonTabs(cm:CustomComboBoxes.CanvasManager, layoutF, posYF, selectDun
                             redrawAllDoors()   // in case off-the-map changed, this adjusts adjacent doors; TODO probably expensive during Load of a save file
                             animateDungeonRoomTile(i,j)
                         else
-                            System.Media.SystemSounds.Asterisk.Play()  // e.g. they tried to set this room to transport4, but two transport4s already exist
+                            // e.g. they tried to set this room to transport4, but two transport4s already exist
+                            Graphics.ErrorBeepWithReminderLogText("Cannot mark a third copy of transport-stair pair")
                 setNewValueFunctions.[i,j] <- SetNewValue
                 let activatePopup(positionAtEntranceRoomIcons) = async {
                     popupIsActive <- true

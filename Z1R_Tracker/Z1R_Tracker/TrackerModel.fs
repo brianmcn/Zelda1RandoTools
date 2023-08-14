@@ -12,6 +12,7 @@ type ReminderCategory =
     | Blockers
     | DoorRepair
     | OverworldOverwrites
+    | Asterisk
     member this.DisplayName =
         match this with
         | DungeonFeedback -> "Dungeon feedback"
@@ -22,6 +23,7 @@ type ReminderCategory =
         | Blockers -> "Blockers"
         | DoorRepair -> "Door Repair Count"
         | OverworldOverwrites -> "Overworld overwrites"
+        | Asterisk -> "Error beeps"
 
 ///////////////////////////////////////////////////////////////////////////
 
