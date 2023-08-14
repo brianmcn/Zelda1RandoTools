@@ -274,10 +274,6 @@ panulphe:
         in front of the 8th and it'd be nice to mark it but you wont let me... 
 
 
-homer: tiny armos number mark, to know which to push (inputs, display UI, not easy)
- - shift left click works well for it tho
-
-
 press ctrl or something does eyeball show-map toggle thingy?  or experiment with it like 'blinking away' all the tiles every 2s or something
  - i tried both of these and didn't love either... still looking for a way for me not to confuse e.g. 1Q3 and river cave when walking to them and obscured by icons
 
@@ -296,18 +292,6 @@ lots of new icons that could appear in Draw menu
 
 
 
-PedanticPotato (et al) want a 'clear my entire dungeon map' button, for the 'i royally screwed up' case
-Since it was mentioned last night...
-Suppose I wanted a 'clear all my dungeon marks from this dungeon tab because I royally screwed up' button.
-It needs to be findable by the player; currently all the pixels of the dungeon tracker area are already spoken for, but I can imagine putting a button 
-inside the GRAB context explanation that pops up, since GRAB is the place you go to do rocket surgery to try to fix a broken map anyway.
-So maybe there's a button in there like "Nuke this dungeon tab map" and if you click it it gives a big modal dialog that says what you're about to do 
-and asks for confirmation.  And if you choose to nuke, all room/monster/floordrop/door for the tab are deleted (and it's like a fresh tab when you started Z-Tracker).  Sound plausible?
-I feel like I need to talk it through to foresee pitfalls/issues.
-PedanticPotato: Yeah, it'd definitely have to have a modal popup for confirmation.  I can't think of a better place than grab.  But maybe it's lower priority than it felt during the race last night.
-
-
-
 new armos reminder: 5 mins after you have marked at least 3 armos spots, if the armos item box is still empty, remind once
 
 possible new reminder category - item obtained in first 5 mins, remind 7 mins later? bow, silvers, akey, ladder
@@ -323,30 +307,13 @@ possible new reminder category - item obtained in first 5 mins, remind 7 mins la
 Related: possible easteregg/configurable random speech, like motivationals or something? (kibitz.txt) would need option to turn it off, when you want to get serious
 
 
-UCC may need testing of popup menus
+UCC may need testing of popup menus (since DoModalCore now throws if not popupIsActive)
 
 
 feature to paint your map of 7/8 as a 'vanilla map outline' onto 8/7, with user-chosen offset? that is, entirely manual process?
  - or BeefSupremeTV, just an option to see 8 while in 7, or vice versa (like summary hover, shows over Notes maybe)
  (see also idea as popout window of maps)
 
-
-McMonkey: something that would help me in regards to the hints is an option to have a permanent thick border around the overworld zones. At this point I know where all of the 
-zones generally are, but have to check the borders periodically to remember "is forgotten spot lake or death mountain" for example. Colored thick borders would make that simple
-    let bru1 = new LinearGradientBrush(new GradientStopCollection([new GradientStop(Colors.Transparent,0.0);new GradientStop(Colors.White,0.4);new GradientStop(Colors.White,0.6);new GradientStop(Colors.Transparent, 1.)]))
-    bru1.StartPoint <- Point(0.5,0.0)
-    bru1.EndPoint <- Point(0.5,1.0)
-    let bru2 = new LinearGradientBrush(new GradientStopCollection([new GradientStop(Colors.Transparent,0.0);new GradientStop(Colors.White,0.4);new GradientStop(Colors.White,0.6);new GradientStop(Colors.Transparent, 1.)]))
-    bru2.StartPoint <- Point(0.0,0.5)
-    bru2.EndPoint <- Point(1.0,0.5)
-    let makeLine(x1, x2, y1, y2) = 
-        let line = new System.Windows.Shapes.Line(X1=OMTW*float(x1), X2=OMTW*float(x2), Y1=float(y1*11*3), Y2=float(y2*11*3), Stroke=(if y1=y2 then bru1 else bru2), StrokeThickness=12.)
-
-
-
-
-
-Califax: might be nice if could choose fewer monsters in popup for easier mousing (but that's what hotkeys are for)
 
 
 some kind of on-map better viz of the dungeons, e.g. you're standing next to 3 yellow numerals, but what are blockers? which still has items? gotta look all over
@@ -393,8 +360,6 @@ mouse thumb button mapping? (again, macros)
 
 
 more hotkeys: reset timer?  only if can place start spot with arrows (DONE), else need hand on mouse already anyway
-    other hotkeys to add? has-map toggle for dungeon?
-    way to 'mark first free blocker box with 'X'? also can mark ladder block with hotkey if have ladder, but cannot mouse it, hm
 macros? e.g. one hotkey means press these keys in sequence (could be zelda room to mark 3 no-doors, or tri room to mark room and tri drop)
  - note that zelda-room would 'play' 3-no-doors keys, if you already marked one side as a red wall, then it would cycle that door down 2 more to purple, hm.
         a consequence of door marks being non-idempotent. another reason 'cycle' keys can be problematic. if there was a 'mark left door unmarked' key, could work around it

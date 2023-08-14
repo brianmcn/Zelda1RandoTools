@@ -2,6 +2,10 @@
 
 This document has detailed notes about the main UI features of Z-Tracker.
 
+**NOTE**: This documentation has not been updated since version 1.2.3.
+
+To see the new 1.3 features, please read [what's new in 1.3.1](whats-new.md#v1.3.1).
+
 Contents of this document:
 
 - [General Features](#general)
