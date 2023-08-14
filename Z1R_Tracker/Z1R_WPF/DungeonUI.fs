@@ -29,7 +29,9 @@ let unmarkRemarkBehavior(cm:CustomComboBoxes.CanvasManager, (_i,_j,hk), boxViews
     let dungeon = TrackerModel.GetDungeon(dungeonIndex)
     let blockerLogic(maybe:TrackerModel.DungeonBlocker) =
         let full = maybe.HardCanonical()
-        if dungeonIndex = 8 then  
+        if not(full.PlayerCouldBeBlockedByThis()) then
+            Graphics.ErrorBeepWithReminderLogText(sprintf "Tried to set blocker %s, but you already have item which unblocks it" (full.AsHotKeyName()))
+        elif dungeonIndex = 8 then  
             Graphics.ErrorBeepWithReminderLogText("Blockers cannot be marked for dungeon 9")
         else
             // NOTE: this logic ignores Blockers' AppliesTo info

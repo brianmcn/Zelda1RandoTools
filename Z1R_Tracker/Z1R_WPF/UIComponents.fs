@@ -828,7 +828,11 @@ let MakeBlockers(cm:CustomComboBoxes.CanvasManager, blockerQueries:ResizeArray<_
             | TrackerModel.DungeonBlocker.BOW_AND_ARROW ->  Some(TrackerModel.MapSquareChoiceDomainHelper.ARROW, (pos.X, pos.Y))
             | _ -> None
             )
-        let SetNewValue(db) = TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
+        let SetNewValue(db:TrackerModel.DungeonBlocker) = 
+            if db.PlayerCouldBeBlockedByThis() then
+                TrackerModel.DungeonBlockersContainer.SetDungeonBlocker(dungeonIndex, blockerIndex, db)
+            else
+                Graphics.ErrorBeepWithReminderLogText(sprintf "Tried to set blocker %s, but you already have item which unblocks it" (db.AsHotKeyName()))
         let activate(activationDelta) =
             popupIsActive <- true
             let pc, predraw = Views.MakeBlockerCore()
