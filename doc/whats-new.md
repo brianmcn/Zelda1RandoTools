@@ -69,7 +69,11 @@ Before explaining the feature in detail, imagine 'c' is your ChevyMoat (room) Ho
  - pressing 'ccc' will mark a room as a ChevyMoat and also add a Maybe-Ladder blocker to this dungeon
  - pressing 'hhh' will mark a room with a floor drop heart, and also mark the appropriate item box in this dungeon with the Heart Container you just picked up
 
-That is, this feature provides a way to use your existing HotKeys, repeatedly, to activate new behaviors.  The full explanation follows.
+That is, this feature provides a way to use your existing HotKeys, repeatedly, to activate new behaviors.  Briefly:
+
+- **Pressing a HotKey twice in a row, on a room that is already marked with that HotKey, activates special behaviors.**
+
+The full explanation follows.
 
 ##### Unmark-Remark interactions
 

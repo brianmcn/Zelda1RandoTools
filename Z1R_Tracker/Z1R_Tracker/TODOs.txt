@@ -246,6 +246,10 @@ since 1.3.0C...
 
 
 
+'ccc' lets you mark a ladder block even if you have the ladder, should it? mousing woulnd't let you
+
+
+
 
 More contextual popout ideas:
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
