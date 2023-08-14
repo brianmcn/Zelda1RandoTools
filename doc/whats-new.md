@@ -321,7 +321,8 @@ ever 'lost' off-screen, you can right-click the button that creates the popout i
 - ToggleCursorOverworldOrDungeon hotkey shows a brief animation to help locate the warped mouse cursor (only in default Tall application layout)
 - left-clicking a dungeon mark on overworld map switches to that dungeon tab and behaves like ToggleCursorOverworldOrDungeon hotkey
 - new reminder for Overworld Overwrites (if you make a mark, and then change it)
-- new reminder "log": click log button at upper right of timeline to see past reminders (can mouseover each for description)
+- new reminder "log": click log button at upper right of timeline to see past reminders with full descriptions
+- various warning/error beeps now come with Reminder Logs that describe them (e.g. "You tried to mark a Ladder blocker, but you already have the Ladder")
 - new eyeball icon in upper right, hover to hide overworld map icons (to see unobscured map)
 - hidden setting UseBlurEffect, set it to false if using the "Coords" checkbox causes the whole app to get super laggy (due to BlurEffect rendering in software rather than hardware)
 - dungeon rooms: unpaired transport numerals light up
