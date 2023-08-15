@@ -247,7 +247,7 @@ since 1.3.0D...
  - all error beeps now come with a Reminder Log, so you can see exactly what Z-Tracker was unhappy about
  - Reminder Log now displays full text (no need to hover it to read it)
  - Unmark-Remark now error-beeps if you try to set a bad Blocker (e.g. try to mark Ladder blocker when you already have the Ladder)
-
+ - put an 'all files' option in the 'load previous save' dialog, in case people rename their save files
 
 
 
@@ -304,6 +304,7 @@ possible new reminder category - item obtained in first 5 mins, remind 7 mins la
  - possibly a reminder when all dungeons have been found _or_hinted_, so you don't look everywhere when you have a hint? hm
  - possible reminder: 'there is only 1 remaining location that XXX can be, hover its hint-halo to see it'
  - possible reminder: if bow/silvers/ladder are marked red on tracker for more than N minutes, remind they exist in tracker box XXX
+ - possible reminder: mark some dungeon N, get atlas book outside dungeon, return to dungeon tab N, remind 'you have a new map'?
 Related: possible easteregg/configurable random speech, like motivationals or something? (kibitz.txt) would need option to turn it off, when you want to get serious
 
 

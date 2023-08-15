@@ -731,15 +731,21 @@ type MyWindow() as this =
                 if n = 999 then
                     let ofd = new Microsoft.Win32.OpenFileDialog()
                     ofd.InitialDirectory <- System.AppDomain.CurrentDomain.BaseDirectory
-                    ofd.Filter <- "ZTracker saves|zt-save-*.json"
+                    ofd.Filter <- "ZTracker saves|zt-save-*.json|All Files|*.*"
                     let r = ofd.ShowDialog(this)
                     if r.HasValue && r.Value then
                         try
                             let json = System.IO.File.ReadAllText(ofd.FileName)
                             let ver = System.Text.Json.JsonSerializer.Deserialize<DungeonSaveAndLoad.JustVersion>(json, new System.Text.Json.JsonSerializerOptions(AllowTrailingCommas=true))
                             if ver.Version <> OverworldData.VersionString then
-                                let msg = sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\nLoading this file might not work, but Z-Tracker will attempt to load it anyway." 
-                                                    OverworldData.VersionString ver.Version
+                                let msg = 
+                                    let prefix = 
+                                        if ver.Version.StartsWith("1.2") || ver.Version.StartsWith("1.3") then
+                                            "Loading this file might not work"
+                                        else
+                                            "Loading this file will probably fail"
+                                    sprintf "You are running Z-Tracker version '%s' but the\nsave file was created using version '%s'.\n%s, but Z-Tracker will attempt to load it anyway." 
+                                                    OverworldData.VersionString ver.Version prefix
                                 popupIsActive <- true
                                 let! r = CustomComboBoxes.DoModalMessageBox(cm, System.Drawing.SystemIcons.Error, msg, ["Attempt Load"])
                                 popupIsActive <- false
