@@ -248,6 +248,7 @@ since 1.3.0D...
  - Reminder Log now displays full text (no need to hover it to read it)
  - Unmark-Remark now error-beeps if you try to set a bad Blocker (e.g. try to mark Ladder blocker when you already have the Ladder)
  - put an 'all files' option in the 'load previous save' dialog, in case people rename their save files
+ - fix Hide Timer option not being respected at startup
 
 
 

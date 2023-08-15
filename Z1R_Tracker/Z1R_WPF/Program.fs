@@ -291,7 +291,9 @@ type MyWindow() as this =
         let mutable settingsWereSuccessfullyRead = false
         TrackerModelOptions.readSettings()
         settingsWereSuccessfullyRead <- true
+        // some global variables have already been initialized, and so they read the default value of settings, rather than the settings we just read; this bit patches that up:
         OptionsMenu.InitializeVoice()
+        OptionsMenu.hideTimerChanged.Trigger()
         Graphics.volumeChanged.Trigger(TrackerModelOptions.Volume)
 
         do

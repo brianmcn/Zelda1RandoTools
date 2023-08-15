@@ -49,7 +49,6 @@ let broadcastTimeTextBox =
     let timerOpacity() = 
         r.Opacity <- if TrackerModelOptions.HideTimer.Value then 0.0 else 1.0
         hmsTimeTextBox.Opacity <- if TrackerModelOptions.HideTimer.Value then 0.0 else 1.0
-    timerOpacity()
     OptionsMenu.hideTimerChanged.Publish.Add(timerOpacity)
     r
 
