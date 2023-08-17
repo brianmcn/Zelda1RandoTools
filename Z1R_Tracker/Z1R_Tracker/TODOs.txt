@@ -469,6 +469,9 @@ distributing version process
  - make a branch e.g. "v1.0" in git which is a spur for the release (and bugfix updates to app/docs)
  - make a tag on the branch with the full version number e.g. "v1.0.0"
  - commit the branch
+ALSO
+ - put a zip in UserCustomAssets per the docs at install.md
+ - update install.md direct link to discord message
 ABOVE IS DONE
  - delete entire Relase directory
      - get rid of hotkeys/settings/crash log

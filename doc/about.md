@@ -1,6 +1,6 @@
 # About Z-Tracker and the people who made it
 
-Z-Tracker was developed principally by Dr. Brian Lorgon111 ([twitch](https://www.twitch.tv/lorgon), [YouTube](https://www.youtube.com/c/lorgon111), [Twitter @lorgon111](https://twitter.com/lorgon111)).
+Z-Tracker was developed principally by Dr. Brian Lorgon111 ([twitch](https://www.twitch.tv/lorgon), [YouTube](https://www.youtube.com/c/lorgon111)).
 
 That's me.  Hi!
 
@@ -90,7 +90,8 @@ Marc suggests the final tweak that makes the topology really pop:
 And so it went.  Another month of adding more features, iterating, and polishing, and the tracker finally feels 'ready for the world' as I write this (2021-Oct-21).  I hope you 
 (and your viewers) enjoy using (and watching) it!  --Brian
 
-
+**EDIT in August 2023**: wow, the app has come so far in the last couple years.  So many more features, and greatly improved usability across a variety of devices.  Thanks to 
+many users (too many to name) who helped over the years by testing, reporting bugs, offering feature suggestions, and discussing design ideas.
 
 
 

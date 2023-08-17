@@ -55,6 +55,11 @@ Hotkeys have some 'smarts' in addition to just 'setting the state you pressed':
 
 These ad-hoc behaviors are designed either to make common cases fast and easy, or to make it easy to correct mismarks from 'fat fingering'.
 
+Version 1.3 added a significant bit of additional HotKey functionality, which enables you to control almost the entire app via the keyboard; read about it in these two spots:
+
+ - [Navigation HotKeys](whats-new.md#v13-hotkeys)
+ - [More dungeon room HotKey behaviors](whats-new.md#v13-dungeon-hotkeys)
+
 
 ## <a id="save-state"></a> Save State
 
@@ -93,9 +98,12 @@ using OBS to downscale your screen capture of the broadcast window to some arbit
 If you do use the Broadcast Window, be sure to read the [Stream-Capturing Z-Tracker with OBS](stream-capture.md) document for a number of useful tips.
 
 
-## <a id="window-size"></a> Window Size
+## <a id="window-size"></a> Window Size and Shape
 
 The Z-Tracker application is somewhat large (the window content is 768x967), designed to make all of the important information available to the player on-screen 
-at once.  However some users may need or desire a smaller application window.  You can make the application window 2/3 size by clicking the button in the banner strip at the 
-very top of the startup screen, which allows you to select either the Default or 2/3 size options.
+at once.  However some users may need or desire a smaller or larger application window.  You can change the application window size and shape by clicking the button 
+in the banner strip at the very top of the startup screen, which brings up this menu:
+
+![Size and Shape options](screenshots/size-and-shape-options.png)
+
 

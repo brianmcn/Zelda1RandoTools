@@ -2,7 +2,7 @@
 
 ### A tracker for Zelda 1 Randomizer
 
-The most recent release is v1.2.3, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.2/doc/TOC.md), which includes links for 
+The most recent release is v1.3.1, and you can find the [documentation here](https://github.com/brianmcn/Zelda1RandoTools/blob/v1.3/doc/TOC.md), which includes links for 
 downloading and installing Z-Tracker.
 
 Sample screenshots:
@@ -31,4 +31,6 @@ I wanted to create my own tool that I thought was better suited to certain audie
 * For **those learning z1r**: provide some helpful assistance and steering that makes it easier for the new player to decide what to do next.  Some features help route a path through the overworld 
   to find all of the necessary locations, and others provide reminder feedback about item progress and places that ought to be returned to, to finish the seed.
 
-Z-Tracker is still in active development as I write this (August 2022).  The current release is suitable both for casual seed runners as well as z1r racers.
+Z-Tracker is still in active development as I write this (August 2023).  The current release is suitable both for casual seed runners as well as z1r racers.
+
+Enjoy! - _Dr. Brian Lorgon111_

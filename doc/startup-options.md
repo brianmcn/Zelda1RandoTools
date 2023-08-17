@@ -19,14 +19,15 @@ a few of the more rarely used flags will result in a somewhat degraded experienc
  - [**Hide Dungeon Numbers**](#startup-hdn)
  - [**Overworld Quest**](#startup-coq)
 
-Each is described in more detail in the linked sections below.  Note that "**Mirror Overworld**" and "**Second Quest Dungeons**" are supported in the Options Menu, but those options 
-can be changed at any time in the middle of the game, not just at startup.
+Each is described in more detail in the linked sections below.  
 
-**Flags** that are not directly supported, and may result in a minor degradation of the experience:
+Note that some options like "**Mirror Overworld**" and "**Second Quest Dungeons**" and "**Replace WS/MS with Bomb Upgrades**" 
+are supported via buttons in the top portion of the tracker, but those options can be changed at any time in the middle of the game, not just at startup.  
 
- - **Whistle To New Dungeons** is assumed to be checked and **Recorder to Unbeaten Dungeons** is assumed to be un-checked.  If your flags don't meet these conditions, then 
-     - some aspects of [Routing](use.md#routing) will not work properly: consider turning off 'Draw Routes' in the [Options Menu](#startup-o) and avoid using [Link Routing](use.md#main-link)
-     - the map legend and green dungeon icons will suggest the wrong things
+"**Record To {New/Unbeaten} Dungeons**" options are supported via a '...' button next to 'Recorder Destination' in the overworld map LEGEND.
+
+**Flags** that are not directly supported, and may result in a very minor degradation of the experience:
+
  - **Change Sword Hearts** is assumed to be checked, but if it's not checked in your flagset, the only bad side-effect is that you may get e.g. a spurious reminder to "Consider the magical sword"
    when you have 10 hearts, even though you actually need 12 hearts
  - **Level 9 Entry** is assumed to be 8 triforces; if it's something else, various "go-time" reminders may not trigger, or may trigger incorrectly
@@ -62,11 +63,6 @@ Enabling this option causes a number of changes in the tracker to help the playe
    - the overworld map tiles for dungeons are labeled with letters A-H, or number-letter (e.g. "5B") if the Number has been set
    - the blockers labels are A-H
    - voice reminders may refer to 'this dungeon' rather than e.g. 'dungeon three' when the Number is unknown
- - hotkeys:
-   - pressing keyboard keys 1-8 will set the dungeon number when
-      - hovering a lettered triforce
-      - hovering the Color-Number button above the lettered triforces at the top of the tracker
-      - inside the Number chooser popup
 
 The workflow for the player then becomes:
  - when you first encounter a dungeon, label it as the first unused letter A-H: this will always be the canonical label for this dungeon
