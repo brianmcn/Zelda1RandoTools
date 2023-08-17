@@ -11,7 +11,7 @@ The app is released as a .zip file folder of the executable and all its helper f
 The current release for Windows is version 1.3.1, and currently can be downloaded here: https://github.com/brianmcn/Zelda1RandoTools/raw/v1.3/UserCustomAssets/ZTracker_v1.3.1.zip
 or from the z1r discord server, in the 'Randomizer Tracker' section, as a pinned message on the '#z-tracker' subchannel.  
 Here's an invite link to the z1r discord: https://www.discord.me/z1randomizer
-and here is a direct link to the message in the z1r discord with the Z-Tracker download: TODO
+and here is a direct link to the message in the z1r discord with the Z-Tracker download: https://discord.com/channels/368763663986982912/920498784142774332/1141698547960528958
 
 ### <a id="defender"></a> Windows Defender
 
