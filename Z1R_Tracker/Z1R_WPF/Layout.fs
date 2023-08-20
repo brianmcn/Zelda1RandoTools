@@ -129,9 +129,9 @@ type ApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(appMainCanvas, currentMaxHeartsTextBox, RIGHT_COL-1., 130.-1.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(appMainCanvas, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
-            canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
+            canvasAdd(appMainCanvas, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
-            canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 52.)
+            canvasAdd(appMainCanvas, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
         member this.AddMouseHoverExplainer(mouseHoverExplainerIcon, c) =
             canvasAdd(appMainCanvas, mouseHoverExplainerIcon, 540., 0.)
             canvasAdd(appMainCanvas, c, 0., 0.)
@@ -366,9 +366,9 @@ type ShorterApplicationLayout(cm:CustomComboBoxes.CanvasManager) =
             canvasAdd(upper, currentMaxHeartsTextBox, RIGHT_COL-1., 130.-1.)
         member this.AddShowCoords(showCoordsCB, havePotionLetterImage) = 
             canvasAdd(upper, havePotionLetterImage, OW_ITEM_GRID_LOCATIONS.OFFSET+183., 63.)
-            canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 72.)
+            canvasAdd(upper, showCoordsCB, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 72.)
         member this.AddOWZoneOverlay(zone_checkbox) =
-            canvasAdd(upper, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+182., 52.)
+            canvasAdd(upper, zone_checkbox, OW_ITEM_GRID_LOCATIONS.OFFSET+200., 52.)
         member this.AddMouseHoverExplainer(mouseHoverExplainerIcon, c) =
             canvasAdd(upper, mouseHoverExplainerIcon, 540., 0.)
             canvasAdd(upper, c, 0., 0.)
