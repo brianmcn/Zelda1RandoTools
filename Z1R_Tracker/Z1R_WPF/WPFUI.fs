@@ -576,11 +576,13 @@ let makeAll(mainWindow:Window, cm:CustomComboBoxes.CanvasManager, drawingCanvas:
                                             selectDungeonTabEvent.Trigger(newState)
                                         Graphics.PlaySoundForSpeechRecognizedAndUsedToMark()
                                         let pos = c.TranslatePoint(Point(OMTW/2., 11.*3./2.), appMainCanvas)
+                                        popupIsActive <- true    // overworldAcceleratorTable has e.g. take-any pie menu, which calls DoModal directly
                                         match overworldAcceleratorTable.TryGetValue(newState) with
                                         | (true,f) -> 
                                             do! f(cm,c,i,j)
                                             Graphics.WarpMouseCursorTo(pos)
                                         | _ -> ()
+                                        popupIsActive <- false
                                         animateOverworldTileIfOptionIsChecked(i,j)
                                 | None -> ()
                             elif MapStateProxy(curState).IsThreeItemShop && TrackerModel.getOverworldMapExtraData(i,j,TrackerModel.MapSquareChoiceDomainHelper.SHOP)=0 then

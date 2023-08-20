@@ -249,9 +249,25 @@ since 1.3.0D...
  - Unmark-Remark now error-beeps if you try to set a bad Blocker (e.g. try to mark Ladder blocker when you already have the Ladder)
  - put an 'all files' option in the 'load previous save' dialog, in case people rename their save files
  - fix Hide Timer option not being respected at startup
+since 1.3.1 release...
+ - fix speech recognition popupIsActive/DoModal crash bug ("tracker set sword 1")
+
+
+potion letter displays underneath coords, move Z/C back to the right a tiny bit, ensure nothing else display overlaps with like mixed HDN or anything
+
+gob: timer stops updating for 2s when clicking triforce
+ - is only calling doUIUpdate once, when I test by loading a completed seed, but maybe is very expensive all the listeners? find way to measure...
+ - did not repro in fresh tracker instance for gob... maybe i am hooking/leaking listeners throughout gameplay somehow?
+
+mixed 1st & 2nd use same map, though my map is wrong, see https://discord.com/channels/368763663986982912/586261700064575488/1060005367238639776 notably 1q3 should be green in 2qmix
+
+gob: wishes popout windows could scale (maybe non-UI but in json?)
 
 
 
+fun stuff - mark heart, play 'yum' sound? hook own sound effects? (similar to custom reminders)
+
+maybe 'tip' about number of transport stairs per shapes dungeon ( = K + #visibleSegments where K = 000011116 )
 
 More contextual popout ideas:
  - imagine a window that is 'rooms that dont drop' that updates based on dungeon you are in
